@@ -23,6 +23,13 @@
                 "{PROJECT_DIR}/resource/bilibili"
             ]
         },
+         {
+            "name": "OPPO 服",
+            "path": [
+                "{PROJECT_DIR}/resource/base",
+                "{PROJECT_DIR}/resource/oppo"
+            ]
+        },
         {
             "name": "国际服（EN）",
             "path": [
