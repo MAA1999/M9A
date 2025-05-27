@@ -37,7 +37,8 @@
             "ActivityMainAnecdoteFlag"
         ],
         "interrupt": [
-            "ActivityMainSelectAnecdote"
+            "ActivityMainSelectAnecdote",
+            "SwipeDowmForAnecdote"
         ]
     },
     "ActivityMainAnecdoteFlag": {
@@ -744,5 +745,24 @@
             626
         ],
         "action": "Click"
+    },
+    "SwipeDowmForAnecdote": {
+        "action": "Swipe",
+        "begin": [
+            120,
+            550,
+            100,
+            100
+        ],
+        "end": [
+            120,
+            250,
+            100,
+            100
+        ],
+        "post_delay": 0,
+        "next": [
+            "SwipeStop"
+        ]
     }
 }
