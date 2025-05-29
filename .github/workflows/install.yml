@@ -3,7 +3,7 @@ name: install
 on:
   push:
     tags:
-      - "v*"
+      - "v[0-9]+.[0-9]+.[0-9]+*"  
     branches:
       - "**"
     paths:
@@ -32,23 +32,33 @@ jobs:
           fetch-depth: 0
       - id: set_tag
         run: |
-          is_release=${{ startsWith(github.ref, 'refs/tags/v') }}
-          tag=$(git describe --tags --match "v*" ${{ github.ref }} || true)
-          if [[ $tag != v* ]]; then
+          # 检查标签格式
+          if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
+            is_release=true
+            tag=${GITHUB_REF#refs/tags/}
+            echo "Release tag format is valid: $tag"
+          else
+            is_release=false
+            # 获取最新的发布标签
             tag=$(curl -sX GET "https://api.github.com/repos/${{ github.repository }}/releases/latest" --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | awk '/tag_name/{print $4}' FS='["]')
-            if [[ $tag != v* ]]; then
+            if [[ ! $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
+              echo "No valid release tag found, using v0.0.0"
               tag="v0.0.0"
             fi
             tag=$(date "+$tag-%y%m%d-$(git rev-parse --short HEAD)")
           fi
+
           if ! $($is_release) ; then
             prefix=${tag%-*-*}
             suffix=${tag#$prefix-}
             tag="$prefix-ci.$suffix"
           fi
+
+          # 检查是否为预发布版本
           is_prerelease=false
           if [[ $tag =~ .*alpha.* || $tag =~ .*beta.* || $tag =~ .*rc.* || $tag =~ .*dev.* || $tag =~ .*-ci.* ]]; then
             is_prerelease=true
+            echo "This is a pre-release version"
           fi
 
           echo tag=$tag | tee -a $GITHUB_OUTPUT
