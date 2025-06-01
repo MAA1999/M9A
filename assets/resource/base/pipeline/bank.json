@@ -825,9 +825,28 @@
         "next": [
             "NoTinyGlobe(1)",
             "PurchaseTinyGlobe(1)Max",
-            "PurchaseTinyGlobe(1)"
+            "PurchaseTinyGlobe(1)",
+            "SoldOut"
         ],
-        "interrupt": []
+        "interrupt": [
+            "SwipeUp"
+        ]
+    },
+    "SoldOut": {
+        "recognition": "OCR",
+        "expected": [
+            "售罄"
+        ],
+        "replace": [
+            "馨",
+            "罄"
+        ],
+        "roi": [
+            248,
+            128,
+            969,
+            557
+        ]
     },
     "NoTinyGlobe(1)": {
         "recognition": "OCR",
