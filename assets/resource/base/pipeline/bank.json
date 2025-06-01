@@ -823,12 +823,11 @@
             575
         ],
         "next": [
-            "NoTinyGlobe(1)"
-        ],
-        "interrupt": [
+            "NoTinyGlobe(1)",
             "PurchaseTinyGlobe(1)Max",
             "PurchaseTinyGlobe(1)"
-        ]
+        ],
+        "interrupt": []
     },
     "NoTinyGlobe(1)": {
         "recognition": "OCR",
@@ -857,6 +856,7 @@
         }
     },
     "PurchaseTinyGlobe(1)": {
+        "is_sub": true,
         "recognition": "OCR",
         "expected": "微频偏振",
         "roi": [
@@ -868,6 +868,7 @@
         "action": "Click"
     },
     "PurchaseTinyGlobe(1)Max": {
+        "is_sub": true,
         "recognition": "OCR",
         "expected": "MAX",
         "roi": [
