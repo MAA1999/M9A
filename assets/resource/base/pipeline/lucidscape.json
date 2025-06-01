@@ -405,7 +405,16 @@
             298,
             259
         ],
-        "action": "Click"
+        "action": "Click",
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                47,
+                614,
+                188,
+                66
+            ]
+        }
     },
     "LucidscapeStageLocked": {
         "recognition": "OCR",
