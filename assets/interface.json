@@ -640,7 +640,10 @@
                             ]
                         },
                         "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                            "next": [
+                                "StageDifficulty_Hard",
+                                "StageDifficulty"
+                            ]
                         }
                     }
                 },
