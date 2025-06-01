@@ -755,7 +755,10 @@
     },
     "EnterFragmentsShop": {
         "recognition": "OCR",
-        "expected": "碎片叙事",
+        "expected": [
+            "碎片叙事",
+            "叙事"
+        ],
         "roi": [
             30,
             432,
