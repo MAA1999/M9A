@@ -1086,7 +1086,7 @@
         "吃糖": {
             "cases": [
                 {
-                    "name": "吃完临期糖",
+                    "name": "吃24小时内过期的糖",
                     "pipeline_override": {
                         "MiniCandy24H": {
                             "expected": "小时"
@@ -1100,7 +1100,7 @@
                     }
                 },
                 {
-                    "name": "吃完所有糖",
+                    "name": "吃14天内过期的糖",
                     "pipeline_override": {
                         "MiniCandy24H": {
                             "expected": [
