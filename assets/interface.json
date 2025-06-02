@@ -1088,13 +1088,13 @@
                 {
                     "name": "吃24小时内过期的糖",
                     "pipeline_override": {
-                        "MiniCandy24H": {
+                        "MiniCandy": {
                             "expected": "小时"
                         },
-                        "SmallCandy24H": {
+                        "SmallCandy": {
                             "expected": "小时"
                         },
-                        "BigCandy24H": {
+                        "BigCandy": {
                             "expected": "小时"
                         }
                     }
@@ -1102,19 +1102,19 @@
                 {
                     "name": "吃14天内过期的糖",
                     "pipeline_override": {
-                        "MiniCandy24H": {
+                        "MiniCandy": {
                             "expected": [
                                 "天",
                                 "小时"
                             ]
                         },
-                        "SmallCandy24H": {
+                        "SmallCandy": {
                             "expected": [
                                 "天",
                                 "小时"
                             ]
                         },
-                        "BigCandy24H": {
+                        "BigCandy": {
                             "expected": [
                                 "天",
                                 "小时"
