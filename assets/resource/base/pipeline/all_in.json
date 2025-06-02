@@ -247,6 +247,7 @@
             149
         ],
         "next": [
+            "EatCandy",
             "Sub_QuitEatCandyPage",
             "OpenReplaysTimesX3",
             "SetReplaysTimesX3"
@@ -301,7 +302,7 @@
             149
         ],
         "next": [
-            "EatCandyWithin24H",
+            "EatCandy",
             "Sub_QuitEatCandyPage",
             "HomeFlag"
         ],

@@ -80,7 +80,7 @@
                 "作战关卡",
                 "复现次数",
                 "刷完全部体力",
-                "吃全部临期糖"
+                "吃糖"
             ],
             "doc": "按关卡综合效率排序，刷取推荐来源：\n必要的记录https://www.kdocs.cn/l/cd5MWeCl5bKw"
         },
@@ -92,7 +92,7 @@
                 "活动难度",
                 "复现次数",
                 "刷完全部体力",
-                "吃全部临期糖"
+                "吃糖"
             ]
         },
         {
@@ -1083,20 +1083,49 @@
                 }
             ]
         },
-        "吃全部临期糖": {
+        "吃糖": {
             "cases": [
                 {
-                    "name": "Yes",
+                    "name": "吃完临期糖",
                     "pipeline_override": {
-                        "EatCandyWithin24H": {
-                            "enabled": true
+                        "MiniCandy24H": {
+                            "expected": "小时"
+                        },
+                        "SmallCandy24H": {
+                            "expected": "小时"
+                        },
+                        "BigCandy24H": {
+                            "expected": "小时"
                         }
                     }
                 },
                 {
-                    "name": "No",
+                    "name": "吃完所有糖",
                     "pipeline_override": {
-                        "EatCandyWithin24H": {
+                        "MiniCandy24H": {
+                            "expected": [
+                                "天",
+                                "小时"
+                            ]
+                        },
+                        "SmallCandy24H": {
+                            "expected": [
+                                "天",
+                                "小时"
+                            ]
+                        },
+                        "BigCandy24H": {
+                            "expected": [
+                                "天",
+                                "小时"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "不吃糖",
+                    "pipeline_override": {
+                        "EatCandy": {
                             "enabled": false
                         }
                     }

@@ -1,6 +1,6 @@
 {
-    "EatCandyWithin24H": {
-        "enabled": false,
+    "EatCandy": {
+        "enabled": true,
         "next": [
             "MiniCandy24H",
             "SmallCandy24H",
@@ -10,7 +10,7 @@
     },
     "MiniCandy24H": {
         "recognition": "OCR",
-        "expected": "小时",
+        "expected_code": "Set in code.",
         "roi": [
             989,
             212,
@@ -23,7 +23,7 @@
     },
     "SmallCandy24H": {
         "recognition": "OCR",
-        "expected": "小时",
+        "expected_code": "Set in code.",
         "roi": [
             829,
             65,
@@ -36,7 +36,7 @@
     },
     "BigCandy24H": {
         "recognition": "OCR",
-        "expected": "小时",
+        "expected_code": "Set in code.",
         "roi": [
             856,
             373,
