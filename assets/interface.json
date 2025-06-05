@@ -642,7 +642,7 @@
                         "StageDifficulty": {
                             "next": [
                                 "StageDifficulty_Hard",
-                                "StageDifficulty"
+                                "TargetStageName"
                             ]
                         }
                     }
