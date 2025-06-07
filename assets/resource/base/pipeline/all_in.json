@@ -247,10 +247,11 @@
             149
         ],
         "next": [
-            "EatCandy",
-            "Sub_QuitEatCandyPage",
             "OpenReplaysTimesX3",
             "SetReplaysTimesX3"
+        ],
+        "interrupt": [
+            "EatCandy"
         ]
     },
     "RecoveryPageByX3": {
@@ -266,9 +267,11 @@
             149
         ],
         "next": [
-            "Sub_QuitEatCandyPage",
             "OpenReplaysTimesX2",
             "SetReplaysTimesX2"
+        ],
+        "interrupt": [
+            "QuitEatCandyPage"
         ]
     },
     "RecoveryPageByX2": {
@@ -284,9 +287,11 @@
             149
         ],
         "next": [
-            "Sub_QuitEatCandyPage",
             "OpenReplaysTimesX1",
             "SetReplaysTimesX1"
+        ],
+        "interrupt": [
+            "QuitEatCandyPage"
         ]
     },
     "RecoveryPageByX1": {
@@ -302,11 +307,10 @@
             149
         ],
         "next": [
-            "EatCandy",
-            "Sub_QuitEatCandyPage",
             "HomeFlag"
         ],
         "interrupt": [
+            "QuitEatCandyPage",
             "ReturnMain"
         ]
     }

@@ -5,7 +5,7 @@
             "MiniCandy",
             "SmallCandy",
             "BigCandy",
-            "NotCandy"
+            "QuitEatCandyPage"
         ]
     },
     "MiniCandy": {
@@ -47,26 +47,6 @@
             "EatBigCandy"
         ]
     },
-    "NotCandy": {
-        "recognition": "OCR",
-        "expected": [
-            "活性",
-            "恢复"
-        ],
-        "roi": [
-            465,
-            571,
-            277,
-            149
-        ],
-        "next": [
-            "Sub_QuitEatCandyPage",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton"
-        ]
-    },
     "EatMiniCandy": {
         "recognition": "TemplateMatch",
         "template": "EatCandy/MiniCandy.png",
@@ -78,12 +58,7 @@
         ],
         "action": "Click",
         "next": [
-            "SelectMiniCandyMax",
-            "MiniCandyNotEnough"
-        ],
-        "interrupt": [
-            "Sub_QuitEatCandyPage",
-            "AllIn"
+            "SelectMiniCandyMax"
         ]
     },
     "EatSmallCandy": {
@@ -97,12 +72,7 @@
         ],
         "action": "Click",
         "next": [
-            "EatCandyConfirm",
-            "SmallCandyNotEnough"
-        ],
-        "interrupt": [
-            "Sub_QuitEatCandyPage",
-            "AllIn"
+            "EatCandyConfirm"
         ]
     },
     "EatBigCandy": {
@@ -116,12 +86,7 @@
         ],
         "action": "Click",
         "next": [
-            "EatCandyConfirm",
-            "BigCandyNotEnough"
-        ],
-        "interrupt": [
-            "Sub_QuitEatCandyPage",
-            "AllIn"
+            "EatCandyConfirm"
         ]
     },
     "EatCandyConfirm": {
@@ -135,65 +100,10 @@
         ],
         "action": "Click",
         "next": [
-            "Sub_QuitEatCandyPage",
-            "AllIn"
+            "QuitEatCandyPage"
         ]
     },
-    "MiniCandyNotEnough": {
-        "recognition": "OCR",
-        "expected": "苦目软糖",
-        "roi": [
-            989,
-            212,
-            165,
-            200
-        ],
-        "next": [
-            "SmallCandy",
-            "Sub_QuitEatCandyPage",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton"
-        ]
-    },
-    "SmallCandyNotEnough": {
-        "recognition": "OCR",
-        "expected": "苦目糖果",
-        "roi": [
-            997,
-            62,
-            282,
-            556
-        ],
-        "next": [
-            "BigCandy",
-            "Sub_QuitEatCandyPage",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton"
-        ]
-    },
-    "BigCandyNotEnough": {
-        "recognition": "OCR",
-        "expected": "苦目糖罐",
-        "roi": [
-            997,
-            62,
-            282,
-            556
-        ],
-        "next": [
-            "Sub_QuitEatCandyPage",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton"
-        ]
-    },
-    "Sub_QuitEatCandyPage": {
-        "is_sub": true,
+    "QuitEatCandyPage": {
         "recognition": "OCR",
         "expected": [
             "活性",
@@ -238,9 +148,7 @@
         ],
         "action": "Click",
         "next": [
-            "Sub_QuitEatCandyPage",
-            "AllIn",
-            "ConvertCandyConfirm"
+            "QuitEatCandyPage"
         ]
     }
 }
