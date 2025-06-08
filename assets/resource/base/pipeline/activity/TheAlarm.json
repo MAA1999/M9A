@@ -1,13 +1,18 @@
 {
     "TheAlarm": {
-        "next": "Alarm_Is_7_3/3",
+        "next": "Alarm_End",
         "interrupt": [
             "Alarm_Find0/3"
         ]
     },
-    "Alarm_Is_7_3/3": {
+    "Alarm_End": {
         "recognition": "OCR",
-        "expected": "7/3",
+        "expected": [
+            "0/3",
+            "1/3",
+            "2/3"
+        ],
+        "inverse": true,
         "roi": [
             1126,
             64,
@@ -31,8 +36,22 @@
         "action": "Click",
         "order_by": "Vertical",
         "next": [
+            "Alarm_Select",
             "Alarm_Complete"
         ],
+        "interrupt": "Alarm_StageFlag"
+    },
+    "Alarm_Select": {
+        "recognition": "OCR",
+        "roi": [
+            6,
+            134,
+            122,
+            148
+        ],
+        "enabled": false,
+        "action": "Click",
+        "next": "Alarm_Complete",
         "interrupt": "Alarm_StageFlag"
     },
     "Alarm_Complete": {
@@ -40,13 +59,7 @@
         "template": [
             "Combat\\Activity\\complete.png"
         ],
-        "threshold": 0.95,
-        "roi": [
-            737,
-            454,
-            402,
-            193
-        ],
+        "threshold": 0.7,
         "pre_delay": 1000,
         "action": "Click",
         "target": [
@@ -58,36 +71,36 @@
     },
     "Alarm_StageFlag": {
         "recognition": "OCR",
-        "expected": "当前进度",
+        "expected": "进度",
         "roi": [
-            484,
-            57,
-            86,
-            37
+            439,
+            59,
+            134,
+            39
         ],
-        "only_rec": true,
+        "post_delay": 4000,
         "next": [
+            "Alarm_Complete",
             "Alarm_FindStage"
         ]
     },
     "Alarm_FindStage": {
+        "recognition": "Custom",
+        "custom_recognition": "FindFirstUnplayedStageByCheckmark",
+        "custom_recognition_param": {
+            "difficulty": "Hard",
+            "mode": "Normal"
+        },
+        "action": "Click",
+        "next": "Alarm_Action1"
+    },
+    "Alarm_FindStageFlag": {
         "recognition": "TemplateMatch",
         "template": [
-            "Combat\\Activity\\stage1.png",
-            "Combat\\Activity\\stage2.png",
-            "Combat\\Activity\\stage3.png"
+            "Combat\\Activity\\stage_flag.png"
         ],
-        "roi": [
-            245,
-            128,
-            796,
-            510
-        ],
-        "threshold": 0.95,
-        "action": "Click",
-        "next": [
-            "Alarm_Action1"
-        ]
+        "green_mask": true,
+        "threshold": 0.55
     },
     "Alarm_Action1": {
         "recognition": "OCR",
@@ -101,7 +114,24 @@
         "action": "Click",
         "next": [
             "Alarm_Action2",
+            "Alarm_Action1.1",
             "Alarm_Action1"
+        ]
+    },
+    "Alarm_Action1.1": {
+        "recognition": "OCR",
+        "expected": "确认",
+        "roi": [
+            765,
+            404,
+            80,
+            36
+        ],
+        "only_rec": true,
+        "action": "Click",
+        "next": [
+            "Alarm_Action2",
+            "Alarm_Action1.1"
         ]
     },
     "Alarm_Action2": {
@@ -115,6 +145,7 @@
         ],
         "action": "Click",
         "next": [
+            "Alarm_StageFlagEnd1",
             "Alarm_StageFlagEnd",
             "Alarm_Action2"
         ],
@@ -151,6 +182,7 @@
         "only_rec": true,
         "action": "Click",
         "next": [
+            "Alarm_StageFlagEnd1",
             "Alarm_StageFlagEnd",
             "Alarm_Action4"
         ]
@@ -164,6 +196,7 @@
             205,
             46
         ],
+        "post_delay": 4000,
         "timeout": 60000,
         "next": [
             "TheAlarm_Combat",
@@ -192,13 +225,34 @@
     },
     "Alarm_StageFlagEnd": {
         "recognition": "OCR",
-        "expected": "当前进度",
+        "expected": "进度",
         "roi": [
-            484,
-            57,
-            86,
-            37
+            439,
+            59,
+            134,
+            39
+        ]
+    },
+    "Alarm_StageFlagEnd1": {
+        "recognition": "OCR",
+        "expected": "回合数",
+        "roi": [
+            940,
+            465,
+            77,
+            36
         ],
-        "only_rec": true
+        "only_rec": true,
+        "action": "Click",
+        "target": [
+            21,
+            21,
+            49,
+            46
+        ],
+        "next": [
+            "Alarm_StageFlagEnd",
+            "Alarm_StageFlagEnd1"
+        ]
     }
 }

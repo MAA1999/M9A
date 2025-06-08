@@ -172,9 +172,13 @@
             "doc": "[size:15][color:darkgray]本功能仅完成“角斗场”第一层扫荡[/color][/size]，\n[size:15][color:red]请手动打开角斗场页面[/color][/size]"
         },
         {
-            "name": "警铃鸣响时：日常出勤（需高练度）",
+            "name": "警铃鸣响时（需高练度）",
             "entry": "TheAlarm",
-            "doc": "[size:15][color:tomato]本功能不换角色，debuff吃满，故只适合高练队伍挂机。推荐配队：37+娜娜+纸圈+图图（无需塑造）。使用前请手动打开警铃鸣响时主页面（中间有雨迹追查和雨痕处置字样）[/color][/size]"
+            "option": [
+                "扫荡难度",
+                "警铃速刷"
+            ],
+            "doc": "[size:15][color:tomato]本功能不换角色，debuff吃满，故只适合高练队伍挂机。推荐配队：三巨头（薪电启）+图图石子、追击队。使用前请手动打开警铃鸣响时主页面（中间有雨迹追查和雨痕处置字样）[/color][/size]\n[size:14][color:deepskyblue]“速刷选项”：直接打boss关，没有五号位buff，适合大成三巨头+双奶妈挂机通关。非速刷则会选择拉满五号位buff后再打boss，提高通关稳定性。[/color][/size]\n[size:14][color:deepskyblue]测试用队伍：诺谛卡 + 圈 + 蘑菇 + 塞梅 + 图图（注意五号位放主C）[/color][/size]"
         },
         {
             "name": "(测试中)推图模式",
@@ -1542,6 +1546,108 @@
                         "SOD_DifficultySelect": {
                             "custom_action_param": {
                                 "level": "5"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "扫荡难度": {
+            "cases": [
+                {
+                    "name": "日常出勤",
+                    "pipeline_override": {
+                        "Alarm_FindStage": {
+                            "custom_recognition_param": {
+                                "difficulty": "Easy"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "雨迹追查",
+                    "pipeline_override": {
+                        "Alarm_End": {
+                            "expected": "^(?:[0-9]|1[01])/12$",
+                            "roi": [
+                                893,
+                                517,
+                                74,
+                                34
+                            ]
+                        },
+                        "Alarm_Find0/3": {
+                            "expected": "^(?:[0-9]|1[01])/12$",
+                            "roi": [
+                                893,
+                                517,
+                                74,
+                                34
+                            ]
+                        },
+                        "Alarm_Select": {
+                            "enabled": true,
+                            "expected": "雨迹追查"
+                        },
+                        "Alarm_FindStage": {
+                            "custom_recognition_param": {
+                                "difficulty": "Normal"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "雨痕处治",
+                    "pipeline_override": {
+                        "Alarm_End": {
+                            "expected": "^[0-9]/10$",
+                            "roi": [
+                                895,
+                                601,
+                                69,
+                                30
+                            ]
+                        },
+                        "Alarm_Find0/3": {
+                            "expected": "^[0-9]/10$",
+                            "roi": [
+                                895,
+                                601,
+                                69,
+                                30
+                            ]
+                        },
+                        "Alarm_Select": {
+                            "enabled": true,
+                            "expected": "雨痕处治"
+                        },
+                        "Alarm_FindStage": {
+                            "custom_recognition_param": {
+                                "difficulty": "Hard"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "警铃速刷": {
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Alarm_FindStage": {
+                            "custom_recognition_param": {
+                                "mode": "Normal"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "Alarm_FindStage": {
+                            "custom_recognition_param": {
+                                "mode": "Quickly"
                             }
                         }
                     }
