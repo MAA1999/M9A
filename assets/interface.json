@@ -175,8 +175,7 @@
             "name": "警铃鸣响时（需高练度）",
             "entry": "TheAlarm",
             "option": [
-                "扫荡难度",
-                "警铃速刷"
+                "扫荡难度"
             ],
             "doc": "[size:15][color:tomato]本功能不换角色，debuff吃满，故只适合高练队伍挂机。推荐配队：三巨头（薪电启）+图图石子、追击队。使用前请手动打开警铃鸣响时主页面（中间有雨迹追查和雨痕处置字样）[/color][/size]\n[size:14][color:deepskyblue]“速刷选项”：直接打boss关，没有五号位buff，适合大成三巨头+双奶妈挂机通关。非速刷则会选择拉满五号位buff后再打boss，提高通关稳定性。[/color][/size]\n[size:14][color:deepskyblue]测试用队伍：诺谛卡 + 圈 + 蘑菇 + 塞梅 + 图图（注意五号位放主C）[/color][/size]"
         },
@@ -1559,7 +1558,8 @@
                     "pipeline_override": {
                         "Alarm_FindStage": {
                             "custom_recognition_param": {
-                                "difficulty": "Easy"
+                                "difficulty": "Easy",
+                                "mode": "Normal"
                             }
                         }
                     }
@@ -1591,7 +1591,41 @@
                         },
                         "Alarm_FindStage": {
                             "custom_recognition_param": {
-                                "difficulty": "Normal"
+                                "difficulty": "Normal",
+                                "mode": "Normal"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "雨迹追查(速刷）",
+                    "pipeline_override": {
+                        "Alarm_End": {
+                            "expected": "^(?:[0-9]|1[01])/12$",
+                            "roi": [
+                                893,
+                                517,
+                                74,
+                                34
+                            ]
+                        },
+                        "Alarm_Find0/3": {
+                            "expected": "^(?:[0-9]|1[01])/12$",
+                            "roi": [
+                                893,
+                                517,
+                                74,
+                                34
+                            ]
+                        },
+                        "Alarm_Select": {
+                            "enabled": true,
+                            "expected": "雨迹追查"
+                        },
+                        "Alarm_FindStage": {
+                            "custom_recognition_param": {
+                                "difficulty": "Normal",
+                                "mode": "Quickly"
                             }
                         }
                     }
@@ -1623,30 +1657,40 @@
                         },
                         "Alarm_FindStage": {
                             "custom_recognition_param": {
-                                "difficulty": "Hard"
-                            }
-                        }
-                    }
-                }
-            ]
-        },
-        "警铃速刷": {
-            "cases": [
-                {
-                    "name": "No",
-                    "pipeline_override": {
-                        "Alarm_FindStage": {
-                            "custom_recognition_param": {
+                                "difficulty": "Hard",
                                 "mode": "Normal"
                             }
                         }
                     }
                 },
                 {
-                    "name": "Yes",
+                    "name": "雨痕处治(速刷）",
                     "pipeline_override": {
+                        "Alarm_End": {
+                            "expected": "^[0-9]/10$",
+                            "roi": [
+                                895,
+                                601,
+                                69,
+                                30
+                            ]
+                        },
+                        "Alarm_Find0/3": {
+                            "expected": "^[0-9]/10$",
+                            "roi": [
+                                895,
+                                601,
+                                69,
+                                30
+                            ]
+                        },
+                        "Alarm_Select": {
+                            "enabled": true,
+                            "expected": "雨痕处治"
+                        },
                         "Alarm_FindStage": {
                             "custom_recognition_param": {
+                                "difficulty": "Hard",
                                 "mode": "Quickly"
                             }
                         }
