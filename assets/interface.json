@@ -31,7 +31,7 @@
             ]
         },
         {
-            "name": "小米 服",
+            "name": "小米服",
             "path": [
                 "{PROJECT_DIR}/resource/base",
                 "{PROJECT_DIR}/resource/mi"
