@@ -17,14 +17,21 @@
             ]
         },
         {
-            "name": "B 服",
+            "name": "B服",
             "path": [
                 "{PROJECT_DIR}/resource/base",
                 "{PROJECT_DIR}/resource/bilibili"
             ]
         },
         {
-            "name": "OPPO 服",
+            "name": "小米服",
+            "path": [
+                "{PROJECT_DIR}/resource/base",
+                "{PROJECT_DIR}/resource/XiaoMi"
+            ]
+        },
+        {
+            "name": "OPPO服",
             "path": [
                 "{PROJECT_DIR}/resource/base",
                 "{PROJECT_DIR}/resource/oppo"
