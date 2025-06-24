@@ -1,0 +1,248 @@
+{
+    "CritterCrash": {
+        "doc": "翻斗棋页面启动",
+        "next": [
+            "棋局终结者结束任务"
+        ],
+        "interrupt": [
+            "缪斯币不足开始战斗",
+            "奖励怪物免费购买",
+            "怪物粘贴处购买",
+            "奖励怪物",
+            "怪物粘贴处",
+            "翻斗棋开始战斗",
+            "翻斗棋战斗跳过",
+            "翻斗棋对战结束",
+            "翻斗棋结算",
+            "箱中对决",
+            "选择棋手",
+            "评级提升",
+            "ObtainedAwards",
+            "无视奖励"
+        ]
+    },
+    "无视奖励": {
+        "recognition": "OCR",
+        "expected": [
+            "今日"
+        ],
+        "roi": [
+            583,
+            329,
+            39,
+            27
+        ],
+        "target": [
+            559,
+            339,
+            0,
+            0
+        ],
+        "only_rec": true,
+        "action": "Click",
+        "next": [
+            "无视奖励确认"
+        ]
+    },
+    "无视奖励确认": {
+        "recognition": "OCR",
+        "expected": "确认",
+        "roi": [
+            770,
+            402,
+            75,
+            42
+        ],
+        "action": "Click",
+        "custom_action": "DisableNode",
+        "custom_action_param": {
+            "node_name": "无视奖励"
+        }
+    },
+    "棋局终结者结束任务": {
+        "recognition": "OCR",
+        "expected": [
+            "棋局终结者"
+        ],
+        "roi": [
+            1076,
+            318,
+            147,
+            42
+        ],
+        "next": [
+            "Stop"
+        ]
+    },
+    "奖励怪物": {
+        "recognition": "TemplateMatch",
+        "template": "CritterCrash/翻斗棋怪物防御识别.png",
+        "roi": [
+            130,
+            663,
+            52,
+            51
+        ],
+        "action": "Click",
+        "post_wait_freezes": 100
+    },
+    "奖励怪物免费购买": {
+        "recognition": "OCR",
+        "expected": "免费",
+        "roi": [
+            960,
+            545,
+            63,
+            41
+        ],
+        "action": "Click"
+    },
+    "怪物粘贴处": {
+        "recognition": "TemplateMatch",
+        "template": "CritterCrash/怪物粘贴处.png",
+        "roi": [
+            232,
+            527,
+            158,
+            37
+        ],
+        "target_offset": [
+            -20,
+            120,
+            0,
+            0
+        ],
+        "action": "Click",
+        "post_wait_freezes": 100
+    },
+    "怪物粘贴处购买": {
+        "recognition": "TemplateMatch",
+        "template": "CritterCrash/怪物粘贴处购买.png",
+        "roi": [
+            818,
+            496,
+            146,
+            138
+        ],
+        "action": "Click"
+    },
+    "缪斯币不足开始战斗": {
+        "recognition": "OCR",
+        "expected": "不足",
+        "roi": [
+            954,
+            597,
+            84,
+            24
+        ],
+        "only_rec": true,
+        "action": "Click",
+        "next": [
+            "翻斗棋开始战斗"
+        ]
+    },
+    "翻斗棋开始战斗": {
+        "recognition": "TemplateMatch",
+        "template": "CritterCrash/翻斗棋开始战斗.png",
+        "roi": [
+            1166,
+            303,
+            80,
+            68
+        ],
+        "action": "Click"
+    },
+    "翻斗棋战斗跳过": {
+        "recognition": "TemplateMatch",
+        "template": "CritterCrash/翻斗棋战斗跳过.png",
+        "roi": [
+            615,
+            599,
+            59,
+            55
+        ],
+        "action": "Click"
+    },
+    "翻斗棋对战结束": {
+        "recognition": "OCR",
+        "expected": "对战结束",
+        "roi": [
+            532,
+            115,
+            216,
+            66
+        ],
+        "only_rec": true,
+        "action": "Click"
+    },
+    "翻斗棋结算": {
+        "recognition": "TemplateMatch",
+        "template": "CritterCrash/翻斗棋结算.png",
+        "roi": [
+            170,
+            108,
+            203,
+            109
+        ],
+        "target": [
+            10,
+            10,
+            0,
+            0
+        ],
+        "action": "Click"
+    },
+    "箱中对决": {
+        "recognition": "TemplateMatch",
+        "template": "CritterCrash/箱中对决.png",
+        "roi": [
+            1030,
+            575,
+            177,
+            56
+        ],
+        "action": "Click"
+    },
+    "选择棋手": {
+        "recognition": "OCR",
+        "expected": "选择棋手",
+        "roi": [
+            576,
+            71,
+            138,
+            42
+        ],
+        "action": "Click",
+        "target_offset": [
+            0,
+            250,
+            0,
+            0
+        ],
+        "next": [
+            "组建队伍"
+        ]
+    },
+    "组建队伍": {
+        "recognition": "OCR",
+        "expected": "组建队伍",
+        "roi": [
+            578,
+            579,
+            155,
+            46
+        ],
+        "action": "Click"
+    },
+    "评级提升": {
+        "recognition": "OCR",
+        "expected": "评级提升",
+        "roi": [
+            541,
+            118,
+            197,
+            53
+        ],
+        "action": "Click"
+    }
+}
