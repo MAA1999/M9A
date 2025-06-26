@@ -24,4 +24,5 @@ __all__ = [
     "SummonlngSwipe",
     "SOD_DifficultySelect",
     "SelectChapter",
+    "SelectCombatStage",
 ]

@@ -209,591 +209,422 @@
         "作战关卡": {
             "cases": [
                 {
-                    "name": "啮咬盒(银光子弹)：5-19 厄险（最优）",
+                    "name": "啮咬盒(银光子弹)：5-19 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_5"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "19",
-                                "逆行的舟"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "5-19",
+                                "stageName": "逆行的舟",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "啮咬盒(床下怪物)：7-26 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_7"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "26",
-                                "银镜与纱幕"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "7-26",
+                                "stageName": "银镜与纱幕",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "盐封曼德拉(狂人絮语)：3-13 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_3"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "13",
-                                "一处庭院"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "3-13",
+                                "stageName": "一处庭院",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
-                    "name": "双头形骨架：10-13 厄险（最优）",
+                    "name": "双头形骨架：10-13 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_10"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "13",
-                                "九重城"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "10-13",
+                                "stageName": "九重城",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "双头形骨架：4-20 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_4"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "20",
-                                "草坪午餐"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "4-20",
+                                "stageName": "草坪午餐",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
-                    "name": "祝圣秘银：10-09 厄险（最优）",
+                    "name": "祝圣秘银：10-09 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_10"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "09",
-                                "愚人与女祭司"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "10-9",
+                                "stageName": "愚人与女祭司",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "祝圣秘银(幼龙骨标本)：6-14 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_6"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "14",
-                                "费切尔怪鸟"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "6-14",
+                                "stageName": "费切尔怪鸟",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "百灵百验鸟：2-6 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_2"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "06",
-                                "不朽的尽头"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "2-6",
+                                "stageName": "不朽的尽头",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "百灵百验鸟：9-8 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_9"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "08",
-                                "蛛丝网"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "9-8",
+                                "stageName": "蛛丝网",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "翼造门匙(微光蛾翼灯)：9-15 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_9"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "15",
-                                "阿莱夫"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "9-15",
+                                "stageName": "阿莱夫",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "弯曲鹅颈：5-4 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_5"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "04",
-                                "出航日"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "5-4",
+                                "stageName": "出航日",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "弯曲鹅颈(轮与轴之芯)：10-22 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_10"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "22",
-                                "以我纯净的血"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "10-22",
+                                "stageName": "以我纯净的血",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
-                    "name": "金草焚香：4-4 故事（最优）",
+                    "name": "金草焚香：4-4 故事",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_4"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "04",
-                                "干杯"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Story"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "4-4",
+                                "stageName": "干杯",
+                                "level": "Story"
+                            }
                         }
                     }
                 },
                 {
                     "name": "金草焚香：8-18 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_8"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "18",
-                                "台风眼"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "8-18",
+                                "stageName": "台风眼",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "红漆泥板：9-1 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_9"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "01",
-                                "开篇"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": [
-                                "StageDifficulty_Hard",
-                                "TargetStageName"
-                            ]
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "9-1",
+                                "stageName": "开篇",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
-                    "name": "金爪灵摆：5-14 厄险（优先合成）",
+                    "name": "金爪灵摆：5-14 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_5"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "14",
-                                "和平的枷锁"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "5-14",
+                                "stageName": "和平的枷锁",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
-                    "name": "金爪灵摆：7-20 厄险（优先合成）",
+                    "name": "金爪灵摆：7-20 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_7"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "20",
-                                "古希腊悲剧"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "7-20",
+                                "stageName": "古希腊悲剧",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
-                    "name": "砂金甲虫：10-02 厄险（优先合成）",
+                    "name": "砂金甲虫：10-2 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_10"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "02",
-                                "古舟子咏"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "10-2",
+                                "stageName": "古舟子咏",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
-                    "name": "砂金甲虫：3-15 故事（优先合成）",
+                    "name": "砂金甲虫：3-15 故事",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_3"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "15",
-                                "另一个未来"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Story"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "3-15",
+                                "stageName": "另一个未来",
+                                "level": "Story"
+                            }
                         }
                     }
                 },
                 {
                     "name": "液化战栗：10-17 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_10"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "10",
-                                "侍女"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "10-17",
+                                "stageName": "侍女",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "液化战栗：9-3 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_9"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "03",
-                                "岁月遗忘"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "9-3",
+                                "stageName": "岁月遗忘",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "精磨苦盐：5-8 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_5"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "08",
-                                "旧诫言"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "5-8",
+                                "stageName": "旧诫言",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "精磨苦盐：9-16 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_9"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "16",
-                                "虚构的界限"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "9-16",
+                                "stageName": "虚构的界限",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "未知种根骨：5-7 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_5"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "07",
-                                "豆子罐头"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "5-7",
+                                "stageName": "豆子罐头",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "未知种根骨：5-3 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_5"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "03",
-                                "压箱底"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "5-3",
+                                "stageName": "压箱底",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "粗糙银锭：9-6 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_9"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "06",
-                                "生者的幻影"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "9-6",
+                                "stageName": "生者的幻影",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "粗糙银锭：7-19 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_7"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "19",
-                                "双行道"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "7-19",
+                                "stageName": "双行道",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "幸运咒语：4-20 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_4"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "20",
-                                "草坪午餐"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "4-20",
+                                "stageName": "草坪午餐",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "干蝉翼：10-4 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_10"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "04",
-                                "引路人"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "10-4",
+                                "stageName": "引路人",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "不休轮：7-16 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_7"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "16",
-                                "水流的引线"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "7-16",
+                                "stageName": "水流的引线",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "狐儿尾：8-18 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_8"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "18",
-                                "台风眼"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "8-18",
+                                "stageName": "台风眼",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "辉石原矿：9-1 厄险",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "MainChapter_9"
-                        },
-                        "TargetStageName": {
-                            "expected": [
-                                "01",
-                                "开篇"
-                            ]
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_Hard"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "9-1",
+                                "stageName": "开篇",
+                                "level": "Hard"
+                            }
                         }
                     }
                 },
                 {
                     "name": "尘埃运动 06",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "ResourceChapter_LP"
-                        },
-                        "TargetStageName": {
-                            "expected": "06"
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_None"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "LP-06",
+                                "stageName": "尘埃运动 06",
+                                "level": "None"
+                            }
                         }
                     }
                 },
                 {
                     "name": "铸币美学 06",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "ResourceChapter_MA"
-                        },
-                        "TargetStageName": {
-                            "expected": "06"
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_None"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "MA-06",
+                                "stageName": "铸币美学 06",
+                                "level": "None"
+                            }
                         }
                     }
                 },
                 {
                     "name": "意志解析 07",
                     "pipeline_override": {
-                        "EnterTheShow": {
-                            "next": "ResourceChapter_Psychube"
-                        },
-                        "TargetStageName": {
-                            "expected": "07"
-                        },
-                        "StageDifficulty": {
-                            "next": "StageDifficulty_None"
+                        "SelectCombatStage": {
+                            "custom_action_param": {
+                                "stage": "Psychube-07",
+                                "stageName": "意志解析 07",
+                                "level": "None"
+                            }
                         }
                     }
                 }

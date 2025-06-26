@@ -1,6 +1,18 @@
 {
     "Combat": {
         "next": [
+            "SelectCombatStage"
+        ]
+    },
+    "SelectCombatStage": {
+        "action": "Custom",
+        "custom_action": "SelectCombatStage",
+        "custom_action_param": {
+            "stage": "",
+            "stageName": "",
+            "level": ""
+        },
+        "next": [
             "EnterTheShow"
         ],
         "interrupt": [
@@ -55,10 +67,10 @@
         "recognition": "TemplateMatch",
         "template_code": "Set in code",
         "roi": [
-            53,
-            132,
-            1150,
-            462
+            0,
+            90,
+            1280,
+            460
         ],
         "action": "Click",
         "next": []
@@ -83,20 +95,21 @@
             ]
         },
         "post_delay": 3000,
-        "next_doc": "Set in code."
+        "next_code": "set in code"
     },
-    "MainChapter_1": {
-        "doc": "主线第一章 在我们的时代里",
+    "MainChapter_X": {
+        "action": "Custom",
+        "custom_action": "SelectChapter",
         "next": [
-            "MainChapter_1Enter"
+            "MainChapter_XEnter"
         ],
         "interrupt": [
             "SwipeLeftForChapter"
         ]
     },
-    "MainChapter_1Enter": {
+    "MainChapter_XEnter": {
         "recognition": "TemplateMatch",
-        "template": "Combat/MainChapter_1Enter.png",
+        "template_code": "Set in code.",
         "roi": [
             0,
             90,
@@ -128,214 +141,6 @@
             90,
             1280,
             460
-        ],
-        "action": "Click",
-        "next": "SwipeLeftAndFindStage"
-    },
-    "MainChapter_3": {
-        "doc": "主线第三章 故事一无所有",
-        "action": "Custom",
-        "custom_action": "SelectChapter",
-        "custom_action_param": {
-            "mainStoryChapter": 1
-        },
-        "next": [
-            "MainChapter_3Enter"
-        ],
-        "interrupt": [
-            "SwipeLeftForChapter"
-        ]
-    },
-    "MainChapter_3Enter": {
-        "recognition": "TemplateMatch",
-        "template": "Combat/MainChapter_3Enter.png",
-        "roi": [
-            0,
-            90,
-            1280,
-            460
-        ],
-        "action": "Click",
-        "next": "SwipeLeftAndFindStage"
-    },
-    "MainChapter_4": {
-        "doc": "主线第四章 老虎的金黄",
-        "action": "Custom",
-        "custom_action": "SelectChapter",
-        "custom_action_param": {
-            "mainStoryChapter": 1
-        },
-        "next": [
-            "MainChapter_4Enter"
-        ],
-        "interrupt": [
-            "SwipeLeftForChapter"
-        ]
-    },
-    "MainChapter_4Enter": {
-        "recognition": "TemplateMatch",
-        "template": "Combat/MainChapter_4Enter.png",
-        "roi": [
-            0,
-            90,
-            1280,
-            460
-        ],
-        "action": "Click",
-        "next": "SwipeLeftAndFindStage"
-    },
-    "MainChapter_5": {
-        "doc": "主线第五章 洞穴的囚徒",
-        "action": "Custom",
-        "custom_action": "SelectChapter",
-        "custom_action_param": {
-            "mainStoryChapter": 1
-        },
-        "next": [
-            "MainChapter_5Enter"
-        ],
-        "interrupt": [
-            "SwipeLeftForChapter"
-        ]
-    },
-    "MainChapter_5Enter": {
-        "recognition": "TemplateMatch",
-        "template": "Combat/MainChapter_5Enter.png",
-        "roi": [
-            0,
-            90,
-            1280,
-            460
-        ],
-        "action": "Click",
-        "next": "SwipeLeftAndFindStage"
-    },
-    "MainChapter_6": {
-        "doc": "主线第六章 今夜星光灿烂",
-        "action": "Custom",
-        "custom_action": "SelectChapter",
-        "custom_action_param": {
-            "mainStoryChapter": 1
-        },
-        "next": [
-            "MainChapter_6Enter"
-        ],
-        "interrupt": [
-            "SwipeLeftForChapter"
-        ]
-    },
-    "MainChapter_6Enter": {
-        "recognition": "TemplateMatch",
-        "template": "Combat/MainChapter_6Enter.png",
-        "roi": [
-            0,
-            90,
-            1280,
-            460
-        ],
-        "action": "Click",
-        "next": "SwipeLeftAndFindStage"
-    },
-    "MainChapter_7": {
-        "doc": "主线第七章 孤独之歌",
-        "action": "Custom",
-        "custom_action": "SelectChapter",
-        "custom_action_param": {
-            "mainStoryChapter": 1
-        },
-        "next": [
-            "MainChapter_7Enter"
-        ],
-        "interrupt": [
-            "SwipeLeftForChapter"
-        ]
-    },
-    "MainChapter_7Enter": {
-        "recognition": "TemplateMatch",
-        "template": "Combat/MainChapter_7Enter.png",
-        "roi": [
-            0,
-            90,
-            1280,
-            460
-        ],
-        "action": "Click",
-        "next": "SwipeLeftAndFindStage"
-    },
-    "MainChapter_8": {
-        "doc": "主线第八章 忧郁的热带",
-        "action": "Custom",
-        "custom_action": "SelectChapter",
-        "custom_action_param": {
-            "mainStoryChapter": 2
-        },
-        "next": [
-            "MainChapter_8Enter"
-        ],
-        "interrupt": [
-            "SwipeLeftForChapter"
-        ]
-    },
-    "MainChapter_8Enter": {
-        "recognition": "TemplateMatch",
-        "template": "Combat/MainChapter_8Enter.png",
-        "roi": [
-            0,
-            90,
-            1280,
-            460
-        ],
-        "action": "Click",
-        "next": "SwipeLeftAndFindStage"
-    },
-    "MainChapter_9": {
-        "doc": "主线第九章 疯癫与文明",
-        "action": "Custom",
-        "custom_action": "SelectChapter",
-        "custom_action_param": {
-            "mainStoryChapter": 2
-        },
-        "next": [
-            "MainChapter_9Enter"
-        ],
-        "interrupt": [
-            "SwipeLeftForChapter"
-        ]
-    },
-    "MainChapter_9Enter": {
-        "recognition": "TemplateMatch",
-        "template": "Combat/MainChapter_9Enter.png",
-        "roi": [
-            0,
-            200,
-            1280,
-            350
-        ],
-        "action": "Click",
-        "next": "SwipeLeftAndFindStage"
-    },
-    "MainChapter_10": {
-        "doc": "主线第九章 疯癫与文明",
-        "action": "Custom",
-        "custom_action": "SelectChapter",
-        "custom_action_param": {
-            "mainStoryChapter": 2
-        },
-        "next": [
-            "MainChapter_10Enter"
-        ],
-        "interrupt": [
-            "SwipeLeftForChapter"
-        ]
-    },
-    "MainChapter_10Enter": {
-        "recognition": "TemplateMatch",
-        "template": "Combat/MainChapter_10Enter.png",
-        "roi": [
-            0,
-            200,
-            1280,
-            350
         ],
         "action": "Click",
         "next": "SwipeLeftAndFindStage"

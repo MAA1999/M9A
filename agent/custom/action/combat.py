@@ -268,33 +268,90 @@ class SelectChapter(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        mainStoryChapter = json.loads(argv.custom_action_param)["mainStoryChapter"]
-        # mainChapter = json.loads(argv.custom_action_param)["mainChapter"]
-
         # 返回大章节
         context.run_task("ReturnMainStoryChapter", {"ReturnMainStoryChapter": {}})
-
-        logger.info(f"选择主线第{mainStoryChapter}大章")
         context.run_task(
             "SelectMainStoryChapter",
             {
                 "SelectMainStoryChapter": {
-                    "template": f"Combat/MainStoryChapter_{mainStoryChapter}.png",
+                    "template": f"Combat/MainStoryChapter_{SelectCombatStage.mainStoryChapter}.png",
                     "next": [],
                 }
             },
         )
 
-        # logger.info(f"选择主线第{mainChapter}小章")
-        # context.run_task(
-        #     f"MainChapter_{mainChapter}",
-        #     {
-        #         f"MainChapter_{mainChapter}": {
-        #             "action": "click",
-        #             "next": [f"MainChapter_{mainChapter}Enter"],
-        #             "interrupt": ["SwipeLeftForChapter"],
-        #         }
-        #     },
-        # )
+        return CustomAction.RunResult(success=True)
+
+
+@AgentServer.custom_action("SelectCombatStage")
+class SelectCombatStage(CustomAction):
+
+    # 类静态变量
+    stage = None
+    stageName = None
+    level = None
+    mainStoryChapter = None
+
+    def run(
+        self,
+        context: Context,
+        argv: CustomAction.RunArg,
+    ) -> CustomAction.RunResult:
+
+        stage = json.loads(argv.custom_action_param)["stage"]
+        stageName = json.loads(argv.custom_action_param)["stageName"]
+        level = json.loads(argv.custom_action_param)["level"]
+        logger.info(f"当前关卡: {stage}, 名称: {stageName}, 难度: {level}")
+
+        parts = stage.split("-")
+        mainChapter = parts[0]
+        targetStageName = f"{int(parts[1]):02d}"
+        mainStoryChapter = (
+            (1 if int(mainChapter) <= 7 else 2 if int(mainChapter) <= 10 else 3)
+            if mainChapter.isdigit()
+            else None
+        )
+
+        # 主线章节
+        if mainChapter.isdigit():
+            context.override_pipeline(
+                {
+                    "EnterTheShow": {
+                        "next": ["MainChapter_X"],
+                    },
+                    "MainChapter_XEnter": {
+                        "template": [f"Combat/MainChapter_{mainChapter}Enter.png"],
+                    },
+                    "TargetStageName": {
+                        "expected": [
+                            f"{targetStageName}",
+                            # f"{stageName}",屏蔽了试试,没问题就删了stageName
+                        ],
+                    },
+                    "StageDifficulty": {
+                        "next": [f"StageDifficulty_{level}", "TargetStageName"],
+                    },
+                }
+            )
+        # LP-06、MA-06、Psychube-07 等
+        else:
+            context.override_pipeline(
+                {
+                    "EnterTheShow": {
+                        "next": [f"ResourceChapter_{mainChapter}"],
+                    },
+                    "TargetStageName": {
+                        "expected": [f"{targetStageName}"],
+                    },
+                    "StageDifficulty": {
+                        "next": [f"StageDifficulty_{level}", "TargetStageName"],
+                    },
+                }
+            )
+
+        SelectCombatStage.stage = stage
+        SelectCombatStage.stageName = stageName
+        SelectCombatStage.level = level
+        SelectCombatStage.mainStoryChapter = mainStoryChapter
 
         return CustomAction.RunResult(success=True)
