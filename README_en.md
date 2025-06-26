@@ -42,6 +42,7 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 - Friendly Match
 - When the Alarm Sounds
 - Continuous clear (under testing)
+- Critter Crash (below 1600 points)
 
 ## Instructions for use
 
