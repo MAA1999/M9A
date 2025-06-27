@@ -286,7 +286,7 @@ class SelectChapter(CustomAction):
 @AgentServer.custom_action("SelectCombatStage")
 class SelectCombatStage(CustomAction):
 
-    # 类静态变量
+    # 类静态变量，用于跨任务传递关卡信息
     stage = None
     stageName = None
     level = None
@@ -298,56 +298,54 @@ class SelectCombatStage(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        stage = json.loads(argv.custom_action_param)["stage"]
-        stageName = json.loads(argv.custom_action_param)["stageName"]
-        level = json.loads(argv.custom_action_param)["level"]
+        # 获取关卡信息
+        param = json.loads(argv.custom_action_param)
+        stage = param["stage"]
+        stageName = param["stageName"]
+        level = param["level"]
         logger.info(f"当前关卡: {stage}, 名称: {stageName}, 难度: {level}")
 
+        # 拆分关卡编号，如 "5-19" 拆为 ["5", "19"]
         parts = stage.split("-")
-        mainChapter = parts[0]
-        targetStageName = f"{int(parts[1]):02d}"
-        mainStoryChapter = (
-            (1 if int(mainChapter) <= 7 else 2 if int(mainChapter) <= 10 else 3)
-            if mainChapter.isdigit()
-            else None
-        )
+        if len(parts) < 2:
+            logger.error(f"关卡格式错误: {stage}")
+            return CustomAction.RunResult(success=False)
 
-        # 主线章节
+        mainChapter = parts[0]  # 主章节编号或资源关卡
+        targetStageName = parts[1]  # 关卡序号或资源关卡编号
+
+        # 若关卡序号为数字，补零为两位字符串
+        if targetStageName.isdigit():
+            targetStageName = f"{int(targetStageName):02d}"
+
+        # 判断是否主线章节（数字），并确定大章节编号
         if mainChapter.isdigit():
-            context.override_pipeline(
-                {
-                    "EnterTheShow": {
-                        "next": ["MainChapter_X"],
-                    },
-                    "MainChapter_XEnter": {
-                        "template": [f"Combat/MainChapter_{mainChapter}Enter.png"],
-                    },
-                    "TargetStageName": {
-                        "expected": [
-                            f"{targetStageName}",
-                            # f"{stageName}",屏蔽了试试,没问题就删了stageName
-                        ],
-                    },
-                    "StageDifficulty": {
-                        "next": [f"StageDifficulty_{level}", "TargetStageName"],
-                    },
-                }
+            mainStoryChapter = (
+                1 if int(mainChapter) <= 7 else 2 if int(mainChapter) <= 10 else 3
             )
-        # LP-06、MA-06、Psychube-07 等
+            # 主线关卡流程
+            pipeline = {
+                "EnterTheShow": {"next": ["MainChapter_X"]},
+                "MainChapter_XEnter": {
+                    "template": [f"Combat/MainChapter_{mainChapter}Enter.png"]
+                },
+                "TargetStageName": {"expected": [f"{targetStageName}"]},
+                "StageDifficulty": {
+                    "next": [f"StageDifficulty_{level}", "TargetStageName"]
+                },
+            }
         else:
-            context.override_pipeline(
-                {
-                    "EnterTheShow": {
-                        "next": [f"ResourceChapter_{mainChapter}"],
-                    },
-                    "TargetStageName": {
-                        "expected": [f"{targetStageName}"],
-                    },
-                    "StageDifficulty": {
-                        "next": [f"StageDifficulty_{level}", "TargetStageName"],
-                    },
-                }
-            )
+            mainStoryChapter = None
+            # 资源关卡流程
+            pipeline = {
+                "EnterTheShow": {"next": [f"ResourceChapter_{mainChapter}"]},
+                "TargetStageName": {"expected": [f"{targetStageName}"]},
+                "StageDifficulty": {
+                    "next": [f"StageDifficulty_{level}", "TargetStageName"]
+                },
+            }
+
+        context.override_pipeline(pipeline)
 
         SelectCombatStage.stage = stage
         SelectCombatStage.stageName = stageName
