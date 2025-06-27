@@ -1,0 +1,802 @@
+{
+    "Combat": {
+        "next": [
+            "EnterTheShow"
+        ],
+        "interrupt": [
+            "ReturnMain"
+        ]
+    },
+    "EnterTheShow": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/EnterTheShow.png",
+        "roi": [
+            926,
+            221,
+            229,
+            153
+        ],
+        "action": "Click",
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                187,
+                199,
+                133,
+                26
+            ]
+        },
+        "post_delay": 3000,
+        "next_doc": "Set in code."
+    },
+    "MainChapter_1": {
+        "doc": "主线第一章 在我们的时代里",
+        "next": [
+            "MainChapter_1Enter"
+        ],
+        "interrupt": [
+            "SwipeLeftForChapter"
+        ]
+    },
+    "MainChapter_1Enter": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/MainChapter_1Enter.png",
+        "roi": [
+            0,
+            90,
+            1280,
+            460
+        ],
+        "action": "Click",
+        "next": "SwipeLeftAndFindStage"
+    },
+    "MainChapter_2": {
+        "doc": "主线第二章 夜色温柔",
+        "next": [
+            "MainChapter_2Enter"
+        ],
+        "interrupt": [
+            "SwipeLeftForChapter"
+        ]
+    },
+    "MainChapter_2Enter": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/MainChapter_2Enter.png",
+        "roi": [
+            0,
+            90,
+            1280,
+            460
+        ],
+        "action": "Click",
+        "next": "SwipeLeftAndFindStage"
+    },
+    "MainChapter_3": {
+        "doc": "主线第三章 故事一无所有",
+        "next": [
+            "MainChapter_3Enter"
+        ],
+        "interrupt": [
+            "SwipeLeftForChapter"
+        ]
+    },
+    "MainChapter_3Enter": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/MainChapter_3Enter.png",
+        "roi": [
+            0,
+            90,
+            1280,
+            460
+        ],
+        "action": "Click",
+        "next": "SwipeLeftAndFindStage"
+    },
+    "MainChapter_4": {
+        "doc": "主线第四章 老虎的金黄",
+        "next": [
+            "MainChapter_4Enter"
+        ],
+        "interrupt": [
+            "SwipeLeftForChapter"
+        ]
+    },
+    "MainChapter_4Enter": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/MainChapter_4Enter.png",
+        "roi": [
+            0,
+            90,
+            1280,
+            460
+        ],
+        "action": "Click",
+        "next": "SwipeLeftAndFindStage"
+    },
+    "MainChapter_5": {
+        "doc": "主线第五章 洞穴的囚徒",
+        "next": [
+            "MainChapter_5Enter"
+        ],
+        "interrupt": [
+            "SwipeLeftForChapter"
+        ]
+    },
+    "MainChapter_5Enter": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/MainChapter_5Enter.png",
+        "roi": [
+            0,
+            90,
+            1280,
+            460
+        ],
+        "action": "Click",
+        "next": "SwipeLeftAndFindStage"
+    },
+    "MainChapter_6": {
+        "doc": "主线第六章 今夜星光灿烂",
+        "next": [
+            "MainChapter_6Enter"
+        ],
+        "interrupt": [
+            "SwipeLeftForChapter"
+        ]
+    },
+    "MainChapter_6Enter": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/MainChapter_6Enter.png",
+        "roi": [
+            0,
+            90,
+            1280,
+            460
+        ],
+        "action": "Click",
+        "next": "SwipeLeftAndFindStage"
+    },
+    "MainChapter_7": {
+        "doc": "主线第七章 孤独之歌",
+        "next": [
+            "MainChapter_7Enter"
+        ],
+        "interrupt": [
+            "SwipeLeftForChapter"
+        ]
+    },
+    "MainChapter_7Enter": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/MainChapter_7Enter.png",
+        "roi": [
+            0,
+            90,
+            1280,
+            460
+        ],
+        "action": "Click",
+        "next": "SwipeLeftAndFindStage"
+    },
+    "MainChapter_8": {
+        "doc": "主线第八章 忧郁的热带",
+        "next": [
+            "MainChapter_8Enter"
+        ],
+        "interrupt": [
+            "SwipeLeftForChapter"
+        ]
+    },
+    "MainChapter_8Enter": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/MainChapter_8Enter.png",
+        "roi": [
+            0,
+            90,
+            1280,
+            460
+        ],
+        "action": "Click",
+        "next": "SwipeLeftAndFindStage"
+    },
+    "MainChapter_9": {
+        "doc": "主线第九章 疯癫与文明",
+        "next": [
+            "MainChapter_9Enter"
+        ],
+        "interrupt": [
+            "SwipeLeftForChapter"
+        ]
+    },
+    "MainChapter_9Enter": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/MainChapter_9Enter.png",
+        "roi": [
+            0,
+            200,
+            1280,
+            350
+        ],
+        "action": "Click",
+        "next": "SwipeLeftAndFindStage"
+    },
+    "MainChapter_10": {
+        "doc": "主线第九章 疯癫与文明",
+        "next": [
+            "MainChapter_10Enter"
+        ],
+        "interrupt": [
+            "SwipeLeftForChapter"
+        ]
+    },
+    "MainChapter_10Enter": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/MainChapter_10Enter.png",
+        "roi": [
+            0,
+            200,
+            1280,
+            350
+        ],
+        "action": "Click",
+        "next": "SwipeLeftAndFindStage"
+    },
+    "ResourceChapterLabel": {
+        "recognition": "OCR",
+        "expected": "资源",
+        "roi": [
+            22,
+            613,
+            1258,
+            107
+        ],
+        "action": "Click",
+        "post_wait_freezes": {
+            "time": 200,
+            "target": [
+                187,
+                199,
+                133,
+                26
+            ]
+        }
+    },
+    "ResourceChapter_LP": {
+        "doc": "尘埃运动",
+        "next": [
+            "ResourceChapter_LPEnter"
+        ],
+        "interrupt": [
+            "ResourceChapterLabel"
+        ]
+    },
+    "ResourceChapter_LPEnter": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/ResourceChapter_LPEnter.png",
+        "threshold": 0.9,
+        "roi": [
+            0,
+            153,
+            1280,
+            367
+        ],
+        "action": "Click",
+        "next": "SwipeLeftAndFindStage"
+    },
+    "ResourceChapter_MA": {
+        "doc": "铸币美学",
+        "next": [
+            "ResourceChapter_MAEnter"
+        ],
+        "interrupt": [
+            "ResourceChapterLabel"
+        ]
+    },
+    "ResourceChapter_MAEnter": {
+        "recognition": "OCR",
+        "expected": [
+            "铸币",
+            "铸",
+            "美学"
+        ],
+        "replace": [
+            "市",
+            "币"
+        ],
+        "roi": [
+            0,
+            153,
+            1280,
+            367
+        ],
+        "action": "Click",
+        "next": [
+            "SwipeLeftAndFindStage"
+        ],
+        "interrupt": [
+            "SwipeRightForChapter"
+        ]
+    },
+    "ResourceChapter_Psychube": {
+        "doc": "意志解析",
+        "next": [
+            "ResourceChapter_Psychube07FreeEnter",
+            "ResourceChapter_NoFreePsychube07"
+        ],
+        "interrupt": [
+            "ResourceChapterLabel",
+            "SwipeRightForChapter"
+        ]
+    },
+    "ResourceChapter_Psychube07FreeEnter": {
+        "recognition": "TemplateMatch",
+        "template": "Psychube/FreePsychubeStages.png",
+        "threshold": 0.9,
+        "roi": [
+            180,
+            203,
+            246,
+            306
+        ],
+        "action": "Click",
+        "next": "SwipeLeftAndFindStage"
+    },
+    "ResourceChapter_Psychube07Enter": {
+        "recognition": "TemplateMatch",
+        "template": "Psychube/FreePsychubeStages.png",
+        "threshold": 0.9,
+        "roi": [
+            841,
+            230,
+            265,
+            290
+        ],
+        "action": "Click",
+        "next": "SwipeLeftAndFindStage"
+    },
+    "ResourceChapter_NoFreePsychube07": {
+        "recognition": "TemplateMatch",
+        "template": "Psychube/NoFreePsychubeStagesFlag.png",
+        "roi": [
+            732,
+            210,
+            233,
+            297
+        ],
+        "next": [
+            "SwipeRightForPsychube"
+        ]
+    },
+    "SwipeRightForPsychube": {
+        "next": [
+            "ResourceChapter_Psychube07Enter",
+            "SwipeRightForPsychube07"
+        ]
+    },
+    "SwipeRightForPsychube07": {
+        "action": "Swipe",
+        "begin": [
+            900,
+            500,
+            100,
+            50
+        ],
+        "end": [
+            300,
+            500,
+            100,
+            50
+        ],
+        "post_wait_freezes": 1,
+        "next": [
+            "SwipeRightForPsychube"
+        ]
+    },
+    "SwipeRightForChapter": {
+        "action": "Swipe",
+        "begin": [
+            500,
+            300,
+            100,
+            100
+        ],
+        "end": [
+            100,
+            300,
+            100,
+            100
+        ],
+        "post_delay": 0,
+        "next": [
+            "SwipeStop"
+        ]
+    },
+    "SwipeLeftForChapter": {
+        "action": "Swipe",
+        "begin": [
+            100,
+            300,
+            100,
+            100
+        ],
+        "end": [
+            500,
+            300,
+            100,
+            100
+        ],
+        "post_delay": 0,
+        "next": [
+            "SwipeStop"
+        ]
+    },
+    "SwipeStop": {
+        "action": "Click",
+        "target": [
+            750,
+            570,
+            40,
+            30
+        ],
+        "pre_delay": 1,
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                0,
+                235,
+                1280,
+                353
+            ]
+        }
+    },
+    "SwipeLeftAndFindStage": {
+        "next": [
+            "TargetStageName",
+            "TheFarLeftOfStageList",
+            "SwipeLeftForStageList"
+        ]
+    },
+    "TargetStageName": {
+        "recognition": "OCR",
+        "expected_code": "Set in code.",
+        "roi": [
+            0,
+            470,
+            1280,
+            160
+        ],
+        "action": "Click",
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                900,
+                500,
+                380,
+                220
+            ]
+        },
+        "next": [
+            "StageDifficulty"
+        ]
+    },
+    "TheFarLeftOfStageList": {
+        "recognition": "OCR",
+        "expected": "01",
+        "roi": [
+            0,
+            470,
+            1280,
+            160
+        ],
+        "next": [
+            "SwipeRightForStageList"
+        ]
+    },
+    "SwipeLeftForStageList": {
+        "action": "Swipe",
+        "begin": [
+            300,
+            600,
+            100,
+            50
+        ],
+        "end": [
+            900,
+            600,
+            100,
+            50
+        ],
+        "duration": 400,
+        "post_wait_freezes": 1,
+        "post_delay": 0,
+        "next": [
+            "SwipeLeftAndFindStage"
+        ]
+    },
+    "SwipeRightAndFindStage": {
+        "next": [
+            "TargetStageName",
+            "SwipeRightForStageList"
+        ]
+    },
+    "SwipeRightForStageList": {
+        "action": "Swipe",
+        "begin": [
+            900,
+            600,
+            100,
+            50
+        ],
+        "end": [
+            300,
+            600,
+            100,
+            50
+        ],
+        "post_wait_freezes": 100,
+        "next": [
+            "SwipeRightAndFindStage"
+        ]
+    },
+    "StageDifficulty": {
+        "next_doc": "Set in code."
+    },
+    "StageDifficulty_Story": {
+        "recognition": "ColorMatch",
+        "roi": [
+            893,
+            239,
+            328,
+            50
+        ],
+        "method": 4,
+        "lower": [
+            175,
+            81,
+            49
+        ],
+        "upper": [
+            247,
+            113,
+            66
+        ],
+        "count": 1,
+        "order_by": "Score",
+        "index": 0,
+        "action": "Click",
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                900,
+                500,
+                380,
+                220
+            ]
+        },
+        "next": [
+            "ReadyForAction"
+        ]
+    },
+    "StageDifficulty_Hard": {
+        "recognition": "ColorMatch",
+        "roi": [
+            893,
+            239,
+            328,
+            50
+        ],
+        "method": 4,
+        "lower": [
+            193,
+            52,
+            51
+        ],
+        "upper": [
+            255,
+            67,
+            66
+        ],
+        "count": 1,
+        "order_by": "Score",
+        "index": 0,
+        "action": "Click",
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                900,
+                500,
+                380,
+                220
+            ]
+        },
+        "next": [
+            "ReadyForAction"
+        ]
+    },
+    "StageDifficulty_None": {
+        "next": [
+            "ReadyForAction"
+        ]
+    },
+    "ReadyForAction": {
+        "recognition": "OCR",
+        "expected": [
+            "开始行动"
+        ],
+        "roi": [
+            900,
+            500,
+            380,
+            220
+        ],
+        "action": "Click",
+        "next": [
+            "SwitchToReplay",
+            "IsReplay"
+        ]
+    },
+    "IsReplay": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/IsReplay.png",
+        "threshold": 0.9,
+        "roi": [
+            736,
+            624,
+            53,
+            66
+        ],
+        "next": [
+            "AllIn",
+            "OpenReplaysTimes"
+        ]
+    },
+    "SwitchToReplay": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/SwitchToReplay.png",
+        "roi": [
+            559,
+            619,
+            62,
+            76
+        ],
+        "threshold": 0.9,
+        "action": "Click",
+        "next": [
+            "AllIn",
+            "OpenReplaysTimes",
+            "SwitchToReplay"
+        ]
+    },
+    "OpenReplaysTimes": {
+        "recognition": "TemplateMatch",
+        "template": "Combat/OpenReplaysTimes.png",
+        "roi": [
+            737,
+            586,
+            174,
+            134
+        ],
+        "action": "Click",
+        "next": [
+            "SetReplaysTimes",
+            "StartReplay"
+        ]
+    },
+    "SetReplaysTimes": {
+        "recognition": "TemplateMatch",
+        "template_code": "Set in interface.json.",
+        "roi": [
+            751,
+            333,
+            188,
+            347
+        ],
+        "order_by": "Score",
+        "action": "Click",
+        "next": [
+            "SetReplaysTimes",
+            "StartReplay"
+        ]
+    },
+    "StartReplay": {
+        "recognition": "OCR",
+        "expected": [
+            "级",
+            "复",
+            "现"
+        ],
+        "roi": [
+            1030,
+            634,
+            139,
+            33
+        ],
+        "only_rec": true,
+        "action": "Click",
+        "next": [
+            "Replaying",
+            "StartReplay",
+            "RecoveryPage"
+        ]
+    },
+    "RecoveryPage": {
+        "recognition": "OCR",
+        "expected": [
+            "活性",
+            "恢复"
+        ],
+        "roi": [
+            465,
+            571,
+            277,
+            149
+        ],
+        "action": "Click",
+        "target": "StartReplay",
+        "next": [
+            "HomeFlag"
+        ],
+        "interrupt": [
+            "HomeButton"
+        ]
+    },
+    "Replaying": {
+        "recognition": "OCR",
+        "expected": [
+            "行为",
+            "复现"
+        ],
+        "roi": [
+            1078,
+            77,
+            202,
+            143
+        ],
+        "post_delay": 5000,
+        "next": [
+            "Replaying",
+            "Victory"
+        ]
+    },
+    "Victory": {
+        "recognition": "OCR",
+        "expected": [
+            "战斗",
+            "胜利"
+        ],
+        "roi": [
+            678,
+            10,
+            473,
+            240
+        ],
+        "action": "Click",
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                614,
+                457,
+                666,
+                263
+            ]
+        },
+        "next": [
+            "Victory",
+            "AllIn",
+            "HomeFlag"
+        ],
+        "interrupt": [
+            "HomeButton"
+        ]
+    },
+    "TargetLevelRec": {
+        "recognition": "OCR",
+        "expected": "[\\s\\S]+",
+        "roi": [
+            999,
+            247,
+            215,
+            38
+        ],
+        "only_rec": true,
+        "threshold": 0.7
+    }
+}
