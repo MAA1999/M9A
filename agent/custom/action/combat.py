@@ -414,7 +414,8 @@ class AllIn(CustomAction):
                 # 吃糖后重新识别体力
                 available_count = _get_available_count()
                 if available_count - already_count <= 0:
-                    logger.info("吃糖后依然没有体力，流程结束")
+                    logger.info("还是没有体力，溜了溜了")
+                    context.run_task("HomeButton")
                     return CustomAction.RunResult(success=True)
                 continue
 
