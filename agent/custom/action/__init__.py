@@ -25,5 +25,5 @@ __all__ = [
     "SOD_DifficultySelect",
     "SelectChapter",
     "SelectCombatStage",
-    "AllIn",
+    "TargetCount",
 ]

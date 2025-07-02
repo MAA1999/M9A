@@ -1,8 +1,10 @@
 {
     "AllIn": {
-        "enabled": true,
         "action": "Custom",
-        "custom_action": "AllIn",
+        "custom_action": "TargetCount",
+        "custom_action_param": {
+            "target_count": 0
+        },
         "next": []
     },
     "RecognizeRemainingAp": {
@@ -90,41 +92,69 @@
             "Replaying"
         ]
     },
-    "RecoveryPage": {
+    "Replaying": {
         "recognition": "OCR",
         "expected": [
-            "活性",
-            "恢复"
+            "行为",
+            "复现"
         ],
         "roi": [
-            465,
-            571,
-            277,
-            149
+            1078,
+            77,
+            202,
+            143
         ],
+        "post_delay": 5000,
         "next": [
-            "EatCandy"
+            "Replaying",
+            "Victory"
+        ]
+    },
+    "Victory": {
+        "recognition": "OCR",
+        "expected": [
+            "战斗",
+            "胜利"
         ],
+        "roi": [
+            678,
+            10,
+            473,
+            240
+        ],
+        "action": "Click",
+        "pre_wait_freezes": {
+            "time": 500,
+            "target": [
+                614,
+                457,
+                666,
+                263
+            ]
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                614,
+                457,
+                666,
+                263
+            ]
+        },
+        "next": [],
         "interrupt": []
     },
-    "RecoveryPageByX1": {
+    "WaitReplay": {
         "recognition": "OCR",
         "expected": [
-            "活性",
-            "恢复"
+            "复现"
         ],
         "roi": [
-            465,
-            571,
-            277,
-            149
+            1030,
+            634,
+            139,
+            33
         ],
-        "next": [
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "QuitEatCandyPage",
-            "HomeButton"
-        ]
+        "only_rec": true
     }
 }

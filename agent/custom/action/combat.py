@@ -355,14 +355,14 @@ class SelectCombatStage(CustomAction):
         return CustomAction.RunResult(success=True)
 
 
-@AgentServer.custom_action("AllIn")
-class AllIn(CustomAction):
+@AgentServer.custom_action("TargetCount")
+class TargetCount(CustomAction):
     """
-    清空体力 。
+    清空体力或按次数刷图。
 
     参数格式:
     {
-
+        "target_count": "目标次数"  # 可选，不填或为0则清空体力
     }
     """
 
@@ -379,6 +379,7 @@ class AllIn(CustomAction):
                 return 0
 
         def _get_available_count():
+
             img = context.tasker.controller.post_screencap().wait().get()
             remaining_ap = _safe_int(
                 context.run_recognition("RecognizeRemainingAp", img).best_result.text
@@ -397,31 +398,43 @@ class AllIn(CustomAction):
             available_count = remaining_ap // stage_ap if stage_ap else 0
             return available_count
 
-        # target_count = json.loads(argv.custom_action_param)["target_count"]
+        try:
+            param = json.loads(argv.custom_action_param)
+            target_count = int(param.get("target_count", 0))
+        except Exception:
+            target_count = 0  # 默认清空体力
 
-        # 第一次识别
-        available_count = _get_available_count()
         already_count = 0
 
-        while already_count <= available_count:
-            times = min(4, available_count - already_count)
+        while True:
+            available_count = _get_available_count()
+            # 判断本轮最大可刷次数
+            if target_count > 0:
+                left_count = target_count - already_count
+                times = min(4, available_count, left_count)
+            else:
+                times = min(4, available_count)
             if times <= 0:
-                logger.info("没体力咯,看看有没有糖吃")
-                task_detail = context.run_task("EatCandy")
-                # if task_detail:
-                #     for node in task_detail.nodes:
-                #         logger.info(f"节点 {node.name} 是否完成: {node.completed}")
-                # 吃糖后重新识别体力
-                available_count = _get_available_count()
-                if available_count - already_count <= 0:
-                    logger.info("还是没有体力，溜了溜了")
-                    context.run_task("HomeButton")
-                    return CustomAction.RunResult(success=True)
-                continue
-
+                # logger.info("没体力咯，吃个糖")
+                for _ in range(2):  # 最多吃两次糖，防止吃mini糖体力不够
+                    context.run_task("EatCandy")
+                    context.run_task("WaitReplay")
+                    available_count = _get_available_count()
+                    if target_count > 0:
+                        left_count = target_count - already_count
+                        times = min(4, available_count, left_count)
+                    else:
+                        times = min(4, available_count)
+                    if times > 0:
+                        break
+                if times <= 0:
+                    logger.info(f"体力不够，任务结束。总共刷了 {already_count} 次")
+                    break
+            # 刷图流程
+            logger.info(f"本次刷 {times} 次，累计已刷 {already_count} 次")
             context.override_pipeline(
                 {
-                    "StartReplay": {"next": ["Replaying"]},
+                    "StartReplay": {"action": "Click", "next": ["Replaying"]},
                     "SetReplaysTimes": {
                         "template": [
                             f"Combat/SetReplaysTimesX{times}.png",
@@ -430,13 +443,12 @@ class AllIn(CustomAction):
                     },
                 }
             )
-            logger.info(
-                f"战斗开始：可刷次数 {available_count}, 复现次数 {times}, 已刷次数 {already_count}"
-            )
             context.run_task("OpenReplaysTimes")
+            context.run_task("WaitReplay")
             already_count += times
-            logger.info(
-                f"战斗结束：可刷次数 {available_count}, 复现次数 {times}, 已刷次数 {already_count}"
-            )
+            if target_count > 0 and already_count >= target_count:
+                # logger.info(f"达到目标次数，任务结束。总共刷了 {already_count} 次")
+                break
 
+        logger.info(f"任务结束，总共刷了 {already_count} 次")
         return CustomAction.RunResult(success=True)

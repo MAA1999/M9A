@@ -526,15 +526,8 @@
             66
         ],
         "next": [
-            //"TargetCount",
             "AllIn"
         ]
-    },
-    "TargetCount": {
-        "custom_action": "TargetCount",
-        "custom_action_param": {
-            "target_count": 10
-        }
     },
     "SwitchToReplay": {
         "recognition": "TemplateMatch",
@@ -547,55 +540,6 @@
         ],
         "threshold": 0.9,
         "action": "Click"
-    },
-    "Replaying": {
-        "recognition": "OCR",
-        "expected": [
-            "行为",
-            "复现"
-        ],
-        "roi": [
-            1078,
-            77,
-            202,
-            143
-        ],
-        "post_delay": 5000,
-        "next": [
-            "Replaying",
-            "Victory"
-        ]
-    },
-    "Victory": {
-        "recognition": "OCR",
-        "expected": [
-            "战斗",
-            "胜利"
-        ],
-        "roi": [
-            678,
-            10,
-            473,
-            240
-        ],
-        "action": "Click",
-        "pre_wait_freezes": {
-            "time": 500,
-            "target": [
-                614,
-                457,
-                666,
-                263
-            ]
-        },
-        "next": [
-            //"Victory"
-            //"AllIn",
-            // "HomeFlag"
-        ],
-        "interrupt": [
-            //"HomeButton"
-        ]
     },
     "TargetLevelRec": {
         "recognition": "OCR",
