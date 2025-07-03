@@ -38,7 +38,7 @@
         ],
         "interrupt": [
             "ActivityMainSelectAnecdote",
-            "SwipeDowmForAnecdote"
+            "SwipeRightForAnecdote"
         ]
     },
     "ActivityMainAnecdoteFlag": {
@@ -739,14 +739,14 @@
         "recognition": "OCR",
         "expected": "轶事",
         "roi": [
-            8,
-            79,
-            356,
-            626
+            70,
+            622,
+            733,
+            62
         ],
         "action": "Click"
     },
-    "SwipeDowmForAnecdote": {
+    "SwipeDownForAnecdote": {
         "action": "Swipe",
         "begin": [
             120,
@@ -757,6 +757,25 @@
         "end": [
             120,
             250,
+            100,
+            100
+        ],
+        "post_delay": 0,
+        "next": [
+            "SwipeStop"
+        ]
+    },
+    "SwipeRightForAnecdote": {
+        "action": "Swipe",
+        "begin": [
+            450,
+            650,
+            100,
+            100
+        ],
+        "end": [
+            50,
+            650,
             100,
             100
         ],
