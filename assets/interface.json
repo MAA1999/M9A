@@ -92,8 +92,10 @@
             "entry": "Combat",
             "option": [
                 "作战关卡",
-                "刷完全部体力",
                 "吃糖"
+            ],
+            "advanced": [
+                "作战次数"
             ],
             "doc": "图看不清可以拉伸下这个小窗口\n![bydjl](https://mojing.org/tjb)"
         },
@@ -103,8 +105,10 @@
             "option": [
                 "复刻模式",
                 "活动难度",
-                "刷完全部体力",
                 "吃糖"
+            ],
+            "advanced": [
+                "作战次数"
             ],
             "doc": "主线版本时关闭复刻模式会直接跳过当前任务，如有刷取主线关卡需求请使用常规作战功能"
         },
@@ -203,6 +207,27 @@
             "doc": "[size:15][color:tomato]在翻斗棋界面启动，仅支持1600分以下速刷。[/color][/size]"
         }
     ],
+    "advanced": {
+        "作战次数": {
+            "field": [
+                "作战次数"
+            ],
+            "type": [
+                "int"
+            ],
+            "default": [
+                "0"
+            ],
+            "pipeline_override": {
+                "AllIn": {
+                    "custom_action_param": {
+                        "target_count": "{target_count}"
+                    }
+                }
+            },
+            "doc": "[size:15][color:tomato]默认为0清空体力；填其他数字时按指定次数刷图，体力不足会自动吃糖补充。[/color][/size]"
+        }
+    },
     "option": {
         "作战关卡": {
             "cases": [
@@ -623,18 +648,6 @@
                                 "stageName": "意志解析 07",
                                 "level": "None"
                             }
-                        }
-                    }
-                }
-            ]
-        },
-        "刷完全部体力": {
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {
-                        "AllIn": {
-                            "enabled": true
                         }
                     }
                 }
