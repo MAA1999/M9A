@@ -451,4 +451,5 @@ class TargetCount(CustomAction):
                 break
 
         logger.info(f"任务结束，总共刷了 {already_count} 次")
+        context.run_task("HomeButton")
         return CustomAction.RunResult(success=True)
