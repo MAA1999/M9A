@@ -210,7 +210,7 @@
     "advanced": {
         "作战次数": {
             "field": [
-                "作战次数（填0清空体力；填其他数字按次数刷）"
+                "作战次数"
             ],
             "type": [
                 "int"
@@ -221,10 +221,11 @@
             "pipeline_override": {
                 "AllIn": {
                     "custom_action_param": {
-                        "target_count": "{target_count}"
+                        "target_count": "{作战次数}"
                     }
                 }
-            }
+            },
+            "doc": "填0清空体力；填其他数字按次数刷；其他情况清空体力"
         }
     },
     "option": {

@@ -378,30 +378,30 @@ class TargetCount(CustomAction):
             except Exception:
                 return 0
 
-        def _get_available_count():
+        def get_text_safe(img, rec_name):
+            rec = context.run_recognition(rec_name, img)
+            if rec is None or getattr(rec, "best_result", None) is None:
+                logger.error(f"{rec_name} 识别失败，返回None")
+                return "0"
+            return getattr(rec.best_result, "text", "0") or "0"
 
+        def _get_available_count():
             img = context.tasker.controller.post_screencap().wait().get()
-            remaining_ap = _safe_int(
-                context.run_recognition("RecognizeRemainingAp", img).best_result.text
-            )
-            stage_ap = _safe_int(
-                context.run_recognition("RecognizeStageAp", img).best_result.text
-            )
-            combat_times = _safe_int(
-                context.run_recognition("RecognizeCombatTimes", img).best_result.text
-            )
+            remaining_ap = _safe_int(get_text_safe(img, "RecognizeRemainingAp"))
+            stage_ap = _safe_int(get_text_safe(img, "RecognizeStageAp"))
+            combat_times = _safe_int(get_text_safe(img, "RecognizeCombatTimes"))
             if combat_times == 0 or stage_ap == 0:
                 logger.error("识别失败，combat_times 或 stage_ap 为0")
                 return 0
             stage_ap = stage_ap // combat_times
-            logger.info(f"剩余体力: {remaining_ap}, 关卡体力: {stage_ap}")
-            available_count = remaining_ap // stage_ap if stage_ap else 0
-            return available_count
+            logger.error(f"剩余体力: {remaining_ap}, 关卡体力: {stage_ap}")
+            return remaining_ap // stage_ap if stage_ap else 0
 
         try:
             param = json.loads(argv.custom_action_param)
             target_count = int(param.get("target_count", 0))
         except Exception:
+            logger.error(f"参数解析失败: {argv.custom_action_param}")
             target_count = 0  # 默认清空体力
 
         already_count = 0
@@ -428,7 +428,7 @@ class TargetCount(CustomAction):
                     if times > 0:
                         break
                 if times <= 0:
-                    logger.info(f"体力不够，任务结束。总共刷了 {already_count} 次")
+                    # logger.info(f"体力不够，任务结束。总共刷了 {already_count} 次")
                     break
             # 刷图流程
             logger.info(f"本次刷 {times} 次，累计已刷 {already_count} 次")
