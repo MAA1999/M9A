@@ -4,6 +4,25 @@
             "resource": "jp"
         }
     },
+    "ActivityMainFlag": {
+        "doc": "活动主页面",
+        "recognition": "OCR",
+        "expected": "成就",
+        "roi": [
+            1181,
+            31,
+            39,
+            21
+        ],
+        "only_rec": true,
+        "next": [
+            "ActivityMainAnecdoteFlag"
+        ],
+        "interrupt": [
+            "ActivityMainSelectAnecdote",
+            "SwipeDownForAnecdote"
+        ]
+    },
     "ActivityMainSelectAnecdote": {
         "recognition": "OCR",
         "expected": "轶事",
