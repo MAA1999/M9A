@@ -457,6 +457,7 @@
             32
         ],
         "only_rec": true,
+        "threshold": 0.7,
         "next": [
             "AnecdoteTraceTaskCompleted"
         ],
