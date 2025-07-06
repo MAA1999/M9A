@@ -302,7 +302,7 @@ class SelectCombatStage(CustomAction):
         param = json.loads(argv.custom_action_param)
         stage = param["stage"]
         # stageName = param["stageName"]
-        level = param["level"].capitalize()
+        level = param["level"]
         logger.info(f"当前关卡: {stage}, 难度: {level}")
 
         # 拆分关卡编号，如 "5-19" 拆为 ["5", "19"]

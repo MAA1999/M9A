@@ -109,7 +109,7 @@
                 "作战关卡（自定义）",
                 "作战次数"
             ],
-            "doc": "仅限刷材料关卡，难度填写easy或者hard（无视大小写）\n![bydjl](https://mojing.org/tjb)"
+            "doc": "仅限刷材料关卡\n![bydjl](https://mojing.org/tjb)"
         },
         {
             "name": "活动刷取",
@@ -254,8 +254,8 @@
                 "2",
                 "6",
                 [
-                    "Easy",
-                    "Hard"
+                    "Hard",
+                    "Story"
                 ]
             ],
             "pipeline_override": {
