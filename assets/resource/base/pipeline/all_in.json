@@ -151,7 +151,10 @@
                 263
             ]
         },
-        "next": [],
+        "next": [
+            "Victory",
+            "WaitReplay"
+        ],
         "interrupt": []
     },
     "WaitReplay": {
@@ -160,10 +163,10 @@
             "复现"
         ],
         "roi": [
-            1030,
-            634,
-            139,
-            33
+            1097,
+            630,
+            68,
+            41
         ],
         "only_rec": true
     }

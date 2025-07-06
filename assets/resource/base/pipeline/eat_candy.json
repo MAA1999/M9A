@@ -154,6 +154,9 @@
             636,
             155,
             76
+        ],
+        "next": [
+            "WaitReplay"
         ]
     },
     "SelectMiniCandyMax": {

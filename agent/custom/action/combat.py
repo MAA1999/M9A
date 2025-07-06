@@ -418,7 +418,7 @@ class TargetCount(CustomAction):
                 # logger.info("没体力咯，吃个糖")
                 for _ in range(2):  # 最多吃两次糖，防止吃mini糖体力不够
                     context.run_task("EatCandy")
-                    context.run_task("WaitReplay")
+
                     available_count = _get_available_count()
                     if target_count > 0:
                         left_count = target_count - already_count
@@ -444,7 +444,7 @@ class TargetCount(CustomAction):
                 }
             )
             context.run_task("OpenReplaysTimes")
-            context.run_task("WaitReplay")
+
             already_count += times
             if target_count > 0 and already_count >= target_count:
                 # logger.info(f"达到目标次数，任务结束。总共刷了 {already_count} 次")
