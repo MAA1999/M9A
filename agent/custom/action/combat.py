@@ -381,7 +381,7 @@ class TargetCount(CustomAction):
         def get_text_safe(img, rec_name):
             rec = context.run_recognition(rec_name, img)
             if rec is None or getattr(rec, "best_result", None) is None:
-                logger.error(f"{rec_name} 识别失败，返回None")
+                logger.debug(f"{rec_name} 识别失败，返回None")
                 return "0"
             return getattr(rec.best_result, "text", "0") or "0"
 
@@ -391,18 +391,13 @@ class TargetCount(CustomAction):
             stage_ap = _safe_int(get_text_safe(img, "RecognizeStageAp"))
             combat_times = _safe_int(get_text_safe(img, "RecognizeCombatTimes"))
             if combat_times == 0 or stage_ap == 0:
-                logger.error("识别失败，combat_times 或 stage_ap 为0")
+                logger.debug("识别失败，combat_times 或 stage_ap 为0")
                 return 0
             stage_ap = stage_ap // combat_times
-            logger.error(f"剩余体力: {remaining_ap}, 关卡体力: {stage_ap}")
+            logger.debug(f"剩余体力: {remaining_ap}, 关卡体力: {stage_ap}")
             return remaining_ap // stage_ap if stage_ap else 0
 
-        try:
-            param = json.loads(argv.custom_action_param)
-            target_count = int(param.get("target_count", 0))
-        except Exception:
-            logger.error(f"参数解析失败: {argv.custom_action_param}")
-            target_count = 0  # 默认清空体力
+        target_count = int(json.loads(argv.custom_action_param)["target_count"])
 
         already_count = 0
 
@@ -415,7 +410,7 @@ class TargetCount(CustomAction):
             else:
                 times = min(4, available_count)
             if times <= 0:
-                # logger.info("没体力咯，吃个糖")
+                logger.debug("没体力咯，吃个糖")
                 for _ in range(2):  # 最多吃两次糖，防止吃mini糖体力不够
                     context.run_task("EatCandy")
 
@@ -428,7 +423,9 @@ class TargetCount(CustomAction):
                     if times > 0:
                         break
                 if times <= 0:
-                    # logger.info(f"体力不够，任务结束。总共刷了 {already_count} 次")
+                    logger.debug(
+                        f"吃糖后体力不够，任务结束。总共刷了 {already_count} 次"
+                    )
                     break
             # 刷图流程
             logger.info(f"本次刷 {times} 次，累计已刷 {already_count} 次")
@@ -447,7 +444,7 @@ class TargetCount(CustomAction):
 
             already_count += times
             if target_count > 0 and already_count >= target_count:
-                # logger.info(f"达到目标次数，任务结束。总共刷了 {already_count} 次")
+                logger.debug(f"达到目标次数，任务结束。总共刷了 {already_count} 次")
                 break
 
         logger.info(f"任务结束，总共刷了 {already_count} 次")
