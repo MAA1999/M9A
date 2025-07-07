@@ -18,15 +18,21 @@
     },
     "ArtificialSleepwalking": {
         "doc": "入场后，进入人工梦游",
-        "recognition": "OCR",
-        "expected": "人工梦游",
-        "roi": [
-            0,
-            550,
-            1280,
-            170
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    550,
+                    1280,
+                    170
+                ],
+                "expected": "人工梦游"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -40,32 +46,44 @@
     },
     "ArtificialSleepwalkingAwards": {
         "doc": "人工梦游主界面，点击全部领取",
-        "recognition": "TemplateMatch",
-        "template": "Limbo/ArtificialSleepwalkingAwards.png",
-        "roi": [
-            937,
-            463,
-            214,
-            189
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    937,
+                    463,
+                    214,
+                    189
+                ],
+                "template": "Limbo/ArtificialSleepwalkingAwards.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "ClickBlank": {
         "doc": "点击空白关闭",
-        "recognition": "OCR",
-        "expected": [
-            "点击",
-            "空白",
-            "关闭"
-        ],
-        "roi": [
-            569,
-            660,
-            121,
-            27
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    569,
+                    660,
+                    121,
+                    27
+                ],
+                "expected": [
+                    "点击",
+                    "空白",
+                    "关闭"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -78,18 +96,24 @@
     },
     "LimboEntry": {
         "doc": "人工梦游主界面，点击挑战，进入深眠域",
-        "recognition": "TemplateMatch",
-        "template": [
-            "Limbo/LimboEntry.png",
-            "Limbo/LimboEntryNew.png"
-        ],
-        "roi": [
-            230,
-            339,
-            949,
-            215
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    230,
+                    339,
+                    949,
+                    215
+                ],
+                "template": [
+                    "Limbo/LimboEntry.png",
+                    "Limbo/LimboEntryNew.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -102,23 +126,31 @@
     },
     "LimboStageRightest": {
         "doc": "深眠域，点击最右侧的深眠片段",
-        "recognition": "OCR",
-        "expected": "深眠片段",
-        "roi": [
-            0,
-            112,
-            1280,
-            234
-        ],
-        "order_by": "Horizontal",
-        "index": -1,
-        "action": "Click",
-        "target_offset": [
-            80,
-            80,
-            -120,
-            50
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    112,
+                    1280,
+                    234
+                ],
+                "expected": "深眠片段",
+                "index": -1,
+                "order_by": "Horizontal"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    80,
+                    80,
+                    -120,
+                    50
+                ]
+            }
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -135,16 +167,22 @@
     },
     "LimboStageFlag": {
         "doc": "判断当前位于深眠片段",
-        "recognition": "OCR",
-        "expected": "本层酬劳",
-        "roi": [
-            146,
-            676,
-            67,
-            21
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    146,
+                    676,
+                    67,
+                    21
+                ],
+                "expected": "本层酬劳"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboStarsMainFlag",
             "LimboStageFlag"
@@ -152,16 +190,22 @@
     },
     "LimboStageFlag_AfterFailed": {
         "doc": "判断当前位于深眠片段(After Failed)",
-        "recognition": "OCR",
-        "expected": "本层酬劳",
-        "roi": [
-            146,
-            676,
-            67,
-            21
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    146,
+                    676,
+                    67,
+                    21
+                ],
+                "expected": "本层酬劳"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboStarsMainFlag_AfterFailed",
             "LimboStageFlag_AfterFailed"
@@ -169,15 +213,19 @@
     },
     "LimboStarsMainFlag": {
         "doc": "判断当前位于深眠试验酬劳界面,查看是否有奖励未领取",
-        "recognition": "OCR",
-        "expected": "深眠试验",
-        "roi": [
-            161,
-            96,
-            163,
-            43
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    161,
+                    96,
+                    163,
+                    43
+                ],
+                "expected": "深眠试验"
+            }
+        },
         "next": [
             "LimboStarsMainNoAwards"
         ],
@@ -188,15 +236,19 @@
     },
     "LimboStarsMainFlag_AfterFailed": {
         "doc": "判断当前位于深眠试验酬劳界面(After Failed)",
-        "recognition": "OCR",
-        "expected": "深眠试验",
-        "roi": [
-            161,
-            96,
-            163,
-            43
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    161,
+                    96,
+                    163,
+                    43
+                ],
+                "expected": "深眠试验"
+            }
+        },
         "next": [
             "LimboStarsMainNoAwards_AfterFailed"
         ],
@@ -207,18 +259,22 @@
     },
     "LimboStarsMainNoAwards": {
         "doc": "深眠试验酬劳界面，没有奖励未领取",
-        "recognition": "OCR",
-        "expected": [
-            "已领取",
-            "未达成"
-        ],
-        "roi": [
-            1007,
-            204,
-            70,
-            28
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1007,
+                    204,
+                    70,
+                    28
+                ],
+                "expected": [
+                    "已领取",
+                    "未达成"
+                ]
+            }
+        },
         "next": [
             "LimboStageFlag_up",
             "LimboStageFlag_down",
@@ -227,25 +283,33 @@
     },
     "LimboStarsMainNoAwards_AfterFailed": {
         "doc": "深眠试验酬劳界面，没有奖励未领取(After Failed)",
-        "recognition": "OCR",
-        "expected": [
-            "已领取",
-            "未达成"
-        ],
-        "roi": [
-            1007,
-            204,
-            70,
-            28
-        ],
-        "only_rec": true,
-        "target": [
-            681,
-            707,
-            85,
-            43
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1007,
+                    204,
+                    70,
+                    28
+                ],
+                "expected": [
+                    "已领取",
+                    "未达成"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    681,
+                    707,
+                    85,
+                    43
+                ]
+            }
+        },
         "next": [
             "LimboMain",
             "LimboStarsMainNoAwards_AfterFailed"
@@ -253,18 +317,24 @@
     },
     "LimboStarsMainAwards": {
         "doc": "深眠试验酬劳界面，点击全部领取/领取",
-        "recognition": "TemplateMatch",
-        "template": [
-            "Limbo/ObtainedAllAwards.png",
-            "Limbo/ObtainedAwards.png"
-        ],
-        "roi": [
-            941,
-            132,
-            205,
-            176
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    941,
+                    132,
+                    205,
+                    176
+                ],
+                "template": [
+                    "Limbo/ObtainedAllAwards.png",
+                    "Limbo/ObtainedAwards.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboStarsMainNoAwardsFlag",
             "LimboStarsMainAwards"
@@ -275,37 +345,49 @@
     },
     "LimboStarsMainNoAwardsFlag": {
         "doc": "判断当前位于深眠试验酬劳界面,奖励已领取完毕",
-        "recognition": "OCR",
-        "expected": [
-            "已领取",
-            "未达成"
-        ],
-        "roi": [
-            1007,
-            204,
-            70,
-            28
-        ],
-        "only_rec": true
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1007,
+                    204,
+                    70,
+                    28
+                ],
+                "expected": [
+                    "已领取",
+                    "未达成"
+                ]
+            }
+        }
     },
     "LimboStageFlag_up": {
         "doc": "判断当前位于深眠片段上半部分",
-        "recognition": "OCR",
-        "expected": "0/6",
-        "roi": [
-            1028,
-            101,
-            66,
-            36
-        ],
-        "only_rec": true,
-        "target": [
-            681,
-            654,
-            85,
-            43
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1028,
+                    101,
+                    66,
+                    36
+                ],
+                "expected": "0/6"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    681,
+                    654,
+                    85,
+                    43
+                ]
+            }
+        },
         "next": [
             "LimboStageLightest_1",
             "LimboStarsMainFlag"
@@ -314,22 +396,30 @@
     "LimboStageFlag_down": {
         "doc": "判断当前位于深眠片段下半部分，未开始战斗/已完成战斗",
         "_doc": "虽有上下半共3星的情况，考虑到一般情况下不会进入上下已通过（且未满星）深眠片段再运行m9a，而在外该深眠片段上下半通过便会解锁新的深眠，执行时不会进入该深眠，故此时识别的3星可视为上半3星，即下半战斗未开始状态",
-        "recognition": "OCR",
-        "expected": "[36]/6",
-        "roi": [
-            1028,
-            101,
-            66,
-            36
-        ],
-        "only_rec": true,
-        "target": [
-            681,
-            707,
-            85,
-            43
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1028,
+                    101,
+                    66,
+                    36
+                ],
+                "expected": "[36]/6"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    681,
+                    707,
+                    85,
+                    43
+                ]
+            }
+        },
         "next": [
             "LimboStageLightest_2",
             "LimboFinish",
@@ -341,22 +431,30 @@
         "_doc": "经测试，上下半各一星时，会解锁下一深眠",
         "__doc": "参考LimboStageFlag_down _doc，虽已确定不会出现检测到[45]/6的情况，但为了以防万一，还是决定加上该情况的识别",
         "todo_doc": "后续可在这里添加重打当前深眠片段的操作",
-        "recognition": "OCR",
-        "expected": "[1245]/6",
-        "roi": [
-            1028,
-            101,
-            66,
-            36
-        ],
-        "only_rec": true,
-        "target": [
-            681,
-            707,
-            85,
-            43
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1028,
+                    101,
+                    66,
+                    36
+                ],
+                "expected": "[1245]/6"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    681,
+                    707,
+                    85,
+                    43
+                ]
+            }
+        },
         "next": [
             "LimboMain",
             "LimboStageFlag_failed"
@@ -364,10 +462,16 @@
     },
     "LimboStageLightest_1": {
         "doc": "最靓的位置，要多点几次",
-        "recognition": "NeuralNetworkDetect",
-        "model": "LimbDetection.onnx",
-        "expected": 0,
-        "action": "Click",
+        "recognition": {
+            "type": "NeuralNetworkDetect",
+            "param": {
+                "expected": 0,
+                "model": "LimbDetection.onnx"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboActionFlag_1",
             "LimboStageLightest_1"
@@ -375,24 +479,30 @@
     },
     "LimboStageLightest_1_存档": {
         "doc": "最靓的位置，要多点几次",
-        "recognition": "ColorMatch",
-        "method": 6,
-        "roi": [
-            0,
-            70,
-            1280,
-            560
-        ],
-        "lower": [
-            200
-        ],
-        "upper": [
-            255
-        ],
-        "order_by": "Random",
-        "connected": true,
-        "count": 10,
-        "action": "Click",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    0,
+                    70,
+                    1280,
+                    560
+                ],
+                "method": 6,
+                "order_by": "Random",
+                "count": 10,
+                "connected": true,
+                "upper": [
+                    255
+                ],
+                "lower": [
+                    200
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboActionFlag_1",
             "LimboStageLightest_1"
@@ -400,14 +510,18 @@
     },
     "LimboActionFlag_1": {
         "doc": "进入深眠战斗",
-        "recognition": "OCR",
-        "expected": "开始行动",
-        "roi": [
-            988,
-            566,
-            256,
-            154
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    988,
+                    566,
+                    256,
+                    154
+                ],
+                "expected": "开始行动"
+            }
+        },
         "next": [
             "LimboTeamSelection_1",
             "LimboActionFlag_1"
@@ -415,16 +529,22 @@
     },
     "LimboTeamSelection_1": {
         "doc": "深眠，选择队伍1，列表未展开",
-        "recognition": "TemplateMatch",
-        "template": "Limbo/LimboTeamList_Off.png",
-        "threshold": 0.9,
-        "roi": [
-            940,
-            631,
-            48,
-            48
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    940,
+                    631,
+                    48,
+                    48
+                ],
+                "template": "Limbo/LimboTeamList_Off.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboTeamSelection_11",
             "LimboTeamSelection_1"
@@ -432,38 +552,52 @@
     },
     "LimboTeamSelection_11": {
         "doc": "深眠，选择队伍1，列表已展开，选择队伍1",
-        "recognition": "TemplateMatch",
-        "template": "Limbo/LimboTeamList_Open.png",
-        "threshold": 0.9,
-        "roi": [
-            940,
-            631,
-            48,
-            48
-        ],
-        "action": "Click",
-        "target": [
-            799,
-            404,
-            127,
-            32
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    940,
+                    631,
+                    48,
+                    48
+                ],
+                "template": "Limbo/LimboTeamList_Open.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    799,
+                    404,
+                    127,
+                    32
+                ]
+            }
+        },
         "next": [
             "LimboAction_1",
             "LimboTeamSelection_11"
         ]
     },
     "LimboAction_1": {
-        "recognition": "OCR",
-        "expected": "开始行动",
-        "roi": [
-            988,
-            566,
-            256,
-            154
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    988,
+                    566,
+                    256,
+                    154
+                ],
+                "expected": "开始行动"
+            }
+        },
         "timeout": 2000000,
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboFailed",
             "LimboVictory_1",
@@ -473,18 +607,24 @@
     },
     "LimboFailed": {
         "doc": "深眠战斗失败",
-        "recognition": "OCR",
-        "expected": [
-            "战斗失败"
-        ],
-        "roi": [
-            490,
-            115,
-            289,
-            78
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    490,
+                    115,
+                    289,
+                    78
+                ],
+                "expected": [
+                    "战斗失败"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboStageFlag_AfterFailed",
             "LimboFailed"
@@ -492,17 +632,23 @@
     },
     "LimboVictory_1": {
         "doc": "深眠战斗成功_1",
-        "recognition": "OCR",
-        "expected": [
-            "战斗胜利"
-        ],
-        "roi": [
-            678,
-            10,
-            473,
-            240
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    240
+                ],
+                "expected": [
+                    "战斗胜利"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboVictory_1",
             "LimboStageLightest_2"
@@ -510,10 +656,16 @@
     },
     "LimboStageLightest_2": {
         "doc": "最靓的位置，要多点几次",
-        "recognition": "NeuralNetworkDetect",
-        "model": "LimbDetection.onnx",
-        "expected": 0,
-        "action": "Click",
+        "recognition": {
+            "type": "NeuralNetworkDetect",
+            "param": {
+                "expected": 0,
+                "model": "LimbDetection.onnx"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboActionFlag_2",
             "LimboStageLightest_2"
@@ -521,92 +673,122 @@
     },
     "LimboStageLightest_2_存档": {
         "doc": "最靓的位置，要多点几次",
-        "recognition": "ColorMatch",
-        "method": 6,
-        "roi": [
-            0,
-            70,
-            1280,
-            560
-        ],
-        "lower": [
-            200
-        ],
-        "upper": [
-            255
-        ],
-        "order_by": "Random",
-        "connected": true,
-        "count": 10,
-        "action": "Click",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    0,
+                    70,
+                    1280,
+                    560
+                ],
+                "method": 6,
+                "order_by": "Random",
+                "count": 10,
+                "connected": true,
+                "upper": [
+                    255
+                ],
+                "lower": [
+                    200
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboActionFlag_2",
             "LimboStageLightest_2"
         ]
     },
     "LimboActionFlag_2": {
-        "recognition": "OCR",
-        "expected": "开始行动",
-        "roi": [
-            988,
-            566,
-            256,
-            154
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    988,
+                    566,
+                    256,
+                    154
+                ],
+                "expected": "开始行动"
+            }
+        },
         "next": [
             "LimboTeamSelection_2",
             "LimboActionFlag_2"
         ]
     },
     "LimboTeamSelection_2": {
-        "recognition": "TemplateMatch",
-        "template": "Limbo/LimboTeamList_Off.png",
-        "threshold": 0.9,
-        "roi": [
-            940,
-            631,
-            48,
-            48
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    940,
+                    631,
+                    48,
+                    48
+                ],
+                "template": "Limbo/LimboTeamList_Off.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboTeamSelection_22",
             "LimboTeamSelection_2"
         ]
     },
     "LimboTeamSelection_22": {
-        "recognition": "TemplateMatch",
-        "template": "Limbo/LimboTeamList_Open.png",
-        "threshold": 0.9,
-        "roi": [
-            940,
-            631,
-            48,
-            48
-        ],
-        "action": "Click",
-        "target": [
-            798,
-            463,
-            128,
-            33
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    940,
+                    631,
+                    48,
+                    48
+                ],
+                "template": "Limbo/LimboTeamList_Open.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    798,
+                    463,
+                    128,
+                    33
+                ]
+            }
+        },
         "next": [
             "LimboAction_2",
             "LimboTeamSelection_22"
         ]
     },
     "LimboAction_2": {
-        "recognition": "OCR",
-        "expected": "开始行动",
-        "roi": [
-            988,
-            566,
-            256,
-            154
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    988,
+                    566,
+                    256,
+                    154
+                ],
+                "expected": "开始行动"
+            }
+        },
         "timeout": 2000000,
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboFailed",
             "LimboVictory_2",
@@ -616,17 +798,23 @@
     },
     "LimboVictory_2": {
         "doc": "深眠下半完成时，先判断是否有finish，有则继续下面的操作，否则直接结束任务",
-        "recognition": "OCR",
-        "expected": [
-            "战斗胜利"
-        ],
-        "roi": [
-            678,
-            10,
-            473,
-            240
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    240
+                ],
+                "expected": [
+                    "战斗胜利"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboMain",
             "LimboVictory_2"
@@ -634,15 +822,19 @@
     },
     "LimboMain": {
         "doc": "深眠片段主界面",
-        "recognition": "OCR",
-        "expected": "本层酬劳",
-        "roi": [
-            146,
-            676,
-            67,
-            21
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    146,
+                    676,
+                    67,
+                    21
+                ],
+                "expected": "本层酬劳"
+            }
+        },
         "next": [
             "LimboFinish",
             "Stop"
@@ -650,16 +842,22 @@
     },
     "LimboFinish": {
         "doc": "当前深眠片段战斗完成",
-        "recognition": "TemplateMatch",
-        "template": "Limbo/LimboFinish.png",
-        "roi": [
-            400,
-            199,
-            569,
-            354
-        ],
-        "green_mask": true,
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    400,
+                    199,
+                    569,
+                    354
+                ],
+                "template": "Limbo/LimboFinish.png",
+                "green_mask": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboAwards",
             "LimboNoAwards"
@@ -676,18 +874,24 @@
         ]
     },
     "BackButtonForLimbo": {
-        "recognition": "TemplateMatch",
-        "template": [
-            "StartUp/BackButton.png"
-        ],
-        "roi": [
-            0,
-            0,
-            134,
-            138
-        ],
-        "green_mask": true,
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    134,
+                    138
+                ],
+                "template": [
+                    "StartUp/BackButton.png"
+                ],
+                "green_mask": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -700,33 +904,45 @@
     },
     "LimboAwards": {
         "doc": "深眠片段，存在本层酬劳",
-        "recognition": "TemplateMatch",
-        "template": "Limbo/LimboAwards.png",
-        "roi": [
-            139,
-            589,
-            109,
-            110
-        ],
-        "green_mask": true,
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    139,
+                    589,
+                    109,
+                    110
+                ],
+                "template": "Limbo/LimboAwards.png",
+                "green_mask": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboObtainedAwards_1"
         ]
     },
     "LimboObtainedAwards_1": {
-        "recognition": "TemplateMatch",
-        "template": [
-            "Limbo/ObtainedAllAwards.png",
-            "Limbo/ObtainedAwards.png"
-        ],
-        "roi": [
-            941,
-            132,
-            205,
-            176
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    941,
+                    132,
+                    205,
+                    176
+                ],
+                "template": [
+                    "Limbo/ObtainedAllAwards.png",
+                    "Limbo/ObtainedAwards.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LimboObtainedAwards_2"
         ],
@@ -735,21 +951,29 @@
         ]
     },
     "LimboObtainedAwards_2": {
-        "recognition": "OCR",
-        "expected": "深眠试验酬劳",
-        "roi": [
-            104,
-            36,
-            358,
-            157
-        ],
-        "action": "Click",
-        "target": [
-            20,
-            20,
-            20,
-            20
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    104,
+                    36,
+                    358,
+                    157
+                ],
+                "expected": "深眠试验酬劳"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    20,
+                    20,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "LimboEnd",
             "LimboStageRightest",
@@ -762,15 +986,19 @@
     },
     "LimboEnd": {
         "doc": "深眠片段·Ⅵ进度100%，任务结束",
-        "recognition": "TemplateMatch",
-        "template": "Limbo/LimboEnd.png",
-        "threshold": 0.9,
-        "roi": [
-            843,
-            425,
-            231,
-            140
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    843,
+                    425,
+                    231,
+                    140
+                ],
+                "template": "Limbo/LimboEnd.png",
+                "threshold": 0.9
+            }
+        },
         "next": []
     }
 }

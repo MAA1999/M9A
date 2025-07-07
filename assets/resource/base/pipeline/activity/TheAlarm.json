@@ -6,35 +6,45 @@
         ]
     },
     "Alarm_End": {
-        "recognition": "OCR",
-        "expected": [
-            "0/3",
-            "1/3",
-            "2/3"
-        ],
-        "inverse": true,
-        "roi": [
-            1126,
-            64,
-            135,
-            630
-        ]
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1126,
+                    64,
+                    135,
+                    630
+                ],
+                "expected": [
+                    "0/3",
+                    "1/3",
+                    "2/3"
+                ]
+            }
+        },
+        "inverse": true
     },
     "Alarm_Find0/3": {
-        "recognition": "OCR",
-        "expected": [
-            "0/3",
-            "1/3",
-            "2/3"
-        ],
-        "roi": [
-            1126,
-            64,
-            135,
-            630
-        ],
-        "action": "Click",
-        "order_by": "Vertical",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1126,
+                    64,
+                    135,
+                    630
+                ],
+                "expected": [
+                    "0/3",
+                    "1/3",
+                    "2/3"
+                ],
+                "order_by": "Vertical"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "Alarm_Select",
             "Alarm_Complete"
@@ -42,42 +52,60 @@
         "interrupt": "Alarm_StageFlag"
     },
     "Alarm_Select": {
-        "recognition": "OCR",
-        "roi": [
-            6,
-            134,
-            122,
-            148
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    6,
+                    134,
+                    122,
+                    148
+                ]
+            }
+        },
         "enabled": false,
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": "Alarm_Complete",
         "interrupt": "Alarm_StageFlag"
     },
     "Alarm_Complete": {
-        "recognition": "TemplateMatch",
-        "template": [
-            "Combat/Activity/complete.png"
-        ],
-        "threshold": 0.6,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "Combat/Activity/complete.png"
+                ],
+                "threshold": 0.6
+            }
+        },
         "pre_delay": 1000,
-        "action": "Click",
-        "target": [
-            38,
-            36,
-            17,
-            12
-        ]
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    38,
+                    36,
+                    17,
+                    12
+                ]
+            }
+        }
     },
     "Alarm_StageFlag": {
-        "recognition": "OCR",
-        "expected": "进度",
-        "roi": [
-            439,
-            59,
-            134,
-            39
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    439,
+                    59,
+                    134,
+                    39
+                ],
+                "expected": "进度"
+            }
+        },
         "post_delay": 4000,
         "next": [
             "Alarm_Complete",
@@ -85,33 +113,49 @@
         ]
     },
     "Alarm_FindStage": {
-        "recognition": "Custom",
-        "custom_recognition": "FindFirstUnplayedStageByCheckmark",
-        "custom_recognition_param": {
-            "difficulty": "Hard",
-            "mode": "Normal"
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "FindFirstUnplayedStageByCheckmark",
+                "custom_recognition_param": {
+                    "difficulty": "Hard",
+                    "mode": "Normal"
+                }
+            }
         },
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": "Alarm_Action1"
     },
     "Alarm_FindStageFlag": {
-        "recognition": "TemplateMatch",
-        "template": [
-            "Combat/Activity/stage_flag.png"
-        ],
-        "green_mask": true,
-        "threshold": 0.55
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "Combat/Activity/stage_flag.png"
+                ],
+                "green_mask": true,
+                "threshold": 0.55
+            }
+        }
     },
     "Alarm_Action1": {
-        "recognition": "OCR",
-        "expected": "开始挑战",
-        "roi": [
-            1049,
-            607,
-            134,
-            50
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1049,
+                    607,
+                    134,
+                    50
+                ],
+                "expected": "开始挑战"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "Alarm_Action2",
             "Alarm_Action1.1",
@@ -119,31 +163,43 @@
         ]
     },
     "Alarm_Action1.1": {
-        "recognition": "OCR",
-        "expected": "确认",
-        "roi": [
-            765,
-            404,
-            80,
-            36
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    765,
+                    404,
+                    80,
+                    36
+                ],
+                "expected": "确认"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "Alarm_Action2",
             "Alarm_Action1.1"
         ]
     },
     "Alarm_Action2": {
-        "recognition": "OCR",
-        "expected": "开始",
-        "roi": [
-            1049,
-            614,
-            134,
-            79
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1049,
+                    614,
+                    134,
+                    79
+                ],
+                "expected": "开始"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "Alarm_StageFlagEnd1",
             "Alarm_StageFlagEnd",
@@ -155,32 +211,44 @@
         ]
     },
     "Alarm_Action3": {
-        "recognition": "OCR",
-        "expected": "确定",
-        "roi": [
-            589,
-            614,
-            95,
-            38
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    589,
+                    614,
+                    95,
+                    38
+                ],
+                "expected": "确定"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "Alarm_Action4",
             "Alarm_Action3"
         ]
     },
     "Alarm_Action4": {
-        "recognition": "OCR",
-        "expected": "确认",
-        "roi": [
-            761,
-            403,
-            86,
-            40
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    761,
+                    403,
+                    86,
+                    40
+                ],
+                "expected": "确认"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "Alarm_StageFlagEnd1",
             "Alarm_StageFlagEnd",
@@ -188,14 +256,18 @@
         ]
     },
     "TheAlarm_Combat": {
-        "recognition": "OCR",
-        "expected": "回合",
-        "roi": [
-            22,
-            28,
-            205,
-            46
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    22,
+                    28,
+                    205,
+                    46
+                ],
+                "expected": "回合"
+            }
+        },
         "post_delay": 4000,
         "timeout": 60000,
         "next": [
@@ -204,15 +276,21 @@
         ]
     },
     "TheAlarm_Victory": {
-        "recognition": "OCR",
-        "expected": "战斗",
-        "roi": [
-            766,
-            78,
-            306,
-            102
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    766,
+                    78,
+                    306,
+                    102
+                ],
+                "expected": "战斗"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "pre_wait_freezes": {
             "time": 500,
             "target": [
@@ -224,32 +302,44 @@
         }
     },
     "Alarm_StageFlagEnd": {
-        "recognition": "OCR",
-        "expected": "进度",
-        "roi": [
-            439,
-            59,
-            134,
-            39
-        ]
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    439,
+                    59,
+                    134,
+                    39
+                ],
+                "expected": "进度"
+            }
+        }
     },
     "Alarm_StageFlagEnd1": {
-        "recognition": "OCR",
-        "expected": "回合数",
-        "roi": [
-            940,
-            465,
-            77,
-            36
-        ],
-        "only_rec": true,
-        "action": "Click",
-        "target": [
-            21,
-            21,
-            49,
-            46
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    940,
+                    465,
+                    77,
+                    36
+                ],
+                "expected": "回合数"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    21,
+                    21,
+                    49,
+                    46
+                ]
+            }
+        },
         "next": [
             "Alarm_StageFlagEnd",
             "Alarm_StageFlagEnd1"

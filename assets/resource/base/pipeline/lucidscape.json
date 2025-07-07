@@ -15,27 +15,35 @@
         ]
     },
     "FlagInLucidscape": {
-        "recognition": "OCR",
-        "expected": "LUCIDSCAPE",
-        "roi": [
-            275,
-            635,
-            167,
-            32
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    275,
+                    635,
+                    167,
+                    32
+                ],
+                "expected": "LUCIDSCAPE"
+            }
+        },
         "next": [
             "LucidscapeStageSelect"
         ]
     },
     "LucidscapeTotalAwards": {
-        "action": "Click",
-        "target": [
-            473,
-            641,
-            25,
-            25
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    473,
+                    641,
+                    25,
+                    25
+                ]
+            }
+        },
         "post_delay": 3000,
         "next": [
             "LucidscapeFlagInTotalAwards",
@@ -46,15 +54,19 @@
         ]
     },
     "LucidscapeFlagInTotalAwards": {
-        "recognition": "OCR",
-        "expected": "首通",
-        "roi": [
-            285,
-            97,
-            76,
-            41
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    285,
+                    97,
+                    76,
+                    41
+                ],
+                "expected": "首通"
+            }
+        },
         "next": [
             "LucidscapeTotalAwardsCompleted"
         ],
@@ -64,26 +76,34 @@
         ]
     },
     "LucidscapeTotalAwardsCompleted": {
-        "recognition": "OCR",
-        "expected": [
-            "已领取",
-            "未达成"
-        ],
-        "roi": [
-            988,
-            200,
-            102,
-            30
-        ],
-        "only_rec": true,
-        "action": "Click",
-        "target": "LucidscapeFlagInTotalAwards",
-        "target_offset": [
-            0,
-            -80,
-            0,
-            0
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    988,
+                    200,
+                    102,
+                    30
+                ],
+                "expected": [
+                    "已领取",
+                    "未达成"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "LucidscapeFlagInTotalAwards",
+                "target_offset": [
+                    0,
+                    -80,
+                    0,
+                    0
+                ]
+            }
+        },
         "next": [
             "HomeFlag"
         ],
@@ -94,23 +114,31 @@
     "LucidscapeStageSelect": {
         "doc": "醒梦片段选择",
         "pre_delay": 2000,
-        "action": "Custom",
-        "custom_action": "LucidscapeStageSelect",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "LucidscapeStageSelect"
+            }
+        },
         "next": [
             "LucidscapeStatusDetect"
         ]
     },
     "LucidscapeStatusDetect": {
         "doc": "进入醒梦片段后的判断",
-        "recognition": "OCR",
-        "expected": "片段",
-        "roi": [
-            712,
-            107,
-            91,
-            51
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    712,
+                    107,
+                    91,
+                    51
+                ],
+                "expected": "片段"
+            }
+        },
         "pre_wait_freezes": {
             "time": 1000,
             "target": [
@@ -122,57 +150,79 @@
         },
         "pre_delay": 3000,
         "post_delay": 1000,
-        "action": "Custom",
-        "custom_action": "LucidscapeStatusDetect",
-        "custom_action_param": {
-            "stage": 4
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "LucidscapeStatusDetect",
+                "custom_action_param": {
+                    "stage": 4
+                }
+            }
         }
     },
     "LucidscapeCombatStartFlag": {
-        "recognition": "OCR",
-        "expected": "开始行动",
-        "roi": [
-            1054,
-            637,
-            126,
-            32
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1054,
+                    637,
+                    126,
+                    32
+                ],
+                "expected": "开始行动"
+            }
+        },
         "next": [
             "LucidscapeTeamSelect_1"
         ]
     },
     "LucidscapeTeamSelect_1": {
-        "action": "Custom",
-        "custom_action": "TeamSelect",
-        "custom_action_param": {
-            "team": 1
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "TeamSelect",
+                "custom_action_param": {
+                    "team": 1
+                }
+            }
         },
         "next": [
             "LucidscapeCombatStart"
         ]
     },
     "LucidscapeTeamSelect_2": {
-        "action": "Custom",
-        "custom_action": "TeamSelect",
-        "custom_action_param": {
-            "team": 2
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "TeamSelect",
+                "custom_action_param": {
+                    "team": 2
+                }
+            }
         },
         "next": [
             "LucidscapeCombatStart"
         ]
     },
     "LucidscapeCombatStart": {
-        "recognition": "OCR",
-        "expected": "开始行动",
-        "roi": [
-            1054,
-            637,
-            126,
-            32
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1054,
+                    637,
+                    126,
+                    32
+                ],
+                "expected": "开始行动"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "timeout": 300000,
         "rate_limit": 10000,
         "next": [
@@ -185,40 +235,56 @@
         ]
     },
     "LucidscapeSkipWarning": {
-        "recognition": "OCR",
-        "expected": "确认",
-        "roi": [
-            774,
-            406,
-            64,
-            30
-        ],
-        "only_rec": true,
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    774,
+                    406,
+                    64,
+                    30
+                ],
+                "expected": "确认"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "Combating": {
-        "recognition": "TemplateMatch",
-        "template": "Lucidscape/Combating.png",
-        "roi": [
-            1208,
-            6,
-            64,
-            64
-        ]
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1208,
+                    6,
+                    64,
+                    64
+                ],
+                "template": "Lucidscape/Combating.png"
+            }
+        }
     },
     "LucidscapeFailed": {
-        "recognition": "OCR",
-        "expected": [
-            "战斗失败"
-        ],
-        "roi": [
-            490,
-            115,
-            289,
-            78
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    490,
+                    115,
+                    289,
+                    78
+                ],
+                "expected": [
+                    "战斗失败"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 2000,
         "next": [
             "HomeFlag",
@@ -230,16 +296,20 @@
         "focus": "[color:red]战斗失败，任务结束[/color]"
     },
     "LucidscapeVictory": {
-        "recognition": "OCR",
-        "expected": [
-            "战斗胜利"
-        ],
-        "roi": [
-            678,
-            10,
-            473,
-            240
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    240
+                ],
+                "expected": [
+                    "战斗胜利"
+                ]
+            }
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -249,7 +319,9 @@
                 263
             ]
         },
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "LucidscapeStatusDetect",
             "LucidscapeVictory"
@@ -261,65 +333,91 @@
         ]
     },
     "LucidscapeSkip": {
-        "recognition": "OCR",
-        "expected": [
-            "跳过",
-            "SKIP"
-        ],
-        "roi": [
-            1142,
-            42,
-            48,
-            27
-        ],
-        "only_rec": true,
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1142,
+                    42,
+                    48,
+                    27
+                ],
+                "expected": [
+                    "跳过",
+                    "SKIP"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "LucidscapeClickBlank": {
-        "recognition": "OCR",
-        "expected": "空白",
-        "roi": [
-            575,
-            597,
-            128,
-            30
-        ],
-        "only_rec": true,
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    575,
+                    597,
+                    128,
+                    30
+                ],
+                "expected": "空白"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "TeamlistOff": {
-        "recognition": "TemplateMatch",
-        "template": "Limbo/LimboTeamList_Off.png",
-        "threshold": 0.9,
-        "roi": [
-            940,
-            631,
-            48,
-            48
-        ]
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    940,
+                    631,
+                    48,
+                    48
+                ],
+                "template": "Limbo/LimboTeamList_Off.png",
+                "threshold": 0.9
+            }
+        }
     },
     "TeamlistOpen": {
-        "recognition": "TemplateMatch",
-        "template": "Limbo/LimboTeamList_Open.png",
-        "threshold": 0.9,
-        "roi": [
-            940,
-            631,
-            48,
-            48
-        ]
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    940,
+                    631,
+                    48,
+                    48
+                ],
+                "template": "Limbo/LimboTeamList_Open.png",
+                "threshold": 0.9
+            }
+        }
     },
     "LucidscapeAwards": {
-        "recognition": "OCR",
-        "expected": "本层酬劳",
-        "roi": [
-            146,
-            678,
-            68,
-            19
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    146,
+                    678,
+                    68,
+                    19
+                ],
+                "expected": "本层酬劳"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 1000,
         "next": [
             "LucidscapeFlagInAwards",
@@ -327,15 +425,19 @@
         ]
     },
     "LucidscapeFlagInAwards": {
-        "recognition": "OCR",
-        "expected": "醒梦片段",
-        "roi": [
-            159,
-            98,
-            165,
-            44
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    159,
+                    98,
+                    165,
+                    44
+                ],
+                "expected": "醒梦片段"
+            }
+        },
         "next": [
             "LucidscapeNoAwards"
         ],
@@ -345,26 +447,34 @@
         ]
     },
     "LucidscapeNoAwards": {
-        "recognition": "OCR",
-        "expected": [
-            "已领取",
-            "未达成"
-        ],
-        "roi": [
-            988,
-            200,
-            102,
-            30
-        ],
-        "only_rec": true,
-        "action": "Click",
-        "target": "LucidscapeFlagInAwards",
-        "target_offset": [
-            158,
-            -80,
-            0,
-            0
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    988,
+                    200,
+                    102,
+                    30
+                ],
+                "expected": [
+                    "已领取",
+                    "未达成"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "LucidscapeFlagInAwards",
+                "target_offset": [
+                    158,
+                    -80,
+                    0,
+                    0
+                ]
+            }
+        },
         "next": [
             "FlagInLucidscape"
         ],
@@ -373,39 +483,55 @@
         ]
     },
     "LucidscapeAwardsClick": {
-        "recognition": "OCR",
-        "expected": "领取",
-        "roi": [
-            988,
-            200,
-            102,
-            30
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    988,
+                    200,
+                    102,
+                    30
+                ],
+                "expected": "领取"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 2000
     },
     "LucidscapeFinish": {
-        "recognition": "TemplateMatch",
-        "template": "Limbo/LimboFinish.png",
-        "roi": [
-            400,
-            199,
-            569,
-            354
-        ],
-        "green_mask": true
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    400,
+                    199,
+                    569,
+                    354
+                ],
+                "template": "Limbo/LimboFinish.png",
+                "green_mask": true
+            }
+        }
     },
     "LucidscapeEntry": {
-        "recognition": "TemplateMatch",
-        "template": "Lucidscape/LucidscapeEntry.png",
-        "roi": [
-            770,
-            255,
-            298,
-            259
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    770,
+                    255,
+                    298,
+                    259
+                ],
+                "template": "Lucidscape/LucidscapeEntry.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -417,31 +543,43 @@
         }
     },
     "LucidscapeStageLocked": {
-        "recognition": "OCR",
-        "expected": "\\d/[12][50]0",
-        "roi_code": "Locked所在位置",
-        "only_rec": true
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "expected": "\\d/[12][50]0"
+            }
+        },
+        "roi_code": "Locked所在位置"
     },
     "LucidscapeStageFlag01": {
-        "recognition": "OCR",
-        "expected": "01",
-        "roi": [
-            254,
-            319,
-            37,
-            28
-        ],
-        "only_rec": true
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    254,
+                    319,
+                    37,
+                    28
+                ],
+                "expected": "01"
+            }
+        }
     },
     "LucidscapeStageFlag02": {
-        "recognition": "OCR",
-        "expected": "02",
-        "roi": [
-            922,
-            196,
-            40,
-            29
-        ],
-        "only_rec": true
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    922,
+                    196,
+                    40,
+                    29
+                ],
+                "expected": "02"
+            }
+        }
     }
 }

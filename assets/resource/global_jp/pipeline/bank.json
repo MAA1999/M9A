@@ -1,7 +1,11 @@
 {
     "ModifyBankTaskList": {
-        "custom_action_param": {
-            "resource": "jp"
+        "action": {
+            "param": {
+                "custom_action_param": {
+                    "resource": "jp"
+                }
+            }
         }
     }
 }

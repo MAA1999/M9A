@@ -8,21 +8,29 @@
         ]
     },
     "AwardsMainFlag": {
-        "recognition": "TemplateMatch",
-        "template": "StartUp/HomeFlag.png",
-        "roi": [
-            1022,
-            419,
-            194,
-            166
-        ],
-        "action": "Click",
-        "target": [
-            576,
-            298,
-            68,
-            64
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1022,
+                    419,
+                    194,
+                    166
+                ],
+                "template": "StartUp/HomeFlag.png"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    576,
+                    298,
+                    68,
+                    64
+                ]
+            }
+        },
         "next": [
             "Sub_MailBadge",
             "Sub_DailyBadge",
@@ -36,16 +44,22 @@
     },
     "Sub_MailBadge": {
         "is_sub": true,
-        "recognition": "TemplateMatch",
-        "template": "Awards/MailBadge.png",
-        "threshold": 0.97,
-        "roi": [
-            47,
-            115,
-            108,
-            108
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    47,
+                    115,
+                    108,
+                    108
+                ],
+                "template": "Awards/MailBadge.png",
+                "threshold": 0.97
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "CollectMailAwards"
         ],
@@ -54,27 +68,39 @@
         ]
     },
     "MailBadge": {
-        "recognition": "TemplateMatch",
-        "template": "Awards/MailBadge.png",
-        "threshold": 0.97,
-        "roi": [
-            47,
-            115,
-            108,
-            108
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    47,
+                    115,
+                    108,
+                    108
+                ],
+                "template": "Awards/MailBadge.png",
+                "threshold": 0.97
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "CollectMailAwards": {
-        "recognition": "TemplateMatch",
-        "template": "Awards/CollectMailAwards.png",
-        "roi": [
-            109,
-            551,
-            191,
-            132
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    109,
+                    551,
+                    191,
+                    132
+                ],
+                "template": "Awards/CollectMailAwards.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "NoMailAwards",
             "CollectMailAwards"
@@ -84,26 +110,36 @@
         ]
     },
     "ObtainedAwards": {
-        "recognition": "TemplateMatch",
-        "template": "Awards/ObtainedAwards.png",
-        "roi": [
-            524,
-            62,
-            232,
-            158
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    524,
+                    62,
+                    232,
+                    158
+                ],
+                "template": "Awards/ObtainedAwards.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "NoMailAwards": {
-        "recognition": "TemplateMatch",
-        "template": "Awards/NoMailAwards.png",
-        "roi": [
-            952,
-            39,
-            164,
-            163
-        ],
-        "threshold": 0.6,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    952,
+                    39,
+                    164,
+                    163
+                ],
+                "template": "Awards/NoMailAwards.png",
+                "threshold": 0.6
+            }
+        },
         "next": [
             "EquipmentOverflows",
             "HomeFlag"
@@ -114,14 +150,18 @@
     },
     "EquipmentOverflows": {
         "doc": "心相仓库已满",
-        "recognition": "OCR",
-        "expected": "仓库已满",
-        "roi": [
-            151,
-            97,
-            300,
-            504
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    151,
+                    97,
+                    300,
+                    504
+                ],
+                "expected": "仓库已满"
+            }
+        },
         "next": [
             "WareHouseFlag"
         ],
@@ -131,16 +171,20 @@
         ]
     },
     "WareHouseFlag": {
-        "recognition": "OCR",
-        "expected": [
-            "心相"
-        ],
-        "roi": [
-            27,
-            93,
-            162,
-            359
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    27,
+                    93,
+                    162,
+                    359
+                ],
+                "expected": [
+                    "心相"
+                ]
+            }
+        },
         "pre_wait_freezes": {
             "time": 300,
             "target": [
@@ -150,22 +194,30 @@
                 359
             ]
         },
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "EnterDissociation",
             "WareHouseFlag"
         ]
     },
     "EnterDissociation": {
-        "recognition": "OCR",
-        "expected": "解离",
-        "roi": [
-            1008,
-            582,
-            214,
-            138
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1008,
+                    582,
+                    214,
+                    138
+                ],
+                "expected": "解离"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "Dissociation4StarFlag"
         ],
@@ -175,15 +227,19 @@
         ]
     },
     "Dissociation4StarFlag": {
-        "recognition": "OCR",
-        "expected": "4",
-        "roi": [
-            143,
-            650,
-            35,
-            22
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    143,
+                    650,
+                    35,
+                    22
+                ],
+                "expected": "4"
+            }
+        },
         "next": [
             "DissociationFastInsertCompleted"
         ],
@@ -192,25 +248,31 @@
         ]
     },
     "DissociationFastInsertCompleted": {
-        "recognition": "ColorMatch",
-        "roi": [
-            978,
-            629,
-            215,
-            47
-        ],
-        "upper": [
-            223,
-            122,
-            74
-        ],
-        "lower": [
-            173,
-            72,
-            24
-        ],
-        "count": 20,
-        "action": "Click",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    978,
+                    629,
+                    215,
+                    47
+                ],
+                "count": 20,
+                "upper": [
+                    223,
+                    122,
+                    74
+                ],
+                "lower": [
+                    173,
+                    72,
+                    24
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 3000,
         "next": [
             "DissociationCompleted",
@@ -221,24 +283,28 @@
         ]
     },
     "DissociationCompleted": {
-        "recognition": "ColorMatch",
-        "roi": [
-            978,
-            629,
-            215,
-            47
-        ],
-        "upper": [
-            141,
-            141,
-            141
-        ],
-        "lower": [
-            91,
-            91,
-            91
-        ],
-        "count": 20,
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    978,
+                    629,
+                    215,
+                    47
+                ],
+                "count": 20,
+                "upper": [
+                    141,
+                    141,
+                    141
+                ],
+                "lower": [
+                    91,
+                    91,
+                    91
+                ]
+            }
+        },
         "next": [
             "HomeFlag"
         ],
@@ -248,28 +314,40 @@
         ]
     },
     "DissociationFastInsert": {
-        "recognition": "OCR",
-        "expected": "快(.?)放入",
-        "roi": [
-            380,
-            650,
-            80,
-            24
-        ],
-        "only_rec": true,
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    380,
+                    650,
+                    80,
+                    24
+                ],
+                "expected": "快(.?)放入"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "Dissociation4StarSelect": {
-        "recognition": "OCR",
-        "expected": "4",
-        "roi": [
-            160,
-            608,
-            35,
-            22
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    160,
+                    608,
+                    35,
+                    22
+                ],
+                "expected": "4"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -281,16 +359,22 @@
         }
     },
     "Dissociation3StarSelect": {
-        "recognition": "OCR",
-        "expected": "3",
-        "roi": [
-            143,
-            650,
-            35,
-            22
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    143,
+                    650,
+                    35,
+                    22
+                ],
+                "expected": "3"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -302,28 +386,40 @@
         }
     },
     "EnterWareHouse": {
-        "recognition": "OCR",
-        "expected": "仓库",
-        "roi": [
-            4,
-            154,
-            149,
-            397
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    4,
+                    154,
+                    149,
+                    397
+                ],
+                "expected": "仓库"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "Sub_DailyBadge": {
         "is_sub": true,
-        "recognition": "TemplateMatch",
-        "template": "Awards/DailyBadge.png",
-        "threshold": 0.97,
-        "roi": [
-            44,
-            194,
-            111,
-            110
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    44,
+                    194,
+                    111,
+                    110
+                ],
+                "template": "Awards/DailyBadge.png",
+                "threshold": 0.97
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": 200,
         "next": [
             "Sub_CollectDailyAwards",
@@ -337,30 +433,42 @@
     },
     "Sub_CollectDailyAwards": {
         "is_sub": true,
-        "recognition": "TemplateMatch",
-        "template": [
-            "Awards/CollectDailyAwards.png",
-            "Awards/CollectSingleDailyAwards.png"
-        ],
-        "action": "Click",
-        "roi": [
-            1075,
-            63,
-            201,
-            183
-        ]
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1075,
+                    63,
+                    201,
+                    183
+                ],
+                "template": [
+                    "Awards/CollectDailyAwards.png",
+                    "Awards/CollectSingleDailyAwards.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "WeeklyAwardsBadge": {
-        "recognition": "TemplateMatch",
-        "template": "Awards/WeeklyAwardsBadge.png",
-        "threshold": 0.97,
-        "action": "Click",
-        "roi": [
-            1165,
-            0,
-            111,
-            113
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1165,
+                    0,
+                    111,
+                    113
+                ],
+                "template": "Awards/WeeklyAwardsBadge.png",
+                "threshold": 0.97
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "Sub_CollectDailyAwards",
             "WeeklyAwardsBadge",
@@ -374,15 +482,19 @@
     },
     "WeeklyAwardsCompleted": {
         "doc": "周任务完成，开始尝试获取显影罐",
-        "recognition": "OCR",
-        "expected": "已领取全部奖励",
-        "roi": [
-            156,
-            350,
-            211,
-            31
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    156,
+                    350,
+                    211,
+                    31
+                ],
+                "expected": "已领取全部奖励"
+            }
+        },
         "next": [
             "ShowFlag"
         ],
@@ -392,33 +504,43 @@
         ]
     },
     "ShowFlag": {
-        "recognition": "OCR",
-        "expected": [
-            "故事",
-            "映像",
-            "轶事"
-        ],
-        "roi": [
-            80,
-            665,
-            318,
-            27
-        ],
-        "only_rec": true
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    80,
+                    665,
+                    318,
+                    27
+                ],
+                "expected": [
+                    "故事",
+                    "映像",
+                    "轶事"
+                ]
+            }
+        }
     },
     "DevelopmentTank": {
-        "recognition": "OCR",
-        "expected": [
-            "映像",
-            "轶事"
-        ],
-        "roi": [
-            30,
-            615,
-            418,
-            105
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    30,
+                    615,
+                    418,
+                    105
+                ],
+                "expected": [
+                    "映像",
+                    "轶事"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -434,42 +556,56 @@
         ]
     },
     "FullDevelopmentTank": {
-        "recognition": "OCR",
-        "expected": "5/5",
-        "roi": [
-            1135,
-            21,
-            40,
-            22
-        ],
-        "only_rec": true
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1135,
+                    21,
+                    40,
+                    22
+                ],
+                "expected": "5/5"
+            }
+        }
     },
     "DailyAwardsPageFlag": {
-        "recognition": "TemplateMatch",
-        "template": "Awards/DailyAwardsPageFlag.png",
-        "roi": [
-            458,
-            0,
-            138,
-            136
-        ]
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    458,
+                    0,
+                    138,
+                    136
+                ],
+                "template": "Awards/DailyAwardsPageFlag.png"
+            }
+        }
     },
     "Sub_JukeboxBadge": {
         "is_sub": true,
-        "recognition": "TemplateMatch",
-        "template": [
-            "Awards/JukeboxBadge1.png",
-            "Awards/JukeboxBadge2.png",
-            "Awards/JukeboxBadge3.png"
-        ],
-        "threshold": 0.85,
-        "roi": [
-            154,
-            29,
-            383,
-            75
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    154,
+                    29,
+                    383,
+                    75
+                ],
+                "template": [
+                    "Awards/JukeboxBadge1.png",
+                    "Awards/JukeboxBadge2.png",
+                    "Awards/JukeboxBadge3.png"
+                ],
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 1000,
         "next": [
             "Sub_CollectJukebox",
@@ -483,29 +619,41 @@
         ]
     },
     "JukeboxExitPurchase": {
-        "recognition": "OCR",
-        "expected": "再想想",
-        "roi": [
-            291,
-            580,
-            191,
-            134
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    291,
+                    580,
+                    191,
+                    134
+                ],
+                "expected": "再想想"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 1000
     },
     "Sub_JukeboxAwardsBadge": {
         "is_sub": true,
-        "recognition": "TemplateMatch",
-        "template": "Awards/JukeboxAwardsBadge.png",
-        "threshold": 0.8,
-        "roi": [
-            967,
-            1,
-            110,
-            113
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    967,
+                    1,
+                    110,
+                    113
+                ],
+                "template": "Awards/JukeboxAwardsBadge.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "Sub_CollectJukebox",
             "Sub_JukeboxAwardsBadge",
@@ -518,61 +666,85 @@
         ]
     },
     "ExitEdition": {
-        "recognition": "OCR",
-        "expected": "光碟",
-        "roi": [
-            124,
-            110,
-            187,
-            154
-        ],
-        "action": "Click",
-        "target_offset": [
-            46,
-            46,
-            0,
-            0
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    124,
+                    110,
+                    187,
+                    154
+                ],
+                "expected": "光碟"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    46,
+                    46,
+                    0,
+                    0
+                ]
+            }
+        },
         "next": [
             "Sub_JukeboxAwardsBadge"
         ]
     },
     "Sub_CollectJukebox": {
         "is_sub": true,
-        "recognition": "TemplateMatch",
-        "template": "Awards/CollectJukebox.png",
-        "roi": [
-            1009,
-            594,
-            213,
-            126
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1009,
+                    594,
+                    213,
+                    126
+                ],
+                "template": "Awards/CollectJukebox.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "NoJukeboxAwards": {
-        "recognition": "TemplateMatch",
-        "template": "Awards/NoJukeboxAwards.png",
-        "threshold": 0.97,
-        "roi": [
-            1012,
-            46,
-            23,
-            20
-        ]
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1012,
+                    46,
+                    23,
+                    20
+                ],
+                "template": "Awards/NoJukeboxAwards.png",
+                "threshold": 0.97
+            }
+        }
     },
     "Sub_CarnivalAlbumAwards": {
         "is_sub": true,
-        "recognition": "OCR",
-        "expected": [
-            "巡游专列"
-        ],
-        "roi": [
-            197,
-            561,
-            245,
-            159
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    197,
+                    561,
+                    245,
+                    159
+                ],
+                "expected": [
+                    "巡游专列"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": 200,
         "next": [
             "Sub_CollectJukebox"

@@ -1,9 +1,13 @@
 {
     "Screenshot": {
-        "action": "Custom",
-        "custom_action": "Screenshot",
-        "custom_action_param": {
-            "save_dir": "debug/error"
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "Screenshot",
+                "custom_action_param": {
+                    "save_dir": "debug/error"
+                }
+            }
         },
         "focus": {
             "start": "[color:red]任务超时，可能未按预期进行[/color]"

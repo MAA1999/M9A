@@ -1,15 +1,21 @@
 {
     "ODR_Start": {
         "doc": "首层速刷，需要先手动将“刻画生长-指引之歌”点满",
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SODStart.png",
-        "roi": [
-            947,
-            559,
-            246,
-            113
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    947,
+                    559,
+                    246,
+                    113
+                ],
+                "template": "OutsideDeduction/SODStart.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 1500,
             "target": [
@@ -33,15 +39,19 @@
     },
     "ODR_FlagInDifficultySelect": {
         "is_sub": true,
-        "recognition": "OCR",
-        "expected": "音序选择",
-        "roi": [
-            562,
-            34,
-            156,
-            43
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    562,
+                    34,
+                    156,
+                    43
+                ],
+                "expected": "音序选择"
+            }
+        },
         "post_wait_freezes": {
             "time": 700,
             "target": [
@@ -56,105 +66,139 @@
         ]
     },
     "SOD_DifficultySelect": {
-        "action": "Custom",
-        "custom_action": "SOD_DifficultySelect",
-        "custom_action_param": {
-            "level": "cur"
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SOD_DifficultySelect",
+                "custom_action_param": {
+                    "level": "cur"
+                }
+            }
         }
     },
     "SOD_LevelLocked": {
-        "recognition": "OCR",
-        "expected": "解锁",
-        "roi": [
-            702,
-            369,
-            46,
-            24
-        ],
-        "only_rec": true
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    702,
+                    369,
+                    46,
+                    24
+                ],
+                "expected": "解锁"
+            }
+        }
     },
     "SOD_CurrentLevel": {
-        "recognition": "OCR",
-        "expected": "\\d",
-        "roi": [
-            587,
-            123,
-            106,
-            92
-        ],
-        "only_rec": true
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    587,
+                    123,
+                    106,
+                    92
+                ],
+                "expected": "\\d"
+            }
+        }
     },
     "ODR_Start_Difficulty_Confirm": {
         "doc": "难度确认",
-        "recognition": "OCR",
-        "expected": "确认",
-        "roi": [
-            1030,
-            616,
-            76,
-            44
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1030,
+                    616,
+                    76,
+                    44
+                ],
+                "expected": "确认"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": 1
     },
     "ODR_Start_Gift": {
-        "recognition": "OCR",
-        "expected": [
-            "镜的馈赠"
-        ],
-        "roi": [
-            572,
-            22,
-            133,
-            36
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    572,
+                    22,
+                    133,
+                    36
+                ],
+                "expected": [
+                    "镜的馈赠"
+                ]
+            }
+        },
         "next": [
             "ODR_Start_Gift_Confirm",
             "ODR_Start_Gift_Select"
         ]
     },
     "ODR_Start_Gift_Select": {
-        "recognition": "OCR",
-        "expected": [
-            "造物",
-            "发条",
-            "金雀",
-            "媒介",
-            "药剂"
-        ],
-        "index": -1,
-        "roi": [
-            2,
-            359,
-            1278,
-            57
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    2,
+                    359,
+                    1278,
+                    57
+                ],
+                "expected": [
+                    "造物",
+                    "发条",
+                    "金雀",
+                    "媒介",
+                    "药剂"
+                ],
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_Start_Gift_Confirm",
             "ODR_Start_Gift_Select_2"
         ]
     },
     "ODR_Start_Gift_Select_2": {
-        "recognition": "OCR",
-        "expected": [
-            "造物",
-            "发条",
-            "金雀",
-            "媒介",
-            "药剂",
-            "软盘"
-        ],
-        "index": -2,
-        "roi": [
-            2,
-            359,
-            1278,
-            57
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    2,
+                    359,
+                    1278,
+                    57
+                ],
+                "expected": [
+                    "造物",
+                    "发条",
+                    "金雀",
+                    "媒介",
+                    "药剂",
+                    "软盘"
+                ],
+                "index": -2
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_Start_Gift_Confirm",
             "ODR_Start_Gift_Select_2"
@@ -162,29 +206,41 @@
     },
     "ODR_Start_Gift_Confirm": {
         "doc": "镜的馈赠确认",
-        "recognition": "OCR",
-        "expected": "确认",
-        "roi": [
-            1030,
-            616,
-            76,
-            44
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1030,
+                    616,
+                    76,
+                    44
+                ],
+                "expected": "确认"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": 1
     },
     "ODR_Start_MediaSelect": {
         "doc": "触媒选择",
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SODStart_Media_MagicLamp.png",
-        "roi": [
-            0,
-            81,
-            1280,
-            469
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    81,
+                    1280,
+                    469
+                ],
+                "template": "OutsideDeduction/SODStart_Media_MagicLamp.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "pre_wait_freezes": 1,
         "next": [
             "ODR_Start_TeamBuild",
@@ -196,15 +252,19 @@
     },
     "ODR_Start_MediaSelect_Confirm": {
         "doc": "触媒确认",
-        "recognition": "OCR",
-        "expected": "确认",
-        "roi": [
-            1030,
-            616,
-            76,
-            44
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1030,
+                    616,
+                    76,
+                    44
+                ],
+                "expected": "确认"
+            }
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -214,19 +274,27 @@
                 85
             ]
         },
-        "action": "Click"
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_Start_TeamBuild": {
         "doc": "编队",
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_ArcanistAdd.png",
-        "roi": [
-            63,
-            335,
-            90,
-            85
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    63,
+                    335,
+                    90,
+                    85
+                ],
+                "template": "OutsideDeduction/SOD_ArcanistAdd.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 1000,
         "next": [
             "ODR_Start_TeamBuild",
@@ -235,13 +303,17 @@
     },
     "ODR_AddChar": {
         "doc": "添加角色",
-        "action": "Click",
-        "target": [
-            587,
-            206,
-            20,
-            20
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    587,
+                    206,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "ODR_AddChar_OK",
             "ODR_AddChar"
@@ -249,31 +321,41 @@
     },
     "ODR_AddChar_OK": {
         "doc": "角色是否添加成功",
-        "recognition": "OCR",
-        "expected": "神秘术",
-        "roi": [
-            30,
-            604,
-            82,
-            30
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    30,
+                    604,
+                    82,
+                    30
+                ],
+                "expected": "神秘术"
+            }
+        },
         "next": [
             "ODR_Start_AddChar_Confirm"
         ]
     },
     "ODR_Start_AddChar_Confirm": {
         "doc": "确认添加角色",
-        "recognition": "OCR",
-        "expected": "确认",
-        "roi": [
-            1117,
-            648,
-            68,
-            36
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1117,
+                    648,
+                    68,
+                    36
+                ],
+                "expected": "确认"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 700,
             "target": [
@@ -290,15 +372,19 @@
     },
     "ODR_Start_Teambuild_Confirm": {
         "doc": "确认编队",
-        "recognition": "OCR",
-        "expected": "确认",
-        "roi": [
-            1030,
-            616,
-            76,
-            44
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1030,
+                    616,
+                    76,
+                    44
+                ],
+                "expected": "确认"
+            }
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -308,7 +394,9 @@
                 85
             ]
         },
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_SelectCombat",
             "ODR_Start_Teambuild_Confirm"
@@ -318,17 +406,21 @@
         ]
     },
     "ODR_SelectCombat": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Combat.png",
-        "green_mask": true,
-        "threshold": 0.85,
-        "index": -1,
-        "roi": [
-            303,
-            196,
-            392,
-            307
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    303,
+                    196,
+                    392,
+                    307
+                ],
+                "template": "OutsideDeductionRapid/Combat.png",
+                "green_mask": true,
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -338,7 +430,9 @@
                 91
             ]
         },
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_ItemSelect"
         ],
@@ -348,17 +442,21 @@
         ]
     },
     "ODR_SelectCombat_NoNext": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Combat.png",
-        "green_mask": true,
-        "threshold": 0.85,
-        "index": -1,
-        "roi": [
-            303,
-            196,
-            392,
-            307
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    303,
+                    196,
+                    392,
+                    307
+                ],
+                "template": "OutsideDeductionRapid/Combat.png",
+                "green_mask": true,
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -368,21 +466,27 @@
                 91
             ]
         },
-        "action": "Click"
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_SelectDiscovery": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Discovery.png",
-        "green_mask": true,
-        "threshold": 0.85,
-        "index": -1,
-        "roi": "ODR_QueryChessLocation",
-        "roi_offset": [
-            10,
-            -1080,
-            1920,
-            1080
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "ODR_QueryChessLocation",
+                "roi_offset": [
+                    10,
+                    -1080,
+                    1920,
+                    1080
+                ],
+                "template": "OutsideDeductionRapid/Discovery.png",
+                "green_mask": true,
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -392,7 +496,9 @@
                 91
             ]
         },
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_Event_Select_SkipText",
             "ODR_Event_Select_SkipText_First",
@@ -405,33 +511,43 @@
         ]
     },
     "ODR_SelectDiscovery_NoNext": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Discovery.png",
-        "green_mask": true,
-        "threshold": 0.85,
-        "index": -1,
-        "roi": "ODR_QueryChessLocation",
-        "roi_offset": [
-            10,
-            -1080,
-            1920,
-            1080
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "ODR_QueryChessLocation",
+                "roi_offset": [
+                    10,
+                    -1080,
+                    1920,
+                    1080
+                ],
+                "template": "OutsideDeductionRapid/Discovery.png",
+                "green_mask": true,
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_SelectTreasure": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Treasure.png",
-        "green_mask": true,
-        "threshold": 0.9,
-        "index": -1,
-        "roi": "ODR_QueryChessLocation",
-        "roi_offset": [
-            10,
-            -1080,
-            1920,
-            1080
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "ODR_QueryChessLocation",
+                "roi_offset": [
+                    10,
+                    -1080,
+                    1920,
+                    1080
+                ],
+                "template": "OutsideDeductionRapid/Treasure.png",
+                "green_mask": true,
+                "index": -1,
+                "threshold": 0.9
+            }
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -441,7 +557,9 @@
                 91
             ]
         },
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_Event_Select_SkipText"
         ],
@@ -451,33 +569,43 @@
         ]
     },
     "ODR_SelectTreasure_NoNext": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Treasure.png",
-        "green_mask": true,
-        "threshold": 0.9,
-        "index": -1,
-        "roi": "ODR_QueryChessLocation",
-        "roi_offset": [
-            10,
-            -1080,
-            1920,
-            1080
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "ODR_QueryChessLocation",
+                "roi_offset": [
+                    10,
+                    -1080,
+                    1920,
+                    1080
+                ],
+                "template": "OutsideDeductionRapid/Treasure.png",
+                "green_mask": true,
+                "index": -1,
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_SelectRestSite": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/RestSite.png",
-        "green_mask": true,
-        "threshold": 0.85,
-        "index": -1,
-        "roi": "ODR_QueryChessLocation",
-        "roi_offset": [
-            10,
-            -1080,
-            1920,
-            1080
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "ODR_QueryChessLocation",
+                "roi_offset": [
+                    10,
+                    -1080,
+                    1920,
+                    1080
+                ],
+                "template": "OutsideDeductionRapid/RestSite.png",
+                "green_mask": true,
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -487,7 +615,9 @@
                 91
             ]
         },
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_Event_Select_SkipText"
         ],
@@ -497,33 +627,43 @@
         ]
     },
     "ODR_SelectRestSite_NoNext": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/RestSite.png",
-        "green_mask": true,
-        "threshold": 0.85,
-        "index": -1,
-        "roi": "ODR_QueryChessLocation",
-        "roi_offset": [
-            10,
-            -1080,
-            1920,
-            1080
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "ODR_QueryChessLocation",
+                "roi_offset": [
+                    10,
+                    -1080,
+                    1920,
+                    1080
+                ],
+                "template": "OutsideDeductionRapid/RestSite.png",
+                "green_mask": true,
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_SelectShop": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Shop.png",
-        "green_mask": true,
-        "threshold": 0.85,
-        "index": -1,
-        "roi": "ODR_QueryChessLocation",
-        "roi_offset": [
-            10,
-            -1080,
-            1920,
-            1080
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "ODR_QueryChessLocation",
+                "roi_offset": [
+                    10,
+                    -1080,
+                    1920,
+                    1080
+                ],
+                "template": "OutsideDeductionRapid/Shop.png",
+                "green_mask": true,
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -533,7 +673,9 @@
                 91
             ]
         },
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_ShopCompleted",
             "ODR_ShopCompleted_2-1"
@@ -548,17 +690,21 @@
     },
     "ODR_ShopCompleted_2-1": {
         "doc": "第二排第一列买完",
-        "recognition": "OCR",
-        "expected": [
-            "^售"
-        ],
-        "roi": [
-            204,
-            474,
-            47,
-            27
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    204,
+                    474,
+                    47,
+                    27
+                ],
+                "expected": [
+                    "^售"
+                ]
+            }
+        },
         "next": [
             "ODR_ShopCompleted",
             "ODR_ShopCompleted_2-2"
@@ -571,17 +717,21 @@
     },
     "ODR_ShopCompleted_2-2": {
         "doc": "第二排第二列买完",
-        "recognition": "OCR",
-        "expected": [
-            "^售"
-        ],
-        "roi": [
-            447,
-            474,
-            48,
-            28
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    447,
+                    474,
+                    48,
+                    28
+                ],
+                "expected": [
+                    "^售"
+                ]
+            }
+        },
         "next": [
             "ODR_ShopCompleted",
             "ODR_ShopCompleted_2-4"
@@ -594,17 +744,21 @@
     },
     "ODR_ShopCompleted_2-4": {
         "doc": "第二排软驱买完(小概率不是软驱)",
-        "recognition": "OCR",
-        "expected": [
-            "^售"
-        ],
-        "roi": [
-            934,
-            471,
-            46,
-            29
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    934,
+                    471,
+                    46,
+                    29
+                ],
+                "expected": [
+                    "^售"
+                ]
+            }
+        },
         "next": [
             "ODR_ShopCompleted",
             "ODR_QuitShop"
@@ -616,93 +770,127 @@
     },
     "ODR_ShopCompleted": {
         "doc": "钱不够",
-        "recognition": "OCR",
-        "expected": [
-            "金雀子儿",
-            "不足"
-        ],
-        "roi": [
-            1023,
-            58,
-            200,
-            130
-        ],
-        "action": "Click",
-        "target": [
-            1124,
-            173,
-            100,
-            94
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1023,
+                    58,
+                    200,
+                    130
+                ],
+                "expected": [
+                    "金雀子儿",
+                    "不足"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1124,
+                    173,
+                    100,
+                    94
+                ]
+            }
+        },
         "next": [
             "ODR_QuitShop"
         ]
     },
     "ODR_ShopEnter_2-1": {
-        "recognition": "OCR",
-        "expected": [
-            "[\\u4e00-\\u9fa5]"
-        ],
-        "roi": [
-            188,
-            550,
-            87,
-            29
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    188,
+                    550,
+                    87,
+                    29
+                ],
+                "expected": [
+                    "[\\u4e00-\\u9fa5]"
+                ]
+            }
+        },
         "post_wait_freezes": 1,
-        "only_rec": true,
-        "action": "Click"
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_ShopEnter_2-2": {
-        "recognition": "OCR",
-        "expected": [
-            "[\\u4e00-\\u9fa5]"
-        ],
-        "roi": [
-            425,
-            549,
-            88,
-            30
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    425,
+                    549,
+                    88,
+                    30
+                ],
+                "expected": [
+                    "[\\u4e00-\\u9fa5]"
+                ]
+            }
+        },
         "post_wait_freezes": 1,
-        "only_rec": true,
-        "action": "Click"
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_ShopEnter_2-4": {
-        "recognition": "OCR",
-        "expected": [
-            "[\\u4e00-\\u9fa5]"
-        ],
-        "roi": [
-            893,
-            551,
-            127,
-            26
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    893,
+                    551,
+                    127,
+                    26
+                ],
+                "expected": [
+                    "[\\u4e00-\\u9fa5]"
+                ]
+            }
+        },
         "post_wait_freezes": 1,
-        "only_rec": true,
-        "action": "Click"
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_ShopSingleCompleted": {
-        "recognition": "OCR",
-        "expected": [
-            "商品",
-            "已",
-            "售"
-        ],
-        "roi": [
-            900,
-            70,
-            380,
-            220
-        ],
-        "action": "Click",
-        "target": [
-            1124,
-            173,
-            100,
-            94
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    70,
+                    380,
+                    220
+                ],
+                "expected": [
+                    "商品",
+                    "已",
+                    "售"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1124,
+                    173,
+                    100,
+                    94
+                ]
+            }
+        },
         "pre_wait_freezes": {
             "time": 300,
             "target": [
@@ -714,47 +902,63 @@
         }
     },
     "ODR_ShopBuy": {
-        "recognition": "OCR",
-        "expected": [
-            "确认购买"
-        ],
-        "roi": [
-            869,
-            567,
-            131,
-            38
-        ],
-        "only_rec": true,
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    869,
+                    567,
+                    131,
+                    38
+                ],
+                "expected": [
+                    "确认购买"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_SelectShop_NoNext": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Shop.png",
-        "green_mask": true,
-        "threshold": 0.85,
-        "index": -1,
-        "roi": "ODR_QueryChessLocation",
-        "roi_offset": [
-            10,
-            -1080,
-            1920,
-            1080
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "ODR_QueryChessLocation",
+                "roi_offset": [
+                    10,
+                    -1080,
+                    1920,
+                    1080
+                ],
+                "template": "OutsideDeductionRapid/Shop.png",
+                "green_mask": true,
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_SelectImminent": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Imminent.png",
-        "green_mask": true,
-        "threshold": 0.85,
-        "index": -1,
-        "roi": "ODR_QueryChessLocation",
-        "roi_offset": [
-            10,
-            -1080,
-            1920,
-            1080
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "ODR_QueryChessLocation",
+                "roi_offset": [
+                    10,
+                    -1080,
+                    1920,
+                    1080
+                ],
+                "template": "OutsideDeductionRapid/Imminent.png",
+                "green_mask": true,
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -764,7 +968,9 @@
                 91
             ]
         },
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_ItemSelect"
         ],
@@ -774,31 +980,43 @@
         ]
     },
     "ODR_SelectImminent_NoNext": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Imminent.png",
-        "green_mask": true,
-        "threshold": 0.85,
-        "index": -1,
-        "roi": "ODR_QueryChessLocation",
-        "roi_offset": [
-            10,
-            -1080,
-            1920,
-            1080
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": "ODR_QueryChessLocation",
+                "roi_offset": [
+                    10,
+                    -1080,
+                    1920,
+                    1080
+                ],
+                "template": "OutsideDeductionRapid/Imminent.png",
+                "green_mask": true,
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_Move": {
         "doc": "点击一下移动按钮",
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Move.png",
-        "roi": [
-            1019,
-            590,
-            106,
-            91
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1019,
+                    590,
+                    106,
+                    91
+                ],
+                "template": "OutsideDeduction/SOD_Move.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -811,22 +1029,30 @@
     },
     "ODR_SkipText": {
         "doc": "点击一下屏幕以跳过文本加载",
-        "action": "Click",
-        "target": [
-            370,
-            90,
-            0,
-            0
-        ]
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    370,
+                    90,
+                    0,
+                    0
+                ]
+            }
+        }
     },
     "ODR_QueryChessLocation": {
         "doc": "查询棋子位置",
-        "recognition": "TemplateMatch",
-        "template": [
-            "OutsideDeductionRapid/Chess.png"
-        ],
-        "threshold": 0.75,
-        "order_by": "Score",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "OutsideDeductionRapid/Chess.png"
+                ],
+                "threshold": 0.75,
+                "order_by": "Score"
+            }
+        },
         "next": [
             "ODR_SelectShop",
             "ODR_SelectRestSite",
@@ -838,17 +1064,21 @@
         ]
     },
     "ODR_Levelup": {
-        "recognition": "OCR",
-        "expected": [
-            "触媒等级提升"
-        ],
-        "roi": [
-            500,
-            4,
-            300,
-            68
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    500,
+                    4,
+                    300,
+                    68
+                ],
+                "expected": [
+                    "触媒等级提升"
+                ]
+            }
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -858,7 +1088,9 @@
                 85
             ]
         },
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_SkipAddChar",
             "ODR_Levelup"
@@ -868,17 +1100,21 @@
         ]
     },
     "ODR_ItemSelect": {
-        "recognition": "OCR",
-        "expected": [
-            "造物选择"
-        ],
-        "roi": [
-            570,
-            20,
-            142,
-            44
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    570,
+                    20,
+                    142,
+                    44
+                ],
+                "expected": [
+                    "造物选择"
+                ]
+            }
+        },
         "next": [
             "ODR_ItemSelect_Confirm"
         ],
@@ -887,17 +1123,21 @@
         ]
     },
     "ODR_ItemSelect_NoNext": {
-        "recognition": "OCR",
-        "expected": [
-            "造物选择"
-        ],
-        "roi": [
-            570,
-            20,
-            142,
-            44
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    570,
+                    20,
+                    142,
+                    44
+                ],
+                "expected": [
+                    "造物选择"
+                ]
+            }
+        },
         "next": [
             "ODR_ItemSelect_Confirm_NoNext"
         ],
@@ -906,25 +1146,33 @@
         ]
     },
     "ODR_ItemSelect_1": {
-        "action": "Click",
-        "target": [
-            267,
-            300,
-            20,
-            20
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    267,
+                    300,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "ODR_ItemSelect_ConfirmFlag"
         ]
     },
     "ODR_ItemSelect_2": {
-        "action": "Click",
-        "target": [
-            632,
-            300,
-            20,
-            20
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    632,
+                    300,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "ODR_ItemSelect_ConfirmFlag"
         ],
@@ -933,13 +1181,17 @@
         ]
     },
     "ODR_ItemSelect_3": {
-        "action": "Click",
-        "target": [
-            855,
-            300,
-            20,
-            20
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    855,
+                    300,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "ODR_ItemSelect_ConfirmFlag"
         ],
@@ -948,13 +1200,17 @@
         ]
     },
     "ODR_ItemSelect_4": {
-        "action": "Click",
-        "target": [
-            1132,
-            300,
-            20,
-            20
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1132,
+                    300,
+                    20,
+                    20
+                ]
+            }
+        },
         "timeout": 10000,
         "next": [
             "ODR_ItemSelect_ConfirmFlag"
@@ -964,18 +1220,24 @@
         ]
     },
     "ODR_ItemSelect_Confirm": {
-        "recognition": "OCR",
-        "expected": [
-            "确认"
-        ],
-        "roi": [
-            606,
-            628,
-            74,
-            40
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    606,
+                    628,
+                    74,
+                    40
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 1500,
             "target": [
@@ -996,18 +1258,24 @@
         ]
     },
     "ODR_ItemSelect_Confirm_NoNext": {
-        "recognition": "OCR",
-        "expected": [
-            "确认"
-        ],
-        "roi": [
-            606,
-            628,
-            74,
-            40
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    606,
+                    628,
+                    74,
+                    40
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 700,
             "target": [
@@ -1019,31 +1287,41 @@
         }
     },
     "ODR_ItemSelect_ConfirmFlag": {
-        "recognition": "OCR",
-        "expected": [
-            "确认"
-        ],
-        "roi": [
-            606,
-            628,
-            74,
-            40
-        ],
-        "only_rec": true
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    606,
+                    628,
+                    74,
+                    40
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        }
     },
     "ODR_ItemLose_Confirm": {
-        "recognition": "OCR",
-        "expected": [
-            "确认"
-        ],
-        "roi": [
-            600,
-            646,
-            76,
-            38
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    600,
+                    646,
+                    76,
+                    38
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 700,
             "target": [
@@ -1055,26 +1333,34 @@
         }
     },
     "ODR_ItemLose": {
-        "recognition": "OCR",
-        "expected": [
-            "交付造物",
-            "失去造物",
-            "失声天平"
-        ],
-        "roi": [
-            535,
-            4,
-            224,
-            68
-        ],
-        "only_rec": true,
-        "action": "Click",
-        "target": [
-            366,
-            190,
-            20,
-            20
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    535,
+                    4,
+                    224,
+                    68
+                ],
+                "expected": [
+                    "交付造物",
+                    "失去造物",
+                    "失声天平"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    366,
+                    190,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "ODR_ItemLose_Confirm",
             "ODR_SkipText"
@@ -1082,17 +1368,23 @@
     },
     "ODR_SkipAddChar": {
         "doc": "不选择角色直接跳过",
-        "recognition": "OCR",
-        "expected": "确认",
-        "roi": [
-            1117,
-            648,
-            68,
-            36
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1117,
+                    648,
+                    68,
+                    36
+                ],
+                "expected": "确认"
+            }
+        },
         "post_wait_freezes": 1,
-        "only_rec": true,
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_SkipAddChar_Confirm",
             "ODR_SkipAddChar"
@@ -1100,16 +1392,22 @@
     },
     "ODR_SkipAddChar_Confirm": {
         "doc": "确认不选择角色",
-        "recognition": "OCR",
-        "expected": "确认",
-        "roi": [
-            770,
-            404,
-            70,
-            36
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    770,
+                    404,
+                    70,
+                    36
+                ],
+                "expected": "确认"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 750,
             "target": [
@@ -1123,45 +1421,51 @@
     "ODR_Event_Select_SkipText": {
         "doc": "事件——默认最后一个选项",
         "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗",
-        "recognition": "OCR",
-        "expected": [
-            "休憩点",
-            "合法受益人",
-            "受害者",
-            "美味汽水",
-            "床位纷争",
-            "聒噪的箱子",
-            "模糊的油画",
-            "赃物",
-            "水泊精灵",
-            "传闻",
-            "星空之腹",
-            "交易地",
-            "命运之泉",
-            "便民服务",
-            "未来",
-            "市场(.*| 雏)形",
-            "向导",
-            "失窃案",
-            "脱轨电车",
-            "城市的静脉",
-            "滑翔冒险",
-            "旅者的馈赠",
-            "艺术的回馈",
-            "分享情报",
-            "巷角的围堵",
-            "盛情款待",
-            "旧唱片",
-            "发狂的贵族"
-        ],
-        "roi": [
-            239,
-            468,
-            407,
-            41
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    239,
+                    468,
+                    407,
+                    41
+                ],
+                "expected": [
+                    "休憩点",
+                    "合法受益人",
+                    "受害者",
+                    "美味汽水",
+                    "床位纷争",
+                    "聒噪的箱子",
+                    "模糊的油画",
+                    "赃物",
+                    "水泊精灵",
+                    "传闻",
+                    "星空之腹",
+                    "交易地",
+                    "命运之泉",
+                    "便民服务",
+                    "未来",
+                    "市场(.*| 雏)形",
+                    "向导",
+                    "失窃案",
+                    "脱轨电车",
+                    "城市的静脉",
+                    "滑翔冒险",
+                    "旅者的馈赠",
+                    "艺术的回馈",
+                    "分享情报",
+                    "巷角的围堵",
+                    "盛情款待",
+                    "旧唱片",
+                    "发狂的贵族"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_MainLoop"
         ],
@@ -1177,28 +1481,34 @@
     "ODR_Event_Select_SkipText_First": {
         "doc": "事件——选择第一个选项",
         "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗",
-        "recognition": "OCR",
-        "expected": [
-            "今日运势",
-            "落魄画家",
-            "板条箱",
-            "降灵",
-            "何谓艺术",
-            "地底与星空",
-            "旧栈道",
-            "非典型茶歇",
-            "死胡同",
-            "乞食的鸟雀",
-            "神奇商店"
-        ],
-        "roi": [
-            239,
-            468,
-            407,
-            41
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    239,
+                    468,
+                    407,
+                    41
+                ],
+                "expected": [
+                    "今日运势",
+                    "落魄画家",
+                    "板条箱",
+                    "降灵",
+                    "何谓艺术",
+                    "地底与星空",
+                    "旧栈道",
+                    "非典型茶歇",
+                    "死胡同",
+                    "乞食的鸟雀",
+                    "神奇商店"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_MainLoop"
         ],
@@ -1214,22 +1524,28 @@
     "ODR_Event_Select_SkipText_Second": {
         "doc": "事件——选择第二个选项",
         "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗",
-        "recognition": "OCR",
-        "expected": [
-            "破碎的怀表",
-            "狂热粉丝",
-            "矫饰主义",
-            "门的内侧",
-            "魔精典当行"
-        ],
-        "roi": [
-            239,
-            468,
-            407,
-            41
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    239,
+                    468,
+                    407,
+                    41
+                ],
+                "expected": [
+                    "破碎的怀表",
+                    "狂热粉丝",
+                    "矫饰主义",
+                    "门的内侧",
+                    "魔精典当行"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_MainLoop"
         ],
@@ -1245,18 +1561,24 @@
     "ODR_Event_Select_SkipText_Second2Last": {
         "doc": "事件——选择倒数第二个选项",
         "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗",
-        "recognition": "OCR",
-        "expected": [
-            "洞窟尽头"
-        ],
-        "roi": [
-            239,
-            468,
-            407,
-            41
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    239,
+                    468,
+                    407,
+                    41
+                ],
+                "expected": [
+                    "洞窟尽头"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_MainLoop"
         ],
@@ -1272,18 +1594,24 @@
     "ODR_Event_Select_SkipText_Windows&Doors": {
         "doc": "选中事件——窗与扉",
         "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗",
-        "recognition": "OCR",
-        "expected": [
-            "窗与扉"
-        ],
-        "roi": [
-            239,
-            468,
-            407,
-            41
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    239,
+                    468,
+                    407,
+                    41
+                ],
+                "expected": [
+                    "窗与扉"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_Event_Windows&Doors_Completed"
         ],
@@ -1297,22 +1625,30 @@
     },
     "ODR_Windows&Doors_Exchange": {
         "doc": "失声天平",
-        "recognition": "OCR",
-        "expected": "[12]",
-        "roi": [
-            941,
-            505,
-            142,
-            19
-        ],
-        "only_rec": true,
-        "target_offset": [
-            0,
-            0,
-            0,
-            -35
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    941,
+                    505,
+                    142,
+                    19
+                ],
+                "expected": "[12]"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    0,
+                    0,
+                    -35
+                ]
+            }
+        },
         "next": [
             "ODR_ItemLose"
         ],
@@ -1322,17 +1658,23 @@
     },
     "ODR_Event_Select": {
         "doc": "选择选项（最后）",
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Event.png",
-        "roi": [
-            760,
-            70,
-            520,
-            640
-        ],
-        "order_by": "Vertical",
-        "index": -1,
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    760,
+                    70,
+                    520,
+                    640
+                ],
+                "template": "OutsideDeductionRapid/Event.png",
+                "index": -1,
+                "order_by": "Vertical"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_Event_Confirm",
             "ODR_Event_Select",
@@ -1345,17 +1687,23 @@
     },
     "ODR_Event_Select_First": {
         "doc": "选择选项（第一）",
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Event.png",
-        "roi": [
-            760,
-            70,
-            520,
-            640
-        ],
-        "order_by": "Vertical",
-        "index": 0,
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    760,
+                    70,
+                    520,
+                    640
+                ],
+                "template": "OutsideDeductionRapid/Event.png",
+                "index": 0,
+                "order_by": "Vertical"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_Event_Confirm",
             "ODR_Event_Select_First",
@@ -1368,17 +1716,23 @@
     },
     "ODR_Event_Select_Second2Last": {
         "doc": "选择选项（倒数第二）",
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Event.png",
-        "roi": [
-            760,
-            70,
-            520,
-            640
-        ],
-        "order_by": "Vertical",
-        "index": -2,
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    760,
+                    70,
+                    520,
+                    640
+                ],
+                "template": "OutsideDeductionRapid/Event.png",
+                "index": -2,
+                "order_by": "Vertical"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_Event_Confirm",
             "ODR_Event_Select_Second2Last",
@@ -1391,17 +1745,23 @@
     },
     "ODR_Event_Select_Second": {
         "doc": "选择选项（第二）",
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Event.png",
-        "roi": [
-            760,
-            70,
-            520,
-            640
-        ],
-        "order_by": "Vertical",
-        "index": 1,
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    760,
+                    70,
+                    520,
+                    640
+                ],
+                "template": "OutsideDeductionRapid/Event.png",
+                "index": 1,
+                "order_by": "Vertical"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_Event_Confirm",
             "ODR_Event_Select_Second",
@@ -1414,18 +1774,24 @@
     },
     "ODR_Windows&Doors_CreationContract": {
         "doc": "造物典契",
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Event.png",
-        "roi": [
-            694,
-            84,
-            586,
-            596
-        ],
-        "order_by": "Vertical",
-        "index": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    694,
+                    84,
+                    586,
+                    596
+                ],
+                "template": "OutsideDeductionRapid/Event.png",
+                "index": 1,
+                "order_by": "Vertical"
+            }
+        },
         "post_wait_freezes": 1,
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_Event_Windows&Doors_Completed"
         ],
@@ -1439,28 +1805,36 @@
         ]
     },
     "ODR_Event_Windows&Doors_Completed": {
-        "recognition": "TemplateMatch",
-        "template": "./OutsideDeductionRapid/WindowsCompleted.png",
-        "roi": [
-            441,
-            418,
-            150,
-            172
-        ]
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    441,
+                    418,
+                    150,
+                    172
+                ],
+                "template": "./OutsideDeductionRapid/WindowsCompleted.png"
+            }
+        }
     },
     "ODR_Windows&Doors_Merge": {
         "doc": "位于奇巧置换",
-        "recognition": "OCR",
-        "expected": [
-            "奇巧置换"
-        ],
-        "roi": [
-            570,
-            20,
-            142,
-            44
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    570,
+                    20,
+                    142,
+                    44
+                ],
+                "expected": [
+                    "奇巧置换"
+                ]
+            }
+        },
         "next": [
             "ODR_Event_Windows&Doors_Completed"
         ],
@@ -1470,18 +1844,24 @@
     },
     "ODR_Windows&Doors_CreationContract_Refresh": {
         "doc": "换一批",
-        "recognition": "OCR",
-        "expected": [
-            "1/1"
-        ],
-        "roi": [
-            803,
-            610,
-            55,
-            28
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    803,
+                    610,
+                    55,
+                    28
+                ],
+                "expected": [
+                    "1/1"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -1494,30 +1874,40 @@
     },
     "ODR_OptionSelectAll": {
         "doc": "选择选项（所有）",
-        "recognition": "TemplateMatch",
-        "template": [
-            "OutsideDeductionRapid/OptionBorder.png",
-            "OutsideDeductionRapid/OptionBorder1.png"
-        ],
-        "roi": [
-            721,
-            125,
-            559,
-            441
-        ],
-        "action": "Click",
-        "threshold": 0.75
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    721,
+                    125,
+                    559,
+                    441
+                ],
+                "template": [
+                    "OutsideDeductionRapid/OptionBorder.png",
+                    "OutsideDeductionRapid/OptionBorder1.png"
+                ],
+                "threshold": 0.75
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_Event_Confirm": {
         "doc": "确认选项",
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_EndEvent_OK.png",
-        "roi": [
-            932,
-            82,
-            344,
-            600
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    932,
+                    82,
+                    344,
+                    600
+                ],
+                "template": "OutsideDeduction/SOD_EndEvent_OK.png"
+            }
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -1527,46 +1917,64 @@
                 450
             ]
         },
-        "action": "Click"
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_Event_Confirm_CreationContract": {
         "doc": "确认选项",
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_EndEvent_OK.png",
-        "roi": [
-            932,
-            82,
-            344,
-            600
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    932,
+                    82,
+                    344,
+                    600
+                ],
+                "template": "OutsideDeduction/SOD_EndEvent_OK.png"
+            }
+        },
         "post_delay": 1000,
-        "action": "Click"
+        "action": {
+            "type": "Click"
+        }
     },
     "ODR_QuitShop": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Shopping_Leave.png",
-        "roi": [
-            1123,
-            290,
-            121,
-            120
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1123,
+                    290,
+                    121,
+                    120
+                ],
+                "template": "OutsideDeduction/SOD_Shopping_Leave.png"
+            }
+        },
         "post_wait_freezes": 1,
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_MainLoop",
             "ODR_QuitShop"
         ]
     },
     "ODR_Exit": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeductionRapid/Door.png",
-        "roi": [
-            438,
-            361,
-            67,
-            69
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    438,
+                    361,
+                    67,
+                    69
+                ],
+                "template": "OutsideDeductionRapid/Door.png"
+            }
+        },
         "post_wait_freezes": {
             "time": 200,
             "target": [
@@ -1576,7 +1984,9 @@
                 85
             ]
         },
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "ODR_Start"
         ],
@@ -1588,14 +1998,18 @@
         ]
     },
     "ODR_MainLoop": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Main.png",
-        "roi": [
-            33,
-            430,
-            82,
-            85
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    33,
+                    430,
+                    82,
+                    85
+                ],
+                "template": "OutsideDeduction/SOD_Main.png"
+            }
+        },
         "post_wait_freezes": 1000,
         "next": [
             "ODR_Exit",
@@ -1610,13 +2024,17 @@
         ]
     },
     "ODR_MainFlag": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Main.png",
-        "roi": [
-            33,
-            430,
-            82,
-            85
-        ]
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    33,
+                    430,
+                    82,
+                    85
+                ],
+                "template": "OutsideDeduction/SOD_Main.png"
+            }
+        }
     }
 }

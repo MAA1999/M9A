@@ -1,6 +1,10 @@
 {
     "Close1999": {
-        "action": "StopApp",
-        "package": "com.shenlan.m.reverse1999.mi"
+        "action": {
+            "type": "StopApp",
+            "param": {
+                "package": "com.shenlan.m.reverse1999.mi"
+            }
+        }
     }
 }

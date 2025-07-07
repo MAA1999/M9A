@@ -11,15 +11,21 @@
         ]
     },
     "EnterWilderness": {
-        "recognition": "TemplateMatch",
-        "template": "Wilderness/EnterWilderness.png",
-        "roi": [
-            889,
-            348,
-            242,
-            132
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    889,
+                    348,
+                    242,
+                    132
+                ],
+                "template": "Wilderness/EnterWilderness.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "EnterWilderness",
             "EnterProduct",
@@ -31,22 +37,30 @@
         ]
     },
     "EnterTrade": {
-        "recognition": "OCR",
-        "expected": "交易",
-        "roi": [
-            399,
-            670,
-            47,
-            24
-        ],
-        "only_rec": true,
-        "target_offset": [
-            0,
-            -30,
-            0,
-            0
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    399,
+                    670,
+                    47,
+                    24
+                ],
+                "expected": "交易"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -30,
+                    0,
+                    0
+                ]
+            }
+        },
         "post_wait_freezes": {
             "time": 1000,
             "target": [
@@ -62,15 +76,21 @@
         ]
     },
     "Trade": {
-        "recognition": "OCR",
-        "expected": "订单交付",
-        "roi": [
-            172,
-            553,
-            990,
-            81
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    172,
+                    553,
+                    990,
+                    81
+                ],
+                "expected": "订单交付"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": 500,
         "next": [
             "Trade",
@@ -78,15 +98,19 @@
         ]
     },
     "TradeCompleted": {
-        "recognition": "OCR",
-        "expected": "批发交易",
-        "roi": [
-            713,
-            60,
-            108,
-            30
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    713,
+                    60,
+                    108,
+                    30
+                ],
+                "expected": "批发交易"
+            }
+        },
         "next": [
             "EnterAncientHall"
         ],
@@ -95,16 +119,22 @@
         ]
     },
     "EnterAncientHall": {
-        "recognition": "OCR",
-        "expected": "古厅定位",
-        "roi": [
-            1168,
-            148,
-            86,
-            24
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1168,
+                    148,
+                    86,
+                    24
+                ],
+                "expected": "古厅定位"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "AncientHallFlag"
         ],
@@ -113,15 +143,19 @@
         ]
     },
     "AncientHallFlag": {
-        "recognition": "OCR",
-        "expected": "古厅",
-        "roi": [
-            843,
-            75,
-            55,
-            30
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    843,
+                    75,
+                    55,
+                    30
+                ],
+                "expected": "古厅"
+            }
+        },
         "next": [
             "NoExpMoney"
         ],
@@ -130,14 +164,18 @@
         ]
     },
     "NoExpMoney": {
-        "recognition": "OCR",
-        "expected": "^(100|[1-9]\\d?)%$",
-        "roi": [
-            1015,
-            162,
-            65,
-            312
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1015,
+                    162,
+                    65,
+                    312
+                ],
+                "expected": "^(100|[1-9]\\d?)%$"
+            }
+        },
         "inverse": true,
         "next": [
             "CollectAwards",
@@ -151,15 +189,21 @@
         ]
     },
     "CollectExpMoney": {
-        "recognition": "OCR",
-        "expected": "收取",
-        "roi": [
-            1106,
-            180,
-            110,
-            258
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1106,
+                    180,
+                    110,
+                    258
+                ],
+                "expected": "收取"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -171,15 +215,21 @@
         }
     },
     "ClickAncientHall": {
-        "recognition": "OCR",
-        "expected": "荒原古厅",
-        "roi": [
-            596,
-            93,
-            237,
-            172
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    596,
+                    93,
+                    237,
+                    172
+                ],
+                "expected": "荒原古厅"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -191,15 +241,21 @@
         }
     },
     "CollectAwards": {
-        "recognition": "TemplateMatch",
-        "template": "Wilderness/CollectAwards.png",
-        "roi": [
-            680,
-            170,
-            140,
-            140
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    680,
+                    170,
+                    140,
+                    140
+                ],
+                "template": "Wilderness/CollectAwards.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "CollectTrust",
             "TrustDialogueNext",
@@ -213,15 +269,21 @@
         ]
     },
     "CollectTrust": {
-        "recognition": "TemplateMatch",
-        "template": "Wilderness/CollectTrust.png",
-        "roi": [
-            0,
-            58,
-            188,
-            438
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    58,
+                    188,
+                    438
+                ],
+                "template": "Wilderness/CollectTrust.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "TrustMax",
             "CollectTrust",
@@ -236,32 +298,46 @@
         ]
     },
     "TestCritterTraining": {
-        "recognition": "OCR",
-        "expected": "培训位置",
-        "roi": [
-            1076,
-            0,
-            204,
-            131
-        ],
-        "action": "Click",
-        "target": [
-            44,
-            44,
-            8,
-            8
-        ]
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1076,
+                    0,
+                    204,
+                    131
+                ],
+                "expected": "培训位置"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    44,
+                    44,
+                    8,
+                    8
+                ]
+            }
+        }
     },
     "TrustDialogueNext": {
-        "recognition": "TemplateMatch",
-        "template": "Wilderness/TrustDialogueNext.png",
-        "roi": [
-            1119,
-            631,
-            124,
-            89
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1119,
+                    631,
+                    124,
+                    89
+                ],
+                "template": "Wilderness/TrustDialogueNext.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "TrustDialogueNext",
             "TrustDialogueInteraction",
@@ -273,15 +349,21 @@
         ]
     },
     "TrustDialogueInteraction": {
-        "recognition": "TemplateMatch",
-        "template": "Wilderness/TrustDialogueInteraction.png",
-        "roi": [
-            1095,
-            42,
-            185,
-            593
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1095,
+                    42,
+                    185,
+                    593
+                ],
+                "template": "Wilderness/TrustDialogueInteraction.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "TrustDialogueNext",
             "TrustDialogueInteraction",
@@ -293,17 +375,23 @@
         ]
     },
     "TrustMax": {
-        "recognition": "OCR",
-        "expected": [
-            "MAX"
-        ],
-        "roi": [
-            0,
-            162,
-            141,
-            114
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    162,
+                    141,
+                    114
+                ],
+                "expected": [
+                    "MAX"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "HomeFlag"
         ],
@@ -314,24 +402,32 @@
     },
     "EnterProduct": {
         "enabled": true,
-        "recognition": "OCR",
-        "expected": [
-            "生产"
-        ],
-        "only_rec": true,
-        "roi": [
-            311,
-            670,
-            51,
-            25
-        ],
-        "target_offset": [
-            0,
-            -30,
-            0,
-            0
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    311,
+                    670,
+                    51,
+                    25
+                ],
+                "expected": [
+                    "生产"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -30,
+                    0,
+                    0
+                ]
+            }
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -351,47 +447,65 @@
         ]
     },
     "CollectProduct": {
-        "recognition": "OCR",
-        "expected": [
-            "收取"
-        ],
-        "roi": [
-            157,
-            22,
-            971,
-            650
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    157,
+                    22,
+                    971,
+                    650
+                ],
+                "expected": [
+                    "收取"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "CollectProductNext"
         ]
     },
     "CollectProductNext": {
-        "recognition": "TemplateMatch",
-        "template": "Wilderness/CollectProduct.png",
-        "roi": [
-            431,
-            48,
-            406,
-            220
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    431,
+                    48,
+                    406,
+                    220
+                ],
+                "template": "Wilderness/CollectProduct.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "AutoSelectProducts"
         ]
     },
     "AutoSelectProducts": {
-        "recognition": "OCR",
-        "expected": [
-            "批量放入产品"
-        ],
-        "roi": [
-            675,
-            563,
-            309,
-            152
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    675,
+                    563,
+                    309,
+                    152
+                ],
+                "expected": [
+                    "批量放入产品"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": 100,
         "next": [
             "AutoSelectLeast",
@@ -399,34 +513,46 @@
         ]
     },
     "AutoSelectLeast": {
-        "recognition": "OCR",
-        "expected": [
-            "最少"
-        ],
-        "roi": [
-            567,
-            91,
-            184,
-            282
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    567,
+                    91,
+                    184,
+                    282
+                ],
+                "expected": [
+                    "最少"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "AutoSelectComfirm",
             "AutoSelectLeast"
         ]
     },
     "AutoSelectComfirm": {
-        "recognition": "OCR",
-        "expected": [
-            "批量放入"
-        ],
-        "roi": [
-            507,
-            483,
-            264,
-            138
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    507,
+                    483,
+                    264,
+                    138
+                ],
+                "expected": [
+                    "批量放入"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "AutoAssignCritters",
             "AutoSelectComfirm",
@@ -438,18 +564,24 @@
         ]
     },
     "AutoAssignCritters": {
-        "recognition": "OCR",
-        "expected": [
-            "分派",
-            "魔精"
-        ],
-        "roi": [
-            287,
-            578,
-            287,
-            128
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    287,
+                    578,
+                    287,
+                    128
+                ],
+                "expected": [
+                    "分派",
+                    "魔精"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": 100,
         "next": [
             "UnableAssignCritters",
@@ -458,25 +590,33 @@
         ]
     },
     "UnableAssignCritters": {
-        "recognition": "OCR",
-        "expected": [
-            "当前",
-            "分派",
-            "魔精"
-        ],
-        "roi": [
-            1167,
-            104,
-            92,
-            37
-        ],
-        "action": "Click",
-        "target": [
-            44,
-            44,
-            8,
-            8
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1167,
+                    104,
+                    92,
+                    37
+                ],
+                "expected": [
+                    "当前",
+                    "分派",
+                    "魔精"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    44,
+                    44,
+                    8,
+                    8
+                ]
+            }
+        },
         "post_delay": 3000,
         "next": [
             "EnterTrade",
@@ -487,16 +627,24 @@
         ]
     },
     "SummonlngSuccess": {
-        "recognition": "TemplateMatch",
-        "template": "Wilderness/UniqueParxxxx.png",
-        "roi": [
-            214,
-            109,
-            834,
-            611
-        ],
-        "action": "Custom",
-        "custom_action": "SummonlngSwipe",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    214,
+                    109,
+                    834,
+                    611
+                ],
+                "template": "Wilderness/UniqueParxxxx.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SummonlngSwipe"
+            }
+        },
         "post_delay": 1000,
         "next": [
             "SummonlngSuccess",
@@ -504,45 +652,61 @@
         ]
     },
     "SummonlngCardFirst": {
-        "recognition": "TemplateMatch",
-        "template": "Wilderness/UniqueParxxxx.png",
-        "roi": [
-            214,
-            109,
-            834,
-            611
-        ],
-        "order_by": "Horizontal",
-        "index": 0
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    214,
+                    109,
+                    834,
+                    611
+                ],
+                "template": "Wilderness/UniqueParxxxx.png",
+                "index": 0,
+                "order_by": "Horizontal"
+            }
+        }
     },
     "SummonlngCardLast": {
-        "recognition": "TemplateMatch",
-        "template": "Wilderness/UniqueParxxxx.png",
-        "roi": [
-            214,
-            109,
-            834,
-            611
-        ],
-        "order_by": "Horizontal",
-        "index": -1
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    214,
+                    109,
+                    834,
+                    611
+                ],
+                "template": "Wilderness/UniqueParxxxx.png",
+                "index": -1,
+                "order_by": "Horizontal"
+            }
+        }
     },
     "SummonlngSuccessBack": {
-        "recognition": "TemplateMatch",
-        "template": "Wilderness/SummonlngSuccess.png",
-        "roi": [
-            528,
-            1,
-            245,
-            166
-        ],
-        "target": [
-            44,
-            44,
-            8,
-            8
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    528,
+                    1,
+                    245,
+                    166
+                ],
+                "template": "Wilderness/SummonlngSuccess.png"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    44,
+                    44,
+                    8,
+                    8
+                ]
+            }
+        },
         "next": [
             "EnterTrade",
             "EnterAncientHall"
@@ -552,20 +716,28 @@
         ]
     },
     "interrupt_SummonlngSuccessBack": {
-        "recognition": "TemplateMatch",
-        "template": "Wilderness/SummonlngSuccess.png",
-        "roi": [
-            528,
-            1,
-            245,
-            166
-        ],
-        "target": [
-            44,
-            44,
-            8,
-            8
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    528,
+                    1,
+                    245,
+                    166
+                ],
+                "template": "Wilderness/SummonlngSuccess.png"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    44,
+                    44,
+                    8,
+                    8
+                ]
+            }
+        }
     }
 }

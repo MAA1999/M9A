@@ -233,8 +233,12 @@
             ],
             "pipeline_override": {
                 "AllIn": {
-                    "custom_action_param": {
-                        "target_count": "{作战次数}"
+                    "action": {
+                        "param": {
+                            "custom_action_param": {
+                                "target_count": "{作战次数}"
+                            }
+                        }
                     }
                 }
             },
@@ -261,9 +265,13 @@
             ],
             "pipeline_override": {
                 "SelectCombatStage": {
-                    "custom_action_param": {
-                        "stage": "{章节号}-{关卡号}",
-                        "level": "{难度}"
+                    "action": {
+                        "param": {
+                            "custom_action_param": {
+                                "stage": "{章节号}-{关卡号}",
+                                "level": "{难度}"
+                            }
+                        }
                     }
                 }
             }
@@ -276,10 +284,14 @@
                     "name": "啮咬盒(银光子弹)：5-19 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "5-19",
-                                "stageName": "逆行的舟",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "5-19",
+                                        "stageName": "逆行的舟",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -288,10 +300,14 @@
                     "name": "啮咬盒(床下怪物)：7-26 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "7-26",
-                                "stageName": "银镜与纱幕",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "7-26",
+                                        "stageName": "银镜与纱幕",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -300,10 +316,14 @@
                     "name": "盐封曼德拉(狂人絮语)：3-13 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "3-13",
-                                "stageName": "一处庭院",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "3-13",
+                                        "stageName": "一处庭院",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -312,10 +332,14 @@
                     "name": "双头形骨架：10-13 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "10-13",
-                                "stageName": "九重城",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-13",
+                                        "stageName": "九重城",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -324,10 +348,14 @@
                     "name": "双头形骨架：4-20 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "4-20",
-                                "stageName": "草坪午餐",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "4-20",
+                                        "stageName": "草坪午餐",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -336,10 +364,14 @@
                     "name": "祝圣秘银：10-09 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "10-9",
-                                "stageName": "愚人与女祭司",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-9",
+                                        "stageName": "愚人与女祭司",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -348,10 +380,14 @@
                     "name": "祝圣秘银(幼龙骨标本)：6-14 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "6-14",
-                                "stageName": "费切尔怪鸟",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "6-14",
+                                        "stageName": "费切尔怪鸟",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -360,10 +396,14 @@
                     "name": "百灵百验鸟：2-6 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "2-6",
-                                "stageName": "不朽的尽头",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "2-6",
+                                        "stageName": "不朽的尽头",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -372,10 +412,14 @@
                     "name": "百灵百验鸟：9-8 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "9-8",
-                                "stageName": "蛛丝网",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-8",
+                                        "stageName": "蛛丝网",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -384,10 +428,14 @@
                     "name": "翼造门匙(微光蛾翼灯)：9-15 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "9-15",
-                                "stageName": "阿莱夫",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-15",
+                                        "stageName": "阿莱夫",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -396,10 +444,14 @@
                     "name": "弯曲鹅颈：5-4 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "5-4",
-                                "stageName": "出航日",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "5-4",
+                                        "stageName": "出航日",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -408,10 +460,14 @@
                     "name": "弯曲鹅颈(轮与轴之芯)：10-22 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "10-22",
-                                "stageName": "以我纯净的血",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-22",
+                                        "stageName": "以我纯净的血",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -420,10 +476,14 @@
                     "name": "金草焚香：4-4 故事",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "4-4",
-                                "stageName": "干杯",
-                                "level": "Story"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "4-4",
+                                        "stageName": "干杯",
+                                        "level": "Story"
+                                    }
+                                }
                             }
                         }
                     }
@@ -432,10 +492,14 @@
                     "name": "金草焚香：8-18 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "8-18",
-                                "stageName": "台风眼",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "8-18",
+                                        "stageName": "台风眼",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -444,10 +508,14 @@
                     "name": "红漆泥板：9-1 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "9-1",
-                                "stageName": "开篇",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-1",
+                                        "stageName": "开篇",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -456,10 +524,14 @@
                     "name": "金爪灵摆：5-14 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "5-14",
-                                "stageName": "和平的枷锁",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "5-14",
+                                        "stageName": "和平的枷锁",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -468,10 +540,14 @@
                     "name": "金爪灵摆：7-20 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "7-20",
-                                "stageName": "古希腊悲剧",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "7-20",
+                                        "stageName": "古希腊悲剧",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -480,10 +556,14 @@
                     "name": "砂金甲虫：10-2 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "10-2",
-                                "stageName": "古舟子咏",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-2",
+                                        "stageName": "古舟子咏",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -492,10 +572,14 @@
                     "name": "砂金甲虫：3-15 故事",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "3-15",
-                                "stageName": "另一个未来",
-                                "level": "Story"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "3-15",
+                                        "stageName": "另一个未来",
+                                        "level": "Story"
+                                    }
+                                }
                             }
                         }
                     }
@@ -504,10 +588,14 @@
                     "name": "液化战栗：10-17 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "10-17",
-                                "stageName": "侍女",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-17",
+                                        "stageName": "侍女",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -516,10 +604,14 @@
                     "name": "液化战栗：9-3 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "9-3",
-                                "stageName": "岁月遗忘",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-3",
+                                        "stageName": "岁月遗忘",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -528,10 +620,14 @@
                     "name": "精磨苦盐：5-8 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "5-8",
-                                "stageName": "旧诫言",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "5-8",
+                                        "stageName": "旧诫言",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -540,10 +636,14 @@
                     "name": "精磨苦盐：9-16 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "9-16",
-                                "stageName": "虚构的界限",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-16",
+                                        "stageName": "虚构的界限",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -552,10 +652,14 @@
                     "name": "未知种根骨：5-7 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "5-7",
-                                "stageName": "豆子罐头",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "5-7",
+                                        "stageName": "豆子罐头",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -564,10 +668,14 @@
                     "name": "未知种根骨：5-3 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "5-3",
-                                "stageName": "压箱底",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "5-3",
+                                        "stageName": "压箱底",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -576,10 +684,14 @@
                     "name": "粗糙银锭：9-6 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "9-6",
-                                "stageName": "生者的幻影",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-6",
+                                        "stageName": "生者的幻影",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -588,10 +700,14 @@
                     "name": "粗糙银锭：7-19 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "7-19",
-                                "stageName": "双行道",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "7-19",
+                                        "stageName": "双行道",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -600,10 +716,14 @@
                     "name": "幸运咒语：4-20 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "4-20",
-                                "stageName": "草坪午餐",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "4-20",
+                                        "stageName": "草坪午餐",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -612,10 +732,14 @@
                     "name": "干蝉翼：10-4 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "10-4",
-                                "stageName": "引路人",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-4",
+                                        "stageName": "引路人",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -624,10 +748,14 @@
                     "name": "不休轮：7-16 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "7-16",
-                                "stageName": "水流的引线",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "7-16",
+                                        "stageName": "水流的引线",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -636,10 +764,14 @@
                     "name": "狐儿尾：8-18 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "8-18",
-                                "stageName": "台风眼",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "8-18",
+                                        "stageName": "台风眼",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -648,10 +780,14 @@
                     "name": "辉石原矿：9-1 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "9-1",
-                                "stageName": "开篇",
-                                "level": "Hard"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-1",
+                                        "stageName": "开篇",
+                                        "level": "Hard"
+                                    }
+                                }
                             }
                         }
                     }
@@ -660,10 +796,14 @@
                     "name": "尘埃运动 06",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "LP-06",
-                                "stageName": "尘埃运动 06",
-                                "level": "None"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "LP-06",
+                                        "stageName": "尘埃运动 06",
+                                        "level": "None"
+                                    }
+                                }
                             }
                         }
                     }
@@ -672,10 +812,14 @@
                     "name": "铸币美学 06",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "MA-06",
-                                "stageName": "铸币美学 06",
-                                "level": "None"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "MA-06",
+                                        "stageName": "铸币美学 06",
+                                        "level": "None"
+                                    }
+                                }
                             }
                         }
                     }
@@ -684,10 +828,14 @@
                     "name": "意志解析 07",
                     "pipeline_override": {
                         "SelectCombatStage": {
-                            "custom_action_param": {
-                                "stage": "Psychube-07",
-                                "stageName": "意志解析 07",
-                                "level": "None"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "Psychube-07",
+                                        "stageName": "意志解析 07",
+                                        "level": "None"
+                                    }
+                                }
                             }
                         }
                     }
@@ -700,13 +848,25 @@
                     "name": "吃24小时内过期的糖",
                     "pipeline_override": {
                         "MiniCandy": {
-                            "expected": "小时"
+                            "recognition": {
+                                "param": {
+                                    "expected": "小时"
+                                }
+                            }
                         },
                         "SmallCandy": {
-                            "expected": "小时"
+                            "recognition": {
+                                "param": {
+                                    "expected": "小时"
+                                }
+                            }
                         },
                         "BigCandy": {
-                            "expected": "小时"
+                            "recognition": {
+                                "param": {
+                                    "expected": "小时"
+                                }
+                            }
                         }
                     }
                 },
@@ -714,22 +874,34 @@
                     "name": "吃14天内过期的糖",
                     "pipeline_override": {
                         "MiniCandy": {
-                            "expected": [
-                                "天",
-                                "小时"
-                            ]
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "天",
+                                        "小时"
+                                    ]
+                                }
+                            }
                         },
                         "SmallCandy": {
-                            "expected": [
-                                "天",
-                                "小时"
-                            ]
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "天",
+                                        "小时"
+                                    ]
+                                }
+                            }
                         },
                         "BigCandy": {
-                            "expected": [
-                                "天",
-                                "小时"
-                            ]
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "天",
+                                        "小时"
+                                    ]
+                                }
+                            }
                         }
                     }
                 }
@@ -813,8 +985,12 @@
                     "name": "艰难",
                     "pipeline_override": {
                         "ActivityTargetLevel": {
-                            "custom_action_param": {
-                                "level": "艰难"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": "艰难"
+                                    }
+                                }
                             }
                         }
                     }
@@ -823,8 +999,12 @@
                     "name": "意外",
                     "pipeline_override": {
                         "ActivityTargetLevel": {
-                            "custom_action_param": {
-                                "level": "意外"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": "意外"
+                                    }
+                                }
                             }
                         }
                     }
@@ -833,8 +1013,12 @@
                     "name": "故事",
                     "pipeline_override": {
                         "ActivityTargetLevel": {
-                            "custom_action_param": {
-                                "level": "故事"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": "故事"
+                                    }
+                                }
                             }
                         }
                     }
@@ -847,12 +1031,16 @@
                     "name": "一",
                     "pipeline_override": {
                         "LimboTeamSelection_11": {
-                            "target": [
-                                799,
-                                404,
-                                127,
-                                32
-                            ]
+                            "action": {
+                                "param": {
+                                    "target": [
+                                        799,
+                                        404,
+                                        127,
+                                        32
+                                    ]
+                                }
+                            }
                         }
                     }
                 },
@@ -860,12 +1048,16 @@
                     "name": "二",
                     "pipeline_override": {
                         "LimboTeamSelection_11": {
-                            "target": [
-                                798,
-                                463,
-                                128,
-                                33
-                            ]
+                            "action": {
+                                "param": {
+                                    "target": [
+                                        798,
+                                        463,
+                                        128,
+                                        33
+                                    ]
+                                }
+                            }
                         }
                     }
                 },
@@ -873,12 +1065,16 @@
                     "name": "三",
                     "pipeline_override": {
                         "LimboTeamSelection_11": {
-                            "target": [
-                                797,
-                                522,
-                                129,
-                                34
-                            ]
+                            "action": {
+                                "param": {
+                                    "target": [
+                                        797,
+                                        522,
+                                        129,
+                                        34
+                                    ]
+                                }
+                            }
                         }
                     }
                 },
@@ -886,12 +1082,16 @@
                     "name": "四",
                     "pipeline_override": {
                         "LimboTeamSelection_11": {
-                            "target": [
-                                795,
-                                580,
-                                130,
-                                34
-                            ]
+                            "action": {
+                                "param": {
+                                    "target": [
+                                        795,
+                                        580,
+                                        130,
+                                        34
+                                    ]
+                                }
+                            }
                         }
                     }
                 }
@@ -903,12 +1103,16 @@
                     "name": "二",
                     "pipeline_override": {
                         "LimboTeamSelection_22": {
-                            "target": [
-                                798,
-                                463,
-                                128,
-                                33
-                            ]
+                            "action": {
+                                "param": {
+                                    "target": [
+                                        798,
+                                        463,
+                                        128,
+                                        33
+                                    ]
+                                }
+                            }
                         }
                     }
                 },
@@ -916,12 +1120,16 @@
                     "name": "三",
                     "pipeline_override": {
                         "LimboTeamSelection_22": {
-                            "target": [
-                                797,
-                                522,
-                                129,
-                                34
-                            ]
+                            "action": {
+                                "param": {
+                                    "target": [
+                                        797,
+                                        522,
+                                        129,
+                                        34
+                                    ]
+                                }
+                            }
                         }
                     }
                 },
@@ -929,12 +1137,16 @@
                     "name": "四",
                     "pipeline_override": {
                         "LimboTeamSelection_22": {
-                            "target": [
-                                795,
-                                580,
-                                130,
-                                34
-                            ]
+                            "action": {
+                                "param": {
+                                    "target": [
+                                        795,
+                                        580,
+                                        130,
+                                        34
+                                    ]
+                                }
+                            }
                         }
                     }
                 },
@@ -942,12 +1154,16 @@
                     "name": "一",
                     "pipeline_override": {
                         "LimboTeamSelection_22": {
-                            "target": [
-                                799,
-                                404,
-                                127,
-                                32
-                            ]
+                            "action": {
+                                "param": {
+                                    "target": [
+                                        799,
+                                        404,
+                                        127,
+                                        32
+                                    ]
+                                }
+                            }
                         }
                     }
                 }
@@ -959,8 +1175,12 @@
                     "name": "一",
                     "pipeline_override": {
                         "LucidscapeTeamSelect_1": {
-                            "custom_action_param": {
-                                "team": 1
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 1
+                                    }
+                                }
                             }
                         }
                     }
@@ -969,8 +1189,12 @@
                     "name": "二",
                     "pipeline_override": {
                         "LucidscapeTeamSelect_1": {
-                            "custom_action_param": {
-                                "team": 2
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 2
+                                    }
+                                }
                             }
                         }
                     }
@@ -979,8 +1203,12 @@
                     "name": "三",
                     "pipeline_override": {
                         "LucidscapeTeamSelect_1": {
-                            "custom_action_param": {
-                                "team": 3
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 3
+                                    }
+                                }
                             }
                         }
                     }
@@ -989,8 +1217,12 @@
                     "name": "四",
                     "pipeline_override": {
                         "LucidscapeTeamSelect_1": {
-                            "custom_action_param": {
-                                "team": 4
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 4
+                                    }
+                                }
                             }
                         }
                     }
@@ -1003,8 +1235,12 @@
                     "name": "二",
                     "pipeline_override": {
                         "LucidscapeTeamSelect_2": {
-                            "custom_action_param": {
-                                "team": 2
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 2
+                                    }
+                                }
                             }
                         }
                     }
@@ -1013,8 +1249,12 @@
                     "name": "三",
                     "pipeline_override": {
                         "LucidscapeTeamSelect_2": {
-                            "custom_action_param": {
-                                "team": 3
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 3
+                                    }
+                                }
                             }
                         }
                     }
@@ -1023,8 +1263,12 @@
                     "name": "四",
                     "pipeline_override": {
                         "LucidscapeTeamSelect_2": {
-                            "custom_action_param": {
-                                "team": 4
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 4
+                                    }
+                                }
                             }
                         }
                     }
@@ -1033,8 +1277,12 @@
                     "name": "一",
                     "pipeline_override": {
                         "LucidscapeTeamSelect_2": {
-                            "custom_action_param": {
-                                "team": 1
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 1
+                                    }
+                                }
                             }
                         }
                     }
@@ -1067,7 +1315,9 @@
                     "name": "No",
                     "pipeline_override": {
                         "ModifyBankTaskList": {
-                            "action": "DoNothing"
+                            "action": {
+                                "type": "DoNothing"
+                            }
                         },
                         "NoFree": {
                             "next": []
@@ -1311,7 +1561,11 @@
                     "name": "石榴心血",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
-                            "template": "OutsideDeduction/SODStart_Media_PomegranateHeartBleeding.png"
+                            "recognition": {
+                                "param": {
+                                    "template": "OutsideDeduction/SODStart_Media_PomegranateHeartBleeding.png"
+                                }
+                            }
                         }
                     }
                 },
@@ -1319,7 +1573,11 @@
                     "name": "精神视界",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
-                            "template": "OutsideDeduction/SODStart_Media_SpiritualVision.png"
+                            "recognition": {
+                                "param": {
+                                    "template": "OutsideDeduction/SODStart_Media_SpiritualVision.png"
+                                }
+                            }
                         }
                     }
                 },
@@ -1327,7 +1585,11 @@
                     "name": "仪式匕首",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
-                            "template": "OutsideDeduction/SODStart_Media_RitualDagger.png"
+                            "recognition": {
+                                "param": {
+                                    "template": "OutsideDeduction/SODStart_Media_RitualDagger.png"
+                                }
+                            }
                         }
                     }
                 },
@@ -1335,7 +1597,11 @@
                     "name": "曳变灵摆",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
-                            "template": "OutsideDeduction/SODStart_Media_DragChangePendulum.png"
+                            "recognition": {
+                                "param": {
+                                    "template": "OutsideDeduction/SODStart_Media_DragChangePendulum.png"
+                                }
+                            }
                         }
                     }
                 },
@@ -1343,7 +1609,11 @@
                     "name": "“一”的诫令",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
-                            "template": "OutsideDeduction/SODStart_Media_Commandment.png"
+                            "recognition": {
+                                "param": {
+                                    "template": "OutsideDeduction/SODStart_Media_Commandment.png"
+                                }
+                            }
                         }
                     }
                 },
@@ -1351,7 +1621,11 @@
                     "name": "“全”的振歌",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
-                            "template": "OutsideDeduction/SODStart_Media_Song.png"
+                            "recognition": {
+                                "param": {
+                                    "template": "OutsideDeduction/SODStart_Media_Song.png"
+                                }
+                            }
                         }
                     }
                 },
@@ -1359,7 +1633,11 @@
                     "name": "点金之石",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
-                            "template": "OutsideDeduction/SODStart_Media_MidasStone.png"
+                            "recognition": {
+                                "param": {
+                                    "template": "OutsideDeduction/SODStart_Media_MidasStone.png"
+                                }
+                            }
                         }
                     }
                 }
@@ -1387,8 +1665,12 @@
                     "name": "Current",
                     "pipeline_override": {
                         "SOD_DifficultySelect": {
-                            "custom_action_param": {
-                                "level": "cur"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": "cur"
+                                    }
+                                }
                             }
                         }
                     }
@@ -1397,8 +1679,12 @@
                     "name": "MAX",
                     "pipeline_override": {
                         "SOD_DifficultySelect": {
-                            "custom_action_param": {
-                                "level": "max"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": "max"
+                                    }
+                                }
                             }
                         }
                     }
@@ -1407,8 +1693,12 @@
                     "name": "11",
                     "pipeline_override": {
                         "SOD_DifficultySelect": {
-                            "custom_action_param": {
-                                "level": "11"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": "11"
+                                    }
+                                }
                             }
                         }
                     }
@@ -1417,8 +1707,12 @@
                     "name": "10",
                     "pipeline_override": {
                         "SOD_DifficultySelect": {
-                            "custom_action_param": {
-                                "level": "10"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": "10"
+                                    }
+                                }
                             }
                         }
                     }
@@ -1427,8 +1721,12 @@
                     "name": "5",
                     "pipeline_override": {
                         "SOD_DifficultySelect": {
-                            "custom_action_param": {
-                                "level": "5"
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": "5"
+                                    }
+                                }
                             }
                         }
                     }
@@ -1441,9 +1739,13 @@
                     "name": "日常出勤",
                     "pipeline_override": {
                         "Alarm_FindStage": {
-                            "custom_recognition_param": {
-                                "difficulty": "Easy",
-                                "mode": "Normal"
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "difficulty": "Easy",
+                                        "mode": "Normal"
+                                    }
+                                }
                             }
                         }
                     }
@@ -1452,9 +1754,13 @@
                     "name": "日常出勤（速刷）",
                     "pipeline_override": {
                         "Alarm_FindStage": {
-                            "custom_recognition_param": {
-                                "difficulty": "Easy",
-                                "mode": "Quickly"
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "difficulty": "Easy",
+                                        "mode": "Quickly"
+                                    }
+                                }
                             }
                         }
                     }
@@ -1463,31 +1769,47 @@
                     "name": "雨迹追查",
                     "pipeline_override": {
                         "Alarm_End": {
-                            "expected": "^(?:[0-9]|1[01])/12$",
-                            "roi": [
-                                893,
-                                517,
-                                74,
-                                34
-                            ]
+                            "recognition": {
+                                "param": {
+                                    "roi": [
+                                        893,
+                                        517,
+                                        74,
+                                        34
+                                    ],
+                                    "expected": "^(?:[0-9]|1[01])/12$"
+                                }
+                            }
                         },
                         "Alarm_Find0/3": {
-                            "expected": "^(?:[0-9]|1[01])/12$",
-                            "roi": [
-                                893,
-                                517,
-                                74,
-                                34
-                            ]
+                            "recognition": {
+                                "param": {
+                                    "roi": [
+                                        893,
+                                        517,
+                                        74,
+                                        34
+                                    ],
+                                    "expected": "^(?:[0-9]|1[01])/12$"
+                                }
+                            }
                         },
                         "Alarm_Select": {
                             "enabled": true,
-                            "expected": "雨迹追查"
+                            "recognition": {
+                                "param": {
+                                    "expected": "雨迹追查"
+                                }
+                            }
                         },
                         "Alarm_FindStage": {
-                            "custom_recognition_param": {
-                                "difficulty": "Normal",
-                                "mode": "Normal"
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "difficulty": "Normal",
+                                        "mode": "Normal"
+                                    }
+                                }
                             }
                         }
                     }
@@ -1496,31 +1818,47 @@
                     "name": "雨迹追查(速刷）",
                     "pipeline_override": {
                         "Alarm_End": {
-                            "expected": "^(?:[0-9]|1[01])/12$",
-                            "roi": [
-                                893,
-                                517,
-                                74,
-                                34
-                            ]
+                            "recognition": {
+                                "param": {
+                                    "roi": [
+                                        893,
+                                        517,
+                                        74,
+                                        34
+                                    ],
+                                    "expected": "^(?:[0-9]|1[01])/12$"
+                                }
+                            }
                         },
                         "Alarm_Find0/3": {
-                            "expected": "^(?:[0-9]|1[01])/12$",
-                            "roi": [
-                                893,
-                                517,
-                                74,
-                                34
-                            ]
+                            "recognition": {
+                                "param": {
+                                    "roi": [
+                                        893,
+                                        517,
+                                        74,
+                                        34
+                                    ],
+                                    "expected": "^(?:[0-9]|1[01])/12$"
+                                }
+                            }
                         },
                         "Alarm_Select": {
                             "enabled": true,
-                            "expected": "雨迹追查"
+                            "recognition": {
+                                "param": {
+                                    "expected": "雨迹追查"
+                                }
+                            }
                         },
                         "Alarm_FindStage": {
-                            "custom_recognition_param": {
-                                "difficulty": "Normal",
-                                "mode": "Quickly"
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "difficulty": "Normal",
+                                        "mode": "Quickly"
+                                    }
+                                }
                             }
                         }
                     }
@@ -1529,31 +1867,47 @@
                     "name": "雨痕处治",
                     "pipeline_override": {
                         "Alarm_End": {
-                            "expected": "^[0-9]/10$",
-                            "roi": [
-                                895,
-                                601,
-                                69,
-                                30
-                            ]
+                            "recognition": {
+                                "param": {
+                                    "roi": [
+                                        895,
+                                        601,
+                                        69,
+                                        30
+                                    ],
+                                    "expected": "^[0-9]/10$"
+                                }
+                            }
                         },
                         "Alarm_Find0/3": {
-                            "expected": "^[0-9]/10$",
-                            "roi": [
-                                895,
-                                601,
-                                69,
-                                30
-                            ]
+                            "recognition": {
+                                "param": {
+                                    "roi": [
+                                        895,
+                                        601,
+                                        69,
+                                        30
+                                    ],
+                                    "expected": "^[0-9]/10$"
+                                }
+                            }
                         },
                         "Alarm_Select": {
                             "enabled": true,
-                            "expected": "雨痕处治"
+                            "recognition": {
+                                "param": {
+                                    "expected": "雨痕处治"
+                                }
+                            }
                         },
                         "Alarm_FindStage": {
-                            "custom_recognition_param": {
-                                "difficulty": "Hard",
-                                "mode": "Normal"
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "difficulty": "Hard",
+                                        "mode": "Normal"
+                                    }
+                                }
                             }
                         }
                     }
@@ -1562,31 +1916,47 @@
                     "name": "雨痕处治(速刷）",
                     "pipeline_override": {
                         "Alarm_End": {
-                            "expected": "^[0-9]/10$",
-                            "roi": [
-                                895,
-                                601,
-                                69,
-                                30
-                            ]
+                            "recognition": {
+                                "param": {
+                                    "roi": [
+                                        895,
+                                        601,
+                                        69,
+                                        30
+                                    ],
+                                    "expected": "^[0-9]/10$"
+                                }
+                            }
                         },
                         "Alarm_Find0/3": {
-                            "expected": "^[0-9]/10$",
-                            "roi": [
-                                895,
-                                601,
-                                69,
-                                30
-                            ]
+                            "recognition": {
+                                "param": {
+                                    "roi": [
+                                        895,
+                                        601,
+                                        69,
+                                        30
+                                    ],
+                                    "expected": "^[0-9]/10$"
+                                }
+                            }
                         },
                         "Alarm_Select": {
                             "enabled": true,
-                            "expected": "雨痕处治"
+                            "recognition": {
+                                "param": {
+                                    "expected": "雨痕处治"
+                                }
+                            }
                         },
                         "Alarm_FindStage": {
-                            "custom_recognition_param": {
-                                "difficulty": "Hard",
-                                "mode": "Quickly"
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "difficulty": "Hard",
+                                        "mode": "Quickly"
+                                    }
+                                }
                             }
                         }
                     }

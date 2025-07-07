@@ -1,9 +1,13 @@
 {
     "JudgeDuringAct": {
-        "action": "Custom",
-        "custom_action": "DuringAct",
-        "custom_action_param": {
-            "resource": "cn"
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DuringAct",
+                "custom_action_param": {
+                    "resource": "cn"
+                }
+            }
         },
         "next": [
             "FlagInActivityMain"
@@ -14,14 +18,18 @@
         ]
     },
     "FlagInActivityMain": {
-        "recognition": "OCR",
-        "expected": "预告",
-        "roi": [
-            947,
-            0,
-            147,
-            101
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    947,
+                    0,
+                    147,
+                    101
+                ],
+                "expected": "预告"
+            }
+        },
         "next": [
             "JudgeDuringRe_release",
             "ActivityMainChapter"
@@ -29,21 +37,29 @@
     },
     "EnterTheActivityMain": {
         "doc": "进入当期活动主界面",
-        "recognition": "TemplateMatch",
-        "template": "StartUp/HomeFlag.png",
-        "roi": [
-            1022,
-            419,
-            194,
-            166
-        ],
-        "action": "Click",
-        "target": [
-            1103,
-            220,
-            28,
-            22
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1022,
+                    419,
+                    194,
+                    166
+                ],
+                "template": "StartUp/HomeFlag.png"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1103,
+                    220,
+                    28,
+                    22
+                ]
+            }
+        },
         "post_delay": 3000,
         "post_wait_freezes": {
             "time": 500,
@@ -56,18 +72,24 @@
         }
     },
     "ActivityMainChapter": {
-        "recognition": "OCR",
-        "expected": [
-            "剧情",
-            "步"
-        ],
-        "roi": [
-            988,
-            571,
-            281,
-            144
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    988,
+                    571,
+                    281,
+                    144
+                ],
+                "expected": [
+                    "剧情",
+                    "步"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 2000,
         "next": [
             "FlagInActivityStage",
@@ -78,15 +100,19 @@
         ]
     },
     "FlagInActivityStage": {
-        "recognition": "OCR",
-        "expected": "开始行动",
-        "roi": [
-            1089,
-            588,
-            131,
-            41
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1089,
+                    588,
+                    131,
+                    41
+                ],
+                "expected": "开始行动"
+            }
+        },
         "next": [
             "FlagInActivityCombatStage"
         ],
@@ -95,33 +121,41 @@
         ]
     },
     "FlagInActivityCombatStage": {
-        "recognition": "OCR",
-        "expected": "\\d",
-        "roi": [
-            902,
-            591,
-            101,
-            54
-        ],
-        "replace": [
-            [
-                "-",
-                ""
-            ],
-            [
-                "0",
-                ""
-            ]
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    902,
+                    591,
+                    101,
+                    54
+                ],
+                "replace": [
+                    [
+                        "-",
+                        ""
+                    ],
+                    [
+                        "0",
+                        ""
+                    ]
+                ],
+                "expected": "\\d"
+            }
+        },
         "next": [
             "ActivityTargetLevel"
         ]
     },
     "ActivityTargetLevel": {
-        "action": "Custom",
-        "custom_action": "ActivityTargetLevel",
-        "custom_action_param": {
-            "level": "艰难"
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "ActivityTargetLevel",
+                "custom_action_param": {
+                    "level": "艰难"
+                }
+            }
         },
         "post_wait_freezes": {
             "time": 700,
@@ -137,29 +171,37 @@
         ]
     },
     "ActivityTargetLevelRec": {
-        "recognition": "OCR",
-        "expected": [
-            "艰难",
-            "意外",
-            "故事"
-        ],
-        "roi": [
-            1036,
-            231,
-            57,
-            26
-        ],
-        "only_rec": true,
-        "threshold": 0.7
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1036,
+                    231,
+                    57,
+                    26
+                ],
+                "expected": [
+                    "艰难",
+                    "意外",
+                    "故事"
+                ],
+                "threshold": 0.7
+            }
+        }
     },
     "ActivityClickPreStage": {
-        "action": "Click",
-        "target": [
-            52,
-            564,
-            56,
-            53
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    52,
+                    564,
+                    56,
+                    53
+                ]
+            }
+        },
         "post_wait_freezes": {
             "time": 700,
             "target": [
@@ -171,13 +213,17 @@
         }
     },
     "ActivityClickCurStage": {
-        "action": "Click",
-        "target": [
-            395,
-            569,
-            59,
-            40
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    395,
+                    569,
+                    59,
+                    40
+                ]
+            }
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -190,35 +236,49 @@
     },
     "JudgeDuringRe_release": {
         "enabled": false,
-        "action": "Custom",
-        "custom_action": "DuringRe_release",
-        "custom_action_param": {
-            "resource": "cn"
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DuringRe_release",
+                "custom_action_param": {
+                    "resource": "cn"
+                }
+            }
         },
         "next": [
             "ActivityRe_releaseChapter"
         ]
     },
     "ActivityRe_releaseChapter": {
-        "recognition": "Custom",
-        "custom_recognition": "ActivityRe_releaseChapter",
-        "custom_recognition_param": {
-            "Re_release_name": ""
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "ActivityRe_releaseChapter",
+                "custom_recognition_param": {
+                    "Re_release_name": ""
+                }
+            }
         },
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 3000,
         "next": [
             "ActivityMainChapter"
         ]
     },
     "ActivityLeftList": {
-        "recognition": "OCR",
-        "expected": "[\\s\\S]",
-        "roi": [
-            44,
-            109,
-            240,
-            562
-        ]
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    44,
+                    109,
+                    240,
+                    562
+                ],
+                "expected": "[\\s\\S]"
+            }
+        }
     }
 }

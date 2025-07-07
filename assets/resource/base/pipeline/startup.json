@@ -45,66 +45,90 @@
         ]
     },
     "Start1999": {
-        "action": "StartApp",
-        "package": "com.shenlan.m.reverse1999/com.ssgame.mobile.gamesdk.frame.AppStartUpActivity"
+        "action": {
+            "type": "StartApp",
+            "param": {
+                "package": "com.shenlan.m.reverse1999/com.ssgame.mobile.gamesdk.frame.AppStartUpActivity"
+            }
+        }
     },
     "BluePochLogo": {
-        "recognition": "TemplateMatch",
-        "template": "StartUp/BluePochLogo.png",
-        "roi": [
-            298,
-            163,
-            620,
-            336
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    298,
+                    163,
+                    620,
+                    336
+                ],
+                "template": "StartUp/BluePochLogo.png"
+            }
+        },
         "post_wait_freezes": 300
     },
     "Disclaimer": {
-        "recognition": "TemplateMatch",
-        "template": "StartUp/Disclaimer.png",
-        "roi": [
-            512,
-            107,
-            238,
-            214
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    512,
+                    107,
+                    238,
+                    214
+                ],
+                "template": "StartUp/Disclaimer.png"
+            }
+        },
         "post_wait_freezes": 1000
     },
     "GameLoading": {
-        "recognition": "TemplateMatch",
-        "template": "StartUp/GameLoading.png",
-        "roi": [
-            323,
-            0,
-            599,
-            563
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    323,
+                    0,
+                    599,
+                    563
+                ],
+                "template": "StartUp/GameLoading.png"
+            }
+        },
         "post_wait_freezes": 500
     },
     "GameLoading2": {
-        "recognition": "TemplateMatch",
-        "template": "StartUp/GameLoading2.png",
-        "roi": [
-            1161,
-            0,
-            119,
-            120
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1161,
+                    0,
+                    119,
+                    120
+                ],
+                "template": "StartUp/GameLoading2.png"
+            }
+        },
         "post_delay": 2000
     },
     "Downloading": {
-        "recognition": "OCR",
-        "expected": [
-            "正在",
-            "更新",
-            "下载"
-        ],
-        "roi": [
-            435,
-            597,
-            402,
-            123
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    435,
+                    597,
+                    402,
+                    123
+                ],
+                "expected": [
+                    "正在",
+                    "更新",
+                    "下载"
+                ]
+            }
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -116,43 +140,61 @@
         }
     },
     "Download": {
-        "recognition": "OCR",
-        "expected": [
-            "下载",
-            "重试"
-        ],
-        "roi": [
-            712,
-            390,
-            187,
-            150
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    712,
+                    390,
+                    187,
+                    150
+                ],
+                "expected": [
+                    "下载",
+                    "重试"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "CloseAnnouncement": {
-        "recognition": "TemplateMatch",
-        "template": [
-            "StartUp/CloseAnnouncement.png"
-        ],
-        "roi": [
-            1105,
-            40,
-            143,
-            140
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1105,
+                    40,
+                    143,
+                    140
+                ],
+                "template": [
+                    "StartUp/CloseAnnouncement.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "StartGame": {
-        "recognition": "TemplateMatch",
-        "template": "StartUp/StartGame.png",
-        "green_mask": true,
-        "roi": [
-            352,
-            230,
-            587,
-            183
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    352,
+                    230,
+                    587,
+                    183
+                ],
+                "template": "StartUp/StartGame.png",
+                "green_mask": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "HomeFlag",
             "StartGame"
@@ -170,14 +212,18 @@
         ]
     },
     "HomeLoading": {
-        "recognition": "TemplateMatch",
-        "template": "StartUp/HomeLoading.png",
-        "roi": [
-            459,
-            359,
-            364,
-            152
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    459,
+                    359,
+                    364,
+                    152
+                ],
+                "template": "StartUp/HomeLoading.png"
+            }
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -190,15 +236,21 @@
     },
     "HomeLoading_wait": {
         "doc": "专供启动时使用，与原版分开以防止ReturnMain大面积报错",
-        "recognition": "TemplateMatch",
-        "template": "StartUp/HomeLoading.png",
-        "roi": [
-            459,
-            359,
-            364,
-            152
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    459,
+                    359,
+                    364,
+                    152
+                ],
+                "template": "StartUp/HomeLoading.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "HomeFlag",
             "HomeLoading_wait"
@@ -216,175 +268,249 @@
         ]
     },
     "SkipButton": {
-        "recognition": "OCR",
-        "expected": [
-            "跳过",
-            "Skip"
-        ],
-        "roi": [
-            1094,
-            0,
-            186,
-            119
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1094,
+                    0,
+                    186,
+                    119
+                ],
+                "expected": [
+                    "跳过",
+                    "Skip"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": "HomeLoading_wait"
         }
     },
     "SkipOpeningAnimation": {
-        "action": "Click",
-        "target": "HomeLoading_wait"
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": "HomeLoading_wait"
+            }
+        }
     },
     "HomeFlag": {
-        "recognition": "TemplateMatch",
-        "template": "StartUp/HomeFlag.png",
-        "roi": [
-            1022,
-            419,
-            194,
-            166
-        ],
-        "action": "Click",
-        "target": [
-            576,
-            298,
-            68,
-            64
-        ]
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1022,
+                    419,
+                    194,
+                    166
+                ],
+                "template": "StartUp/HomeFlag.png"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    576,
+                    298,
+                    68,
+                    64
+                ]
+            }
+        }
     },
     "HomeFlagCloseReturnMain": {
-        "recognition": "TemplateMatch",
-        "template": "StartUp/HomeFlag.png",
-        "roi": [
-            1022,
-            419,
-            194,
-            166
-        ],
-        "action": "Custom",
-        "custom_action": "DisableNode",
-        "custom_action_param": {
-            "node_name": "ReturnMain"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1022,
+                    419,
+                    194,
+                    166
+                ],
+                "template": "StartUp/HomeFlag.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "ReturnMain"
+                }
+            }
         }
     },
     "BackButton": {
-        "recognition": "TemplateMatch",
-        "template": [
-            "StartUp/BackButton.png"
-        ],
-        "roi": [
-            0,
-            0,
-            134,
-            138
-        ],
-        "green_mask": true,
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    134,
+                    138
+                ],
+                "template": [
+                    "StartUp/BackButton.png"
+                ],
+                "green_mask": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "BackButtonWithDelay": {
-        "recognition": "TemplateMatch",
-        "template": [
-            "StartUp/BackButton.png"
-        ],
-        "roi": [
-            0,
-            0,
-            134,
-            138
-        ],
-        "green_mask": true,
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    134,
+                    138
+                ],
+                "template": [
+                    "StartUp/BackButton.png"
+                ],
+                "green_mask": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 3000
     },
     "HomeButton": {
-        "recognition": "TemplateMatch",
-        "template": [
-            "StartUp/HomeButton.png",
-            "StartUp/HomeButton_White.png"
-        ],
-        "roi": [
-            70,
-            0,
-            144,
-            144
-        ],
-        "action": "Click",
-        "target_offset": [
-            30,
-            0,
-            -30,
-            0
-        ]
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    70,
+                    0,
+                    144,
+                    144
+                ],
+                "template": [
+                    "StartUp/HomeButton.png",
+                    "StartUp/HomeButton_White.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    30,
+                    0,
+                    -30,
+                    0
+                ]
+            }
+        }
     },
     "Stop": {},
     "Reward": {
         "doc": "防卡日历",
-        "recognition": "TemplateMatch",
-        "template": [
-            "StartUp/Reward.png",
-            "StartUp/Reward1.png",
-            "StartUp/Reward2.png"
-        ],
-        "roi": [
-            419,
-            90,
-            297,
-            148
-        ],
-        "action": "Click",
-        "target": [
-            0,
-            0,
-            526,
-            590
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    419,
+                    90,
+                    297,
+                    148
+                ],
+                "template": [
+                    "StartUp/Reward.png",
+                    "StartUp/Reward1.png",
+                    "StartUp/Reward2.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    0,
+                    0,
+                    526,
+                    590
+                ]
+            }
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": "HomeLoading_wait"
         }
     },
     "AccumulatedSignIn": {
-        "recognition": "TemplateMatch",
-        "template": "StartUp/AccumulatedSignIn.png",
-        "roi": [
-            562,
-            483,
-            347,
-            163
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    562,
+                    483,
+                    347,
+                    163
+                ],
+                "template": "StartUp/AccumulatedSignIn.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "BirthdayReward": {
-        "recognition": "TemplateMatch",
-        "template": "StartUp/BirthdayReward.png",
-        "threshold": 0.8,
-        "roi": [
-            803,
-            273,
-            121,
-            121
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    803,
+                    273,
+                    121,
+                    121
+                ],
+                "template": "StartUp/BirthdayReward.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "Item-140001Reward": {
         "doc": "独一律奖励",
-        "recognition": "TemplateMatch",
-        "template": "StartUp/Item-140001Reward.png",
-        "roi": [
-            126,
-            415,
-            1024,
-            204
-        ],
-        "action": "Click",
-        "target_offset": [
-            0,
-            -108,
-            0,
-            0
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    126,
+                    415,
+                    1024,
+                    204
+                ],
+                "template": "StartUp/Item-140001Reward.png"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -108,
+                    0,
+                    0
+                ]
+            }
+        },
         "next": [
             "NoItem-140001Reward",
             "Item-140001Reward",
@@ -395,18 +521,22 @@
         ]
     },
     "NoItem-140001Reward": {
-        "recognition": "OCR",
-        "expected": [
-            "未达到",
-            "领取",
-            "条件"
-        ],
-        "roi": [
-            1020,
-            41,
-            260,
-            236
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1020,
+                    41,
+                    260,
+                    236
+                ],
+                "expected": [
+                    "未达到",
+                    "领取",
+                    "条件"
+                ]
+            }
+        },
         "post_wait_freezes": 300,
         "next": [
             "CloseRewardPage"
@@ -417,21 +547,27 @@
     },
     "CloseRewardPage": {
         "doc": "关闭独一律签到页面",
-        "green_mask": true,
-        "recognition": "TemplateMatch",
-        "template": [
-            "StartUp/CloseRewardPage_2.2.png",
-            "StartUp/CloseRewardPage_2.4.png",
-            "StartUp/CloseItemDetail.png"
-        ],
-        "threshold": 0.6,
-        "roi": [
-            1040,
-            60,
-            250,
-            146
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1040,
+                    60,
+                    250,
+                    146
+                ],
+                "template": [
+                    "StartUp/CloseRewardPage_2.2.png",
+                    "StartUp/CloseRewardPage_2.4.png",
+                    "StartUp/CloseItemDetail.png"
+                ],
+                "green_mask": true,
+                "threshold": 0.6
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 1000,
         "next": [
             "CloseRewardPage",

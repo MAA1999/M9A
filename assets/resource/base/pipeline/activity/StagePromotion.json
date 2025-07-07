@@ -16,85 +16,107 @@
         ]
     },
     "StagePromotionComplete": {
-        "recognition": "Custom",
-        "custom_recognition": "StagePromotionComplete"
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "StagePromotionComplete"
+            }
+        }
     },
     "StagePromotionCurStageComplete": {
-        "recognition": "ColorMatch",
-        "lower": [
-            220,
-            87,
-            39
-        ],
-        "upper": [
-            270,
-            137,
-            89
-        ],
-        "roi": [
-            425,
-            542,
-            49,
-            43
-        ],
-        "connected": true,
-        "count": 10
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    425,
+                    542,
+                    49,
+                    43
+                ],
+                "count": 10,
+                "connected": true,
+                "upper": [
+                    270,
+                    137,
+                    89
+                ],
+                "lower": [
+                    220,
+                    87,
+                    39
+                ]
+            }
+        }
     },
     "StagePromotionCurStageComplete1": {
-        "recognition": "ColorMatch",
-        "lower": [
-            209,
-            193,
-            133
-        ],
-        "upper": [
-            229,
-            213,
-            153
-        ],
-        "roi": [
-            425,
-            542,
-            49,
-            43
-        ],
-        "connected": true,
-        "count": 10
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    425,
+                    542,
+                    49,
+                    43
+                ],
+                "count": 10,
+                "connected": true,
+                "upper": [
+                    229,
+                    213,
+                    153
+                ],
+                "lower": [
+                    209,
+                    193,
+                    133
+                ]
+            }
+        }
     },
     "StagePromotionCurStageComplete2": {
-        "recognition": "ColorMatch",
-        "lower": [
-            183,
-            29,
-            29
-        ],
-        "upper": [
-            221,
-            38,
-            38
-        ],
-        "roi": [
-            425,
-            542,
-            49,
-            43
-        ],
-        "connected": true,
-        "count": 10
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    425,
+                    542,
+                    49,
+                    43
+                ],
+                "count": 10,
+                "connected": true,
+                "upper": [
+                    221,
+                    38,
+                    38
+                ],
+                "lower": [
+                    183,
+                    29,
+                    29
+                ]
+            }
+        }
     },
     "StagePromotionSkip": {
-        "recognition": "OCR",
-        "expected": [
-            "跳过",
-            "SKIP"
-        ],
-        "roi": [
-            978,
-            0,
-            265,
-            115
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    978,
+                    0,
+                    265,
+                    115
+                ],
+                "expected": [
+                    "跳过",
+                    "SKIP"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -106,87 +128,127 @@
         }
     },
     "StagePromotionSkipConfirm": {
-        "recognition": "OCR",
-        "expected": "确认",
-        "roi": [
-            776,
-            406,
-            60,
-            31
-        ],
-        "only_rec": true,
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    776,
+                    406,
+                    60,
+                    31
+                ],
+                "expected": "确认"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "StagePromotionFlagInStoryStage": {
-        "recognition": "OCR",
-        "expected": "开始行动",
-        "roi": [
-            1092,
-            590,
-            128,
-            33
-        ],
-        "only_rec": true,
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1092,
+                    590,
+                    128,
+                    33
+                ],
+                "expected": "开始行动"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "StagePromotionClickNextStage": {
-        "recognition": "OCR",
-        "expected": "\\d+",
-        "roi": [
-            701,
-            550,
-            182,
-            53
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    701,
+                    550,
+                    182,
+                    53
+                ],
+                "expected": "\\d+"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "StagePromotionClickCurStage": {
-        "recognition": "OCR",
-        "expected": "\\d+",
-        "roi": [
-            321,
-            499,
-            138,
-            133
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    321,
+                    499,
+                    138,
+                    133
+                ],
+                "expected": "\\d+"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "StagePromotionStartAction": {
-        "recognition": "OCR",
-        "expected": "开始行动",
-        "roi": [
-            1054,
-            638,
-            124,
-            32
-        ],
-        "only_rec": true,
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1054,
+                    638,
+                    124,
+                    32
+                ],
+                "expected": "开始行动"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "StagePromotionFlagInCombat": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Combating.png",
-        "roi": [
-            1208,
-            6,
-            64,
-            64
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1208,
+                    6,
+                    64,
+                    64
+                ],
+                "template": "OutsideDeduction/SOD_Combating.png"
+            }
+        },
         "post_delay": 5000
     },
     "StagePromotionCombatVictory": {
-        "recognition": "OCR",
-        "expected": [
-            "战斗",
-            "胜利"
-        ],
-        "roi": [
-            678,
-            10,
-            473,
-            240
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    240
+                ],
+                "expected": [
+                    "战斗",
+                    "胜利"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "pre_wait_freezes": {
             "time": 500,
             "target": [

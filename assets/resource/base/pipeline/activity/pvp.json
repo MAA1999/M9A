@@ -5,46 +5,62 @@
         ]
     },
     "开始角斗": {
-        "recognition": "OCR",
-        "expected": "角斗",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    971,
+                    525,
+                    266,
+                    171
+                ],
+                "expected": "角斗"
+            }
+        },
         "is_sub": true,
-        "roi": [
-            971,
-            525,
-            266,
-            171
-        ],
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "选择阵容"
         ]
     },
     "选择阵容": {
-        "recognition": "OCR",
-        "expected": "选择",
-        "roi": [
-            200,
-            603,
-            78,
-            35
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    200,
+                    603,
+                    78,
+                    35
+                ],
+                "expected": "选择"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "菜单界面",
             "选择阵容"
         ]
     },
     "菜单界面": {
-        "recognition": "OCR",
-        "expected": "队伍评级",
-        "roi": [
-            92,
-            559,
-            92,
-            43
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    92,
+                    559,
+                    92,
+                    43
+                ],
+                "expected": "队伍评级"
+            }
+        },
         "next": [
             "进入2-1"
         ],
@@ -57,47 +73,67 @@
         ]
     },
     "进入2-1": {
-        "recognition": "OCR",
-        "expected": "2-1",
-        "only_rec": true,
-        "roi": [
-            605,
-            15,
-            69,
-            32
-        ],
-        "action": "Click",
-        "target": [
-            22,
-            19,
-            49,
-            47
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    605,
+                    15,
+                    69,
+                    32
+                ],
+                "expected": "2-1"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    22,
+                    19,
+                    49,
+                    47
+                ]
+            }
+        },
         "next": [
             "离场"
         ]
     },
     "进入事件": {
-        "recognition": "TemplateMatch",
-        "template": "Combat/Activity/Next_Flag.png",
-        "roi": [
-            1090,
-            552,
-            174,
-            168
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1090,
+                    552,
+                    174,
+                    168
+                ],
+                "template": "Combat/Activity/Next_Flag.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "偶人": {
-        "recognition": "OCR",
-        "expected": "偶人",
-        "action": "Click",
-        "roi": [
-            50,
-            113,
-            1211,
-            123
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    50,
+                    113,
+                    1211,
+                    123
+                ],
+                "expected": "偶人"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "购买偶人"
         ],
@@ -106,97 +142,137 @@
         ]
     },
     "购买偶人": {
-        "recognition": "OCR",
-        "expected": "12",
-        "roi": [
-            217,
-            135,
-            846,
-            394
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    217,
+                    135,
+                    846,
+                    394
+                ],
+                "expected": "12"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "购买偶人1"
         ]
     },
     "购买偶人1": {
-        "recognition": "OCR",
-        "expected": "12",
-        "roi": [
-            633,
-            589,
-            36,
-            29
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    633,
+                    589,
+                    36,
+                    29
+                ],
+                "expected": "12"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": "进入事件"
     },
     "缪斯赠予": {
-        "recognition": "OCR",
-        "expected": "缪斯赠予",
-        "roi": [
-            576,
-            407,
-            130,
-            42
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    576,
+                    407,
+                    130,
+                    42
+                ],
+                "expected": "缪斯赠予"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "缪斯赠予1"
         ],
         "interrupt": "进入事件"
     },
     "缪斯赠予1": {
-        "recognition": "OCR",
-        "expected": "领取",
-        "roi": [
-            794,
-            580,
-            129,
-            42
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    794,
+                    580,
+                    129,
+                    42
+                ],
+                "expected": "领取"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "获得奖励",
             "缪斯赠予1"
         ]
     },
     "获得奖励": {
-        "recognition": "OCR",
-        "expected": "获得",
-        "roi": [
-            275,
-            76,
-            715,
-            273
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    275,
+                    76,
+                    715,
+                    273
+                ],
+                "expected": "获得"
+            }
+        },
         "pre_delay": 1000,
-        "action": "Click",
-        "target": [
-            1113,
-            342,
-            76,
-            82
-        ]
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1113,
+                    342,
+                    76,
+                    82
+                ]
+            }
+        }
     },
     "1-3战斗": {
-        "recognition": "OCR",
-        "expected": "1-3",
-        "roi": [
-            605,
-            15,
-            69,
-            32
-        ],
-        "only_rec": true,
-        "action": "Click",
-        "target": [
-            996,
-            205,
-            93,
-            84
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    605,
+                    15,
+                    69,
+                    32
+                ],
+                "expected": "1-3"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    996,
+                    205,
+                    93,
+                    84
+                ]
+            }
+        },
         "next": [
             "配对页面"
         ],
@@ -205,91 +281,127 @@
         ]
     },
     "配对页面": {
-        "recognition": "OCR",
-        "expected": "敌方评级",
-        "roi": [
-            64,
-            143,
-            136,
-            51
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    64,
+                    143,
+                    136,
+                    51
+                ],
+                "expected": "敌方评级"
+            }
+        },
         "next": "开始配对1"
     },
     "开始配对1": {
-        "action": "Click",
-        "target": [
-            881,
-            264,
-            52,
-            43
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    881,
+                    264,
+                    52,
+                    43
+                ]
+            }
+        },
         "post_delay": 2000,
         "next": [
             "开始配对2"
         ]
     },
     "开始配对2": {
-        "target": [
-            986,
-            242,
-            66,
-            85
-        ],
-        "action": "Click",
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    986,
+                    242,
+                    66,
+                    85
+                ]
+            }
+        },
         "next": "开始配对3"
     },
     "开始配对3": {
-        "recognition": "OCR",
-        "expected": "确认",
-        "action": "Click",
-        "target": [
-            1104,
-            643,
-            100,
-            47
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": "确认"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1104,
+                    643,
+                    100,
+                    47
+                ]
+            }
+        },
         "next": [
             "自动角斗",
             "开始战斗"
         ]
     },
     "自动角斗": {
-        "recognition": "OCR",
-        "expected": "口",
-        "roi": [
-            121,
-            577,
-            35,
-            33
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    121,
+                    577,
+                    35,
+                    33
+                ],
+                "expected": "口"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": "开始战斗"
     },
     "开始战斗": {
-        "recognition": "OCR",
-        "expected": "开始",
-        "roi": [
-            1016,
-            632,
-            150,
-            47
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1016,
+                    632,
+                    150,
+                    47
+                ],
+                "expected": "开始"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "战斗",
             "开始战斗"
         ]
     },
     "战斗": {
-        "recognition": "OCR",
-        "expected": "回合",
-        "roi": [
-            22,
-            28,
-            205,
-            46
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    22,
+                    28,
+                    205,
+                    46
+                ],
+                "expected": "回合"
+            }
+        },
         "timeout": 60000,
         "next": [
             "战斗",
@@ -297,33 +409,47 @@
         ]
     },
     "战斗结束": {
-        "recognition": "OCR",
-        "expected": "战斗",
-        "roi": [
-            766,
-            78,
-            306,
-            102
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    766,
+                    78,
+                    306,
+                    102
+                ],
+                "expected": "战斗"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "1-5结算": {
-        "recognition": "OCR",
-        "expected": "1-5",
-        "roi": [
-            605,
-            15,
-            69,
-            32
-        ],
-        "only_rec": true,
-        "action": "Click",
-        "target": [
-            576,
-            260,
-            127,
-            97
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    605,
+                    15,
+                    69,
+                    32
+                ],
+                "expected": "1-5"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    576,
+                    260,
+                    127,
+                    97
+                ]
+            }
+        },
         "next": [
             "开始战斗"
         ],
@@ -332,62 +458,86 @@
         ]
     },
     "离场": {
-        "recognition": "OCR",
-        "expected": "离场",
-        "roi": [
-            861,
-            575,
-            73,
-            87
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    861,
+                    575,
+                    73,
+                    87
+                ],
+                "expected": "离场"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "离场确认",
             "离场"
         ]
     },
     "离场确认": {
-        "recognition": "OCR",
-        "expected": "确认",
-        "roi": [
-            742,
-            399,
-            124,
-            47
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    742,
+                    399,
+                    124,
+                    47
+                ],
+                "expected": "确认"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "比赛回顾",
             "离场确认"
         ]
     },
     "比赛回顾": {
-        "recognition": "OCR",
-        "expected": "比赛回顾",
-        "roi": [
-            516,
-            11,
-            268,
-            71
-        ],
-        "action": "Click",
-        "target": [
-            1191,
-            33,
-            64,
-            53
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    516,
+                    11,
+                    268,
+                    71
+                ],
+                "expected": "比赛回顾"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1191,
+                    33,
+                    64,
+                    53
+                ]
+            }
+        },
         "next": [
             "获得物品"
         ]
     },
     "获得物品": {
-        "target": [
-            1210,
-            31,
-            26,
-            6
-        ],
-        "action": "Click"
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1210,
+                    31,
+                    26,
+                    6
+                ]
+            }
+        }
     }
 }

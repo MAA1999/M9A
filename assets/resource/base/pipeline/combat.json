@@ -5,12 +5,16 @@
         ]
     },
     "SelectCombatStage": {
-        "action": "Custom",
-        "custom_action": "SelectCombatStage",
-        "custom_action_param": {
-            "stage": "",
-            "stageName": "",
-            "level": ""
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SelectCombatStage",
+                "custom_action_param": {
+                    "stage": "",
+                    "stageName": "",
+                    "level": ""
+                }
+            }
         },
         "next": [
             "EnterTheShow"
@@ -26,65 +30,87 @@
         ]
     },
     "ReturnMainStoryChapterTrue": {
-        "recognition": "OCR",
-        "expected": [
-            "生者",
-            "余众",
-            "旅行",
-            "归来",
-            "故事",
-            "根须"
-        ],
-        "roi": [
-            0,
-            90,
-            1257,
-            49
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    90,
+                    1257,
+                    49
+                ],
+                "expected": [
+                    "生者",
+                    "余众",
+                    "旅行",
+                    "归来",
+                    "故事",
+                    "根须"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": []
     },
     "ReturnMainStoryChapterFalse": {
-        "recognition": "OCR",
-        "expected": [
-            "生者",
-            "余众",
-            "旅行",
-            "归来",
-            "故事",
-            "根须"
-        ],
-        "roi": [
-            0,
-            90,
-            1257,
-            49
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    90,
+                    1257,
+                    49
+                ],
+                "expected": [
+                    "生者",
+                    "余众",
+                    "旅行",
+                    "归来",
+                    "故事",
+                    "根须"
+                ]
+            }
+        },
         "inverse": true,
         "next": []
     },
     "SelectMainStoryChapter": {
-        "recognition": "TemplateMatch",
-        "template_code": "Set in code",
-        "roi": [
-            0,
-            90,
-            1280,
-            460
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    90,
+                    1280,
+                    460
+                ],
+                "template_code": "Set in code"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": []
     },
     "EnterTheShow": {
-        "recognition": "TemplateMatch",
-        "template": "Combat/EnterTheShow.png",
-        "roi": [
-            926,
-            221,
-            229,
-            153
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    926,
+                    221,
+                    229,
+                    153
+                ],
+                "template": "Combat/EnterTheShow.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -98,8 +124,12 @@
         "next_code": "set in code"
     },
     "MainChapter_X": {
-        "action": "Custom",
-        "custom_action": "SelectChapter",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SelectChapter"
+            }
+        },
         "next": [
             "MainChapter_XEnter"
         ],
@@ -108,27 +138,39 @@
         ]
     },
     "MainChapter_XEnter": {
-        "recognition": "TemplateMatch",
-        "template_code": "Set in code.",
-        "roi": [
-            0,
-            90,
-            1280,
-            460
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    90,
+                    1280,
+                    460
+                ],
+                "template_code": "Set in code."
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": "SwipeLeftAndFindStage"
     },
     "ResourceChapterLabel": {
-        "recognition": "OCR",
-        "expected": "资源",
-        "roi": [
-            22,
-            613,
-            1258,
-            107
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    22,
+                    613,
+                    1258,
+                    107
+                ],
+                "expected": "资源"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 200,
             "target": [
@@ -149,16 +191,22 @@
         ]
     },
     "ResourceChapter_LPEnter": {
-        "recognition": "TemplateMatch",
-        "template": "Combat/ResourceChapter_LPEnter.png",
-        "threshold": 0.9,
-        "roi": [
-            0,
-            153,
-            1280,
-            367
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    153,
+                    1280,
+                    367
+                ],
+                "template": "Combat/ResourceChapter_LPEnter.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": "SwipeLeftAndFindStage"
     },
     "ResourceChapter_MA": {
@@ -171,23 +219,29 @@
         ]
     },
     "ResourceChapter_MAEnter": {
-        "recognition": "OCR",
-        "expected": [
-            "铸币",
-            "铸",
-            "美学"
-        ],
-        "replace": [
-            "市",
-            "币"
-        ],
-        "roi": [
-            0,
-            153,
-            1280,
-            367
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    153,
+                    1280,
+                    367
+                ],
+                "replace": [
+                    "市",
+                    "币"
+                ],
+                "expected": [
+                    "铸币",
+                    "铸",
+                    "美学"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SwipeLeftAndFindStage"
         ],
@@ -207,40 +261,56 @@
         ]
     },
     "ResourceChapter_Psychube07FreeEnter": {
-        "recognition": "TemplateMatch",
-        "template": "Psychube/FreePsychubeStages.png",
-        "threshold": 0.9,
-        "roi": [
-            180,
-            203,
-            246,
-            306
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    180,
+                    203,
+                    246,
+                    306
+                ],
+                "template": "Psychube/FreePsychubeStages.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": "SwipeLeftAndFindStage"
     },
     "ResourceChapter_Psychube07Enter": {
-        "recognition": "TemplateMatch",
-        "template": "Psychube/FreePsychubeStages.png",
-        "threshold": 0.9,
-        "roi": [
-            841,
-            230,
-            265,
-            290
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    841,
+                    230,
+                    265,
+                    290
+                ],
+                "template": "Psychube/FreePsychubeStages.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": "SwipeLeftAndFindStage"
     },
     "ResourceChapter_NoFreePsychube07": {
-        "recognition": "TemplateMatch",
-        "template": "Psychube/NoFreePsychubeStagesFlag.png",
-        "roi": [
-            732,
-            210,
-            233,
-            297
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    732,
+                    210,
+                    233,
+                    297
+                ],
+                "template": "Psychube/NoFreePsychubeStagesFlag.png"
+            }
+        },
         "next": [
             "SwipeRightForPsychube"
         ]
@@ -252,70 +322,86 @@
         ]
     },
     "SwipeRightForPsychube07": {
-        "action": "Swipe",
-        "begin": [
-            900,
-            500,
-            100,
-            50
-        ],
-        "end": [
-            300,
-            500,
-            100,
-            50
-        ],
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    900,
+                    500,
+                    100,
+                    50
+                ],
+                "end": [
+                    300,
+                    500,
+                    100,
+                    50
+                ]
+            }
+        },
         "post_wait_freezes": 1,
         "next": [
             "SwipeRightForPsychube"
         ]
     },
     "SwipeRightForChapter": {
-        "action": "Swipe",
-        "begin": [
-            500,
-            300,
-            100,
-            100
-        ],
-        "end": [
-            100,
-            300,
-            100,
-            100
-        ],
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    500,
+                    300,
+                    100,
+                    100
+                ],
+                "end": [
+                    100,
+                    300,
+                    100,
+                    100
+                ]
+            }
+        },
         "post_delay": 0,
         "next": [
             "SwipeStop"
         ]
     },
     "SwipeLeftForChapter": {
-        "action": "Swipe",
-        "begin": [
-            100,
-            300,
-            100,
-            100
-        ],
-        "end": [
-            500,
-            300,
-            100,
-            100
-        ],
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    100,
+                    300,
+                    100,
+                    100
+                ],
+                "end": [
+                    500,
+                    300,
+                    100,
+                    100
+                ]
+            }
+        },
         "post_delay": 0,
         "next": [
             "SwipeStop"
         ]
     },
     "SwipeStop": {
-        "action": "Click",
-        "target": [
-            750,
-            570,
-            40,
-            30
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    750,
+                    570,
+                    40,
+                    30
+                ]
+            }
+        },
         "pre_delay": 1,
         "post_wait_freezes": {
             "time": 300,
@@ -335,15 +421,21 @@
         ]
     },
     "TargetStageName": {
-        "recognition": "OCR",
-        "expected_code": "Set in code.",
-        "roi": [
-            0,
-            470,
-            1280,
-            160
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    470,
+                    1280,
+                    160
+                ],
+                "expected_code": "Set in code."
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -358,33 +450,41 @@
         ]
     },
     "TheFarLeftOfStageList": {
-        "recognition": "OCR",
-        "expected": "01",
-        "roi": [
-            0,
-            470,
-            1280,
-            160
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    470,
+                    1280,
+                    160
+                ],
+                "expected": "01"
+            }
+        },
         "next": [
             "SwipeRightForStageList"
         ]
     },
     "SwipeLeftForStageList": {
-        "action": "Swipe",
-        "begin": [
-            300,
-            600,
-            100,
-            50
-        ],
-        "end": [
-            900,
-            600,
-            100,
-            50
-        ],
-        "duration": 400,
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    300,
+                    600,
+                    100,
+                    50
+                ],
+                "end": [
+                    900,
+                    600,
+                    100,
+                    50
+                ],
+                "duration": 400
+            }
+        },
         "post_wait_freezes": 1,
         "post_delay": 0,
         "next": [
@@ -398,19 +498,23 @@
         ]
     },
     "SwipeRightForStageList": {
-        "action": "Swipe",
-        "begin": [
-            900,
-            600,
-            100,
-            50
-        ],
-        "end": [
-            300,
-            600,
-            100,
-            50
-        ],
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    900,
+                    600,
+                    100,
+                    50
+                ],
+                "end": [
+                    300,
+                    600,
+                    100,
+                    50
+                ]
+            }
+        },
         "post_wait_freezes": 100,
         "next": [
             "SwipeRightAndFindStage"
@@ -420,28 +524,34 @@
         "next_doc": "Set in code."
     },
     "StageDifficulty_Story": {
-        "recognition": "ColorMatch",
-        "roi": [
-            893,
-            239,
-            328,
-            50
-        ],
-        "method": 4,
-        "lower": [
-            175,
-            81,
-            49
-        ],
-        "upper": [
-            247,
-            113,
-            66
-        ],
-        "count": 1,
-        "order_by": "Score",
-        "index": 0,
-        "action": "Click",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    893,
+                    239,
+                    328,
+                    50
+                ],
+                "index": 0,
+                "method": 4,
+                "order_by": "Score",
+                "count": 1,
+                "upper": [
+                    247,
+                    113,
+                    66
+                ],
+                "lower": [
+                    175,
+                    81,
+                    49
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -456,28 +566,34 @@
         ]
     },
     "StageDifficulty_Hard": {
-        "recognition": "ColorMatch",
-        "roi": [
-            893,
-            239,
-            328,
-            50
-        ],
-        "method": 4,
-        "lower": [
-            193,
-            52,
-            51
-        ],
-        "upper": [
-            255,
-            67,
-            66
-        ],
-        "count": 1,
-        "order_by": "Score",
-        "index": 0,
-        "action": "Click",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    893,
+                    239,
+                    328,
+                    50
+                ],
+                "index": 0,
+                "method": 4,
+                "order_by": "Score",
+                "count": 1,
+                "upper": [
+                    255,
+                    67,
+                    66
+                ],
+                "lower": [
+                    193,
+                    52,
+                    51
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -497,17 +613,23 @@
         ]
     },
     "ReadyForAction": {
-        "recognition": "OCR",
-        "expected": [
-            "开始行动"
-        ],
-        "roi": [
-            900,
-            500,
-            380,
-            220
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    500,
+                    380,
+                    220
+                ],
+                "expected": [
+                    "开始行动"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "IsReplay"
         ],
@@ -516,41 +638,55 @@
         ]
     },
     "IsReplay": {
-        "recognition": "TemplateMatch",
-        "template": "Combat/IsReplay.png",
-        "threshold": 0.9,
-        "roi": [
-            736,
-            624,
-            53,
-            66
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    736,
+                    624,
+                    53,
+                    66
+                ],
+                "template": "Combat/IsReplay.png",
+                "threshold": 0.9
+            }
+        },
         "next": [
             "AllIn"
         ]
     },
     "SwitchToReplay": {
-        "recognition": "TemplateMatch",
-        "template": "Combat/SwitchToReplay.png",
-        "roi": [
-            559,
-            619,
-            62,
-            76
-        ],
-        "threshold": 0.9,
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    559,
+                    619,
+                    62,
+                    76
+                ],
+                "template": "Combat/SwitchToReplay.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "TargetLevelRec": {
-        "recognition": "OCR",
-        "expected": "[\\s\\S]+",
-        "roi": [
-            999,
-            247,
-            215,
-            38
-        ],
-        "only_rec": true,
-        "threshold": 0.7
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    999,
+                    247,
+                    215,
+                    38
+                ],
+                "expected": "[\\s\\S]+",
+                "threshold": 0.7
+            }
+        }
     }
 }

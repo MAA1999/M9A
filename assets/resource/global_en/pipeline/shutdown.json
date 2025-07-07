@@ -1,6 +1,10 @@
 {
     "Close1999": {
-        "action": "StopApp",
-        "package": "com.bluepoch.m.en.reverse1999"
+        "action": {
+            "type": "StopApp",
+            "param": {
+                "package": "com.bluepoch.m.en.reverse1999"
+            }
+        }
     }
 }

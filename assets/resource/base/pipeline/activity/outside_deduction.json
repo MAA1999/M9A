@@ -10,15 +10,21 @@
         ]
     },
     "OutsideDeduction": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/OutsideDeduction.png",
-        "roi": [
-            427,
-            602,
-            811,
-            104
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    427,
+                    602,
+                    811,
+                    104
+                ],
+                "template": "OutsideDeduction/OutsideDeduction.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 700,
             "target": [
@@ -30,15 +36,19 @@
         }
     },
     "SOD_Menu": {
-        "recognition": "OCR",
-        "expected": "黄金巷",
-        "roi": [
-            189,
-            566,
-            78,
-            33
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    189,
+                    566,
+                    78,
+                    33
+                ],
+                "expected": "黄金巷"
+            }
+        },
         "next": [
             "SOD_UNOPENED"
         ],
@@ -48,27 +58,37 @@
         ]
     },
     "SOD_MenuFlag": {
-        "recognition": "OCR",
-        "expected": "黄金巷",
-        "roi": [
-            189,
-            566,
-            78,
-            33
-        ],
-        "only_rec": true
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    189,
+                    566,
+                    78,
+                    33
+                ],
+                "expected": "黄金巷"
+            }
+        }
     },
     "SOD_unmount": {
-        "recognition": "OCR",
-        "expected": "资料片",
-        "roi": [
-            396,
-            88,
-            63,
-            27
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    396,
+                    88,
+                    63,
+                    27
+                ],
+                "expected": "资料片"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_unmount_completed_1",
             "SOD_unmount"
@@ -78,22 +98,30 @@
         ]
     },
     "SOD_unmount_completed_1": {
-        "recognition": "OCR",
-        "expected": "^挂载$",
-        "roi": [
-            1016,
-            620,
-            124,
-            38
-        ],
-        "only_rec": true,
-        "action": "Click",
-        "target": [
-            144,
-            273,
-            133,
-            33
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1016,
+                    620,
+                    124,
+                    38
+                ],
+                "expected": "^挂载$"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    144,
+                    273,
+                    133,
+                    33
+                ]
+            }
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -111,22 +139,30 @@
         ]
     },
     "SOD_unmount_completed_2": {
-        "recognition": "OCR",
-        "expected": "^挂载$",
-        "roi": [
-            1016,
-            620,
-            124,
-            38
-        ],
-        "only_rec": true,
-        "action": "Click",
-        "target": [
-            149,
-            423,
-            132,
-            34
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1016,
+                    620,
+                    124,
+                    38
+                ],
+                "expected": "^挂载$"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    149,
+                    423,
+                    132,
+                    34
+                ]
+            }
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -144,15 +180,19 @@
         ]
     },
     "SOD_unmount_completed_3": {
-        "recognition": "OCR",
-        "expected": "^挂载$",
-        "roi": [
-            1016,
-            620,
-            124,
-            38
-        ],
-        "only_rec": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1016,
+                    620,
+                    124,
+                    38
+                ],
+                "expected": "^挂载$"
+            }
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -170,16 +210,22 @@
         ]
     },
     "SOD_unmount_confirm": {
-        "recognition": "OCR",
-        "expected": "^取消挂载$",
-        "roi": [
-            1016,
-            620,
-            124,
-            38
-        ],
-        "only_rec": true,
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1016,
+                    620,
+                    124,
+                    38
+                ],
+                "expected": "^取消挂载$"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -191,14 +237,18 @@
         }
     },
     "SOD_UNOPENED": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/UNOPEN.png",
-        "roi": [
-            989,
-            375,
-            226,
-            126
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    989,
+                    375,
+                    226,
+                    126
+                ],
+                "template": "OutsideDeduction/UNOPEN.png"
+            }
+        },
         "next": [
             "SODStart"
         ],
@@ -207,15 +257,21 @@
         ]
     },
     "SODStop": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SODStop.png",
-        "roi": [
-            830,
-            597,
-            67,
-            75
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    830,
+                    597,
+                    67,
+                    75
+                ],
+                "template": "OutsideDeduction/SODStop.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SODStop_Confirm",
             "SODStop"
@@ -223,15 +279,21 @@
         "focus": "[color:DeepSkyBlue]本轮肉鸽结束[/color]"
     },
     "SODStop_Confirm": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_ArcanistAdd_Confirm_1.png",
-        "roi": [
-            754,
-            396,
-            106,
-            54
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    754,
+                    396,
+                    106,
+                    54
+                ],
+                "template": "OutsideDeduction/SOD_ArcanistAdd_Confirm_1.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 700,
             "target": [
@@ -253,70 +315,96 @@
         ]
     },
     "SOD_Skip_NoNext": {
-        "recognition": "OCR",
-        "expected": [
-            "跳过",
-            "SKIP"
-        ],
-        "roi": [
-            1143,
-            36,
-            45,
-            25
-        ],
-        "only_rec": true,
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1143,
+                    36,
+                    45,
+                    25
+                ],
+                "expected": [
+                    "跳过",
+                    "SKIP"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "SODStop_Click_1": {
-        "recognition": "OCR",
-        "expected": [
-            "阴霾",
-            "渐生"
-        ],
-        "roi": [
-            395,
-            205,
-            483,
-            181
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    395,
+                    205,
+                    483,
+                    181
+                ],
+                "expected": [
+                    "阴霾",
+                    "渐生"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Skip",
             "SODStop_Click_1"
         ]
     },
     "SODStop_Click_NoNext_1": {
-        "recognition": "OCR",
-        "expected": [
-            "阴霾",
-            "渐生"
-        ],
-        "roi": [
-            395,
-            205,
-            483,
-            181
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    395,
+                    205,
+                    483,
+                    181
+                ],
+                "expected": [
+                    "阴霾",
+                    "渐生"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "SODStop_Click_2": {
-        "recognition": "OCR",
-        "expected": [
-            "幕终寻获"
-        ],
-        "roi": [
-            535,
-            4,
-            224,
-            90
-        ],
-        "action": "Click",
-        "target": [
-            787,
-            45,
-            10,
-            10
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    535,
+                    4,
+                    224,
+                    90
+                ],
+                "expected": [
+                    "幕终寻获"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    787,
+                    45,
+                    10,
+                    10
+                ]
+            }
+        },
         "next": [
             "SODStart",
             "SODStop_Click_3",
@@ -324,94 +412,130 @@
         ]
     },
     "SODStop_Click_NoNext_2": {
-        "recognition": "OCR",
-        "expected": [
-            "幕终寻获"
-        ],
-        "roi": [
-            535,
-            4,
-            224,
-            90
-        ],
-        "action": "Click",
-        "target": [
-            787,
-            45,
-            10,
-            10
-        ]
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    535,
+                    4,
+                    224,
+                    90
+                ],
+                "expected": [
+                    "幕终寻获"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    787,
+                    45,
+                    10,
+                    10
+                ]
+            }
+        }
     },
     "SOD_Complete_Click_1": {
-        "recognition": "OCR",
-        "expected": [
-            "阴霾",
-            "消散"
-        ],
-        "roi": [
-            395,
-            205,
-            483,
-            181
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    395,
+                    205,
+                    483,
+                    181
+                ],
+                "expected": [
+                    "阴霾",
+                    "消散"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Skip",
             "SODStop_Click_1"
         ]
     },
     "SODStop_Click_3": {
-        "recognition": "OCR",
-        "expected": [
-            "累计获得造物"
-        ],
-        "roi": [
-            286,
-            272,
-            277,
-            92
-        ],
-        "action": "Click",
-        "target": [
-            654,
-            30,
-            5,
-            5
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    286,
+                    272,
+                    277,
+                    92
+                ],
+                "expected": [
+                    "累计获得造物"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    654,
+                    30,
+                    5,
+                    5
+                ]
+            }
+        },
         "next": [
             "SODStart",
             "SODStop_Click_3"
         ]
     },
     "SODStop_Click_NoNext_3": {
-        "recognition": "OCR",
-        "expected": [
-            "累计获得造物"
-        ],
-        "roi": [
-            286,
-            272,
-            277,
-            92
-        ],
-        "action": "Click",
-        "target": [
-            654,
-            30,
-            5,
-            5
-        ]
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    286,
+                    272,
+                    277,
+                    92
+                ],
+                "expected": [
+                    "累计获得造物"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    654,
+                    30,
+                    5,
+                    5
+                ]
+            }
+        }
     },
     "SODStart": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SODStart.png",
-        "roi": [
-            947,
-            559,
-            246,
-            113
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    947,
+                    559,
+                    246,
+                    113
+                ],
+                "template": "OutsideDeduction/SODStart.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 1500,
             "target": [
@@ -429,15 +553,21 @@
         "focus": "[color:tomato]开启本轮肉鸽[/color]"
     },
     "SODStart_Confirm": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SODStart_Confirm.png",
-        "roi": [
-            997,
-            605,
-            143,
-            86
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    997,
+                    605,
+                    143,
+                    86
+                ],
+                "template": "OutsideDeduction/SODStart_Confirm.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -458,16 +588,20 @@
         ]
     },
     "SODStart_GoodsSelect": {
-        "recognition": "OCR",
-        "expected": [
-            "镜的馈赠"
-        ],
-        "roi": [
-            535,
-            4,
-            224,
-            90
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    535,
+                    4,
+                    224,
+                    90
+                ],
+                "expected": [
+                    "镜的馈赠"
+                ]
+            }
+        },
         "next": [
             "SODStart_Confirm",
             "Sub_SODStart_GoodsSelect",
@@ -481,71 +615,93 @@
     },
     "Sub_SODStart_GoodsSelect": {
         "is_sub": true,
-        "recognition": "OCR",
-        "expected": [
-            "软盘",
-            "造物",
-            "发条",
-            "金雀"
-        ],
-        "index": -1,
-        "roi": [
-            2,
-            359,
-            1278,
-            57
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    2,
+                    359,
+                    1278,
+                    57
+                ],
+                "expected": [
+                    "软盘",
+                    "造物",
+                    "发条",
+                    "金雀"
+                ],
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SODStart_GoodsSelect_2"
         ]
     },
     "SODStart_GoodsSelect_2": {
-        "recognition": "OCR",
-        "expected": [
-            "软盘",
-            "造物",
-            "发条",
-            "金雀"
-        ],
-        "index": -2,
-        "roi": [
-            2,
-            359,
-            1278,
-            57
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    2,
+                    359,
+                    1278,
+                    57
+                ],
+                "expected": [
+                    "软盘",
+                    "造物",
+                    "发条",
+                    "金雀"
+                ],
+                "index": -2
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "SODStart_MediaSelect": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SODStart_Media_MagicLamp.png",
-        "roi": [
-            0,
-            81,
-            1280,
-            469
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    81,
+                    1280,
+                    469
+                ],
+                "template": "OutsideDeduction/SODStart_Media_MagicLamp.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SODStart_Confirm",
             "SODStart_MediaSelect"
         ]
     },
     "SOD_SwipeLeft": {
-        "action": "Swipe",
-        "begin": [
-            1020,
-            630,
-            100,
-            55
-        ],
-        "end": [
-            450,
-            630,
-            100,
-            55
-        ],
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    1020,
+                    630,
+                    100,
+                    55
+                ],
+                "end": [
+                    450,
+                    630,
+                    100,
+                    55
+                ]
+            }
+        },
         "post_delay": 0,
         "next": [
             "SOD_Click"
@@ -553,24 +709,34 @@
     },
     "SOD_Click": {
         "pre_delay": 0,
-        "action": "Click",
-        "target": [
-            500,
-            630,
-            100,
-            55
-        ]
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    500,
+                    630,
+                    100,
+                    55
+                ]
+            }
+        }
     },
     "SOD_ArcanistAdd": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_ArcanistAdd.png",
-        "roi": [
-            63,
-            335,
-            90,
-            85
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    63,
+                    335,
+                    90,
+                    85
+                ],
+                "template": "OutsideDeduction/SOD_ArcanistAdd.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 2500,
         "next": [
             "SOD_Quickformation_On",
@@ -581,107 +747,139 @@
         ]
     },
     "SOD_Quickformation": {
-        "recognition": "ColorMatch",
-        "roi": [
-            529,
-            19,
-            150,
-            49
-        ],
-        "upper": [
-            138,
-            137,
-            137
-        ],
-        "lower": [
-            88,
-            87,
-            87
-        ],
-        "count": 100,
-        "action": "Click"
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    529,
+                    19,
+                    150,
+                    49
+                ],
+                "count": 100,
+                "upper": [
+                    138,
+                    137,
+                    137
+                ],
+                "lower": [
+                    88,
+                    87,
+                    87
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "SOD_Quickformation_On": {
-        "recognition": "ColorMatch",
-        "roi": [
-            529,
-            19,
-            150,
-            49
-        ],
-        "upper": [
-            250,
-            130,
-            75
-        ],
-        "lower": [
-            200,
-            80,
-            25
-        ],
-        "count": 100,
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    529,
+                    19,
+                    150,
+                    49
+                ],
+                "count": 100,
+                "upper": [
+                    250,
+                    130,
+                    75
+                ],
+                "lower": [
+                    200,
+                    80,
+                    25
+                ]
+            }
+        },
         "next": [
             "SOD_ArcanistAdd_1"
         ]
     },
     "SOD_ArcanistAdd_1": {
-        "action": "Click",
-        "target": [
-            587,
-            206,
-            20,
-            20
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    587,
+                    206,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "SOD_ArcanistAdd_2"
         ]
     },
     "SOD_ArcanistAdd_2": {
-        "action": "Click",
-        "target": [
-            719,
-            206,
-            20,
-            20
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    719,
+                    206,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "SOD_ArcanistAdd_3"
         ]
     },
     "SOD_ArcanistAdd_3": {
-        "action": "Click",
-        "target": [
-            867,
-            206,
-            20,
-            20
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    867,
+                    206,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "SOD_ArcanistAdd_4"
         ]
     },
     "SOD_ArcanistAdd_4": {
-        "action": "Click",
-        "target": [
-            1002,
-            206,
-            20,
-            20
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1002,
+                    206,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "SOD_ArcanistAdd_Confirm_1"
         ]
     },
     "SOD_ArcanistAdd_Confirm_1": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_ArcanistAdd_Confirm_1.png",
-        "roi": [
-            1107,
-            635,
-            91,
-            62
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1107,
+                    635,
+                    91,
+                    62
+                ],
+                "template": "OutsideDeduction/SOD_ArcanistAdd_Confirm_1.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 1500,
         "next": [
             "SOD_ClearDeployment",
@@ -703,15 +901,21 @@
         ]
     },
     "SOD_ArcanistAdd_Confirm_2": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SODStart_Confirm.png",
-        "roi": [
-            997,
-            605,
-            143,
-            86
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    997,
+                    605,
+                    143,
+                    86
+                ],
+                "template": "OutsideDeduction/SODStart_Confirm.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Main",
             "SOD_ItemSelect_1",
@@ -720,17 +924,23 @@
         ]
     },
     "SOD_SelectNext_1": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Combat.png",
-        "threshold": 0.85,
-        "index": 0,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Combat.png",
+                "index": 0,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -776,17 +986,23 @@
         ]
     },
     "SOD_SelectNext_2": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Danger.png",
-        "threshold": 0.85,
-        "index": 0,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Danger.png",
+                "index": 0,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -831,17 +1047,23 @@
         ]
     },
     "SOD_SelectNext_3": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Imminent.png",
-        "threshold": 0.85,
-        "index": 0,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Imminent.png",
+                "index": 0,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -885,17 +1107,23 @@
         ]
     },
     "SOD_SelectNext_4": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Shopping.png",
-        "threshold": 0.85,
-        "index": 0,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Shopping.png",
+                "index": 0,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -938,17 +1166,23 @@
         ]
     },
     "SOD_SelectNext_5": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Discovery.png",
-        "threshold": 0.85,
-        "index": 0,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Discovery.png",
+                "index": 0,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -990,17 +1224,23 @@
         ]
     },
     "SOD_SelectNext_6": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_RestSite.png",
-        "threshold": 0.85,
-        "index": 0,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_RestSite.png",
+                "index": 0,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1041,17 +1281,23 @@
         ]
     },
     "SOD_SelectNext_7": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Treasure.png",
-        "threshold": 0.85,
-        "index": 0,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Treasure.png",
+                "index": 0,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1091,17 +1337,23 @@
         ]
     },
     "SOD_SelectNext_1_1": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Combat.png",
-        "threshold": 0.85,
-        "index": 1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Combat.png",
+                "index": 1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1140,17 +1392,23 @@
         ]
     },
     "SOD_SelectNext_2_1": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Danger.png",
-        "threshold": 0.85,
-        "index": 1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Danger.png",
+                "index": 1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1188,17 +1446,23 @@
         ]
     },
     "SOD_SelectNext_3_1": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Imminent.png",
-        "threshold": 0.85,
-        "index": 1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Imminent.png",
+                "index": 1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1235,17 +1499,23 @@
         ]
     },
     "SOD_SelectNext_4_1": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Shopping.png",
-        "threshold": 0.85,
-        "index": 1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Shopping.png",
+                "index": 1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1281,17 +1551,23 @@
         ]
     },
     "SOD_SelectNext_5_1": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Discovery.png",
-        "threshold": 0.85,
-        "index": 1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Discovery.png",
+                "index": 1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1326,17 +1602,23 @@
         ]
     },
     "SOD_SelectNext_6_1": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_RestSite.png",
-        "threshold": 0.85,
-        "index": 1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_RestSite.png",
+                "index": 1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1370,17 +1652,23 @@
         ]
     },
     "SOD_SelectNext_7_1": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Treasure.png",
-        "threshold": 0.85,
-        "index": 1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Treasure.png",
+                "index": 1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1413,17 +1701,23 @@
         ]
     },
     "SOD_SelectNext_1_2": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Combat.png",
-        "threshold": 0.85,
-        "index": 2,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Combat.png",
+                "index": 2,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1455,17 +1749,23 @@
         ]
     },
     "SOD_SelectNext_2_2": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Danger.png",
-        "threshold": 0.85,
-        "index": 2,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Danger.png",
+                "index": 2,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1496,17 +1796,23 @@
         ]
     },
     "SOD_SelectNext_3_2": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Imminent.png",
-        "threshold": 0.85,
-        "index": 2,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Imminent.png",
+                "index": 2,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1536,17 +1842,23 @@
         ]
     },
     "SOD_SelectNext_4_2": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Shopping.png",
-        "threshold": 0.85,
-        "index": 2,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Shopping.png",
+                "index": 2,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1575,17 +1887,23 @@
         ]
     },
     "SOD_SelectNext_5_2": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Discovery.png",
-        "threshold": 0.85,
-        "index": 2,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Discovery.png",
+                "index": 2,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1613,17 +1931,23 @@
         ]
     },
     "SOD_SelectNext_6_2": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_RestSite.png",
-        "threshold": 0.85,
-        "index": 2,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_RestSite.png",
+                "index": 2,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1650,17 +1974,23 @@
         ]
     },
     "SOD_SelectNext_7_2": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Treasure.png",
-        "threshold": 0.85,
-        "index": 2,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Treasure.png",
+                "index": 2,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1686,17 +2016,23 @@
         ]
     },
     "SOD_SelectNext_1_3": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Combat.png",
-        "threshold": 0.85,
-        "index": -1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Combat.png",
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1721,17 +2057,23 @@
         ]
     },
     "SOD_SelectNext_2_3": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Danger.png",
-        "threshold": 0.85,
-        "index": -1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Danger.png",
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1755,17 +2097,23 @@
         ]
     },
     "SOD_SelectNext_3_3": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Imminent.png",
-        "threshold": 0.85,
-        "index": -1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Imminent.png",
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1788,17 +2136,23 @@
         ]
     },
     "SOD_SelectNext_4_3": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Shopping.png",
-        "threshold": 0.85,
-        "index": -1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Shopping.png",
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1820,17 +2174,23 @@
         ]
     },
     "SOD_SelectNext_5_3": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Discovery.png",
-        "threshold": 0.85,
-        "index": -1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Discovery.png",
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1851,17 +2211,23 @@
         ]
     },
     "SOD_SelectNext_6_3": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_RestSite.png",
-        "threshold": 0.85,
-        "index": -1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_RestSite.png",
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1881,17 +2247,23 @@
         ]
     },
     "SOD_SelectNext_7_3": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Treasure.png",
-        "threshold": 0.85,
-        "index": -1,
-        "roi": [
-            277,
-            23,
-            1018,
-            653
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    277,
+                    23,
+                    1018,
+                    653
+                ],
+                "template": "OutsideDeduction/SOD_Treasure.png",
+                "index": -1,
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1910,17 +2282,23 @@
         ]
     },
     "SOD_Levelup": {
-        "recognition": "OCR",
-        "expected": [
-            "触媒等级提升"
-        ],
-        "roi": [
-            500,
-            4,
-            300,
-            68
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    500,
+                    4,
+                    300,
+                    68
+                ],
+                "expected": [
+                    "触媒等级提升"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_NewArcanist",
             "SOD_Levelup"
@@ -1930,15 +2308,21 @@
         ]
     },
     "SOD_Move": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Move.png",
-        "roi": [
-            1019,
-            590,
-            106,
-            91
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1019,
+                    590,
+                    106,
+                    91
+                ],
+                "template": "OutsideDeduction/SOD_Move.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 1500,
         "next": [
             "SOD_ArcanistSelect",
@@ -1954,17 +2338,23 @@
         ]
     },
     "SOD_Fight": {
-        "recognition": "OCR",
-        "expected": [
-            "开始行动"
-        ],
-        "roi": [
-            884,
-            513,
-            382,
-            198
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    884,
+                    513,
+                    382,
+                    198
+                ],
+                "expected": [
+                    "开始行动"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_ArcanistSelect",
             "SOD_ArcanistAdd_Single4",
@@ -1974,15 +2364,21 @@
         ]
     },
     "SOD_ArcanistSelect": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_ArcanistSelect.png",
-        "roi": [
-            495,
-            234,
-            54,
-            54
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    495,
+                    234,
+                    54,
+                    54
+                ],
+                "template": "OutsideDeduction/SOD_ArcanistSelect.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 2500,
         "next": [
             "SOD_Quickformation_On",
@@ -1993,42 +2389,58 @@
         ]
     },
     "SOD_ArcanistAdd_Single4": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_ArcanistSelect.png",
-        "roi": [
-            1020,
-            235,
-            60,
-            60
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1020,
+                    235,
+                    60,
+                    60
+                ],
+                "template": "OutsideDeduction/SOD_ArcanistSelect.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_ArcanistAdd_Single4_0",
             "SOD_ArcanistAdd_Single4"
         ]
     },
     "SOD_ArcanistAdd_Single4_0": {
-        "action": "Click",
-        "target": [
-            1002,
-            206,
-            20,
-            20
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1002,
+                    206,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "SOD_ArcanistAdd_Confirm_1"
         ]
     },
     "SOD_CombatStart": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_CombatStart.png",
-        "roi": [
-            987,
-            604,
-            170,
-            60
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    604,
+                    170,
+                    60
+                ],
+                "template": "OutsideDeduction/SOD_CombatStart.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Combating",
             "SOD_CombatStart"
@@ -2036,14 +2448,18 @@
     },
     "SOD_Combating": {
         "doc": "考虑到对话框可能出现，也可能不出现，匹配太多，故选择点击空白",
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Combating.png",
-        "roi": [
-            1208,
-            6,
-            64,
-            64
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1208,
+                    6,
+                    64,
+                    64
+                ],
+                "template": "OutsideDeduction/SOD_Combating.png"
+            }
+        },
         "post_wait_freezes": {
             "time": 400,
             "target": [
@@ -2054,13 +2470,17 @@
             ],
             "threshold": 0.9
         },
-        "action": "Click",
-        "target": [
-            254,
-            146,
-            89,
-            73
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    254,
+                    146,
+                    89,
+                    73
+                ]
+            }
+        },
         "timeout": 600000,
         "rate_limit": 3000,
         "next": [
@@ -2080,103 +2500,147 @@
     },
     "Sub_SOD_Dialog_1": {
         "is_sub": true,
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Dialog_1.png",
-        "roi": [
-            164,
-            19,
-            37,
-            52
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    164,
+                    19,
+                    37,
+                    52
+                ],
+                "template": "OutsideDeduction/SOD_Dialog_1.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "Sub_SOD_Dialog_2": {
         "is_sub": true,
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Dialog_2.png",
-        "roi": [
-            1074,
-            29,
-            42,
-            38
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1074,
+                    29,
+                    42,
+                    38
+                ],
+                "template": "OutsideDeduction/SOD_Dialog_2.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "SOD_Dialog_3": {
         "is_sub": true,
         "doc": "战斗中露西的升华",
-        "recognition": "OCR",
-        "expected": [
-            "升华"
-        ],
-        "roi": [
-            557,
-            541,
-            165,
-            142
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    557,
+                    541,
+                    165,
+                    142
+                ],
+                "expected": [
+                    "升华"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "Sub_SOD_Dialog_4": {
         "is_sub": true,
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Dialog_4.png",
-        "threshold": 0.97,
-        "roi": [
-            1160,
-            61,
-            40,
-            28
-        ],
-        "action": "Click"
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1160,
+                    61,
+                    40,
+                    28
+                ],
+                "template": "OutsideDeduction/SOD_Dialog_4.png",
+                "threshold": 0.97
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "SOD_Dialog_5": {
         "is_sub": true,
         "doc": "战斗中天使娜娜的缔结契约",
-        "recognition": "OCR",
-        "expected": "选择缔约对象",
-        "roi": [
-            485,
-            90,
-            305,
-            144
-        ],
-        "action": "Click",
-        "target": [
-            393,
-            314,
-            81,
-            89
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    485,
+                    90,
+                    305,
+                    144
+                ],
+                "expected": "选择缔约对象"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    393,
+                    314,
+                    81,
+                    89
+                ]
+            }
+        },
         "next": [
             "SOD_Dialog_5_1",
             "SOD_Dialog_5"
         ]
     },
     "SOD_Dialog_5_1": {
-        "recognition": "OCR",
-        "expected": "缔结契约",
-        "roi": [
-            532,
-            541,
-            215,
-            137
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    532,
+                    541,
+                    215,
+                    137
+                ],
+                "expected": "缔结契约"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 500
     },
     "SOD_CombatDefeat_hint": {
-        "recognition": "OCR",
-        "expected": [
-            "终止探索"
-        ],
-        "roi": [
-            325,
-            344,
-            328,
-            175
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    325,
+                    344,
+                    328,
+                    175
+                ],
+                "expected": [
+                    "终止探索"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": 1,
         "post_delay": 1500,
         "next": [
@@ -2185,18 +2649,24 @@
         ]
     },
     "SOD_CombatVictory": {
-        "recognition": "OCR",
-        "expected": [
-            "战斗胜利",
-            "胜利"
-        ],
-        "roi": [
-            678,
-            10,
-            473,
-            250
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    250
+                ],
+                "expected": [
+                    "战斗胜利",
+                    "胜利"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": 1,
         "post_delay": 1500,
         "next": [
@@ -2210,18 +2680,24 @@
         ]
     },
     "SOD_CombatDefeat": {
-        "recognition": "OCR",
-        "expected": [
-            "战斗失败",
-            "失败"
-        ],
-        "roi": [
-            384,
-            42,
-            446,
-            214
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    384,
+                    42,
+                    446,
+                    214
+                ],
+                "expected": [
+                    "战斗失败",
+                    "失败"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": 1,
         "next": [
             "SODStop_Click_1",
@@ -2229,23 +2705,31 @@
         ]
     },
     "SOD_ItemSelect_1": {
-        "recognition": "OCR",
-        "expected": [
-            "造物选择"
-        ],
-        "roi": [
-            535,
-            4,
-            224,
-            68
-        ],
-        "action": "Click",
-        "target": [
-            267,
-            300,
-            20,
-            20
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    535,
+                    4,
+                    224,
+                    68
+                ],
+                "expected": [
+                    "造物选择"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    267,
+                    300,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "SOD_ClearDeployment",
             "SOD_Departure",
@@ -2267,23 +2751,31 @@
         ]
     },
     "SOD_ItemSelect_2": {
-        "recognition": "OCR",
-        "expected": [
-            "造物选择"
-        ],
-        "roi": [
-            535,
-            4,
-            224,
-            68
-        ],
-        "action": "Click",
-        "target": [
-            632,
-            300,
-            20,
-            20
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    535,
+                    4,
+                    224,
+                    68
+                ],
+                "expected": [
+                    "造物选择"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    632,
+                    300,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "SOD_ClearDeployment",
             "SOD_Departure",
@@ -2305,23 +2797,31 @@
         ]
     },
     "SOD_ItemSelect_3": {
-        "recognition": "OCR",
-        "expected": [
-            "造物选择"
-        ],
-        "roi": [
-            535,
-            4,
-            224,
-            68
-        ],
-        "action": "Click",
-        "target": [
-            855,
-            300,
-            20,
-            20
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    535,
+                    4,
+                    224,
+                    68
+                ],
+                "expected": [
+                    "造物选择"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    855,
+                    300,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "SOD_ClearDeployment",
             "SOD_Departure",
@@ -2343,23 +2843,31 @@
         ]
     },
     "SOD_ItemSelect_4": {
-        "recognition": "OCR",
-        "expected": [
-            "造物选择"
-        ],
-        "roi": [
-            535,
-            4,
-            224,
-            68
-        ],
-        "action": "Click",
-        "target": [
-            1132,
-            300,
-            20,
-            20
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    535,
+                    4,
+                    224,
+                    68
+                ],
+                "expected": [
+                    "造物选择"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    1132,
+                    300,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "SOD_ClearDeployment",
             "SOD_Departure",
@@ -2380,17 +2888,23 @@
         ]
     },
     "SOD_ItemSelect_Confirm": {
-        "recognition": "OCR",
-        "expected": [
-            "确认"
-        ],
-        "roi": [
-            485,
-            561,
-            316,
-            150
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    485,
+                    561,
+                    316,
+                    150
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Departure",
             "SOD_Main",
@@ -2411,24 +2925,32 @@
         ]
     },
     "SOD_ItemLose_1": {
-        "recognition": "OCR",
-        "expected": [
-            "交付造物",
-            "失去造物"
-        ],
-        "roi": [
-            535,
-            4,
-            224,
-            68
-        ],
-        "action": "Click",
-        "target": [
-            366,
-            190,
-            20,
-            20
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    535,
+                    4,
+                    224,
+                    68
+                ],
+                "expected": [
+                    "交付造物",
+                    "失去造物"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    366,
+                    190,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "SOD_ItemSelect_Confirm",
             "SOD_ItemSelect_1",
@@ -2436,15 +2958,21 @@
         ]
     },
     "SOD_Shopping_Leave": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Shopping_Leave.png",
-        "roi": [
-            1123,
-            290,
-            121,
-            120
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1123,
+                    290,
+                    121,
+                    120
+                ],
+                "template": "OutsideDeduction/SOD_Shopping_Leave.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Departure",
             "SOD_Main",
@@ -2460,55 +2988,75 @@
         ]
     },
     "SOD_NewArcanist": {
-        "recognition": "OCR",
-        "expected": [
-            "等级"
-        ],
-        "roi": [
-            824,
-            9,
-            189,
-            74
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    824,
+                    9,
+                    189,
+                    74
+                ],
+                "expected": [
+                    "等级"
+                ]
+            }
+        },
         "pre_delay": 500,
-        "action": "Click",
-        "target": [
-            587,
-            206,
-            20,
-            20
-        ],
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    587,
+                    206,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "SOD_ArcanistAdd_Confirm_1"
         ]
     },
     "SOD_Departure": {
-        "recognition": "OCR",
-        "expected": [
-            "启程"
-        ],
-        "roi": [
-            129,
-            91,
-            1142,
-            591
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    129,
+                    91,
+                    1142,
+                    591
+                ],
+                "expected": [
+                    "启程"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Move",
             "SOD_Departure"
         ]
     },
     "SOD_Nothinghappen": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Nothinghappen.png",
-        "roi": [
-            1072,
-            14,
-            37,
-            37
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1072,
+                    14,
+                    37,
+                    37
+                ],
+                "template": "OutsideDeduction/SOD_Nothinghappen.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 2000,
         "next": [
             "SOD_ClearDeployment",
@@ -2526,26 +3074,34 @@
         ]
     },
     "SOD_EndEvent": {
-        "recognition": "TemplateMatch",
-        "template": [
-            "OutsideDeductionRapid/Event.png",
-            "OutsideDeduction/SOD_Event.png"
-        ],
-        "roi": [
-            760,
-            70,
-            520,
-            640
-        ],
-        "target_offset": [
-            100,
-            0,
-            0,
-            0
-        ],
-        "order_by": "Vertical",
-        "index": -1,
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    760,
+                    70,
+                    520,
+                    640
+                ],
+                "template": [
+                    "OutsideDeductionRapid/Event.png",
+                    "OutsideDeduction/SOD_Event.png"
+                ],
+                "index": -1,
+                "order_by": "Vertical"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    100,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
         "next": [
             "SOD_EndEvent_OK",
             "SOD_Departure",
@@ -2567,15 +3123,21 @@
         ]
     },
     "SOD_EndEvent_OK": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_EndEvent_OK.png",
-        "roi": [
-            931,
-            82,
-            319,
-            600
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    931,
+                    82,
+                    319,
+                    600
+                ],
+                "template": "OutsideDeduction/SOD_EndEvent_OK.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_delay": 3000,
         "next": [
             "SOD_Departure",
@@ -2597,23 +3159,31 @@
         ]
     },
     "SOD_Acquire": {
-        "recognition": "OCR",
-        "expected": [
-            "获得造物"
-        ],
-        "roi": [
-            535,
-            4,
-            224,
-            68
-        ],
-        "action": "Click",
-        "target": [
-            637,
-            642,
-            20,
-            20
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    535,
+                    4,
+                    224,
+                    68
+                ],
+                "expected": [
+                    "获得造物"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    637,
+                    642,
+                    20,
+                    20
+                ]
+            }
+        },
         "next": [
             "SOD_ClearDeployment",
             "SOD_Departure",
@@ -2631,34 +3201,46 @@
         ]
     },
     "SOD_Acquire_NoNext": {
-        "recognition": "OCR",
-        "expected": [
-            "获得造物"
-        ],
-        "roi": [
-            535,
-            4,
-            224,
-            68
-        ],
-        "action": "Click",
-        "target": [
-            637,
-            642,
-            20,
-            20
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    535,
+                    4,
+                    224,
+                    68
+                ],
+                "expected": [
+                    "获得造物"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    637,
+                    642,
+                    20,
+                    20
+                ]
+            }
+        },
         "post_wait_freezes": 500
     },
     "SOD_Main": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Main.png",
-        "roi": [
-            33,
-            430,
-            82,
-            85
-        ],
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    33,
+                    430,
+                    82,
+                    85
+                ],
+                "template": "OutsideDeduction/SOD_Main.png"
+            }
+        },
         "pre_delay": 500,
         "next": [
             "SOD_ClearDeployment",
@@ -2706,35 +3288,47 @@
         ]
     },
     "SOD_ClearDeployment": {
-        "recognition": "OCR",
-        "expected": [
-            "清空布设"
-        ],
-        "roi": [
-            0,
-            440,
-            210,
-            278
-        ],
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    440,
+                    210,
+                    278
+                ],
+                "expected": [
+                    "清空布设"
+                ]
+            }
+        },
         "pre_delay": 1000,
-        "action": "Click",
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_OneClickDeploymentt",
             "SOD_ClearDeployment"
         ]
     },
     "SOD_OneClickDeploymentt": {
-        "recognition": "OCR",
-        "expected": [
-            "布设"
-        ],
-        "roi": [
-            0,
-            492,
-            104,
-            81
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    492,
+                    104,
+                    81
+                ],
+                "expected": [
+                    "布设"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Main"
         ],
@@ -2743,18 +3337,24 @@
         ]
     },
     "SOD_BackButton": {
-        "recognition": "TemplateMatch",
-        "template": [
-            "StartUp/BackButton.png"
-        ],
-        "roi": [
-            0,
-            0,
-            134,
-            138
-        ],
-        "green_mask": true,
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    134,
+                    138
+                ],
+                "template": [
+                    "StartUp/BackButton.png"
+                ],
+                "green_mask": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -2766,18 +3366,24 @@
         }
     },
     "SOD_Skip": {
-        "recognition": "OCR",
-        "expected": [
-            "跳过",
-            "SKIP"
-        ],
-        "roi": [
-            1009,
-            4,
-            267,
-            80
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1009,
+                    4,
+                    267,
+                    80
+                ],
+                "expected": [
+                    "跳过",
+                    "SKIP"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_Skip_Confirm",
             "SODStop_Click_2",
@@ -2785,17 +3391,23 @@
         ]
     },
     "SOD_Skip_Confirm": {
-        "recognition": "OCR",
-        "expected": [
-            "确认"
-        ],
-        "roi": [
-            687,
-            336,
-            280,
-            174
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    687,
+                    336,
+                    280,
+                    174
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_ArcanistSelect",
             "SOD_ArcanistAdd_Single4",
@@ -2812,16 +3424,22 @@
         ]
     },
     "SOD_Ending_1": {
-        "recognition": "FeatureMatch",
-        "template": "OutsideDeduction/SOD_Ending_1.png",
-        "roi": [
-            582,
-            281,
-            135,
-            190
-        ],
-        "action": "Click",
-        "count": 9,
+        "recognition": {
+            "type": "FeatureMatch",
+            "param": {
+                "roi": [
+                    582,
+                    281,
+                    135,
+                    190
+                ],
+                "template": "OutsideDeduction/SOD_Ending_1.png",
+                "count": 9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -2841,31 +3459,43 @@
         ]
     },
     "SOD_Ending_SkipText": {
-        "recognition": "OCR",
-        "expected": [
-            "罗蕾莱",
-            "剃刀"
-        ],
-        "roi": [
-            182,
-            425,
-            403,
-            207
-        ],
-        "order_by": "Vertical",
-        "index": -1,
-        "action": "Click"
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    182,
+                    425,
+                    403,
+                    207
+                ],
+                "expected": [
+                    "罗蕾莱",
+                    "剃刀"
+                ],
+                "index": -1,
+                "order_by": "Vertical"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "SOD_Ending_2": {
-        "recognition": "TemplateMatch",
-        "template": "OutsideDeduction/SOD_Ending_2.png",
-        "roi": [
-            346,
-            364,
-            157,
-            192
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    346,
+                    364,
+                    157,
+                    192
+                ],
+                "template": "OutsideDeduction/SOD_Ending_2.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -2885,18 +3515,24 @@
         ]
     },
     "SOD_EndingSelect": {
-        "recognition": "OCR",
-        "expected": [
-            "如愿以偿",
-            "进入战斗"
-        ],
-        "roi": [
-            955,
-            128,
-            214,
-            197
-        ],
-        "action": "Click",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    955,
+                    128,
+                    214,
+                    197
+                ],
+                "expected": [
+                    "如愿以偿",
+                    "进入战斗"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
         "next": [
             "SOD_EndEvent_OK",
             "SOD_Departure",

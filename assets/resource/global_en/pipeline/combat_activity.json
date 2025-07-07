@@ -1,12 +1,20 @@
 {
     "JudgeDuringAct": {
-        "custom_action_param": {
-            "resource": "en"
+        "action": {
+            "param": {
+                "custom_action_param": {
+                    "resource": "en"
+                }
+            }
         }
     },
     "JudgeDuringRe_release": {
-        "custom_action_param": {
-            "resource": "en"
+        "action": {
+            "param": {
+                "custom_action_param": {
+                    "resource": "en"
+                }
+            }
         }
     }
 }
