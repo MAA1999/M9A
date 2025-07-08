@@ -3,7 +3,7 @@
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "",
+                "custom_action": "ModifyBankTaskList",
                 "custom_action_param": {
                     "resource": "en"
                 }
