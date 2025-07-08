@@ -55,6 +55,7 @@
         "recognition": {
             "type": "OCR",
             "param": {
+                "expected_code": "set in code",
                 "roi": [
                     6,
                     134,

@@ -1,7 +1,13 @@
 {
     "JudgeDepthsOfMythWeekly": {
-        "custom_action_param": {
-            "resource": "jp"
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "JudgeDepthsOfMythWeekly",
+                "custom_action_param": {
+                    "resource": "jp"
+                }
+            }
         }
     }
 }

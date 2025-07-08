@@ -1,7 +1,9 @@
 {
     "ModifyBankTaskList": {
         "action": {
+            "type": "Custom",
             "param": {
+                "custom_action": "",
                 "custom_action_param": {
                     "resource": "en"
                 }
