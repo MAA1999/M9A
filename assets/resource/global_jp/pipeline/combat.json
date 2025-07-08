@@ -1,10 +1,7 @@
 {
     "MainChapter_X": {
         "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": ""
-            }
+            "type": "DoNothing"
         },
         "next": [
             "MainChapter_XEnter"
