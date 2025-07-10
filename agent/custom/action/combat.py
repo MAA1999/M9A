@@ -325,7 +325,7 @@ class SelectCombatStage(CustomAction):
             )
             # 主线关卡流程
             pipeline = {
-                "EnterTheShow": {"next": ["MainChapter_X"]},
+                "EnterTheShowFlag": {"next": ["MainChapter_X"]},
                 "MainChapter_XEnter": {
                     "template": [f"Combat/MainChapter_{mainChapter}Enter.png"]
                 },
@@ -338,7 +338,7 @@ class SelectCombatStage(CustomAction):
             mainStoryChapter = None
             # 资源关卡流程
             pipeline = {
-                "EnterTheShow": {"next": [f"ResourceChapter_{mainChapter}"]},
+                "EnterTheShowFlag": {"next": [f"ResourceChapter_{mainChapter}"]},
                 "TargetStageName": {"expected": [f"{targetStageName}"]},
                 "StageDifficulty": {
                     "next": [f"StageDifficulty_{level}", "TargetStageName"]

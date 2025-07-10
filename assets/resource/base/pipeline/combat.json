@@ -120,7 +120,24 @@
                 26
             ]
         },
-        "post_delay": 2000,
+        "next": [
+            "EnterTheShowFlag"
+        ]
+    },
+    "EnterTheShowFlag": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    73,
+                    662,
+                    62,
+                    34
+                ],
+                "expected": "故事",
+                "only_rec": true
+            }
+        },
         "next_code": "set in code"
     },
     "MainChapter_X": {
