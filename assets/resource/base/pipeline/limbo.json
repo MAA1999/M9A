@@ -985,7 +985,7 @@
         ]
     },
     "LimboEnd": {
-        "doc": "深眠片段·Ⅵ进度100%，任务结束",
+        "doc": "深眠片段·Ⅵ进度100%，领取ⅠⅡⅢⅣ的奖励",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -999,6 +999,122 @@
                 "threshold": 0.9
             }
         },
-        "next": []
+        "next": [
+            "LimboFirstEnd"
+        ],
+        "interrupt": [
+            "LimboAwards1~4",
+            "LimboObtainedAwards_3",
+            "ObtainedAwards",
+            "SwipeLeftForLimboAwards"
+        ]
+    },
+    "SwipeLeftForLimboAwards": {
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    300,
+                    600,
+                    100,
+                    50
+                ],
+                "end": [
+                    500,
+                    600,
+                    100,
+                    50
+                ]
+            }
+        },
+        "post_wait_freezes": 100
+    },
+    "LimboAwards1~4": {
+        "doc": "深眠片段·Ⅰ~Ⅳ领取奖励",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    397,
+                    1280,
+                    144
+                ],
+                "template": "Limbo/LimboAwards1~4.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "LimboObtainedAwards_3": {
+        "doc": "深眠片段·Ⅰ~Ⅳ领取奖励",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    941,
+                    132,
+                    205,
+                    176
+                ],
+                "template": [
+                    "Limbo/ObtainedAllAwards.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LimboObtainedAwards_4"
+        ],
+        "interrupt": [
+            "ObtainedAwards"
+        ]
+    },
+    "LimboObtainedAwards_4": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    104,
+                    36,
+                    358,
+                    157
+                ],
+                "expected": "深眠试验酬劳"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    20,
+                    20,
+                    20,
+                    20
+                ]
+            }
+        }
+    },
+    "LimboFirstEnd": {
+        "doc": "深眠片段·I奖励领取完毕，任务结束",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    121,
+                    411,
+                    138,
+                    38
+                ],
+                "template": "Limbo/LimboEnd.png"
+            }
+        },
+        "next": [
+            "HomeButton"
+        ]
     }
 }
