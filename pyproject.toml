@@ -1,0 +1,47 @@
+[project]
+name = "m9a"
+version = "3.10.4"
+description = "重返未来：1999 小助手 | Assistant For Reverse: 1999"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "loguru>=0.7.3",
+    "maafw>=4.0.0",
+    "pillow>=11.3.0",
+    "pytz>=2025.2",
+]
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.2.0",
+    "ruff>=0.12.7",
+]
+
+[tool.ruff]
+# Enable pycodestyle (E) and pyflakes (F) rules to enforce PEP8
+lint.select = ["E", "F"]
+# Set line length to 88 (PEP8 suggests 79, but 88 is Black's default and commonly used)
+line-length = 88
+# Target Python version
+target-version = "py311"
+# Exclude common directories
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "dist",
+    "build",
+    ".ruff_cache"
+]
+# Enable automatic fixing for fixable issues
+fix = true
+
+[tool.ruff.format]
+# Use double quotes, aligning with PEP8
+quote-style = "double"
+# Use spaces for indentation
+indent-style = "space"

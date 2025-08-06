@@ -23,3 +23,9 @@ repos:
         types:
           - markdown
         args: ["--fix", "--config", "docs/.markdownlint.yaml", "#**/node_modules"]
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.7
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
