@@ -444,7 +444,8 @@
                 ],
                 "template": [
                     "StartUp/HomeButton.png",
-                    "StartUp/HomeButton_White.png"
+                    "StartUp/HomeButton_White.png",
+                    "StartUp/HomeButton_sp01.png"
                 ]
             }
         },
