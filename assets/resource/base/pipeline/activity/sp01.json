@@ -1,0 +1,543 @@
+{
+    "Sp01Daily": {
+        "next": [
+            "Sp01DailyEnter"
+        ],
+        "interrupt": [
+            "ReturnMain"
+        ]
+    },
+    "Sp01DailyEnter": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    426,
+                    31,
+                    129,
+                    32
+                ],
+                "template": [
+                    "Sp01/Sp01Daily.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "Sub_Sp01RPS",
+            "Sub_Sp01DataCollect",
+            "HomeFlag"
+        ],
+        "interrupt": [
+            "HomeButton",
+            "BackButton"
+        ]
+    },
+    "Sub_Sp01RPS": {
+        "is_sub": true,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    286,
+                    541,
+                    22,
+                    20
+                ],
+                "template": [
+                    "Sp01/RPS.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "RPSStart"
+        ]
+    },
+    "RPSStart": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    980,
+                    613,
+                    271,
+                    70
+                ],
+                "upper": [
+                    200,
+                    100,
+                    100
+                ],
+                "lower": [
+                    100,
+                    50,
+                    50
+                ],
+                "count": 1000
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "RPSFinish"
+        ],
+        "interrupt": [
+            "SkipBattle",
+            "RPSStartNext",
+            "RPSNext",
+            "Arms",
+            "ActionPoints"
+        ]
+    },
+    "SkipBattle": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1113,
+                    6,
+                    165,
+                    52
+                ],
+                "expected": [
+                    "跳过战斗"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "RPSFinish": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    552,
+                    587,
+                    190,
+                    82
+                ],
+                "expected": [
+                    "完成"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BackButton"
+        ]
+    },
+    "RPSStartNext": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    621,
+                    568,
+                    235,
+                    115
+                ],
+                "upper": [
+                    200,
+                    100,
+                    100
+                ],
+                "lower": [
+                    100,
+                    50,
+                    50
+                ],
+                "count": 1000
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "RPSNext": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    980,
+                    613,
+                    271,
+                    70
+                ],
+                "upper": [
+                    200,
+                    100,
+                    100
+                ],
+                "lower": [
+                    100,
+                    50,
+                    50
+                ],
+                "count": 1000
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "Arms": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    620,
+                    619,
+                    64,
+                    35
+                ],
+                "expected": [
+                    "0/"
+                ],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "HeavyArms1",
+            "MediumArms1",
+            "ShortArms1"
+        ]
+    },
+    "ActionPoints": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    738,
+                    624,
+                    58,
+                    27
+                ],
+                "expected": [
+                    "0/"
+                ],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "Towers1",
+            "Markets1",
+            "Corners1"
+        ]
+    },
+    "HeavyArms1": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    76,
+                    365,
+                    31,
+                    24
+                ],
+                "expected": [
+                    "重"
+                ]
+            }
+        },
+        "next": [
+            "ShortArms2"
+        ]
+    },
+    "MediumArms1": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    76,
+                    365,
+                    31,
+                    24
+                ],
+                "expected": [
+                    "中"
+                ]
+            }
+        },
+        "next": [
+            "HeavyArms2"
+        ]
+    },
+    "ShortArms1": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    76,
+                    365,
+                    31,
+                    24
+                ],
+                "expected": [
+                    "短"
+                ]
+            }
+        },
+        "next": [
+            "MediumArms2"
+        ]
+    },
+    "HeavyArms2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    659,
+                    203,
+                    585,
+                    24
+                ],
+                "expected": [
+                    "必定",
+                    "重",
+                    "特殊"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "MediumArms2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    659,
+                    203,
+                    585,
+                    24
+                ],
+                "expected": [
+                    "必定",
+                    "中",
+                    "特殊"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "ShortArms2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    659,
+                    203,
+                    585,
+                    24
+                ],
+                "expected": [
+                    "必定",
+                    "短",
+                    "特殊"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "Towers1": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    291,
+                    364,
+                    93,
+                    25
+                ],
+                "expected": [
+                    "坚实堡垒"
+                ]
+            }
+        },
+        "next": [
+            "Corners2"
+        ]
+    },
+    "Markets1": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    291,
+                    364,
+                    93,
+                    25
+                ],
+                "expected": [
+                    "纷乱集市"
+                ]
+            }
+        },
+        "next": [
+            "Towers2"
+        ]
+    },
+    "Corners1": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    291,
+                    364,
+                    93,
+                    25
+                ],
+                "expected": [
+                    "街巷角落"
+                ]
+            }
+        },
+        "next": [
+            "Markets2"
+        ]
+    },
+    "Towers2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    661,
+                    494,
+                    576,
+                    23
+                ],
+                "expected": [
+                    "坚实堡垒"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "Markets2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    661,
+                    494,
+                    576,
+                    23
+                ],
+                "expected": [
+                    "纷乱集市"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "Corners2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    661,
+                    494,
+                    576,
+                    23
+                ],
+                "expected": [
+                    "街巷角落"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "Sub_Sp01DataCollect": {
+        "is_sub": true,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1170,
+                    506,
+                    74,
+                    62
+                ],
+                "template": [
+                    "Sp01/DataCollect.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "Sp01DataCollect2"
+        ]
+    },
+    "Sp01DataCollect2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    43,
+                    402,
+                    550,
+                    302
+                ],
+                "expected": [
+                    "领取"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "Sp01DataCollect2",
+            "Sp01DataCollect3"
+        ],
+        "interrupt": [
+            "ObtainedAwards"
+        ]
+    },
+    "Sp01DataCollect3": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    167,
+                    438,
+                    68,
+                    30
+                ],
+                "expected": [
+                    "点刷新"
+                ],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "BackButton"
+        ]
+    }
+}

@@ -402,7 +402,8 @@
                     138
                 ],
                 "template": [
-                    "StartUp/BackButton.png"
+                    "StartUp/BackButton.png",
+                    "StartUp/BackButton_sp01.png"
                 ],
                 "green_mask": true
             }

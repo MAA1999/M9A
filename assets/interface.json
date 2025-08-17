@@ -228,6 +228,11 @@
             "name": "翻斗棋速刷",
             "entry": "CritterCrash",
             "doc": "[size:15][color:tomato]在翻斗棋界面启动，仅支持1600分以下速刷。[/color][/size]"
+        },
+        {
+            "name": "刺客信条联动每日任务",
+            "entry": "Sp01Daily",
+            "doc": "[size:15][color:tomato]剪刀石头布和数据拾遗 [/color][/size]"
         }
     ],
     "advanced": {
