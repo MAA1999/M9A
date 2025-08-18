@@ -23,6 +23,7 @@
                 "threshold": 0.9
             }
         },
+        "post_wait_freezes": 1,
         "action": {
             "type": "Click"
         },
