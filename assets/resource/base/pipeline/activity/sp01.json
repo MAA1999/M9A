@@ -206,6 +206,12 @@
                 "expected": [
                     "0/"
                 ],
+                "replace": [
+                    [
+                        " ",
+                        ""
+                    ]
+                ],
                 "only_rec": true
             }
         },
@@ -227,6 +233,12 @@
                 ],
                 "expected": [
                     "0/"
+                ],
+                "replace": [
+                    [
+                        " ",
+                        ""
+                    ]
                 ],
                 "only_rec": true
             }
