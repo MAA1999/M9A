@@ -1,10 +1,12 @@
 {
     "Sp01Daily": {
         "next": [
-            "Sp01DailyEnter"
+            "Sp01DailyEnter",
+            "HomeFlag"
         ],
         "interrupt": [
-            "ReturnMain"
+            "HomeButton",
+            "BackButton"
         ]
     },
     "Sp01DailyEnter": {
