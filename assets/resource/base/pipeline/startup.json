@@ -57,6 +57,8 @@
             "StartGame",
             "Confirm",
             "VictoryReturn",
+            "Download",
+            "Downloading",
             "ClickBlank",
             "ClickHomeCount"
         ]
@@ -288,6 +290,32 @@
         },
         "action": {
             "type": "Click"
+        },
+        "next": [
+            "CountDownload",
+            "DisableDownload"
+        ]
+    },
+    "CountDownload": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "Count",
+                "custom_recognition_param": {
+                    "target": 5
+                }
+            }
+        }
+    },
+    "DisableDownload": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "Download"
+                }
+            }
         }
     },
     "SkipButton": {
