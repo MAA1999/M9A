@@ -25,7 +25,15 @@
                 "threshold": 0.9
             }
         },
-        "post_wait_freezes": 1,
+        "post_wait_freezes": {
+            "time": 100,
+            "target": [
+                265,
+                519,
+                72,
+                58
+            ]
+        },
         "action": {
             "type": "Click"
         },
@@ -42,7 +50,7 @@
     "Sub_Sp01RPS": {
         "is_sub": true,
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "ColorMatch",
             "param": {
                 "roi": [
                     286,
@@ -50,10 +58,17 @@
                     22,
                     20
                 ],
-                "template": [
-                    "Sp01/RPS.png"
+                "upper": [
+                    250,
+                    110,
+                    90
                 ],
-                "threshold": 0.9
+                "lower": [
+                    180,
+                    80,
+                    60
+                ],
+                "count": 50
             }
         },
         "action": {
@@ -488,7 +503,7 @@
     "Sub_Sp01DataCollect": {
         "is_sub": true,
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "ColorMatch",
             "param": {
                 "roi": [
                     1170,
@@ -496,10 +511,17 @@
                     74,
                     62
                 ],
-                "template": [
-                    "Sp01/DataCollect.png"
+                "upper": [
+                    250,
+                    110,
+                    90
                 ],
-                "threshold": 0.9
+                "lower": [
+                    180,
+                    80,
+                    60
+                ],
+                "count": 50
             }
         },
         "action": {
