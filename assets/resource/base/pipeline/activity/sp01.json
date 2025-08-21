@@ -40,11 +40,110 @@
         "next": [
             "Sub_Sp01RPS",
             "Sub_Sp01DataCollect",
+            "Sub_Sp01Messagers",
             "HomeFlag"
         ],
         "interrupt": [
             "HomeButton",
             "BackButton"
+        ]
+    },
+    "Sub_Sp01Messagers": {
+        "is_sub": true,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1006,
+                    277,
+                    85,
+                    37
+                ],
+                "expected": [
+                    "信使"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "Sp01MessagersEnd"
+        ],
+        "interrupt": [
+            "Sp01MessagersChoose",
+            "Sp01MessagersComfirm",
+            "ClickHomeCount"
+        ]
+    },
+    "Sp01MessagersChoose": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    773,
+                    169,
+                    146,
+                    341
+                ],
+                "expected": [
+                    "屋顶知晓一切",
+                    "押注暗巷",
+                    "飞刀先至"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "Sp01MessagersComfirm"
+        ]
+    },
+    "Sp01MessagersComfirm": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    980,
+                    613,
+                    271,
+                    70
+                ],
+                "upper": [
+                    200,
+                    100,
+                    100
+                ],
+                "lower": [
+                    100,
+                    50,
+                    50
+                ],
+                "count": 1000
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "Sp01MessagersEnd": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    482,
+                    200,
+                    138,
+                    51
+                ],
+                "expected": [
+                    "追逐"
+                ]
+            }
+        },
+        "next": [
+            "HomeButton"
         ]
     },
     "Sub_Sp01RPS": {
