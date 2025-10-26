@@ -616,43 +616,50 @@ class TargetCount(CustomAction):
     }
     """
 
+    @classmethod
+    def _safe_int(cls, text):
+        try:
+            return int(text)
+        except Exception:
+            return 0
+
+    @classmethod
+    def get_text_safe(cls, context, img, rec_name):
+        rec = context.run_recognition(rec_name, img)
+        if rec is None or getattr(rec, "best_result", None) is None:
+            logger.debug(f"{rec_name} 识别失败，返回None")
+            return "0"
+        return getattr(rec.best_result, "text", "0") or "0"
+
+    @classmethod
+    def _get_available_count(cls, context):
+        img = context.tasker.controller.post_screencap().wait().get()
+        remaining_ap = cls._safe_int(
+            cls.get_text_safe(context, img, "RecognizeRemainingAp")
+        )
+        stage_ap = cls._safe_int(cls.get_text_safe(context, img, "RecognizeStageAp"))
+        combat_times = cls._safe_int(
+            cls.get_text_safe(context, img, "RecognizeCombatTimes")
+        )
+        if combat_times == 0 or stage_ap == 0:
+            logger.debug("识别失败，combat_times 或 stage_ap 为0")
+            return 999
+        stage_ap = stage_ap // combat_times
+        logger.debug(f"剩余体力: {remaining_ap}, 关卡体力: {stage_ap}")
+        return remaining_ap // stage_ap if stage_ap else 0
+
     def run(
         self,
         context: Context,
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        def _safe_int(text):
-            try:
-                return int(text)
-            except Exception:
-                return 0
-
-        def get_text_safe(img, rec_name):
-            rec = context.run_recognition(rec_name, img)
-            if rec is None or getattr(rec, "best_result", None) is None:
-                logger.debug(f"{rec_name} 识别失败，返回None")
-                return "0"
-            return getattr(rec.best_result, "text", "0") or "0"
-
-        def _get_available_count():
-            img = context.tasker.controller.post_screencap().wait().get()
-            remaining_ap = _safe_int(get_text_safe(img, "RecognizeRemainingAp"))
-            stage_ap = _safe_int(get_text_safe(img, "RecognizeStageAp"))
-            combat_times = _safe_int(get_text_safe(img, "RecognizeCombatTimes"))
-            if combat_times == 0 or stage_ap == 0:
-                logger.debug("识别失败，combat_times 或 stage_ap 为0")
-                return 999
-            stage_ap = stage_ap // combat_times
-            logger.debug(f"剩余体力: {remaining_ap}, 关卡体力: {stage_ap}")
-            return remaining_ap // stage_ap if stage_ap else 0
-
         target_count = int(json.loads(argv.custom_action_param)["target_count"])
 
         already_count = 0
 
         while True:
-            available_count = _get_available_count()
+            available_count = TargetCount._get_available_count(context)
             if available_count == 999:
                 logger.debug("识别失败，任务结束")
                 return CustomAction.RunResult(success=False)
@@ -667,7 +674,7 @@ class TargetCount(CustomAction):
                 for _ in range(2):  # 最多吃两次糖，防止吃mini糖体力不够
                     context.run_task("EatCandy")
 
-                    available_count = _get_available_count()
+                    available_count = TargetCount._get_available_count(context)
                     if available_count == 999:
                         logger.debug("识别失败，任务结束")
                         return CustomAction.RunResult(success=False)
@@ -705,4 +712,67 @@ class TargetCount(CustomAction):
 
         logger.info(f"任务结束，总共刷了 {already_count} 次")
         context.run_task("HomeButton")
+        return CustomAction.RunResult(success=True)
+
+
+@AgentServer.custom_action("SSReopenReplay")
+class SSReopenReplay(CustomAction):
+    """
+    重开关卡复现。
+    """
+
+    def run(
+        self,
+        context: Context,
+        argv: CustomAction.RunArg,
+    ) -> CustomAction.RunResult:
+
+        # 判断当前页面类型（有/无复现）
+        img = context.tasker.controller.cached_image
+        reco_detail = context.run_recognition("Has_Replay", img)
+
+        if reco_detail is not None:
+            # 看看吃不吃糖
+            available_count = TargetCount._get_available_count(context)
+            if available_count == 999:
+                logger.debug("识别失败，任务结束")
+            elif available_count <= 0:
+                logger.debug("没体力咯，吃个糖")
+                for _ in range(2):  # 最多吃两次糖，防止吃mini糖体力不够
+                    context.run_task("EatCandy")
+
+                    available_count = TargetCount._get_available_count(context)
+                    if available_count == 999:
+                        logger.debug("识别失败，任务结束")
+                        return CustomAction.RunResult(success=False)
+                    elif available_count > 0:
+                        break
+                if available_count <= 0:
+                    logger.debug(f"尝试吃糖后体力不够，任务结束。")
+                    context.run_task("HomeButton")
+                    return CustomAction.RunResult(success=False)
+
+            # 开始刷图
+            reco_detail = context.run_recognition("SSCannotReplay", img)
+            if reco_detail is None:
+                # 无法复现，直接开始任务
+                context.run_task("SSNoReplay")
+            else:
+                # 可复现
+                context.override_pipeline(
+                    {
+                        "SetReplaysTimes": {
+                            "template": [
+                                f"Combat/SetReplaysTimesX1.png",
+                                f"Combat/SetReplaysTimesX1_selected.png",
+                            ]
+                        }
+                    }
+                )
+                context.run_task("OpenReplaysTimes")
+        else:
+            context.run_task("SSNoReplay")
+
+        context.run_task("SSReopenBackToMain")
+
         return CustomAction.RunResult(success=True)
