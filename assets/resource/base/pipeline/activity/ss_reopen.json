@@ -226,6 +226,8 @@
             "Victory_NoReplay"
         ],
         "interrupt": [
+            "SSReopenBackToMain_ClickBlank",
+            "SSReopenBackToMain_BackButton",
             "HomeLoading"
         ]
     },

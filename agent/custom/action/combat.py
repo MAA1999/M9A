@@ -771,9 +771,8 @@ class SSReopenReplay(CustomAction):
                     }
                 )
                 context.run_task("OpenReplaysTimes")
+                context.run_task("SSReopenBackToMain")
         else:
             context.run_task("SSNoReplay")
-
-        context.run_task("SSReopenBackToMain")
 
         return CustomAction.RunResult(success=True)
