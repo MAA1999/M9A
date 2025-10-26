@@ -1,9 +1,11 @@
+import os
 import time
 import json
 
 from maa.agent.agent_server import AgentServer
 from maa.custom_action import CustomAction
 from maa.context import Context
+from PIL import Image
 
 from utils import logger
 from utils import ms_timestamp_diff_to_dhm
@@ -224,6 +226,39 @@ class DuringRe_release(CustomAction):
             {"JudgeDuringRe_release": {"next": [], "interrupt": []}}
         )
         logger.info("当前不在复刻作战开放时间，跳过当前任务")
+        return CustomAction.RunResult(success=True)
+
+
+@AgentServer.custom_action("SSTaskEntryGet")
+class SSTaskEntryGet(CustomAction):
+    """
+    获取SS任务入口
+    """
+
+    def run(
+        self,
+        context: Context,
+        argv: CustomAction.RunArg,
+    ) -> CustomAction.RunResult:
+
+        screen_array = context.tasker.controller.post_screencap().wait().get()
+
+        # 截取图片中 [1170,141,47,53] 区域
+        x, y, w, h = 1170, 141, 47, 53
+        roi_array = screen_array[y : y + h, x : x + w]
+
+        # BGR2RGB
+        rgb_array = roi_array[:, :, ::-1]
+
+        # 转换为 PIL Image
+        img = Image.fromarray(rgb_array)
+
+        # 保存图片
+        save_path = "tmp/ss_task_entry.png"
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        img.save(save_path)
+        logger.info(f"已保存 SS 任务入口截图: {save_path}")
+
         return CustomAction.RunResult(success=True)
 
 
