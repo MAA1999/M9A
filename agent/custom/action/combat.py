@@ -755,7 +755,7 @@ class SSReopenReplay(CustomAction):
 
             # 开始刷图
             reco_detail = context.run_recognition("SSCannotReplay", img)
-            if reco_detail is None:
+            if reco_detail is not None:
                 # 无法复现，直接开始任务
                 context.run_task("SSNoReplay")
             else:
