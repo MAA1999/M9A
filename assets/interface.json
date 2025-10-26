@@ -204,6 +204,14 @@
             "doc": "[size:15][color:darkgray]本功能有两种模式，触媒选择仅在非速刷模式生效，开启速刷模式后仅使用术式神灯刷取第一层[/color][/size]\n[size:18][color:black]速刷模式[/color][/size]\n[size:15][color:darkgray]1.使用前请先将`刻画生长-指引之歌`以及`刻画生长-建筑章程`点满[/color][/size]\n[size:15][color:darkgray]2.请尽量调高难度等级(11难度达到最高信用效率)以及点足科技树中信用效率加成，以防止分数不够2k5导致刷取信物失败[/color][/size]\n[size:18][color:black]非速刷模式[/color][/size]\n[size:15][color:darkgray]1.可在箱子里置顶(标记)四个角色出战[/color][/size]\n[size:15][color:darkgray]2.队伍推荐携带奶[/color][/size]\n[size:15][color:darkgray]3.M9A不能检查是否处于自动战斗状态，请自行调整[/color][/size]\n[size:15][color:orange]⚠更多详细说明请看文档[/color][/size]"
         },
         {
+            "name": "复刻活动推图",
+            "entry": "SSReopen",
+            "option": [
+                "吃糖"
+            ],
+            "doc": "根据任务列表完成任务"
+        },
+        {
             "name": "匣中交流赛（拓片杂技赛）",
             "entry": "角斗场",
             "doc": "[size:15][color:darkgray]本功能仅完成“角斗场”第一层扫荡[/color][/size]，\n[size:15][color:red]请手动打开角斗场页面[/color][/size]"
