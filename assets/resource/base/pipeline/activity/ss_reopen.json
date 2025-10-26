@@ -47,7 +47,8 @@
         "interrupt": [
             "SSReadyForAction",
             "SSReopenLevelSelect",
-            "SSTaskEntry"
+            "SSTaskEntry",
+            "ObtainedAwards"
         ]
     },
     "SSTaskAwardsObtained": {
@@ -70,10 +71,6 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "ObtainedAwards",
-            "SSTaskAwardsObtained"
-        ],
         "post_delay": 3000
     },
     "SSReadyForAction": {
