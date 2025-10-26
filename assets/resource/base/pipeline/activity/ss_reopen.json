@@ -135,7 +135,9 @@
                     115
                 ]
             }
-        },
+        }
+    },
+    "SSToReplayIfCan": {
         "next": [
             "SSCannotReplay",
             "SSIsReplay"
