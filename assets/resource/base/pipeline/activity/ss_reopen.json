@@ -1,0 +1,122 @@
+{
+    "SSReopen": {
+        // 复刻时根据任务自动打图
+        "timeout": 3000,
+        "on_error": [],
+        "focus": {
+            "failed": "请到复刻活动左边标有故事/探索模式的页面开始该任务"
+        },
+        "next": [
+            "FlagInSS"
+        ]
+    },
+    "FlagInSS": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "故事模式",
+                    "探索模式",
+                    "STORY MODE",
+                    "HARD MODE"
+                ],
+                "roi": [
+                    29,
+                    115,
+                    174,
+                    199
+                ]
+            }
+        },
+        "next": [
+            "SSTaskEntryGet"
+        ]
+    },
+    "SSTaskEntryGet": {
+        // 复刻任务入口获取
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SSTaskEntryGet"
+            }
+        },
+        "next": [
+            "SSTaskCompleted"
+        ],
+        "interrupt": [
+            "SSTaskEntry"
+        ]
+    },
+    "SSTaskCompleted": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "MultiRecognition",
+                "custom_recognition_param": {
+                    "nodes": [
+                        "SSTaskCompleted_1",
+                        "SSTaskCompleted_2"
+                    ],
+                    "logic": {
+                        "type": "OR"
+                    },
+                    "return": [
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            }
+        }
+    },
+    "SSTaskCompleted_1": {
+        // 完成标志1：第一栏完成度为1/1
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    530,
+                    128,
+                    51,
+                    47
+                ],
+                "expected": "1/"
+            }
+        }
+    },
+    "SSTaskCompleted_2": {
+        // 完成标志2：第一栏任务内容为消耗（代币）
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    622,
+                    99,
+                    380,
+                    87
+                ],
+                "expected": "消耗"
+            }
+        }
+    },
+    "SSTaskEntry": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "../../../tmp/ss_task_entry.png"
+                ],
+                "roi": [
+                    1120,
+                    91,
+                    147,
+                    153
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}
