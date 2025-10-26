@@ -730,9 +730,9 @@ class SSReopenReplay(CustomAction):
         # 判断当前页面类型（有/无复现）
         img = context.tasker.controller.cached_image
         reco_detail = context.run_recognition("Has_Replay", img)
-        context.run_task("SSToReplayIfCan")
 
         if reco_detail is not None:
+            context.run_task("SSToReplayIfCan")
             # 看看吃不吃糖
             available_count = TargetCount._get_available_count(context)
             if available_count == 999:
