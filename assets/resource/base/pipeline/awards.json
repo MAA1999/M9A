@@ -19,7 +19,8 @@
                 ],
                 "template": [
                     "StartUp/HomeFlag.png",
-                    "StartUp/HomeFlag_sp01.png"
+                    "StartUp/HomeFlag_sp01.png",
+                    "StartUp/HomeFlag_sp02.png"
                 ]
             }
         },
@@ -425,7 +426,8 @@
                 ],
                 "template": [
                     "Awards/DailyBadge.png",
-                    "Awards/DailyBadge_sp01.png"
+                    "Awards/DailyBadge_sp01.png",
+                    "Awards/Dailybadge_sp02.png"
                 ],
                 "threshold": 0.9
             }
