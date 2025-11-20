@@ -2,16 +2,42 @@ name: Track Docs Changes
 on:
   push:
     paths:
-      - 'docs/**'
+      - "docs/**"
     branches:
-      - 'main'
+      - "main"
+  pull_request:
+    types:
+      - closed
+    paths:
+      - "docs/**"
+    branches:
+      - "main"
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "手动触发原因"
+        required: false
+        default: "手动触发文档更新"
+
 jobs:
   build:
-    if: github.repository == 'MAA1999/M9A'
+    if: |
+      github.repository == 'MAA1999/M9A' && 
+      (github.event_name == 'push' || 
+       github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'pull_request' && github.event.pull_request.merged == true))
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo "检测到 docs/ 文件变更！"
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "手动触发文档变更通知"
+            echo "原因: ${{ github.event.inputs.reason }}"
+          elif [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "检测到 PR #${{ github.event.pull_request.number }} 合并，docs/ 文件变更！"
+          else
+            echo "检测到 docs/ 文件变更！"
+          fi
+
           curl -L \
             -X POST \
             -H "Authorization: Bearer ${{ secrets.pat }}" \
