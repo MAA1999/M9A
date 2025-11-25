@@ -26,11 +26,9 @@
             }
         },
         "next": [
-            "ActivityMainAnecdoteFlag"
-        ],
-        "interrupt": [
-            "ActivityMainSelectAnecdote",
-            "SwipeDownForAnecdote"
+            "ActivityMainAnecdoteFlag",
+            "*ActivityMainSelectAnecdote",
+            "*SwipeDownForAnecdote"
         ]
     },
     "ActivityMainSelectAnecdote": {

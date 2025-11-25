@@ -1,6 +1,5 @@
 {
     "SSReopen": {
-        // 复刻时根据任务自动打图
         "timeout": 3000,
         "on_error": [],
         "focus": {
@@ -33,7 +32,6 @@
         ]
     },
     "SSTaskEntryGet": {
-        // 复刻任务入口获取
         "action": {
             "type": "Custom",
             "param": {
@@ -41,18 +39,15 @@
             }
         },
         "next": [
-            "SSTaskAwardsObtained",
-            "SSTaskCompleted"
-        ],
-        "interrupt": [
-            "SSReadyForAction",
-            "SSReopenLevelSelect",
-            "SSTaskEntry",
-            "ObtainedAwards"
+            "*SSTaskAwardsObtained",
+            "SSTaskCompleted",
+            "*SSReadyForAction",
+            "*SSReopenLevelSelect",
+            "*SSTaskEntry",
+            "*ObtainedAwards"
         ]
     },
     "SSTaskAwardsObtained": {
-        "is_sub": true,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -94,10 +89,8 @@
         "post_delay": 1500,
         "next": [
             "SSReopenReplay",
-            "SSReadyForAction"
-        ],
-        "interrupt": [
-            "CombatEntering"
+            "SSReadyForAction",
+            "*CombatEntering"
         ]
     },
     "SSReopenReplay": {
@@ -123,10 +116,8 @@
     "SSToReplayIfCan": {
         "next": [
             "SSCannotReplay",
-            "SSIsReplay"
-        ],
-        "interrupt": [
-            "SSSwitchToReplay"
+            "SSIsReplay",
+            "*SSSwitchToReplay"
         ]
     },
     "SSSwitchToReplay": {
@@ -176,8 +167,8 @@
                     210
                 ],
                 "template": [
-                    "Combat/NoReplay1.png", // 未记忆
-                    "Combat/NoReplay2.png" // 首次剧情关卡无法存储记忆
+                    "Combat/NoReplay1.png",
+                    "Combat/NoReplay2.png"
                 ]
             }
         }
@@ -202,10 +193,8 @@
         },
         "next": [
             "Victory_NoReplay",
-            "SSNoReplay"
-        ],
-        "interrupt": [
-            "EatCandyPage"
+            "SSNoReplay",
+            "*EatCandyPage"
         ]
     },
     "Victory_NoReplay": {
@@ -230,22 +219,18 @@
         "post_delay": 1500,
         "next": [
             "FlagInSSMain",
-            "Victory_NoReplay"
-        ],
-        "interrupt": [
-            "SSReopenBackToMain_ClickBlank",
-            "SSReopenBackToMain_BackButton",
-            "HomeLoading"
+            "Victory_NoReplay",
+            "*SSReopenBackToMain_ClickBlank",
+            "*SSReopenBackToMain_BackButton",
+            "*HomeLoading"
         ]
     },
     "SSReopenBackToMain": {
         "next": [
-            "FlagInSSMain"
-        ],
-        "interrupt": [
-            "SSReopenBackToMain_ClickBlank",
-            "SSReopenBackToMain_BackButton",
-            "HomeLoading"
+            "FlagInSSMain",
+            "*SSReopenBackToMain_ClickBlank",
+            "*SSReopenBackToMain_BackButton",
+            "*HomeLoading"
         ]
     },
     "SSReopenBackToMain_ClickBlank": {
@@ -355,7 +340,6 @@
         }
     },
     "SSTaskCompleted_1": {
-        // 完成标志1：第一栏完成度为1/1
         "recognition": {
             "type": "OCR",
             "param": {
@@ -370,7 +354,6 @@
         }
     },
     "SSTaskCompleted_2": {
-        // 完成标志2：第一栏任务内容为消耗（代币）
         "recognition": {
             "type": "OCR",
             "param": {

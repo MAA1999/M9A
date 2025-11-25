@@ -1,20 +1,15 @@
 {
     "TheSyndromeOfSilence": {
-        // 3.2&3.3 版本局外演绎,
         "next": [
-            "SOSMainMenu"
-        ],
-        "interrupt": [
-            "SOSStop",
-            "FlagInSOSMenu",
-            "ReturnMain",
-            "EnterTheActivityMain",
-            "EnterSOSMenu"
+            "SOSMainMenu",
+            "*SOSStop",
+            "*FlagInSOSMenu",
+            "*ReturnMain",
+            "*EnterTheActivityMain",
+            "*EnterSOSMenu"
         ]
     },
-    // 到 SOS Main Menu
     "FlagInSOSMenu": {
-        // 版本活动列表界面 OR 活动列表界面在未开始游戏的情况下点开后的界面
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -63,7 +58,6 @@
         }
     },
     "SOSMainMenu": {
-        // 有科技树的主界面，进入循环
         "recognition": {
             "type": "Custom",
             "param": {
@@ -82,21 +76,16 @@
             }
         },
         "next": [
-            "SOSSelectNoise"
-        ],
-        "interrupt": [
-            "SOSConfirm", // 不管旅伴，直接跳过
-            "SOSStart"
+            "SOSSelectNoise",
+            "*SOSConfirm",
+            "*SOSStart"
         ]
     },
     "SOSWordlessWorkshop": {
-        // 沉默者沙龙，好旅伴
         "next": [
             "SOSWordlessWorkshopEmpty",
-            "SOSWordlessWorkshopEnterGame"
-        ],
-        "interrupt": [
-            "SOSWordlessWorkshopEntry"
+            "SOSWordlessWorkshopEnterGame",
+            "*SOSWordlessWorkshopEntry"
         ]
     },
     "SOSWordlessWorkshopEmpty": {
@@ -148,10 +137,8 @@
         },
         "next": [
             "SOSKeepsakeDetailsAdd",
-            "SOSLackOfMaterials"
-        ],
-        "interrupt": [
-            "SOSSpider"
+            "SOSLackOfMaterials",
+            "*SOSSpider"
         ]
     },
     "SOSLackOfMaterials": {
@@ -169,12 +156,10 @@
             }
         },
         "next": [
-            "SOSSelectNoise"
-        ],
-        "interrupt": [
-            "SOSConfirm", // 不管旅伴，直接跳过
-            "SOSStart",
-            "BackButtonWithDelay"
+            "SOSSelectNoise",
+            "*SOSConfirm",
+            "*SOSStart",
+            "*BackButtonWithDelay"
         ]
     },
     "SOSKeepsakeDetailsAdd": {
@@ -389,7 +374,6 @@
         }
     },
     "FlagInSOSMainMenu": {
-        // 有科技树的主界面
         "recognition": {
             "type": "OCR",
             "param": {
@@ -432,14 +416,12 @@
             }
         },
         "next": [
-            "FlagInSOSMainMenu"
-        ],
-        "interrupt": [
-            "SOSSummary",
-            "SOSGiveup",
-            "SOSStart",
-            "SOS_Skip",
-            "SOSConfirm"
+            "FlagInSOSMainMenu",
+            "*SOSSummary",
+            "*SOSGiveup",
+            "*SOSStart",
+            "*SOS_Skip",
+            "*SOSConfirm"
         ]
     },
     "SOSSummary": {
@@ -563,9 +545,7 @@
         },
         "post_delay": 1500
     },
-    // 开始局外演绎
     "SOSSelectNoise": {
-        // 选择难度界面
         "recognition": {
             "type": "OCR",
             "param": {
@@ -591,10 +571,8 @@
             }
         },
         "next": [
-            "SOSSelectInstrument"
-        ],
-        "interrupt": [
-            "SOSNextStep"
+            "SOSSelectInstrument",
+            "*SOSNextStep"
         ]
     },
     "SOSSelectInstrument": {
@@ -623,14 +601,12 @@
             }
         },
         "next": [
-            "SOSMain"
-        ],
-        "interrupt": [
-            "SOSNextStep",
-            "SOSArtefactsObtained",
-            "SOSResonatorObtained",
-            "SOSHarmonicObtained",
-            "SOS_Skip"
+            "SOSMain",
+            "*SOSNextStep",
+            "*SOSArtefactsObtained",
+            "*SOSResonatorObtained",
+            "*SOSHarmonicObtained",
+            "*SOS_Skip"
         ]
     },
     "SOSInstrumentSelect": {
@@ -694,33 +670,29 @@
             }
         },
         "next": [
-            "SOSMainMenu"
-        ],
-        "interrupt": [
-            "SOSSelectArtefact",
-            "SOSArtefactsObtained",
-            "SOSSetOff",
-            "SOSSelectNode",
-            "SOSSelectHarmonic",
-            "SOSHarmonicObtained",
-            "SOSStatsUpButton",
-            "SOSStatsUp",
-            "SOSSelectResonator",
-            "SOSResonatorObtained",
-            "SOSLoseArtefact",
-            "SOSStrengthenArtefact",
-            "SOSSummary",
-            "SOSEnding",
-            "SOSGiveup",
-            "SOSStart",
-            "SOS_Skip",
-            "SOSConfirm",
-            "CloseTip"
+            "SOSMainMenu",
+            "*SOSSelectArtefact",
+            "*SOSArtefactsObtained",
+            "*SOSSetOff",
+            "*SOSSelectNode",
+            "*SOSSelectHarmonic",
+            "*SOSHarmonicObtained",
+            "*SOSStatsUpButton",
+            "*SOSStatsUp",
+            "*SOSSelectResonator",
+            "*SOSResonatorObtained",
+            "*SOSLoseArtefact",
+            "*SOSStrengthenArtefact",
+            "*SOSSummary",
+            "*SOSEnding",
+            "*SOSGiveup",
+            "*SOSStart",
+            "*SOS_Skip",
+            "*SOSConfirm",
+            "*CloseTip"
         ]
     },
-    // 演绎主体逻辑
     "SOSSelectNode": {
-        // 选择分数最高的节点,如果目标在委托范围内，向右滑动
         "recognition": {
             "type": "Custom",
             "param": {
@@ -745,9 +717,7 @@
             }
         }
     },
-    // 主页面各种弹窗处理,
     "SOSArtefactsObtained": {
-        // 获得造物
         "recognition": {
             "type": "OCR",
             "param": {
@@ -862,7 +832,6 @@
         "post_wait_freezes": 500
     },
     "SOSResonatorObtained": {
-        // 获得共鸣器
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1139,11 +1108,9 @@
         "next": [
             "SOSVictory",
             "SOSCombat",
-            "SOSFailed"
-        ],
-        "interrupt": [
-            "SOSCombatDialog",
-            "CloseTip"
+            "SOSFailed",
+            "*SOSCombatDialog",
+            "*CloseTip"
         ]
     },
     "SOSCombatDialog": {
@@ -1547,10 +1514,8 @@
         "post_wait_freezes": 500,
         "next": [
             "SOSGoToNextScene",
-            "SOSSetOff"
-        ],
-        "interrupt": [
-            "CloseTip"
+            "SOSSetOff",
+            "*CloseTip"
         ]
     },
     "SOSGoToNextScene": {
@@ -1570,19 +1535,17 @@
         },
         "next": [
             "FlagInSOSMain",
-            "SOSGoToNextScene"
-        ],
-        "interrupt": [
-            "SOSStatsUpButton",
-            "SOSStatsUp",
-            "SOSArtefactsObtained",
-            "SOSSelectArtefact",
-            "SOSLoseArtefact",
-            "SOSStrengthenArtefact",
-            "SOSHarmonicObtained",
-            "SOSSelectHarmonic",
-            "SOSResonatorObtained",
-            "SOSSelectResonator"
+            "SOSGoToNextScene",
+            "*SOSStatsUpButton",
+            "*SOSStatsUp",
+            "*SOSArtefactsObtained",
+            "*SOSSelectArtefact",
+            "*SOSLoseArtefact",
+            "*SOSStrengthenArtefact",
+            "*SOSHarmonicObtained",
+            "*SOSSelectHarmonic",
+            "*SOSResonatorObtained",
+            "*SOSSelectResonator"
         ]
     },
     "SOSDice": {
@@ -1768,7 +1731,6 @@
             "type": "Click"
         }
     },
-    // 工具节点
     "SOSEventRec": {
         "recognition": {
             "type": "OCR",
@@ -1779,12 +1741,6 @@
                     155,
                     33
                 ],
-                // "roi": [
-                //     45,
-                //     74,
-                //     207,
-                //     29
-                // ],
                 "only_rec": true,
                 "expected": [
                     "[\\u4e00-\\u9fa5]+"
@@ -2011,10 +1967,8 @@
     },
     "SOSNoiseSelect": {
         "next": [
-            "SOSNoiseSelected"
-        ],
-        "interrupt": [
-            "SOSNoiseUnselected"
+            "SOSNoiseSelected",
+            "*SOSNoiseUnselected"
         ]
     },
     "SOSNoiseSelected": {
@@ -2046,19 +2000,19 @@
             "param": {
                 "model": "sos_nodes.onnx",
                 "labels": [
-                    "C", // 已完成节点
-                    "Conflict", // 冲突
-                    "Dangerous", // 险象环生
-                    "Encounter", // 遭遇
-                    "EncounterAlongTheWay", // 途中偶遇
-                    "EntertainmentOnTheWay", // 途中余兴
-                    "FierceBattle", // 恶战
-                    "Message", // 对话
-                    "RestArea", // 休憩处
-                    "ShoppingOpportunity", // 购物契机
-                    "TheHandOfAMasterCraftsman", // 巧匠之手
-                    "TheOnlyWay", // 必经之路
-                    "TreasureLand" // 藏宝地
+                    "C",
+                    "Conflict",
+                    "Dangerous",
+                    "Encounter",
+                    "EncounterAlongTheWay",
+                    "EntertainmentOnTheWay",
+                    "FierceBattle",
+                    "Message",
+                    "RestArea",
+                    "ShoppingOpportunity",
+                    "TheHandOfAMasterCraftsman",
+                    "TheOnlyWay",
+                    "TreasureLand"
                 ],
                 "expected": [
                     1,

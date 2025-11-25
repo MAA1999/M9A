@@ -5,16 +5,14 @@
             "LimboEntryEnd",
             "LimboEnd",
             "LimboStageFlag",
-            "LimboStageRightest"
-        ],
-        "interrupt": [
-            "LimboEntry",
-            "ObtainedAwards",
-            "ArtificialSleepwalkingAwards",
-            "EnterTheShow",
-            "ClickBlank",
-            "ArtificialSleepwalking",
-            "ReturnMain"
+            "LimboStageRightest",
+            "*LimboEntry",
+            "*ObtainedAwards",
+            "*ArtificialSleepwalkingAwards",
+            "*EnterTheShow",
+            "*ClickBlank",
+            "*ArtificialSleepwalking",
+            "*ReturnMain"
         ]
     },
     "ArtificialSleepwalking": {
@@ -263,11 +261,9 @@
             }
         },
         "next": [
-            "LimboStarsMainNoAwards"
-        ],
-        "interrupt": [
-            "LimboStarsMainAwards",
-            "ObtainedAwards"
+            "LimboStarsMainNoAwards",
+            "*LimboStarsMainAwards",
+            "*ObtainedAwards"
         ]
     },
     "LimboStarsMainFlag_AfterFailed": {
@@ -286,11 +282,9 @@
             }
         },
         "next": [
-            "LimboStarsMainNoAwards_AfterFailed"
-        ],
-        "interrupt": [
-            "LimboStarsMainAwards",
-            "ObtainedAwards"
+            "LimboStarsMainNoAwards_AfterFailed",
+            "*LimboStarsMainAwards",
+            "*ObtainedAwards"
         ]
     },
     "LimboStarsMainNoAwards": {
@@ -373,10 +367,8 @@
         },
         "next": [
             "LimboStarsMainNoAwardsFlag",
-            "LimboStarsMainAwards"
-        ],
-        "interrupt": [
-            "ObtainedAwards"
+            "LimboStarsMainAwards",
+            "*ObtainedAwards"
         ]
     },
     "LimboStarsMainNoAwardsFlag": {
@@ -786,10 +778,8 @@
         "doc": "当前深眠片段战斗无未领取奖励",
         "next": [
             "LimboEnd",
-            "LimboStageRightest"
-        ],
-        "interrupt": [
-            "BackButtonForLimbo"
+            "LimboStageRightest",
+            "*BackButtonForLimbo"
         ]
     },
     "BackButtonForLimbo": {
@@ -866,10 +856,8 @@
             "type": "Click"
         },
         "next": [
-            "LimboObtainedAwards_2"
-        ],
-        "interrupt": [
-            "ObtainedAwards"
+            "LimboObtainedAwards_2",
+            "*ObtainedAwards"
         ]
     },
     "LimboObtainedAwards_2": {
@@ -899,11 +887,9 @@
         "next": [
             "LimboEnd",
             "LimboStageRightest",
-            "LimboObtainedAwards_2"
-        ],
-        "interrupt": [
-            "ObtainedAwards",
-            "BackButtonForLimbo"
+            "LimboObtainedAwards_2",
+            "*ObtainedAwards",
+            "*BackButtonForLimbo"
         ]
     },
     "LimboEnd": {
@@ -922,13 +908,11 @@
             }
         },
         "next": [
-            "LimboFirstEnd"
-        ],
-        "interrupt": [
-            "LimboAwards1~4",
-            "LimboObtainedAwards_3",
-            "ObtainedAwards",
-            "SwipeLeftForLimboAwards"
+            "LimboFirstEnd",
+            "*LimboAwards1~4",
+            "*LimboObtainedAwards_3",
+            "*ObtainedAwards",
+            "*SwipeLeftForLimboAwards"
         ]
     },
     "SwipeLeftForLimboAwards": {
@@ -990,10 +974,8 @@
             "type": "Click"
         },
         "next": [
-            "LimboObtainedAwards_4"
-        ],
-        "interrupt": [
-            "ObtainedAwards"
+            "LimboObtainedAwards_4",
+            "*ObtainedAwards"
         ]
     },
     "LimboObtainedAwards_4": {
@@ -1036,11 +1018,9 @@
             }
         },
         "next": [
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton",
-            "BackButton"
+            "HomeFlag",
+            "*HomeButton",
+            "*BackButton"
         ]
     }
 }
