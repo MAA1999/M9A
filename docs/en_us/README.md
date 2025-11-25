@@ -69,6 +69,7 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 - [Project Refactoring](./develop/refactor.md)
 - [Adapting Global Servers](./develop/overseas-client-adaptation.md)
 - [Document Writing](./develop/doc.md)
+- [Protocol Docs](./protocol/sos.md)
 
 For more documents, please visit the [MaaFramework](https://github.com/MaaXYZ/MaaFramework) main repository
 

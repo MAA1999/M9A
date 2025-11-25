@@ -19,7 +19,8 @@
                 ],
                 "template": [
                     "StartUp/HomeFlag.png",
-                    "StartUp/HomeFlag_sp01.png"
+                    "StartUp/HomeFlag_sp01.png",
+                    "StartUp/HomeFlag3.2.png"
                 ]
             }
         },
@@ -59,7 +60,8 @@
                 ],
                 "template": [
                     "Awards/MailBadge.png",
-                    "Awards/MailBadge_sp01.png"
+                    "Awards/MailBadge_sp01.png",
+                    "Awards/MailBadge3.2.png"
                 ],
                 "threshold": 0.9
             }
@@ -86,7 +88,8 @@
                 ],
                 "template": [
                     "Awards/MailBadge.png",
-                    "Awards/MailBadge_sp01.png"
+                    "Awards/MailBadge_sp01.png",
+                    "Awards/MailBadge3.2.png"
                 ],
                 "threshold": 0.9
             }
@@ -425,7 +428,8 @@
                 ],
                 "template": [
                     "Awards/DailyBadge.png",
-                    "Awards/DailyBadge_sp01.png"
+                    "Awards/DailyBadge_sp01.png",
+                    "Awards/Dailybadge3.2.png"
                 ],
                 "threshold": 0.9
             }

@@ -70,6 +70,7 @@ dir:
 - [项目重构](./develop/refactor.md)
 - [外服适配](./develop/overseas-client-adaptation.md)
 - [文档编写](./develop/doc.md)
+- [协议文档](./protocol/sos.md)
 
 更多文档请前往 [MaaFramework](https://github.com/MaaXYZ/MaaFramework) 主仓库查看
 

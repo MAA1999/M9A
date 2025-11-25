@@ -7,6 +7,7 @@
             "StartGame"
         ],
         "interrupt": [
+            "Start1999",
             "Download",
             "GameLoading2",
             "BluePochLogo",
@@ -25,7 +26,6 @@
             "CandyCancel",
             "BackButton",
             "HomeButton",
-            "Start1999",
             "ClickHomeCount"
         ]
     },
@@ -316,9 +316,9 @@
             "param": {
                 "roi": [
                     435,
-                    597,
+                    627,
                     402,
-                    123
+                    93
                 ],
                 "expected": [
                     "正在",
@@ -419,7 +419,8 @@
                 ],
                 "template": [
                     "StartUp/HomeFlag.png",
-                    "StartUp/HomeFlag_sp01.png"
+                    "StartUp/HomeFlag_sp01.png",
+                    "StartUp/HomeFlag3.2.png"
                 ]
             }
         },
@@ -447,7 +448,8 @@
                 ],
                 "template": [
                     "StartUp/HomeFlag.png",
-                    "StartUp/HomeFlag_sp01.png"
+                    "StartUp/HomeFlag_sp01.png",
+                    "StartUp/HomeFlag3.2.png"
                 ]
             }
         },
@@ -495,7 +497,8 @@
                 ],
                 "template": [
                     "StartUp/HomeFlag.png",
-                    "StartUp/HomeFlag_sp01.png"
+                    "StartUp/HomeFlag_sp01.png",
+                    "StartUp/HomeFlag3.2.png"
                 ]
             }
         },
@@ -686,12 +689,13 @@
                     1040,
                     40,
                     239,
-                    166
+                    178
                 ],
                 "template": [
                     "StartUp/CloseRewardPage_2.2.png",
                     "StartUp/CloseRewardPage_2.4.png",
-                    "StartUp/CloseItemDetail.png"
+                    "StartUp/CloseItemDetail.png",
+                    "StartUp/CloseItemDetail1.png"
                 ],
                 "green_mask": true,
                 "threshold": 0.6,
@@ -713,12 +717,13 @@
                     885,
                     40,
                     394,
-                    166
+                    177
                 ],
                 "template": [
                     "StartUp/CloseRewardPage_2.2.png",
                     "StartUp/CloseRewardPage_2.4.png",
-                    "StartUp/CloseItemDetail.png"
+                    "StartUp/CloseItemDetail.png",
+                    "StartUp/CloseItemDetail1.png"
                 ],
                 "green_mask": true,
                 "threshold": 0.6,

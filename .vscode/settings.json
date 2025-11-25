@@ -4,8 +4,8 @@
             "fileMatch": [
                 "/assets/resource/**/*.json",
                 "/install/resource/**/*.json",
-                "!/assets/resource/data/activity/{cn,en,jp,tw,items}.json",
-                "!/install/resource/data/activity/{cn,en,jp,tw,items}.json"
+                "!/assets/resource/data/**/**.json",
+                "!/install/resource/data/**/**.json"
             ],
             "url": "/deps/tools/pipeline.schema.json"
         },

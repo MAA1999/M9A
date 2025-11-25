@@ -316,9 +316,36 @@ class TeamSelect(CustomAction):
                             target_team_use = team_uses[target_team_name]
                             if target_team_use["status"] == 1:
                                 # 目标队伍已是使用中，直接退出
-                                flag = True
-                                context.run_task("BackButton")
-                                time.sleep(1)
+                                exit_retry = 0
+                                while exit_retry < 5:
+                                    context.run_task("BackButton")
+                                    time.sleep(1)
+                                    img = (
+                                        context.tasker.controller.post_screencap()
+                                        .wait()
+                                        .get()
+                                    )
+                                    if (
+                                        context.run_recognition(
+                                            "TeamlistOpen",
+                                            img,
+                                            {
+                                                "TeamlistOpen": {
+                                                    "recognition": {
+                                                        "param": {
+                                                            "roi": [36, 63, 137, 141],
+                                                            "template": "Combat/TeamList_Open.png",
+                                                        },
+                                                    }
+                                                }
+                                            },
+                                        )
+                                        is None
+                                    ):
+                                        # 已退出选择界面
+                                        flag = True
+                                        break
+                                    exit_retry += 1
                                 break
                             elif target_team_use["status"] == 0:
                                 # 目标队伍非使用中，点击使用并自动退出当前界面

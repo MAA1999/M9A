@@ -504,15 +504,16 @@
                 "model": "limbo_stage_lightest.onnx",
                 "labels": [
                     "mojing",
+                    "mojing1",
                     "objects",
                     "people"
                 ],
                 "expected": [
                     0,
                     1,
-                    2
-                ],
-                "threshold": 0.5
+                    2,
+                    3
+                ]
             }
         },
         "action": {
@@ -638,15 +639,16 @@
                 "model": "limbo_stage_lightest.onnx",
                 "labels": [
                     "mojing",
+                    "mojing1",
                     "objects",
                     "people"
                 ],
                 "expected": [
                     0,
                     1,
-                    2
-                ],
-                "threshold": 0.5
+                    2,
+                    3
+                ]
             }
         },
         "action": {

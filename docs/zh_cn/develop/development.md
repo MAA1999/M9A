@@ -52,6 +52,8 @@ icon: iconoir:developer
 
 6. 开始开发
 
+    在项目的根目录运行 `python ./tools/ci/configure.py` 配置OCR模型。
+
     使用上一个步骤中安装的调试/开发工具开发M9A，虚拟环境会自动创建在`.venv`目录中。
 
     开始愉快的改代码吧，可以看看别的文档。
