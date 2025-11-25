@@ -34,9 +34,9 @@
             }
         },
         "next": [
-            "*Sub_MailBadge",
-            "*Sub_DailyBadge",
-            "*Sub_JukeboxBadge",
+            "Sub_MailBadge",
+            "Sub_DailyBadge",
+            "Sub_JukeboxBadge",
             "Sub_JukeboxBadge_3.2",
             "HomeFlag",
             "*HomeButton",
@@ -44,6 +44,7 @@
         ]
     },
     "Sub_MailBadge": {
+        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -395,6 +396,7 @@
         }
     },
     "Sub_DailyBadge": {
+        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -417,7 +419,7 @@
         },
         "post_wait_freezes": 200,
         "next": [
-            "*Sub_CollectDailyAwards",
+            "Sub_CollectDailyAwards",
             "WeeklyAwardsBadge",
             "HomeFlag",
             "*ObtainedAwards",
@@ -425,6 +427,7 @@
         ]
     },
     "Sub_CollectDailyAwards": {
+        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -462,7 +465,7 @@
             "type": "Click"
         },
         "next": [
-            "*Sub_CollectDailyAwards",
+            "Sub_CollectDailyAwards",
             "WeeklyAwardsBadge",
             "WeeklyAwardsCompleted",
             "HomeFlag",
@@ -559,6 +562,7 @@
         }
     },
     "Sub_JukeboxBadge": {
+        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -581,8 +585,8 @@
         },
         "post_delay": 3000,
         "next": [
-            "*Sub_CollectJukebox",
-            "*Sub_JukeboxAwardsBadge",
+            "Sub_CollectJukebox",
+            "Sub_JukeboxAwardsBadge",
             "HomeFlag",
             "*ObtainedAwards",
             "*JukeboxExitPurchase",
@@ -608,6 +612,7 @@
         "post_delay": 1000
     },
     "Sub_JukeboxAwardsBadge": {
+        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -625,8 +630,8 @@
             "type": "Click"
         },
         "next": [
-            "*Sub_CollectJukebox",
-            "*Sub_JukeboxAwardsBadge",
+            "Sub_CollectJukebox",
+            "Sub_JukeboxAwardsBadge",
             "NoJukeboxAwards",
             "*ObtainedAwards",
             "*ExitEdition",
@@ -651,6 +656,7 @@
         ]
     },
     "Sub_CollectJukebox": {
+        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {

@@ -6,6 +6,7 @@
         ]
     },
     "PreStormProtocol": {
+        // 未打败教程中boss的任务链
         "recognition": {
             "type": "Custom",
             "param": {
@@ -90,6 +91,7 @@
         ]
     },
     "PreStormProtocol1": {
+        // 已打败教程中boss的任务链
         "recognition": {
             "type": "Custom",
             "param": {

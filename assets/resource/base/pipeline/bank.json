@@ -1059,8 +1059,8 @@
         },
         "next": [
             "NoTinyGlobe(1)",
-            "*PurchaseTinyGlobe(1)Max",
-            "*PurchaseTinyGlobe(1)",
+            "PurchaseTinyGlobe(1)Max",
+            "PurchaseTinyGlobe(1)",
             "SoldOut",
             "*SwipeUp"
         ]
@@ -1124,6 +1124,7 @@
         }
     },
     "PurchaseTinyGlobe(1)": {
+        "is_sub": true,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1141,6 +1142,7 @@
         }
     },
     "PurchaseTinyGlobe(1)Max": {
+        "is_sub": true,
         "recognition": {
             "type": "OCR",
             "param": {

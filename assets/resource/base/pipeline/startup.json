@@ -610,7 +610,7 @@
                     "StartUp/Reward.png",
                     "StartUp/Reward1.png",
                     "StartUp/Reward2.png",
-                    "StartUp/Reward3.png",
+                    "StartUp/Reward3.png", // 刺客联动版本
                     "StartUp/Reward4.png"
                 ]
             }
@@ -699,6 +699,7 @@
         ]
     },
     "ClosePage": {
+        // 用于关闭各种页面，如签到、公告、物品详情页
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -741,6 +742,7 @@
         }
     },
     "SignInReward": {
+        // 领取签到奖励
         "recognition": {
             "type": "Custom",
             "param": {
@@ -780,6 +782,7 @@
         }
     },
     "SignInReward_color": {
+        // 偏橙的颜色（独一律签到）
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -799,6 +802,7 @@
         }
     },
     "SignInReward_color1": {
+        // 偏黄的颜色
         "recognition": {
             "type": "ColorMatch",
             "param": {

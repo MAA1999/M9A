@@ -84,6 +84,7 @@
         "post_delay": 3000
     },
     "EnterTheShow": {
+        // 请不要为该任务加next，一般应当放于interrupt使用
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -210,9 +211,7 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "SwipeLeftAndFindStage"
-        ]
+        "next": "SwipeLeftAndFindStage"
     },
     "ResourceChapterLabel": {
         "recognition": {
@@ -264,9 +263,7 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "SwipeLeftAndFindStage"
-        ]
+        "next": "SwipeLeftAndFindStage"
     },
     "ResourceChapter_MA": {
         "doc": "铸币美学",
@@ -330,9 +327,7 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "SwipeLeftAndFindStage"
-        ]
+        "next": "SwipeLeftAndFindStage"
     },
     "ResourceChapter_Psychube07Enter": {
         "recognition": {
@@ -351,9 +346,7 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "SwipeLeftAndFindStage"
-        ]
+        "next": "SwipeLeftAndFindStage"
     },
     "ResourceChapter_NoFreePsychube07": {
         "recognition": {

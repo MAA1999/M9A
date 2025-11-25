@@ -120,7 +120,7 @@
             ]
         },
         "next": [
-            "*AnecdoteNotRead",
+            "AnecdoteNotRead",
             "AnecdoteTaskExist",
             "AnecdoteCompleted",
             "*ObtainedAwards"
@@ -808,6 +808,7 @@
         ]
     },
     "AnecdoteNotRead": {
+        "is_sub": true,
         "doc": "尚未阅读完故事，尝试阅读",
         "recognition": {
             "type": "OCR",

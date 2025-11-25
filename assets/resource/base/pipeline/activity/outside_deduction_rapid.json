@@ -41,7 +41,7 @@
             }
         },
         "next": [
-            "*ODR_FlagInDifficultySelect",
+            "ODR_FlagInDifficultySelect",
             "ODR_Start_MediaSelect",
             "ODR_Start",
             "*ODR_Start_Difficulty_Confirm",
@@ -50,6 +50,7 @@
         ]
     },
     "ODR_FlagInDifficultySelect": {
+        "is_sub": true,
         "recognition": {
             "type": "OCR",
             "param": {

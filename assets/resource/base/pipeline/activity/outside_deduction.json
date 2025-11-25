@@ -586,7 +586,7 @@
         },
         "next": [
             "SODStart_Confirm",
-            "*Sub_SODStart_GoodsSelect",
+            "Sub_SODStart_GoodsSelect",
             "SOD_ItemSelect_1",
             "SODStart_MediaSelect",
             "SOD_ArcanistAdd",
@@ -594,6 +594,7 @@
         ]
     },
     "Sub_SODStart_GoodsSelect": {
+        "is_sub": true,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -2410,12 +2411,13 @@
             "SOD_Skip",
             "SOD_Main",
             "SOD_Nothinghappen",
-            "*SOD_Dialog_3",
-            "*SOD_Dialog_5",
+            "SOD_Dialog_3",
+            "SOD_Dialog_5",
             "SOD_Combating"
         ]
     },
     "Sub_SOD_Dialog_1": {
+        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -2433,6 +2435,7 @@
         }
     },
     "Sub_SOD_Dialog_2": {
+        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -2450,6 +2453,7 @@
         }
     },
     "SOD_Dialog_3": {
+        "is_sub": true,
         "doc": "战斗中露西的升华",
         "recognition": {
             "type": "OCR",
@@ -2470,6 +2474,7 @@
         }
     },
     "Sub_SOD_Dialog_4": {
+        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -2488,6 +2493,7 @@
         }
     },
     "SOD_Dialog_5": {
+        "is_sub": true,
         "doc": "战斗中天使娜娜的缔结契约",
         "recognition": {
             "type": "OCR",
@@ -2514,7 +2520,7 @@
         },
         "next": [
             "SOD_Dialog_5_1",
-            "*SOD_Dialog_5"
+            "SOD_Dialog_5"
         ]
     },
     "SOD_Dialog_5_1": {
