@@ -6,7 +6,9 @@ import json
 
 import os
 import sys
+from urllib import error, request
 
+from PIL import Image
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(script_dir)
@@ -99,10 +101,49 @@ def install_agent():
         json.dump(interface, f, ensure_ascii=False, indent=4)
 
 
+def update_ico():
+    try:
+        with request.urlopen(
+            "https://1999.fan/images/m9a-logo_128x128.png"
+        ) as response:
+            content = response.read()
+            status_code = response.getcode()
+
+            # 模拟 raise_for_status：非 2xx 状态码抛出异常
+            if not (200 <= status_code < 300):
+                raise error.HTTPError(
+                    url=response.geturl(),
+                    code=status_code,
+                    msg=f"HTTP Error {status_code}",
+                    hdrs=response.info(),
+                    fp=None,
+                )
+
+        m9apng_path = install_path / "Assets" / "m9a.png"
+        with open(m9apng_path, "wb") as f:
+            f.write(content)
+
+        img = Image.open(m9apng_path)
+        if img.mode != "RGBA":
+            img = img.convert("RGBA")
+        ico_path = install_path / "Assets" / "m9a.ico"
+        img.save(ico_path, format="ICO")
+        img.close()
+
+        os.remove(m9apng_path)
+        os.remove(install_path / "Assets" / "logo.ico")
+        shutil.move(ico_path, install_path / "Assets" / "logo.ico")
+
+    except Exception as e:
+        print(f"Failed to update icon:\n{e}")
+        return
+
+
 if __name__ == "__main__":
     install_deps()
     install_resource()
     install_chores()
     install_agent()
+    update_ico()
 
     print(f"Install to {install_path} successfully.")
