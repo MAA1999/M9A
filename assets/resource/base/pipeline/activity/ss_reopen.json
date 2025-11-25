@@ -1,6 +1,5 @@
 {
     "SSReopen": {
-        // 复刻时根据任务自动打图
         "timeout": 3000,
         "on_error": [],
         "focus": {
@@ -33,13 +32,13 @@
         ]
     },
     "SSTaskEntryGet": {
-        // 复刻任务入口获取
         "action": {
             "type": "Custom",
             "param": {
                 "custom_action": "SSTaskEntryGet"
             }
         },
+        "checkpoint": "_cp_SSTaskEntryGet",
         "next": [
             "SSTaskAwardsObtained",
             "SSTaskCompleted"
@@ -52,7 +51,6 @@
         ]
     },
     "SSTaskAwardsObtained": {
-        "is_sub": true,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -71,7 +69,9 @@
         "action": {
             "type": "Click"
         },
-        "post_delay": 3000
+        "post_delay": 3000,
+        "jumpback": "_cp_SSTaskEntryGet",
+        "is_sub": true
     },
     "SSReadyForAction": {
         "recognition": {
@@ -92,6 +92,7 @@
             "type": "Click"
         },
         "post_delay": 1500,
+        "checkpoint": "_cp_SSReadyForAction",
         "next": [
             "SSReopenReplay",
             "SSReadyForAction"
@@ -118,9 +119,11 @@
             "param": {
                 "custom_action": "SSReopenReplay"
             }
-        }
+        },
+        "jumpback": "_cp_SSTaskEntryGet"
     },
     "SSToReplayIfCan": {
+        "checkpoint": "_cp_SSToReplayIfCan",
         "next": [
             "SSCannotReplay",
             "SSIsReplay"
@@ -148,7 +151,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_SSToReplayIfCan"
     },
     "SSIsReplay": {
         "recognition": {
@@ -176,8 +180,8 @@
                     210
                 ],
                 "template": [
-                    "Combat/NoReplay1.png", // 未记忆
-                    "Combat/NoReplay2.png" // 首次剧情关卡无法存储记忆
+                    "Combat/NoReplay1.png",
+                    "Combat/NoReplay2.png"
                 ]
             }
         }
@@ -195,18 +199,19 @@
                 "expected": "开始行动"
             }
         },
-        "timeout": 420000,
-        "post_delay": 1500,
         "action": {
             "type": "Click"
         },
+        "post_delay": 1500,
+        "checkpoint": "_cp_SSNoReplay",
         "next": [
             "Victory_NoReplay",
             "SSNoReplay"
         ],
         "interrupt": [
             "EatCandyPage"
-        ]
+        ],
+        "timeout": 420000
     },
     "Victory_NoReplay": {
         "recognition": {
@@ -228,6 +233,7 @@
             "type": "Click"
         },
         "post_delay": 1500,
+        "checkpoint": "_cp_Victory_NoReplay",
         "next": [
             "FlagInSSMain",
             "Victory_NoReplay"
@@ -239,6 +245,7 @@
         ]
     },
     "SSReopenBackToMain": {
+        "checkpoint": "_cp_SSReopenBackToMain",
         "next": [
             "FlagInSSMain"
         ],
@@ -273,7 +280,11 @@
                 ]
             }
         },
-        "post_delay": 1000
+        "post_delay": 1000,
+        "jumpback": [
+            "_cp_Victory_NoReplay",
+            "_cp_SSReopenBackToMain"
+        ]
     },
     "SSReopenBackToMain_BackButton": {
         "recognition": {
@@ -329,7 +340,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_SSTaskEntryGet"
     },
     "SSTaskCompleted": {
         "recognition": {
@@ -355,7 +367,6 @@
         }
     },
     "SSTaskCompleted_1": {
-        // 完成标志1：第一栏完成度为1/1
         "recognition": {
             "type": "OCR",
             "param": {
@@ -370,7 +381,6 @@
         }
     },
     "SSTaskCompleted_2": {
-        // 完成标志2：第一栏任务内容为消耗（代币）
         "recognition": {
             "type": "OCR",
             "param": {
@@ -402,6 +412,7 @@
         "action": {
             "type": "Click"
         },
-        "post_delay": 3000
+        "post_delay": 3000,
+        "jumpback": "_cp_SSTaskEntryGet"
     }
 }

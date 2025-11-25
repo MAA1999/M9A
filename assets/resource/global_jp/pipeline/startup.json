@@ -20,8 +20,12 @@
                 "template": "StartUp/BluePochLogo.png"
             }
         },
+        "post_delay": 5000,
         "post_wait_freezes": 300,
-        "post_delay": 5000
+        "jumpback": [
+            "_cp_SwitchAccount",
+            "_cp_StartUp"
+        ]
     },
     "Disclaimer": {
         "recognition": {
@@ -36,6 +40,10 @@
                 "template": "StartUp/Disclaimer.png"
             }
         },
-        "post_wait_freezes": 5000
+        "post_wait_freezes": 5000,
+        "jumpback": [
+            "_cp_SwitchAccount",
+            "_cp_StartUp"
+        ]
     }
 }

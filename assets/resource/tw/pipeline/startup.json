@@ -5,6 +5,10 @@
             "param": {
                 "package": "com.mover.twcfwl1999"
             }
-        }
+        },
+        "jumpback": [
+            "_cp_SwitchAccount",
+            "_cp_StartUp"
+        ]
     }
 }

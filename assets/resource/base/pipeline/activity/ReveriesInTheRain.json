@@ -44,7 +44,6 @@
         "post_wait_freezes": 300
     },
     "ReveriesInTheRainMainFlag": {
-        "doc": "判断位于雨中悬想主页面",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -57,6 +56,7 @@
                 "template": "ReveriesInTheRain/ReveriesInTheRainMain.png"
             }
         },
+        "checkpoint": "_cp_ReveriesInTheRainMainFlag",
         "next": [
             "DepthsOfMythEnd",
             "DepthsOfMythMainFlag"
@@ -64,10 +64,10 @@
         "interrupt": [
             "DepthsOfMythEntry",
             "DepthsOfMythLoading"
-        ]
+        ],
+        "doc": "判断位于雨中悬想主页面"
     },
     "DepthsOfMythLoading": {
-        "doc": "等待进入迷思海",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -87,10 +87,11 @@
                 ]
             }
         },
-        "post_wait_freezes": 300
+        "post_wait_freezes": 300,
+        "jumpback": "_cp_ReveriesInTheRainMainFlag",
+        "doc": "等待进入迷思海"
     },
     "DepthsOfMythEntry": {
-        "doc": "进入迷思海",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -106,7 +107,9 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 300
+        "post_wait_freezes": 300,
+        "jumpback": "_cp_ReveriesInTheRainMainFlag",
+        "doc": "进入迷思海"
     },
     "DepthsOfMythEnd": {
         "doc": "迷思海“寻思”耗尽（雨中悬想主页面）",
@@ -125,7 +128,6 @@
         }
     },
     "DepthsOfMythMainFlag": {
-        "doc": "判断位于迷思海主页面",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -138,16 +140,17 @@
                 "template": "ReveriesInTheRain/TranceButton.png"
             }
         },
+        "checkpoint": "_cp_DepthsOfMythMainFlag",
         "next": [
             "TranceEnd",
             "TranceMainFlag"
         ],
         "interrupt": [
             "TranceButtonClick"
-        ]
+        ],
+        "doc": "判断位于迷思海主页面"
     },
     "TranceButtonClick": {
-        "doc": "点击“寻思”按钮",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -162,7 +165,9 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_DepthsOfMythMainFlag",
+        "doc": "点击“寻思”按钮"
     },
     "TranceEnd": {
         "doc": "迷思海“寻思”耗尽（迷思海主页面）",
@@ -181,7 +186,6 @@
         }
     },
     "TranceMainFlag": {
-        "doc": "判断位于迷思海“寻思”页面",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -195,6 +199,7 @@
                 "expected": "寻思"
             }
         },
+        "checkpoint": "_cp_TranceMainFlag",
         "next": [
             "TranceEnd_1"
         ],
@@ -204,10 +209,10 @@
             "Trancele2",
             "Trancele3",
             "Trancele4"
-        ]
+        ],
+        "doc": "判断位于迷思海“寻思”页面"
     },
     "TrancePlay": {
-        "doc": "寻思寻思",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -223,10 +228,11 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_TranceMainFlag",
+        "doc": "寻思寻思"
     },
     "Trancele1": {
-        "doc": "“寻思”x1（寻思小于等于1）",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -240,6 +246,7 @@
                 "expected": "1/"
             }
         },
+        "checkpoint": "_cp_Trancele1",
         "next": [
             "ObtainedAwards",
             "TrancePlayTimesX1"
@@ -247,10 +254,10 @@
         "interrupt": [
             "TranceSetPlayTimesX1",
             "TranceOpenSetPlayTimes"
-        ]
+        ],
+        "doc": "“寻思”x1（寻思小于等于1）"
     },
     "Trancele2": {
-        "doc": "“寻思”x2",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -264,6 +271,7 @@
                 "expected": "2/"
             }
         },
+        "checkpoint": "_cp_Trancele2",
         "next": [
             "ObtainedAwards",
             "TrancePlayTimesX2"
@@ -271,10 +279,10 @@
         "interrupt": [
             "TranceSetPlayTimesX2",
             "TranceOpenSetPlayTimes"
-        ]
+        ],
+        "doc": "“寻思”x2"
     },
     "Trancele3": {
-        "doc": "“寻思”x3",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -288,6 +296,7 @@
                 "expected": "3/"
             }
         },
+        "checkpoint": "_cp_Trancele3",
         "next": [
             "ObtainedAwards",
             "TrancePlayTimesX3"
@@ -295,10 +304,10 @@
         "interrupt": [
             "TranceSetPlayTimesX3",
             "TranceOpenSetPlayTimes"
-        ]
+        ],
+        "doc": "“寻思”x3"
     },
     "Trancele4": {
-        "doc": "“寻思”x4-8",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -312,6 +321,7 @@
                 "expected": "[4-8]/"
             }
         },
+        "checkpoint": "_cp_Trancele4",
         "next": [
             "ObtainedAwards",
             "TrancePlayTimesX4"
@@ -319,10 +329,10 @@
         "interrupt": [
             "TranceSetPlayTimesX4",
             "TranceOpenSetPlayTimes"
-        ]
+        ],
+        "doc": "“寻思”x4-8"
     },
     "TranceSetPlayTimesX1": {
-        "doc": "设置寻思次数X1",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -340,10 +350,14 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Trancele1",
+            "_cp_TranceMainFlag"
+        ],
+        "doc": "设置寻思次数X1"
     },
     "TranceSetPlayTimesX2": {
-        "doc": "设置寻思次数X2",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -361,10 +375,14 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Trancele2",
+            "_cp_TranceMainFlag"
+        ],
+        "doc": "设置寻思次数X2"
     },
     "TranceSetPlayTimesX3": {
-        "doc": "设置寻思次数X3",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -382,10 +400,14 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Trancele3",
+            "_cp_TranceMainFlag"
+        ],
+        "doc": "设置寻思次数X3"
     },
     "TranceSetPlayTimesX4": {
-        "doc": "设置寻思次数X4",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -403,10 +425,14 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Trancele4",
+            "_cp_TranceMainFlag"
+        ],
+        "doc": "设置寻思次数X4"
     },
     "TranceOpenSetPlayTimes": {
-        "doc": "打开设置寻思次数",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -421,7 +447,15 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Trancele3",
+            "_cp_Trancele4",
+            "_cp_Trancele1",
+            "_cp_Trancele2",
+            "_cp_TranceMainFlag"
+        ],
+        "doc": "打开设置寻思次数"
     },
     "TrancePlayTimesX1": {
         "doc": "当前预消耗“寻思”X1",
@@ -496,7 +530,6 @@
         ]
     },
     "TranceEnd_1": {
-        "doc": "迷思海“寻思”耗尽（迷思海“寻思”页面）",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -511,12 +544,14 @@
             }
         },
         "post_wait_freezes": 300,
+        "checkpoint": "_cp_TranceEnd_1",
         "next": [
             "TranceClose"
         ],
         "interrupt": [
             "ObtainedAwards"
-        ]
+        ],
+        "doc": "迷思海“寻思”耗尽（迷思海“寻思”页面）"
     },
     "TranceClose": {
         "doc": "关闭迷思海“寻思”页面",

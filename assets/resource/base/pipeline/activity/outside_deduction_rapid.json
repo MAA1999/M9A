@@ -40,6 +40,7 @@
                 }
             }
         },
+        "checkpoint": "_cp_ResetCountOfODRSkipText",
         "next": [
             "ODR_FlagInDifficultySelect",
             "ODR_Start_MediaSelect",
@@ -88,7 +89,40 @@
                     "level": "cur"
                 }
             }
-        }
+        },
+        "jumpback": [
+            "_cp_SOD_SelectNext_1_3",
+            "_cp_SOD_SelectNext_7_3",
+            "_cp_SOD_SelectNext_5_2",
+            "_cp_SOD_SelectNext_2_2",
+            "_cp_SOD_SelectNext_6_2",
+            "_cp_SOD_SelectNext_6_1",
+            "_cp_SOD_SelectNext_4_2",
+            "_cp_SOD_SelectNext_1_1",
+            "_cp_SOD_SelectNext_4_3",
+            "_cp_SOD_SelectNext_6",
+            "_cp_SOD_SelectNext_3",
+            "_cp_SOD_SelectNext_3_1",
+            "_cp_SOD_SelectNext_7",
+            "_cp_SOD_SelectNext_4",
+            "_cp_SOD_SelectNext_5_1",
+            "_cp_SOD_SelectNext_7_1",
+            "_cp_SOD_SelectNext_3_2",
+            "_cp_SOD_SelectNext_4_1",
+            "_cp_SOD_SelectNext_5",
+            "_cp_SODStart",
+            "_cp_SOD_Main",
+            "_cp_SOD_SelectNext_2",
+            "_cp_SOD_SelectNext_3_3",
+            "_cp_SOD_SelectNext_1",
+            "_cp_SOD_SelectNext_5_3",
+            "_cp_SOD_SelectNext_2_1",
+            "_cp_ResetCountOfODRSkipText",
+            "_cp_SOD_SelectNext_2_3",
+            "_cp_SOD_SelectNext_6_3",
+            "_cp_SOD_SelectNext_1_2",
+            "_cp_SOD_SelectNext_7_2"
+        ]
     },
     "SOD_LevelLocked": {
         "recognition": {
@@ -121,7 +155,6 @@
         }
     },
     "ODR_Start_Difficulty_Confirm": {
-        "doc": "难度确认",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -138,7 +171,9 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 1
+        "post_wait_freezes": 1,
+        "jumpback": "_cp_ResetCountOfODRSkipText",
+        "doc": "难度确认"
     },
     "ODR_Start_Gift": {
         "recognition": {
@@ -219,7 +254,6 @@
         ]
     },
     "ODR_Start_Gift_Confirm": {
-        "doc": "镜的馈赠确认",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -236,10 +270,11 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 1
+        "post_wait_freezes": 1,
+        "jumpback": "_cp_ResetCountOfODRSkipText",
+        "doc": "镜的馈赠确认"
     },
     "ODR_Start_MediaSelect": {
-        "doc": "触媒选择",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -256,16 +291,17 @@
             "type": "Click"
         },
         "pre_wait_freezes": 1,
+        "checkpoint": "_cp_ODR_Start_MediaSelect",
         "next": [
             "ODR_Start_TeamBuild",
             "ODR_Start_MediaSelect"
         ],
         "interrupt": [
             "ODR_Start_MediaSelect_Confirm"
-        ]
+        ],
+        "doc": "触媒选择"
     },
     "ODR_Start_MediaSelect_Confirm": {
-        "doc": "触媒确认",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -279,6 +315,9 @@
                 "expected": "确认"
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -288,9 +327,8 @@
                 85
             ]
         },
-        "action": {
-            "type": "Click"
-        }
+        "jumpback": "_cp_ODR_Start_MediaSelect",
+        "doc": "触媒确认"
     },
     "ODR_Start_TeamBuild": {
         "doc": "编队",
@@ -385,7 +423,6 @@
         ]
     },
     "ODR_Start_Teambuild_Confirm": {
-        "doc": "确认编队",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -399,6 +436,9 @@
                 "expected": "确认"
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -408,16 +448,15 @@
                 85
             ]
         },
-        "action": {
-            "type": "Click"
-        },
+        "checkpoint": "_cp_ODR_Start_Teambuild_Confirm",
         "next": [
             "ODR_SelectCombat",
             "ODR_Start_Teambuild_Confirm"
         ],
         "interrupt": [
             "SOD_Acquire_NoNext"
-        ]
+        ],
+        "doc": "确认编队"
     },
     "ODR_SelectCombat": {
         "recognition": {
@@ -435,6 +474,9 @@
                 "threshold": 0.85
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -444,9 +486,7 @@
                 91
             ]
         },
-        "action": {
-            "type": "Click"
-        },
+        "checkpoint": "_cp_ODR_SelectCombat",
         "next": [
             "ODR_ItemSelect"
         ],
@@ -471,6 +511,9 @@
                 "threshold": 0.85
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -480,9 +523,7 @@
                 91
             ]
         },
-        "action": {
-            "type": "Click"
-        }
+        "jumpback": "_cp_ODR_SelectCombat"
     },
     "ODR_SelectDiscovery": {
         "recognition": {
@@ -501,6 +542,9 @@
                 "threshold": 0.85
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -510,9 +554,7 @@
                 91
             ]
         },
-        "action": {
-            "type": "Click"
-        },
+        "checkpoint": "_cp_ODR_SelectDiscovery",
         "next": [
             "ODR_Event_Select_SkipText",
             "ODR_Event_Select_SkipText_First",
@@ -543,7 +585,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_ODR_SelectDiscovery"
     },
     "ODR_SelectTreasure": {
         "recognition": {
@@ -562,6 +605,9 @@
                 "threshold": 0.9
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -571,9 +617,7 @@
                 91
             ]
         },
-        "action": {
-            "type": "Click"
-        },
+        "checkpoint": "_cp_ODR_SelectTreasure",
         "next": [
             "ODR_Event_Select_SkipText"
         ],
@@ -601,7 +645,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_ODR_SelectTreasure"
     },
     "ODR_SelectRestSite": {
         "recognition": {
@@ -620,6 +665,9 @@
                 "threshold": 0.85
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -629,9 +677,7 @@
                 91
             ]
         },
-        "action": {
-            "type": "Click"
-        },
+        "checkpoint": "_cp_ODR_SelectRestSite",
         "next": [
             "ODR_Event_Select_SkipText"
         ],
@@ -659,7 +705,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_ODR_SelectRestSite"
     },
     "ODR_SelectShop": {
         "recognition": {
@@ -678,6 +725,9 @@
                 "threshold": 0.85
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -687,9 +737,7 @@
                 91
             ]
         },
-        "action": {
-            "type": "Click"
-        },
+        "checkpoint": "_cp_ODR_SelectShop",
         "next": [
             "ODR_ShopCompleted",
             "ODR_ShopCompleted_2-1"
@@ -703,7 +751,6 @@
         ]
     },
     "ODR_ShopCompleted_2-1": {
-        "doc": "第二排第一列买完",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -719,6 +766,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_ODR_ShopCompleted_2-1",
         "next": [
             "ODR_ShopCompleted",
             "ODR_ShopCompleted_2-2"
@@ -727,10 +775,10 @@
             "ODR_ShopSingleCompleted",
             "ODR_ShopBuy",
             "ODR_ShopEnter_2-2"
-        ]
+        ],
+        "doc": "第二排第一列买完"
     },
     "ODR_ShopCompleted_2-2": {
-        "doc": "第二排第二列买完",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -746,6 +794,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_ODR_ShopCompleted_2-2",
         "next": [
             "ODR_ShopCompleted",
             "ODR_ShopCompleted_2-4"
@@ -754,10 +803,10 @@
             "ODR_ShopSingleCompleted",
             "ODR_ShopBuy",
             "ODR_ShopEnter_2-4"
-        ]
+        ],
+        "doc": "第二排第二列买完"
     },
     "ODR_ShopCompleted_2-4": {
-        "doc": "第二排软驱买完(小概率不是软驱)",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -773,6 +822,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_ODR_ShopCompleted_2-4",
         "next": [
             "ODR_ShopCompleted",
             "ODR_QuitShop"
@@ -780,7 +830,8 @@
         "interrupt": [
             "ODR_ShopSingleCompleted",
             "ODR_ShopBuy"
-        ]
+        ],
+        "doc": "第二排软驱买完(小概率不是软驱)"
     },
     "ODR_ShopCompleted": {
         "doc": "钱不够",
@@ -830,10 +881,11 @@
                 ]
             }
         },
-        "post_wait_freezes": 1,
         "action": {
             "type": "Click"
-        }
+        },
+        "post_wait_freezes": 1,
+        "jumpback": "_cp_ODR_SelectShop"
     },
     "ODR_ShopEnter_2-2": {
         "recognition": {
@@ -851,10 +903,11 @@
                 ]
             }
         },
-        "post_wait_freezes": 1,
         "action": {
             "type": "Click"
-        }
+        },
+        "post_wait_freezes": 1,
+        "jumpback": "_cp_ODR_ShopCompleted_2-1"
     },
     "ODR_ShopEnter_2-4": {
         "recognition": {
@@ -872,10 +925,11 @@
                 ]
             }
         },
-        "post_wait_freezes": 1,
         "action": {
             "type": "Click"
-        }
+        },
+        "post_wait_freezes": 1,
+        "jumpback": "_cp_ODR_ShopCompleted_2-2"
     },
     "ODR_ShopSingleCompleted": {
         "recognition": {
@@ -913,7 +967,13 @@
                 380,
                 220
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_ODR_SelectShop",
+            "_cp_ODR_ShopCompleted_2-1",
+            "_cp_ODR_ShopCompleted_2-4",
+            "_cp_ODR_ShopCompleted_2-2"
+        ]
     },
     "ODR_ShopBuy": {
         "recognition": {
@@ -933,7 +993,13 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_ODR_SelectShop",
+            "_cp_ODR_ShopCompleted_2-1",
+            "_cp_ODR_ShopCompleted_2-4",
+            "_cp_ODR_ShopCompleted_2-2"
+        ]
     },
     "ODR_SelectShop_NoNext": {
         "recognition": {
@@ -954,7 +1020,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_ODR_SelectShop"
     },
     "ODR_SelectImminent": {
         "recognition": {
@@ -973,6 +1040,9 @@
                 "threshold": 0.85
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -982,9 +1052,7 @@
                 91
             ]
         },
-        "action": {
-            "type": "Click"
-        },
+        "checkpoint": "_cp_ODR_SelectImminent",
         "next": [
             "ODR_ItemSelect"
         ],
@@ -1012,10 +1080,10 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_ODR_SelectImminent"
     },
     "ODR_Move": {
-        "doc": "点击一下移动按钮",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -1039,10 +1107,18 @@
                 421,
                 720
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_ODR_SelectTreasure",
+            "_cp_ODR_SelectDiscovery",
+            "_cp_ODR_SelectCombat",
+            "_cp_ODR_SelectRestSite",
+            "_cp_ODR_SelectShop",
+            "_cp_ODR_SelectImminent"
+        ],
+        "doc": "点击一下移动按钮"
     },
     "ODR_SkipText": {
-        "doc": "点击一下屏幕以跳过文本加载",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -1062,7 +1138,21 @@
                     0
                 ]
             }
-        }
+        },
+        "jumpback": [
+            "_cp_ODR_Event_Select_SkipText",
+            "_cp_ODR_Exit",
+            "_cp_ODR_Event_Select_Second",
+            "_cp_ODR_Event_Select_SkipText_First",
+            "_cp_ODR_Event_Select_SkipText_Second",
+            "_cp_ODR_Event_Select_SkipText_Second2Last",
+            "_cp_ODR_Event_Select_Second2Last",
+            "_cp_ODR_Event_Select_SkipText_Windows&Doors",
+            "_cp_ODR_Event_Select",
+            "_cp_ODR_Event_Select_First",
+            "_cp_ODR_MainLoop"
+        ],
+        "doc": "点击一下屏幕以跳过文本加载"
     },
     "ODR_QueryChessLocation": {
         "doc": "查询棋子位置",
@@ -1102,6 +1192,9 @@
                 ]
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -1111,9 +1204,7 @@
                 85
             ]
         },
-        "action": {
-            "type": "Click"
-        },
+        "checkpoint": "_cp_ODR_Levelup",
         "next": [
             "ODR_SkipAddChar",
             "ODR_Levelup"
@@ -1138,6 +1229,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_ODR_ItemSelect",
         "next": [
             "ODR_ItemSelect_Confirm"
         ],
@@ -1161,6 +1253,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_ODR_ItemSelect_NoNext",
         "next": [
             "ODR_ItemSelect_Confirm_NoNext"
         ],
@@ -1196,6 +1289,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_ODR_ItemSelect_2",
         "next": [
             "ODR_ItemSelect_ConfirmFlag"
         ],
@@ -1215,6 +1309,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_ODR_ItemSelect_3",
         "next": [
             "ODR_ItemSelect_ConfirmFlag"
         ],
@@ -1234,13 +1329,14 @@
                 ]
             }
         },
-        "timeout": 10000,
+        "checkpoint": "_cp_ODR_ItemSelect_4",
         "next": [
             "ODR_ItemSelect_ConfirmFlag"
         ],
         "interrupt": [
             "ODR_ItemSelect_1"
-        ]
+        ],
+        "timeout": 10000
     },
     "ODR_ItemSelect_Confirm": {
         "recognition": {
@@ -1270,6 +1366,7 @@
                 85
             ]
         },
+        "checkpoint": "_cp_ODR_ItemSelect_Confirm",
         "next": [
             "ODR_MainLoop",
             "ODR_ItemSelect_Confirm"
@@ -1307,7 +1404,14 @@
                 82,
                 85
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_ODR_Event_Select_SkipText",
+            "_cp_ODR_Event_Select_SkipText_First",
+            "_cp_ODR_Event_Select_SkipText_Second",
+            "_cp_ODR_Event_Select_SkipText_Second2Last",
+            "_cp_ODR_MainLoop"
+        ]
     },
     "ODR_ItemSelect_ConfirmFlag": {
         "recognition": {
@@ -1324,7 +1428,19 @@
                     "确认"
                 ]
             }
-        }
+        },
+        "jumpback": [
+            "_cp_ODR_Event_Select_SkipText",
+            "_cp_ODR_Event_Select_SkipText_First",
+            "_cp_ODR_Event_Select_SkipText_Second",
+            "_cp_ODR_ItemSelect",
+            "_cp_ODR_ItemSelect_3",
+            "_cp_ODR_Event_Select_SkipText_Second2Last",
+            "_cp_ODR_ItemSelect_2",
+            "_cp_ODR_ItemSelect_NoNext",
+            "_cp_ODR_ItemSelect_4",
+            "_cp_ODR_MainLoop"
+        ]
     },
     "ODR_ItemLose_Confirm": {
         "recognition": {
@@ -1353,7 +1469,20 @@
                 390,
                 450
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_ODR_Event_Select_SkipText",
+            "_cp_ODR_Exit",
+            "_cp_ODR_Event_Select_Second",
+            "_cp_ODR_Event_Select_SkipText_First",
+            "_cp_ODR_Event_Select_SkipText_Second",
+            "_cp_ODR_Event_Select_SkipText_Second2Last",
+            "_cp_ODR_Event_Select_Second2Last",
+            "_cp_ODR_Event_Select_SkipText_Windows&Doors",
+            "_cp_ODR_Event_Select",
+            "_cp_ODR_Event_Select_First",
+            "_cp_ODR_MainLoop"
+        ]
     },
     "ODR_ItemLose": {
         "recognition": {
@@ -1448,7 +1577,6 @@
         ]
     },
     "ODR_SkipAddChar_NoConfirm": {
-        "doc": "确认不选择角色",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1462,11 +1590,18 @@
                 "expected": "确认"
             }
         },
-        "inverse": true
+        "jumpback": [
+            "_cp_ODR_Event_Select_SkipText",
+            "_cp_ODR_ItemSelect_Confirm",
+            "_cp_ODR_Event_Select_SkipText_First",
+            "_cp_ODR_Event_Select_SkipText_Second",
+            "_cp_ODR_Event_Select_SkipText_Second2Last",
+            "_cp_ODR_MainLoop"
+        ],
+        "inverse": true,
+        "doc": "确认不选择角色"
     },
     "ODR_Event_Select_SkipText": {
-        "doc": "事件——默认最后一个选项",
-        "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1512,6 +1647,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_ODR_Event_Select_SkipText",
         "next": [
             "ODR_MainLoop"
         ],
@@ -1522,11 +1658,11 @@
             "ODR_ItemLose",
             "SOD_Acquire_NoNext",
             "ODR_SkipText"
-        ]
+        ],
+        "doc": "事件——默认最后一个选项",
+        "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗"
     },
     "ODR_Event_Select_SkipText_First": {
-        "doc": "事件——选择第一个选项",
-        "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1555,6 +1691,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_ODR_Event_Select_SkipText_First",
         "next": [
             "ODR_MainLoop"
         ],
@@ -1565,11 +1702,11 @@
             "ODR_ItemLose",
             "SOD_Acquire_NoNext",
             "ODR_SkipText"
-        ]
+        ],
+        "doc": "事件——选择第一个选项",
+        "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗"
     },
     "ODR_Event_Select_SkipText_Second": {
-        "doc": "事件——选择第二个选项",
-        "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1592,6 +1729,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_ODR_Event_Select_SkipText_Second",
         "next": [
             "ODR_MainLoop"
         ],
@@ -1602,11 +1740,11 @@
             "ODR_ItemLose",
             "SOD_Acquire_NoNext",
             "ODR_SkipText"
-        ]
+        ],
+        "doc": "事件——选择第二个选项",
+        "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗"
     },
     "ODR_Event_Select_SkipText_Second2Last": {
-        "doc": "事件——选择倒数第二个选项",
-        "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1625,6 +1763,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_ODR_Event_Select_SkipText_Second2Last",
         "next": [
             "ODR_MainLoop"
         ],
@@ -1635,11 +1774,11 @@
             "ODR_ItemLose",
             "SOD_Acquire_NoNext",
             "ODR_SkipText"
-        ]
+        ],
+        "doc": "事件——选择倒数第二个选项",
+        "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗"
     },
     "ODR_Event_Select_SkipText_Windows&Doors": {
-        "doc": "选中事件——窗与扉",
-        "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1658,6 +1797,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_ODR_Event_Select_SkipText_Windows&Doors",
         "next": [
             "ODR_Event_Windows&Doors_Completed"
         ],
@@ -1667,10 +1807,11 @@
             "SOD_Acquire_NoNext",
             "ODR_ItemLose",
             "ODR_SkipText"
-        ]
+        ],
+        "doc": "选中事件——窗与扉",
+        "expected_doc": "来自BV197421Z7bm&灰机wiki-维也纳拾遗"
     },
     "ODR_Windows&Doors_Exchange": {
-        "doc": "失声天平",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1695,15 +1836,16 @@
                 ]
             }
         },
+        "checkpoint": "_cp_ODR_Windows&Doors_Exchange",
         "next": [
             "ODR_ItemLose"
         ],
         "interrupt": [
             "ODR_Event_Confirm"
-        ]
+        ],
+        "doc": "失声天平"
     },
     "ODR_Event_Select": {
-        "doc": "选择选项（最后）",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -1721,6 +1863,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_ODR_Event_Select",
         "next": [
             "ODR_Event_Confirm",
             "ODR_Event_Select",
@@ -1729,10 +1872,10 @@
         "interrupt": [
             "ODR_ItemLose",
             "ODR_SkipText"
-        ]
+        ],
+        "doc": "选择选项（最后）"
     },
     "ODR_Event_Select_First": {
-        "doc": "选择选项（第一）",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -1750,6 +1893,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_ODR_Event_Select_First",
         "next": [
             "ODR_Event_Confirm",
             "ODR_Event_Select_First",
@@ -1758,10 +1902,10 @@
         "interrupt": [
             "ODR_ItemLose",
             "ODR_SkipText"
-        ]
+        ],
+        "doc": "选择选项（第一）"
     },
     "ODR_Event_Select_Second2Last": {
-        "doc": "选择选项（倒数第二）",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -1779,6 +1923,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_ODR_Event_Select_Second2Last",
         "next": [
             "ODR_Event_Confirm",
             "ODR_Event_Select_Second2Last",
@@ -1787,10 +1932,10 @@
         "interrupt": [
             "ODR_ItemLose",
             "ODR_SkipText"
-        ]
+        ],
+        "doc": "选择选项（倒数第二）"
     },
     "ODR_Event_Select_Second": {
-        "doc": "选择选项（第二）",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -1808,6 +1953,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_ODR_Event_Select_Second",
         "next": [
             "ODR_Event_Confirm",
             "ODR_Event_Select_Second",
@@ -1816,10 +1962,10 @@
         "interrupt": [
             "ODR_ItemLose",
             "ODR_SkipText"
-        ]
+        ],
+        "doc": "选择选项（第二）"
     },
     "ODR_Windows&Doors_CreationContract": {
-        "doc": "造物典契",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -1834,10 +1980,11 @@
                 "order_by": "Vertical"
             }
         },
-        "post_wait_freezes": 1,
         "action": {
             "type": "Click"
         },
+        "post_wait_freezes": 1,
+        "checkpoint": "_cp_ODR_Windows&Doors_CreationContract",
         "next": [
             "ODR_Event_Windows&Doors_Completed"
         ],
@@ -1848,7 +1995,8 @@
             "SOD_Acquire_NoNext",
             "ODR_Windows&Doors_Merge",
             "BackButton"
-        ]
+        ],
+        "doc": "造物典契"
     },
     "ODR_Event_Windows&Doors_Completed": {
         "recognition": {
@@ -1862,10 +2010,14 @@
                 ],
                 "template": "./OutsideDeductionRapid/WindowsCompleted.png"
             }
-        }
+        },
+        "jumpback": [
+            "_cp_ODR_Event_Select_SkipText_Windows&Doors",
+            "_cp_ODR_Windows&Doors_CreationContract",
+            "_cp_ODR_Exit"
+        ]
     },
     "ODR_Windows&Doors_Merge": {
-        "doc": "位于奇巧置换",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1881,15 +2033,16 @@
                 ]
             }
         },
+        "checkpoint": "_cp_ODR_Windows&Doors_Merge",
         "next": [
             "ODR_Event_Windows&Doors_Completed"
         ],
         "interrupt": [
             "BackButton"
-        ]
+        ],
+        "doc": "位于奇巧置换"
     },
     "ODR_Windows&Doors_CreationContract_Refresh": {
-        "doc": "换一批",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1916,10 +2069,15 @@
                 153,
                 55
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_ODR_Event_Select_SkipText_Windows&Doors",
+            "_cp_ODR_Windows&Doors_CreationContract",
+            "_cp_ODR_Exit"
+        ],
+        "doc": "换一批"
     },
     "ODR_OptionSelectAll": {
-        "doc": "选择选项（所有）",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -1938,10 +2096,15 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_ODR_Event_Select_SkipText_Windows&Doors",
+            "_cp_ODR_Windows&Doors_CreationContract",
+            "_cp_ODR_Exit"
+        ],
+        "doc": "选择选项（所有）"
     },
     "ODR_Event_Confirm": {
-        "doc": "确认选项",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -1954,6 +2117,9 @@
                 "template": "OutsideDeduction/SOD_EndEvent_OK.png"
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -1963,9 +2129,17 @@
                 450
             ]
         },
-        "action": {
-            "type": "Click"
-        }
+        "jumpback": [
+            "_cp_ODR_Event_Select_SkipText",
+            "_cp_ODR_Exit",
+            "_cp_ODR_Event_Select_SkipText_First",
+            "_cp_ODR_Event_Select_SkipText_Second",
+            "_cp_ODR_Event_Select_SkipText_Second2Last",
+            "_cp_ODR_Windows&Doors_Exchange",
+            "_cp_ODR_Event_Select_SkipText_Windows&Doors",
+            "_cp_ODR_Windows&Doors_CreationContract"
+        ],
+        "doc": "确认选项"
     },
     "ODR_Event_Confirm_CreationContract": {
         "doc": "确认选项",
@@ -2021,6 +2195,9 @@
                 "template": "OutsideDeductionRapid/Door.png"
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 200,
             "target": [
@@ -2030,9 +2207,7 @@
                 85
             ]
         },
-        "action": {
-            "type": "Click"
-        },
+        "checkpoint": "_cp_ODR_Exit",
         "next": [
             "ODR_Start"
         ],
@@ -2057,6 +2232,7 @@
             }
         },
         "post_wait_freezes": 1000,
+        "checkpoint": "_cp_ODR_MainLoop",
         "next": [
             "ODR_Exit",
             "ODR_QueryChessLocation"
@@ -2081,6 +2257,12 @@
                 ],
                 "template": "OutsideDeduction/SOD_Main.png"
             }
-        }
+        },
+        "jumpback": [
+            "_cp_ODR_Event_Select_SkipText",
+            "_cp_ODR_Event_Select_SkipText_Second",
+            "_cp_ODR_Event_Select_SkipText_First",
+            "_cp_ODR_Event_Select_SkipText_Second2Last"
+        ]
     }
 }

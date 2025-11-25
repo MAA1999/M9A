@@ -1,5 +1,6 @@
 {
     "Wilderness": {
+        "checkpoint": "_cp_Wilderness",
         "next": [
             "EnterWilderness",
             "EnterGoodDreamWell",
@@ -31,6 +32,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_EnterWilderness",
         "next": [
             "FlagInWilderness",
             "EnterWilderness"
@@ -86,6 +88,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_EnterGoodDreamWell",
         "next": [
             "FlagInGoodDreamWell",
             "EnterGoodDreamWell"
@@ -109,6 +112,7 @@
                 "expected": "我的好梦井"
             }
         },
+        "checkpoint": "_cp_FlagInGoodDreamWell",
         "next": [
             "FlagInGoodDreamWellCenter",
             "FlagInGoodDreamWellFinish"
@@ -143,7 +147,8 @@
                     0
                 ]
             }
-        }
+        },
+        "jumpback": "_cp_FlagInGoodDreamWell"
     },
     "FlagInGoodDreamWellCenter": {
         "recognition": {
@@ -162,6 +167,7 @@
             "type": "Click"
         },
         "post_delay": 3000,
+        "checkpoint": "_cp_FlagInGoodDreamWellCenter",
         "next": [
             "FlagInGoodDreamWellFishing",
             "FlagInGoodDreamWellCenter"
@@ -187,6 +193,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_FlagInGoodDreamWellFinish",
         "next": [
             "EnterProduct",
             "EnterTrade",
@@ -216,6 +223,7 @@
                 "custom_action": "GoodDreamWellFishing"
             }
         },
+        "checkpoint": "_cp_FlagInGoodDreamWellFishing",
         "next": [
             "EnterProduct",
             "EnterTrade",
@@ -242,7 +250,12 @@
                 "connected": true,
                 "count": 10000
             }
-        }
+        },
+        "jumpback": [
+            "_cp_EnterGoodDreamWell",
+            "_cp_FlagInGoodDreamWellFinish",
+            "_cp_FlagInGoodDreamWellFishing"
+        ]
     },
     "GoodDreamWellOCR": {
         "recognition": {
@@ -337,6 +350,7 @@
                 "expected": "批发交易"
             }
         },
+        "checkpoint": "_cp_TradeCompleted",
         "next": [
             "EnterAncientHall"
         ],
@@ -361,6 +375,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_EnterAncientHall",
         "next": [
             "AncientHallFlag"
         ],
@@ -382,6 +397,7 @@
                 "expected": "古厅"
             }
         },
+        "checkpoint": "_cp_AncientHallFlag",
         "next": [
             "NoExpMoney"
         ],
@@ -402,7 +418,7 @@
                 "expected": "^(100|[1-9]\\d?)%$"
             }
         },
-        "inverse": true,
+        "checkpoint": "_cp_NoExpMoney",
         "next": [
             "CollectAwards",
             "CollectTrust",
@@ -412,7 +428,8 @@
         ],
         "interrupt": [
             "BackButtonWithDelay"
-        ]
+        ],
+        "inverse": true
     },
     "CollectExpMoney": {
         "recognition": {
@@ -438,7 +455,8 @@
                 242,
                 719
             ]
-        }
+        },
+        "jumpback": "_cp_AncientHallFlag"
     },
     "ClickAncientHall": {
         "recognition": {
@@ -470,7 +488,8 @@
                 242,
                 719
             ]
-        }
+        },
+        "jumpback": "_cp_EnterAncientHall"
     },
     "CollectAwards": {
         "recognition": {
@@ -488,6 +507,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_CollectAwards",
         "next": [
             "CollectTrust",
             "TrustDialogueNext",
@@ -516,6 +536,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_CollectTrust",
         "next": [
             "TrustMax",
             "CollectTrust",
@@ -552,7 +573,8 @@
                     8
                 ]
             }
-        }
+        },
+        "jumpback": "_cp_CollectTrust"
     },
     "TrustDialogueNext": {
         "recognition": {
@@ -570,6 +592,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_TrustDialogueNext",
         "next": [
             "TrustDialogueNext",
             "TrustDialogueInteraction",
@@ -596,6 +619,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_TrustDialogueInteraction",
         "next": [
             "TrustDialogueNext",
             "TrustDialogueInteraction",
@@ -624,6 +648,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_TrustMax",
         "next": [
             "HomeFlag"
         ],
@@ -633,7 +658,6 @@
         ]
     },
     "EnterProduct": {
-        "enabled": true,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -660,6 +684,7 @@
                 ]
             }
         },
+        "pre_delay": 3000,
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -669,7 +694,7 @@
                 212
             ]
         },
-        "pre_delay": 3000,
+        "checkpoint": "_cp_EnterProduct",
         "next": [
             "CollectProduct",
             "AutoAssignCritters",
@@ -677,7 +702,8 @@
         ],
         "interrupt": [
             "interrupt_SummonlngSuccessBack"
-        ]
+        ],
+        "enabled": true
     },
     "CollectProduct": {
         "recognition": {
@@ -787,6 +813,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_AutoSelectComfirm",
         "next": [
             "AutoAssignCritters",
             "AutoSelectComfirm",
@@ -852,6 +879,7 @@
             }
         },
         "post_delay": 3000,
+        "checkpoint": "_cp_UnableAssignCritters",
         "next": [
             "EnterTrade",
             "EnterAncientHall"
@@ -941,6 +969,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_SummonlngSuccessBack",
         "next": [
             "EnterTrade",
             "EnterAncientHall"
@@ -972,6 +1001,7 @@
                     8
                 ]
             }
-        }
+        },
+        "jumpback": "_cp_EnterProduct"
     }
 }

@@ -11,7 +11,6 @@
         }
     },
     "ActivityMainFlag": {
-        "doc": "活动主页面",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -25,13 +24,15 @@
                 "expected": "成就"
             }
         },
+        "checkpoint": "_cp_ActivityMainFlag",
         "next": [
             "ActivityMainAnecdoteFlag"
         ],
         "interrupt": [
             "ActivityMainSelectAnecdote",
             "SwipeDownForAnecdote"
-        ]
+        ],
+        "doc": "活动主页面"
     },
     "ActivityMainSelectAnecdote": {
         "recognition": {
@@ -48,6 +49,7 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_ActivityMainFlag"
     }
 }

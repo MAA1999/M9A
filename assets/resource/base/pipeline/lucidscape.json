@@ -1,6 +1,6 @@
 {
     "Lucidscape": {
-        "doc": "醒梦域",
+        "checkpoint": "_cp_Lucidscape",
         "next": [
             "LucidscapeEntryEnd",
             "FlagInLucidscape"
@@ -13,7 +13,8 @@
             "ClickBlank",
             "ArtificialSleepwalking",
             "ReturnMain"
-        ]
+        ],
+        "doc": "醒梦域"
     },
     "LucidscapeEntryEnd": {
         "recognition": {
@@ -64,6 +65,7 @@
             }
         },
         "post_delay": 3000,
+        "checkpoint": "_cp_LucidscapeTotalAwards",
         "next": [
             "LucidscapeFlagInTotalAwards",
             "HomeFlag"
@@ -86,6 +88,7 @@
                 "expected": "首通"
             }
         },
+        "checkpoint": "_cp_LucidscapeFlagInTotalAwards",
         "next": [
             "LucidscapeTotalAwardsCompleted"
         ],
@@ -122,6 +125,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_LucidscapeTotalAwardsCompleted",
         "next": [
             "HomeFlag"
         ],
@@ -241,8 +245,7 @@
         "action": {
             "type": "Click"
         },
-        "timeout": 300000,
-        "rate_limit": 10000,
+        "checkpoint": "_cp_LucidscapeCombatStart",
         "next": [
             "LucidscapeFailed",
             "LucidscapeVictory"
@@ -250,7 +253,9 @@
         "interrupt": [
             "Combating",
             "LucidscapeSkipWarning"
-        ]
+        ],
+        "rate_limit": 10000,
+        "timeout": 300000
     },
     "LucidscapeSkipWarning": {
         "recognition": {
@@ -268,7 +273,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_LucidscapeCombatStart"
     },
     "Combating": {
         "recognition": {
@@ -282,7 +288,8 @@
                 ],
                 "template": "Lucidscape/Combating.png"
             }
-        }
+        },
+        "jumpback": "_cp_LucidscapeCombatStart"
     },
     "LucidscapeFailed": {
         "recognition": {
@@ -304,6 +311,7 @@
             "type": "Click"
         },
         "post_delay": 2000,
+        "checkpoint": "_cp_LucidscapeFailed",
         "next": [
             "HomeFlag",
             "LucidscapeFailed"
@@ -328,6 +336,9 @@
                 ]
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -337,9 +348,7 @@
                 263
             ]
         },
-        "action": {
-            "type": "Click"
-        },
+        "checkpoint": "_cp_LucidscapeVictory",
         "next": [
             "LucidscapeStatusDetect",
             "LucidscapeVictory"
@@ -369,7 +378,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_LucidscapeVictory"
     },
     "LucidscapeClickBlank": {
         "recognition": {
@@ -387,7 +397,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_LucidscapeVictory"
     },
     "TeamlistOff": {
         "recognition": {
@@ -479,6 +490,7 @@
                 "expected": "醒梦片段"
             }
         },
+        "checkpoint": "_cp_LucidscapeFlagInAwards",
         "next": [
             "LucidscapeNoAwards"
         ],
@@ -515,6 +527,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_LucidscapeNoAwards",
         "next": [
             "FlagInLucidscape"
         ],
@@ -539,7 +552,11 @@
         "action": {
             "type": "Click"
         },
-        "post_delay": 2000
+        "post_delay": 2000,
+        "jumpback": [
+            "_cp_LucidscapeFlagInAwards",
+            "_cp_LucidscapeFlagInTotalAwards"
+        ]
     },
     "LucidscapeFinish": {
         "recognition": {
@@ -580,7 +597,8 @@
                 188,
                 66
             ]
-        }
+        },
+        "jumpback": "_cp_Lucidscape"
     },
     "LucidscapeStageLocked": {
         "recognition": {

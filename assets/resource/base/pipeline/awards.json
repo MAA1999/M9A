@@ -1,5 +1,6 @@
 {
     "Awards": {
+        "checkpoint": "_cp_Awards",
         "next": [
             "AwardsMainFlag"
         ],
@@ -35,6 +36,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_AwardsMainFlag",
         "next": [
             "Sub_MailBadge",
             "Sub_DailyBadge",
@@ -48,7 +50,6 @@
         ]
     },
     "Sub_MailBadge": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -69,12 +70,14 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_Sub_MailBadge",
         "next": [
             "CollectMailAwards"
         ],
         "interrupt": [
             "MailBadge"
-        ]
+        ],
+        "is_sub": true
     },
     "MailBadge": {
         "recognition": {
@@ -96,7 +99,11 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Sub_MailBadge",
+            "_cp_AwardsMainFlag"
+        ]
     },
     "CollectMailAwards": {
         "recognition": {
@@ -114,6 +121,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_CollectMailAwards",
         "next": [
             "NoMailAwards",
             "CollectMailAwards"
@@ -137,7 +145,66 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_FlagInPawnShop_1",
+            "_cp_Psychube",
+            "_cp_FlagInPawnShop_3",
+            "_cp_FindTinyGlobe(1)",
+            "_cp_FlagInDneiricShop_1",
+            "_cp_SSTaskEntryGet",
+            "_cp_Limbo",
+            "_cp_Sp01Messagers",
+            "_cp_StartGame",
+            "_cp_LimboObtainedAwards_1",
+            "_cp_LimboStarsMainFlag",
+            "_cp_HomeFlagFirst",
+            "_cp_TranceMainFlag",
+            "_cp_FlagInSp01Daily",
+            "_cp_ActivityMainAnecdoteFlag",
+            "_cp_StartUp",
+            "_cp_Sub_DailyBadge",
+            "_cp_CombatActivityOverride",
+            "_cp_WeeklyAwardsBadge",
+            "_cp_FlagInBank",
+            "_cp_SeriesOfDusks",
+            "_cp_FlagInDneiricShop",
+            "_cp_Lucidscape",
+            "_cp_Sub_JukeboxBadge",
+            "_cp_AnecdoteCompleted",
+            "_cp_SelectCombatStage",
+            "_cp_LimboEnd",
+            "_cp_LimboStarsMainAwards",
+            "_cp_AnecdoteTaskCompleted_2",
+            "_cp_AnecdoteNoFusingBox",
+            "_cp_FlagInDneiricShop_3",
+            "_cp_TranceEnd_1",
+            "_cp_FlagInDneiricShop_2",
+            "_cp_Sub_Sp01DataCollect",
+            "_cp_ReturnMain",
+            "_cp_LucidscapeFlagInAwards",
+            "_cp_CollectAwards",
+            "_cp_AnecdoteNotRead",
+            "_cp_FlagInPawnShop_2",
+            "_cp_AnecdoteMainFlag",
+            "_cp_FlagInFragmentsShop",
+            "_cp_FlagInTellerMachine",
+            "_cp_CritterCrash",
+            "_cp_LimboStarsMainFlag_AfterFailed",
+            "_cp_DissociationFastInsertCompleted",
+            "_cp_LucidscapeFlagInTotalAwards",
+            "_cp_AwardsMainFlag",
+            "_cp_LimboObtainedAwards_3",
+            "_cp_Sub_JukeboxAwardsBadge",
+            "_cp_Sub_JukeboxBadge_3.2",
+            "_cp_CollectMailAwards",
+            "_cp_Wilderness",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_LimboObtainedAwards_2",
+            "_cp_TheSyndromeOfSilence"
+        ]
     },
     "NoMailAwards": {
         "recognition": {
@@ -153,6 +220,7 @@
                 "threshold": 0.6
             }
         },
+        "checkpoint": "_cp_NoMailAwards",
         "next": [
             "EquipmentOverflows",
             "HomeFlag"
@@ -162,7 +230,6 @@
         ]
     },
     "EquipmentOverflows": {
-        "doc": "心相仓库已满",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -175,13 +242,15 @@
                 "expected": "仓库已满"
             }
         },
+        "checkpoint": "_cp_EquipmentOverflows",
         "next": [
             "WareHouseFlag"
         ],
         "interrupt": [
             "EnterWareHouse",
             "BackButton"
-        ]
+        ],
+        "doc": "心相仓库已满"
     },
     "WareHouseFlag": {
         "recognition": {
@@ -231,6 +300,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_EnterDissociation",
         "next": [
             "Dissociation4StarFlag"
         ],
@@ -253,6 +323,7 @@
                 "expected": "4"
             }
         },
+        "checkpoint": "_cp_Dissociation4StarFlag",
         "next": [
             "DissociationFastInsertCompleted"
         ],
@@ -287,6 +358,7 @@
             "type": "Click"
         },
         "post_delay": 3000,
+        "checkpoint": "_cp_DissociationFastInsertCompleted",
         "next": [
             "DissociationCompleted",
             "DissociationFastInsertCompleted"
@@ -318,6 +390,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_DissociationCompleted",
         "next": [
             "HomeFlag"
         ],
@@ -342,7 +415,11 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Dissociation4StarFlag",
+            "_cp_AwardsMainFlag"
+        ]
     },
     "Dissociation4StarSelect": {
         "recognition": {
@@ -369,7 +446,11 @@
                 316,
                 216
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_EnterDissociation",
+            "_cp_AwardsMainFlag"
+        ]
     },
     "Dissociation3StarSelect": {
         "recognition": {
@@ -396,7 +477,11 @@
                 316,
                 216
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_EnterDissociation",
+            "_cp_AwardsMainFlag"
+        ]
     },
     "EnterWareHouse": {
         "recognition": {
@@ -413,10 +498,13 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_EquipmentOverflows",
+            "_cp_AwardsMainFlag"
+        ]
     },
     "Sub_DailyBadge": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -438,6 +526,7 @@
             "type": "Click"
         },
         "post_wait_freezes": 200,
+        "checkpoint": "_cp_Sub_DailyBadge",
         "next": [
             "Sub_CollectDailyAwards",
             "WeeklyAwardsBadge",
@@ -446,10 +535,10 @@
         "interrupt": [
             "ObtainedAwards",
             "BackButton"
-        ]
+        ],
+        "is_sub": true
     },
     "Sub_CollectDailyAwards": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -467,7 +556,13 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_WeeklyAwardsBadge",
+            "_cp_AwardsMainFlag",
+            "_cp_Sub_DailyBadge"
+        ],
+        "is_sub": true
     },
     "WeeklyAwardsBadge": {
         "recognition": {
@@ -486,6 +581,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_WeeklyAwardsBadge",
         "next": [
             "Sub_CollectDailyAwards",
             "WeeklyAwardsBadge",
@@ -498,7 +594,6 @@
         ]
     },
     "WeeklyAwardsCompleted": {
-        "doc": "周任务完成，开始尝试获取显影罐",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -512,13 +607,15 @@
                 "expected": "已领取全部奖励"
             }
         },
+        "checkpoint": "_cp_WeeklyAwardsCompleted",
         "next": [
             "ShowFlag"
         ],
         "interrupt": [
             "EnterTheShow",
             "BackButton"
-        ]
+        ],
+        "doc": "周任务完成，开始尝试获取显影罐"
     },
     "ShowFlag": {
         "recognition": {
@@ -537,7 +634,8 @@
                     "轶事"
                 ]
             }
-        }
+        },
+        "jumpback": "_cp_AwardsMainFlag"
     },
     "DevelopmentTank": {
         "recognition": {
@@ -588,7 +686,6 @@
         }
     },
     "Sub_JukeboxBadge": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -610,6 +707,7 @@
             "type": "Click"
         },
         "post_delay": 3000,
+        "checkpoint": "_cp_Sub_JukeboxBadge",
         "next": [
             "Sub_CollectJukebox",
             "Sub_JukeboxAwardsBadge",
@@ -619,7 +717,8 @@
             "ObtainedAwards",
             "JukeboxExitPurchase",
             "BackButton"
-        ]
+        ],
+        "is_sub": true
     },
     "JukeboxExitPurchase": {
         "recognition": {
@@ -637,10 +736,14 @@
         "action": {
             "type": "Click"
         },
-        "post_delay": 1000
+        "post_delay": 1000,
+        "jumpback": [
+            "_cp_Sub_JukeboxBadge",
+            "_cp_AwardsMainFlag",
+            "_cp_Sub_JukeboxAwardsBadge"
+        ]
     },
     "Sub_JukeboxAwardsBadge": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -657,6 +760,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_Sub_JukeboxAwardsBadge",
         "next": [
             "Sub_CollectJukebox",
             "Sub_JukeboxAwardsBadge",
@@ -666,7 +770,8 @@
             "ObtainedAwards",
             "ExitEdition",
             "JukeboxExitPurchase"
-        ]
+        ],
+        "is_sub": true
     },
     "ExitEdition": {
         "recognition": {
@@ -686,7 +791,6 @@
         ]
     },
     "Sub_CollectJukebox": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -701,7 +805,13 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Sub_JukeboxBadge",
+            "_cp_AwardsMainFlag",
+            "_cp_Sub_JukeboxAwardsBadge"
+        ],
+        "is_sub": true
     },
     "NoJukeboxAwards": {
         "recognition": {
@@ -716,7 +826,12 @@
                 "template": "Awards/NoJukeboxAwards.png",
                 "threshold": 0.97
             }
-        }
+        },
+        "jumpback": [
+            "_cp_Sub_JukeboxBadge",
+            "_cp_AwardsMainFlag",
+            "_cp_Sub_JukeboxAwardsBadge"
+        ]
     },
     "Sub_JukeboxBadge_3.2": {
         "recognition": {
@@ -732,10 +847,11 @@
                 "threshold": 0.9
             }
         },
-        "post_delay": 1500,
         "action": {
             "type": "Click"
         },
+        "post_delay": 1500,
+        "checkpoint": "_cp_Sub_JukeboxBadge_3.2",
         "next": [
             "HomeFlag"
         ],
@@ -761,6 +877,7 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_Sub_JukeboxBadge_3.2"
     }
 }

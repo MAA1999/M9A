@@ -1,5 +1,6 @@
 {
     "SwitchAccount": {
+        "checkpoint": "_cp_SwitchAccount",
         "next": [
             "MainMenuFlag"
         ],
@@ -21,6 +22,7 @@
                 "template": "./SwitchAccount/Detail.png"
             }
         },
+        "checkpoint": "_cp_MainMenuFlag",
         "next": [
             "SettingEntry"
         ],
@@ -53,6 +55,7 @@
                 174
             ]
         },
+        "checkpoint": "_cp_SettingEntry",
         "next": [
             "StartGameFlag",
             "SettingEntry"
@@ -77,6 +80,7 @@
                 "green_mask": true
             }
         },
+        "checkpoint": "_cp_StartGameFlag",
         "next": [
             "SwitchAccountMainFlag"
         ],
@@ -142,6 +146,7 @@
                 "expected": "[×xX✕✖]"
             }
         },
+        "checkpoint": "_cp_SwitchAccountMainExpandFlag_1440p",
         "next": [
             "SwitchLastAccountComplete"
         ],
@@ -265,7 +270,8 @@
                 408,
                 246
             ]
-        }
+        },
+        "jumpback": "_cp_SwitchAccountMainExpandFlag_1440p"
     },
     "SwitchAccountMainExpand": {
         "recognition": {
@@ -346,7 +352,8 @@
                 417,
                 295
             ]
-        }
+        },
+        "jumpback": "_cp_StartGameFlag"
     },
     "AccountExitButton": {
         "recognition": {
@@ -363,7 +370,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_StartGameFlag"
     },
     "AccountExitConfirm": {
         "recognition": {
@@ -381,7 +389,8 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 1
+        "post_wait_freezes": 1,
+        "jumpback": "_cp_SettingEntry"
     },
     "AccountExit": {
         "recognition": {
@@ -399,7 +408,8 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 1
+        "post_wait_freezes": 1,
+        "jumpback": "_cp_SettingEntry"
     },
     "AccountSettingEnter": {
         "recognition": {
@@ -419,7 +429,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_SettingEntry"
     },
     "MenuRight": {
         "recognition": {
@@ -445,7 +456,8 @@
                 424,
                 225
             ]
-        }
+        },
+        "jumpback": "_cp_MainMenuFlag"
     },
     "MainMenuEntry": {
         "recognition": {
@@ -471,6 +483,7 @@
                 122,
                 174
             ]
-        }
+        },
+        "jumpback": "_cp_SwitchAccount"
     }
 }

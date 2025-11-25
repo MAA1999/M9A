@@ -12,6 +12,7 @@
                 "custom_action_param_code": "stage&level"
             }
         },
+        "checkpoint": "_cp_SelectCombatStage",
         "next": [
             "EnterTheShowFlag"
         ],
@@ -22,6 +23,7 @@
         ]
     },
     "ReturnMainStoryChapter": {
+        "checkpoint": "_cp_ReturnMainStoryChapter",
         "next": [
             "ReturnMainStoryChapterTrue"
         ],
@@ -66,7 +68,8 @@
         "action": {
             "type": "Click"
         },
-        "post_delay": 2000
+        "post_delay": 2000,
+        "jumpback": "_cp_ReturnMainStoryChapter"
     },
     "SelectMainStoryChapter": {
         "recognition": {
@@ -88,7 +91,6 @@
         "post_delay": 3000
     },
     "EnterTheShow": {
-        // 请不要为该任务加next，一般应当放于interrupt使用
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -108,6 +110,7 @@
         "action": {
             "type": "Click"
         },
+        "post_delay": 5000,
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -117,7 +120,15 @@
                 26
             ]
         },
-        "post_delay": 5000
+        "jumpback": [
+            "_cp_Psychube",
+            "_cp_WeeklyAwardsCompleted",
+            "_cp_AwardsMainFlag",
+            "_cp_SeriesOfDusks",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SelectCombatStage"
+        ]
     },
     "EnterTheShowFlag": {
         "recognition": {
@@ -185,7 +196,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_SelectCombatStage"
     },
     "MainChapter_X": {
         "action": {
@@ -194,6 +206,7 @@
                 "custom_action": "SelectChapter"
             }
         },
+        "checkpoint": "_cp_MainChapter_X",
         "next": [
             "MainChapter_XEnter"
         ],
@@ -243,16 +256,23 @@
                 133,
                 26
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_ResourceChapter_MA",
+            "_cp_Psychube",
+            "_cp_ResourceChapter_Psychube",
+            "_cp_ResourceChapter_LP"
+        ]
     },
     "ResourceChapter_LP": {
-        "doc": "尘埃运动",
+        "checkpoint": "_cp_ResourceChapter_LP",
         "next": [
             "ResourceChapter_LPEnter"
         ],
         "interrupt": [
             "ResourceChapterLabel"
-        ]
+        ],
+        "doc": "尘埃运动"
     },
     "ResourceChapter_LPEnter": {
         "recognition": {
@@ -274,13 +294,14 @@
         "next": "SwipeLeftAndFindStage"
     },
     "ResourceChapter_MA": {
-        "doc": "铸币美学",
+        "checkpoint": "_cp_ResourceChapter_MA",
         "next": [
             "ResourceChapter_MAEnter"
         ],
         "interrupt": [
             "ResourceChapterLabel"
-        ]
+        ],
+        "doc": "铸币美学"
     },
     "ResourceChapter_MAEnter": {
         "recognition": {
@@ -306,6 +327,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_ResourceChapter_MAEnter",
         "next": [
             "SwipeLeftAndFindStage"
         ],
@@ -314,7 +336,7 @@
         ]
     },
     "ResourceChapter_Psychube": {
-        "doc": "意志解析",
+        "checkpoint": "_cp_ResourceChapter_Psychube",
         "next": [
             "ResourceChapter_Psychube07FreeEnter",
             "ResourceChapter_NoFreePsychube07"
@@ -322,7 +344,8 @@
         "interrupt": [
             "ResourceChapterLabel",
             "SwipeRightForChapter"
-        ]
+        ],
+        "doc": "意志解析"
     },
     "ResourceChapter_Psychube07FreeEnter": {
         "recognition": {
@@ -484,7 +507,13 @@
                 1280,
                 353
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_MainChapter_X",
+            "_cp_ResourceChapter_Psychube",
+            "_cp_ActivityMainFlag",
+            "_cp_ResourceChapter_MAEnter"
+        ]
     },
     "SwipeLeftAndFindStage": {
         "recognition": {
@@ -712,6 +741,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_ReadyForAction",
         "next": [
             "IsReplay"
         ],
@@ -753,7 +783,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_ReadyForAction"
     },
     "TargetLevelRec": {
         "recognition": {

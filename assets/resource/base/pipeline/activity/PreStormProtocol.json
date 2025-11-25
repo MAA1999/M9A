@@ -6,7 +6,6 @@
         ]
     },
     "PreStormProtocol": {
-        // 未打败教程中boss的任务链
         "recognition": {
             "type": "Custom",
             "param": {
@@ -32,6 +31,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_PreStormProtocol",
         "next": [
             "PreStormProtocolGiveUp",
             "PreStormProtocol"
@@ -66,7 +66,12 @@
                     24
                 ]
             }
-        }
+        },
+        "jumpback": [
+            "_cp_PreStormProtocolGiveUp",
+            "_cp_PreStormProtocol1",
+            "_cp_PreStormProtocol"
+        ]
     },
     "PreStormProtocolGiveUp": {
         "recognition": {
@@ -84,6 +89,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_PreStormProtocolGiveUp",
         "next": [
             "PreStormProtocolGiveUp",
             "PreStormProtocol"
@@ -95,7 +101,6 @@
         ]
     },
     "PreStormProtocol1": {
-        // 已打败教程中boss的任务链
         "recognition": {
             "type": "Custom",
             "param": {
@@ -121,6 +126,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_PreStormProtocol1",
         "next": [
             "PreStormProtocol1"
         ],
@@ -155,7 +161,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_PreStormProtocol1"
     },
     "PreStormProtocol1StartClick": {
         "recognition": {
@@ -181,7 +188,8 @@
                     24
                 ]
             }
-        }
+        },
+        "jumpback": "_cp_PreStormProtocol1"
     },
     "PreStormProtocolLoading": {
         "recognition": {
@@ -195,7 +203,8 @@
                 ],
                 "template": "PreStormProtocol/Loading.png"
             }
-        }
+        },
+        "jumpback": "_cp_PreStormProtocol1"
     },
     "PreStormProtocolExit": {
         "recognition": {
@@ -212,7 +221,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_PreStormProtocol1"
     },
     "PreStormProtocolFailed": {
         "recognition": {
@@ -238,6 +248,7 @@
                     54
                 ]
             }
-        }
+        },
+        "jumpback": "_cp_PreStormProtocol1"
     }
 }

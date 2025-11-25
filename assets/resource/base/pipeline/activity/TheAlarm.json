@@ -1,5 +1,6 @@
 {
     "TheAlarm": {
+        "checkpoint": "_cp_TheAlarm",
         "next": "Alarm_End",
         "interrupt": [
             "Alarm_Find0/3"
@@ -45,6 +46,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_Alarm_Find0/3",
         "next": [
             "Alarm_Select",
             "Alarm_Complete"
@@ -64,12 +66,13 @@
                 ]
             }
         },
-        "enabled": false,
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_Alarm_Select",
         "next": "Alarm_Complete",
-        "interrupt": "Alarm_StageFlag"
+        "interrupt": "Alarm_StageFlag",
+        "enabled": false
     },
     "Alarm_Complete": {
         "recognition": {
@@ -81,7 +84,6 @@
                 "threshold": 0.6
             }
         },
-        "pre_delay": 1000,
         "action": {
             "type": "Click",
             "param": {
@@ -92,7 +94,13 @@
                     12
                 ]
             }
-        }
+        },
+        "pre_delay": 1000,
+        "jumpback": [
+            "_cp_Alarm_Find0/3",
+            "_cp_TheAlarm",
+            "_cp_Alarm_Select"
+        ]
     },
     "Alarm_StageFlag": {
         "recognition": {
@@ -201,6 +209,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_Alarm_Action2",
         "next": [
             "Alarm_StageFlagEnd1",
             "Alarm_StageFlagEnd",
@@ -300,7 +309,13 @@
                 218,
                 54
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_Alarm_Find0/3",
+            "_cp_TheAlarm",
+            "_cp_Alarm_Select",
+            "_cp_Alarm_Action2"
+        ]
     },
     "Alarm_StageFlagEnd": {
         "recognition": {
@@ -314,7 +329,13 @@
                 ],
                 "expected": "进度"
             }
-        }
+        },
+        "jumpback": [
+            "_cp_Alarm_Find0/3",
+            "_cp_TheAlarm",
+            "_cp_Alarm_Select",
+            "_cp_Alarm_Action2"
+        ]
     },
     "Alarm_StageFlagEnd1": {
         "recognition": {

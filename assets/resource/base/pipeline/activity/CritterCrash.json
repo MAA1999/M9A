@@ -1,6 +1,6 @@
 {
     "CritterCrash": {
-        "doc": "翻斗棋页面启动",
+        "checkpoint": "_cp_CritterCrash",
         "next": [
             "棋局终结者结束任务"
         ],
@@ -19,7 +19,8 @@
             "评级提升",
             "ObtainedAwards",
             "无视奖励"
-        ]
+        ],
+        "doc": "翻斗棋页面启动"
     },
     "无视奖励": {
         "recognition": {
@@ -67,7 +68,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_CritterCrash"
     },
     "棋局终结者结束任务": {
         "recognition": {
@@ -104,7 +106,8 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 100
+        "post_wait_freezes": 100,
+        "jumpback": "_cp_CritterCrash"
     },
     "奖励怪物免费购买": {
         "recognition": {
@@ -121,7 +124,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_CritterCrash"
     },
     "怪物粘贴处": {
         "recognition": {
@@ -147,7 +151,8 @@
                 ]
             }
         },
-        "post_wait_freezes": 100
+        "post_wait_freezes": 100,
+        "jumpback": "_cp_CritterCrash"
     },
     "怪物粘贴处购买": {
         "recognition": {
@@ -164,7 +169,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_CritterCrash"
     },
     "缪斯币不足开始战斗": {
         "recognition": {
@@ -202,7 +208,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_CritterCrash"
     },
     "翻斗棋战斗跳过": {
         "recognition": {
@@ -219,7 +226,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_CritterCrash"
     },
     "翻斗棋对战结束": {
         "recognition": {
@@ -237,7 +245,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_CritterCrash"
     },
     "翻斗棋结算": {
         "recognition": {
@@ -262,7 +271,8 @@
                     0
                 ]
             }
-        }
+        },
+        "jumpback": "_cp_CritterCrash"
     },
     "箱中对决": {
         "recognition": {
@@ -279,7 +289,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_CritterCrash"
     },
     "选择棋手": {
         "recognition": {
@@ -324,7 +335,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_CritterCrash"
     },
     "评级提升": {
         "recognition": {
@@ -341,6 +353,7 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_CritterCrash"
     }
 }

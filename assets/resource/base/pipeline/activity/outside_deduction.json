@@ -1,5 +1,6 @@
 {
     "SeriesOfDusks": {
+        "checkpoint": "_cp_SeriesOfDusks",
         "next": [
             "SOD_Menu"
         ],
@@ -33,7 +34,8 @@
                 286,
                 114
             ]
-        }
+        },
+        "jumpback": "_cp_SeriesOfDusks"
     },
     "SOD_Menu": {
         "recognition": {
@@ -49,6 +51,7 @@
                 "expected": "黄金巷"
             }
         },
+        "checkpoint": "_cp_SOD_Menu",
         "next": [
             "SOD_UNOPENED"
         ],
@@ -70,7 +73,12 @@
                 ],
                 "expected": "黄金巷"
             }
-        }
+        },
+        "jumpback": [
+            "_cp_SOD_Menu",
+            "_cp_ODR_Exit",
+            "_cp_SOD_UNOPENED"
+        ]
     },
     "SOD_unmount": {
         "recognition": {
@@ -89,6 +97,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_unmount",
         "next": [
             "SOD_unmount_completed_1",
             "SOD_unmount"
@@ -131,6 +140,7 @@
                 482
             ]
         },
+        "checkpoint": "_cp_SOD_unmount_completed_1",
         "next": [
             "SOD_unmount_completed_2"
         ],
@@ -172,6 +182,7 @@
                 482
             ]
         },
+        "checkpoint": "_cp_SOD_unmount_completed_2",
         "next": [
             "SOD_unmount_completed_3"
         ],
@@ -202,6 +213,7 @@
                 482
             ]
         },
+        "checkpoint": "_cp_SOD_unmount_completed_3",
         "next": [
             "SOD_MenuFlag"
         ],
@@ -234,7 +246,13 @@
                 1280,
                 482
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_SOD_unmount_completed_2",
+            "_cp_SOD_unmount",
+            "_cp_SOD_unmount_completed_1",
+            "_cp_SOD_Menu"
+        ]
     },
     "SOD_UNOPENED": {
         "recognition": {
@@ -249,6 +267,7 @@
                 "template": "OutsideDeduction/UNOPEN.png"
             }
         },
+        "checkpoint": "_cp_SOD_UNOPENED",
         "next": [
             "SODStart"
         ],
@@ -303,6 +322,7 @@
                 50
             ]
         },
+        "checkpoint": "_cp_SODStop_Confirm",
         "next": [
             "SOD_MenuFlag",
             "SODStop_Confirm"
@@ -333,7 +353,13 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_SOD_Menu",
+            "_cp_ODR_Exit",
+            "_cp_SODStop_Confirm",
+            "_cp_SOD_UNOPENED"
+        ]
     },
     "SODStop_Click_1": {
         "recognition": {
@@ -377,7 +403,13 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_SOD_Menu",
+            "_cp_ODR_Exit",
+            "_cp_SODStop_Confirm",
+            "_cp_SOD_UNOPENED"
+        ]
     },
     "SODStop_Click_2": {
         "recognition": {
@@ -436,7 +468,13 @@
                     10
                 ]
             }
-        }
+        },
+        "jumpback": [
+            "_cp_SOD_Menu",
+            "_cp_ODR_Exit",
+            "_cp_SODStop_Confirm",
+            "_cp_SOD_UNOPENED"
+        ]
     },
     "SOD_Complete_Click_1": {
         "recognition": {
@@ -518,7 +556,13 @@
                     5
                 ]
             }
-        }
+        },
+        "jumpback": [
+            "_cp_SOD_Menu",
+            "_cp_ODR_Exit",
+            "_cp_SODStop_Confirm",
+            "_cp_SOD_UNOPENED"
+        ]
     },
     "SODStart": {
         "recognition": {
@@ -545,6 +589,7 @@
                 580
             ]
         },
+        "checkpoint": "_cp_SODStart",
         "next": [
             "ODR_FlagInDifficultySelect",
             "SODStart_Confirm",
@@ -577,6 +622,7 @@
                 300
             ]
         },
+        "checkpoint": "_cp_SODStart_Confirm",
         "next": [
             "SODStart_GoodsSelect",
             "SODStart_MediaSelect",
@@ -602,6 +648,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_SODStart_GoodsSelect",
         "next": [
             "SODStart_Confirm",
             "Sub_SODStart_GoodsSelect",
@@ -661,7 +708,39 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_SOD_SelectNext_1_3",
+            "_cp_SOD_SelectNext_7_3",
+            "_cp_SOD_SelectNext_5_2",
+            "_cp_SOD_SelectNext_2_2",
+            "_cp_SOD_SelectNext_6_2",
+            "_cp_SOD_SelectNext_6_1",
+            "_cp_SOD_SelectNext_4_2",
+            "_cp_SOD_SelectNext_1_1",
+            "_cp_SOD_SelectNext_4_3",
+            "_cp_SOD_SelectNext_6",
+            "_cp_SOD_SelectNext_3",
+            "_cp_SOD_SelectNext_3_1",
+            "_cp_SOD_SelectNext_7",
+            "_cp_SOD_SelectNext_4",
+            "_cp_SOD_SelectNext_5_1",
+            "_cp_SOD_SelectNext_7_1",
+            "_cp_SOD_SelectNext_3_2",
+            "_cp_SOD_SelectNext_4_1",
+            "_cp_SOD_SelectNext_5",
+            "_cp_SOD_Main",
+            "_cp_SOD_SelectNext_2",
+            "_cp_SOD_SelectNext_3_3",
+            "_cp_SOD_SelectNext_1",
+            "_cp_SOD_SelectNext_5_3",
+            "_cp_SOD_SelectNext_2_1",
+            "_cp_SOD_SelectNext_2_3",
+            "_cp_SOD_SelectNext_6_3",
+            "_cp_SOD_SelectNext_1_2",
+            "_cp_SOD_SelectNext_7_2",
+            "_cp_SODStart_GoodsSelect"
+        ]
     },
     "SODStart_MediaSelect": {
         "recognition": {
@@ -708,7 +787,6 @@
         ]
     },
     "SOD_Click": {
-        "pre_delay": 0,
         "action": {
             "type": "Click",
             "param": {
@@ -719,7 +797,42 @@
                     55
                 ]
             }
-        }
+        },
+        "pre_delay": 0,
+        "jumpback": [
+            "_cp_SOD_SelectNext_1_3",
+            "_cp_SOD_SelectNext_7_3",
+            "_cp_SOD_SelectNext_5_2",
+            "_cp_SOD_SelectNext_2_2",
+            "_cp_SODStart_Confirm",
+            "_cp_SOD_SelectNext_6_2",
+            "_cp_SOD_SelectNext_6_1",
+            "_cp_SOD_SelectNext_4_2",
+            "_cp_SOD_SelectNext_1_1",
+            "_cp_SOD_SelectNext_4_3",
+            "_cp_SOD_SelectNext_6",
+            "_cp_SOD_SelectNext_3",
+            "_cp_SOD_SelectNext_3_1",
+            "_cp_SOD_SelectNext_7",
+            "_cp_SOD_SelectNext_4",
+            "_cp_SOD_SelectNext_5_1",
+            "_cp_SOD_SelectNext_7_1",
+            "_cp_SOD_SelectNext_3_2",
+            "_cp_SOD_SelectNext_4_1",
+            "_cp_SOD_SelectNext_5",
+            "_cp_SOD_Main",
+            "_cp_SOD_SelectNext_2",
+            "_cp_SOD_SelectNext_3_3",
+            "_cp_SOD_SelectNext_1",
+            "_cp_SOD_SelectNext_5_3",
+            "_cp_SOD_SelectNext_2_1",
+            "_cp_ResetCountOfODRSkipText",
+            "_cp_SOD_SelectNext_2_3",
+            "_cp_SOD_SelectNext_6_3",
+            "_cp_SOD_SelectNext_1_2",
+            "_cp_SOD_SelectNext_7_2",
+            "_cp_SODStart_GoodsSelect"
+        ]
     },
     "SOD_ArcanistAdd": {
         "recognition": {
@@ -738,6 +851,7 @@
             "type": "Click"
         },
         "post_delay": 2500,
+        "checkpoint": "_cp_SOD_ArcanistAdd",
         "next": [
             "SOD_Quickformation_On",
             "SOD_ArcanistAdd"
@@ -771,7 +885,40 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_SOD_SelectNext_1_3",
+            "_cp_SOD_SelectNext_7_3",
+            "_cp_SOD_SelectNext_5_2",
+            "_cp_SOD_SelectNext_2_2",
+            "_cp_SOD_SelectNext_6_2",
+            "_cp_SOD_SelectNext_6_1",
+            "_cp_SOD_SelectNext_4_2",
+            "_cp_SOD_SelectNext_1_1",
+            "_cp_SOD_SelectNext_4_3",
+            "_cp_SOD_SelectNext_6",
+            "_cp_SOD_SelectNext_3",
+            "_cp_SOD_SelectNext_3_1",
+            "_cp_SOD_SelectNext_7",
+            "_cp_SOD_SelectNext_4",
+            "_cp_SOD_SelectNext_5_1",
+            "_cp_SOD_SelectNext_7_1",
+            "_cp_SOD_SelectNext_3_2",
+            "_cp_SOD_SelectNext_4_1",
+            "_cp_SOD_SelectNext_5",
+            "_cp_SOD_Main",
+            "_cp_SOD_ArcanistAdd",
+            "_cp_SOD_SelectNext_2",
+            "_cp_SOD_SelectNext_3_3",
+            "_cp_SOD_SelectNext_1",
+            "_cp_SOD_SelectNext_5_3",
+            "_cp_SOD_SelectNext_2_1",
+            "_cp_SOD_ArcanistSelect",
+            "_cp_SOD_SelectNext_2_3",
+            "_cp_SOD_SelectNext_6_3",
+            "_cp_SOD_SelectNext_1_2",
+            "_cp_SOD_SelectNext_7_2"
+        ]
     },
     "SOD_Quickformation_On": {
         "recognition": {
@@ -941,6 +1088,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_1",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1003,6 +1151,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_2",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1064,6 +1213,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_3",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1124,6 +1274,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_4",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1183,6 +1334,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_5",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1241,6 +1393,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_6",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1298,6 +1451,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_7",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1354,6 +1508,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_1_1",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1409,6 +1564,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_2_1",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1463,6 +1619,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_3_1",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1516,6 +1673,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_4_1",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1568,6 +1726,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_5_1",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1619,6 +1778,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_6_1",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1669,6 +1829,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_7_1",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1718,6 +1879,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_1_2",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1766,6 +1928,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_2_2",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1813,6 +1976,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_3_2",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1859,6 +2023,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_4_2",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1904,6 +2069,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_5_2",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1948,6 +2114,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_6_2",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -1991,6 +2158,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_7_2",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -2033,6 +2201,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_1_3",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -2074,6 +2243,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_2_3",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -2114,6 +2284,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_3_3",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -2153,6 +2324,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_4_3",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -2191,6 +2363,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_5_3",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -2228,6 +2401,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_6_3",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -2264,6 +2438,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_SelectNext_7_3",
         "next": [
             "SOD_Move",
             "SOD_Fight",
@@ -2299,6 +2474,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_Levelup",
         "next": [
             "SOD_NewArcanist",
             "SOD_Levelup"
@@ -2380,6 +2556,7 @@
             "type": "Click"
         },
         "post_delay": 2500,
+        "checkpoint": "_cp_SOD_ArcanistSelect",
         "next": [
             "SOD_Quickformation_On",
             "SOD_ArcanistSelect"
@@ -2447,7 +2624,6 @@
         ]
     },
     "SOD_Combating": {
-        "doc": "考虑到对话框可能出现，也可能不出现，匹配太多，故选择点击空白",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -2460,16 +2636,6 @@
                 "template": "OutsideDeduction/SOD_Combating.png"
             }
         },
-        "post_wait_freezes": {
-            "time": 400,
-            "target": [
-                275,
-                196,
-                536,
-                143
-            ],
-            "threshold": 0.9
-        },
         "action": {
             "type": "Click",
             "param": {
@@ -2481,8 +2647,17 @@
                 ]
             }
         },
-        "timeout": 600000,
-        "rate_limit": 3000,
+        "post_wait_freezes": {
+            "time": 400,
+            "target": [
+                275,
+                196,
+                536,
+                143
+            ],
+            "threshold": 0.9
+        },
+        "checkpoint": "_cp_SOD_Combating",
         "next": [
             "SOD_CombatVictory",
             "SOD_CombatDefeat_hint",
@@ -2496,7 +2671,10 @@
             "SOD_Dialog_3",
             "SOD_Dialog_5",
             "SOD_Combating"
-        ]
+        ],
+        "rate_limit": 3000,
+        "timeout": 600000,
+        "doc": "考虑到对话框可能出现，也可能不出现，匹配太多，故选择点击空白"
     },
     "Sub_SOD_Dialog_1": {
         "is_sub": true,
@@ -2535,8 +2713,6 @@
         }
     },
     "SOD_Dialog_3": {
-        "is_sub": true,
-        "doc": "战斗中露西的升华",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -2553,7 +2729,41 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_SOD_SelectNext_1_3",
+            "_cp_SOD_SelectNext_7_3",
+            "_cp_SOD_SelectNext_5_2",
+            "_cp_SOD_SelectNext_2_2",
+            "_cp_SOD_SelectNext_6_2",
+            "_cp_SOD_SelectNext_6_1",
+            "_cp_SOD_SelectNext_4_2",
+            "_cp_SOD_SelectNext_1_1",
+            "_cp_SOD_SelectNext_4_3",
+            "_cp_SOD_SelectNext_6",
+            "_cp_SOD_SelectNext_3",
+            "_cp_SOD_SelectNext_3_1",
+            "_cp_SOD_SelectNext_7",
+            "_cp_SOD_SelectNext_4",
+            "_cp_SOD_SelectNext_5_1",
+            "_cp_SOD_SelectNext_7_1",
+            "_cp_SOD_SelectNext_3_2",
+            "_cp_SOD_Combating",
+            "_cp_SOD_SelectNext_4_1",
+            "_cp_SOD_SelectNext_5",
+            "_cp_SOD_Main",
+            "_cp_SOD_SelectNext_2",
+            "_cp_SOD_SelectNext_3_3",
+            "_cp_SOD_SelectNext_1",
+            "_cp_SOD_SelectNext_5_3",
+            "_cp_SOD_SelectNext_2_1",
+            "_cp_SOD_SelectNext_2_3",
+            "_cp_SOD_SelectNext_6_3",
+            "_cp_SOD_SelectNext_1_2",
+            "_cp_SOD_SelectNext_7_2"
+        ],
+        "is_sub": true,
+        "doc": "战斗中露西的升华"
     },
     "Sub_SOD_Dialog_4": {
         "is_sub": true,
@@ -2575,8 +2785,6 @@
         }
     },
     "SOD_Dialog_5": {
-        "is_sub": true,
-        "doc": "战斗中天使娜娜的缔结契约",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -2600,10 +2808,13 @@
                 ]
             }
         },
+        "checkpoint": "_cp_SOD_Dialog_5",
         "next": [
             "SOD_Dialog_5_1",
             "SOD_Dialog_5"
-        ]
+        ],
+        "is_sub": true,
+        "doc": "战斗中天使娜娜的缔结契约"
     },
     "SOD_Dialog_5_1": {
         "recognition": {
@@ -2621,7 +2832,40 @@
         "action": {
             "type": "Click"
         },
-        "post_delay": 500
+        "post_delay": 500,
+        "jumpback": [
+            "_cp_SOD_SelectNext_1_3",
+            "_cp_SOD_SelectNext_7_3",
+            "_cp_SOD_SelectNext_5_2",
+            "_cp_SOD_SelectNext_2_2",
+            "_cp_SOD_SelectNext_6_2",
+            "_cp_SOD_SelectNext_6_1",
+            "_cp_SOD_SelectNext_4_2",
+            "_cp_SOD_SelectNext_1_1",
+            "_cp_SOD_SelectNext_4_3",
+            "_cp_SOD_SelectNext_6",
+            "_cp_SOD_SelectNext_3",
+            "_cp_SOD_SelectNext_3_1",
+            "_cp_SOD_SelectNext_7",
+            "_cp_SOD_SelectNext_4",
+            "_cp_SOD_SelectNext_5_1",
+            "_cp_SOD_SelectNext_7_1",
+            "_cp_SOD_SelectNext_3_2",
+            "_cp_SOD_Combating",
+            "_cp_SOD_SelectNext_4_1",
+            "_cp_SOD_SelectNext_5",
+            "_cp_SOD_Main",
+            "_cp_SOD_SelectNext_2",
+            "_cp_SOD_SelectNext_3_3",
+            "_cp_SOD_SelectNext_1",
+            "_cp_SOD_SelectNext_5_3",
+            "_cp_SOD_SelectNext_2_1",
+            "_cp_SOD_SelectNext_2_3",
+            "_cp_SOD_SelectNext_6_3",
+            "_cp_SOD_SelectNext_1_2",
+            "_cp_SOD_Dialog_5",
+            "_cp_SOD_SelectNext_7_2"
+        ]
     },
     "SOD_CombatDefeat_hint": {
         "recognition": {
@@ -3225,7 +3469,50 @@
                 ]
             }
         },
-        "post_wait_freezes": 500
+        "post_wait_freezes": 500,
+        "jumpback": [
+            "_cp_ODR_Event_Select_SkipText",
+            "_cp_SOD_SelectNext_1_3",
+            "_cp_SOD_SelectNext_7_3",
+            "_cp_SOD_SelectNext_5_2",
+            "_cp_SOD_SelectNext_2_2",
+            "_cp_ODR_Event_Select_SkipText_First",
+            "_cp_SOD_SelectNext_6_2",
+            "_cp_SOD_SelectNext_6_1",
+            "_cp_SOD_SelectNext_4_2",
+            "_cp_ODR_Start_Teambuild_Confirm",
+            "_cp_ODR_Windows&Doors_CreationContract",
+            "_cp_SOD_SelectNext_1_1",
+            "_cp_SOD_SelectNext_4_3",
+            "_cp_SOD_SelectNext_6",
+            "_cp_ODR_Exit",
+            "_cp_SOD_SelectNext_3",
+            "_cp_ODR_Event_Select_SkipText_Second",
+            "_cp_SOD_SelectNext_3_1",
+            "_cp_SOD_SelectNext_7",
+            "_cp_SOD_SelectNext_4",
+            "_cp_SOD_SelectNext_5_1",
+            "_cp_SOD_SelectNext_7_1",
+            "_cp_SOD_SelectNext_3_2",
+            "_cp_ODR_Event_Select_SkipText_Windows&Doors",
+            "_cp_ODR_MainLoop",
+            "_cp_ODR_ItemSelect_Confirm",
+            "_cp_SOD_SelectNext_4_1",
+            "_cp_SOD_SelectNext_5",
+            "_cp_SOD_Main",
+            "_cp_SOD_SelectNext_2",
+            "_cp_SOD_SelectNext_3_3",
+            "_cp_SOD_SelectNext_1",
+            "_cp_SOD_SelectNext_5_3",
+            "_cp_SOD_SelectNext_2_1",
+            "_cp_SOD_SelectNext_2_3",
+            "_cp_SOD_SelectNext_6_3",
+            "_cp_SOD_Levelup",
+            "_cp_ODR_Levelup",
+            "_cp_ODR_Event_Select_SkipText_Second2Last",
+            "_cp_SOD_SelectNext_1_2",
+            "_cp_SOD_SelectNext_7_2"
+        ]
     },
     "SOD_Main": {
         "recognition": {
@@ -3241,6 +3528,7 @@
             }
         },
         "pre_delay": 500,
+        "checkpoint": "_cp_SOD_Main",
         "next": [
             "SOD_ClearDeployment",
             "SOD_Departure",
@@ -3328,6 +3616,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_OneClickDeploymentt",
         "next": [
             "SOD_Main"
         ],
@@ -3362,7 +3651,39 @@
                 106,
                 319
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_SOD_SelectNext_1_3",
+            "_cp_SOD_SelectNext_7_3",
+            "_cp_SOD_SelectNext_5_2",
+            "_cp_SOD_SelectNext_2_2",
+            "_cp_SOD_SelectNext_6_2",
+            "_cp_SOD_SelectNext_6_1",
+            "_cp_SOD_SelectNext_4_2",
+            "_cp_SOD_SelectNext_1_1",
+            "_cp_SOD_SelectNext_4_3",
+            "_cp_SOD_SelectNext_6",
+            "_cp_SOD_SelectNext_3",
+            "_cp_SOD_SelectNext_3_1",
+            "_cp_SOD_SelectNext_7",
+            "_cp_SOD_SelectNext_4",
+            "_cp_SOD_SelectNext_5_1",
+            "_cp_SOD_SelectNext_7_1",
+            "_cp_SOD_SelectNext_3_2",
+            "_cp_SOD_SelectNext_4_1",
+            "_cp_SOD_SelectNext_5",
+            "_cp_SOD_Main",
+            "_cp_SOD_OneClickDeploymentt",
+            "_cp_SOD_SelectNext_2",
+            "_cp_SOD_SelectNext_3_3",
+            "_cp_SOD_SelectNext_1",
+            "_cp_SOD_SelectNext_5_3",
+            "_cp_SOD_SelectNext_2_1",
+            "_cp_SOD_SelectNext_2_3",
+            "_cp_SOD_SelectNext_6_3",
+            "_cp_SOD_SelectNext_1_2",
+            "_cp_SOD_SelectNext_7_2"
+        ]
     },
     "SOD_Skip": {
         "recognition": {
@@ -3448,6 +3769,7 @@
                 319
             ]
         },
+        "checkpoint": "_cp_SOD_Ending_1",
         "next": [
             "SOD_EndingSelect",
             "SOD_Departure",
@@ -3477,7 +3799,41 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_SOD_SelectNext_1_3",
+            "_cp_SOD_SelectNext_7_3",
+            "_cp_SOD_SelectNext_5_2",
+            "_cp_SOD_SelectNext_2_2",
+            "_cp_SOD_SelectNext_6_2",
+            "_cp_SOD_SelectNext_6_1",
+            "_cp_SOD_SelectNext_4_2",
+            "_cp_SOD_SelectNext_1_1",
+            "_cp_SOD_SelectNext_4_3",
+            "_cp_SOD_SelectNext_6",
+            "_cp_SOD_SelectNext_3",
+            "_cp_SOD_SelectNext_3_1",
+            "_cp_SOD_SelectNext_7",
+            "_cp_SOD_SelectNext_4",
+            "_cp_SOD_SelectNext_5_1",
+            "_cp_SOD_SelectNext_7_1",
+            "_cp_SOD_SelectNext_3_2",
+            "_cp_SOD_Ending_2",
+            "_cp_SOD_SelectNext_4_1",
+            "_cp_SOD_SelectNext_5",
+            "_cp_SOD_Main",
+            "_cp_SOD_SelectNext_2",
+            "_cp_SOD_SelectNext_3_3",
+            "_cp_SOD_SelectNext_1",
+            "_cp_SOD_SelectNext_5_3",
+            "_cp_SOD_SelectNext_2_1",
+            "_cp_SOD_SelectNext_2_3",
+            "_cp_SOD_SelectNext_6_3",
+            "_cp_SOD_SelectNext_1_2",
+            "_cp_SOD_EndingSelect",
+            "_cp_SOD_Ending_1",
+            "_cp_SOD_SelectNext_7_2"
+        ]
     },
     "SOD_Ending_2": {
         "recognition": {
@@ -3504,6 +3860,7 @@
                 319
             ]
         },
+        "checkpoint": "_cp_SOD_Ending_2",
         "next": [
             "SOD_EndingSelect",
             "SOD_Departure",
@@ -3532,6 +3889,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_SOD_EndingSelect",
         "next": [
             "SOD_EndEvent_OK",
             "SOD_Departure",

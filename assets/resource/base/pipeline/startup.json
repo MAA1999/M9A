@@ -1,7 +1,7 @@
 {
     "StartUp": {
         "post_wait_freezes": 300,
-        "timeout": 60000,
+        "checkpoint": "_cp_StartUp",
         "next": [
             "HomeFlagFirst",
             "StartGame"
@@ -27,10 +27,10 @@
             "BackButton",
             "HomeButton",
             "ClickHomeCount"
-        ]
+        ],
+        "timeout": 60000
     },
     "ReturnMain": {
-        "doc": "返回主界面（专供任务开始前使用）",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -40,6 +40,7 @@
                 }
             }
         },
+        "checkpoint": "_cp_ReturnMain",
         "next": [
             "HomeFlagCloseReturnMain"
         ],
@@ -62,7 +63,8 @@
             "ClickBlank",
             "SkipButton",
             "ClickHomeCount"
-        ]
+        ],
+        "doc": "返回主界面（专供任务开始前使用）"
     },
     "StartGame": {
         "recognition": {
@@ -81,6 +83,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_StartGame",
         "next": [
             "HomeFlagFirst",
             "StartGame"
@@ -134,7 +137,28 @@
                 259,
                 140
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_Limbo",
+            "_cp_PsychubeVictory",
+            "_cp_StartUp",
+            "_cp_ODR_Exit",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_Lucidscape",
+            "_cp_SelectCombatStage",
+            "_cp_EnterWilderness",
+            "_cp_ReturnMain",
+            "_cp_Victory_NoReplay",
+            "_cp_SSReopenBackToMain",
+            "_cp_PreStormProtocol1",
+            "_cp_LucidscapeVictory",
+            "_cp_Wilderness",
+            "_cp_SwitchAccount",
+            "_cp_TheSyndromeOfSilence"
+        ]
     },
     "HomeLoading_Old": {
         "recognition": {
@@ -180,7 +204,6 @@
         }
     },
     "HomeLoading_wait": {
-        "doc": "专供启动时使用，与原版分开以防止ReturnMain大面积报错",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -207,6 +230,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_HomeLoading_wait",
         "next": [
             "HomeFlagFirst",
             "HomeLoading_wait"
@@ -226,7 +250,8 @@
             "ClosePageFirst",
             "CandyCancel",
             "ClickHomeCount"
-        ]
+        ],
+        "doc": "专供启动时使用，与原版分开以防止ReturnMain大面积报错"
     },
     "Start1999": {
         "action": {
@@ -293,7 +318,11 @@
                 "template": "StartUp/GameLoading.png"
             }
         },
-        "post_delay": 3000
+        "post_delay": 3000,
+        "jumpback": [
+            "_cp_SwitchAccount",
+            "_cp_StartUp"
+        ]
     },
     "GameLoading2": {
         "recognition": {
@@ -308,7 +337,11 @@
                 "template": "StartUp/GameLoading2.png"
             }
         },
-        "post_delay": 3000
+        "post_delay": 3000,
+        "jumpback": [
+            "_cp_SwitchAccount",
+            "_cp_StartUp"
+        ]
     },
     "Downloading": {
         "recognition": {
@@ -335,7 +368,21 @@
                 1280,
                 184
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_StartUp",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence"
+        ]
     },
     "Download": {
         "recognition": {
@@ -370,7 +417,21 @@
                     "target": 5
                 }
             }
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_StartUp",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence"
+        ]
     },
     "DisableDownload": {
         "action": {
@@ -381,7 +442,21 @@
                     "node_name": "Download"
                 }
             }
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_StartUp",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence"
+        ]
     },
     "SkipButton": {
         "recognition": {
@@ -405,7 +480,26 @@
         "post_wait_freezes": {
             "time": 300,
             "target": "HomeLoading_wait"
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_FlagInGoodDreamWellCenter",
+            "_cp_CombatActivityOverride",
+            "_cp_FlagInGoodDreamWell",
+            "_cp_SeriesOfDusks",
+            "_cp_StartGame",
+            "_cp_ReturnMain",
+            "_cp_EnterGoodDreamWell",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence",
+            "_cp_HomeFlagFirst"
+        ]
     },
     "HomeFlag": {
         "recognition": {
@@ -434,7 +528,23 @@
                     64
                 ]
             }
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_AwardsMainFlag",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_StartGame",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence",
+            "_cp_HomeFlagFirst"
+        ]
     },
     "HomeFlagFirst": {
         "recognition": {
@@ -465,6 +575,7 @@
             }
         },
         "post_delay": 3000,
+        "checkpoint": "_cp_HomeFlagFirst",
         "next": [
             "HomeFlag"
         ],
@@ -510,7 +621,18 @@
                     "node_name": "ReturnMain"
                 }
             }
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence"
+        ]
     },
     "BackButton": {
         "recognition": {
@@ -530,7 +652,47 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_DissociationCompleted",
+            "_cp_Psychube",
+            "_cp_WeeklyAwardsCompleted",
+            "_cp_SOD_unmount_completed_3",
+            "_cp_Limbo",
+            "_cp_Sp01Daily",
+            "_cp_StartGame",
+            "_cp_LucidscapeNoAwards",
+            "_cp_ODR_Windows&Doors_CreationContract",
+            "_cp_PsychubeVictory",
+            "_cp_NoMailAwards",
+            "_cp_HomeFlagFirst",
+            "_cp_FlagInSp01Daily",
+            "_cp_StartUp",
+            "_cp_Sub_DailyBadge",
+            "_cp_LimboFirstEnd",
+            "_cp_CombatActivityOverride",
+            "_cp_ODR_Exit",
+            "_cp_WeeklyAwardsBadge",
+            "_cp_FlagInBank",
+            "_cp_SeriesOfDusks",
+            "_cp_Lucidscape",
+            "_cp_Sub_JukeboxBadge",
+            "_cp_ODR_Event_Select_SkipText_Windows&Doors",
+            "_cp_SelectCombatStage",
+            "_cp_ReturnMain",
+            "_cp_PreStormProtocol",
+            "_cp_EquipmentOverflows",
+            "_cp_PreStormProtocolGiveUp",
+            "_cp_PreStormProtocol1",
+            "_cp_AwardsMainFlag",
+            "_cp_ODR_Windows&Doors_Merge",
+            "_cp_Wilderness",
+            "_cp_SOD_Menu",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_TheSyndromeOfSilence"
+        ]
     },
     "BackButtonWithDelay": {
         "recognition": {
@@ -551,7 +713,26 @@
         "action": {
             "type": "Click"
         },
-        "post_delay": 3000
+        "post_delay": 3000,
+        "jumpback": [
+            "_cp_AwardsMainFlag",
+            "_cp_TrustDialogueInteraction",
+            "_cp_SummonlngSuccessBack",
+            "_cp_TradeCompleted",
+            "_cp_Sub_JukeboxAwardsBadge",
+            "_cp_CollectTrust",
+            "_cp_TrustDialogueNext",
+            "_cp_AutoSelectComfirm",
+            "_cp_SOSLackOfMaterials",
+            "_cp_UnableAssignCritters",
+            "_cp_TrustMax",
+            "_cp_CollectAwards",
+            "_cp_NoExpMoney",
+            "_cp_Sub_JukeboxBadge",
+            "_cp_Victory_NoReplay",
+            "_cp_SSReopenBackToMain",
+            "_cp_FlagInGoodDreamWellFinish"
+        ]
     },
     "HomeButton": {
         "recognition": {
@@ -579,7 +760,40 @@
                     0
                 ]
             }
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_DissociationCompleted",
+            "_cp_Psychube",
+            "_cp_LucidscapeFailed",
+            "_cp_Limbo",
+            "_cp_Sp01Daily",
+            "_cp_StartGame",
+            "_cp_HomeFlagFirst",
+            "_cp_FlagInSp01Daily",
+            "_cp_StartUp",
+            "_cp_LimboFirstEnd",
+            "_cp_CombatActivityOverride",
+            "_cp_TrustDialogueInteraction",
+            "_cp_PsychubeFlagInReadyForAction",
+            "_cp_SeriesOfDusks",
+            "_cp_CollectTrust",
+            "_cp_Lucidscape",
+            "_cp_LucidscapeTotalAwards",
+            "_cp_AnecdoteCompleted",
+            "_cp_SelectCombatStage",
+            "_cp_TrustDialogueNext",
+            "_cp_ReturnMain",
+            "_cp_TrustMax",
+            "_cp_CollectAwards",
+            "_cp_LucidscapeTotalAwardsCompleted",
+            "_cp_AwardsMainFlag",
+            "_cp_Sub_JukeboxBadge_3.2",
+            "_cp_Wilderness",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_TheSyndromeOfSilence"
+        ]
     },
     "ClickHomeCount": {
         "recognition": {
@@ -602,11 +816,28 @@
                 ]
             }
         },
-        "post_delay": 1500
+        "post_delay": 1500,
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_StartUp",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_StartGame",
+            "_cp_Sp01Messagers",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence",
+            "_cp_HomeFlagFirst"
+        ]
     },
     "Stop": {},
     "Reward": {
-        "doc": "防卡日历",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -620,7 +851,7 @@
                     "StartUp/Reward.png",
                     "StartUp/Reward1.png",
                     "StartUp/Reward2.png",
-                    "StartUp/Reward3.png", // 刺客联动版本
+                    "StartUp/Reward3.png",
                     "StartUp/Reward4.png"
                 ]
             }
@@ -639,7 +870,25 @@
         "post_wait_freezes": {
             "time": 300,
             "target": "HomeLoading_wait"
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_StartUp",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_StartGame",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence",
+            "_cp_HomeFlagFirst"
+        ],
+        "doc": "防卡日历"
     },
     "AccumulatedSignIn": {
         "recognition": {
@@ -660,7 +909,24 @@
         "action": {
             "type": "Click"
         },
-        "post_delay": 3000
+        "post_delay": 3000,
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_StartUp",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_StartGame",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence",
+            "_cp_HomeFlagFirst"
+        ]
     },
     "BirthdayReward": {
         "recognition": {
@@ -679,7 +945,24 @@
         "action": {
             "type": "Click"
         },
-        "post_delay": 3000
+        "post_delay": 3000,
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_StartUp",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_StartGame",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence",
+            "_cp_HomeFlagFirst"
+        ]
     },
     "ClosePageFirst": {
         "recognition": {
@@ -709,7 +992,6 @@
         ]
     },
     "ClosePage": {
-        // 用于关闭各种页面，如签到、公告、物品详情页
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -749,10 +1031,27 @@
                     }
                 }
             }
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_StartUp",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_StartGame",
+            "_cp_Sp01Messagers",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence",
+            "_cp_HomeFlagFirst"
+        ]
     },
     "SignInReward": {
-        // 领取签到奖励
         "recognition": {
             "type": "Custom",
             "param": {
@@ -774,7 +1073,24 @@
         "action": {
             "type": "Click"
         },
-        "post_delay": 3000
+        "post_delay": 3000,
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_StartUp",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_StartGame",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence",
+            "_cp_HomeFlagFirst"
+        ]
     },
     "SignInReward_template": {
         "recognition": {
@@ -792,7 +1108,6 @@
         }
     },
     "SignInReward_color": {
-        // 偏橙的颜色（独一律签到）
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -812,7 +1127,6 @@
         }
     },
     "SignInReward_color1": {
-        // 偏黄的颜色
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -851,7 +1165,23 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_StartGame",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence",
+            "_cp_HomeFlagFirst"
+        ]
     },
     "Confirm": {
         "recognition": {
@@ -871,7 +1201,27 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_PreStormProtocol1",
+            "_cp_StartUp",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_StartGame",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_SelectCombatStage",
+            "_cp_PreStormProtocolGiveUp",
+            "_cp_TheSyndromeOfSilence",
+            "_cp_PreStormProtocol",
+            "_cp_HomeFlagFirst"
+        ]
     },
     "VictoryReturn": {
         "recognition": {
@@ -891,7 +1241,21 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_StartUp",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence"
+        ]
     },
     "CandyCancel": {
         "recognition": {
@@ -909,6 +1273,23 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_StartUp",
+            "_cp_CombatActivityOverride",
+            "_cp_SeriesOfDusks",
+            "_cp_StartGame",
+            "_cp_ReturnMain",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence",
+            "_cp_HomeFlagFirst"
+        ]
     }
 }

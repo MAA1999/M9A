@@ -62,6 +62,7 @@
                 "expected": "队伍评级"
             }
         },
+        "checkpoint": "_cp_菜单界面",
         "next": [
             "进入2-1"
         ],
@@ -120,7 +121,15 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_偶人",
+            "_cp_1-3战斗",
+            "_cp_缪斯赠予",
+            "_cp_1-1选择",
+            "_cp_1-5结算",
+            "_cp_菜单界面"
+        ]
     },
     "偶人": {
         "recognition": {
@@ -138,6 +147,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_偶人",
         "next": [
             "购买偶人"
         ],
@@ -221,6 +231,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_1-1选择",
         "next": "1-1选择1",
         "interrupt": "进入事件"
     },
@@ -241,6 +252,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_1-1选择1",
         "next": "1-1选择3",
         "interrupt": "1-1选择2"
     },
@@ -268,7 +280,11 @@
                     52
                 ]
             }
-        }
+        },
+        "jumpback": [
+            "_cp_1-1选择1",
+            "_cp_菜单界面"
+        ]
     },
     "1-1选择3": {
         "recognition": {
@@ -283,7 +299,8 @@
                 ],
                 "expected": "队伍评级"
             }
-        }
+        },
+        "jumpback": "_cp_菜单界面"
     },
     "缪斯赠予": {
         "recognition": {
@@ -301,6 +318,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_缪斯赠予",
         "next": [
             "缪斯赠予1"
         ],
@@ -341,7 +359,6 @@
                 "expected": "获得"
             }
         },
-        "pre_delay": 1000,
         "action": {
             "type": "Click",
             "param": {
@@ -352,7 +369,9 @@
                     82
                 ]
             }
-        }
+        },
+        "pre_delay": 1000,
+        "jumpback": "_cp_菜单界面"
     },
     "1-3战斗": {
         "recognition": {
@@ -379,6 +398,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_1-3战斗",
         "next": [
             "配对页面"
         ],
@@ -530,7 +550,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_菜单界面"
     },
     "1-5结算": {
         "recognition": {
@@ -557,6 +578,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_1-5结算",
         "next": [
             "开始战斗"
         ],

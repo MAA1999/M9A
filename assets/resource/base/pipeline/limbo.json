@@ -1,6 +1,6 @@
 {
     "Limbo": {
-        "doc": "深眠域",
+        "checkpoint": "_cp_Limbo",
         "next": [
             "LimboEntryEnd",
             "LimboEnd",
@@ -15,10 +15,10 @@
             "ClickBlank",
             "ArtificialSleepwalking",
             "ReturnMain"
-        ]
+        ],
+        "doc": "深眠域"
     },
     "ArtificialSleepwalking": {
-        "doc": "入场后，进入人工梦游",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -34,6 +34,7 @@
         "action": {
             "type": "Click"
         },
+        "post_delay": 3000,
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -43,10 +44,13 @@
                 27
             ]
         },
-        "post_delay": 3000
+        "jumpback": [
+            "_cp_Limbo",
+            "_cp_Lucidscape"
+        ],
+        "doc": "入场后，进入人工梦游"
     },
     "ArtificialSleepwalkingAwards": {
-        "doc": "人工梦游主界面，点击全部领取",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -61,10 +65,14 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_Limbo",
+            "_cp_Lucidscape"
+        ],
+        "doc": "人工梦游主界面，点击全部领取"
     },
     "ClickBlank": {
-        "doc": "点击空白关闭",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -93,10 +101,30 @@
                 1068,
                 197
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_Awards",
+            "_cp_Psychube",
+            "_cp_FlagInGoodDreamWellCenter",
+            "_cp_EnterBank",
+            "_cp_CombatActivityOverride",
+            "_cp_FlagInGoodDreamWell",
+            "_cp_SeriesOfDusks",
+            "_cp_StartGame",
+            "_cp_ReturnMain",
+            "_cp_EnterGoodDreamWell",
+            "_cp_Wilderness",
+            "_cp_Limbo",
+            "_cp_Lucidscape",
+            "_cp_SwitchAccount",
+            "_cp_HomeLoading_wait",
+            "_cp_SelectCombatStage",
+            "_cp_TheSyndromeOfSilence",
+            "_cp_HomeFlagFirst"
+        ],
+        "doc": "点击空白关闭"
     },
     "LimboEntry": {
-        "doc": "人工梦游主界面，点击挑战，进入深眠域",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -123,7 +151,9 @@
                 1280,
                 194
             ]
-        }
+        },
+        "jumpback": "_cp_Limbo",
+        "doc": "人工梦游主界面，点击挑战，进入深眠域"
     },
     "LimboEntryEnd": {
         "recognition": {
@@ -248,7 +278,6 @@
         ]
     },
     "LimboStarsMainFlag": {
-        "doc": "判断当前位于深眠试验酬劳界面,查看是否有奖励未领取",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -262,16 +291,17 @@
                 "expected": "深眠试验"
             }
         },
+        "checkpoint": "_cp_LimboStarsMainFlag",
         "next": [
             "LimboStarsMainNoAwards"
         ],
         "interrupt": [
             "LimboStarsMainAwards",
             "ObtainedAwards"
-        ]
+        ],
+        "doc": "判断当前位于深眠试验酬劳界面,查看是否有奖励未领取"
     },
     "LimboStarsMainFlag_AfterFailed": {
-        "doc": "判断当前位于深眠试验酬劳界面(After Failed)",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -285,13 +315,15 @@
                 "expected": "深眠试验"
             }
         },
+        "checkpoint": "_cp_LimboStarsMainFlag_AfterFailed",
         "next": [
             "LimboStarsMainNoAwards_AfterFailed"
         ],
         "interrupt": [
             "LimboStarsMainAwards",
             "ObtainedAwards"
-        ]
+        ],
+        "doc": "判断当前位于深眠试验酬劳界面(After Failed)"
     },
     "LimboStarsMainNoAwards": {
         "doc": "深眠试验酬劳界面，没有奖励未领取",
@@ -352,7 +384,6 @@
         ]
     },
     "LimboStarsMainAwards": {
-        "doc": "深眠试验酬劳界面，点击全部领取/领取",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -371,16 +402,17 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_LimboStarsMainAwards",
         "next": [
             "LimboStarsMainNoAwardsFlag",
             "LimboStarsMainAwards"
         ],
         "interrupt": [
             "ObtainedAwards"
-        ]
+        ],
+        "doc": "深眠试验酬劳界面，点击全部领取/领取"
     },
     "LimboStarsMainNoAwardsFlag": {
-        "doc": "判断当前位于深眠试验酬劳界面,奖励已领取完毕",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -396,7 +428,12 @@
                     "未达成"
                 ]
             }
-        }
+        },
+        "jumpback": [
+            "_cp_LimboStarsMainFlag_AfterFailed",
+            "_cp_LimboStarsMainFlag"
+        ],
+        "doc": "判断当前位于深眠试验酬劳界面,奖励已领取完毕"
     },
     "LimboStageFlag_up": {
         "doc": "判断当前位于深眠片段上半部分",
@@ -783,14 +820,15 @@
         ]
     },
     "LimboNoAwards": {
-        "doc": "当前深眠片段战斗无未领取奖励",
+        "checkpoint": "_cp_LimboNoAwards",
         "next": [
             "LimboEnd",
             "LimboStageRightest"
         ],
         "interrupt": [
             "BackButtonForLimbo"
-        ]
+        ],
+        "doc": "当前深眠片段战斗无未领取奖励"
     },
     "BackButtonForLimbo": {
         "recognition": {
@@ -820,7 +858,11 @@
                 1280,
                 193
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_LimboNoAwards",
+            "_cp_LimboObtainedAwards_2"
+        ]
     },
     "LimboAwards": {
         "doc": "深眠片段，存在本层酬劳",
@@ -865,6 +907,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_LimboObtainedAwards_1",
         "next": [
             "LimboObtainedAwards_2"
         ],
@@ -896,6 +939,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_LimboObtainedAwards_2",
         "next": [
             "LimboEnd",
             "LimboStageRightest",
@@ -907,7 +951,6 @@
         ]
     },
     "LimboEnd": {
-        "doc": "深眠片段·Ⅵ进度100%，领取ⅠⅡⅢⅣ的奖励",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -921,6 +964,7 @@
                 "threshold": 0.9
             }
         },
+        "checkpoint": "_cp_LimboEnd",
         "next": [
             "LimboFirstEnd"
         ],
@@ -929,7 +973,8 @@
             "LimboObtainedAwards_3",
             "ObtainedAwards",
             "SwipeLeftForLimboAwards"
-        ]
+        ],
+        "doc": "深眠片段·Ⅵ进度100%，领取ⅠⅡⅢⅣ的奖励"
     },
     "SwipeLeftForLimboAwards": {
         "action": {
@@ -949,10 +994,10 @@
                 ]
             }
         },
-        "post_wait_freezes": 100
+        "post_wait_freezes": 100,
+        "jumpback": "_cp_LimboEnd"
     },
     "LimboAwards1~4": {
-        "doc": "深眠片段·Ⅰ~Ⅳ领取奖励",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -968,10 +1013,11 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_LimboEnd",
+        "doc": "深眠片段·Ⅰ~Ⅳ领取奖励"
     },
     "LimboObtainedAwards_3": {
-        "doc": "深眠片段·Ⅰ~Ⅳ领取奖励",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -989,12 +1035,14 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_LimboObtainedAwards_3",
         "next": [
             "LimboObtainedAwards_4"
         ],
         "interrupt": [
             "ObtainedAwards"
-        ]
+        ],
+        "doc": "深眠片段·Ⅰ~Ⅳ领取奖励"
     },
     "LimboObtainedAwards_4": {
         "recognition": {
@@ -1019,10 +1067,10 @@
                     20
                 ]
             }
-        }
+        },
+        "jumpback": "_cp_LimboEnd"
     },
     "LimboFirstEnd": {
-        "doc": "深眠片段·I奖励领取完毕，任务结束",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -1035,12 +1083,14 @@
                 "template": "Limbo/LimboEnd.png"
             }
         },
+        "checkpoint": "_cp_LimboFirstEnd",
         "next": [
             "HomeFlag"
         ],
         "interrupt": [
             "HomeButton",
             "BackButton"
-        ]
+        ],
+        "doc": "深眠片段·I奖励领取完毕，任务结束"
     }
 }

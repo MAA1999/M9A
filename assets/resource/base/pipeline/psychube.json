@@ -1,5 +1,6 @@
 {
     "Psychube": {
+        "checkpoint": "_cp_Psychube",
         "next": [
             "FreePsychube",
             "NoFreePsychube"
@@ -27,6 +28,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_FreePsychube",
         "next": [
             "PsychubeReadyForAction",
             "FreePsychube"
@@ -51,7 +53,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_FreePsychube"
     },
     "PsychubeReadyForAction": {
         "recognition": {
@@ -71,6 +74,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_PsychubeReadyForAction",
         "next": [
             "PsychubeFlagInReplayReady"
         ],
@@ -93,6 +97,7 @@
                 "expected": "复现"
             }
         },
+        "checkpoint": "_cp_PsychubeFlagInReplayReady",
         "next": [
             "PsychubeFlagInReplayTwoTimes"
         ],
@@ -117,7 +122,7 @@
         "action": {
             "type": "Click"
         },
-        "timeout": 60000,
+        "checkpoint": "_cp_PsychubeFlagInReplayTwoTimes",
         "next": [
             "PsychubeVictory",
             "PsychubeFlagInReplayTwoTimes"
@@ -125,7 +130,8 @@
         "interrupt": [
             "PsychubeEatCandyPage",
             "ReplayingNoNext"
-        ]
+        ],
+        "timeout": 60000
     },
     "PsychubeEatCandyPage": {
         "recognition": {
@@ -133,7 +139,7 @@
             "param": {
                 "custom_recognition": "Count",
                 "custom_recognition_param": {
-                    "target": 20, // 考虑到小小糖回 5 体力，4 次体力作战共需 100 体力，设定吃糖上限 20 
+                    "target": 20,
                     "recognition": {
                         "type": "OCR",
                         "param": {
@@ -184,6 +190,7 @@
                 263
             ]
         },
+        "checkpoint": "_cp_PsychubeVictory",
         "next": [
             "PsychubeFlagInReadyForAction",
             "PsychubeVictory"
@@ -208,6 +215,7 @@
                 ]
             }
         },
+        "checkpoint": "_cp_PsychubeFlagInReadyForAction",
         "next": [
             "PsychubeDouble",
             "HomeFlag"
@@ -292,7 +300,8 @@
                 ]
             }
         },
-        "post_delay": 5000
+        "post_delay": 5000,
+        "jumpback": "_cp_PsychubeFlagInReplayTwoTimes"
     },
     "SwitchCombatTimes": {
         "action": {
@@ -303,7 +312,8 @@
                     "times": 2
                 }
             }
-        }
+        },
+        "jumpback": "_cp_PsychubeFlagInReplayReady"
     },
     "PsychubeSwitchToReplay": {
         "recognition": {
@@ -320,7 +330,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_PsychubeReadyForAction"
     },
     "CombatEntering": {
         "recognition": {
@@ -343,7 +354,13 @@
                 1091,
                 345
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_Victory",
+            "_cp_SSReadyForAction",
+            "_cp_PsychubeReadyForAction",
+            "_cp_SSTaskEntryGet"
+        ]
     },
     "NoFreePsychube": {
         "recognition": {

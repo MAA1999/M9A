@@ -66,6 +66,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_ActivityMainAnecdoteFlag",
         "next": [
             "AnecdoteMainFlag",
             "ActivityMainAnecdoteFlag"
@@ -100,7 +101,8 @@
                 318,
                 395
             ]
-        }
+        },
+        "jumpback": "_cp_ActivityMainAnecdoteFlag"
     },
     "AnecdoteMainFlag": {
         "recognition": {
@@ -125,6 +127,7 @@
                 57
             ]
         },
+        "checkpoint": "_cp_AnecdoteMainFlag",
         "next": [
             "AnecdoteNotRead",
             "AnecdoteTaskExist",
@@ -180,6 +183,7 @@
                 "expected": "0"
             }
         },
+        "checkpoint": "_cp_AnecdoteNoFusingBox",
         "next": [
             "AnecdoteAccumulatedRewardNotExist"
         ],
@@ -188,8 +192,6 @@
         ]
     },
     "AnecdoteTraceFlag": {
-        "doc": "当前位于轶事追溯界面",
-        "todo_doc": "后面看看又没有别的flag，目前这个效率还是太低了",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -213,15 +215,17 @@
                 "threshold": 0.6
             }
         },
+        "checkpoint": "_cp_AnecdoteTraceFlag",
         "next": [
             "AnecdoteTaskAwardCompleted"
         ],
         "interrupt": [
             "AnecdoteTaskAwardEntry"
-        ]
+        ],
+        "doc": "当前位于轶事追溯界面",
+        "todo_doc": "后面看看又没有别的flag，目前这个效率还是太低了"
     },
     "AnecdoteTaskAwardCompleted": {
-        "doc": "轶事追溯任务奖励已领取",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -243,14 +247,16 @@
                 "threshold": 0.6
             }
         },
-        "inverse": true,
+        "checkpoint": "_cp_AnecdoteTaskAwardCompleted",
         "next": [
             "AnecdoteNoFusingBox",
             "AnecdoteTaskCompleted_1"
         ],
         "interrupt": [
             "AnecdoteTaskEntry"
-        ]
+        ],
+        "inverse": true,
+        "doc": "轶事追溯任务奖励已领取"
     },
     "AnecdoteTaskAwardEntry": {
         "doc": "轶事追溯任务奖励入口",
@@ -285,7 +291,6 @@
         ]
     },
     "AnecdoteTaskAwardMainFlag": {
-        "doc": "轶事追溯任务奖励页面",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -299,12 +304,14 @@
                 "expected": "完成"
             }
         },
+        "checkpoint": "_cp_AnecdoteTaskAwardMainFlag",
         "next": [
             "AnecdoteTaskAwardMainCompleted"
         ],
         "interrupt": [
             "AnecdoteTaskAwardMainConfirm"
-        ]
+        ],
+        "doc": "轶事追溯任务奖励页面"
     },
     "AnecdoteTaskAwardMainCompleted": {
         "doc": "轶事追溯任务奖励已领取",
@@ -345,10 +352,10 @@
                     "StartUp/HomeButton_White.png"
                 ]
             }
-        }
+        },
+        "jumpback": "_cp_AnecdoteTraceFlag"
     },
     "AnecdoteTaskAwardMainConfirm": {
-        "doc": "确认轶事追溯任务奖励",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -373,10 +380,14 @@
                 89,
                 80
             ]
-        }
+        },
+        "jumpback": [
+            "_cp_AnecdoteTraceFlag",
+            "_cp_AnecdoteTaskAwardMainFlag"
+        ],
+        "doc": "确认轶事追溯任务奖励"
     },
     "AnecdoteTaskCompleted_1": {
-        "doc": "当前界面已无轶事追溯任务，向左滑后再次检查",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -391,7 +402,6 @@
                 ]
             }
         },
-        "inverse": true,
         "action": {
             "type": "Swipe",
             "param": {
@@ -409,16 +419,18 @@
                 ]
             }
         },
+        "checkpoint": "_cp_AnecdoteTaskCompleted_1",
         "next": [
             "AnecdoteNoFusingBox",
             "AnecdoteTaskCompleted_2"
         ],
         "interrupt": [
             "AnecdoteTaskEntry"
-        ]
+        ],
+        "inverse": true,
+        "doc": "当前界面已无轶事追溯任务，向左滑后再次检查"
     },
     "AnecdoteTaskCompleted_2": {
-        "doc": "确认轶事追溯结束",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -433,13 +445,15 @@
                 ]
             }
         },
-        "inverse": true,
+        "checkpoint": "_cp_AnecdoteTaskCompleted_2",
         "next": [
             "AnecdoteAccumulatedRewardNotExist"
         ],
         "interrupt": [
             "AnecdoteAccumulatedRewardExist"
-        ]
+        ],
+        "inverse": true,
+        "doc": "确认轶事追溯结束"
     },
     "AnecdoteAccumulatedRewardNotExist": {
         "doc": "检查无积分累计奖励，任务结束",
@@ -524,7 +538,6 @@
         ]
     },
     "AnecdoteTaskMain": {
-        "doc": "轶事追溯任务界面",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -540,16 +553,17 @@
                 ]
             }
         },
+        "checkpoint": "_cp_AnecdoteTaskMain",
         "next": [
             "AnecdoteTaskAddPersonCompleted"
         ],
         "interrupt": [
             "AnecdoteAddPersonFlag",
             "AnecdoteAddPerson"
-        ]
+        ],
+        "doc": "轶事追溯任务界面"
     },
     "AnecdoteTaskAddPersonCompleted": {
-        "doc": "轶事追溯任务添加人物完成",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -564,13 +578,15 @@
                 "threshold": 0.7
             }
         },
+        "checkpoint": "_cp_AnecdoteTaskAddPersonCompleted",
         "next": [
             "AnecdoteTraceTaskCompleted"
         ],
         "interrupt": [
             "AnecdoteTraceTaskReachingTheLimitComfirm",
             "AnecdoteTraceTaskComfirm"
-        ]
+        ],
+        "doc": "轶事追溯任务添加人物完成"
     },
     "AnecdoteTraceTaskCompleted": {
         "recognition": {
@@ -597,7 +613,11 @@
                 ]
             }
         },
-        "post_wait_freezes": 300
+        "post_wait_freezes": 300,
+        "jumpback": [
+            "_cp_AnecdoteTaskAwardCompleted",
+            "_cp_AnecdoteTaskCompleted_1"
+        ]
     },
     "AnecdoteTraceTaskReachingTheLimitComfirm": {
         "recognition": {
@@ -616,7 +636,12 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 300
+        "post_wait_freezes": 300,
+        "jumpback": [
+            "_cp_AnecdoteTaskAwardCompleted",
+            "_cp_AnecdoteTaskCompleted_1",
+            "_cp_AnecdoteTaskAddPersonCompleted"
+        ]
     },
     "AnecdoteTraceTaskComfirm": {
         "recognition": {
@@ -635,7 +660,12 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 300
+        "post_wait_freezes": 300,
+        "jumpback": [
+            "_cp_AnecdoteTaskAwardCompleted",
+            "_cp_AnecdoteTaskCompleted_1",
+            "_cp_AnecdoteTaskAddPersonCompleted"
+        ]
     },
     "AnecdoteAddPersonFlag": {
         "doc": "位于选人界面",
@@ -790,10 +820,14 @@
                 ],
                 "expected": "4"
             }
-        }
+        },
+        "jumpback": [
+            "_cp_AnecdoteTaskAwardCompleted",
+            "_cp_AnecdoteTaskCompleted_1",
+            "_cp_AnecdoteTaskMain"
+        ]
     },
     "AnecdoteAddPerson": {
-        "doc": "点击添加，进入选人界面",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -808,10 +842,15 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_AnecdoteTaskAwardCompleted",
+            "_cp_AnecdoteTaskCompleted_1",
+            "_cp_AnecdoteTaskMain"
+        ],
+        "doc": "点击添加，进入选人界面"
     },
     "AnecdoteCompleted": {
-        "doc": "未阅读和有轶事派遣内容节点未命中，同时位于轶事主页面，任务视为完成",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -825,17 +864,17 @@
                 "expected": "已完成"
             }
         },
+        "checkpoint": "_cp_AnecdoteCompleted",
         "next": [
             "HomeFlag"
         ],
         "interrupt": [
             "ObtainedAwards",
             "HomeButton"
-        ]
+        ],
+        "doc": "未阅读和有轶事派遣内容节点未命中，同时位于轶事主页面，任务视为完成"
     },
     "AnecdoteNotRead": {
-        "is_sub": true,
-        "doc": "尚未阅读完故事，尝试阅读",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -849,13 +888,16 @@
                 "expected": "剧情进度"
             }
         },
+        "checkpoint": "_cp_AnecdoteNotRead",
         "next": [
             "AnecdoteTryAward"
         ],
         "interrupt": [
             "AnecdoteReadStory",
             "ObtainedAwards"
-        ]
+        ],
+        "is_sub": true,
+        "doc": "尚未阅读完故事，尝试阅读"
     },
     "AnecdoteReadStory": {
         "recognition": {
@@ -891,7 +933,6 @@
         ]
     },
     "AnecdoteTryAward": {
-        "doc": "阅读进度满",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -926,7 +967,9 @@
                 275,
                 162
             ]
-        }
+        },
+        "jumpback": "_cp_AnecdoteMainFlag",
+        "doc": "阅读进度满"
     },
     "ActivityMainSelectAnecdote": {
         "recognition": {

@@ -206,6 +206,7 @@
                 263
             ]
         },
+        "checkpoint": "_cp_Victory",
         "next": [
             "Victory",
             "WaitReplay"
@@ -229,6 +230,10 @@
                     "复现"
                 ]
             }
-        }
+        },
+        "jumpback": [
+            "_cp_PsychubeFlagInReplayTwoTimes",
+            "_cp_SSNoReplay"
+        ]
     }
 }

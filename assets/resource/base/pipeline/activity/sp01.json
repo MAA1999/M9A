@@ -1,5 +1,6 @@
 {
     "Sp01Daily": {
+        "checkpoint": "_cp_Sp01Daily",
         "next": [
             "Sp01DailyEnter",
             "HomeFlagForSp_01"
@@ -90,11 +91,10 @@
                 ]
             }
         },
+        "checkpoint": "_cp_FlagInSp01Daily",
         "next": [
-            // "Sub_Sp01RPS",
             "Sub_SailingRecord",
             "Sub_Sp01DataCollect",
-            // "Sp01Messagers",
             "Sp01DailyEnter",
             "HomeFlag"
         ],
@@ -251,6 +251,7 @@
                 "count": 2000
             }
         },
+        "checkpoint": "_cp_SailingRecordSelectTargetFinish",
         "next": [
             "FlagInSailingRecordBoat"
         ],
@@ -389,7 +390,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_FlagInSp01Daily"
     },
     "SailingRecordBoatStartNext": {
         "recognition": {
@@ -462,7 +464,11 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": [
+            "_cp_SailingRecordSelectTargetFinish",
+            "_cp_FlagInSp01Daily"
+        ]
     },
     "Sp01Messagers": {
         "recognition": {
@@ -482,6 +488,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_Sp01Messagers",
         "next": [
             "Sp01MessagersEnd"
         ],
@@ -544,7 +551,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_Sp01Messagers"
     },
     "Sp01MessagersNextRound": {
         "recognition": {
@@ -563,7 +571,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_Sp01Messagers"
     },
     "Sp01MessagersEnd": {
         "recognition": {
@@ -641,6 +650,7 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_RPSStart",
         "next": [
             "RPSFinish"
         ],
@@ -669,7 +679,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_RPSStart"
     },
     "RPSFinish": {
         "recognition": {
@@ -718,7 +729,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_RPSStart"
     },
     "RPSNext": {
         "recognition": {
@@ -745,7 +757,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_RPSStart"
     },
     "Arms": {
         "recognition": {
@@ -879,7 +892,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_RPSStart"
     },
     "MediumArms2": {
         "recognition": {
@@ -900,7 +914,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_RPSStart"
     },
     "ShortArms2": {
         "recognition": {
@@ -921,7 +936,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_RPSStart"
     },
     "Towers1": {
         "recognition": {
@@ -997,7 +1013,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_RPSStart"
     },
     "Markets2": {
         "recognition": {
@@ -1016,7 +1033,8 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_RPSStart"
     },
     "Corners2": {
         "recognition": {
@@ -1035,10 +1053,10 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "jumpback": "_cp_RPSStart"
     },
     "Sub_Sp01DataCollect": {
-        "is_sub": true,
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -1064,13 +1082,15 @@
         "action": {
             "type": "Click"
         },
+        "checkpoint": "_cp_Sub_Sp01DataCollect",
         "next": [
             "Sp01DataCollect2",
             "Sp01DataCollect3"
         ],
         "interrupt": [
             "ObtainedAwards"
-        ]
+        ],
+        "is_sub": true
     },
     "Sp01DataCollect2": {
         "is_sub": true,
