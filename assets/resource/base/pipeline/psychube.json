@@ -123,7 +123,7 @@
             "param": {
                 "custom_recognition": "Count",
                 "custom_recognition_param": {
-                    "target": 20,
+                    "target": 20, // 考虑到小小糖回 5 体力，4 次体力作战共需 100 体力，设定吃糖上限 20
                     "recognition": {
                         "type": "OCR",
                         "param": {

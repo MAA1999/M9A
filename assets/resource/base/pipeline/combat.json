@@ -84,6 +84,7 @@
         "post_delay": 3000
     },
     "EnterTheShow": {
+        // 请不要为该任务加next，一般应当放于interrupt使用
         "recognition": {
             "type": "TemplateMatch",
             "param": {

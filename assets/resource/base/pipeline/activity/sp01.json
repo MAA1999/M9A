@@ -89,8 +89,10 @@
             }
         },
         "next": [
+            // "Sub_Sp01RPS",
             "[JumpBack]Sub_SailingRecord",
             "[JumpBack]Sub_Sp01DataCollect",
+            // "Sp01Messagers",
             "Sp01DailyEnter",
             "HomeFlag",
             "[JumpBack]HomeButton",

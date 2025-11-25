@@ -1,5 +1,6 @@
 {
     "TheSyndromeOfSilence": {
+        // 3.2&3.3 版本局外演绎,
         "next": [
             "SOSMainMenu",
             "[JumpBack]SOSStop",
@@ -9,7 +10,9 @@
             "[JumpBack]EnterSOSMenu"
         ]
     },
+    // 到 SOS Main Menu
     "FlagInSOSMenu": {
+        // 版本活动列表界面 OR 活动列表界面在未开始游戏的情况下点开后的界面
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -58,6 +61,7 @@
         }
     },
     "SOSMainMenu": {
+        // 有科技树的主界面，进入循环
         "recognition": {
             "type": "Custom",
             "param": {
@@ -77,11 +81,12 @@
         },
         "next": [
             "SOSSelectNoise",
-            "[JumpBack]SOSConfirm",
+            "[JumpBack]SOSConfirm", // 不管旅伴，直接跳过
             "[JumpBack]SOSStart"
         ]
     },
     "SOSWordlessWorkshop": {
+        // 沉默者沙龙，好旅伴
         "next": [
             "SOSWordlessWorkshopEmpty",
             "SOSWordlessWorkshopEnterGame",
@@ -157,7 +162,7 @@
         },
         "next": [
             "SOSSelectNoise",
-            "[JumpBack]SOSConfirm",
+            "[JumpBack]SOSConfirm", // 不管旅伴，直接跳过
             "[JumpBack]SOSStart",
             "[JumpBack]BackButtonWithDelay"
         ]
@@ -374,6 +379,7 @@
         }
     },
     "FlagInSOSMainMenu": {
+        // 有科技树的主界面
         "recognition": {
             "type": "OCR",
             "param": {
@@ -545,7 +551,9 @@
         },
         "post_delay": 1500
     },
+    // 开始局外演绎
     "SOSSelectNoise": {
+        // 选择难度界面
         "recognition": {
             "type": "OCR",
             "param": {
@@ -692,7 +700,9 @@
             "[JumpBack]CloseTip"
         ]
     },
+    // 演绎主体逻辑
     "SOSSelectNode": {
+        // 选择分数最高的节点,如果目标在委托范围内，向右滑动
         "recognition": {
             "type": "Custom",
             "param": {
@@ -717,7 +727,9 @@
             }
         }
     },
+    // 主页面各种弹窗处理,
     "SOSArtefactsObtained": {
+        // 获得造物
         "recognition": {
             "type": "OCR",
             "param": {
@@ -832,6 +844,7 @@
         "post_wait_freezes": 500
     },
     "SOSResonatorObtained": {
+        // 获得共鸣器
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1731,6 +1744,7 @@
             "type": "Click"
         }
     },
+    // 工具节点
     "SOSEventRec": {
         "recognition": {
             "type": "OCR",
@@ -1741,6 +1755,12 @@
                     155,
                     33
                 ],
+                // "roi": [
+                //     45,
+                //     74,
+                //     207,
+                //     29
+                // ],
                 "only_rec": true,
                 "expected": [
                     "[\\u4e00-\\u9fa5]+"
@@ -2000,19 +2020,19 @@
             "param": {
                 "model": "sos_nodes.onnx",
                 "labels": [
-                    "C",
-                    "Conflict",
-                    "Dangerous",
-                    "Encounter",
-                    "EncounterAlongTheWay",
-                    "EntertainmentOnTheWay",
-                    "FierceBattle",
-                    "Message",
-                    "RestArea",
-                    "ShoppingOpportunity",
-                    "TheHandOfAMasterCraftsman",
-                    "TheOnlyWay",
-                    "TreasureLand"
+                    "C", // 已完成节点
+                    "Conflict", // 冲突
+                    "Dangerous", // 险象环生
+                    "Encounter", // 遭遇
+                    "EncounterAlongTheWay", // 途中偶遇
+                    "EntertainmentOnTheWay", // 途中余兴
+                    "FierceBattle", // 恶战
+                    "Message", // 对话
+                    "RestArea", // 休憩处
+                    "ShoppingOpportunity", // 购物契机
+                    "TheHandOfAMasterCraftsman", // 巧匠之手
+                    "TheOnlyWay", // 必经之路
+                    "TreasureLand" // 藏宝地
                 ],
                 "expected": [
                     1,

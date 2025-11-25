@@ -1,5 +1,6 @@
 {
     "SSReopen": {
+        // 复刻时根据任务自动打图
         "timeout": 3000,
         "on_error": [],
         "focus": {
@@ -32,6 +33,7 @@
         ]
     },
     "SSTaskEntryGet": {
+        // 复刻任务入口获取
         "action": {
             "type": "Custom",
             "param": {
@@ -167,8 +169,8 @@
                     210
                 ],
                 "template": [
-                    "Combat/NoReplay1.png",
-                    "Combat/NoReplay2.png"
+                    "Combat/NoReplay1.png", // 未记忆
+                    "Combat/NoReplay2.png" // 首次剧情关卡无法存储记忆
                 ]
             }
         }
@@ -340,6 +342,7 @@
         }
     },
     "SSTaskCompleted_1": {
+        // 完成标志1：第一栏完成度为1/1
         "recognition": {
             "type": "OCR",
             "param": {
@@ -354,6 +357,7 @@
         }
     },
     "SSTaskCompleted_2": {
+        // 完成标志2：第一栏任务内容为消耗（代币）
         "recognition": {
             "type": "OCR",
             "param": {
