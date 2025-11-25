@@ -208,10 +208,8 @@
         },
         "next": [
             "Victory",
-            "WaitReplay"
-        ],
-        "interrupt": [
-            "CombatEntering"
+            "WaitReplay",
+            "[JumpBack]CombatEntering"
         ]
     },
     "WaitReplay": {

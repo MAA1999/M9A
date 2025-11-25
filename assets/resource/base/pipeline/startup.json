@@ -4,29 +4,27 @@
         "timeout": 60000,
         "next": [
             "HomeFlagFirst",
-            "StartGame"
-        ],
-        "interrupt": [
-            "Start1999",
-            "Download",
-            "GameLoading2",
-            "BluePochLogo",
-            "Disclaimer",
-            "HomeLoading",
-            "GameLoading",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "Reward",
-            "SignInReward",
-            "ClosePageFirst",
-            "Confirm",
-            "VictoryReturn",
-            "Downloading",
-            "CandyCancel",
-            "BackButton",
-            "HomeButton",
-            "ClickHomeCount"
+            "StartGame",
+            "[JumpBack]Start1999",
+            "[JumpBack]Download",
+            "[JumpBack]GameLoading2",
+            "[JumpBack]BluePochLogo",
+            "[JumpBack]Disclaimer",
+            "[JumpBack]HomeLoading",
+            "[JumpBack]GameLoading",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]Confirm",
+            "[JumpBack]VictoryReturn",
+            "[JumpBack]Downloading",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]ClickHomeCount"
         ]
     },
     "ReturnMain": {
@@ -41,27 +39,25 @@
             }
         },
         "next": [
-            "HomeFlagCloseReturnMain"
-        ],
-        "interrupt": [
-            "HomeButton",
-            "BackButton",
-            "HomeLoading",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "SignInReward",
-            "Reward",
-            "ClosePage",
-            "StartGame",
-            "Confirm",
-            "VictoryReturn",
-            "Download",
-            "Downloading",
-            "CandyCancel",
-            "ClickBlank",
-            "SkipButton",
-            "ClickHomeCount"
+            "HomeFlagCloseReturnMain",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeLoading",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]Reward",
+            "[JumpBack]ClosePage",
+            "[JumpBack]StartGame",
+            "[JumpBack]Confirm",
+            "[JumpBack]VictoryReturn",
+            "[JumpBack]Download",
+            "[JumpBack]Downloading",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]ClickBlank",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickHomeCount"
         ]
     },
     "StartGame": {
@@ -83,23 +79,21 @@
         },
         "next": [
             "HomeFlagFirst",
-            "StartGame"
-        ],
-        "interrupt": [
-            "HomeLoading_wait",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "Reward",
-            "SignInReward",
-            "ClickTarot",
-            "Confirm",
-            "ClosePageFirst",
-            "CandyCancel",
-            "BackButton",
-            "HomeButton",
-            "SkipButton",
-            "ClickHomeCount"
+            "StartGame",
+            "[JumpBack]HomeLoading_wait",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClickTarot",
+            "[JumpBack]Confirm",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickHomeCount"
         ]
     },
     "HomeLoading": {
@@ -209,23 +203,21 @@
         },
         "next": [
             "HomeFlagFirst",
-            "HomeLoading_wait"
-        ],
-        "interrupt": [
-            "SkipButton",
-            "BackButton",
-            "HomeButton",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "Reward",
-            "SignInReward",
-            "ClickTarot",
-            "Confirm",
-            "ClickBlank",
-            "ClosePageFirst",
-            "CandyCancel",
-            "ClickHomeCount"
+            "HomeLoading_wait",
+            "[JumpBack]SkipButton",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClickTarot",
+            "[JumpBack]Confirm",
+            "[JumpBack]ClickBlank",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]ClickHomeCount"
         ]
     },
     "Start1999": {
@@ -466,23 +458,21 @@
         },
         "post_delay": 3000,
         "next": [
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeLoading_wait",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "Reward",
-            "SignInReward",
-            "ClickTarot",
-            "Confirm",
-            "ClosePageFirst",
-            "BackButton",
-            "HomeButton",
-            "SkipButton",
-            "CandyCancel",
-            "ClickHomeCount"
+            "HomeFlag",
+            "[JumpBack]HomeLoading_wait",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClickTarot",
+            "[JumpBack]Confirm",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]SkipButton",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]ClickHomeCount"
         ]
     },
     "HomeFlagCloseReturnMain": {
@@ -620,7 +610,7 @@
                     "StartUp/Reward.png",
                     "StartUp/Reward1.png",
                     "StartUp/Reward2.png",
-                    "StartUp/Reward3.png", // 刺客联动版本
+                    "StartUp/Reward3.png",
                     "StartUp/Reward4.png"
                 ]
             }
@@ -709,7 +699,6 @@
         ]
     },
     "ClosePage": {
-        // 用于关闭各种页面，如签到、公告、物品详情页
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -752,7 +741,6 @@
         }
     },
     "SignInReward": {
-        // 领取签到奖励
         "recognition": {
             "type": "Custom",
             "param": {
@@ -792,7 +780,6 @@
         }
     },
     "SignInReward_color": {
-        // 偏橙的颜色（独一律签到）
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -812,7 +799,6 @@
         }
     },
     "SignInReward_color1": {
-        // 偏黄的颜色
         "recognition": {
             "type": "ColorMatch",
             "param": {

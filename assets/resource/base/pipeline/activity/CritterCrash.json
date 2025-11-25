@@ -2,23 +2,21 @@
     "CritterCrash": {
         "doc": "翻斗棋页面启动",
         "next": [
-            "棋局终结者结束任务"
-        ],
-        "interrupt": [
-            "缪斯币不足开始战斗",
-            "奖励怪物免费购买",
-            "怪物粘贴处购买",
-            "奖励怪物",
-            "怪物粘贴处",
-            "翻斗棋开始战斗",
-            "翻斗棋战斗跳过",
-            "翻斗棋对战结束",
-            "翻斗棋结算",
-            "箱中对决",
-            "选择棋手",
-            "评级提升",
-            "ObtainedAwards",
-            "无视奖励"
+            "棋局终结者结束任务",
+            "[JumpBack]缪斯币不足开始战斗",
+            "[JumpBack]奖励怪物免费购买",
+            "[JumpBack]怪物粘贴处购买",
+            "[JumpBack]奖励怪物",
+            "[JumpBack]怪物粘贴处",
+            "[JumpBack]翻斗棋开始战斗",
+            "[JumpBack]翻斗棋战斗跳过",
+            "[JumpBack]翻斗棋对战结束",
+            "[JumpBack]翻斗棋结算",
+            "[JumpBack]箱中对决",
+            "[JumpBack]选择棋手",
+            "[JumpBack]评级提升",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]无视奖励"
         ]
     },
     "无视奖励": {

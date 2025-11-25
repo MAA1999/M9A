@@ -1,10 +1,8 @@
 {
     "Awards": {
         "next": [
-            "AwardsMainFlag"
-        ],
-        "interrupt": [
-            "ReturnMain"
+            "AwardsMainFlag",
+            "[JumpBack]ReturnMain"
         ]
     },
     "AwardsMainFlag": {
@@ -36,19 +34,16 @@
             }
         },
         "next": [
-            "Sub_MailBadge",
-            "Sub_DailyBadge",
-            "Sub_JukeboxBadge",
+            "[JumpBack]Sub_MailBadge",
+            "[JumpBack]Sub_DailyBadge",
+            "[JumpBack]Sub_JukeboxBadge",
             "Sub_JukeboxBadge_3.2",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton",
-            "BackButton"
+            "HomeFlag",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton"
         ]
     },
     "Sub_MailBadge": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -70,10 +65,8 @@
             "type": "Click"
         },
         "next": [
-            "CollectMailAwards"
-        ],
-        "interrupt": [
-            "MailBadge"
+            "CollectMailAwards",
+            "[JumpBack]MailBadge"
         ]
     },
     "MailBadge": {
@@ -116,10 +109,8 @@
         },
         "next": [
             "NoMailAwards",
-            "CollectMailAwards"
-        ],
-        "interrupt": [
-            "ObtainedAwards"
+            "CollectMailAwards",
+            "[JumpBack]ObtainedAwards"
         ]
     },
     "ObtainedAwards": {
@@ -155,10 +146,8 @@
         },
         "next": [
             "EquipmentOverflows",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "BackButton"
+            "HomeFlag",
+            "[JumpBack]BackButton"
         ]
     },
     "EquipmentOverflows": {
@@ -176,11 +165,9 @@
             }
         },
         "next": [
-            "WareHouseFlag"
-        ],
-        "interrupt": [
-            "EnterWareHouse",
-            "BackButton"
+            "WareHouseFlag",
+            "[JumpBack]EnterWareHouse",
+            "[JumpBack]BackButton"
         ]
     },
     "WareHouseFlag": {
@@ -232,11 +219,9 @@
             "type": "Click"
         },
         "next": [
-            "Dissociation4StarFlag"
-        ],
-        "interrupt": [
-            "Dissociation4StarSelect",
-            "Dissociation3StarSelect"
+            "Dissociation4StarFlag",
+            "[JumpBack]Dissociation4StarSelect",
+            "[JumpBack]Dissociation3StarSelect"
         ]
     },
     "Dissociation4StarFlag": {
@@ -254,10 +239,8 @@
             }
         },
         "next": [
-            "DissociationFastInsertCompleted"
-        ],
-        "interrupt": [
-            "DissociationFastInsert"
+            "DissociationFastInsertCompleted",
+            "[JumpBack]DissociationFastInsert"
         ]
     },
     "DissociationFastInsertCompleted": {
@@ -289,10 +272,8 @@
         "post_delay": 3000,
         "next": [
             "DissociationCompleted",
-            "DissociationFastInsertCompleted"
-        ],
-        "interrupt": [
-            "ObtainedAwards"
+            "DissociationFastInsertCompleted",
+            "[JumpBack]ObtainedAwards"
         ]
     },
     "DissociationCompleted": {
@@ -319,11 +300,9 @@
             }
         },
         "next": [
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton",
-            "BackButton"
+            "HomeFlag",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton"
         ]
     },
     "DissociationFastInsert": {
@@ -416,7 +395,6 @@
         }
     },
     "Sub_DailyBadge": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -439,17 +417,14 @@
         },
         "post_wait_freezes": 200,
         "next": [
-            "Sub_CollectDailyAwards",
+            "[JumpBack]Sub_CollectDailyAwards",
             "WeeklyAwardsBadge",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "ObtainedAwards",
-            "BackButton"
+            "HomeFlag",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]BackButton"
         ]
     },
     "Sub_CollectDailyAwards": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -487,14 +462,12 @@
             "type": "Click"
         },
         "next": [
-            "Sub_CollectDailyAwards",
+            "[JumpBack]Sub_CollectDailyAwards",
             "WeeklyAwardsBadge",
             "WeeklyAwardsCompleted",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "ObtainedAwards",
-            "BackButton"
+            "HomeFlag",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]BackButton"
         ]
     },
     "WeeklyAwardsCompleted": {
@@ -513,11 +486,9 @@
             }
         },
         "next": [
-            "ShowFlag"
-        ],
-        "interrupt": [
-            "EnterTheShow",
-            "BackButton"
+            "ShowFlag",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]BackButton"
         ]
     },
     "ShowFlag": {
@@ -588,7 +559,6 @@
         }
     },
     "Sub_JukeboxBadge": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -611,14 +581,12 @@
         },
         "post_delay": 3000,
         "next": [
-            "Sub_CollectJukebox",
-            "Sub_JukeboxAwardsBadge",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "ObtainedAwards",
-            "JukeboxExitPurchase",
-            "BackButton"
+            "[JumpBack]Sub_CollectJukebox",
+            "[JumpBack]Sub_JukeboxAwardsBadge",
+            "HomeFlag",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]JukeboxExitPurchase",
+            "[JumpBack]BackButton"
         ]
     },
     "JukeboxExitPurchase": {
@@ -640,7 +608,6 @@
         "post_delay": 1000
     },
     "Sub_JukeboxAwardsBadge": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -658,14 +625,12 @@
             "type": "Click"
         },
         "next": [
-            "Sub_CollectJukebox",
-            "Sub_JukeboxAwardsBadge",
-            "NoJukeboxAwards"
-        ],
-        "interrupt": [
-            "ObtainedAwards",
-            "ExitEdition",
-            "JukeboxExitPurchase"
+            "[JumpBack]Sub_CollectJukebox",
+            "[JumpBack]Sub_JukeboxAwardsBadge",
+            "NoJukeboxAwards",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]ExitEdition",
+            "[JumpBack]JukeboxExitPurchase"
         ]
     },
     "ExitEdition": {
@@ -686,7 +651,6 @@
         ]
     },
     "Sub_CollectJukebox": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -737,12 +701,10 @@
             "type": "Click"
         },
         "next": [
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "JukeboxBadge_3.2_OneClick",
-            "ObtainedAwards",
-            "HomeButton"
+            "HomeFlag",
+            "[JumpBack]JukeboxBadge_3.2_OneClick",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]HomeButton"
         ]
     },
     "JukeboxBadge_3.2_OneClick": {

@@ -1,8 +1,8 @@
 {
     "TheAlarm": {
-        "next": "Alarm_End",
-        "interrupt": [
-            "Alarm_Find0/3"
+        "next": [
+            "Alarm_End",
+            "[JumpBack]Alarm_Find0/3"
         ]
     },
     "Alarm_End": {
@@ -47,9 +47,9 @@
         },
         "next": [
             "Alarm_Select",
-            "Alarm_Complete"
-        ],
-        "interrupt": "Alarm_StageFlag"
+            "Alarm_Complete",
+            "[JumpBack]Alarm_StageFlag"
+        ]
     },
     "Alarm_Select": {
         "recognition": {
@@ -68,8 +68,10 @@
         "action": {
             "type": "Click"
         },
-        "next": "Alarm_Complete",
-        "interrupt": "Alarm_StageFlag"
+        "next": [
+            "Alarm_Complete",
+            "[JumpBack]Alarm_StageFlag"
+        ]
     },
     "Alarm_Complete": {
         "recognition": {
@@ -127,7 +129,9 @@
         "action": {
             "type": "Click"
         },
-        "next": "Alarm_Action1"
+        "next": [
+            "Alarm_Action1"
+        ]
     },
     "Alarm_FindStageFlag": {
         "recognition": {
@@ -204,11 +208,9 @@
         "next": [
             "Alarm_StageFlagEnd1",
             "Alarm_StageFlagEnd",
-            "Alarm_Action2"
-        ],
-        "interrupt": [
-            "Alarm_Action3",
-            "TheAlarm_Combat"
+            "Alarm_Action2",
+            "[JumpBack]Alarm_Action3",
+            "[JumpBack]TheAlarm_Combat"
         ]
     },
     "Alarm_Action3": {

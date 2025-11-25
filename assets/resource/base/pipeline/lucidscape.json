@@ -3,16 +3,14 @@
         "doc": "醒梦域",
         "next": [
             "LucidscapeEntryEnd",
-            "FlagInLucidscape"
-        ],
-        "interrupt": [
-            "LucidscapeEntry",
-            "ObtainedAwards",
-            "ArtificialSleepwalkingAwards",
-            "EnterTheShow",
-            "ClickBlank",
-            "ArtificialSleepwalking",
-            "ReturnMain"
+            "FlagInLucidscape",
+            "[JumpBack]LucidscapeEntry",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]ArtificialSleepwalkingAwards",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ClickBlank",
+            "[JumpBack]ArtificialSleepwalking",
+            "[JumpBack]ReturnMain"
         ]
     },
     "LucidscapeEntryEnd": {
@@ -66,10 +64,8 @@
         "post_delay": 3000,
         "next": [
             "LucidscapeFlagInTotalAwards",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton"
+            "HomeFlag",
+            "[JumpBack]HomeButton"
         ]
     },
     "LucidscapeFlagInTotalAwards": {
@@ -87,11 +83,9 @@
             }
         },
         "next": [
-            "LucidscapeTotalAwardsCompleted"
-        ],
-        "interrupt": [
-            "LucidscapeAwardsClick",
-            "ObtainedAwards"
+            "LucidscapeTotalAwardsCompleted",
+            "[JumpBack]LucidscapeAwardsClick",
+            "[JumpBack]ObtainedAwards"
         ]
     },
     "LucidscapeTotalAwardsCompleted": {
@@ -123,10 +117,8 @@
             }
         },
         "next": [
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton"
+            "HomeFlag",
+            "[JumpBack]HomeButton"
         ]
     },
     "LucidscapeStageSelect": {
@@ -245,11 +237,9 @@
         "rate_limit": 10000,
         "next": [
             "LucidscapeFailed",
-            "LucidscapeVictory"
-        ],
-        "interrupt": [
-            "Combating",
-            "LucidscapeSkipWarning"
+            "LucidscapeVictory",
+            "[JumpBack]Combating",
+            "[JumpBack]LucidscapeSkipWarning"
         ]
     },
     "LucidscapeSkipWarning": {
@@ -306,10 +296,8 @@
         "post_delay": 2000,
         "next": [
             "HomeFlag",
-            "LucidscapeFailed"
-        ],
-        "interrupt": [
-            "HomeButton"
+            "LucidscapeFailed",
+            "[JumpBack]HomeButton"
         ],
         "focus": "[color:red]战斗失败，任务结束[/color]"
     },
@@ -342,12 +330,10 @@
         },
         "next": [
             "LucidscapeStatusDetect",
-            "LucidscapeVictory"
-        ],
-        "interrupt": [
-            "HomeLoading",
-            "LucidscapeSkip",
-            "LucidscapeClickBlank"
+            "LucidscapeVictory",
+            "[JumpBack]HomeLoading",
+            "[JumpBack]LucidscapeSkip",
+            "[JumpBack]LucidscapeClickBlank"
         ]
     },
     "LucidscapeSkip": {
@@ -480,11 +466,9 @@
             }
         },
         "next": [
-            "LucidscapeNoAwards"
-        ],
-        "interrupt": [
-            "LucidscapeAwardsClick",
-            "ObtainedAwards"
+            "LucidscapeNoAwards",
+            "[JumpBack]LucidscapeAwardsClick",
+            "[JumpBack]ObtainedAwards"
         ]
     },
     "LucidscapeNoAwards": {
@@ -516,10 +500,8 @@
             }
         },
         "next": [
-            "FlagInLucidscape"
-        ],
-        "interrupt": [
-            "BackButton"
+            "FlagInLucidscape",
+            "[JumpBack]BackButton"
         ]
     },
     "LucidscapeAwardsClick": {

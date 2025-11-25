@@ -1,11 +1,9 @@
 {
     "SwitchAccount": {
         "next": [
-            "MainMenuFlag"
-        ],
-        "interrupt": [
-            "MainMenuEntry",
-            "StartUp"
+            "MainMenuFlag",
+            "[JumpBack]MainMenuEntry",
+            "[JumpBack]StartUp"
         ]
     },
     "MainMenuFlag": {
@@ -22,10 +20,8 @@
             }
         },
         "next": [
-            "SettingEntry"
-        ],
-        "interrupt": [
-            "MenuRight"
+            "SettingEntry",
+            "[JumpBack]MenuRight"
         ]
     },
     "SettingEntry": {
@@ -55,12 +51,10 @@
         },
         "next": [
             "StartGameFlag",
-            "SettingEntry"
-        ],
-        "interrupt": [
-            "AccountExitConfirm",
-            "AccountExit",
-            "AccountSettingEnter"
+            "SettingEntry",
+            "[JumpBack]AccountExitConfirm",
+            "[JumpBack]AccountExit",
+            "[JumpBack]AccountSettingEnter"
         ]
     },
     "StartGameFlag": {
@@ -78,11 +72,9 @@
             }
         },
         "next": [
-            "SwitchAccountMainFlag"
-        ],
-        "interrupt": [
-            "AccountExitButtonConfirm",
-            "AccountExitButton"
+            "SwitchAccountMainFlag",
+            "[JumpBack]AccountExitButtonConfirm",
+            "[JumpBack]AccountExitButton"
         ]
     },
     "SwitchAccountMainFlag": {
@@ -100,11 +92,9 @@
         },
         "next": [
             "SwitchAccountMainExpandFlag",
-            "SwitchAccountMainExpandFlag_1440p"
-        ],
-        "interrupt": [
-            "SwitchAccountMainExpand",
-            "SwitchAccountMainExpand_1440p"
+            "SwitchAccountMainExpandFlag_1440p",
+            "[JumpBack]SwitchAccountMainExpand",
+            "[JumpBack]SwitchAccountMainExpand_1440p"
         ]
     },
     "SwitchAccountMainExpandFlag": {
@@ -123,10 +113,8 @@
             }
         },
         "next": [
-            "SwitchLastAccountComplete"
-        ],
-        "interrupt": [
-            "SwitchLastAccount"
+            "SwitchLastAccountComplete",
+            "[JumpBack]SwitchLastAccount"
         ]
     },
     "SwitchAccountMainExpandFlag_1440p": {
@@ -143,10 +131,8 @@
             }
         },
         "next": [
-            "SwitchLastAccountComplete"
-        ],
-        "interrupt": [
-            "SwitchLastAccount_1440p"
+            "SwitchLastAccountComplete",
+            "[JumpBack]SwitchLastAccount_1440p"
         ]
     },
     "SwitchLastAccountComplete": {
@@ -165,10 +151,8 @@
             }
         },
         "next": [
-            "StartGame"
-        ],
-        "interrupt": [
-            "LogIn"
+            "StartGame",
+            "[JumpBack]LogIn"
         ]
     },
     "LogIn": {

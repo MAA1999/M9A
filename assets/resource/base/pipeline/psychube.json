@@ -2,12 +2,10 @@
     "Psychube": {
         "next": [
             "FreePsychube",
-            "NoFreePsychube"
-        ],
-        "interrupt": [
-            "EnterTheShow",
-            "ResourceChapterLabel",
-            "ReturnMain"
+            "NoFreePsychube",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ResourceChapterLabel",
+            "[JumpBack]ReturnMain"
         ]
     },
     "FreePsychube": {
@@ -29,10 +27,8 @@
         },
         "next": [
             "PsychubeReadyForAction",
-            "FreePsychube"
-        ],
-        "interrupt": [
-            "PsychubeStage07"
+            "FreePsychube",
+            "[JumpBack]PsychubeStage07"
         ]
     },
     "PsychubeStage07": {
@@ -72,11 +68,9 @@
             "type": "Click"
         },
         "next": [
-            "PsychubeFlagInReplayReady"
-        ],
-        "interrupt": [
-            "PsychubeSwitchToReplay",
-            "CombatEntering"
+            "PsychubeFlagInReplayReady",
+            "[JumpBack]PsychubeSwitchToReplay",
+            "[JumpBack]CombatEntering"
         ]
     },
     "PsychubeFlagInReplayReady": {
@@ -94,10 +88,8 @@
             }
         },
         "next": [
-            "PsychubeFlagInReplayTwoTimes"
-        ],
-        "interrupt": [
-            "SwitchCombatTimes"
+            "PsychubeFlagInReplayTwoTimes",
+            "[JumpBack]SwitchCombatTimes"
         ]
     },
     "PsychubeFlagInReplayTwoTimes": {
@@ -120,11 +112,9 @@
         "timeout": 60000,
         "next": [
             "PsychubeVictory",
-            "PsychubeFlagInReplayTwoTimes"
-        ],
-        "interrupt": [
-            "PsychubeEatCandyPage",
-            "ReplayingNoNext"
+            "PsychubeFlagInReplayTwoTimes",
+            "[JumpBack]PsychubeEatCandyPage",
+            "[JumpBack]ReplayingNoNext"
         ]
     },
     "PsychubeEatCandyPage": {
@@ -133,7 +123,7 @@
             "param": {
                 "custom_recognition": "Count",
                 "custom_recognition_param": {
-                    "target": 20, // 考虑到小小糖回 5 体力，4 次体力作战共需 100 体力，设定吃糖上限 20 
+                    "target": 20,
                     "recognition": {
                         "type": "OCR",
                         "param": {
@@ -186,11 +176,9 @@
         },
         "next": [
             "PsychubeFlagInReadyForAction",
-            "PsychubeVictory"
-        ],
-        "interrupt": [
-            "BackButton",
-            "HomeLoading"
+            "PsychubeVictory",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeLoading"
         ]
     },
     "PsychubeFlagInReadyForAction": {
@@ -210,10 +198,8 @@
         },
         "next": [
             "PsychubeDouble",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton"
+            "HomeFlag",
+            "[JumpBack]HomeButton"
         ]
     },
     "PsychubeDouble": {

@@ -18,12 +18,10 @@
         "next": [
             "ActivityMainFlag",
             "ActivityMainAnecdoteFlag",
-            "AnecdoteMainFlag"
-        ],
-        "interrupt": [
-            "EnterTheActivityMain",
-            "ActivityMainSelectAnecdote",
-            "ReturnMain"
+            "AnecdoteMainFlag",
+            "[JumpBack]EnterTheActivityMain",
+            "[JumpBack]ActivityMainSelectAnecdote",
+            "[JumpBack]ReturnMain"
         ]
     },
     "ActivityMainFlag": {
@@ -42,11 +40,9 @@
             }
         },
         "next": [
-            "ActivityMainAnecdoteFlag"
-        ],
-        "interrupt": [
-            "ActivityMainSelectAnecdote",
-            "SwipeRightForAnecdote"
+            "ActivityMainAnecdoteFlag",
+            "[JumpBack]ActivityMainSelectAnecdote",
+            "[JumpBack]SwipeRightForAnecdote"
         ]
     },
     "ActivityMainAnecdoteFlag": {
@@ -68,11 +64,9 @@
         },
         "next": [
             "AnecdoteMainFlag",
-            "ActivityMainAnecdoteFlag"
-        ],
-        "interrupt": [
-            "AnecdoteNotReadEver",
-            "ObtainedAwards"
+            "ActivityMainAnecdoteFlag",
+            "[JumpBack]AnecdoteNotReadEver",
+            "[JumpBack]ObtainedAwards"
         ]
     },
     "AnecdoteNotReadEver": {
@@ -126,12 +120,10 @@
             ]
         },
         "next": [
-            "AnecdoteNotRead",
+            "[JumpBack]AnecdoteNotRead",
             "AnecdoteTaskExist",
-            "AnecdoteCompleted"
-        ],
-        "interrupt": [
-            "ObtainedAwards"
+            "AnecdoteCompleted",
+            "[JumpBack]ObtainedAwards"
         ]
     },
     "AnecdoteTaskExist": {
@@ -181,10 +173,8 @@
             }
         },
         "next": [
-            "AnecdoteAccumulatedRewardNotExist"
-        ],
-        "interrupt": [
-            "AnecdoteAccumulatedRewardExist"
+            "AnecdoteAccumulatedRewardNotExist",
+            "[JumpBack]AnecdoteAccumulatedRewardExist"
         ]
     },
     "AnecdoteTraceFlag": {
@@ -214,10 +204,8 @@
             }
         },
         "next": [
-            "AnecdoteTaskAwardCompleted"
-        ],
-        "interrupt": [
-            "AnecdoteTaskAwardEntry"
+            "AnecdoteTaskAwardCompleted",
+            "[JumpBack]AnecdoteTaskAwardEntry"
         ]
     },
     "AnecdoteTaskAwardCompleted": {
@@ -246,10 +234,8 @@
         "inverse": true,
         "next": [
             "AnecdoteNoFusingBox",
-            "AnecdoteTaskCompleted_1"
-        ],
-        "interrupt": [
-            "AnecdoteTaskEntry"
+            "AnecdoteTaskCompleted_1",
+            "[JumpBack]AnecdoteTaskEntry"
         ]
     },
     "AnecdoteTaskAwardEntry": {
@@ -300,10 +286,8 @@
             }
         },
         "next": [
-            "AnecdoteTaskAwardMainCompleted"
-        ],
-        "interrupt": [
-            "AnecdoteTaskAwardMainConfirm"
+            "AnecdoteTaskAwardMainCompleted",
+            "[JumpBack]AnecdoteTaskAwardMainConfirm"
         ]
     },
     "AnecdoteTaskAwardMainCompleted": {
@@ -411,10 +395,8 @@
         },
         "next": [
             "AnecdoteNoFusingBox",
-            "AnecdoteTaskCompleted_2"
-        ],
-        "interrupt": [
-            "AnecdoteTaskEntry"
+            "AnecdoteTaskCompleted_2",
+            "[JumpBack]AnecdoteTaskEntry"
         ]
     },
     "AnecdoteTaskCompleted_2": {
@@ -435,10 +417,8 @@
         },
         "inverse": true,
         "next": [
-            "AnecdoteAccumulatedRewardNotExist"
-        ],
-        "interrupt": [
-            "AnecdoteAccumulatedRewardExist"
+            "AnecdoteAccumulatedRewardNotExist",
+            "[JumpBack]AnecdoteAccumulatedRewardExist"
         ]
     },
     "AnecdoteAccumulatedRewardNotExist": {
@@ -541,11 +521,9 @@
             }
         },
         "next": [
-            "AnecdoteTaskAddPersonCompleted"
-        ],
-        "interrupt": [
-            "AnecdoteAddPersonFlag",
-            "AnecdoteAddPerson"
+            "AnecdoteTaskAddPersonCompleted",
+            "[JumpBack]AnecdoteAddPersonFlag",
+            "[JumpBack]AnecdoteAddPerson"
         ]
     },
     "AnecdoteTaskAddPersonCompleted": {
@@ -565,11 +543,9 @@
             }
         },
         "next": [
-            "AnecdoteTraceTaskCompleted"
-        ],
-        "interrupt": [
-            "AnecdoteTraceTaskReachingTheLimitComfirm",
-            "AnecdoteTraceTaskComfirm"
+            "AnecdoteTraceTaskCompleted",
+            "[JumpBack]AnecdoteTraceTaskReachingTheLimitComfirm",
+            "[JumpBack]AnecdoteTraceTaskComfirm"
         ]
     },
     "AnecdoteTraceTaskCompleted": {
@@ -826,15 +802,12 @@
             }
         },
         "next": [
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "ObtainedAwards",
-            "HomeButton"
+            "HomeFlag",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]HomeButton"
         ]
     },
     "AnecdoteNotRead": {
-        "is_sub": true,
         "doc": "尚未阅读完故事，尝试阅读",
         "recognition": {
             "type": "OCR",
@@ -850,11 +823,9 @@
             }
         },
         "next": [
-            "AnecdoteTryAward"
-        ],
-        "interrupt": [
-            "AnecdoteReadStory",
-            "ObtainedAwards"
+            "AnecdoteTryAward",
+            "[JumpBack]AnecdoteReadStory",
+            "[JumpBack]ObtainedAwards"
         ]
     },
     "AnecdoteReadStory": {
