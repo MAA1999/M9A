@@ -136,3 +136,75 @@ class SOSSelectEncounterOptionList(CustomRecognition):
             box=options[0]["roi"] if options else [0, 0, 0, 0],
             detail=json.dumps({"options": options}, ensure_ascii=False),
         )
+
+
+@AgentServer.custom_recognition("SOSSelectNode")
+class SOSSelectNode(CustomRecognition):
+    """
+    局外演绎：无声综合征-节点选择
+    """
+
+    def analyze(
+        self,
+        context: Context,
+        argv: CustomRecognition.AnalyzeArg,
+    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+
+        # 如果目标在禁止区域范围内，向右滑动
+        forbidden_roi = [0, 140, 348, 284]
+
+        reco_detail = context.run_recognition("SOSEntrustrRec", argv.image)
+        if reco_detail and reco_detail.best_result:
+            reco_detail = context.run_recognition("SOSSelectNode_rec", argv.image)
+            if reco_detail and reco_detail.best_result:
+                # 获取识别到的节点位置
+                node_box = reco_detail.best_result.box
+
+                # 判断是否在禁止区域内
+                x, y, w, h = node_box
+                fx, fy, fw, fh = forbidden_roi
+
+                # 检查节点是否与禁止区域相交（只要相交就算）
+                if x < fx + fw and x + w > fx and y < fy + fh and y + h > fy:
+                    # 在禁止区域内，返回滑动指令
+                    context.run_task(
+                        "Click",
+                        {
+                            "Click": {
+                                "action": {
+                                    "type": "Swipe",
+                                    "param": {
+                                        "begin": [402, 564, 34, 36],
+                                        "end": [902, 569, 34, 36],
+                                        "duration": 500,
+                                    },
+                                }
+                            }
+                        },
+                    )
+                    return CustomRecognition.AnalyzeResult(
+                        box=None,
+                        detail=json.dumps(
+                            {
+                                "action": "swipe_right",
+                                "reason": "node_in_forbidden_area",
+                                "node_box": node_box,
+                            },
+                            ensure_ascii=False,
+                        ),
+                    )
+                else:
+                    # 不在禁止区域内，返回节点位置供点击
+                    return CustomRecognition.AnalyzeResult(
+                        box=node_box, detail=str(reco_detail.raw_detail)
+                    )
+        else:
+            reco_detail = context.run_recognition("SOSSelectNode_rec", argv.image)
+            if reco_detail and reco_detail.best_result:
+                # 获取识别到的节点位置
+                node_box = reco_detail.best_result.box
+                # 不在禁止区域内，返回节点位置供点击
+                return CustomRecognition.AnalyzeResult(
+                    box=node_box, detail=str(reco_detail.raw_detail)
+                )
+            return CustomRecognition.AnalyzeResult(box=None, detail="")

@@ -43,7 +43,8 @@
         "others": [
             "SOSDice",
             "SOSContinue",
-            "SOSEventEnd"
+            "SOSEventEnd",
+            "CloseTip"
         ],
         "EncounterAlongTheWay": "@message_left+@stats+@artefact+@harmonic+@resonator+@others+SOSClickEventRec",
         "TheOnlyWay": "@message+@stats+@artefact+@harmonic+@resonator+@others"
@@ -60,7 +61,7 @@
                 "name": "SOSCombat"
             }
         ],
-        "interrupts": "@stats+@artefact+@harmonic+@resonator"
+        "interrupts": "@stats+@artefact+@harmonic+@resonator+CloseTip"
     },
     "险象环生": {
         "event_name_roi": [
@@ -110,7 +111,7 @@
                         "name": "SOSCombat"
                     }
                 ],
-                "interrupts": "@stats+@artefact+@harmonic+@resonator"
+                "interrupts": "@stats+@artefact+@harmonic+@resonator+CloseTip"
             },
             "险象环生": {
                 "actions": [
@@ -152,7 +153,7 @@
                         "name": "SOSCombat"
                     }
                 ],
-                "interrupts": "@stats+@artefact+@harmonic+@resonator"
+                "interrupts": "@stats+@artefact+@harmonic+@resonator+CloseTip"
             }
         }
     },
@@ -168,7 +169,7 @@
                 "name": "SOSCombat"
             }
         ],
-        "interrupts": "@stats+@artefact+@harmonic+@resonator"
+        "interrupts": "@stats+@artefact+@harmonic+@resonator+CloseTip"
     },
     "途中偶遇": {
         "event_name_roi": [
@@ -639,7 +640,7 @@
                 "name": "SOSCombat"
             }
         ],
-        "interrupts": "@stats+@artefact+@harmonic+@resonator"
+        "interrupts": "@stats+@artefact+@harmonic+@resonator+CloseTip"
     },
     "恶战": {
         "event_name_roi": null,
@@ -653,7 +654,7 @@
                 "name": "SOSCombat"
             }
         ],
-        "interrupts": "@stats+@artefact+@harmonic+@resonator"
+        "interrupts": "@stats+@artefact+@harmonic+@resonator+CloseTip"
     },
     "休憩处": {
         "event_name_roi": [
@@ -687,7 +688,7 @@
                 "name": "SOSShoppingExit"
             }
         ],
-        "interrupts": "@stats+@artefact+@harmonic+@resonator"
+        "interrupts": "@stats+@artefact+@harmonic+@resonator+CloseTip"
     },
     "巧匠之手": {
         "event_name_roi": null,

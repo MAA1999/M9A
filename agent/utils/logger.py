@@ -14,11 +14,28 @@ try:
         os.makedirs(log_dir, exist_ok=True)
         _logger.remove()
 
+        # 定义日志级别的简短格式
+        def format_level(record):
+            level_map = {
+                "INFO": "info",
+                "ERROR": "err",
+                "WARNING": "warn",
+                "DEBUG": "debug",
+                "CRITICAL": "critical",
+                "SUCCESS": "success",
+                "TRACE": "trace",
+            }
+            record["extra"]["level_short"] = level_map.get(
+                record["level"].name, record["level"].name.lower()
+            )
+            return True
+
         _logger.add(
             sys.stderr,
-            format="[<level>{level}</level>] <level>{message}</level>",
+            format="<level>{extra[level_short]}</level>: <level>{message}</level>",
             colorize=True,
             level=console_level,
+            filter=format_level,
         )
         _logger.add(
             f"{log_dir}/{{time:YYYY-MM-DD}}.log",

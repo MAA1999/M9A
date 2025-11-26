@@ -40,6 +40,6 @@ jobs:
 
           curl -L \
             -X POST \
-            -H "Authorization: Bearer ${{ secrets.pat }}" \
+            -H "Authorization: Bearer ${{ secrets.DISPATCH_TOKEN }}" \
             -d '{"event_type":"md_changes"}' \
             "https://api.github.com/repos/MAA1999/M9A-WEB/dispatches"

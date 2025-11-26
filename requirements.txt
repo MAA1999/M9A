@@ -2,3 +2,4 @@ maafw==4.5.6
 loguru
 pillow
 pytz
+requests

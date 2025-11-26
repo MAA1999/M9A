@@ -3,6 +3,7 @@ import time
 import json
 import copy
 import os
+import ast
 from typing import cast
 from PIL import Image
 import numpy as np
@@ -23,6 +24,8 @@ __all__ = [
     "SOSShoppingList",
     "SOSBuyItems",
     "SOSSelectNoise",
+    "SOSSelectInstrument",
+    "SOSSwitchStat",
 ]
 
 
@@ -32,7 +35,7 @@ class SOSSelectNode(CustomAction):
     节点选择
     """
 
-    type, event = "", ""
+    node_type, event_name = "", ""
 
     def run(
         self,
@@ -40,7 +43,7 @@ class SOSSelectNode(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        reco_detail = cast(NeuralNetworkDetectResult, argv.reco_detail.best_result)
+        reco_detail = argv.reco_detail.raw_detail["best"]["detail"]
 
         with open("resource/data/sos/nodes.json", encoding="utf-8") as f:
             nodes = json.load(f)
@@ -58,14 +61,14 @@ class SOSSelectNode(CustomAction):
             ]
             if expected_results:
                 img = context.tasker.controller.cached_image
-                
+
                 # BGR2RGB
                 if len(img.shape) == 3 and img.shape[2] == 3:
                     rgb_img = img[:, :, ::-1]
                 else:
                     rgb_img = img
                     logger.warning("当前截图并非三通道")
-                
+
                 timestamp = time.strftime("%Y%m%d_%H%M%S")
                 save_dir = "debug/custom/SOSSelectNode"
                 os.makedirs(save_dir, exist_ok=True)
@@ -77,9 +80,57 @@ class SOSSelectNode(CustomAction):
                         f"  结果{i}: 类型={nodes['types'][r.cls_index]} (cls_index={r.cls_index}), 分数={r.score:.3f}"
                     )
 
-        type = nodes["types"][reco_detail.cls_index]
-        SOSSelectNode.type = type
-        logger.info(f"当前进入节点类型: {type}")
+        # 如果 reco_detail 是字符串，解析为 dict
+        if isinstance(reco_detail, str):
+            try:
+                reco_detail = ast.literal_eval(reco_detail)
+            except (ValueError, SyntaxError):
+                logger.error(f"无法解析 reco_detail: {reco_detail}")
+                return CustomAction.RunResult(success=False)
+
+        # 获取 cls_index
+        if isinstance(reco_detail, dict):
+            cls_index = reco_detail.get("best", {}).get("cls_index")
+        elif hasattr(reco_detail, "cls_index"):
+            cls_index = reco_detail.cls_index
+        else:
+            logger.error(
+                f"无法获取 cls_index from reco_detail: {type(reco_detail)} {reco_detail}"
+            )
+            return CustomAction.RunResult(success=False)
+
+        if cls_index is None:
+            logger.error("cls_index 为 None")
+            return CustomAction.RunResult(success=False)
+
+        # 获取 box
+        if isinstance(reco_detail, dict):
+            box = reco_detail.get("best", {}).get("box")
+        elif hasattr(reco_detail, "box"):
+            box = reco_detail.box
+        else:
+            logger.error(
+                f"无法获取 box from reco_detail: {type(reco_detail)} {reco_detail}"
+            )
+            return CustomAction.RunResult(success=False)
+
+        if box is None:
+            logger.error("box 为 None")
+            return CustomAction.RunResult(success=False)
+
+        node_type = nodes["types"][cls_index]
+        if not node_type:
+            logger.error(f"空的 node_type for cls_index: {cls_index}")
+            return CustomAction.RunResult(success=False)
+        SOSSelectNode.node_type = node_type
+        logger.info(f"当前进入节点类型: {node_type}")
+
+        node_type = nodes["types"][cls_index]
+        if not node_type:
+            logger.error(f"空的 node_type for cls_index: {cls_index}")
+            return CustomAction.RunResult(success=False)
+        SOSSelectNode.node_type = node_type
+        logger.info(f"当前进入节点类型: {node_type}")
 
         times = 0
         while times < 3:
@@ -88,7 +139,7 @@ class SOSSelectNode(CustomAction):
                 {
                     "Click": {
                         "action": "Click",
-                        "target": reco_detail.box,
+                        "target": box,
                         "post_wait_freezes": {
                             "time": 500,
                             "target": [846, 555, 406, 68],
@@ -103,7 +154,7 @@ class SOSSelectNode(CustomAction):
                 break
             times += 1
 
-        event_name_roi = nodes[type]["event_name_roi"]
+        event_name_roi = nodes[node_type]["event_name_roi"]
 
         if event_name_roi:
             # 看下当前事件名
@@ -118,7 +169,7 @@ class SOSSelectNode(CustomAction):
                 if reco_detail:
                     ocr_result = cast(OCRResult, reco_detail.best_result)
                     event = ocr_result.text
-                    SOSSelectNode.event = event
+                    SOSSelectNode.event_name = event
                     logger.info(f"当前事件: {event}")
                     break
                 else:
@@ -127,6 +178,7 @@ class SOSSelectNode(CustomAction):
                         "SOSLoseArtefact",
                         "SOSStrengthenArtefact",
                         "SOSHarmonicObtained",
+                        "CloseTip",
                     ]
                     popup_handled = False
 
@@ -143,11 +195,11 @@ class SOSSelectNode(CustomAction):
                         time.sleep(1)
                         retry_times += 1
             else:
-                SOSSelectNode.event = ""
+                SOSSelectNode.event_name = ""
                 return CustomAction.RunResult(success=False)
         else:
             # 没有事件名
-            SOSSelectNode.event = ""
+            SOSSelectNode.event_name = ""
         return CustomAction.RunResult(success=True)
 
 
@@ -166,29 +218,33 @@ class SOSNodeProcess(CustomAction):
         with open("resource/data/sos/nodes.json", encoding="utf-8") as f:
             nodes = json.load(f)
 
-        type, event = (
-            SOSSelectNode.type,
-            SOSSelectNode.event,
+        node_type, event_name = (
+            SOSSelectNode.node_type,
+            SOSSelectNode.event_name,
         )
 
+        if not node_type:
+            logger.error("node_type 为空")
+            return CustomAction.RunResult(success=False)
+
         # 无 event 的处理
-        if type in ["购物契机", "遭遇", "途中余兴", "冲突", "恶战", "巧匠之手"]:
-            actions: list = nodes[type]["actions"] + [
+        if node_type in ["购物契机", "遭遇", "途中余兴", "冲突", "恶战", "巧匠之手"]:
+            actions: list = nodes[node_type]["actions"] + [
                 {"type": "RunNode", "name": "FlagInSOSMain"}
             ]
             interrupts: list = self._resolve_interrupts(
-                nodes[type].get("interrupts", []), nodes
+                nodes[node_type].get("interrupts", []), nodes
             )
         else:
             # 有 event 的处理
-            if event not in nodes[type]["events"]:
-                logger.error(f"未适配该事件: {event}")
+            if event_name not in nodes[node_type]["events"]:
+                logger.error(f"未适配该事件: {event_name}")
                 context.tasker.post_stop()
                 return CustomAction.RunResult(success=False)
 
-            info: dict = nodes[type]["events"][event]
+            info: dict = nodes[node_type]["events"][event_name]
             # 如果是最终难题，不添加 FlagInSOSMain
-            if event == "最终难题":
+            if event_name == "最终难题":
                 actions: list = info["actions"]
             else:
                 actions: list = info["actions"] + [
@@ -744,7 +800,14 @@ class SOSBuyItems(CustomAction):
     ) -> CustomAction.RunResult:
 
         # 获取 interrupts 配置（购买后可能出现的弹窗）
-        interrupts = ["SOSLoseArtefact", "SOSStrengthenArtefact"]
+        interrupts = [
+            "SOSLoseArtefact",
+            "SOSStrengthenArtefact",
+            "SOSWarning",
+            "SOSStatsUpButton",
+            "SOSStatsUp",
+            "CloseTip",
+        ]
 
         # 识别右上角当前金雀子儿
         img = context.tasker.controller.post_screencap().wait().get()
@@ -789,7 +852,7 @@ class SOSBuyItems(CustomAction):
         # 第一阶段：遍历所有页面，收集所有可购买物品及其位置信息
 
         # 先滑动到顶部
-        for _ in range(5):
+        for _ in range(3):
             context.run_task(
                 "Swipe",
                 {
@@ -808,7 +871,7 @@ class SOSBuyItems(CustomAction):
         )  # 存储所有可购买的物品: [(item_name, item_price, page_index, result), ...]
         last_screen_texts = set()
         page_index = 0
-        max_scroll_times = 5
+        max_scroll_times = 3
 
         while page_index < max_scroll_times:
             # 截图并识别当前屏幕的物品
@@ -1053,7 +1116,7 @@ class SOSBuyItems(CustomAction):
         if buy_button_reco:
             # 最多重试5次购买
             buy_retry = 0
-            while buy_retry < 5:
+            while buy_retry < 3:
                 context.run_task("SOSBuyButton")
 
                 # 先处理可能出现的弹窗
@@ -1080,7 +1143,7 @@ class SOSBuyItems(CustomAction):
                 else:
                     buy_retry += 1
 
-            logger.error(f"购买失败，已重试5次: {item_name}")
+            logger.error(f"购买失败，已重试3次: {item_name}")
             return False
         else:
             logger.warning(f"未找到购买按钮")
