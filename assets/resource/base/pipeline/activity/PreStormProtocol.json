@@ -34,13 +34,11 @@
         },
         "next": [
             "PreStormProtocolGiveUp",
-            "PreStormProtocol"
+            "PreStormProtocol",
+            "[JumpBack]PreStormProtocolReport",
+            "[JumpBack]Confirm",
+            "[JumpBack]BackButton"
         ],
-        "interrupt": [
-            "PreStormProtocolReport",
-            "Confirm",
-            "BackButton"
-        ]
     },
     "PreStormProtocolReport": {
         "recognition": {
@@ -86,13 +84,11 @@
         },
         "next": [
             "PreStormProtocolGiveUp",
-            "PreStormProtocol"
+            "PreStormProtocol",
+            "[JumpBack]PreStormProtocolReport",
+            "[JumpBack]Confirm",
+            "[JumpBack]BackButton"
         ],
-        "interrupt": [
-            "PreStormProtocolReport",
-            "Confirm",
-            "BackButton"
-        ]
     },
     "PreStormProtocol1": {
         // 已打败教程中boss的任务链
@@ -122,19 +118,17 @@
             "type": "Click"
         },
         "next": [
-            "PreStormProtocol1"
+            "PreStormProtocol1",
+            "[JumpBack]PreStormProtocolExit",
+            "[JumpBack]PreStormProtocolLoading",
+            "[JumpBack]PreStormProtocolReport",
+            "[JumpBack]Confirm",
+            "[JumpBack]PreStormProtocol1NextStep",
+            "[JumpBack]PreStormProtocol1StartClick",
+            "[JumpBack]PreStormProtocolFailed",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeLoading"
         ],
-        "interrupt": [
-            "PreStormProtocolExit",
-            "PreStormProtocolLoading",
-            "PreStormProtocolReport",
-            "Confirm",
-            "PreStormProtocol1NextStep",
-            "PreStormProtocol1StartClick",
-            "PreStormProtocolFailed",
-            "BackButton",
-            "HomeLoading"
-        ]
     },
     "PreStormProtocol1NextStep": {
         "recognition": {

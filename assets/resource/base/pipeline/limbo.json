@@ -5,17 +5,15 @@
             "LimboEntryEnd",
             "LimboEnd",
             "LimboStageFlag",
-            "LimboStageRightest"
+            "LimboStageRightest",
+            "[JumpBack]LimboEntry",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]ArtificialSleepwalkingAwards",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ClickBlank",
+            "[JumpBack]ArtificialSleepwalking",
+            "[JumpBack]ReturnMain"
         ],
-        "interrupt": [
-            "LimboEntry",
-            "ObtainedAwards",
-            "ArtificialSleepwalkingAwards",
-            "EnterTheShow",
-            "ClickBlank",
-            "ArtificialSleepwalking",
-            "ReturnMain"
-        ]
     },
     "ArtificialSleepwalking": {
         "doc": "入场后，进入人工梦游",
@@ -263,12 +261,10 @@
             }
         },
         "next": [
-            "LimboStarsMainNoAwards"
+            "LimboStarsMainNoAwards",
+            "[JumpBack]LimboStarsMainAwards",
+            "[JumpBack]ObtainedAwards"
         ],
-        "interrupt": [
-            "LimboStarsMainAwards",
-            "ObtainedAwards"
-        ]
     },
     "LimboStarsMainFlag_AfterFailed": {
         "doc": "判断当前位于深眠试验酬劳界面(After Failed)",
@@ -286,12 +282,10 @@
             }
         },
         "next": [
-            "LimboStarsMainNoAwards_AfterFailed"
+            "LimboStarsMainNoAwards_AfterFailed",
+            "[JumpBack]LimboStarsMainAwards",
+            "[JumpBack]ObtainedAwards"
         ],
-        "interrupt": [
-            "LimboStarsMainAwards",
-            "ObtainedAwards"
-        ]
     },
     "LimboStarsMainNoAwards": {
         "doc": "深眠试验酬劳界面，没有奖励未领取",
@@ -373,11 +367,9 @@
         },
         "next": [
             "LimboStarsMainNoAwardsFlag",
-            "LimboStarsMainAwards"
+            "LimboStarsMainAwards",
+            "[JumpBack]ObtainedAwards"
         ],
-        "interrupt": [
-            "ObtainedAwards"
-        ]
     },
     "LimboStarsMainNoAwardsFlag": {
         "doc": "判断当前位于深眠试验酬劳界面,奖励已领取完毕",
@@ -786,11 +778,9 @@
         "doc": "当前深眠片段战斗无未领取奖励",
         "next": [
             "LimboEnd",
-            "LimboStageRightest"
+            "LimboStageRightest",
+            "[JumpBack]BackButtonForLimbo"
         ],
-        "interrupt": [
-            "BackButtonForLimbo"
-        ]
     },
     "BackButtonForLimbo": {
         "recognition": {
@@ -865,12 +855,7 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "LimboObtainedAwards_2"
-        ],
-        "interrupt": [
-            "ObtainedAwards"
-        ]
+        "next": ["LimboObtainedAwards_2", "[JumpBack]ObtainedAwards"],
     },
     "LimboObtainedAwards_2": {
         "recognition": {
@@ -899,12 +884,10 @@
         "next": [
             "LimboEnd",
             "LimboStageRightest",
-            "LimboObtainedAwards_2"
+            "LimboObtainedAwards_2",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]BackButtonForLimbo"
         ],
-        "interrupt": [
-            "ObtainedAwards",
-            "BackButtonForLimbo"
-        ]
     },
     "LimboEnd": {
         "doc": "深眠片段·Ⅵ进度100%，领取ⅠⅡⅢⅣ的奖励",
@@ -922,14 +905,12 @@
             }
         },
         "next": [
-            "LimboFirstEnd"
+            "LimboFirstEnd",
+            "[JumpBack]LimboAwards1~4",
+            "[JumpBack]LimboObtainedAwards_3",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]SwipeLeftForLimboAwards"
         ],
-        "interrupt": [
-            "LimboAwards1~4",
-            "LimboObtainedAwards_3",
-            "ObtainedAwards",
-            "SwipeLeftForLimboAwards"
-        ]
     },
     "SwipeLeftForLimboAwards": {
         "action": {
@@ -989,12 +970,7 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "LimboObtainedAwards_4"
-        ],
-        "interrupt": [
-            "ObtainedAwards"
-        ]
+        "next": ["LimboObtainedAwards_4", "[JumpBack]ObtainedAwards"],
     },
     "LimboObtainedAwards_4": {
         "recognition": {
@@ -1036,11 +1012,9 @@
             }
         },
         "next": [
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton"
         ],
-        "interrupt": [
-            "HomeButton",
-            "BackButton"
-        ]
     }
 }

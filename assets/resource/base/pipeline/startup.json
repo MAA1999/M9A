@@ -4,30 +4,28 @@
         "timeout": 60000,
         "next": [
             "HomeFlagFirst",
-            "StartGame"
+            "StartGame",
+            "[JumpBack]Start1999",
+            "[JumpBack]Download",
+            "[JumpBack]GameLoading2",
+            "[JumpBack]BluePochLogo",
+            "[JumpBack]Disclaimer",
+            "[JumpBack]HomeLoading",
+            "[JumpBack]GameLoading",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]Confirm",
+            "[JumpBack]VictoryReturn",
+            "[JumpBack]Downloading",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]ClickHomeCount"
         ],
-        "interrupt": [
-            "Start1999",
-            "Download",
-            "GameLoading2",
-            "BluePochLogo",
-            "Disclaimer",
-            "HomeLoading",
-            "GameLoading",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "Reward",
-            "SignInReward",
-            "ClosePageFirst",
-            "Confirm",
-            "VictoryReturn",
-            "Downloading",
-            "CandyCancel",
-            "BackButton",
-            "HomeButton",
-            "ClickHomeCount"
-        ]
     },
     "ReturnMain": {
         "doc": "返回主界面（专供任务开始前使用）",
@@ -41,28 +39,26 @@
             }
         },
         "next": [
-            "HomeFlagCloseReturnMain"
+            "HomeFlagCloseReturnMain",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeLoading",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]Reward",
+            "[JumpBack]ClosePage",
+            "[JumpBack]StartGame",
+            "[JumpBack]Confirm",
+            "[JumpBack]VictoryReturn",
+            "[JumpBack]Download",
+            "[JumpBack]Downloading",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]ClickBlank",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickHomeCount"
         ],
-        "interrupt": [
-            "HomeButton",
-            "BackButton",
-            "HomeLoading",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "SignInReward",
-            "Reward",
-            "ClosePage",
-            "StartGame",
-            "Confirm",
-            "VictoryReturn",
-            "Download",
-            "Downloading",
-            "CandyCancel",
-            "ClickBlank",
-            "SkipButton",
-            "ClickHomeCount"
-        ]
     },
     "StartGame": {
         "recognition": {
@@ -83,24 +79,22 @@
         },
         "next": [
             "HomeFlagFirst",
-            "StartGame"
+            "StartGame",
+            "[JumpBack]HomeLoading_wait",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClickTarot",
+            "[JumpBack]Confirm",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickHomeCount"
         ],
-        "interrupt": [
-            "HomeLoading_wait",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "Reward",
-            "SignInReward",
-            "ClickTarot",
-            "Confirm",
-            "ClosePageFirst",
-            "CandyCancel",
-            "BackButton",
-            "HomeButton",
-            "SkipButton",
-            "ClickHomeCount"
-        ]
     },
     "HomeLoading": {
         "recognition": {
@@ -209,24 +203,22 @@
         },
         "next": [
             "HomeFlagFirst",
-            "HomeLoading_wait"
+            "HomeLoading_wait",
+            "[JumpBack]SkipButton",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClickTarot",
+            "[JumpBack]Confirm",
+            "[JumpBack]ClickBlank",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]ClickHomeCount"
         ],
-        "interrupt": [
-            "SkipButton",
-            "BackButton",
-            "HomeButton",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "Reward",
-            "SignInReward",
-            "ClickTarot",
-            "Confirm",
-            "ClickBlank",
-            "ClosePageFirst",
-            "CandyCancel",
-            "ClickHomeCount"
-        ]
     },
     "Start1999": {
         "action": {
@@ -466,24 +458,22 @@
         },
         "post_delay": 3000,
         "next": [
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]HomeLoading_wait",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClickTarot",
+            "[JumpBack]Confirm",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]SkipButton",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]ClickHomeCount"
         ],
-        "interrupt": [
-            "HomeLoading_wait",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "Reward",
-            "SignInReward",
-            "ClickTarot",
-            "Confirm",
-            "ClosePageFirst",
-            "BackButton",
-            "HomeButton",
-            "SkipButton",
-            "CandyCancel",
-            "ClickHomeCount"
-        ]
     },
     "HomeFlagCloseReturnMain": {
         "recognition": {

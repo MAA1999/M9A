@@ -16,13 +16,11 @@
             }
         },
         "next": [
-            "ReveriesInTheRainMainFlag"
+            "ReveriesInTheRainMainFlag",
+            "[JumpBack]ReveriesInTheRainMainEntry",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ReturnMain"
         ],
-        "interrupt": [
-            "ReveriesInTheRainMainEntry",
-            "EnterTheShow",
-            "ReturnMain"
-        ]
     },
     "ReveriesInTheRainMainEntry": {
         "doc": "进入雨中悬想主页面",
@@ -59,12 +57,10 @@
         },
         "next": [
             "DepthsOfMythEnd",
-            "DepthsOfMythMainFlag"
+            "DepthsOfMythMainFlag",
+            "[JumpBack]DepthsOfMythEntry",
+            "[JumpBack]DepthsOfMythLoading"
         ],
-        "interrupt": [
-            "DepthsOfMythEntry",
-            "DepthsOfMythLoading"
-        ]
     },
     "DepthsOfMythLoading": {
         "doc": "等待进入迷思海",
@@ -140,11 +136,9 @@
         },
         "next": [
             "TranceEnd",
-            "TranceMainFlag"
+            "TranceMainFlag",
+            "[JumpBack]TranceButtonClick"
         ],
-        "interrupt": [
-            "TranceButtonClick"
-        ]
     },
     "TranceButtonClick": {
         "doc": "点击“寻思”按钮",
@@ -196,15 +190,13 @@
             }
         },
         "next": [
-            "TranceEnd_1"
+            "TranceEnd_1",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]Trancele1",
+            "[JumpBack]Trancele2",
+            "[JumpBack]Trancele3",
+            "[JumpBack]Trancele4"
         ],
-        "interrupt": [
-            "ObtainedAwards",
-            "Trancele1",
-            "Trancele2",
-            "Trancele3",
-            "Trancele4"
-        ]
     },
     "TrancePlay": {
         "doc": "寻思寻思",
@@ -242,12 +234,10 @@
         },
         "next": [
             "ObtainedAwards",
-            "TrancePlayTimesX1"
+            "TrancePlayTimesX1",
+            "[JumpBack]TranceSetPlayTimesX1",
+            "[JumpBack]TranceOpenSetPlayTimes"
         ],
-        "interrupt": [
-            "TranceSetPlayTimesX1",
-            "TranceOpenSetPlayTimes"
-        ]
     },
     "Trancele2": {
         "doc": "“寻思”x2",
@@ -266,12 +256,10 @@
         },
         "next": [
             "ObtainedAwards",
-            "TrancePlayTimesX2"
+            "TrancePlayTimesX2",
+            "[JumpBack]TranceSetPlayTimesX2",
+            "[JumpBack]TranceOpenSetPlayTimes"
         ],
-        "interrupt": [
-            "TranceSetPlayTimesX2",
-            "TranceOpenSetPlayTimes"
-        ]
     },
     "Trancele3": {
         "doc": "“寻思”x3",
@@ -290,12 +278,10 @@
         },
         "next": [
             "ObtainedAwards",
-            "TrancePlayTimesX3"
+            "TrancePlayTimesX3",
+            "[JumpBack]TranceSetPlayTimesX3",
+            "[JumpBack]TranceOpenSetPlayTimes"
         ],
-        "interrupt": [
-            "TranceSetPlayTimesX3",
-            "TranceOpenSetPlayTimes"
-        ]
     },
     "Trancele4": {
         "doc": "“寻思”x4-8",
@@ -314,12 +300,10 @@
         },
         "next": [
             "ObtainedAwards",
-            "TrancePlayTimesX4"
+            "TrancePlayTimesX4",
+            "[JumpBack]TranceSetPlayTimesX4",
+            "[JumpBack]TranceOpenSetPlayTimes"
         ],
-        "interrupt": [
-            "TranceSetPlayTimesX4",
-            "TranceOpenSetPlayTimes"
-        ]
     },
     "TranceSetPlayTimesX1": {
         "doc": "设置寻思次数X1",
@@ -511,12 +495,7 @@
             }
         },
         "post_wait_freezes": 300,
-        "next": [
-            "TranceClose"
-        ],
-        "interrupt": [
-            "ObtainedAwards"
-        ]
+        "next": ["TranceClose", "[JumpBack]ObtainedAwards"],
     },
     "TranceClose": {
         "doc": "关闭迷思海“寻思”页面",

@@ -1,11 +1,6 @@
 {
     "Awards": {
-        "next": [
-            "AwardsMainFlag"
-        ],
-        "interrupt": [
-            "ReturnMain"
-        ]
+        "next": ["AwardsMainFlag", "[JumpBack]ReturnMain"],
     },
     "AwardsMainFlag": {
         "recognition": {
@@ -36,19 +31,16 @@
             }
         },
         "next": [
-            "Sub_MailBadge",
-            "Sub_DailyBadge",
-            "Sub_JukeboxBadge",
+            "[JumpBack]Sub_MailBadge",
+            "[JumpBack]Sub_DailyBadge",
+            "[JumpBack]Sub_JukeboxBadge",
             "Sub_JukeboxBadge_3.2",
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton"
         ],
-        "interrupt": [
-            "HomeButton",
-            "BackButton"
-        ]
     },
     "Sub_MailBadge": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -69,12 +61,7 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "CollectMailAwards"
-        ],
-        "interrupt": [
-            "MailBadge"
-        ]
+        "next": ["CollectMailAwards", "[JumpBack]MailBadge"],
     },
     "MailBadge": {
         "recognition": {
@@ -116,11 +103,9 @@
         },
         "next": [
             "NoMailAwards",
-            "CollectMailAwards"
+            "CollectMailAwards",
+            "[JumpBack]ObtainedAwards"
         ],
-        "interrupt": [
-            "ObtainedAwards"
-        ]
     },
     "ObtainedAwards": {
         "recognition": {
@@ -155,11 +140,9 @@
         },
         "next": [
             "EquipmentOverflows",
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]BackButton"
         ],
-        "interrupt": [
-            "BackButton"
-        ]
     },
     "EquipmentOverflows": {
         "doc": "心相仓库已满",
@@ -176,12 +159,10 @@
             }
         },
         "next": [
-            "WareHouseFlag"
+            "WareHouseFlag",
+            "[JumpBack]EnterWareHouse",
+            "[JumpBack]BackButton"
         ],
-        "interrupt": [
-            "EnterWareHouse",
-            "BackButton"
-        ]
     },
     "WareHouseFlag": {
         "recognition": {
@@ -232,12 +213,10 @@
             "type": "Click"
         },
         "next": [
-            "Dissociation4StarFlag"
+            "Dissociation4StarFlag",
+            "[JumpBack]Dissociation4StarSelect",
+            "[JumpBack]Dissociation3StarSelect"
         ],
-        "interrupt": [
-            "Dissociation4StarSelect",
-            "Dissociation3StarSelect"
-        ]
     },
     "Dissociation4StarFlag": {
         "recognition": {
@@ -253,12 +232,7 @@
                 "expected": "4"
             }
         },
-        "next": [
-            "DissociationFastInsertCompleted"
-        ],
-        "interrupt": [
-            "DissociationFastInsert"
-        ]
+        "next": ["DissociationFastInsertCompleted", "[JumpBack]DissociationFastInsert"],
     },
     "DissociationFastInsertCompleted": {
         "recognition": {
@@ -289,11 +263,9 @@
         "post_delay": 3000,
         "next": [
             "DissociationCompleted",
-            "DissociationFastInsertCompleted"
+            "DissociationFastInsertCompleted",
+            "[JumpBack]ObtainedAwards"
         ],
-        "interrupt": [
-            "ObtainedAwards"
-        ]
     },
     "DissociationCompleted": {
         "recognition": {
@@ -319,12 +291,10 @@
             }
         },
         "next": [
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton"
         ],
-        "interrupt": [
-            "HomeButton",
-            "BackButton"
-        ]
     },
     "DissociationFastInsert": {
         "recognition": {
@@ -416,7 +386,6 @@
         }
     },
     "Sub_DailyBadge": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -439,17 +408,14 @@
         },
         "post_wait_freezes": 200,
         "next": [
-            "Sub_CollectDailyAwards",
+            "[JumpBack]Sub_CollectDailyAwards",
             "WeeklyAwardsBadge",
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]BackButton"
         ],
-        "interrupt": [
-            "ObtainedAwards",
-            "BackButton"
-        ]
     },
     "Sub_CollectDailyAwards": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -487,15 +453,13 @@
             "type": "Click"
         },
         "next": [
-            "Sub_CollectDailyAwards",
+            "[JumpBack]Sub_CollectDailyAwards",
             "WeeklyAwardsBadge",
             "WeeklyAwardsCompleted",
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]BackButton"
         ],
-        "interrupt": [
-            "ObtainedAwards",
-            "BackButton"
-        ]
     },
     "WeeklyAwardsCompleted": {
         "doc": "周任务完成，开始尝试获取显影罐",
@@ -513,12 +477,10 @@
             }
         },
         "next": [
-            "ShowFlag"
+            "ShowFlag",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]BackButton"
         ],
-        "interrupt": [
-            "EnterTheShow",
-            "BackButton"
-        ]
     },
     "ShowFlag": {
         "recognition": {
@@ -588,7 +550,6 @@
         }
     },
     "Sub_JukeboxBadge": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -611,15 +572,13 @@
         },
         "post_delay": 3000,
         "next": [
-            "Sub_CollectJukebox",
-            "Sub_JukeboxAwardsBadge",
-            "HomeFlag"
+            "[JumpBack]Sub_CollectJukebox",
+            "[JumpBack]Sub_JukeboxAwardsBadge",
+            "HomeFlag",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]JukeboxExitPurchase",
+            "[JumpBack]BackButton"
         ],
-        "interrupt": [
-            "ObtainedAwards",
-            "JukeboxExitPurchase",
-            "BackButton"
-        ]
     },
     "JukeboxExitPurchase": {
         "recognition": {
@@ -640,7 +599,6 @@
         "post_delay": 1000
     },
     "Sub_JukeboxAwardsBadge": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -658,15 +616,13 @@
             "type": "Click"
         },
         "next": [
-            "Sub_CollectJukebox",
-            "Sub_JukeboxAwardsBadge",
-            "NoJukeboxAwards"
+            "[JumpBack]Sub_CollectJukebox",
+            "[JumpBack]Sub_JukeboxAwardsBadge",
+            "NoJukeboxAwards",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]ExitEdition",
+            "[JumpBack]JukeboxExitPurchase"
         ],
-        "interrupt": [
-            "ObtainedAwards",
-            "ExitEdition",
-            "JukeboxExitPurchase"
-        ]
     },
     "ExitEdition": {
         "recognition": {
@@ -686,7 +642,6 @@
         ]
     },
     "Sub_CollectJukebox": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -737,13 +692,11 @@
             "type": "Click"
         },
         "next": [
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]JukeboxBadge_3.2_OneClick",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]HomeButton"
         ],
-        "interrupt": [
-            "JukeboxBadge_3.2_OneClick",
-            "ObtainedAwards",
-            "HomeButton"
-        ]
     },
     "JukeboxBadge_3.2_OneClick": {
         "recognition": {

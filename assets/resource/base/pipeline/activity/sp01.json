@@ -2,12 +2,10 @@
     "Sp01Daily": {
         "next": [
             "Sp01DailyEnter",
-            "HomeFlagForSp_01"
+            "HomeFlagForSp_01",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton"
         ],
-        "interrupt": [
-            "HomeButton",
-            "BackButton"
-        ]
     },
     "HomeFlagForSp_01": {
         "recognition": {
@@ -91,20 +89,15 @@
             }
         },
         "next": [
-            // "Sub_Sp01RPS",
-            "Sub_SailingRecord",
-            "Sub_Sp01DataCollect",
-            // "Sp01Messagers",
+            "[JumpBack]Sub_SailingRecord",
+            "[JumpBack]Sub_Sp01DataCollect",
             "Sp01DailyEnter",
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton"
         ],
-        "interrupt": [
-            "HomeButton",
-            "BackButton"
-        ]
     },
     "Sub_SailingRecord": {
-        "is_sub": true,
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -251,12 +244,7 @@
                 "count": 2000
             }
         },
-        "next": [
-            "FlagInSailingRecordBoat"
-        ],
-        "interrupt": [
-            "SailingRecordSelectNextStep"
-        ]
+        "next": ["FlagInSailingRecordBoat", "[JumpBack]SailingRecordSelectNextStep"],
     },
     "FlagInSailingRecordBoat": {
         "recognition": {
@@ -483,16 +471,14 @@
             "type": "Click"
         },
         "next": [
-            "Sp01MessagersEnd"
+            "Sp01MessagersEnd",
+            "[JumpBack]Sp01MessagersChoose",
+            "[JumpBack]Sp01MessagersComfirm",
+            "[JumpBack]Sp01MessagersNextRound",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]ClosePage",
+            "[JumpBack]ClickHomeCount"
         ],
-        "interrupt": [
-            "Sp01MessagersChoose",
-            "Sp01MessagersComfirm",
-            "Sp01MessagersNextRound",
-            "ObtainedAwards",
-            "ClosePage",
-            "ClickHomeCount"
-        ]
     },
     "Sp01MessagersChoose": {
         "recognition": {
@@ -585,7 +571,6 @@
         ]
     },
     "Sub_Sp01RPS": {
-        "is_sub": true,
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -642,15 +627,13 @@
             "type": "Click"
         },
         "next": [
-            "RPSFinish"
+            "RPSFinish",
+            "[JumpBack]SkipBattle",
+            "[JumpBack]RPSStartNext",
+            "[JumpBack]RPSNext",
+            "[JumpBack]Arms",
+            "[JumpBack]ActionPoints"
         ],
-        "interrupt": [
-            "SkipBattle",
-            "RPSStartNext",
-            "RPSNext",
-            "Arms",
-            "ActionPoints"
-        ]
     },
     "SkipBattle": {
         "recognition": {
@@ -1038,7 +1021,6 @@
         }
     },
     "Sub_Sp01DataCollect": {
-        "is_sub": true,
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -1065,15 +1047,12 @@
             "type": "Click"
         },
         "next": [
-            "Sp01DataCollect2",
-            "Sp01DataCollect3"
+            "[JumpBack]Sp01DataCollect2",
+            "Sp01DataCollect3",
+            "[JumpBack]ObtainedAwards"
         ],
-        "interrupt": [
-            "ObtainedAwards"
-        ]
     },
     "Sp01DataCollect2": {
-        "is_sub": true,
         "recognition": {
             "type": "OCR",
             "param": {

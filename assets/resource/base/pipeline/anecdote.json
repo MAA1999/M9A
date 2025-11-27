@@ -18,13 +18,11 @@
         "next": [
             "ActivityMainFlag",
             "ActivityMainAnecdoteFlag",
-            "AnecdoteMainFlag"
+            "AnecdoteMainFlag",
+            "[JumpBack]EnterTheActivityMain",
+            "[JumpBack]ActivityMainSelectAnecdote",
+            "[JumpBack]ReturnMain"
         ],
-        "interrupt": [
-            "EnterTheActivityMain",
-            "ActivityMainSelectAnecdote",
-            "ReturnMain"
-        ]
     },
     "ActivityMainFlag": {
         "doc": "活动主页面",
@@ -42,12 +40,10 @@
             }
         },
         "next": [
-            "ActivityMainAnecdoteFlag"
+            "ActivityMainAnecdoteFlag",
+            "[JumpBack]ActivityMainSelectAnecdote",
+            "[JumpBack]SwipeRightForAnecdote"
         ],
-        "interrupt": [
-            "ActivityMainSelectAnecdote",
-            "SwipeRightForAnecdote"
-        ]
     },
     "ActivityMainAnecdoteFlag": {
         "recognition": {
@@ -68,12 +64,10 @@
         },
         "next": [
             "AnecdoteMainFlag",
-            "ActivityMainAnecdoteFlag"
+            "ActivityMainAnecdoteFlag",
+            "[JumpBack]AnecdoteNotReadEver",
+            "[JumpBack]ObtainedAwards"
         ],
-        "interrupt": [
-            "AnecdoteNotReadEver",
-            "ObtainedAwards"
-        ]
     },
     "AnecdoteNotReadEver": {
         "recognition": {
@@ -126,13 +120,11 @@
             ]
         },
         "next": [
-            "AnecdoteNotRead",
+            "[JumpBack]AnecdoteNotRead",
             "AnecdoteTaskExist",
-            "AnecdoteCompleted"
+            "AnecdoteCompleted",
+            "[JumpBack]ObtainedAwards"
         ],
-        "interrupt": [
-            "ObtainedAwards"
-        ]
     },
     "AnecdoteTaskExist": {
         "doc": "检查追溯右上角有红点，进入追溯",
@@ -181,11 +173,9 @@
             }
         },
         "next": [
-            "AnecdoteAccumulatedRewardNotExist"
+            "AnecdoteAccumulatedRewardNotExist",
+            "[JumpBack]AnecdoteAccumulatedRewardExist"
         ],
-        "interrupt": [
-            "AnecdoteAccumulatedRewardExist"
-        ]
     },
     "AnecdoteTraceFlag": {
         "doc": "当前位于轶事追溯界面",
@@ -213,12 +203,7 @@
                 "threshold": 0.6
             }
         },
-        "next": [
-            "AnecdoteTaskAwardCompleted"
-        ],
-        "interrupt": [
-            "AnecdoteTaskAwardEntry"
-        ]
+        "next": ["AnecdoteTaskAwardCompleted", "[JumpBack]AnecdoteTaskAwardEntry"],
     },
     "AnecdoteTaskAwardCompleted": {
         "doc": "轶事追溯任务奖励已领取",
@@ -246,11 +231,9 @@
         "inverse": true,
         "next": [
             "AnecdoteNoFusingBox",
-            "AnecdoteTaskCompleted_1"
+            "AnecdoteTaskCompleted_1",
+            "[JumpBack]AnecdoteTaskEntry"
         ],
-        "interrupt": [
-            "AnecdoteTaskEntry"
-        ]
     },
     "AnecdoteTaskAwardEntry": {
         "doc": "轶事追溯任务奖励入口",
@@ -299,12 +282,7 @@
                 "expected": "完成"
             }
         },
-        "next": [
-            "AnecdoteTaskAwardMainCompleted"
-        ],
-        "interrupt": [
-            "AnecdoteTaskAwardMainConfirm"
-        ]
+        "next": ["AnecdoteTaskAwardMainCompleted", "[JumpBack]AnecdoteTaskAwardMainConfirm"],
     },
     "AnecdoteTaskAwardMainCompleted": {
         "doc": "轶事追溯任务奖励已领取",
@@ -411,11 +389,9 @@
         },
         "next": [
             "AnecdoteNoFusingBox",
-            "AnecdoteTaskCompleted_2"
+            "AnecdoteTaskCompleted_2",
+            "[JumpBack]AnecdoteTaskEntry"
         ],
-        "interrupt": [
-            "AnecdoteTaskEntry"
-        ]
     },
     "AnecdoteTaskCompleted_2": {
         "doc": "确认轶事追溯结束",
@@ -435,11 +411,9 @@
         },
         "inverse": true,
         "next": [
-            "AnecdoteAccumulatedRewardNotExist"
+            "AnecdoteAccumulatedRewardNotExist",
+            "[JumpBack]AnecdoteAccumulatedRewardExist"
         ],
-        "interrupt": [
-            "AnecdoteAccumulatedRewardExist"
-        ]
     },
     "AnecdoteAccumulatedRewardNotExist": {
         "doc": "检查无积分累计奖励，任务结束",
@@ -541,12 +515,10 @@
             }
         },
         "next": [
-            "AnecdoteTaskAddPersonCompleted"
+            "AnecdoteTaskAddPersonCompleted",
+            "[JumpBack]AnecdoteAddPersonFlag",
+            "[JumpBack]AnecdoteAddPerson"
         ],
-        "interrupt": [
-            "AnecdoteAddPersonFlag",
-            "AnecdoteAddPerson"
-        ]
     },
     "AnecdoteTaskAddPersonCompleted": {
         "doc": "轶事追溯任务添加人物完成",
@@ -565,12 +537,10 @@
             }
         },
         "next": [
-            "AnecdoteTraceTaskCompleted"
+            "AnecdoteTraceTaskCompleted",
+            "[JumpBack]AnecdoteTraceTaskReachingTheLimitComfirm",
+            "[JumpBack]AnecdoteTraceTaskComfirm"
         ],
-        "interrupt": [
-            "AnecdoteTraceTaskReachingTheLimitComfirm",
-            "AnecdoteTraceTaskComfirm"
-        ]
     },
     "AnecdoteTraceTaskCompleted": {
         "recognition": {
@@ -826,15 +796,12 @@
             }
         },
         "next": [
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]HomeButton"
         ],
-        "interrupt": [
-            "ObtainedAwards",
-            "HomeButton"
-        ]
     },
     "AnecdoteNotRead": {
-        "is_sub": true,
         "doc": "尚未阅读完故事，尝试阅读",
         "recognition": {
             "type": "OCR",
@@ -850,12 +817,10 @@
             }
         },
         "next": [
-            "AnecdoteTryAward"
+            "AnecdoteTryAward",
+            "[JumpBack]AnecdoteReadStory",
+            "[JumpBack]ObtainedAwards"
         ],
-        "interrupt": [
-            "AnecdoteReadStory",
-            "ObtainedAwards"
-        ]
     },
     "AnecdoteReadStory": {
         "recognition": {

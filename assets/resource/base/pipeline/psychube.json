@@ -2,13 +2,11 @@
     "Psychube": {
         "next": [
             "FreePsychube",
-            "NoFreePsychube"
+            "NoFreePsychube",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ResourceChapterLabel",
+            "[JumpBack]ReturnMain"
         ],
-        "interrupt": [
-            "EnterTheShow",
-            "ResourceChapterLabel",
-            "ReturnMain"
-        ]
     },
     "FreePsychube": {
         "recognition": {
@@ -29,11 +27,9 @@
         },
         "next": [
             "PsychubeReadyForAction",
-            "FreePsychube"
+            "FreePsychube",
+            "[JumpBack]PsychubeStage07"
         ],
-        "interrupt": [
-            "PsychubeStage07"
-        ]
     },
     "PsychubeStage07": {
         "recognition": {
@@ -72,12 +68,10 @@
             "type": "Click"
         },
         "next": [
-            "PsychubeFlagInReplayReady"
+            "PsychubeFlagInReplayReady",
+            "[JumpBack]PsychubeSwitchToReplay",
+            "[JumpBack]CombatEntering"
         ],
-        "interrupt": [
-            "PsychubeSwitchToReplay",
-            "CombatEntering"
-        ]
     },
     "PsychubeFlagInReplayReady": {
         "recognition": {
@@ -93,12 +87,7 @@
                 "expected": "复现"
             }
         },
-        "next": [
-            "PsychubeFlagInReplayTwoTimes"
-        ],
-        "interrupt": [
-            "SwitchCombatTimes"
-        ]
+        "next": ["PsychubeFlagInReplayTwoTimes", "[JumpBack]SwitchCombatTimes"],
     },
     "PsychubeFlagInReplayTwoTimes": {
         "recognition": {
@@ -120,12 +109,10 @@
         "timeout": 60000,
         "next": [
             "PsychubeVictory",
-            "PsychubeFlagInReplayTwoTimes"
+            "PsychubeFlagInReplayTwoTimes",
+            "[JumpBack]PsychubeEatCandyPage",
+            "[JumpBack]ReplayingNoNext"
         ],
-        "interrupt": [
-            "PsychubeEatCandyPage",
-            "ReplayingNoNext"
-        ]
     },
     "PsychubeEatCandyPage": {
         "recognition": {
@@ -186,12 +173,10 @@
         },
         "next": [
             "PsychubeFlagInReadyForAction",
-            "PsychubeVictory"
+            "PsychubeVictory",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeLoading"
         ],
-        "interrupt": [
-            "BackButton",
-            "HomeLoading"
-        ]
     },
     "PsychubeFlagInReadyForAction": {
         "recognition": {
@@ -210,11 +195,9 @@
         },
         "next": [
             "PsychubeDouble",
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]HomeButton"
         ],
-        "interrupt": [
-            "HomeButton"
-        ]
     },
     "PsychubeDouble": {
         "doc": "识别加成次数，根据结果覆盖 PsychubeVictoryOverrideTask 中参数",

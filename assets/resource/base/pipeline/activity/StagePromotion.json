@@ -2,18 +2,16 @@
     "StagePromotion": {
         "timeout": 30000,
         "next": [
-            "StagePromotionCurComplete"
+            "StagePromotionCurComplete",
+            "[JumpBack]StagePromotionFlagInCombat",
+            "[JumpBack]StagePromotionCombatVictory",
+            "[JumpBack]StagePromotionSkipConfirm",
+            "[JumpBack]StagePromotionSkip",
+            "[JumpBack]StagePromotionClickNextStage",
+            "[JumpBack]StagePromotionFlagInStoryStage",
+            "[JumpBack]StagePromotionStartAction",
+            "[JumpBack]StagePromotionClickCurStage"
         ],
-        "interrupt": [
-            "StagePromotionFlagInCombat",
-            "StagePromotionCombatVictory",
-            "StagePromotionSkipConfirm",
-            "StagePromotionSkip",
-            "StagePromotionClickNextStage",
-            "StagePromotionFlagInStoryStage",
-            "StagePromotionStartAction",
-            "StagePromotionClickCurStage"
-        ]
     },
     "StagePromotionFlagInStoryStage_HasNext": {
         "recognition": {

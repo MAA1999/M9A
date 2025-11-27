@@ -5,11 +5,9 @@
             "EnterGoodDreamWell",
             "EnterProduct",
             "EnterTrade",
-            "EnterAncientHall"
+            "EnterAncientHall",
+            "[JumpBack]ReturnMain"
         ],
-        "interrupt": [
-            "ReturnMain"
-        ]
     },
     "EnterWilderness": {
         "recognition": {
@@ -33,11 +31,9 @@
         },
         "next": [
             "FlagInWilderness",
-            "EnterWilderness"
+            "EnterWilderness",
+            "[JumpBack]HomeLoading"
         ],
-        "interrupt": [
-            "HomeLoading"
-        ]
     },
     "FlagInWilderness": {
         "recognition": {
@@ -88,13 +84,11 @@
         },
         "next": [
             "FlagInGoodDreamWell",
-            "EnterGoodDreamWell"
+            "EnterGoodDreamWell",
+            "[JumpBack]Cloud",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickBlank"
         ],
-        "interrupt": [
-            "Cloud",
-            "SkipButton",
-            "ClickBlank"
-        ]
     },
     "FlagInGoodDreamWell": {
         "recognition": {
@@ -111,13 +105,11 @@
         },
         "next": [
             "FlagInGoodDreamWellCenter",
-            "FlagInGoodDreamWellFinish"
+            "FlagInGoodDreamWellFinish",
+            "[JumpBack]PositionGoodDreamWellCenter",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickBlank"
         ],
-        "interrupt": [
-            "PositionGoodDreamWellCenter",
-            "SkipButton",
-            "ClickBlank"
-        ]
     },
     "PositionGoodDreamWellCenter": {
         "recognition": {
@@ -164,12 +156,10 @@
         "post_delay": 3000,
         "next": [
             "FlagInGoodDreamWellFishing",
-            "FlagInGoodDreamWellCenter"
+            "FlagInGoodDreamWellCenter",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickBlank"
         ],
-        "interrupt": [
-            "SkipButton",
-            "ClickBlank"
-        ]
     },
     "FlagInGoodDreamWellFinish": {
         "recognition": {
@@ -190,12 +180,10 @@
         "next": [
             "EnterProduct",
             "EnterTrade",
-            "EnterAncientHall"
+            "EnterAncientHall",
+            "[JumpBack]Cloud",
+            "[JumpBack]BackButtonWithDelay"
         ],
-        "interrupt": [
-            "Cloud",
-            "BackButtonWithDelay"
-        ]
     },
     "FlagInGoodDreamWellFishing": {
         "recognition": {
@@ -219,11 +207,9 @@
         "next": [
             "EnterProduct",
             "EnterTrade",
-            "EnterAncientHall"
+            "EnterAncientHall",
+            "[JumpBack]Cloud"
         ],
-        "interrupt": [
-            "Cloud"
-        ]
     },
     "Cloud": {
         "recognition": {
@@ -337,12 +323,7 @@
                 "expected": "批发交易"
             }
         },
-        "next": [
-            "EnterAncientHall"
-        ],
-        "interrupt": [
-            "BackButtonWithDelay"
-        ]
+        "next": ["EnterAncientHall", "[JumpBack]BackButtonWithDelay"],
     },
     "EnterAncientHall": {
         "recognition": {
@@ -361,12 +342,7 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "AncientHallFlag"
-        ],
-        "interrupt": [
-            "ClickAncientHall"
-        ]
+        "next": ["AncientHallFlag", "[JumpBack]ClickAncientHall"],
     },
     "AncientHallFlag": {
         "recognition": {
@@ -382,12 +358,7 @@
                 "expected": "古厅"
             }
         },
-        "next": [
-            "NoExpMoney"
-        ],
-        "interrupt": [
-            "CollectExpMoney"
-        ]
+        "next": ["NoExpMoney", "[JumpBack]CollectExpMoney"],
     },
     "NoExpMoney": {
         "recognition": {
@@ -408,11 +379,9 @@
             "CollectTrust",
             "TrustDialogueNext",
             "TrustDialogueInteraction",
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]BackButtonWithDelay"
         ],
-        "interrupt": [
-            "BackButtonWithDelay"
-        ]
     },
     "CollectExpMoney": {
         "recognition": {
@@ -492,13 +461,11 @@
             "CollectTrust",
             "TrustDialogueNext",
             "TrustDialogueInteraction",
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]BackButtonWithDelay",
+            "[JumpBack]HomeButton"
         ],
-        "interrupt": [
-            "ObtainedAwards",
-            "BackButtonWithDelay",
-            "HomeButton"
-        ]
     },
     "CollectTrust": {
         "recognition": {
@@ -521,13 +488,11 @@
             "CollectTrust",
             "TrustDialogueNext",
             "TrustDialogueInteraction",
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]TestCritterTraining",
+            "[JumpBack]BackButtonWithDelay",
+            "[JumpBack]HomeButton"
         ],
-        "interrupt": [
-            "TestCritterTraining",
-            "BackButtonWithDelay",
-            "HomeButton"
-        ]
     },
     "TestCritterTraining": {
         "recognition": {
@@ -573,12 +538,10 @@
         "next": [
             "TrustDialogueNext",
             "TrustDialogueInteraction",
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]BackButtonWithDelay",
+            "[JumpBack]HomeButton"
         ],
-        "interrupt": [
-            "BackButtonWithDelay",
-            "HomeButton"
-        ]
     },
     "TrustDialogueInteraction": {
         "recognition": {
@@ -599,12 +562,10 @@
         "next": [
             "TrustDialogueNext",
             "TrustDialogueInteraction",
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]BackButtonWithDelay",
+            "[JumpBack]HomeButton"
         ],
-        "interrupt": [
-            "BackButtonWithDelay",
-            "HomeButton"
-        ]
     },
     "TrustMax": {
         "recognition": {
@@ -625,12 +586,10 @@
             "type": "Click"
         },
         "next": [
-            "HomeFlag"
+            "HomeFlag",
+            "[JumpBack]BackButtonWithDelay",
+            "[JumpBack]HomeButton"
         ],
-        "interrupt": [
-            "BackButtonWithDelay",
-            "HomeButton"
-        ]
     },
     "EnterProduct": {
         "enabled": true,
@@ -673,11 +632,9 @@
         "next": [
             "CollectProduct",
             "AutoAssignCritters",
-            "EnterProduct"
+            "EnterProduct",
+            "[JumpBack]interrupt_SummonlngSuccessBack"
         ],
-        "interrupt": [
-            "interrupt_SummonlngSuccessBack"
-        ]
     },
     "CollectProduct": {
         "recognition": {
@@ -791,11 +748,9 @@
             "AutoAssignCritters",
             "AutoSelectComfirm",
             "EnterTrade",
-            "EnterAncientHall"
+            "EnterAncientHall",
+            "[JumpBack]BackButtonWithDelay"
         ],
-        "interrupt": [
-            "BackButtonWithDelay"
-        ]
     },
     "AutoAssignCritters": {
         "recognition": {
@@ -854,11 +809,9 @@
         "post_delay": 3000,
         "next": [
             "EnterTrade",
-            "EnterAncientHall"
+            "EnterAncientHall",
+            "[JumpBack]BackButtonWithDelay"
         ],
-        "interrupt": [
-            "BackButtonWithDelay"
-        ]
     },
     "SummonlngSuccess": {
         "recognition": {
@@ -943,11 +896,9 @@
         },
         "next": [
             "EnterTrade",
-            "EnterAncientHall"
+            "EnterAncientHall",
+            "[JumpBack]BackButtonWithDelay"
         ],
-        "interrupt": [
-            "BackButtonWithDelay"
-        ]
     },
     "interrupt_SummonlngSuccessBack": {
         "recognition": {

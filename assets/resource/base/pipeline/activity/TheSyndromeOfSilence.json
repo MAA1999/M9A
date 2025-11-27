@@ -2,15 +2,13 @@
     "TheSyndromeOfSilence": {
         // 3.2&3.3 版本局外演绎,
         "next": [
-            "SOSMainMenu"
+            "SOSMainMenu",
+            "[JumpBack]SOSStop",
+            "[JumpBack]FlagInSOSMenu",
+            "[JumpBack]ReturnMain",
+            "[JumpBack]EnterTheActivityMain",
+            "[JumpBack]EnterSOSMenu"
         ],
-        "interrupt": [
-            "SOSStop",
-            "FlagInSOSMenu",
-            "ReturnMain",
-            "EnterTheActivityMain",
-            "EnterSOSMenu"
-        ]
     },
     // 到 SOS Main Menu
     "FlagInSOSMenu": {
@@ -82,22 +80,18 @@
             }
         },
         "next": [
-            "SOSSelectNoise"
+            "SOSSelectNoise",
+            "[JumpBack]SOSConfirm",
+            "[JumpBack]SOSStart"
         ],
-        "interrupt": [
-            "SOSConfirm", // 不管旅伴，直接跳过
-            "SOSStart"
-        ]
     },
     "SOSWordlessWorkshop": {
         // 沉默者沙龙，好旅伴
         "next": [
             "SOSWordlessWorkshopEmpty",
-            "SOSWordlessWorkshopEnterGame"
+            "SOSWordlessWorkshopEnterGame",
+            "[JumpBack]SOSWordlessWorkshopEntry"
         ],
-        "interrupt": [
-            "SOSWordlessWorkshopEntry"
-        ]
     },
     "SOSWordlessWorkshopEmpty": {
         "recognition": {
@@ -148,11 +142,9 @@
         },
         "next": [
             "SOSKeepsakeDetailsAdd",
-            "SOSLackOfMaterials"
+            "SOSLackOfMaterials",
+            "[JumpBack]SOSSpider"
         ],
-        "interrupt": [
-            "SOSSpider"
-        ]
     },
     "SOSLackOfMaterials": {
         "recognition": {
@@ -169,13 +161,11 @@
             }
         },
         "next": [
-            "SOSSelectNoise"
+            "SOSSelectNoise",
+            "[JumpBack]SOSConfirm",
+            "[JumpBack]SOSStart",
+            "[JumpBack]BackButtonWithDelay"
         ],
-        "interrupt": [
-            "SOSConfirm", // 不管旅伴，直接跳过
-            "SOSStart",
-            "BackButtonWithDelay"
-        ]
     },
     "SOSKeepsakeDetailsAdd": {
         "recognition": {
@@ -432,15 +422,13 @@
             }
         },
         "next": [
-            "FlagInSOSMainMenu"
+            "FlagInSOSMainMenu",
+            "[JumpBack]SOSSummary",
+            "[JumpBack]SOSGiveup",
+            "[JumpBack]SOSStart",
+            "[JumpBack]SOS_Skip",
+            "[JumpBack]SOSConfirm"
         ],
-        "interrupt": [
-            "SOSSummary",
-            "SOSGiveup",
-            "SOSStart",
-            "SOS_Skip",
-            "SOSConfirm"
-        ]
     },
     "SOSSummary": {
         "recognition": {
@@ -590,12 +578,7 @@
                 }
             }
         },
-        "next": [
-            "SOSSelectInstrument"
-        ],
-        "interrupt": [
-            "SOSNextStep"
-        ]
+        "next": ["SOSSelectInstrument", "[JumpBack]SOSNextStep"],
     },
     "SOSSelectInstrument": {
         "recognition": {
@@ -623,15 +606,13 @@
             }
         },
         "next": [
-            "SOSMain"
+            "SOSMain",
+            "[JumpBack]SOSNextStep",
+            "[JumpBack]SOSArtefactsObtained",
+            "[JumpBack]SOSResonatorObtained",
+            "[JumpBack]SOSHarmonicObtained",
+            "[JumpBack]SOS_Skip"
         ],
-        "interrupt": [
-            "SOSNextStep",
-            "SOSArtefactsObtained",
-            "SOSResonatorObtained",
-            "SOSHarmonicObtained",
-            "SOS_Skip"
-        ]
     },
     "SOSInstrumentSelect": {
         "recognition": {
@@ -694,29 +675,27 @@
             }
         },
         "next": [
-            "SOSMainMenu"
+            "SOSMainMenu",
+            "[JumpBack]SOSSelectArtefact",
+            "[JumpBack]SOSArtefactsObtained",
+            "[JumpBack]SOSSetOff",
+            "[JumpBack]SOSSelectNode",
+            "[JumpBack]SOSSelectHarmonic",
+            "[JumpBack]SOSHarmonicObtained",
+            "[JumpBack]SOSStatsUpButton",
+            "[JumpBack]SOSStatsUp",
+            "[JumpBack]SOSSelectResonator",
+            "[JumpBack]SOSResonatorObtained",
+            "[JumpBack]SOSLoseArtefact",
+            "[JumpBack]SOSStrengthenArtefact",
+            "[JumpBack]SOSSummary",
+            "[JumpBack]SOSEnding",
+            "[JumpBack]SOSGiveup",
+            "[JumpBack]SOSStart",
+            "[JumpBack]SOS_Skip",
+            "[JumpBack]SOSConfirm",
+            "[JumpBack]CloseTip"
         ],
-        "interrupt": [
-            "SOSSelectArtefact",
-            "SOSArtefactsObtained",
-            "SOSSetOff",
-            "SOSSelectNode",
-            "SOSSelectHarmonic",
-            "SOSHarmonicObtained",
-            "SOSStatsUpButton",
-            "SOSStatsUp",
-            "SOSSelectResonator",
-            "SOSResonatorObtained",
-            "SOSLoseArtefact",
-            "SOSStrengthenArtefact",
-            "SOSSummary",
-            "SOSEnding",
-            "SOSGiveup",
-            "SOSStart",
-            "SOS_Skip",
-            "SOSConfirm",
-            "CloseTip"
-        ]
     },
     // 演绎主体逻辑
     "SOSSelectNode": {
@@ -1139,12 +1118,10 @@
         "next": [
             "SOSVictory",
             "SOSCombat",
-            "SOSFailed"
+            "SOSFailed",
+            "[JumpBack]SOSCombatDialog",
+            "[JumpBack]CloseTip"
         ],
-        "interrupt": [
-            "SOSCombatDialog",
-            "CloseTip"
-        ]
     },
     "SOSCombatDialog": {
         "recognition": {
@@ -1547,11 +1524,9 @@
         "post_wait_freezes": 500,
         "next": [
             "SOSGoToNextScene",
-            "SOSSetOff"
+            "SOSSetOff",
+            "[JumpBack]CloseTip"
         ],
-        "interrupt": [
-            "CloseTip"
-        ]
     },
     "SOSGoToNextScene": {
         "recognition": {
@@ -1570,20 +1545,18 @@
         },
         "next": [
             "FlagInSOSMain",
-            "SOSGoToNextScene"
+            "SOSGoToNextScene",
+            "[JumpBack]SOSStatsUpButton",
+            "[JumpBack]SOSStatsUp",
+            "[JumpBack]SOSArtefactsObtained",
+            "[JumpBack]SOSSelectArtefact",
+            "[JumpBack]SOSLoseArtefact",
+            "[JumpBack]SOSStrengthenArtefact",
+            "[JumpBack]SOSHarmonicObtained",
+            "[JumpBack]SOSSelectHarmonic",
+            "[JumpBack]SOSResonatorObtained",
+            "[JumpBack]SOSSelectResonator"
         ],
-        "interrupt": [
-            "SOSStatsUpButton",
-            "SOSStatsUp",
-            "SOSArtefactsObtained",
-            "SOSSelectArtefact",
-            "SOSLoseArtefact",
-            "SOSStrengthenArtefact",
-            "SOSHarmonicObtained",
-            "SOSSelectHarmonic",
-            "SOSResonatorObtained",
-            "SOSSelectResonator"
-        ]
     },
     "SOSDice": {
         "recognition": {
@@ -2010,12 +1983,7 @@
         "inverse": true
     },
     "SOSNoiseSelect": {
-        "next": [
-            "SOSNoiseSelected"
-        ],
-        "interrupt": [
-            "SOSNoiseUnselected"
-        ]
+        "next": ["SOSNoiseSelected", "[JumpBack]SOSNoiseUnselected"],
     },
     "SOSNoiseSelected": {
         "recognition": {

@@ -13,21 +13,14 @@
             }
         },
         "next": [
-            "EnterTheShowFlag"
+            "EnterTheShowFlag",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ShowClickStory",
+            "[JumpBack]ReturnMain"
         ],
-        "interrupt": [
-            "EnterTheShow",
-            "ShowClickStory",
-            "ReturnMain"
-        ]
     },
     "ReturnMainStoryChapter": {
-        "next": [
-            "ReturnMainStoryChapterTrue"
-        ],
-        "interrupt": [
-            "ReturnMainStoryChapterFalse"
-        ]
+        "next": ["ReturnMainStoryChapterTrue", "[JumpBack]ReturnMainStoryChapterFalse"],
     },
     "ReturnMainStoryChapterTrue": {
         "recognition": {
@@ -194,12 +187,7 @@
                 "custom_action": "SelectChapter"
             }
         },
-        "next": [
-            "MainChapter_XEnter"
-        ],
-        "interrupt": [
-            "SwipeLeftForChapter"
-        ]
+        "next": ["MainChapter_XEnter", "[JumpBack]SwipeLeftForChapter"],
     },
     "MainChapter_XEnter": {
         "recognition": {
@@ -217,7 +205,7 @@
         "action": {
             "type": "Click"
         },
-        "next": "SwipeLeftAndFindStage"
+        "next": ["SwipeLeftAndFindStage"]
     },
     "ResourceChapterLabel": {
         "recognition": {
@@ -247,12 +235,7 @@
     },
     "ResourceChapter_LP": {
         "doc": "尘埃运动",
-        "next": [
-            "ResourceChapter_LPEnter"
-        ],
-        "interrupt": [
-            "ResourceChapterLabel"
-        ]
+        "next": ["ResourceChapter_LPEnter", "[JumpBack]ResourceChapterLabel"],
     },
     "ResourceChapter_LPEnter": {
         "recognition": {
@@ -271,16 +254,11 @@
         "action": {
             "type": "Click"
         },
-        "next": "SwipeLeftAndFindStage"
+        "next": ["SwipeLeftAndFindStage"]
     },
     "ResourceChapter_MA": {
         "doc": "铸币美学",
-        "next": [
-            "ResourceChapter_MAEnter"
-        ],
-        "interrupt": [
-            "ResourceChapterLabel"
-        ]
+        "next": ["ResourceChapter_MAEnter", "[JumpBack]ResourceChapterLabel"],
     },
     "ResourceChapter_MAEnter": {
         "recognition": {
@@ -306,23 +284,16 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "SwipeLeftAndFindStage"
-        ],
-        "interrupt": [
-            "SwipeRightForChapter"
-        ]
+        "next": ["SwipeLeftAndFindStage", "[JumpBack]SwipeRightForChapter"],
     },
     "ResourceChapter_Psychube": {
         "doc": "意志解析",
         "next": [
             "ResourceChapter_Psychube07FreeEnter",
-            "ResourceChapter_NoFreePsychube07"
+            "ResourceChapter_NoFreePsychube07",
+            "[JumpBack]ResourceChapterLabel",
+            "[JumpBack]SwipeRightForChapter"
         ],
-        "interrupt": [
-            "ResourceChapterLabel",
-            "SwipeRightForChapter"
-        ]
     },
     "ResourceChapter_Psychube07FreeEnter": {
         "recognition": {
@@ -341,7 +312,7 @@
         "action": {
             "type": "Click"
         },
-        "next": "SwipeLeftAndFindStage"
+        "next": ["SwipeLeftAndFindStage"]
     },
     "ResourceChapter_Psychube07Enter": {
         "recognition": {
@@ -360,7 +331,7 @@
         "action": {
             "type": "Click"
         },
-        "next": "SwipeLeftAndFindStage"
+        "next": ["SwipeLeftAndFindStage"]
     },
     "ResourceChapter_NoFreePsychube07": {
         "recognition": {
@@ -712,12 +683,7 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "IsReplay"
-        ],
-        "interrupt": [
-            "SwitchToReplay"
-        ]
+        "next": ["IsReplay", "[JumpBack]SwitchToReplay"],
     },
     "IsReplay": {
         "recognition": {

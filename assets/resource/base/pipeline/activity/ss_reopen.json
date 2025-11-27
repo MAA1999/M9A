@@ -41,18 +41,15 @@
             }
         },
         "next": [
-            "SSTaskAwardsObtained",
-            "SSTaskCompleted"
+            "[JumpBack]SSTaskAwardsObtained",
+            "SSTaskCompleted",
+            "[JumpBack]SSReadyForAction",
+            "[JumpBack]SSReopenLevelSelect",
+            "[JumpBack]SSTaskEntry",
+            "[JumpBack]ObtainedAwards"
         ],
-        "interrupt": [
-            "SSReadyForAction",
-            "SSReopenLevelSelect",
-            "SSTaskEntry",
-            "ObtainedAwards"
-        ]
     },
     "SSTaskAwardsObtained": {
-        "is_sub": true,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -94,11 +91,9 @@
         "post_delay": 1500,
         "next": [
             "SSReopenReplay",
-            "SSReadyForAction"
+            "SSReadyForAction",
+            "[JumpBack]CombatEntering"
         ],
-        "interrupt": [
-            "CombatEntering"
-        ]
     },
     "SSReopenReplay": {
         "recognition": {
@@ -123,11 +118,9 @@
     "SSToReplayIfCan": {
         "next": [
             "SSCannotReplay",
-            "SSIsReplay"
+            "SSIsReplay",
+            "[JumpBack]SSSwitchToReplay"
         ],
-        "interrupt": [
-            "SSSwitchToReplay"
-        ]
     },
     "SSSwitchToReplay": {
         "recognition": {
@@ -202,11 +195,9 @@
         },
         "next": [
             "Victory_NoReplay",
-            "SSNoReplay"
+            "SSNoReplay",
+            "[JumpBack]EatCandyPage"
         ],
-        "interrupt": [
-            "EatCandyPage"
-        ]
     },
     "Victory_NoReplay": {
         "recognition": {
@@ -230,23 +221,19 @@
         "post_delay": 1500,
         "next": [
             "FlagInSSMain",
-            "Victory_NoReplay"
+            "Victory_NoReplay",
+            "[JumpBack]SSReopenBackToMain_ClickBlank",
+            "[JumpBack]SSReopenBackToMain_BackButton",
+            "[JumpBack]HomeLoading"
         ],
-        "interrupt": [
-            "SSReopenBackToMain_ClickBlank",
-            "SSReopenBackToMain_BackButton",
-            "HomeLoading"
-        ]
     },
     "SSReopenBackToMain": {
         "next": [
-            "FlagInSSMain"
+            "FlagInSSMain",
+            "[JumpBack]SSReopenBackToMain_ClickBlank",
+            "[JumpBack]SSReopenBackToMain_BackButton",
+            "[JumpBack]HomeLoading"
         ],
-        "interrupt": [
-            "SSReopenBackToMain_ClickBlank",
-            "SSReopenBackToMain_BackButton",
-            "HomeLoading"
-        ]
     },
     "SSReopenBackToMain_ClickBlank": {
         "recognition": {

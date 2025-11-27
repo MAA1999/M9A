@@ -26,12 +26,10 @@
             }
         },
         "next": [
-            "ActivityMainAnecdoteFlag"
+            "ActivityMainAnecdoteFlag",
+            "[JumpBack]ActivityMainSelectAnecdote",
+            "[JumpBack]SwipeDownForAnecdote"
         ],
-        "interrupt": [
-            "ActivityMainSelectAnecdote",
-            "SwipeDownForAnecdote"
-        ]
     },
     "ActivityMainSelectAnecdote": {
         "recognition": {

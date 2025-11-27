@@ -1,12 +1,10 @@
 {
     "SwitchAccount": {
         "next": [
-            "MainMenuFlag"
+            "MainMenuFlag",
+            "[JumpBack]MainMenuEntry",
+            "[JumpBack]StartUp"
         ],
-        "interrupt": [
-            "MainMenuEntry",
-            "StartUp"
-        ]
     },
     "MainMenuFlag": {
         "recognition": {
@@ -21,12 +19,7 @@
                 "template": "./SwitchAccount/Detail.png"
             }
         },
-        "next": [
-            "SettingEntry"
-        ],
-        "interrupt": [
-            "MenuRight"
-        ]
+        "next": ["SettingEntry", "[JumpBack]MenuRight"],
     },
     "SettingEntry": {
         "recognition": {
@@ -55,13 +48,11 @@
         },
         "next": [
             "StartGameFlag",
-            "SettingEntry"
+            "SettingEntry",
+            "[JumpBack]AccountExitConfirm",
+            "[JumpBack]AccountExit",
+            "[JumpBack]AccountSettingEnter"
         ],
-        "interrupt": [
-            "AccountExitConfirm",
-            "AccountExit",
-            "AccountSettingEnter"
-        ]
     },
     "StartGameFlag": {
         "recognition": {
@@ -78,12 +69,10 @@
             }
         },
         "next": [
-            "SwitchAccountMainFlag"
+            "SwitchAccountMainFlag",
+            "[JumpBack]AccountExitButtonConfirm",
+            "[JumpBack]AccountExitButton"
         ],
-        "interrupt": [
-            "AccountExitButtonConfirm",
-            "AccountExitButton"
-        ]
     },
     "SwitchAccountMainFlag": {
         "recognition": {
@@ -100,12 +89,10 @@
         },
         "next": [
             "SwitchAccountMainExpandFlag",
-            "SwitchAccountMainExpandFlag_1440p"
+            "SwitchAccountMainExpandFlag_1440p",
+            "[JumpBack]SwitchAccountMainExpand",
+            "[JumpBack]SwitchAccountMainExpand_1440p"
         ],
-        "interrupt": [
-            "SwitchAccountMainExpand",
-            "SwitchAccountMainExpand_1440p"
-        ]
     },
     "SwitchAccountMainExpandFlag": {
         "recognition": {
@@ -122,12 +109,7 @@
                 ]
             }
         },
-        "next": [
-            "SwitchLastAccountComplete"
-        ],
-        "interrupt": [
-            "SwitchLastAccount"
-        ]
+        "next": ["SwitchLastAccountComplete", "[JumpBack]SwitchLastAccount"],
     },
     "SwitchAccountMainExpandFlag_1440p": {
         "recognition": {
@@ -142,12 +124,7 @@
                 "expected": "[×xX✕✖]"
             }
         },
-        "next": [
-            "SwitchLastAccountComplete"
-        ],
-        "interrupt": [
-            "SwitchLastAccount_1440p"
-        ]
+        "next": ["SwitchLastAccountComplete", "[JumpBack]SwitchLastAccount_1440p"],
     },
     "SwitchLastAccountComplete": {
         "recognition": {
@@ -164,12 +141,7 @@
                 "order_by": "Horizontal"
             }
         },
-        "next": [
-            "StartGame"
-        ],
-        "interrupt": [
-            "LogIn"
-        ]
+        "next": ["StartGame", "[JumpBack]LogIn"],
     },
     "LogIn": {
         "recognition": {

@@ -1,13 +1,11 @@
 {
     "SeriesOfDusks": {
         "next": [
-            "SOD_Menu"
+            "SOD_Menu",
+            "[JumpBack]OutsideDeduction",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ReturnMain"
         ],
-        "interrupt": [
-            "OutsideDeduction",
-            "EnterTheShow",
-            "ReturnMain"
-        ]
     },
     "OutsideDeduction": {
         "recognition": {
@@ -50,12 +48,10 @@
             }
         },
         "next": [
-            "SOD_UNOPENED"
+            "SOD_UNOPENED",
+            "[JumpBack]SODStop",
+            "[JumpBack]SOD_unmount"
         ],
-        "interrupt": [
-            "SODStop",
-            "SOD_unmount"
-        ]
     },
     "SOD_MenuFlag": {
         "recognition": {
@@ -91,11 +87,9 @@
         },
         "next": [
             "SOD_unmount_completed_1",
-            "SOD_unmount"
+            "SOD_unmount",
+            "[JumpBack]SOD_unmount_confirm"
         ],
-        "interrupt": [
-            "SOD_unmount_confirm"
-        ]
     },
     "SOD_unmount_completed_1": {
         "recognition": {
@@ -131,12 +125,7 @@
                 482
             ]
         },
-        "next": [
-            "SOD_unmount_completed_2"
-        ],
-        "interrupt": [
-            "SOD_unmount_confirm"
-        ]
+        "next": ["SOD_unmount_completed_2", "[JumpBack]SOD_unmount_confirm"],
     },
     "SOD_unmount_completed_2": {
         "recognition": {
@@ -172,12 +161,7 @@
                 482
             ]
         },
-        "next": [
-            "SOD_unmount_completed_3"
-        ],
-        "interrupt": [
-            "SOD_unmount_confirm"
-        ]
+        "next": ["SOD_unmount_completed_3", "[JumpBack]SOD_unmount_confirm"],
     },
     "SOD_unmount_completed_3": {
         "recognition": {
@@ -202,12 +186,7 @@
                 482
             ]
         },
-        "next": [
-            "SOD_MenuFlag"
-        ],
-        "interrupt": [
-            "BackButton"
-        ]
+        "next": ["SOD_MenuFlag", "[JumpBack]BackButton"],
     },
     "SOD_unmount_confirm": {
         "recognition": {
@@ -249,12 +228,7 @@
                 "template": "OutsideDeduction/UNOPEN.png"
             }
         },
-        "next": [
-            "SODStart"
-        ],
-        "interrupt": [
-            "SODStop"
-        ]
+        "next": ["SODStart", "[JumpBack]SODStop"],
     },
     "SODStop": {
         "recognition": {
@@ -305,14 +279,12 @@
         },
         "next": [
             "SOD_MenuFlag",
-            "SODStop_Confirm"
+            "SODStop_Confirm",
+            "[JumpBack]SOD_Skip_NoNext",
+            "[JumpBack]SODStop_Click_NoNext_3",
+            "[JumpBack]SODStop_Click_NoNext_2",
+            "[JumpBack]SODStop_Click_NoNext_1"
         ],
-        "interrupt": [
-            "SOD_Skip_NoNext",
-            "SODStop_Click_NoNext_3",
-            "SODStop_Click_NoNext_2",
-            "SODStop_Click_NoNext_1"
-        ]
     },
     "SOD_Skip_NoNext": {
         "recognition": {
@@ -546,7 +518,7 @@
             ]
         },
         "next": [
-            "ODR_FlagInDifficultySelect",
+            "[JumpBack]ODR_FlagInDifficultySelect",
             "SODStart_Confirm",
             "SODStart"
         ],
@@ -581,11 +553,9 @@
             "SODStart_GoodsSelect",
             "SODStart_MediaSelect",
             "SOD_ArcanistAdd",
-            "SODStart_Confirm"
+            "SODStart_Confirm",
+            "[JumpBack]SOD_SwipeLeft"
         ],
-        "interrupt": [
-            "SOD_SwipeLeft"
-        ]
     },
     "SODStart_GoodsSelect": {
         "recognition": {
@@ -604,17 +574,14 @@
         },
         "next": [
             "SODStart_Confirm",
-            "Sub_SODStart_GoodsSelect",
+            "[JumpBack]Sub_SODStart_GoodsSelect",
             "SOD_ItemSelect_1",
             "SODStart_MediaSelect",
-            "SOD_ArcanistAdd"
+            "SOD_ArcanistAdd",
+            "[JumpBack]SOD_SwipeLeft"
         ],
-        "interrupt": [
-            "SOD_SwipeLeft"
-        ]
     },
     "Sub_SODStart_GoodsSelect": {
-        "is_sub": true,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -740,11 +707,9 @@
         "post_delay": 2500,
         "next": [
             "SOD_Quickformation_On",
-            "SOD_ArcanistAdd"
+            "SOD_ArcanistAdd",
+            "[JumpBack]SOD_Quickformation"
         ],
-        "interrupt": [
-            "SOD_Quickformation"
-        ]
     },
     "SOD_Quickformation": {
         "recognition": {
@@ -979,11 +944,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_2": {
         "recognition": {
@@ -1040,11 +1003,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_3": {
         "recognition": {
@@ -1100,11 +1061,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_4": {
         "recognition": {
@@ -1159,11 +1118,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_5": {
         "recognition": {
@@ -1217,11 +1174,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_6": {
         "recognition": {
@@ -1274,11 +1229,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_7": {
         "recognition": {
@@ -1330,11 +1283,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_1_1": {
         "recognition": {
@@ -1385,11 +1336,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_2_1": {
         "recognition": {
@@ -1439,11 +1388,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_3_1": {
         "recognition": {
@@ -1492,11 +1439,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_4_1": {
         "recognition": {
@@ -1544,11 +1489,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_5_1": {
         "recognition": {
@@ -1595,11 +1538,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_6_1": {
         "recognition": {
@@ -1645,11 +1586,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_7_1": {
         "recognition": {
@@ -1694,11 +1633,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_1_2": {
         "recognition": {
@@ -1742,11 +1679,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_2_2": {
         "recognition": {
@@ -1789,11 +1724,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_3_2": {
         "recognition": {
@@ -1835,11 +1768,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_4_2": {
         "recognition": {
@@ -1880,11 +1811,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_5_2": {
         "recognition": {
@@ -1924,11 +1853,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_6_2": {
         "recognition": {
@@ -1967,11 +1894,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_7_2": {
         "recognition": {
@@ -2009,11 +1934,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_1_3": {
         "recognition": {
@@ -2050,11 +1973,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_2_3": {
         "recognition": {
@@ -2090,11 +2011,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_3_3": {
         "recognition": {
@@ -2129,11 +2048,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_4_3": {
         "recognition": {
@@ -2167,11 +2084,9 @@
             "SOD_ClearDeployment",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_5_3": {
         "recognition": {
@@ -2204,11 +2119,9 @@
             "SOD_Acquire",
             "SOD_ClearDeployment",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_6_3": {
         "recognition": {
@@ -2240,11 +2153,9 @@
             "SOD_Skip",
             "SOD_Acquire",
             "SOD_ClearDeployment",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_SelectNext_7_3": {
         "recognition": {
@@ -2275,11 +2186,9 @@
             "SOD_ItemLose_1",
             "SOD_Skip",
             "SOD_Acquire",
-            "SOD_ClearDeployment"
+            "SOD_ClearDeployment",
+            "[JumpBack]SOD_EndEvent"
         ],
-        "interrupt": [
-            "SOD_EndEvent"
-        ]
     },
     "SOD_Levelup": {
         "recognition": {
@@ -2301,11 +2210,9 @@
         },
         "next": [
             "SOD_NewArcanist",
-            "SOD_Levelup"
+            "SOD_Levelup",
+            "[JumpBack]SOD_Acquire_NoNext"
         ],
-        "interrupt": [
-            "SOD_Acquire_NoNext"
-        ]
     },
     "SOD_Move": {
         "recognition": {
@@ -2382,11 +2289,9 @@
         "post_delay": 2500,
         "next": [
             "SOD_Quickformation_On",
-            "SOD_ArcanistSelect"
+            "SOD_ArcanistSelect",
+            "[JumpBack]SOD_Quickformation"
         ],
-        "interrupt": [
-            "SOD_Quickformation"
-        ]
     },
     "SOD_ArcanistAdd_Single4": {
         "recognition": {
@@ -2493,13 +2398,12 @@
             "SOD_Skip",
             "SOD_Main",
             "SOD_Nothinghappen",
-            "SOD_Dialog_3",
-            "SOD_Dialog_5",
+            "[JumpBack]SOD_Dialog_3",
+            "[JumpBack]SOD_Dialog_5",
             "SOD_Combating"
         ]
     },
     "Sub_SOD_Dialog_1": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -2517,7 +2421,6 @@
         }
     },
     "Sub_SOD_Dialog_2": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -2535,7 +2438,6 @@
         }
     },
     "SOD_Dialog_3": {
-        "is_sub": true,
         "doc": "战斗中露西的升华",
         "recognition": {
             "type": "OCR",
@@ -2556,7 +2458,6 @@
         }
     },
     "Sub_SOD_Dialog_4": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -2575,7 +2476,6 @@
         }
     },
     "SOD_Dialog_5": {
-        "is_sub": true,
         "doc": "战斗中天使娜娜的缔结契约",
         "recognition": {
             "type": "OCR",
@@ -2600,10 +2500,7 @@
                 ]
             }
         },
-        "next": [
-            "SOD_Dialog_5_1",
-            "SOD_Dialog_5"
-        ]
+        "next": ["SOD_Dialog_5_1", "[JumpBack]SOD_Dialog_5"]
     },
     "SOD_Dialog_5_1": {
         "recognition": {
@@ -3280,11 +3177,9 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_Levelup"
         ],
-        "interrupt": [
-            "SOD_Levelup"
-        ]
     },
     "SOD_ClearDeployment": {
         "recognition": {
@@ -3328,12 +3223,7 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "SOD_Main"
-        ],
-        "interrupt": [
-            "SOD_BackButton"
-        ]
+        "next": ["SOD_Main", "[JumpBack]SOD_BackButton"],
     },
     "SOD_BackButton": {
         "recognition": {
@@ -3451,11 +3341,9 @@
         "next": [
             "SOD_EndingSelect",
             "SOD_Departure",
-            "SOD_Ending_1"
+            "SOD_Ending_1",
+            "[JumpBack]SOD_Ending_SkipText"
         ],
-        "interrupt": [
-            "SOD_Ending_SkipText"
-        ]
     },
     "SOD_Ending_SkipText": {
         "recognition": {
@@ -3507,11 +3395,9 @@
         "next": [
             "SOD_EndingSelect",
             "SOD_Departure",
-            "SOD_Ending_2"
+            "SOD_Ending_2",
+            "[JumpBack]SOD_Ending_SkipText"
         ],
-        "interrupt": [
-            "SOD_Ending_SkipText"
-        ]
     },
     "SOD_EndingSelect": {
         "recognition": {
@@ -3548,10 +3434,8 @@
             "SOD_ArcanistSelect",
             "SOD_ArcanistAdd_Single4",
             "SOD_CombatStart",
-            "SOD_EndingSelect"
+            "SOD_EndingSelect",
+            "[JumpBack]SOD_Ending_SkipText"
         ],
-        "interrupt": [
-            "SOD_Ending_SkipText"
-        ]
     }
 }
