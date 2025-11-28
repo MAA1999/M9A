@@ -56,9 +56,8 @@ class CCBuyCardRec(CustomRecognition):
                     else:
                         # 无法部署或升级，卖掉
                         detail = json.dumps({"type": 1, "action": 2, "name": card_name})
-                        return CustomRecognition.AnalyzeResult(
-                            box=reco_detail1.box, detail=detail
-                        )
+                        context.run_task("CCStartCombat")
+                        return CustomRecognition.AnalyzeResult(box=None, detail=detail)
             # 无法识别奖励框内的卡牌，默认卖掉
             # 分辨卡牌类型
             reco_detail = context.run_recognition(
