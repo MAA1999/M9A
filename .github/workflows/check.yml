@@ -25,11 +25,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      # pip install maafw
-      - name: Install maafw
+      # Install maafw: dynamically read version/spec from requirements.txt and install that
+      - name: Install maafw (from requirements.txt)
+        shell: powershell
         run: |
-            python -m pip install --upgrade pip
-            python -m pip install --upgrade maafw --pre
+          python -m pip install --upgrade pip
+          # 在 requirements.txt 中查找以 maafw 开头的行（例如: maafw==4.5.6 或 maafw>=4.5）
+          $line = Get-Content requirements.txt | Where-Object { $_ -match '^\s*maafw' } | Select-Object -First 1
+          if ($line) {
+            $pkg = $line.Trim()
+          } else {
+            $pkg = 'maafw'
+          }
+          Write-Host "Installing $pkg"
+          python -m pip install --upgrade $pkg
 
       - name: Check Resource
         run: |

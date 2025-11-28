@@ -7,6 +7,7 @@ from .syndrome_of_silence import (
     SOSSelectEncounterOptionList,
     SOSSelectNode,
 )
+from .critter_crash import *
 
 __all__ = [
     "MultiRecognition",

@@ -162,6 +162,29 @@ def read_pip_config() -> dict:
         return default_config
 
 
+def read_hot_update_config() -> dict:
+    """
+    读取热更配置
+    """
+    config_dir = Path("./config")
+    config_dir.mkdir(exist_ok=True)
+    config_path = config_dir / "hot_update.json"
+    default_conf = {"enable_hot_update": True}
+    if not config_path.exists():
+        try:
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump(default_conf, f, indent=4, ensure_ascii=False)
+        except Exception:
+            logger.debug("无法写入 hot_update.json，使用默认配置")
+        return default_conf
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        logger.exception("读取 hot_update.json 失败，使用默认配置")
+        return default_conf
+
+
 ### 依赖安装相关 ###
 
 
@@ -369,16 +392,20 @@ def agent(is_dev_mode=False):
                 logger.debug(f"资源版本检查遇到问题: {version_info['error']}")
 
             # 数据热更新
-            from utils.resource_updater import check_and_update_resources
-
-            logger.info("开始检查部分资源...")
-            update_result = check_and_update_resources()
-            if update_result["updated_files"]:
-                pass
-            elif update_result["error"]:
-                logger.debug(f"热更部分资源更新遇到问题: {update_result['error']}")
+            hot_update_conf = read_hot_update_config()
+            if not hot_update_conf.get("enable_hot_update", True):
+                logger.info("已配置为跳过部分资源热更（hot_update.disabled）")
             else:
-                logger.debug("热更部分资源已是最新")
+                from utils.resource_updater import check_and_update_resources
+
+                logger.info("开始检查部分资源...")
+                update_result = check_and_update_resources()
+                if update_result and update_result.get("updated_files"):
+                    pass
+                elif update_result and update_result.get("error"):
+                    logger.debug(f"热更部分资源更新遇到问题: {update_result['error']}")
+                else:
+                    logger.debug("热更部分资源已是最新")
 
         from maa.agent.agent_server import AgentServer
         from maa.toolkit import Toolkit
