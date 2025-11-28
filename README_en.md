@@ -46,7 +46,7 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 - Artefact Masters
 - When the Alarm Sounds
 - Continuous clear (under testing)
-- Critter Crash (below 1600 points)
+- Critter Crash
 - Pre-Storm Protocol
 
 ## Instructions for use

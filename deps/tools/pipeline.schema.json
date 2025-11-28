@@ -305,6 +305,62 @@
             ],
             "default": []
         },
+        "NodeAttr": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "节点名称"
+                },
+                "jump_back": {
+                    "type": "boolean",
+                    "description": "是否在执行完成后跳回父节点",
+                    "default": false
+                },
+                "anchor": {
+                    "type": "boolean",
+                    "description": "是否是锚点名称而非节点名称",
+                    "default": false
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "jsonNodeItem": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "description": "节点名称，可带前缀如 [JumpBack]NodeName"
+                },
+                {
+                    "$ref": "#/$defs/NodeAttr"
+                }
+            ]
+        },
+        "jsonNodeList": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/jsonNodeItem"
+            },
+            "default": []
+        },
+        "jsonNodeOrList": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "description": "节点名称，可带前缀如 [JumpBack]NodeName"
+                },
+                {
+                    "$ref": "#/$defs/NodeAttr"
+                },
+                {
+                    "$ref": "#/$defs/jsonNodeList"
+                }
+            ],
+            "default": []
+        },
         "jsonRegexList": {
             "type": "array",
             "items": {
@@ -909,9 +965,10 @@
                         "Vertical",
                         "Area",
                         "Length",
-                        "Random"
+                        "Random",
+                        "Expected"
                     ],
-                    "markdownDescription": "*string*\n\n结果排序方式。可选，默认 `Horizontal`。\n\n可选的值：`Horizontal` | `Vertical` | `Area` | `Length` | `Random` 。\n\n可结合 `index` 字段使用。",
+                    "markdownDescription": "*string*\n\n结果排序方式。可选，默认 `Horizontal`。\n\n可选的值：`Horizontal` | `Vertical` | `Area` | `Length` | `Random` | `Expected` 。\n\n可结合 `index` 字段使用。",
                     "default": "Horizontal"
                 },
                 "index": {
@@ -1015,9 +1072,10 @@
                         "Horizontal",
                         "Vertical",
                         "Score",
-                        "Random"
+                        "Random",
+                        "Expected"
                     ],
-                    "markdownDescription": "*string*\n\n结果排序方式。可选，默认 `Horizontal` 。\n\n可选的值：`Horizontal` | `Vertical` | `Score` | `Random` 。\n\n可结合 `index` 字段使用。",
+                    "markdownDescription": "*string*\n\n结果排序方式。可选，默认 `Horizontal` 。\n\n可选的值：`Horizontal` | `Vertical` | `Score` | `Random` | `Expected` 。\n\n可结合 `index` 字段使用。",
                     "default": "Horizontal"
                 },
                 "index": {
@@ -1131,9 +1189,10 @@
                         "Vertical",
                         "Score",
                         "Area",
-                        "Random"
+                        "Random",
+                        "Expected"
                     ],
-                    "markdownDescription": "*string*\n\n结果排序方式。可选，默认 `Horizontal` 。\n\n可选的值：`Horizontal` | `Vertical` | `Score` | `Area` | `Random` 。\n\n可结合 `index` 字段使用。",
+                    "markdownDescription": "*string*\n\n结果排序方式。可选，默认 `Horizontal` 。\n\n可选的值：`Horizontal` | `Vertical` | `Score` | `Area` | `Random` | `Expected` 。\n\n可结合 `index` 字段使用。",
                     "default": "Horizontal"
                 },
                 "index": {
@@ -2224,6 +2283,55 @@
                 }
             }
         },
+        "Scroll": {
+            "type": "object",
+            "properties": {
+                "dx": {
+                    "title": "Scroll Dx Property",
+                    "description": "水平滚动距离，正值向右滚动，负值向左滚动。可选，默认 0。",
+                    "type": "integer",
+                    "default": 0,
+                    "markdownDescription": "*int*\n\n水平滚动距离，正值向右滚动，负值向左滚动。可选，默认 0。"
+                },
+                "dy": {
+                    "title": "Scroll Dy Property",
+                    "description": "垂直滚动距离，正值向下滚动，负值向上滚动。可选，默认 0。",
+                    "type": "integer",
+                    "default": 0,
+                    "markdownDescription": "*int*\n\n垂直滚动距离，正值向下滚动，负值向上滚动。可选，默认 0。"
+                }
+            }
+        },
+        "ScrollV1": {
+            "properties": {
+                "action": {
+                    "const": "Scroll"
+                }
+            },
+            "allOf": [
+                {
+                    "$ref": "#/$defs/Scroll"
+                }
+            ]
+        },
+        "ScrollV2": {
+            "properties": {
+                "type": {
+                    "const": "Scroll"
+                },
+                "param": {
+                    "unevaluatedProperties": false,
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Scroll"
+                        },
+                        {
+                            "$ref": "#/$defs/jsonComments"
+                        }
+                    ]
+                }
+            }
+        },
         "KeyDown": {
             "type": "object",
             "properties": {
@@ -2877,6 +2985,7 @@
                 "TouchDown",
                 "TouchMove",
                 "TouchUp",
+                "Scroll",
                 "ClickKey",
                 "LongPressKey",
                 "KeyDown",
@@ -3157,6 +3266,20 @@
                     }
                 },
                 {
+                    "label": "ScrollV1",
+                    "body": "^ \"Scroll\",\n\"dx\": 0,\n\"dy\": 0"
+                },
+                {
+                    "label": "ScrollV2",
+                    "body": {
+                        "type": "Scroll",
+                        "param": {
+                            "dx": 0,
+                            "dy": 0
+                        }
+                    }
+                },
+                {
                     "label": "ClickKeyV1",
                     "body": "^ \"ClickKey\",\n\"key\": []"
                 },
@@ -3328,6 +3451,9 @@
                     "$ref": "#/$defs/TouchUpV1"
                 },
                 {
+                    "$ref": "#/$defs/ScrollV1"
+                },
+                {
                     "$ref": "#/$defs/ClickKeyV1"
                 },
                 {
@@ -3404,6 +3530,9 @@
                         },
                         {
                             "$ref": "#/$defs/TouchUpV2"
+                        },
+                        {
+                            "$ref": "#/$defs/ScrollV2"
                         },
                         {
                             "$ref": "#/$defs/ClickKeyV2"
@@ -3597,21 +3726,22 @@
                 "next": {
                     "title": "Next Property",
                     "description": "接下来要执行的节点列表。可选，默认空。",
-                    "$ref": "#/$defs/jsonStringOrList",
-                    "markdownDescription": "*string* | *list<string, >*\n\n接下来要执行的节点列表。可选，默认空。\n\n按顺序识别 next 中的每个节点，只执行第一个识别到的。"
+                    "$ref": "#/$defs/jsonNodeOrList",
+                    "markdownDescription": "*string* | *NodeAttr* | *list<string | NodeAttr, >*\n\n接下来要执行的节点列表。可选，默认空。\n\n按顺序识别 next 中的每个节点，只执行第一个识别到的。\n\n💡 v5.1 版本起新增支持带属性节点、NodeAttr 形式对象，或两者结合的异质数组。详情参见文档中的「节点属性」章节。"
                 },
                 "interrupt": {
                     "title": "Interrupt Property",
-                    "description": "`next` 中全部未识别到时的候补节点列表，会执行类似中断操作。可选，默认空。",
+                    "deprecated": true,
+                    "description": "（已在 5.1 版本中废弃，推荐使用 节点前缀跳回功能 `[JumpBack]` 替代）",
                     "$ref": "#/$defs/jsonStringOrList",
-                    "markdownDescription": "*string* | *list<string, >*\n\n`next` 中全部未识别到时的候补节点列表，会执行类似中断操作。可选，默认空。\n\n若 `next` 中的节点全部未识别到，则会按序识别该中断列表中的每个节点，并执行第一个识别到的。在后续节点全部执行完成后，重新跳转到该节点来再次尝试识别。\n\n例如: A: { next: [B, C], interrupt: [D, E] }\n\n当 B, C 未识别到而识别到 D 时，会去完整的执行 D 及 D.next。但当 D 的流水线完全执行完毕后。会再次回到节点 A，继续尝试识别 B, C, D, E 。\n\n该字段多用于异常处理，例如 D 是识别 “网络断开提示框”，在点击确认并等待网络连接成功后，继续之前的节点流程。"
+                    "markdownDescription": "*string* | *list<string, >*\n\n**（已在 5.1 版本中废弃，推荐使用 节点前缀跳回功能 `[JumpBack]` 替代）**\n\n我们提供了 [迁移脚本](https://github.com/MaaXYZ/MaaFramework/blob/main/tools/migrate_pipeline_v5.py)，可帮助您无损地将 Pipeline 自动转换为新风格~"
                 },
                 "is_sub": {
                     "title": "Is Sub Property",
                     "deprecated": true,
-                    "description": "是否是子节点。可选，默认 false 。",
+                    "description": "（已在 5.1 版本中废弃，推荐使用 节点前缀跳回功能 `[JumpBack]` 替代）",
                     "$ref": "#/$defs/jsonBooleanFalse",
-                    "markdownDescription": "*bool*\n\n**（已在 2.x 版本中废弃，但保留兼容性，推荐使用 `interrupt` 替代）**\n\n是否是子节点。可选，默认 false 。\n\n如果是子节点，执行完本节点（及后续 next 等）后，会返回来再次识别本节点 **所在的** next 列表。\n\n例如：A.next = [B, Sub_C, D]，这里的 Sub_C.is_sub = true，\n\n若匹配上了 Sub_C，在完整执行完 Sub_C 及后续节点后，会返回来再次识别 [B, Sub_C, D] 并执行命中项及后续节点。"
+                    "markdownDescription": "*bool*\n\n**（已在 5.1 版本中废弃，推荐使用 节点前缀跳回功能 `[JumpBack]` 替代）**\n\n我们提供了 [迁移脚本](https://github.com/MaaXYZ/MaaFramework/blob/main/tools/migrate_pipeline_v5.py)，可帮助您无损地将 Pipeline 自动转换为新风格~"
                 },
                 "rate_limit": {
                     "title": "Rate Limit Property",
@@ -3625,13 +3755,19 @@
                     "description": "识别超时时间，毫秒。可选，默认 20 * 1000 。",
                     "$ref": "#/$defs/jsonNInt64",
                     "default": 20000,
-                    "markdownDescription": "*uint*\n\n识别超时时间，毫秒。可选，默认 20 * 1000 。\n\n具体逻辑为 `while(!timeout) { foreach(next + interrupt); sleep_until(rate_limit); }` 。"
+                    "markdownDescription": "*uint*\n\n识别超时时间，毫秒。可选，默认 20 * 1000 。\n\n具体逻辑为 `while(!timeout) { foreach(next); sleep_until(rate_limit); }` 。"
                 },
                 "on_error": {
                     "title": "On Error Property",
                     "description": "当识别超时，或动作执行失败后，接下来会执行该列表中的节点。可选，默认空。",
+                    "$ref": "#/$defs/jsonNodeOrList",
+                    "markdownDescription": "*string* | *NodeAttr* | *list<string | NodeAttr, >*\n\n当识别超时，或动作执行失败后，接下来会执行该列表中的节点。可选，默认空。\n\n💡 v5.1 版本起新增支持带属性节点、NodeAttr 形式对象，或两者结合的异质数组。详情参见文档中的「节点属性」章节。"
+                },
+                "anchor": {
+                    "title": "Anchor Property",
+                    "description": "锚点名称。可选，默认空。",
                     "$ref": "#/$defs/jsonStringOrList",
-                    "markdownDescription": "*string* | *list<string, >*\n\n当识别超时，或动作执行失败后，接下来会执行该列表中的节点。可选，默认空。"
+                    "markdownDescription": "*string* | *list<string, >*\n\n锚点名称。可选，默认空。\n\n当节点执行成功后，会将该锚点名设置为当前节点。多个节点可设置同一个锚点名，后执行的会覆盖先执行的。\n\n在 `next` 或 `on_error` 中可通过 `[Anchor]` 属性引用该锚点，运行时会解析为最后设置该锚点的节点。\n\n详见文档中的「节点属性」章节。"
                 },
                 "inverse": {
                     "title": "Inverse Property",
@@ -3644,6 +3780,12 @@
                     "description": "是否启用该 node。可选，默认 true 。",
                     "$ref": "#/$defs/jsonBooleanTrue",
                     "markdownDescription": "*bool*\n\n是否启用该 node。可选，默认 true 。\n\n若为 false，其他 node 的 next 列表中的该 node 会被跳过，既不会被识别也不会被执行。"
+                },
+                "max_hit": {
+                    "title": "Max Hit Property",
+                    "description": "该节点最多可被识别成功多少次。可选，默认 UINT_MAX ，即无限制。",
+                    "$ref": "#/$defs/jsonUInt32",
+                    "markdownDescription": "*uint*\n\n该节点最多可被识别成功多少次。可选，默认 UINT_MAX ，即无限制。\n\n若超过该次数，其他 node 的 next 列表中的该 node 会被跳过，既不会被识别也不会被执行。"
                 },
                 "pre_delay": {
                     "title": "Pre Delay Property",

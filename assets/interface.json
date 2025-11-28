@@ -270,7 +270,7 @@
         {
             "name": "翻斗棋速刷",
             "entry": "CritterCrash",
-            "doc": "[size:15][color:tomato]在翻斗棋界面启动，暂不支持国服3.2版本！[/color][/size]"
+            "doc": "[size:15][color:tomato]在翻斗棋界面启动，已支持国服3.2版本！使用前请先自行打两把使警戒值升到3级[/color][/size]"
         },
         {
             "name": "雨前漫游指南",
