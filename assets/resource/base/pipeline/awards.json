@@ -429,7 +429,7 @@
                 "template": [
                     "Awards/DailyBadge.png",
                     "Awards/DailyBadge_sp01.png",
-                    "Awards/Dailybadge3.2.png"
+                    "Awards/DailyBadge3.2.png"
                 ],
                 "threshold": 0.9
             }
