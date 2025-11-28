@@ -154,7 +154,8 @@ class CCRemainMoney(CustomRecognition):
         reco_detail = context.run_recognition("CCRemainMoney_rec", processed_img)
 
         if reco_detail and reco_detail.box:
-            if int(reco_detail.best_result.text) >= 5:
+            logger.debug(f"识别到剩余缪斯币: {reco_detail.best_result.text}")
+            if int(reco_detail.best_result.text) >= 3:
                 return CustomRecognition.AnalyzeResult(
                     box=reco_detail.box, detail=json.dumps(reco_detail.raw_detail)
                 )
