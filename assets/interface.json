@@ -1781,7 +1781,10 @@
                     "name": "Yes",
                     "pipeline_override": {
                         "SOD_UNOPENED": {
-                            "next": "ODR_Start"
+                            "next": [
+                                "ODR_Start",
+                                "[JumpBack]SODStop"
+                            ]
                         }
                     }
                 }
@@ -1932,9 +1935,10 @@
                     "pipeline_override": {
                         "SOSMainMenu": {
                             "next": [
-                                "SOSWordlessWorkshop"
-                            ],
-                            "interrupt": []
+                                "SOSWordlessWorkshop",
+                                "[JumpBack]SOSConfirm",
+                                "[JumpBack]SOSStart"
+                            ]
                         }
                     }
                 }
