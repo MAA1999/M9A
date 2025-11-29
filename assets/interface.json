@@ -156,15 +156,9 @@
             "option": [
                 "单账号(银行)",
                 "柜台特奉",
-                "金兔子(低阶柜台)",
-                "紫地球仪(低阶柜台)",
-                "蓝地球仪(低阶柜台)",
-                "饕餮",
-                "蓝地球仪(心相观测)",
-                "共鸣晶匣",
-                "金瓜子(梦境记述)",
-                "原味鸡(梦境记述)",
-                "大薯(梦境记述)"
+                "低阶柜台",
+                "心相观测",
+                "梦境记述"
             ],
             "description": "<span style=\"color:tomato;font-size:15px\">单账号模式下会跳过当前周期执行过的任务</span>"
         },
@@ -1500,6 +1494,35 @@
                 }
             ]
         },
+        "低阶柜台": {
+            "type": "switch",
+            "label": "低阶柜台",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {},
+                    "option": [
+                        "金兔子(低阶柜台)",
+                        "紫地球仪(低阶柜台)",
+                        "蓝地球仪(低阶柜台)"
+                    ]
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Rabbit": {
+                            "enabled": false
+                        },
+                        "SmallGlobe": {
+                            "enabled": false
+                        },
+                        "TinyGlobe": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
         "金兔子(低阶柜台)": {
             "type": "switch",
             "label": "金兔子",
@@ -1554,6 +1577,31 @@
                 }
             ]
         },
+        "心相观测": {
+            "type": "switch",
+            "label": "心相观测",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Gluttony": {
+                            "enabled": false
+                        },
+                        "TinyGlobe(1)": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {},
+                    "option": [
+                        "饕餮",
+                        "蓝地球仪(心相观测)"
+                    ]
+                }
+            ]
+        },
         "饕餮": {
             "type": "switch",
             "label": "饕餮",
@@ -1587,6 +1635,39 @@
                             "enabled": false
                         }
                     }
+                }
+            ]
+        },
+        "梦境记述": {
+            "type": "switch",
+            "label": "梦境记述",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "ResonantCassette": {
+                            "enabled": false
+                        },
+                        "GoldenMelonSeeds": {
+                            "enabled": false
+                        },
+                        "OriginalChicken": {
+                            "enabled": false
+                        },
+                        "Fries": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {},
+                    "option": [
+                        "共鸣晶匣",
+                        "金瓜子(梦境记述)",
+                        "原味鸡(梦境记述)",
+                        "大薯(梦境记述)"
+                    ]
                 }
             ]
         },
