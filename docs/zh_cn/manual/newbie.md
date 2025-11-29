@@ -565,7 +565,9 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
 
 ***
 
-#### pip 设置
+#### 配置文件
+
+##### pip 配置
 
   M9A 支持通过 `config/pip_config.json` 文件配置 pip 安装相关设置。一般情况下，您无需修改此文件，除非您有特殊需求。
 
@@ -573,7 +575,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
     <summary>config/pip_config.json 示例</summary>
     <p></p>
     <blockquote>
-  
+
   ```jsonc
   {
       "enable_pip_install": true,  // 是否启用 pip 安装，默认 true
@@ -581,8 +583,26 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
       "backup_mirror": "https://mirrors.ustc.edu.cn/pypi/simple"  // 备用镜像源
   }
   ```
-  
+
   </blockquote>
-</details>
+  </details>
+
+##### 资源热更配置
+
+  M9A 支持通过 `config/hot_update.json` 文件配置部分资源（例如活动开放时间）热更相关设置。
+
+  <details>
+    <summary>config/hot_update.json 示例</summary>
+    <p></p>
+    <blockquote>
+
+  ```jsonc
+  {
+      "enable_hot_update": true  // 是否启用部分资源热更，默认 true
+  }
+  ```
+
+  </blockquote>
+  </details>
 
 ***

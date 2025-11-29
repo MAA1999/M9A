@@ -565,7 +565,9 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
 
 ***
 
-#### Pip Settings
+#### Settings
+
+##### pip Settings
 
   M9A supports configuring pip installation related settings through the `config/pip_config.json` file. Generally, you don't need to modify this file unless you have special requirements.
 
@@ -573,16 +575,34 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
     <summary>config/pip_config.json Example</summary>
     <p></p>
     <blockquote>
-  
+
   ```jsonc
   {
-      "enable_pip_install": true,  // Whether to enable pip installation, default true
-      "mirror": "https://pypi.tuna.tsinghua.edu.cn/simple",  // Mirror source
-      "backup_mirror": "https://mirrors.ustc.edu.cn/pypi/simple"  // Backup mirror sources
+    "enable_pip_install": true,  // Whether to enable pip installation, default true
+    "mirror": "https://pypi.tuna.tsinghua.edu.cn/simple",  // Mirror source
+    "backup_mirror": "https://mirrors.ustc.edu.cn/pypi/simple"  // Backup mirror sources
   }
   ```
-  
+
   </blockquote>
-</details>
+  </details>
+
+##### Resource Hot Update Configuration
+
+  M9A supports configuring hot update settings for certain resources (such as activity opening times) via the `config/hot_update.json` file.
+
+  <details>
+    <summary>config/hot_update.json Example</summary>
+    <p></p>
+    <blockquote>
+
+  ```jsonc
+  {
+    "enable_hot_update": true  // Whether to enable hot update for certain resources, default is true
+  }
+  ```
+
+  </blockquote>
+  </details>
 
 ***
