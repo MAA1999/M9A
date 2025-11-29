@@ -340,7 +340,9 @@
             "SailingRecordBoatStartNext",
             "SailingRecordBoatEnd"
         ],
-        "focus": "航海胜利"
+        "focus": {
+            "Node.Action.Starting": "航海胜利"
+        }
     },
     "SailingRecordBoatFail": {
         "recognition": {
@@ -361,7 +363,9 @@
             "SailingRecordBoatStartNext",
             "SailingRecordBoatEnd"
         ],
-        "focus": "航海失败"
+        "focus": {
+            "Node.Action.Starting": "err:航海失败"
+        }
     },
     "SailingRecordBoatEnd": {
         "recognition": {

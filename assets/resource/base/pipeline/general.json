@@ -1,16 +1,7 @@
 {
     "Screenshot": {
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "Screenshot",
-                "custom_action_param": {
-                    "save_dir": "debug/error"
-                }
-            }
-        },
         "focus": {
-            "start": "[color:red]任务超时，可能未按预期进行。如连续出现这条报错，且无截图保存提示则考虑重新下载并解压M9A[/color]"
+            "Node.Action.Starting": "err:任务超时，可能未按预期进行。"
         }
     }
 }

@@ -299,7 +299,9 @@
             "LucidscapeFailed",
             "[JumpBack]HomeButton"
         ],
-        "focus": "[color:red]战斗失败，任务结束[/color]"
+        "focus": {
+            "Node.Action.Starting": "err:战斗失败，任务结束"
+        }
     },
     "LucidscapeVictory": {
         "recognition": {

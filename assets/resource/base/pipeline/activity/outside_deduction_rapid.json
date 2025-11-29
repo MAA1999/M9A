@@ -28,7 +28,9 @@
         "next": [
             "ResetCountOfODRSkipText"
         ],
-        "focus": "[color:tomato]开启本轮速刷[/color]"
+        "focus": {
+            "Node.Action.Starting": "开启本轮速刷"
+        }
     },
     "ResetCountOfODRSkipText": {
         "action": {

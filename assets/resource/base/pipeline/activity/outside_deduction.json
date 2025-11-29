@@ -262,7 +262,9 @@
             "SODStop_Confirm",
             "SODStop"
         ],
-        "focus": "[color:DeepSkyBlue]本轮肉鸽结束[/color]"
+        "focus": {
+            "Node.Action.Starting": "[color:DeepSkyBlue]本轮肉鸽结束[/color]"
+        }
     },
     "SODStop_Confirm": {
         "recognition": {
@@ -534,7 +536,9 @@
             "SODStart_Confirm",
             "SODStart"
         ],
-        "focus": "[color:tomato]开启本轮肉鸽[/color]"
+        "focus": {
+            "Node.Action.Starting": "err:开启本轮肉鸽"
+        }
     },
     "SODStart_Confirm": {
         "recognition": {
