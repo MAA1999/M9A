@@ -105,10 +105,8 @@
             "entry": "Combat",
             "option": [
                 "作战关卡",
-                "吃糖"
-            ],
-            "advanced": [
-                "作战次数"
+                "吃糖",
+                "作战次数(自定义)"
             ],
             "description": "点击放大图片\n![bydjl](resource/announcement/images/mojing_tjb.png)"
         },
@@ -116,11 +114,9 @@
             "name": "常规作战（自定义）",
             "entry": "Combat",
             "option": [
-                "吃糖"
-            ],
-            "advanced": [
-                "作战关卡（自定义）",
-                "作战次数"
+                "吃糖",
+                "作战关卡(自定义)",
+                "作战次数(自定义)"
             ],
             "description": "仅限刷材料关卡，选项在高级里\n![bydjl](./resource/announcement/images/mojing_tjb.png)"
         },
@@ -130,10 +126,8 @@
             "option": [
                 "复刻模式",
                 "活动难度",
-                "吃糖"
-            ],
-            "advanced": [
-                "作战次数"
+                "吃糖",
+                "作战次数(自定义)"
             ],
             "description": "主线版本时关闭复刻模式会直接跳过当前任务，如有刷取主线关卡需求请使用常规作战功能"
         },
@@ -160,7 +154,7 @@
             "name": "银行购物",
             "entry": "Bank",
             "option": [
-                "单账号（银行）",
+                "单账号(银行)",
                 "柜台特奉",
                 "金兔子(低阶柜台)",
                 "紫地球仪(低阶柜台)",
@@ -190,7 +184,7 @@
             "name": "雨中悬想：迷思海",
             "entry": "ReveriesInTheRain",
             "option": [
-                "单账号（迷思海）"
+                "单账号(迷思海)"
             ],
             "description": "<span style=\"color:tomato;font-size:15px\">本功能仅完成“寻思”每周扫荡</span>"
         },
@@ -282,16 +276,18 @@
             "description": "该任务需单独运行。运行前请将游戏停在小游戏主页面。\n该任务分为两种情况：\n1.未击败教程中第三天的boss（即点击“开始模拟”后不是难度选择界面）\n2.已击败教程中第三天的boss（即点击“开始模拟”后进入难度选择界面）\n\n请根据个人情况选择对应选项。"
         }
     ],
-    "advanced": {
-        "作战次数": {
-            "field": [
-                "作战次数"
-            ],
-            "type": [
-                "int"
-            ],
-            "default": [
-                "0"
+    "option": {
+        "作战次数(自定义)": {
+            "type": "input",
+            "label": "作战次数",
+            "inputs": [
+                {
+                    "name": "作战次数",
+                    "pipeline_type": "int",
+                    "default": "0",
+                    "pattern_msg": "填0清空体力；填其他数字按次数刷",
+                    "verify": "^(0|[1-9]\\d*)$"
+                }
             ],
             "pipeline_override": {
                 "AllIn": {
@@ -304,26 +300,33 @@
                     }
                 }
             },
-            "description": "填0清空体力；填其他数字按次数刷；其他情况清空体力"
+            "description": "填0清空体力；填其他数字按次数刷"
         },
-        "作战关卡（自定义）": {
-            "field": [
-                "章节号",
-                "关卡号",
-                "难度"
-            ],
-            "type": [
-                "string",
-                "string",
-                "string"
-            ],
-            "default": [
-                "2",
-                "6",
-                [
-                    "Hard",
-                    "Story"
-                ]
+        "作战关卡(自定义)": {
+            "type": "input",
+            "label": "作战关卡",
+            "inputs": [
+                {
+                    "name": "章节号",
+                    "pipeline_type": "int",
+                    "default": "2",
+                    "pattern_msg": "请输入章节号，如2",
+                    "verify": "^(\\d+)$"
+                },
+                {
+                    "name": "关卡号",
+                    "pipeline_type": "int",
+                    "default": "6",
+                    "pattern_msg": "请输入关卡号，如6",
+                    "verify": "^(\\d+)$"
+                },
+                {
+                    "name": "难度",
+                    "pipeline_type": "string",
+                    "default": "Hard",
+                    "pattern_msg": "请输入难度，如Hard或Story",
+                    "verify": "^(Hard|Story)$"
+                }
             ],
             "pipeline_override": {
                 "SelectCombatStage": {
@@ -337,10 +340,9 @@
                     }
                 }
             }
-        }
-    },
-    "option": {
+        },
         "作战关卡": {
+            "type": "select",
             "cases": [
                 {
                     "name": "啮咬盒(银光子弹)：5-19 厄险",
@@ -870,6 +872,7 @@
             ]
         },
         "吃糖": {
+            "type": "select",
             "cases": [
                 {
                     "name": "吃24小时内过期的糖",
@@ -1005,6 +1008,7 @@
             ]
         },
         "好梦井": {
+            "type": "switch",
             "cases": [
                 {
                     "name": "Yes",
@@ -1025,6 +1029,7 @@
             ]
         },
         "魔精收菜": {
+            "type": "switch",
             "cases": [
                 {
                     "name": "Yes",
@@ -1065,6 +1070,7 @@
             ]
         },
         "双重解析加成作战": {
+            "type": "switch",
             "cases": [
                 {
                     "name": "No",
@@ -1081,6 +1087,7 @@
             ]
         },
         "复刻模式": {
+            "type": "switch",
             "cases": [
                 {
                     "name": "No",
@@ -1116,6 +1123,7 @@
             ]
         },
         "活动难度": {
+            "type": "select",
             "cases": [
                 {
                     "name": "艰难",
@@ -1162,6 +1170,7 @@
             ]
         },
         "上半编队": {
+            "type": "select",
             "cases": [
                 {
                     "name": "一",
@@ -1222,6 +1231,7 @@
             ]
         },
         "下半编队": {
+            "type": "select",
             "cases": [
                 {
                     "name": "二",
@@ -1282,6 +1292,8 @@
             ]
         },
         "醒梦上半编队": {
+            "type": "select",
+            "label": "上半编队",
             "cases": [
                 {
                     "name": "一",
@@ -1342,6 +1354,8 @@
             ]
         },
         "醒梦下半编队": {
+            "type": "select",
+            "label": "下半编队",
             "cases": [
                 {
                     "name": "二",
@@ -1402,6 +1416,7 @@
             ]
         },
         "仅领取每周浅眠域奖励": {
+            "type": "switch",
             "cases": [
                 {
                     "name": "No",
@@ -1418,6 +1433,8 @@
             ]
         },
         "单账号（银行）": {
+            "type": "switch",
+            "label": "单账号",
             "cases": [
                 {
                     "name": "Yes",
@@ -1466,6 +1483,8 @@
             ]
         },
         "柜台特奉": {
+            "type": "switch",
+            "label": "柜台特奉",
             "cases": [
                 {
                     "name": "Yes",
@@ -1482,6 +1501,8 @@
             ]
         },
         "金兔子(低阶柜台)": {
+            "type": "switch",
+            "label": "金兔子",
             "cases": [
                 {
                     "name": "Yes",
@@ -1498,6 +1519,8 @@
             ]
         },
         "紫地球仪(低阶柜台)": {
+            "type": "switch",
+            "label": "紫地球仪",
             "cases": [
                 {
                     "name": "No",
@@ -1514,6 +1537,8 @@
             ]
         },
         "蓝地球仪(低阶柜台)": {
+            "type": "switch",
+            "label": "蓝地球仪",
             "cases": [
                 {
                     "name": "No",
@@ -1530,6 +1555,8 @@
             ]
         },
         "饕餮": {
+            "type": "switch",
+            "label": "饕餮",
             "cases": [
                 {
                     "name": "No",
@@ -1546,6 +1573,8 @@
             ]
         },
         "蓝地球仪(心相观测)": {
+            "type": "switch",
+            "label": "蓝地球仪",
             "cases": [
                 {
                     "name": "Yes",
@@ -1562,6 +1591,8 @@
             ]
         },
         "共鸣晶匣": {
+            "type": "switch",
+            "label": "共鸣晶匣",
             "cases": [
                 {
                     "name": "Yes",
@@ -1578,6 +1609,8 @@
             ]
         },
         "金瓜子(梦境记述)": {
+            "type": "switch",
+            "label": "金瓜子",
             "cases": [
                 {
                     "name": "No",
@@ -1594,6 +1627,8 @@
             ]
         },
         "原味鸡(梦境记述)": {
+            "type": "switch",
+            "label": "原味鸡",
             "cases": [
                 {
                     "name": "No",
@@ -1610,6 +1645,8 @@
             ]
         },
         "大薯(梦境记述)": {
+            "type": "switch",
+            "label": "大薯",
             "cases": [
                 {
                     "name": "No",
@@ -1626,6 +1663,8 @@
             ]
         },
         "获取显影罐": {
+            "type": "switch",
+            "label": "获取显影罐",
             "cases": [
                 {
                     "name": "No",
@@ -1648,6 +1687,8 @@
             ]
         },
         "领取邮件奖励": {
+            "type": "switch",
+            "label": "领取邮件奖励",
             "cases": [
                 {
                     "name": "Yes",
@@ -1664,6 +1705,8 @@
             ]
         },
         "单账号（迷思海）": {
+            "type": "switch",
+            "label": "单账号",
             "cases": [
                 {
                     "name": "Yes",
@@ -1680,6 +1723,8 @@
             ]
         },
         "触媒选择": {
+            "type": "select",
+            "label": "触媒选择",
             "cases": [
                 {
                     "name": "术式神灯",
@@ -1772,6 +1817,8 @@
             ]
         },
         "速刷模式": {
+            "type": "switch",
+            "label": "速刷模式",
             "cases": [
                 {
                     "name": "No",
@@ -1791,6 +1838,8 @@
             ]
         },
         "演绎难度": {
+            "type": "select",
+            "label": "演绎难度",
             "cases": [
                 {
                     "name": "Current",
@@ -1865,6 +1914,8 @@
             ]
         },
         "战斗编队": {
+            "type": "select",
+            "label": "战斗编队",
             "cases": [
                 {
                     "name": "一",
@@ -1925,6 +1976,8 @@
             ]
         },
         "携带好旅伴": {
+            "type": "switch",
+            "label": "携带好旅伴",
             "cases": [
                 {
                     "name": "No",
@@ -1945,6 +1998,8 @@
             ]
         },
         "难度选择": {
+            "type": "select",
+            "label": "难度选择",
             "cases": [
                 {
                     "name": "当前",
@@ -2019,6 +2074,8 @@
             ]
         },
         "配器选择": {
+            "type": "select",
+            "label": "配器选择",
             "cases": [
                 {
                     "name": "管钟",
@@ -2051,6 +2108,8 @@
             ]
         },
         "扫荡难度": {
+            "type": "select",
+            "label": "扫荡难度",
             "cases": [
                 {
                     "name": "日常出勤",
@@ -2281,6 +2340,8 @@
             ]
         },
         "雨前漫游刷取模式": {
+            "type": "select",
+            "label": "刷取模式",
             "cases": [
                 {
                     "name": "未击败教程中boss",
