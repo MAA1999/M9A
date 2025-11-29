@@ -110,7 +110,7 @@
             "advanced": [
                 "作战次数"
             ],
-            "doc": "图看不清可以拉伸下这个小窗口\n![bydjl](https://api.1999.fan/api/images/mojing_tjb.png)"
+            "description": "点击放大图片\n![bydjl](resource/announcement/images/mojing_tjb.png)"
         },
         {
             "name": "常规作战（自定义）",
@@ -122,7 +122,7 @@
                 "作战关卡（自定义）",
                 "作战次数"
             ],
-            "doc": "仅限刷材料关卡，选项在高级里\n![bydjl](https://api.1999.fan/api/images/mojing_tjb.png)"
+            "description": "仅限刷材料关卡，选项在高级里\n![bydjl](./resource/announcement/images/mojing_tjb.png)"
         },
         {
             "name": "活动刷取",
@@ -135,7 +135,7 @@
             "advanced": [
                 "作战次数"
             ],
-            "doc": "主线版本时关闭复刻模式会直接跳过当前任务，如有刷取主线关卡需求请使用常规作战功能"
+            "description": "主线版本时关闭复刻模式会直接跳过当前任务，如有刷取主线关卡需求请使用常规作战功能"
         },
         {
             "name": "自动深眠",
@@ -145,7 +145,7 @@
                 "下半编队",
                 "仅领取每周浅眠域奖励"
             ],
-            "doc": "[size:15][color:tomato]注意上下半编队不要重复。支持旧版和改版编队、支持编队自定义命名，未来可支持编队超出前四个[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">注意上下半编队不要重复。支持旧版和改版编队、支持编队自定义命名，未来可支持编队超出前四个</span>"
         },
         {
             "name": "自动醒梦",
@@ -154,7 +154,7 @@
                 "醒梦上半编队",
                 "醒梦下半编队"
             ],
-            "doc": "[size:15][color:tomato]注意上下半编队不要重复。支持旧版和改版编队、支持编队自定义命名，未来可支持编队超出前四个[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">注意上下半编队不要重复。支持旧版和改版编队、支持编队自定义命名，未来可支持编队超出前四个</span>"
         },
         {
             "name": "银行购物",
@@ -172,7 +172,7 @@
                 "原味鸡(梦境记述)",
                 "大薯(梦境记述)"
             ],
-            "doc": "[size:15][color:tomato]单账号模式下会跳过当前周期执行过的任务[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">单账号模式下会跳过当前周期执行过的任务</span>"
         },
         {
             "name": "领取奖励",
@@ -192,12 +192,12 @@
             "option": [
                 "单账号（迷思海）"
             ],
-            "doc": "[size:15][color:tomato]本功能仅完成“寻思”每周扫荡[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">本功能仅完成“寻思”每周扫荡</span>"
         },
         {
             "name": "切换账号",
             "entry": "SwitchAccount",
-            "doc": "[size:15][color:tomato]本功能仅会切换至最后一个账号（超过3个的账号会被忽略）[/color][/size]\n[size:15][color:tomato]切换后可继续添加任务，以便多账号多配置运行任务[/color][/size]\n[size:15][color:tomato]目前该功能支持官服和b服，且建议使用该功能的用户将模拟器分辨率调至1280*720[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">本功能仅会切换至最后一个账号（超过3个的账号会被忽略）</span>\n<span style=\"color:tomato;font-size:15px\">切换后可继续添加任务，以便多账号多配置运行任务</span>\n<span style=\"color:tomato;font-size:15px\">目前该功能支持官服和b服，且建议使用该功能的用户将模拟器分辨率调至1280*720</span>"
         },
         {
             "name": "关闭游戏",
@@ -211,7 +211,7 @@
                 "速刷模式",
                 "演绎难度"
             ],
-            "doc": "[size:15][color:darkgray]本功能有两种模式，触媒选择仅在非速刷模式生效，开启速刷模式后仅使用术式神灯刷取第一层[/color][/size]\n[size:18][color:black]速刷模式[/color][/size]\n[size:15][color:darkgray]1.使用前请先将`刻画生长-指引之歌`以及`刻画生长-建筑章程`点满[/color][/size]\n[size:15][color:darkgray]2.请尽量调高难度等级(11难度达到最高信用效率)以及点足科技树中信用效率加成，以防止分数不够2k5导致刷取信物失败[/color][/size]\n[size:18][color:black]非速刷模式[/color][/size]\n[size:15][color:darkgray]1.可在箱子里置顶(标记)四个角色出战[/color][/size]\n[size:15][color:darkgray]2.队伍推荐携带奶[/color][/size]\n[size:15][color:darkgray]3.M9A不能检查是否处于自动战斗状态，请自行调整[/color][/size]\n[size:15][color:orange]⚠更多详细说明请看文档[/color][/size]"
+            "description": "<span style=\"color:darkgray;font-size:15px\">本功能有两种模式，触媒选择仅在非速刷模式生效，开启速刷模式后仅使用术式神灯刷取第一层</span>\n<span style=\"color:black;font-size:18px\">速刷模式</span>\n<span style=\"color:darkgray;font-size:15px\">1.使用前请先将`刻画生长-指引之歌`以及`刻画生长-建筑章程`点满</span>\n<span style=\"color:darkgray;font-size:15px\">2.请尽量调高难度等级(11难度达到最高信用效率)以及点足科技树中信用效率加成，以防止分数不够2k5导致刷取信物失败</span>\n<span style=\"color:black;font-size:18px\">非速刷模式</span>\n<span style=\"color:darkgray;font-size:15px\">1.可在箱子里置顶(标记)四个角色出战</span>\n<span style=\"color:darkgray;font-size:15px\">2.队伍推荐携带奶</span>\n<span style=\"color:darkgray;font-size:15px\">3.M9A不能检查是否处于自动战斗状态，请自行调整</span>\n<span style=\"color:orange;font-size:15px\">⚠更多详细说明请看文档</span>"
         },
         {
             "name": "局外演绎：无声综合征",
@@ -222,7 +222,7 @@
                 "难度选择",
                 "配器选择"
             ],
-            "doc": "[size:15][color:darkgray]M9A不能检查是否处于自动战斗状态，请确定上一次使用的是自动战斗[/color][/size]\n[size:15][color:orange]⚠使用前请先至少手动打完第一层，更多详细说明请看文档[/color][/size]"
+            "description": "<span style=\"color:darkgray;font-size:15px\">M9A不能检查是否处于自动战斗状态，请确定上一次使用的是自动战斗</span>\n<span style=\"color:orange;font-size:15px\">⚠使用前请先至少手动打完第一层，更多详细说明请看文档</span>"
         },
         {
             "name": "复刻活动推图",
@@ -248,12 +248,12 @@
                     }
                 }
             },
-            "doc": "本任务根据任务列表完成任务，仅支持已打过的往期活动推图"
+            "description": "本任务根据任务列表完成任务，仅支持已打过的往期活动推图"
         },
         {
             "name": "匣中交流赛（拓片杂技赛）",
             "entry": "角斗场",
-            "doc": "[size:15][color:darkgray]本功能仅完成“角斗场”第一层扫荡[/color][/size]，\n[size:15][color:red]请手动打开角斗场页面[/color][/size]"
+            "description": "<span style=\"color:darkgray;font-size:15px\">本功能仅完成“角斗场”第一层扫荡</span>，\n<span style=\"color:red;font-size:15px\">请手动打开角斗场页面</span>"
         },
         {
             "name": "警铃鸣响时（需高练度）",
@@ -261,17 +261,17 @@
             "option": [
                 "扫荡难度"
             ],
-            "doc": "[size:15][color:tomato]本功能不换角色，debuff吃满，故只适合高练队伍挂机。推荐配队：三巨头（薪电启）+图图石子、追击队。使用前请手动打开警铃鸣响时主页面（中间有雨迹追查和雨痕处置字样）[/color][/size]\n[size:14][color:deepskyblue]“速刷选项”：直接打boss关，没有五号位buff，适合大成三巨头+双奶妈挂机通关。非速刷则会选择拉满五号位buff后再打boss，提高通关稳定性。[/color][/size]\n[size:14][color:deepskyblue]测试用队伍：诺谛卡 + 圈 + 蘑菇 + 塞梅 + 图图（注意五号位放主C）[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">本功能不换角色，debuff吃满，故只适合高练队伍挂机。推荐配队：三巨头（薪电启）+图图石子、追击队。使用前请手动打开警铃鸣响时主页面（中间有雨迹追查和雨痕处置字样）</span>\n<span style=\"color:deepskyblue;font-size:14px\">“速刷选项”：直接打boss关，没有五号位buff，适合大成三巨头+双奶妈挂机通关。非速刷则会选择拉满五号位buff后再打boss，提高通关稳定性。</span>\n<span style=\"color:deepskyblue;font-size:14px\">测试用队伍：诺谛卡 + 圈 + 蘑菇 + 塞梅 + 图图（注意五号位放主C）</span>"
         },
         {
             "name": "(测试中)推图模式",
             "entry": "StagePromotion",
-            "doc": "[size:15][color:tomato]本功能处于测试中，不保证正常运行。当前本功能主线不可用。[/color][/size]\n[size:15][color:tomato]使用时请先手动打开需要推图的页面，如当期活动、佚事等，然后再运行此任务[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">本功能处于测试中，不保证正常运行。当前本功能主线不可用。</span>\n<span style=\"color:tomato;font-size:15px\">使用时请先手动打开需要推图的页面，如当期活动、佚事等，然后再运行此任务</span>"
         },
         {
             "name": "翻斗棋速刷",
             "entry": "CritterCrash",
-            "doc": "[size:15][color:tomato]在翻斗棋界面启动，已支持国服3.2版本！使用前请先自行打两把使警戒值升到3级[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">在翻斗棋界面启动，已支持国服3.2版本！使用前请先自行打两把使警戒值升到3级</span>"
         },
         {
             "name": "雨前漫游指南",
@@ -279,7 +279,7 @@
             "option": [
                 "雨前漫游刷取模式"
             ],
-            "doc": "该任务需单独运行。运行前请将游戏停在小游戏主页面。\n该任务分为两种情况：\n1.未击败教程中第三天的boss（即点击“开始模拟”后不是难度选择界面）\n2.已击败教程中第三天的boss（即点击“开始模拟”后进入难度选择界面）\n\n请根据个人情况选择对应选项。"
+            "description": "该任务需单独运行。运行前请将游戏停在小游戏主页面。\n该任务分为两种情况：\n1.未击败教程中第三天的boss（即点击“开始模拟”后不是难度选择界面）\n2.已击败教程中第三天的boss（即点击“开始模拟”后进入难度选择界面）\n\n请根据个人情况选择对应选项。"
         }
     ],
     "advanced": {
@@ -304,7 +304,7 @@
                     }
                 }
             },
-            "doc": "填0清空体力；填其他数字按次数刷；其他情况清空体力"
+            "description": "填0清空体力；填其他数字按次数刷；其他情况清空体力"
         },
         "作战关卡（自定义）": {
             "field": [
