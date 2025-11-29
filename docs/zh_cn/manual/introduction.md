@@ -37,11 +37,11 @@ icon: mdi:information-outline
 
 #### 置顶演示
 
-![置顶演示](https://github.com/user-attachments/assets/ff9d66d8-9540-447a-9eac-315caec00fe9)
+![置顶演示](/images/zh-cn/introduction-pin-example.png)
 
 #### 置顶成功
 
-![置顶成功](https://github.com/user-attachments/assets/d88fea79-df1b-4651-9d6d-386a40bf3b55)
+![置顶成功](/images/zh-cn/introduction-pin-success.png)
 
 ## 局外演绎：无声综合征
 

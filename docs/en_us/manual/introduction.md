@@ -9,9 +9,9 @@ icon: mdi:information-outline
 This function only switches the last account currently logged in (accounts beyond the third one will be ignored).
 After switching, you can continue adding tasks to run tasks with multiple accounts and configurations.
 
-## Off-Stage Performance: Twilight Chord
+## Outside Deduction: The Series Of Dusks
 
-（局外演绎：黄昏的音序）The most useful roguelike mode for farming credits.
+The most useful roguelike mode for farming credits.
 
 ### Fast Mode
 
@@ -38,8 +38,17 @@ After switching, you can continue adding tasks to run tasks with multiple accoun
 
 #### Pinning Demonstration
 
-![Pinning Demonstration](https://github.com/user-attachments/assets/ff9d66d8-9540-447a-9eac-315caec00fe9)
+![Pinning Demonstration](/images/en-us/introduction-pin-example.png)
 
 #### Pinning Successful
 
-![Pinning Successful](https://github.com/user-attachments/assets/d88fea79-df1b-4651-9d6d-386a40bf3b55)
+![Pinning Successful](/images/en-us/introduction-pin-success.png)
+
+## Outside Deduction: The Syndrome Of Silence
+
+> [!WARNING]
+>
+> 1. M9A does not process the gameplay instructions page that only appears when playing roguelike for the first time. Please manually progress to at least the second level before using it.
+> 2. M9A cannot check if the game is in auto-battle mode. Please ensure that your most recent battle was in auto-battle mode before using it.
+
+Based on testing, it is best to choose difficulty 2 or 3 for the mission. Difficulty 4 makes it easy to die in battle.

@@ -339,7 +339,7 @@ The following demonstrations are for reference only, please refer to the actual 
   <summary>MFA Main Interface Display</summary>
   <p></p>
   <blockquote>
-    <img src="https://github.com/user-attachments/assets/540d961e-47ce-490d-a801-89d802f2bbab" alt="Main Interface">
+    <img src="/images/en-us/newbie-main-interface.png" alt="Main Interface">
   </blockquote>
 </details>
 
@@ -391,7 +391,7 @@ Users using MFA update-related functions should configure `Update Settings`. Use
     <p></p>
     <blockquote>
       <ul>
-        <img src="https://github.com/user-attachments/assets/69192c43-f257-40ba-b5d0-918e6b508f80" alt="rate limit exceeded">
+        <img src="/images/en-us/newbie-rate-limit.png" alt="rate limit exceeded">
       </ul>
     </blockquote>
   </details>
@@ -466,7 +466,7 @@ Users using MFA update-related functions should configure `Update Settings`. Use
             <li>Click the icon to the right of the <code>Software Path</code> input box to enter the file selection interface, select the 1999 shortcut on the desktop, and the path will be automatically filled in.</li>
           </ol>
           <ul>
-            <img src="https://github.com/user-attachments/assets/2289453c-dbbf-41a7-8d28-efac0f24d6e3" alt="image_439">
+            <img src="/images/en-us/newbie-emulator-path-example.png" alt="image_439">
           </ul>
       </details>
     </ul>
@@ -503,7 +503,7 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
     <p></p>
     <blockquote>
       <ul>
-        <img src="https://github.com/user-attachments/assets/8e3f0f90-4e0d-46e2-b718-837a6e9ae152" alt="image_440">
+        <img src="/images/en-us/newbie-main-interface-connection.png" alt="image_440">
       </ul>
     </blockquote>
   </details>
@@ -540,7 +540,7 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
     <p></p>
     <blockquote>
       <ul>
-        <img src="https://github.com/user-attachments/assets/56b031b4-db6c-40a4-85a6-557fe5f4ad80" alt="image_441">
+        <img src="/images/en-us/newbie-main-interface-task-lists.png" alt="image_441">
       </ul>
     </blockquote>
   </details>

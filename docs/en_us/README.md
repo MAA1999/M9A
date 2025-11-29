@@ -7,7 +7,7 @@ dir:
 <!-- markdownlint-disable MD033 MD041 -->
 <div align="center">
 
-<img alt="LOGO" src="/images/m9a-logo_512x512.png" width="256" height="256" />
+<img alt="LOGO" src="/images/m9a-logo_256x256.png" width="256" height="256" />
 
 # M9A
 
@@ -41,12 +41,13 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 - Receive daily rewards
 - Current Anecdote
 - Suspended in the rain: Mystery Sea ("Searching" Weekly Sweep)
-- Outsider interpretation: Echo of the foothills (meat pigeon)
+- Outside Deduction: The Series Of Dusks
+- Outside Deduction: The Syndrome Of Silence
 - SSReopen
 - Artefact Masters
 - When the Alarm Sounds
 - Continuous clear (under testing)
-- Critter Crash (below 1600 points)
+- Critter Crash
 - Pre-Storm Protocol
 
 ## Instructions for use

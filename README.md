@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD033 MD041 -->
 <div align="center">
 
-<img alt="LOGO" src="https://1999.fan/images/m9a-logo_512x512.png" width="256" height="256" />
+<img alt="LOGO" src="https://1999.fan/images/m9a-logo_256x256.png" width="256" height="256" />
 
 # M9A
 
@@ -40,9 +40,9 @@
 - 自动醒梦域
 - 银行购物
 - 领取日常奖励
-- 当期轶事
 - 雨中悬想：迷思海（"寻思"周扫荡）
-- 局外演绎：山麓的回音（肉鸽）
+- 局外演绎：黄昏的音序
+- 局外演绎：无声综合征
 - 匣中交流赛（拓片杂技赛）
 - 复刻活动推图
 - 警铃鸣响时

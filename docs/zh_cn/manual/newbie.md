@@ -339,7 +339,7 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
   <summary>MFA主页面展示</summary>
   <p></p>
   <blockquote>
-    <img src="https://github.com/user-attachments/assets/540d961e-47ce-490d-a801-89d802f2bbab" alt="主界面">
+    <img src="/images/zh-cn/newbie-main-interface.png" alt="主界面">
   </blockquote>
 </details>
 
@@ -391,7 +391,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
     <p></p>
     <blockquote>
       <ul>
-        <img src="https://github.com/user-attachments/assets/69192c43-f257-40ba-b5d0-918e6b508f80" alt="rate limit exceeded">
+        <img src="/images/zh-cn/newbie-rate-limit.png" alt="rate limit exceeded">
       </ul>
     </blockquote>
   </details>
@@ -466,7 +466,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
             <li>点击 <code>软件路径</code> 输入框右侧图标进入文件选择界面，选择桌面上的 1999 快捷方式，路径将自动填入。</li>
           </ol>
           <ul>
-            <img src="https://github.com/user-attachments/assets/2289453c-dbbf-41a7-8d28-efac0f24d6e3" alt="image_439">
+            <img src="/images/zh-cn/newbie-emulator-path-example.png" alt="image_439">
           </ul>
       </details>
     </ul>
@@ -503,7 +503,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
     <p></p>
     <blockquote>
       <ul>
-        <img src="https://github.com/user-attachments/assets/8e3f0f90-4e0d-46e2-b718-837a6e9ae152" alt="image_440">
+        <img src="/images/zh-cn/newbie-main-interface-connection.png" alt="image_440">
       </ul>
     </blockquote>
   </details>
@@ -540,7 +540,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
     <p></p>
     <blockquote>
       <ul>
-        <img src="https://github.com/user-attachments/assets/56b031b4-db6c-40a4-85a6-557fe5f4ad80" alt="image_441">
+        <img src="/images/zh-cn/newbie-main-interface-task-lists.png" alt="image_441">
       </ul>
     </blockquote>
   </details>
