@@ -60,7 +60,7 @@ icon: ri:guide-fill
             <td colspan="4"><div align="center">否</div></td>
         </tr>
         <tr>
-            <td><div align="center">需安装<br>.NET 8</div></td>
+            <td><div align="center">需安装<br>.NET 10</div></td>
             <td><div align="center">否</div></td>
             <td><div align="center">前往 <a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/10.0" target="_blank">.NET 官方下载页面</a> 下载对应版本或<br>通过 winget 安装（详见下方）</div></td>
             <td><div align="center">否</div></td>

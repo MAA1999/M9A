@@ -60,7 +60,7 @@ icon: ri:guide-fill
             <td colspan="4"><div align="center">No</div></td>
         </tr>
         <tr>
-            <td><div align="center">Install<br>.NET 8 Required</div></td>
+            <td><div align="center">Install<br>.NET 10 Required</div></td>
             <td><div align="center">No</div></td>
             <td><div align="center">Go to <a href="https://dotnet.microsoft.com/download/dotnet/10.0" target="_blank">.NET official download page</a> to download the corresponding version or<br>install via winget (see below)</div></td>
             <td><div align="center">No</div></td>
