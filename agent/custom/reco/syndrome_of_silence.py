@@ -32,7 +32,7 @@ class SOSSelectEncounterOptionFindSelected(CustomRecognition):
                 for i in reco_detail.filtered_results
             ]
         else:
-            return CustomRecognition.AnalyzeResult(box=None, detail="")
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
 
         for roi in Magnifier_rois:
             # 对每个roi进行颜色匹配，查看选中状态
@@ -47,11 +47,9 @@ class SOSSelectEncounterOptionFindSelected(CustomRecognition):
             )
 
             if selected_detail and selected_detail.best_result:
-                return CustomRecognition.AnalyzeResult(
-                    box=roi, detail=str({"roi": roi})
-                )
+                return CustomRecognition.AnalyzeResult(box=roi, detail={"roi": roi})
 
-        return CustomRecognition.AnalyzeResult(box=None, detail="")
+        return CustomRecognition.AnalyzeResult(box=None, detail={})
 
 
 @AgentServer.custom_recognition("SOSSelectEncounterOptionList")
@@ -76,7 +74,7 @@ class SOSSelectEncounterOptionList(CustomRecognition):
                 for i in reco_detail.filtered_results
             ]
         else:
-            return CustomRecognition.AnalyzeResult(box=None, detail="")
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
 
         options: list[dict[str, Any]] = []
 
@@ -134,7 +132,7 @@ class SOSSelectEncounterOptionList(CustomRecognition):
 
         return CustomRecognition.AnalyzeResult(
             box=options[0]["roi"] if options else [0, 0, 0, 0],
-            detail=json.dumps({"options": options}, ensure_ascii=False),
+            detail={"options": options},
         )
 
 
@@ -184,19 +182,16 @@ class SOSSelectNode(CustomRecognition):
                     )
                     return CustomRecognition.AnalyzeResult(
                         box=None,
-                        detail=json.dumps(
-                            {
-                                "action": "swipe_right",
-                                "reason": "node_in_forbidden_area",
-                                "node_box": node_box,
-                            },
-                            ensure_ascii=False,
-                        ),
+                        detail={
+                            "action": "swipe_right",
+                            "reason": "node_in_forbidden_area",
+                            "node_box": node_box,
+                        },
                     )
                 else:
                     # 不在禁止区域内，返回节点位置供点击
                     return CustomRecognition.AnalyzeResult(
-                        box=node_box, detail=str(reco_detail.raw_detail)
+                        box=node_box, detail=reco_detail.raw_detail
                     )
         else:
             reco_detail = context.run_recognition("SOSSelectNode_rec", argv.image)
@@ -205,6 +200,6 @@ class SOSSelectNode(CustomRecognition):
                 node_box = reco_detail.best_result.box
                 # 不在禁止区域内，返回节点位置供点击
                 return CustomRecognition.AnalyzeResult(
-                    box=node_box, detail=str(reco_detail.raw_detail)
+                    box=node_box, detail=reco_detail.raw_detail
                 )
-            return CustomRecognition.AnalyzeResult(box=None, detail="")
+            return CustomRecognition.AnalyzeResult(box=None, detail={})

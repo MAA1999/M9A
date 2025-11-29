@@ -102,9 +102,7 @@ class MultiRecognition(CustomRecognition):
             final_roi = self._process_return_value(return_value, node_results)
             if final_roi:
                 logger.debug(f"MultiRecognition识别成功，返回ROI: {final_roi}")
-                return CustomRecognition.AnalyzeResult(
-                    box=final_roi, detail="MultiRecognition"
-                )
+                return CustomRecognition.AnalyzeResult(box=final_roi, detail={})
             else:
                 return None
 
@@ -640,11 +638,15 @@ class Count(CustomRecognition):
                 # 识别成功
                 if reco_detail is not None and reco_detail.box is not None:
                     Count.record[node_name]["count"] += 1
-                    logger.debug(
-                        f"Count识别成功: {node_name}, 当前计数: {Count.record[node_name]['count']}"
-                    )
+                    # logger.debug(
+                    #     f"Count识别成功: {node_name}, 当前计数: {Count.record[node_name]['count']}"
+                    # )
                     return CustomRecognition.AnalyzeResult(
-                        box=reco_detail.box, detail=f"Count({node_name})"
+                        box=reco_detail.box,
+                        detail={
+                            "node": node_name,
+                            "count": Count.record[node_name]["count"],
+                        },
                     )
                 else:
                     # 识别失败
