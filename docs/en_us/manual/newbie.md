@@ -32,7 +32,7 @@ icon: ri:guide-fill
 
 >[!NOTE]
 >
-> Windows users can skip this section and run the dependency library installation script after downloading and unzipping in step 3.
+> Users can skip this section and proceed to step 3, after downloading and extracting the file, to run the dependency installation script. If the script fails to install automatically, then refer to this section.
 
 <div align="center">
 
@@ -62,9 +62,9 @@ icon: ri:guide-fill
         <tr>
             <td><div align="center">Install<br>.NET 8 Required</div></td>
             <td><div align="center">No</div></td>
-            <td><div align="center">Go to <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET official download page</a> to download the corresponding version or<br>install via winget (see below)</div></td>
+            <td><div align="center">Go to <a href="https://dotnet.microsoft.com/download/dotnet/10.0" target="_blank">.NET official download page</a> to download the corresponding version or<br>install via winget (see below)</div></td>
             <td><div align="center">No</div></td>
-            <td><div align="center"><a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET official download page</a></div></td>
+            <td><div align="center"><a href="https://dotnet.microsoft.com/download/dotnet/10.0" target="_blank">.NET official download page</a></div></td>
             <td><div align="center">No</div></td>
             <td><div align="center">Same as Mac</div></td>
         </tr>
@@ -100,9 +100,9 @@ Windows users **must install VCRedist x64**: This is the basic requirement for r
   </blockquote>
 </details>
 
-#### 2. .NET 8
+#### 2. .NET 10
 
-All users using MFAAvalonia need to download and install .NET 8 suitable for your system.
+All users using GUI need to download and install .NET 10 suitable for your system.
 
 <details>
   <summary>Detailed Installation Methods</summary>
@@ -111,7 +111,7 @@ All users using MFAAvalonia need to download and install .NET 8 suitable for you
     <ul>
       <li>
         Self-download: Click
-        <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET official download page</a>
+        <a href="https://dotnet.microsoft.com/download/dotnet/10.0" target="_blank">.NET official download page</a>
         , select the version suitable for your system to download and install.
         <div align="center">
           <table>
@@ -142,7 +142,7 @@ All users using MFAAvalonia need to download and install .NET 8 suitable for you
       </li>
       <li>
         (Windows users only) <code>winget</code> installation: Right-click the Windows Start button, select "Command Prompt" or "PowerShell (Administrator)", then paste the following command in the terminal and press Enter:
-        <pre><code>winget install Microsoft.DotNet.DesktopRuntime.8</code></pre>
+        <pre><code>winget install Microsoft.DotNet.DesktopRuntime.10</code></pre>
       </li>
     </ul>
   </blockquote>

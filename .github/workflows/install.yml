@@ -131,7 +131,6 @@ jobs:
           else
             echo "MFA directory not found, skipping copy."
           fi
-          cp "tools/DependencySetup_依赖库安装.bat" install/
 
       - uses: actions/upload-artifact@v4
         with:

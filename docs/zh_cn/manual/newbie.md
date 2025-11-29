@@ -32,7 +32,7 @@ icon: ri:guide-fill
 
 >[!NOTE]
 >
-> Windows用户可以跳过这节，在第3步下载解压后运行依赖库安装脚本
+> 用户可跳过这节，在第3步下载解压后运行依赖库安装脚本，脚本自动安装失败后再看这节
 
 <div align="center">
 
@@ -62,9 +62,9 @@ icon: ri:guide-fill
         <tr>
             <td><div align="center">需安装<br>.NET 8</div></td>
             <td><div align="center">否</div></td>
-            <td><div align="center">前往 <a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/8.0" target="_blank">.NET 官方下载页面</a> 下载对应版本或<br>通过 winget 安装（详见下方）</div></td>
+            <td><div align="center">前往 <a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/10.0" target="_blank">.NET 官方下载页面</a> 下载对应版本或<br>通过 winget 安装（详见下方）</div></td>
             <td><div align="center">否</div></td>
-            <td><div align="center"> <a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/8.0" target="_blank">.NET 官方下载页面</a> </div></td>
+            <td><div align="center"> <a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/10.0" target="_blank">.NET 官方下载页面</a> </div></td>
             <td><div align="center">否</div></td>
             <td><div align="center">同 Mac</div></td>
         </tr>
@@ -100,9 +100,9 @@ Windows 用户**必须安装 VCRedist x64**：这是运行 M9A (无论是命令�
   </blockquote>
 </details>
 
-#### 2. .NET 8
+#### 2. .NET 10
 
-所有使用 MFAAvalonia 的用户都需要自行下载并安装适用于您系统的 .NET 8 。
+所有使用图形界面的用户都需要自行下载并安装适用于您系统的 .NET 10 。
 
 <details>
   <summary>详细安装方式</summary>
@@ -111,7 +111,7 @@ Windows 用户**必须安装 VCRedist x64**：这是运行 M9A (无论是命令�
     <ul>
       <li>
         自行下载：点击
-        <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET 官方下载页面</a>
+        <a href="https://dotnet.microsoft.com/download/dotnet/10.0" target="_blank">.NET 官方下载页面</a>
         ，选择适合您系统的版本下载并安装。
         <div align="center">
           <table>
@@ -127,7 +127,8 @@ Windows 用户**必须安装 VCRedist x64**：这是运行 M9A (无论是命令�
               <tr>
                 <td>您需要下载</td>
                 <td colspan="1">.NET 桌面运行时</td>
-                <td colspan="2">.NET 运行时</td>         </tr>
+                <td colspan="2">.NET 运行时</td>
+              </tr>
               <tr>
                 <td>安装程序</td>
                 <td>x64</td>
@@ -141,7 +142,7 @@ Windows 用户**必须安装 VCRedist x64**：这是运行 M9A (无论是命令�
       </li>
       <li>
         （仅 Windows 用户）<code>winget</code> 安装：右键 Windows 开始按钮，选择“命令提示符”或“PowerShell (管理员)”，然后在终端内粘贴以下命令并回车：
-        <pre><code>winget install Microsoft.DotNet.DesktopRuntime.8</code></pre>
+        <pre><code>winget install Microsoft.DotNet.DesktopRuntime.10</code></pre>
       </li>
     </ul>
   </blockquote>
