@@ -55,7 +55,7 @@ class BankShop(CustomRecognition):
                     {"BankShopTemplate": {"roi": roi, "expected": expected}},
                 )
 
-                if reco_detail is not None:
+                if reco_detail and reco_detail.hit:
                     if inverse:
                         return None
                     return reco_detail.box

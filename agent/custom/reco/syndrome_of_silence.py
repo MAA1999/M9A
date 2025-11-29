@@ -25,7 +25,7 @@ class SOSSelectEncounterOptionFindSelected(CustomRecognition):
         reco_detail = context.run_recognition(
             "SOSSelectEncounterOptionRec_Template", argv.image
         )
-        if reco_detail and reco_detail.best_result:
+        if reco_detail and reco_detail.hit:
             # 放大镜图标的 roi，扩大一点，方便后面颜色匹配
             Magnifier_rois = [
                 [i.box[0] - 10, i.box[1] - 10, i.box[2] + 20, i.box[3] + 12]
@@ -46,7 +46,7 @@ class SOSSelectEncounterOptionFindSelected(CustomRecognition):
                 },
             )
 
-            if selected_detail and selected_detail.best_result:
+            if selected_detail and selected_detail.hit:
                 return CustomRecognition.AnalyzeResult(box=roi, detail={"roi": roi})
 
         return CustomRecognition.AnalyzeResult(box=None, detail={})
@@ -67,7 +67,7 @@ class SOSSelectEncounterOptionList(CustomRecognition):
         reco_detail = context.run_recognition(
             "SOSSelectEncounterOptionRec_Template", argv.image
         )
-        if reco_detail and reco_detail.best_result:
+        if reco_detail and reco_detail.hit:
             # 放大镜图标的 roi，扩大一点
             Magnifier_rois = [
                 [i.box[0] - 10, i.box[1] - 10, i.box[2] + 20, i.box[3] + 12]
@@ -91,7 +91,7 @@ class SOSSelectEncounterOptionList(CustomRecognition):
             )
 
             status = None
-            if unselected_detail and unselected_detail.best_result:
+            if unselected_detail and unselected_detail.hit:
                 status = 0
             else:
                 # 未选中检测失败，再检测是否已选中
@@ -104,7 +104,7 @@ class SOSSelectEncounterOptionList(CustomRecognition):
                         }
                     },
                 )
-                if selected_detail and selected_detail.best_result:
+                if selected_detail and selected_detail.hit:
                     status = 1
 
             # 匹配到有效状态后,执行 OCR 识别选项内容
@@ -121,7 +121,7 @@ class SOSSelectEncounterOptionList(CustomRecognition):
                 )
 
                 content = ""
-                if ocr_detail and ocr_detail.best_result:
+                if ocr_detail and ocr_detail.hit:
                     ocr_result = cast(OCRResult, ocr_detail.best_result)
                     content = ocr_result.text
 
@@ -152,9 +152,9 @@ class SOSSelectNode(CustomRecognition):
         forbidden_roi = [0, 140, 348, 284]
 
         reco_detail = context.run_recognition("SOSEntrustrRec", argv.image)
-        if reco_detail and reco_detail.best_result:
+        if reco_detail and reco_detail.hit:
             reco_detail = context.run_recognition("SOSSelectNode_rec", argv.image)
-            if reco_detail and reco_detail.best_result:
+            if reco_detail and reco_detail.hit:
                 # 获取识别到的节点位置
                 node_box = reco_detail.best_result.box
 
@@ -195,7 +195,7 @@ class SOSSelectNode(CustomRecognition):
                     )
         else:
             reco_detail = context.run_recognition("SOSSelectNode_rec", argv.image)
-            if reco_detail and reco_detail.best_result:
+            if reco_detail and reco_detail.hit:
                 # 获取识别到的节点位置
                 node_box = reco_detail.best_result.box
                 # 不在禁止区域内，返回节点位置供点击

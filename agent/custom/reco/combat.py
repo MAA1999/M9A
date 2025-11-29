@@ -33,13 +33,13 @@ class StagePromotionComplete(CustomRecognition):
         reco_detail2 = context.run_recognition(
             "StagePromotionCurStageComplete2", argv.image
         )
-        if reco_detail is not None:
+        if reco_detail and reco_detail.hit:
             if reco_detail.best_result:
                 cur_flag = True
-        if reco_detail1 is not None:
+        if reco_detail1 and reco_detail1.hit:
             if reco_detail1.best_result:
                 cur_flag = True
-        if reco_detail2 is not None:
+        if reco_detail2 and reco_detail2.hit:
             if reco_detail2.best_result:
                 cur_flag = True
 
@@ -47,7 +47,7 @@ class StagePromotionComplete(CustomRecognition):
             reco_detail = context.run_recognition(
                 "StagePromotionClickNextStage", argv.image
             )
-            if reco_detail is not None:
+            if reco_detail and reco_detail.hit:
                 if not reco_detail.best_result:
                     return [0, 0, 0, 0]
             else:

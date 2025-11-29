@@ -29,7 +29,7 @@ class ActivityRe_releaseChapter(CustomRecognition):
         expected = json.loads(argv.custom_recognition_param)["Re_release_name"]
         reco_detail = context.run_recognition("ActivityLeftList", argv.image)
 
-        if reco_detail is None:
+        if reco_detail is None or not reco_detail.hit:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
 
         for result in reco_detail.all_results:
@@ -140,7 +140,7 @@ class FindFirstUnplayedStageByCheckmark(CustomRecognition):
                 pipeline_override={checkmark_node_name: {"roi": roi}},
             )
 
-            if result is not None:
+            if result and result.hit:
                 # 找到“√”，说明已通关
                 logger.info(f"[Checkmark] '{sid}' 已通关。")
                 if mode == "Quickly":
@@ -183,7 +183,7 @@ class SailingRecordSelectTarget(CustomRecognition):
             reco_detail = context.run_recognition(
                 "SailingRecordFindDifficult", argv.image
             )
-            if reco_detail is not None and reco_detail.box:
+            if reco_detail and reco_detail.hit:
                 # 扩展 roi 到 click_target
                 box = [
                     reco_detail.box[0] - 317,
@@ -216,7 +216,7 @@ class SailingRecordSelectTarget(CustomRecognition):
                     argv.image,
                     {"SailingRecordFindNormal": {"roi": roi}},
                 )
-                if reco_detail is None or not reco_detail.box:
+                if reco_detail is None or not reco_detail.hit:
                     return CustomRecognition.AnalyzeResult(box=None, detail={})
                 reco_details.append(reco_detail)
 
@@ -265,7 +265,7 @@ class SailingRecordBoatRecord(CustomRecognition):
                     argv.image,
                     {"SailingRecordBoatPointRecord": {"roi": roi}},
                 )
-                if reco_detail is None or not reco_detail.box:
+                if reco_detail is None or not reco_detail.hit:
                     return CustomRecognition.AnalyzeResult(box=None, detail={})
                 point = reco_detail.best_result.text
                 point = 0 if point in ["?", "？"] else point

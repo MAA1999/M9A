@@ -24,7 +24,12 @@ class SummonlngSwipe(CustomAction):
         reco_first = context.run_recognition("SummonlngCardFirst", img)
         reco_last = context.run_recognition("SummonlngCardLast", img)
 
-        if reco_first is None or reco_last is None:
+        if (
+            reco_first is None
+            or not reco_first.hit
+            or reco_last is None
+            or not reco_last.hit
+        ):
             return CustomAction.RunResult(success=True)
         x1, y1, x2, y2 = (
             int(reco_first.best_result.box[0] + reco_first.best_result.box[2] / 2),

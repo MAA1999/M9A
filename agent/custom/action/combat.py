@@ -64,10 +64,15 @@ class PsychubeDoubleTimes(CustomAction):
             img,
         )
 
-        if reco_detail is not None:
-            text = reco_detail.best_result.text
+        if reco_detail and reco_detail.hit:
+            best = getattr(reco_detail, "best_result", None)
+            text = getattr(best, "text", "") if best is not None else ""
             pattern = "(\\d)/4"
-            times = int(re.search(pattern, text).group(1))
+            m = re.search(pattern, text)
+            if not m:
+                logger.error("未能解析 Psychube 加成次数: %s", text)
+                return CustomAction.RunResult(success=True)
+            times = int(m.group(1))
             expected = self._int2Chinese(times)
             context.override_pipeline(
                 {
@@ -91,7 +96,7 @@ class PsychubeDoubleTimes(CustomAction):
                 }
             )
 
-            return CustomAction.RunResult(success=True)
+        return CustomAction.RunResult(success=True)
 
     def _int2Chinese(self, times: int) -> str:
         Chinese = ["一", "二", "三", "四"]
@@ -119,35 +124,33 @@ class TeamSelect(CustomAction):
 
         img = context.tasker.controller.post_screencap().wait().get()
 
-        if (
-            context.run_recognition(
-                "TeamlistOff",
-                img,
-                {
-                    "TeamlistOff": {
-                        "recognition": {
-                            "param": {"template": "Combat/TeamList_Off_old.png"}
+        reco_off_old = context.run_recognition(
+            "TeamlistOff",
+            img,
+            {
+                "TeamlistOff": {
+                    "recognition": {
+                        "param": {"template": "Combat/TeamList_Off_old.png"}
+                    }
+                }
+            },
+        )
+        reco_open_old = context.run_recognition(
+            "TeamlistOpen",
+            img,
+            {
+                "TeamlistOpen": {
+                    "recognition": {
+                        "param": {
+                            "roi": [940, 631, 48, 48],
+                            "template": "Combat/TeamList_Open_old.png",
                         }
                     }
-                },
-            )
-            is not None
-            or context.run_recognition(
-                "TeamlistOpen",
-                img,
-                {
-                    "TeamlistOpen": {
-                        "recognition": {
-                            "param": {
-                                "roi": [940, 631, 48, 48],
-                                "template": "Combat/TeamList_Open_old.png",
-                            }
-                        }
-                    }
-                },
-            )
-            is not None
-        ):
+                }
+            },
+        )
+
+        if (reco_off_old and reco_off_old.hit) or (reco_open_old and reco_open_old.hit):
             # 旧版
             target_list = [
                 [794, 406],
@@ -161,28 +164,26 @@ class TeamSelect(CustomAction):
 
                 img = context.tasker.controller.post_screencap().wait().get()
 
-                if (
-                    context.run_recognition(
-                        "TeamlistOpen",
-                        img,
-                        {
-                            "TeamlistOpen": {
-                                "recognition": {
-                                    "param": {
-                                        "roi": [940, 631, 48, 48],
-                                        "template": "Combat/TeamList_Open_old.png",
-                                    }
+                reco_open_old = context.run_recognition(
+                    "TeamlistOpen",
+                    img,
+                    {
+                        "TeamlistOpen": {
+                            "recognition": {
+                                "param": {
+                                    "roi": [940, 631, 48, 48],
+                                    "template": "Combat/TeamList_Open_old.png",
                                 }
                             }
-                        },
-                    )
-                    is not None
-                ):
+                        }
+                    },
+                )
+                if reco_open_old and reco_open_old.hit:
                     context.tasker.controller.post_click(target[0], target[1]).wait()
                     time.sleep(1)
                     flag = True
-                elif (
-                    context.run_recognition(
+                else:
+                    reco_off_old = context.run_recognition(
                         "TeamlistOff",
                         img,
                         {
@@ -193,12 +194,12 @@ class TeamSelect(CustomAction):
                             }
                         },
                     )
-                    is not None
-                ):
-                    context.tasker.controller.post_click(965, 650).wait()
-                    time.sleep(1)
-        elif (
-            context.run_recognition(
+                    if reco_off_old and reco_off_old.hit:
+                        context.tasker.controller.post_click(965, 650).wait()
+                        time.sleep(1)
+        else:
+            # 新版
+            reco_off_new = context.run_recognition(
                 "TeamlistOff",
                 img,
                 {
@@ -209,37 +210,39 @@ class TeamSelect(CustomAction):
                     }
                 },
             )
-            is not None
-        ):
-            # 新版
+            if not (reco_off_new and reco_off_new.hit):
+                logger.debug("未识别到队伍选择界面")
+                return CustomAction.RunResult(success=False)
             flag = False
             team_names, team_uses = [], {}
             while not flag:
 
                 img = context.tasker.controller.post_screencap().wait().get()
 
-                if (
-                    context.run_recognition(
-                        "TeamlistOpen",
-                        img,
-                        {
-                            "TeamlistOpen": {
-                                "recognition": {
-                                    "param": {
-                                        "roi": [36, 63, 137, 141],
-                                        "template": "Combat/TeamList_Open.png",
-                                    },
+                reco_open_new = context.run_recognition(
+                    "TeamlistOpen",
+                    img,
+                    {
+                        "TeamlistOpen": {
+                            "recognition": {
+                                "param": {
+                                    "roi": [36, 63, 137, 141],
+                                    "template": "Combat/TeamList_Open.png",
                                 }
                             }
-                        },
-                    )
-                    is not None
-                ):
+                        }
+                    },
+                )
+                if reco_open_new and reco_open_new.hit:
                     # 识别到在队伍选择界面
                     time.sleep(2)  # 等待界面稳定
                     img = context.tasker.controller.post_screencap().wait().get()
                     reco_result = context.run_recognition("TeamListEditRoi", img)
-                    if reco_result is None or not reco_result.filtered_results:
+                    if (
+                        reco_result is None
+                        or not reco_result.hit
+                        or not reco_result.filtered_results
+                    ):
                         logger.error("未识别到成员队列")
                         return CustomAction.RunResult(success=False)
                     else:
@@ -267,7 +270,19 @@ class TeamSelect(CustomAction):
                                     }
                                 },
                             )
-                            team_name = reco_detail.best_result.text
+                            if (
+                                reco_detail is None
+                                or not reco_detail.hit
+                                or not getattr(reco_detail, "best_result", None)
+                            ):
+                                team_name = ""
+                            else:
+                                best = getattr(reco_detail, "best_result", None)
+                                team_name = (
+                                    getattr(best, "text", "")
+                                    if best is not None
+                                    else ""
+                                )
                             if team_name not in team_names:
                                 team_names.append(team_name)
                             # 队伍名称为新增，识别使用&使用中状态
@@ -286,10 +301,26 @@ class TeamSelect(CustomAction):
                                     }
                                 },
                             )
-                            team_use_text, team_use_roi = (
-                                reco_detail.best_result.text,
-                                reco_detail.best_result.box,
-                            )
+                            if (
+                                reco_detail is None
+                                or not reco_detail.hit
+                                or not getattr(reco_detail, "best_result", None)
+                            ):
+                                team_use_text = ""
+                                team_use_roi = None
+                            else:
+                                best = getattr(reco_detail, "best_result", None)
+                                team_use_text = (
+                                    getattr(best, "text", "")
+                                    if best is not None
+                                    else ""
+                                )
+                                team_use_roi = (
+                                    getattr(best, "box", None)
+                                    if best is not None
+                                    else None
+                                )
+                            team_use_status = -1
                             if "使用中" in team_use_text:
                                 team_use_status = 1
                             elif "使用" in team_use_text:
@@ -325,23 +356,21 @@ class TeamSelect(CustomAction):
                                         .wait()
                                         .get()
                                     )
-                                    if (
-                                        context.run_recognition(
-                                            "TeamlistOpen",
-                                            img,
-                                            {
-                                                "TeamlistOpen": {
-                                                    "recognition": {
-                                                        "param": {
-                                                            "roi": [36, 63, 137, 141],
-                                                            "template": "Combat/TeamList_Open.png",
-                                                        },
+                                    reco_open_new = context.run_recognition(
+                                        "TeamlistOpen",
+                                        img,
+                                        {
+                                            "TeamlistOpen": {
+                                                "recognition": {
+                                                    "param": {
+                                                        "roi": [36, 63, 137, 141],
+                                                        "template": "Combat/TeamList_Open.png",
                                                     }
                                                 }
-                                            },
-                                        )
-                                        is None
-                                    ):
+                                            }
+                                        },
+                                    )
+                                    if reco_open_new is None or not reco_open_new.hit:
                                         # 已退出选择界面
                                         flag = True
                                         break
@@ -369,13 +398,13 @@ class TeamSelect(CustomAction):
                                         "ReadyForAction", img
                                     )
 
-                                    if reco_detail and reco_detail.box:
+                                    if reco_detail and reco_detail.hit:
                                         break
 
                                 flag = True
                                 break
-                elif (
-                    context.run_recognition(
+                else:
+                    reco_off_new = context.run_recognition(
                         "TeamlistOff",
                         img,
                         {
@@ -386,15 +415,10 @@ class TeamSelect(CustomAction):
                             }
                         },
                     )
-                    is not None
-                ):
-                    # 识别到不在队伍选择界面，点击打开
-                    context.tasker.controller.post_click(965, 650).wait()
-                    time.sleep(1)
-        else:
-            logger.debug("未识别到队伍选择界面")
-            return CustomAction.RunResult(success=False)
-
+                    if reco_off_new and reco_off_new.hit:
+                        # 识别到不在队伍选择界面，点击打开
+                        context.tasker.controller.post_click(965, 650).wait()
+                        time.sleep(1)
         return CustomAction.RunResult(success=True)
 
 
@@ -425,13 +449,19 @@ class CombatTargetLevel(CustomAction):
         img = context.tasker.controller.post_screencap().wait().get()
         reco_detail = context.run_recognition("TargetLevelRec", img)
 
-        if reco_detail is None or not any(
-            difficulty in reco_detail.best_result.text for difficulty in valid_levels
+        best = (
+            getattr(reco_detail, "best_result", None)
+            if reco_detail and reco_detail.hit
+            else None
+        )
+        reco_text = getattr(best, "text", "") if best is not None else ""
+        if not reco_text or not any(
+            difficulty in reco_text for difficulty in valid_levels
         ):
             logger.warning("未识别到当前难度")
             return CustomAction.RunResult(success=False)
 
-        text = reco_detail.best_result.text
+        text = reco_text
 
         if level == "厄险":
             if "厄险" not in text:
@@ -468,15 +498,16 @@ class ActivityTargetLevel(CustomAction):
         valid_levels = {"故事", "意外", "艰难"}
         level = json.loads(argv.custom_action_param)["level"]
 
-        try:
+        node = context.get_node_data("ActivityTargetLevelClick")
+        click = None
+        if isinstance(node, dict):
             click = (
-                context.get_node_data("ActivityTargetLevelClick")
-                .get("action")
-                .get("param")
-                .get("custom_action_param")
+                node.get("action", {})
+                .get("param", {})
+                .get("custom_action_param", {})
                 .get("clicks")
             )
-        except:
+        if not click:
             click = [[945, 245], [1190, 245]]
 
         if not level or level not in valid_levels:
@@ -486,13 +517,19 @@ class ActivityTargetLevel(CustomAction):
         img = context.tasker.controller.post_screencap().wait().get()
         reco_detail = context.run_recognition("ActivityTargetLevelRec", img)
 
-        if reco_detail is None or not any(
-            difficulty in reco_detail.best_result.text for difficulty in valid_levels
+        best = (
+            getattr(reco_detail, "best_result", None)
+            if reco_detail and reco_detail.hit
+            else None
+        )
+        reco_text = getattr(best, "text", "") if best is not None else ""
+        if not reco_text or not any(
+            difficulty in reco_text for difficulty in valid_levels
         ):
             logger.warning("未识别到当前难度")
             return CustomAction.RunResult(success=False)
 
-        cur_level = reco_detail.best_result.text
+        cur_level = reco_text
 
         retry = 0
 
@@ -522,8 +559,9 @@ class ActivityTargetLevel(CustomAction):
             img = context.tasker.controller.post_screencap().wait().get()
             reco_detail = context.run_recognition("ActivityTargetLevelRec", img)
 
-            if reco_detail:
-                cur_level = reco_detail.best_result.text
+            if reco_detail and reco_detail.hit:
+                best = getattr(reco_detail, "best_result", None)
+                cur_level = getattr(best, "text", "") if best is not None else None
             else:
                 cur_level = None
 
@@ -558,19 +596,16 @@ class SelectChapter(CustomAction):
             img = context.tasker.controller.post_screencap().wait().get()
             count += 1
             # 判断是否还能匹配上大章节（位置不同/角度不同）
-            if (
-                context.run_recognition(
-                    "SelectMainStoryChapter",
-                    img,
-                    {
-                        "SelectMainStoryChapter": {
-                            "template": f"Combat/MainStoryChapter_{SelectCombatStage.mainStoryChapter}.png"
-                        }
-                    },
-                )
-                is None
-                or count >= 5
-            ):
+            rec = context.run_recognition(
+                "SelectMainStoryChapter",
+                img,
+                {
+                    "SelectMainStoryChapter": {
+                        "template": f"Combat/MainStoryChapter_{SelectCombatStage.mainStoryChapter}.png"
+                    }
+                },
+            )
+            if rec is None or not getattr(rec, "hit", False) or count >= 5:
                 flag = True
 
         return CustomAction.RunResult(success=True)
@@ -799,7 +834,7 @@ class SSReopenReplay(CustomAction):
         # 开始刷图
         img = context.tasker.controller.cached_image
         reco_detail = context.run_recognition("SSCannotReplay", img)
-        if reco_detail is not None:
+        if reco_detail and reco_detail.hit:
             # 无法复现，直接开始任务
             context.run_task("SSNoReplay")
         else:

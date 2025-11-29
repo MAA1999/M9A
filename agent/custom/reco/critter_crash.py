@@ -28,7 +28,7 @@ class CCBuyCardRec(CustomRecognition):
 
         # 检查奖励框是否为空
         reco_detail = context.run_recognition("CCBuyCardAwardEmptyRec", argv.image)
-        if reco_detail and reco_detail.box:
+        if reco_detail and reco_detail.hit:
             # 识别到奖励框不为空
             for chess_info in CCChessboard.chess_types:
                 card_name = chess_info["name"]
@@ -41,7 +41,7 @@ class CCBuyCardRec(CustomRecognition):
                         }
                     },
                 )
-                if reco_detail1 and reco_detail1.box:
+                if reco_detail1 and reco_detail1.hit:
                     # 识别到目标卡片，查询是否可部署/能升级的棋子，有则进行
                     if CCChessboard.find_empty_position(card_name):
                         detail = {"type": 1, "action": 0, "name": card_name}
@@ -63,7 +63,7 @@ class CCBuyCardRec(CustomRecognition):
             reco_detail = context.run_recognition(
                 "CCBuyCardAwardTypeRec_OCR", context.tasker.controller.cached_image
             )
-            if reco_detail and reco_detail.box:
+            if reco_detail and reco_detail.hit:
                 # 识别到文字，判断不是藏品
                 name = "unknown_2"
             else:
@@ -79,7 +79,7 @@ class CCBuyCardRec(CustomRecognition):
         else:
             # 奖励框为空，检查剩余缪斯币是否足够购买
             reco_detail = context.run_recognition("CCRemainMoney", argv.image)
-            if reco_detail and reco_detail.box:
+            if reco_detail and reco_detail.hit:
                 # 钱够了
                 pass
             else:
@@ -100,7 +100,7 @@ class CCBuyCardRec(CustomRecognition):
                         }
                     },
                 )
-                if reco_detail and reco_detail.box:
+                if reco_detail and reco_detail.hit:
                     # 识别成功，检查是否有空位
                     if CCChessboard.find_empty_position(card_name):
                         # 有空位，直接返回
@@ -153,7 +153,7 @@ class CCRemainMoney(CustomRecognition):
 
         reco_detail = context.run_recognition("CCRemainMoney_rec", processed_img)
 
-        if reco_detail and reco_detail.box:
+        if reco_detail and reco_detail.hit:
             logger.debug(f"识别到剩余缪斯币: {reco_detail.best_result.text}")
             if int(reco_detail.best_result.text) >= 3:
                 return CustomRecognition.AnalyzeResult(

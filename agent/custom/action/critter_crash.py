@@ -414,7 +414,7 @@ class CCLevelUp(CustomAction):
             reco_detail = context.run_recognition(
                 "CCLevelRec", context.tasker.controller.cached_image
             )
-            if reco_detail and reco_detail.best_result:
+            if reco_detail and reco_detail.hit:
                 # 识别到文字，判断等级
                 current_level = int(reco_detail.best_result.text)
                 if current_level > self.level:
