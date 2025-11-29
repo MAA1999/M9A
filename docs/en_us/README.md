@@ -39,7 +39,6 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 - Automatic awakening dream area
 - Bank shopping
 - Receive daily rewards
-- Current Anecdote
 - Suspended in the rain: Mystery Sea ("Searching" Weekly Sweep)
 - Outside Deduction: The Series Of Dusks
 - Outside Deduction: The Syndrome Of Silence
