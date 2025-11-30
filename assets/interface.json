@@ -276,7 +276,8 @@
                     "pipeline_type": "int",
                     "default": "0",
                     "pattern_msg": "填0清空体力；填其他数字按次数刷",
-                    "verify": "^(0|[1-9]\\d*)$"
+                    "verify": "^(0|[1-9]\\d*)$",
+                    "description": "填0清空体力；填其他数字按次数刷"
                 }
             ],
             "pipeline_override": {
@@ -301,21 +302,24 @@
                     "pipeline_type": "int",
                     "default": "2",
                     "pattern_msg": "请输入章节号，如2",
-                    "verify": "^(\\d+)$"
+                    "verify": "^(\\d+)$",
+                    "description": "请输入章节号，如2"
                 },
                 {
                     "name": "关卡号",
                     "pipeline_type": "int",
                     "default": "6",
                     "pattern_msg": "请输入关卡号，如6",
-                    "verify": "^(\\d+)$"
+                    "verify": "^(\\d+)$",
+                    "description": "请输入关卡号，如6"
                 },
                 {
                     "name": "难度",
                     "pipeline_type": "string",
                     "default": "Hard",
                     "pattern_msg": "请输入难度，如Hard或Story",
-                    "verify": "^(Hard|Story)$"
+                    "verify": "^(Hard|Story)$",
+                    "description": "请输入难度，如Hard或Story"
                 }
             ],
             "pipeline_override": {
@@ -1037,7 +1041,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "description": "不会换运输的魔精，无收益"
         },
         "交付订单": {
             "cases": [
@@ -1057,7 +1062,9 @@
                         }
                     }
                 }
-            ]
+            ],
+            "type": "switch",
+            "description": "交付魔精订单"
         },
         "双重解析加成作战": {
             "type": "switch",
@@ -1074,7 +1081,8 @@
                     "name": "Yes",
                     "pipeline_override": {}
                 }
-            ]
+            ],
+            "description": "双重解析期间是否进行加成作战"
         },
         "复刻模式": {
             "type": "switch",
@@ -1110,7 +1118,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "description": "开启后只尝试刷复刻活动，不开启尝试刷当期活动"
         },
         "活动难度": {
             "type": "select",
@@ -1420,7 +1429,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "description": "开启后仅领取每周浅眠域奖励，不进行深眠自动作战"
         },
         "单账号(银行)": {
             "type": "switch",
