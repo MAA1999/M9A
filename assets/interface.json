@@ -299,7 +299,7 @@
             "inputs": [
                 {
                     "name": "章节号",
-                    "pipeline_type": "int",
+                    "pipeline_type": "string",
                     "default": "2",
                     "pattern_msg": "请输入章节号，如2",
                     "verify": "^(\\d+)$",
@@ -307,7 +307,7 @@
                 },
                 {
                     "name": "关卡号",
-                    "pipeline_type": "int",
+                    "pipeline_type": "string",
                     "default": "6",
                     "pattern_msg": "请输入关卡号，如6",
                     "verify": "^(\\d+)$",
