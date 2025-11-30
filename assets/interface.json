@@ -104,21 +104,11 @@
             "name": "常规作战",
             "entry": "Combat",
             "option": [
-                "作战关卡",
                 "吃糖",
+                "自定义作战关卡",
                 "作战次数(自定义)"
             ],
-            "description": "点击放大图片\n![bydjl](resource/announcement/images/mojing_tjb.png)"
-        },
-        {
-            "name": "常规作战（自定义）",
-            "entry": "Combat",
-            "option": [
-                "吃糖",
-                "作战关卡(自定义)",
-                "作战次数(自定义)"
-            ],
-            "description": "仅限刷材料关卡\n![bydjl](./resource/announcement/images/mojing_tjb.png)"
+            "description": "点击放大图片，仅限刷材料关卡\n![bydjl](resource/announcement/images/mojing_tjb.png)"
         },
         {
             "name": "活动刷取",
@@ -267,6 +257,25 @@
         }
     ],
     "option": {
+        "自定义作战关卡": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {},
+                    "option": [
+                        "作战关卡"
+                    ]
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {},
+                    "option": [
+                        "作战关卡(自定义)"
+                    ]
+                }
+            ]
+        },
         "作战次数(自定义)": {
             "type": "input",
             "label": "作战次数",
