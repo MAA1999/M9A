@@ -32,7 +32,7 @@ try:
 
         _logger.add(
             sys.stderr,
-            format="<level>{extra[level_short]}</level>: <level>{message}</level>",
+            format="<level>{extra[level_short]}</level>:<level>{message}</level>",
             colorize=True,
             level=console_level,
             filter=format_level,
