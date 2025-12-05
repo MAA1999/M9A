@@ -535,11 +535,11 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
   <details>
     <summary>示意图</summary>
     <p></P>
-    <blockquteo>
+    <blockquote>
       <ul>
         <img src="/images/zh-cn/newbie-main-interface-connection-pc.png" alt="PC连接">
       </ul>
-    </blockquteo>
+    </blockquote>
   </details>
 
 ***

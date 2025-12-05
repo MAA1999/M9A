@@ -535,11 +535,11 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
   <details>
     <summary>Illustration</summary>
     <p></P>
-    <blockquteo>
+    <blockquote>
       <ul>
         <img src="/images/en-us/newbie-main-interface-connection-pc.png" alt="connection-pc">
       </ul>
-    </blockquteo>
+    </blockquote>
   </details>
 
 ***
