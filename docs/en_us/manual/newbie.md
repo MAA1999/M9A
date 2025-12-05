@@ -530,6 +530,17 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
       </ul>
     </blockquote>
   </details>
+  When using the PC version of the International Server, simply click the PC icon in the connection area to automatically detect and connect to the already opened PC client window.
+
+  <details>
+    <summary>Illustration</summary>
+    <p></P>
+    <blockquteo>
+      <ul>
+        <img src="/images/en-us/newbie-main-interface-connection-pc.png" alt="connection-pc">
+      </ul>
+    </blockquteo>
+  </details>
 
 ***
 

@@ -530,6 +530,17 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
       </ul>
     </blockquote>
   </details>
+  当您使用国际服 PC 端时，只需要点击连接区域的 PC 图标即可自动检测并连接已打开的 PC 端窗口。
+
+  <details>
+    <summary>示意图</summary>
+    <p></P>
+    <blockquteo>
+      <ul>
+        <img src="/images/zh-cn/newbie-main-interface-connection-pc.png" alt="PC连接">
+      </ul>
+    </blockquteo>
+  </details>
 
 ***
 

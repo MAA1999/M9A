@@ -8,6 +8,8 @@ icon: mdi:plug
 
 M9A can automatically detect ADB provided by **running** emulators and automatically fill in the ADB path, connection address, and connection configuration.
 
+When using the International Server PC client, M9A can automatically detect and connect to **running** game windows.
+
 When detection fails, if you confirm that the emulator and connection address you are using are correct, please try launching M9A with UAC administrator privileges and detect again. If it still fails, please [manually configure](#manual-configuration).
 
 ## Manual Configuration

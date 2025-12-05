@@ -43,8 +43,7 @@ icon: jam:write-f
 
 为了向文档中添加图片，我们采取以下步骤：
 
-1. 上传图片到公共仓库的 `Issues` 或 `Pull Requests` 中  
-    [样例](https://github.com/MAA1999/M9A/pull/255#issuecomment-2489676567)
+1. 上传图片到公共仓库 [M9A-WEB](https://github.com/MAA1999/M9A-WEB)  
 2. 选择 `Edit` 看到类似 `![name](anonymized URL)` 的内容，复制待用
 3. 在文档中使用 `![name](anonymized URL)` 语法插入图片
 
