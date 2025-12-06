@@ -21,8 +21,8 @@ def get_unique_resource_paths():
         for resource in resource_list:
             paths = resource.get("path", [])
             for path in paths:
-                # 替换 {PROJECT_DIR} 为当前工作目录
-                full_path = path.replace("{PROJECT_DIR}", current_dir)
+                # 替换 . 为当前工作目录
+                full_path = path.replace(".", current_dir)
                 unique_paths.add(full_path)
 
         return sorted(list(unique_paths))

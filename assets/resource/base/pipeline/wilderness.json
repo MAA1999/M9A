@@ -2,12 +2,11 @@
     "Wilderness": {
         "next": [
             "EnterWilderness",
+            "EnterGoodDreamWell",
             "EnterProduct",
             "EnterTrade",
-            "EnterAncientHall"
-        ],
-        "interrupt": [
-            "ReturnMain"
+            "EnterAncientHall",
+            "[JumpBack]ReturnMain"
         ]
     },
     "EnterWilderness": {
@@ -22,7 +21,8 @@
                 ],
                 "template": [
                     "Wilderness/EnterWilderness.png",
-                    "Wilderness/EnterWilderness_sp01.png"
+                    "Wilderness/EnterWilderness_sp01.png",
+                    "Wilderness/EnterWilderness3.2.png"
                 ]
             }
         },
@@ -30,14 +30,223 @@
             "type": "Click"
         },
         "next": [
+            "FlagInWilderness",
             "EnterWilderness",
+            "[JumpBack]HomeLoading"
+        ]
+    },
+    "FlagInWilderness": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1168,
+                    148,
+                    86,
+                    24
+                ],
+                "expected": "古厅定位"
+            }
+        },
+        "post_delay": 1500,
+        "next": [
+            "EnterGoodDreamWell",
             "EnterProduct",
             "EnterTrade",
             "EnterAncientHall"
-        ],
-        "interrupt": [
-            "HomeLoading"
         ]
+    },
+    "EnterGoodDreamWell": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    574,
+                    672,
+                    64,
+                    22
+                ],
+                "expected": "好梦井"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -30,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "FlagInGoodDreamWell",
+            "EnterGoodDreamWell",
+            "[JumpBack]Cloud",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickBlank"
+        ]
+    },
+    "FlagInGoodDreamWell": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    64,
+                    93,
+                    110,
+                    63
+                ],
+                "expected": "我的好梦井"
+            }
+        },
+        "next": [
+            "FlagInGoodDreamWellCenter",
+            "FlagInGoodDreamWellFinish",
+            "[JumpBack]PositionGoodDreamWellCenter",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickBlank"
+        ]
+    },
+    "PositionGoodDreamWellCenter": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1158,
+                    148,
+                    109,
+                    24
+                ],
+                "only_rec": true,
+                "expected": "好梦井定位"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -30,
+                    0,
+                    0
+                ]
+            }
+        }
+    },
+    "FlagInGoodDreamWellCenter": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    654,
+                    163,
+                    70,
+                    111
+                ],
+                "expected": "打捞"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000,
+        "next": [
+            "FlagInGoodDreamWellFishing",
+            "FlagInGoodDreamWellCenter",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickBlank"
+        ]
+    },
+    "FlagInGoodDreamWellFinish": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    645,
+                    163,
+                    98,
+                    111
+                ],
+                "expected": [
+                    "剩余",
+                    "耗时"
+                ]
+            }
+        },
+        "next": [
+            "EnterProduct",
+            "EnterTrade",
+            "EnterAncientHall",
+            "[JumpBack]Cloud",
+            "[JumpBack]BackButtonWithDelay"
+        ]
+    },
+    "FlagInGoodDreamWellFishing": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    919,
+                    145,
+                    102,
+                    327
+                ],
+                "expected": "打捞"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "GoodDreamWellFishing"
+            }
+        },
+        "next": [
+            "EnterProduct",
+            "EnterTrade",
+            "EnterAncientHall",
+            "[JumpBack]Cloud"
+        ]
+    },
+    "Cloud": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "upper": [
+                    225,
+                    225,
+                    225
+                ],
+                "lower": [
+                    200,
+                    200,
+                    200
+                ],
+                "connected": true,
+                "count": 10000
+            }
+        }
+    },
+    "GoodDreamWellOCR": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1137,
+                    23,
+                    74,
+                    24
+                ],
+                "only_rec": true,
+                "expected": "\\d/\\d"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "EnterTrade": {
         "recognition": {
@@ -115,10 +324,8 @@
             }
         },
         "next": [
-            "EnterAncientHall"
-        ],
-        "interrupt": [
-            "BackButtonWithDelay"
+            "EnterAncientHall",
+            "[JumpBack]BackButtonWithDelay"
         ]
     },
     "EnterAncientHall": {
@@ -139,10 +346,8 @@
             "type": "Click"
         },
         "next": [
-            "AncientHallFlag"
-        ],
-        "interrupt": [
-            "ClickAncientHall"
+            "AncientHallFlag",
+            "[JumpBack]ClickAncientHall"
         ]
     },
     "AncientHallFlag": {
@@ -160,10 +365,8 @@
             }
         },
         "next": [
-            "NoExpMoney"
-        ],
-        "interrupt": [
-            "CollectExpMoney"
+            "NoExpMoney",
+            "[JumpBack]CollectExpMoney"
         ]
     },
     "NoExpMoney": {
@@ -185,10 +388,8 @@
             "CollectTrust",
             "TrustDialogueNext",
             "TrustDialogueInteraction",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "BackButtonWithDelay"
+            "HomeFlag",
+            "[JumpBack]BackButtonWithDelay"
         ]
     },
     "CollectExpMoney": {
@@ -227,7 +428,13 @@
                     237,
                     172
                 ],
-                "expected": "荒原古厅"
+                "expected": "荒原古厅",
+                "replace": [
+                    [
+                        "厂",
+                        "厅"
+                    ]
+                ]
             }
         },
         "action": {
@@ -263,12 +470,10 @@
             "CollectTrust",
             "TrustDialogueNext",
             "TrustDialogueInteraction",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "ObtainedAwards",
-            "BackButtonWithDelay",
-            "HomeButton"
+            "HomeFlag",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]BackButtonWithDelay",
+            "[JumpBack]HomeButton"
         ]
     },
     "CollectTrust": {
@@ -292,12 +497,10 @@
             "CollectTrust",
             "TrustDialogueNext",
             "TrustDialogueInteraction",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "TestCritterTraining",
-            "BackButtonWithDelay",
-            "HomeButton"
+            "HomeFlag",
+            "[JumpBack]TestCritterTraining",
+            "[JumpBack]BackButtonWithDelay",
+            "[JumpBack]HomeButton"
         ]
     },
     "TestCritterTraining": {
@@ -344,11 +547,9 @@
         "next": [
             "TrustDialogueNext",
             "TrustDialogueInteraction",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "BackButtonWithDelay",
-            "HomeButton"
+            "HomeFlag",
+            "[JumpBack]BackButtonWithDelay",
+            "[JumpBack]HomeButton"
         ]
     },
     "TrustDialogueInteraction": {
@@ -370,11 +571,9 @@
         "next": [
             "TrustDialogueNext",
             "TrustDialogueInteraction",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "BackButtonWithDelay",
-            "HomeButton"
+            "HomeFlag",
+            "[JumpBack]BackButtonWithDelay",
+            "[JumpBack]HomeButton"
         ]
     },
     "TrustMax": {
@@ -396,11 +595,9 @@
             "type": "Click"
         },
         "next": [
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "BackButtonWithDelay",
-            "HomeButton"
+            "HomeFlag",
+            "[JumpBack]BackButtonWithDelay",
+            "[JumpBack]HomeButton"
         ]
     },
     "EnterProduct": {
@@ -440,13 +637,12 @@
                 212
             ]
         },
+        "pre_delay": 3000,
         "next": [
             "CollectProduct",
             "AutoAssignCritters",
-            "EnterProduct"
-        ],
-        "interrupt": [
-            "interrupt_SummonlngSuccessBack"
+            "EnterProduct",
+            "[JumpBack]interrupt_SummonlngSuccessBack"
         ]
     },
     "CollectProduct": {
@@ -467,6 +663,7 @@
         "action": {
             "type": "Click"
         },
+        "post_delay": 3000,
         "next": [
             "CollectProductNext"
         ]
@@ -560,10 +757,8 @@
             "AutoAssignCritters",
             "AutoSelectComfirm",
             "EnterTrade",
-            "EnterAncientHall"
-        ],
-        "interrupt": [
-            "BackButtonWithDelay"
+            "EnterAncientHall",
+            "[JumpBack]BackButtonWithDelay"
         ]
     },
     "AutoAssignCritters": {
@@ -623,10 +818,8 @@
         "post_delay": 3000,
         "next": [
             "EnterTrade",
-            "EnterAncientHall"
-        ],
-        "interrupt": [
-            "BackButtonWithDelay"
+            "EnterAncientHall",
+            "[JumpBack]BackButtonWithDelay"
         ]
     },
     "SummonlngSuccess": {
@@ -712,10 +905,8 @@
         },
         "next": [
             "EnterTrade",
-            "EnterAncientHall"
-        ],
-        "interrupt": [
-            "BackButtonWithDelay"
+            "EnterAncientHall",
+            "[JumpBack]BackButtonWithDelay"
         ]
     },
     "interrupt_SummonlngSuccessBack": {

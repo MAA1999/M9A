@@ -2,19 +2,29 @@ name: mirrorchyan_release_note
 
 on:
   workflow_dispatch:
+    inputs:
+        tag:
+            default: ''
+            required: false
   release:
     types: [edited]
 
 jobs:
   mirrorchyan:
     runs-on: macos-latest
+    # Mirror酱为第三方分发服务，新项目默认关闭
+    # 若有需要请联系 Mirror酱 开通，直接自行开启是无法使用的
+    # https://mirrorchyan.com/
+    if: ${{ github.repository_owner == 'MAA1999' }}
 
     steps:
       - id: uploading
-        if: ${{ github.repository_owner == 'MAA1999' }}
         uses: MirrorChyan/release-note-action@v1
         with:
           mirrorchyan_rid: M9A
+          version_name: ${{ inputs.tag }}
 
-          upload_token: ${{ secrets.MirrorChyanUploadToken }}
+          owner: MAA1999
+          repo: M9A
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          upload_token: ${{ secrets.MirrorChyanUploadToken }}

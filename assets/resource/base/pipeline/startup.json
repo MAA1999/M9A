@@ -3,30 +3,28 @@
         "post_wait_freezes": 300,
         "timeout": 60000,
         "next": [
-            "HomeFlag",
-            "StartGame"
-        ],
-        "interrupt": [
-            "GameLoading2",
-            "BluePochLogo",
-            "Disclaimer",
-            "HomeLoading",
-            "GameLoading",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "Reward",
-            "sp01calendar",
-            "SignInReward",
-            "ClosePage",
-            "Confirm",
-            "VictoryReturn",
-            "Download",
-            "Downloading",
-            "BackButton",
-            "HomeButton",
-            "Start1999",
-            "ClickHomeCount"
+            "HomeFlagFirst",
+            "StartGame",
+            "[JumpBack]Start1999",
+            "[JumpBack]Download",
+            "[JumpBack]GameLoading2",
+            "[JumpBack]BluePochLogo",
+            "[JumpBack]Disclaimer",
+            "[JumpBack]HomeLoading",
+            "[JumpBack]GameLoading",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]Confirm",
+            "[JumpBack]VictoryReturn",
+            "[JumpBack]Downloading",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]ClickHomeCount"
         ]
     },
     "ReturnMain": {
@@ -41,26 +39,25 @@
             }
         },
         "next": [
-            "HomeFlagCloseReturnMain"
-        ],
-        "interrupt": [
-            "HomeButton",
-            "BackButton",
-            "HomeLoading",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "SignInReward",
-            "Reward",
-            "sp01calendar",
-            "ClosePage",
-            "StartGame",
-            "Confirm",
-            "VictoryReturn",
-            "Download",
-            "Downloading",
-            "ClickBlank",
-            "ClickHomeCount"
+            "HomeFlagCloseReturnMain",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeLoading",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]Reward",
+            "[JumpBack]ClosePage",
+            "[JumpBack]StartGame",
+            "[JumpBack]Confirm",
+            "[JumpBack]VictoryReturn",
+            "[JumpBack]Download",
+            "[JumpBack]Downloading",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]ClickBlank",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickHomeCount"
         ]
     },
     "StartGame": {
@@ -81,37 +78,46 @@
             "type": "Click"
         },
         "next": [
-            "HomeFlag",
-            "StartGame"
-        ],
-        "interrupt": [
-            "HomeLoading_wait",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "Reward",
-            "sp01calendar",
-            "SignInReward",
-            "ClickTarot",
-            "Confirm",
-            "ClosePage",
-            "BackButton",
-            "HomeButton",
-            "SkipButton",
-            "ClickHomeCount"
+            "HomeFlagFirst",
+            "StartGame",
+            "[JumpBack]HomeLoading_wait",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClickTarot",
+            "[JumpBack]Confirm",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickHomeCount"
         ]
     },
     "HomeLoading": {
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "Custom",
             "param": {
-                "roi": [
-                    459,
-                    359,
-                    364,
-                    152
-                ],
-                "template": "StartUp/HomeLoading.png"
+                "custom_recognition": "MultiRecognition",
+                "custom_recognition_param": {
+                    "nodes": [
+                        "HomeLoading_Old",
+                        "HomeLoading_NewRightDown",
+                        "HomeLoading_OCR"
+                    ],
+                    "logic": {
+                        "type": "CUSTOM",
+                        "expression": "$0 OR $1 AND $2"
+                    },
+                    "return": [
+                        459,
+                        359,
+                        364,
+                        152
+                    ]
+                }
             }
         },
         "post_wait_freezes": {
@@ -124,8 +130,7 @@
             ]
         }
     },
-    "HomeLoading_wait": {
-        "doc": "专供启动时使用，与原版分开以防止ReturnMain大面积报错",
+    "HomeLoading_Old": {
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -137,30 +142,82 @@
                 ],
                 "template": "StartUp/HomeLoading.png"
             }
+        }
+    },
+    "HomeLoading_NewRightDown": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1101,
+                    612,
+                    179,
+                    108
+                ],
+                "template": "StartUp/HomeLoading_NewRightDown.png"
+            }
+        }
+    },
+    "HomeLoading_OCR": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    415,
+                    469,
+                    417,
+                    30
+                ],
+                "expected": ".*",
+                "only_rec": true
+            }
+        }
+    },
+    "HomeLoading_wait": {
+        "doc": "专供启动时使用，与原版分开以防止ReturnMain大面积报错",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "MultiRecognition",
+                "custom_recognition_param": {
+                    "nodes": [
+                        "HomeLoading_Old",
+                        "HomeLoading_NewRightDown",
+                        "HomeLoading_OCR"
+                    ],
+                    "logic": {
+                        "type": "CUSTOM",
+                        "expression": "$0 OR $1 AND $2"
+                    },
+                    "return": [
+                        459,
+                        359,
+                        364,
+                        152
+                    ]
+                }
+            }
         },
         "action": {
             "type": "Click"
         },
         "next": [
-            "HomeFlag",
-            "HomeLoading_wait"
-        ],
-        "interrupt": [
-            "SkipButton",
-            "BackButton",
-            "HomeButton",
-            "ObtainedAwards",
-            "AccumulatedSignIn",
-            "BirthdayReward",
-            "Reward",
-            "sp01calendar",
-            "SignInReward",
-            "ClickTarot",
-            "Confirm",
-            "ClickBlank",
-            "ClosePage",
-            "SkipOpeningAnimation",
-            "ClickHomeCount"
+            "HomeFlagFirst",
+            "HomeLoading_wait",
+            "[JumpBack]SkipButton",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClickTarot",
+            "[JumpBack]Confirm",
+            "[JumpBack]ClickBlank",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]ClickHomeCount"
         ]
     },
     "Start1999": {
@@ -251,9 +308,9 @@
             "param": {
                 "roi": [
                     435,
-                    597,
+                    627,
                     402,
-                    123
+                    93
                 ],
                 "expected": [
                     "正在",
@@ -291,32 +348,7 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "CountDownload",
-            "DisableDownload"
-        ]
-    },
-    "CountDownload": {
-        "recognition": {
-            "type": "Custom",
-            "param": {
-                "custom_recognition": "Count",
-                "custom_recognition_param": {
-                    "target": 5
-                }
-            }
-        }
-    },
-    "DisableDownload": {
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "DisableNode",
-                "custom_action_param": {
-                    "node_name": "Download"
-                }
-            }
-        }
+        "max_hit": 5
     },
     "SkipButton": {
         "recognition": {
@@ -342,29 +374,6 @@
             "target": "HomeLoading_wait"
         }
     },
-    "SkipOpeningAnimation": {
-        "recognition": {
-            "type": "Custom",
-            "param": {
-                "custom_recognition": "Count",
-                "custom_recognition_param": {
-                    "target": 15
-                }
-            }
-        },
-        "action": {
-            "type": "Click",
-            "param": {
-                "target": "HomeLoading_wait",
-                "target_offset": [
-                    110,
-                    0,
-                    -110,
-                    0
-                ]
-            }
-        }
-    },
     "HomeFlag": {
         "recognition": {
             "type": "TemplateMatch",
@@ -377,7 +386,8 @@
                 ],
                 "template": [
                     "StartUp/HomeFlag.png",
-                    "StartUp/HomeFlag_sp01.png"
+                    "StartUp/HomeFlag_sp01.png",
+                    "StartUp/HomeFlag3.2.png"
                 ]
             }
         },
@@ -393,6 +403,53 @@
             }
         }
     },
+    "HomeFlagFirst": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1022,
+                    419,
+                    194,
+                    166
+                ],
+                "template": [
+                    "StartUp/HomeFlag.png",
+                    "StartUp/HomeFlag_sp01.png",
+                    "StartUp/HomeFlag3.2.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    576,
+                    298,
+                    68,
+                    64
+                ]
+            }
+        },
+        "post_delay": 3000,
+        "next": [
+            "HomeFlag",
+            "[JumpBack]HomeLoading_wait",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClickTarot",
+            "[JumpBack]Confirm",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]SkipButton",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]ClickHomeCount"
+        ]
+    },
     "HomeFlagCloseReturnMain": {
         "recognition": {
             "type": "TemplateMatch",
@@ -405,7 +462,8 @@
                 ],
                 "template": [
                     "StartUp/HomeFlag.png",
-                    "StartUp/HomeFlag_sp01.png"
+                    "StartUp/HomeFlag_sp01.png",
+                    "StartUp/HomeFlag3.2.png"
                 ]
             }
         },
@@ -430,8 +488,7 @@
                     138
                 ],
                 "template": [
-                    "StartUp/BackButton.png",
-                    "StartUp/BackButton_sp01.png"
+                    "StartUp/BackButton.png"
                 ],
                 "green_mask": true
             }
@@ -473,8 +530,7 @@
                 ],
                 "template": [
                     "StartUp/HomeButton.png",
-                    "StartUp/HomeButton_White.png",
-                    "StartUp/HomeButton_sp01.png"
+                    "StartUp/HomeButton_White.png"
                 ]
             }
         },
@@ -491,15 +547,7 @@
         }
     },
     "ClickHomeCount": {
-        "recognition": {
-            "type": "Custom",
-            "param": {
-                "custom_recognition": "Count",
-                "custom_recognition_param": {
-                    "target": 20
-                }
-            }
-        },
+        "max_hit": 20,
         "action": {
             "type": "Click",
             "param": {
@@ -510,7 +558,8 @@
                     64
                 ]
             }
-        }
+        },
+        "post_delay": 1500
     },
     "Stop": {},
     "Reward": {
@@ -528,7 +577,8 @@
                     "StartUp/Reward.png",
                     "StartUp/Reward1.png",
                     "StartUp/Reward2.png",
-                    "StartUp/Reward3.png" // 刺客联动版本
+                    "StartUp/Reward3.png", // 刺客联动版本
+                    "StartUp/Reward4.png"
                 ]
             }
         },
@@ -558,7 +608,10 @@
                     347,
                     163
                 ],
-                "template": "StartUp/AccumulatedSignIn.png"
+                "template": [
+                    "StartUp/AccumulatedSignIn_new.png",
+                    "StartUp/AccumulatedSignIn.png"
+                ]
             }
         },
         "action": {
@@ -585,8 +638,7 @@
         },
         "post_delay": 3000
     },
-    "ClosePage": {
-        // 用于关闭各种页面，如签到、公告、物品详情页
+    "ClosePageFirst": {
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -594,12 +646,41 @@
                     1040,
                     40,
                     239,
-                    166
+                    178
                 ],
                 "template": [
                     "StartUp/CloseRewardPage_2.2.png",
                     "StartUp/CloseRewardPage_2.4.png",
-                    "StartUp/CloseItemDetail.png"
+                    "StartUp/CloseItemDetail.png",
+                    "StartUp/CloseItemDetail1.png"
+                ],
+                "green_mask": true,
+                "threshold": 0.6,
+                "order_by": "Score"
+            }
+        },
+        "post_delay": 3000,
+        "next": [
+            "SignInReward",
+            "ClosePage"
+        ]
+    },
+    "ClosePage": {
+        // 用于关闭各种页面，如签到、公告、物品详情页
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    885,
+                    40,
+                    394,
+                    177
+                ],
+                "template": [
+                    "StartUp/CloseRewardPage_2.2.png",
+                    "StartUp/CloseRewardPage_2.4.png",
+                    "StartUp/CloseItemDetail.png",
+                    "StartUp/CloseItemDetail1.png"
                 ],
                 "green_mask": true,
                 "threshold": 0.6,
@@ -609,7 +690,23 @@
         "action": {
             "type": "Click"
         },
-        "post_delay": 3000
+        "post_delay": 3000,
+        "next": [
+            "OverrideClosePageFirst"
+        ]
+    },
+    "OverrideClosePageFirst": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "ClosePageFirst": {
+                        "post_delay": 1500
+                    }
+                }
+            }
+        }
     },
     "SignInReward": {
         // 领取签到奖励
@@ -647,7 +744,7 @@
                     1048,
                     155
                 ],
-                "threshold": 0.9
+                "threshold": 0.88
             }
         }
     },
@@ -722,12 +819,11 @@
                     "确定"
                 ],
                 "roi": [
-                    775,
-                    405,
-                    63,
-                    33
-                ],
-                "only_rec": true
+                    590,
+                    392,
+                    255,
+                    61
+                ]
             }
         },
         "action": {
@@ -754,32 +850,22 @@
             "type": "Click"
         }
     },
-    "sp01calendar": {
-        // 刺客信条联动版本月卡
+    "CandyCancel": {
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
-                "template": [
-                    "StartUp/Canlendarsp01.png"
-                ],
                 "roi": [
-                    635,
-                    70,
-                    450,
-                    187
-                ]
+                    741,
+                    489,
+                    127,
+                    34
+                ],
+                "expected": "以后再说",
+                "only_rec": true
             }
         },
         "action": {
-            "type": "Click",
-            "param": {
-                "target": [
-                    1075,
-                    103,
-                    22,
-                    22
-                ]
-            }
+            "type": "Click"
         }
     }
 }

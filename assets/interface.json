@@ -1,69 +1,112 @@
 {
+    "contact": "CONTACT",
+    "license": "LICENSE",
     "name": "M9A",
-    "url": "https://github.com/MAA1999/M9A",
+    "github": "https://github.com/MAA1999/M9A",
     "mirrorchyan_rid": "M9A",
     "mirrorchyan_multiplatform": true,
-    "mfa_max_version": "v1.6.5",
     "controller": [
         {
-            "name": "ADB 默认方式",
+            "name": "ADB",
+            "label": "模拟器",
             "type": "Adb"
+        },
+        {
+            "name": "PC",
+            "label": "PC",
+            "type": "Win32",
+            "win32": {
+                "class_regex": "UnityWndClass",
+                "window_regex": "(重返未来|Reverse)[：:]1999",
+                "screencap": "PrintWindow",
+                "mouse": "SendMessageWithCursorPos",
+                "keyboard": "SendMessageWithCursorPos"
+            }
         }
     ],
     "resource": [
         {
             "name": "官服",
             "path": [
-                "{PROJECT_DIR}/resource/base"
+                "./resource/base"
+            ],
+            "controller": [
+                "ADB"
             ]
         },
         {
             "name": "B 服",
             "path": [
-                "{PROJECT_DIR}/resource/base",
-                "{PROJECT_DIR}/resource/bilibili"
-            ]
-        },
-        {
-            "name": "QQ 服",
-            "path": [
-                "{PROJECT_DIR}/resource/base"
+                "./resource/base",
+                "./resource/bilibili"
+            ],
+            "controller": [
+                "ADB"
             ]
         },
         {
             "name": "OPPO 服",
             "path": [
-                "{PROJECT_DIR}/resource/base",
-                "{PROJECT_DIR}/resource/oppo"
+                "./resource/base",
+                "./resource/oppo"
+            ],
+            "controller": [
+                "ADB"
             ]
         },
         {
             "name": "小米服",
             "path": [
-                "{PROJECT_DIR}/resource/base",
-                "{PROJECT_DIR}/resource/mi"
+                "./resource/base",
+                "./resource/mi"
+            ],
+            "controller": [
+                "ADB"
             ]
         },
         {
             "name": "华为服",
             "path": [
-                "{PROJECT_DIR}/resource/base",
-                "{PROJECT_DIR}/resource/huawei"
+                "./resource/base",
+                "./resource/huawei"
+            ],
+            "controller": [
+                "ADB"
             ]
         },
         {
             "name": "国际服（EN）",
             "path": [
-                "{PROJECT_DIR}/resource/base",
-                "{PROJECT_DIR}/resource/global_jp",
-                "{PROJECT_DIR}/resource/global_en"
+                "./resource/base",
+                "./resource/global_jp",
+                "./resource/global_en"
+            ],
+            "controller": [
+                "ADB",
+                "PC"
             ]
         },
         {
             "name": "国际服（JP）",
             "path": [
-                "{PROJECT_DIR}/resource/base",
-                "{PROJECT_DIR}/resource/global_jp"
+                "./resource/base",
+                "./resource/global_jp"
+            ],
+            "controller": [
+                "ADB",
+                "PC"
+            ]
+        },
+        {
+            "name": "港澳台服",
+            "path": [
+                "./resource/base",
+                "./resource/global_jp",
+                "./resource/tw"
+            ],
+            "controller": [
+                "ADB",
+                "PC"
             ]
         }
     ],
@@ -71,18 +114,21 @@
         "child_exec": "python",
         "child_args": [
             "-u",
-            "{PROJECT_DIR}/../agent/main.py"
-        ]
+            "./../agent/main.py"
+        ],
+        "timeout": -1
     },
     "task": [
         {
             "name": "启动游戏",
-            "entry": "StartUp"
+            "entry": "StartUp",
+            "description": "暂不支持国际服PC端运行该任务"
         },
         {
             "name": "收取荒原",
             "entry": "Wilderness",
             "option": [
+                "好梦井",
                 "魔精收菜",
                 "交付订单"
             ]
@@ -99,25 +145,11 @@
             "name": "常规作战",
             "entry": "Combat",
             "option": [
-                "作战关卡",
-                "吃糖"
+                "自定义作战关卡",
+                "吃糖",
+                "作战次数(自定义)"
             ],
-            "advanced": [
-                "作战次数"
-            ],
-            "doc": "图看不清可以拉伸下这个小窗口\n![bydjl](https://mojing.org/tjb)"
-        },
-        {
-            "name": "常规作战（自定义）",
-            "entry": "Combat",
-            "option": [
-                "吃糖"
-            ],
-            "advanced": [
-                "作战关卡（自定义）",
-                "作战次数"
-            ],
-            "doc": "仅限刷材料关卡\n![bydjl](https://mojing.org/tjb)"
+            "description": "点击放大图片，仅限刷材料关卡\n![bydjl](resource/announcement/images/mojing_tjb.png)"
         },
         {
             "name": "活动刷取",
@@ -125,12 +157,10 @@
             "option": [
                 "复刻模式",
                 "活动难度",
-                "吃糖"
+                "吃糖",
+                "作战次数(自定义)"
             ],
-            "advanced": [
-                "作战次数"
-            ],
-            "doc": "主线版本时关闭复刻模式会直接跳过当前任务，如有刷取主线关卡需求请使用常规作战功能"
+            "description": "主线版本时关闭复刻模式会直接跳过当前任务，如有刷取主线关卡需求请使用常规作战功能"
         },
         {
             "name": "自动深眠",
@@ -140,7 +170,7 @@
                 "下半编队",
                 "仅领取每周浅眠域奖励"
             ],
-            "doc": "[size:15][color:tomato]注意上下半编队不要重复[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">注意上下半编队不要重复。支持旧版和改版编队、支持编队自定义命名，未来可支持编队超出前四个</span>"
         },
         {
             "name": "自动醒梦",
@@ -148,53 +178,46 @@
             "option": [
                 "醒梦上半编队",
                 "醒梦下半编队"
-            ]
+            ],
+            "description": "<span style=\"color:tomato;font-size:15px\">注意上下半编队不要重复。支持旧版和改版编队、支持编队自定义命名，未来可支持编队超出前四个</span>"
         },
         {
             "name": "银行购物",
             "entry": "Bank",
             "option": [
-                "单账号（银行）",
+                "单账号(银行)",
                 "柜台特奉",
-                "金兔子(低阶柜台)",
-                "紫地球仪(低阶柜台)",
-                "蓝地球仪(低阶柜台)",
-                "饕餮",
-                "蓝地球仪(心相观测)",
-                "共鸣晶匣",
-                "金瓜子(梦境记述)",
-                "原味鸡(梦境记述)",
-                "大薯(梦境记述)"
+                "低阶柜台",
+                "心相观测",
+                "梦境记述"
             ],
-            "doc": "[size:15][color:tomato]单账号模式下会跳过当前周期执行过的任务[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">单账号模式下会跳过当前周期执行过的任务</span>"
         },
         {
             "name": "领取奖励",
             "entry": "Awards",
             "option": [
-                "获取显影罐"
+                "获取显影罐",
+                "领取邮件奖励"
             ]
-        },
-        {
-            "name": "当期轶事",
-            "entry": "Anecdote"
         },
         {
             "name": "雨中悬想：迷思海",
             "entry": "ReveriesInTheRain",
             "option": [
-                "单账号（迷思海）"
+                "单账号(迷思海)"
             ],
-            "doc": "[size:15][color:tomato]本功能仅完成“寻思”每周扫荡[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">本功能仅完成“寻思”每周扫荡</span>"
         },
         {
             "name": "切换账号",
             "entry": "SwitchAccount",
-            "doc": "[size:15][color:tomato]本功能仅会切换至最后一个账号（超过3个的账号会被忽略）[/color][/size]\n[size:15][color:tomato]切换后可继续添加任务，以便多账号多配置运行任务[/color][/size]\n[size:15][color:tomato]目前该功能支持官服和b服，且建议使用该功能的用户将模拟器分辨率调至1280*720[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">本功能仅会切换至最后一个账号（超过3个的账号会被忽略）</span>\n<span style=\"color:tomato;font-size:15px\">切换后可继续添加任务，以便多账号多配置运行任务</span>\n<span style=\"color:tomato;font-size:15px\">目前该功能支持官服和b服，且建议使用该功能的用户将模拟器分辨率调至1280*720</span>"
         },
         {
             "name": "关闭游戏",
-            "entry": "Close1999"
+            "entry": "Close1999",
+            "description": "暂不支持国际服PC端运行该任务"
         },
         {
             "name": "局外演绎：黄昏的音序",
@@ -204,12 +227,53 @@
                 "速刷模式",
                 "演绎难度"
             ],
-            "doc": "[size:15][color:darkgray]本功能有两种模式，触媒选择仅在非速刷模式生效，开启速刷模式后仅使用术式神灯刷取第一层[/color][/size]\n[size:18][color:black]速刷模式[/color][/size]\n[size:15][color:darkgray]1.使用前请先将`刻画生长-指引之歌`以及`刻画生长-建筑章程`点满[/color][/size]\n[size:15][color:darkgray]2.请尽量调高难度等级(11难度达到最高信用效率)以及点足科技树中信用效率加成，以防止分数不够2k5导致刷取信物失败[/color][/size]\n[size:18][color:black]非速刷模式[/color][/size]\n[size:15][color:darkgray]1.可在箱子里置顶(标记)四个角色出战[/color][/size]\n[size:15][color:darkgray]2.队伍推荐携带奶[/color][/size]\n[size:15][color:darkgray]3.M9A不能检查是否处于自动战斗状态，请自行调整[/color][/size]\n[size:15][color:orange]⚠更多详细说明请看文档[/color][/size]"
+            "description": "<span style=\"color:darkgray;font-size:15px\">本功能有两种模式，触媒选择仅在非速刷模式生效，开启速刷模式后仅使用术式神灯刷取第一层</span>\n<span style=\"color:black;font-size:18px\">速刷模式</span>\n<span style=\"color:darkgray;font-size:15px\">1.使用前请先将`刻画生长-指引之歌`以及`刻画生长-建筑章程`点满</span>\n<span style=\"color:darkgray;font-size:15px\">2.请尽量调高难度等级(11难度达到最高信用效率)以及点足科技树中信用效率加成，以防止分数不够2k5导致刷取信物失败</span>\n<span style=\"color:black;font-size:18px\">非速刷模式</span>\n<span style=\"color:darkgray;font-size:15px\">1.可在箱子里置顶(标记)四个角色出战</span>\n<span style=\"color:darkgray;font-size:15px\">2.队伍推荐携带奶</span>\n<span style=\"color:darkgray;font-size:15px\">3.M9A不能检查是否处于自动战斗状态，请自行调整</span>\n<span style=\"color:orange;font-size:15px\">⚠更多详细说明请看文档</span>"
         },
         {
-            "name": "匣中交流赛速刷（并非速刷）",
+            "name": "局外演绎：无声综合征",
+            "entry": "TheSyndromeOfSilence",
+            "option": [
+                "战斗编队",
+                "携带好旅伴",
+                "难度选择",
+                "配器选择"
+            ],
+            "description": "<span style=\"color:darkgray;font-size:15px\">M9A不能检查是否处于自动战斗状态，请确定上一次使用的是自动战斗</span>\n<span style=\"color:orange;font-size:15px\">⚠使用前请先至少手动打完第一层，更多详细说明请看文档</span>"
+        },
+        {
+            "name": "以下任务需【独立运行】",
+            "entry": "Stop"
+        },
+        {
+            "name": "复刻活动推图",
+            "entry": "SSReopen",
+            "option": [
+                "吃糖"
+            ],
+            "pipeline_override": {
+                "WaitReplay": {
+                    "recognition": {
+                        "param": {
+                            "roi": [
+                                1048,
+                                630,
+                                124,
+                                41
+                            ],
+                            "expected": [
+                                "复现",
+                                "开始行动"
+                            ]
+                        }
+                    }
+                }
+            },
+            "description": "本任务根据任务列表完成任务，仅支持已打过的往期活动推图"
+        },
+        {
+            "name": "匣中交流赛（拓片杂技赛）",
             "entry": "角斗场",
-            "doc": "[size:15][color:darkgray]本功能仅完成“角斗场”第一层扫荡[/color][/size]，\n[size:15][color:red]请手动打开角斗场页面[/color][/size]"
+            "description": "<span style=\"color:darkgray;font-size:15px\">本功能仅完成“角斗场”第一层扫荡</span>\n<span style=\"color:red;font-size:15px\">请手动打开角斗场页面</span>"
         },
         {
             "name": "警铃鸣响时（需高练度）",
@@ -217,34 +281,58 @@
             "option": [
                 "扫荡难度"
             ],
-            "doc": "[size:15][color:tomato]本功能不换角色，debuff吃满，故只适合高练队伍挂机。推荐配队：三巨头（薪电启）+图图石子、追击队。使用前请手动打开警铃鸣响时主页面（中间有雨迹追查和雨痕处置字样）[/color][/size]\n[size:14][color:deepskyblue]“速刷选项”：直接打boss关，没有五号位buff，适合大成三巨头+双奶妈挂机通关。非速刷则会选择拉满五号位buff后再打boss，提高通关稳定性。[/color][/size]\n[size:14][color:deepskyblue]测试用队伍：诺谛卡 + 圈 + 蘑菇 + 塞梅 + 图图（注意五号位放主C）[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">本功能不换角色，debuff吃满，故只适合高练队伍挂机。推荐配队：三巨头（薪电启）+图图石子、追击队。使用前请手动打开警铃鸣响时主页面（中间有雨迹追查和雨痕处置字样）</span>\n<span style=\"color:deepskyblue;font-size:14px\">“速刷选项”：直接打boss关，没有五号位buff，适合大成三巨头+双奶妈挂机通关。非速刷则会选择拉满五号位buff后再打boss，提高通关稳定性。</span>\n<span style=\"color:deepskyblue;font-size:14px\">测试用队伍：诺谛卡 + 圈 + 蘑菇 + 塞梅 + 图图（注意五号位放主C）</span>"
         },
         {
             "name": "(测试中)推图模式",
             "entry": "StagePromotion",
-            "doc": "[size:15][color:tomato]本功能处于测试中，不保证正常运行。当前本功能主线不可用。[/color][/size]\n[size:15][color:tomato]使用时请先手动打开需要推图的页面，如当期活动、佚事等，然后再运行此任务[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">本功能处于测试中，不保证正常运行。当前本功能主线不可用。</span>\n<span style=\"color:tomato;font-size:15px\">使用时请先手动打开需要推图的页面，如当期活动、佚事等，然后再运行此任务</span>"
         },
         {
             "name": "翻斗棋速刷",
             "entry": "CritterCrash",
-            "doc": "[size:15][color:tomato]在翻斗棋界面启动，仅支持1600分以下速刷。[/color][/size]"
+            "description": "<span style=\"color:tomato;font-size:15px\">在翻斗棋界面启动，已支持国服3.2版本！使用前请先自行打两把使警戒值升到3级</span>"
         },
         {
-            "name": "刺客信条联动每日任务",
-            "entry": "Sp01Daily",
-            "doc": "[size:15][color:tomato]剪刀石头布和数据拾遗 [/color][/size]"
+            "name": "雨前漫游指南",
+            "entry": "PreStormProtocolStart",
+            "option": [
+                "雨前漫游刷取模式"
+            ],
+            "description": "该任务需单独运行。运行前请将游戏停在小游戏主页面。\n该任务分为两种情况：\n1.未击败教程中第三天的boss（即点击“开始模拟”后不是难度选择界面）\n2.已击败教程中第三天的boss（即点击“开始模拟”后进入难度选择界面）\n\n请根据个人情况选择对应选项。"
         }
     ],
-    "advanced": {
-        "作战次数": {
-            "field": [
-                "作战次数"
-            ],
-            "type": [
-                "int"
-            ],
-            "default": [
-                "0"
+    "option": {
+        "自定义作战关卡": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {},
+                    "option": [
+                        "作战关卡"
+                    ]
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {},
+                    "option": [
+                        "作战关卡(自定义)",
+                        "主线关卡难度"
+                    ]
+                }
+            ]
+        },
+        "作战次数(自定义)": {
+            "type": "input",
+            "label": "作战次数",
+            "inputs": [
+                {
+                    "name": "作战次数",
+                    "pipeline_type": "int",
+                    "default": "114514",
+                    "verify": "^(0|[1-9]\\d*)$"
+                }
             ],
             "pipeline_override": {
                 "AllIn": {
@@ -256,44 +344,69 @@
                         }
                     }
                 }
-            },
-            "doc": "填0清空体力；填其他数字按次数刷；其他情况清空体力"
+            }
         },
-        "作战关卡（自定义）": {
-            "field": [
-                "章节号",
-                "关卡号",
-                "难度"
-            ],
-            "type": [
-                "string",
-                "string",
-                "string"
-            ],
-            "default": [
-                "2",
-                "6",
-                [
-                    "Hard",
-                    "Story"
-                ]
+        "作战关卡(自定义)": {
+            "type": "input",
+            "label": "作战关卡",
+            "inputs": [
+                {
+                    "name": "章节号",
+                    "pipeline_type": "string",
+                    "default": "2",
+                    "pattern_msg": "请输入章节号，如2",
+                    "verify": "^(\\d+)$",
+                    "description": "请输入章节号，如2"
+                },
+                {
+                    "name": "关卡号",
+                    "pipeline_type": "string",
+                    "default": "6",
+                    "pattern_msg": "请输入关卡号，如6",
+                    "verify": "^(\\d+)$",
+                    "description": "请输入关卡号，如6"
+                }
             ],
             "pipeline_override": {
                 "SelectCombatStage": {
                     "action": {
                         "param": {
                             "custom_action_param": {
-                                "stage": "{章节号}-{关卡号}",
-                                "level": "{难度}"
+                                "stage": "{章节号}-{关卡号}"
                             }
                         }
                     }
                 }
             }
-        }
-    },
-    "option": {
+        },
+        "主线关卡难度": {
+            "type": "select",
+            "label": "关卡难度",
+            "cases": [
+                {
+                    "name": "厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "故事",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "attach": {
+                                "level": "Story"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
         "作战关卡": {
+            "type": "select",
             "cases": [
                 {
                     "name": "啮咬盒(银光子弹)：5-19 厄险",
@@ -823,71 +936,174 @@
             ]
         },
         "吃糖": {
+            "type": "switch",
             "cases": [
                 {
-                    "name": "吃24小时内过期的糖",
+                    "name": "Yes",
+                    "option": [
+                        "糖果有效期",
+                        "吃糖次数",
+                        "连续吃糖",
+                        "关闭吃糖提示"
+                    ]
+                },
+                {
+                    "name": "No",
                     "pipeline_override": {
-                        "MiniCandy": {
-                            "recognition": {
-                                "param": {
-                                    "expected": "小时"
-                                }
-                            }
+                        "EatMiniCandy": {
+                            "enabled": false
                         },
-                        "SmallCandy": {
-                            "recognition": {
-                                "param": {
-                                    "expected": "小时"
-                                }
-                            }
+                        "EatCandyStart": {
+                            "enabled": false
                         },
-                        "BigCandy": {
-                            "recognition": {
-                                "param": {
-                                    "expected": "小时"
-                                }
+                        "EatCandyPage": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ],
+            "description": "是否吃糖"
+        },
+        "糖果有效期": {
+            "label": "有效期",
+            "type": "select",
+            "cases": [
+                {
+                    "name": "24h",
+                    "description": "24小时内过期的糖",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "valid_period": "24h"
                             }
                         }
                     }
                 },
                 {
-                    "name": "吃14天内过期的糖",
+                    "name": "7d",
+                    "description": "7天内过期的糖",
                     "pipeline_override": {
-                        "MiniCandy": {
-                            "recognition": {
-                                "param": {
-                                    "expected": [
-                                        "天",
-                                        "小时"
-                                    ]
-                                }
+                        "EatCandyStart": {
+                            "attach": {
+                                "valid_period": "7d"
                             }
-                        },
-                        "SmallCandy": {
-                            "recognition": {
-                                "param": {
-                                    "expected": [
-                                        "天",
-                                        "小时"
-                                    ]
-                                }
+                        }
+                    }
+                },
+                {
+                    "name": "14d",
+                    "description": "14天内过期的糖",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "valid_period": "14d"
                             }
-                        },
-                        "BigCandy": {
-                            "recognition": {
-                                "param": {
-                                    "expected": [
-                                        "天",
-                                        "小时"
-                                    ]
-                                }
+                        }
+                    }
+                },
+                {
+                    "name": "无限期",
+                    "description": "不会过期的糖",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "valid_period": "infinite"
                             }
+                        }
+                    }
+                }
+            ],
+            "description": "可以吃的糖果的有效期"
+        },
+        "吃糖次数": {
+            "type": "input",
+            "label": "次数",
+            "inputs": [
+                {
+                    "name": "次数",
+                    "pipeline_type": "int",
+                    "default": "114514",
+                    "verify": "^(0|[1-9]\\d*)$"
+                }
+            ],
+            "pipeline_override": {
+                "EatCandyStart": {
+                    "max_hit": "{次数}"
+                }
+            },
+            "description": "注意小熊软糖(主线掉落5体力糖)会默认吃完，不会被计入该次数"
+        },
+        "连续吃糖": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "fast": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "fast": 0
+                            }
+                        }
+                    }
+                }
+            ],
+            "description": "开启后，每次进入吃糖界面尽可能多吃糖；关闭后，每次进入吃糖界面只吃一次糖"
+        },
+        "关闭吃糖提示": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EatCandyCloseTip": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EatCandyCloseTip": {
+                            "enabled": true
+                        }
+                    }
+                }
+            ],
+            "description": "关闭吃糖时弹出的本日登录不再提醒的提示，关闭后可能导致多吃糖，请慎重选择！"
+        },
+        "好梦井": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EnterGoodDreamWell": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EnterGoodDreamWell": {
+                            "enabled": false
                         }
                     }
                 }
             ]
         },
         "魔精收菜": {
+            "type": "switch",
             "cases": [
                 {
                     "name": "Yes",
@@ -905,7 +1121,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "description": "不会换运输的魔精，无收益"
         },
         "交付订单": {
             "cases": [
@@ -925,9 +1142,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "type": "switch",
+            "description": "交付魔精订单"
         },
         "双重解析加成作战": {
+            "type": "switch",
             "cases": [
                 {
                     "name": "No",
@@ -941,25 +1161,48 @@
                     "name": "Yes",
                     "pipeline_override": {}
                 }
-            ]
+            ],
+            "description": "双重解析期间是否进行加成作战"
         },
         "复刻模式": {
+            "type": "switch",
             "cases": [
                 {
                     "name": "No",
-                    "pipeline_override": {}
+                    "pipeline_override": {
+                        "CombatActivityOverride": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "mode": 0
+                                    }
+                                }
+                            }
+                        }
+                    }
                 },
                 {
                     "name": "Yes",
                     "pipeline_override": {
+                        "CombatActivityOverride": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "mode": 1
+                                    }
+                                }
+                            }
+                        },
                         "JudgeDuringRe_release": {
                             "enabled": true
                         }
                     }
                 }
-            ]
+            ],
+            "description": "开启后只尝试刷复刻活动，不开启尝试刷当期活动"
         },
         "活动难度": {
+            "type": "select",
             "cases": [
                 {
                     "name": "艰难",
@@ -1006,19 +1249,17 @@
             ]
         },
         "上半编队": {
+            "type": "select",
             "cases": [
                 {
                     "name": "一",
                     "pipeline_override": {
-                        "LimboTeamSelection_11": {
+                        "LimboTeamSelection_1": {
                             "action": {
                                 "param": {
-                                    "target": [
-                                        799,
-                                        404,
-                                        127,
-                                        32
-                                    ]
+                                    "custom_action_param": {
+                                        "team": 1
+                                    }
                                 }
                             }
                         }
@@ -1027,15 +1268,12 @@
                 {
                     "name": "二",
                     "pipeline_override": {
-                        "LimboTeamSelection_11": {
+                        "LimboTeamSelection_1": {
                             "action": {
                                 "param": {
-                                    "target": [
-                                        798,
-                                        463,
-                                        128,
-                                        33
-                                    ]
+                                    "custom_action_param": {
+                                        "team": 2
+                                    }
                                 }
                             }
                         }
@@ -1044,15 +1282,12 @@
                 {
                     "name": "三",
                     "pipeline_override": {
-                        "LimboTeamSelection_11": {
+                        "LimboTeamSelection_1": {
                             "action": {
                                 "param": {
-                                    "target": [
-                                        797,
-                                        522,
-                                        129,
-                                        34
-                                    ]
+                                    "custom_action_param": {
+                                        "team": 3
+                                    }
                                 }
                             }
                         }
@@ -1061,15 +1296,12 @@
                 {
                     "name": "四",
                     "pipeline_override": {
-                        "LimboTeamSelection_11": {
+                        "LimboTeamSelection_1": {
                             "action": {
                                 "param": {
-                                    "target": [
-                                        795,
-                                        580,
-                                        130,
-                                        34
-                                    ]
+                                    "custom_action_param": {
+                                        "team": 4
+                                    }
                                 }
                             }
                         }
@@ -1078,19 +1310,17 @@
             ]
         },
         "下半编队": {
+            "type": "select",
             "cases": [
                 {
                     "name": "二",
                     "pipeline_override": {
-                        "LimboTeamSelection_22": {
+                        "LimboTeamSelection_2": {
                             "action": {
                                 "param": {
-                                    "target": [
-                                        798,
-                                        463,
-                                        128,
-                                        33
-                                    ]
+                                    "custom_action_param": {
+                                        "team": 2
+                                    }
                                 }
                             }
                         }
@@ -1099,15 +1329,12 @@
                 {
                     "name": "三",
                     "pipeline_override": {
-                        "LimboTeamSelection_22": {
+                        "LimboTeamSelection_2": {
                             "action": {
                                 "param": {
-                                    "target": [
-                                        797,
-                                        522,
-                                        129,
-                                        34
-                                    ]
+                                    "custom_action_param": {
+                                        "team": 3
+                                    }
                                 }
                             }
                         }
@@ -1116,15 +1343,12 @@
                 {
                     "name": "四",
                     "pipeline_override": {
-                        "LimboTeamSelection_22": {
+                        "LimboTeamSelection_2": {
                             "action": {
                                 "param": {
-                                    "target": [
-                                        795,
-                                        580,
-                                        130,
-                                        34
-                                    ]
+                                    "custom_action_param": {
+                                        "team": 4
+                                    }
                                 }
                             }
                         }
@@ -1133,15 +1357,12 @@
                 {
                     "name": "一",
                     "pipeline_override": {
-                        "LimboTeamSelection_22": {
+                        "LimboTeamSelection_2": {
                             "action": {
                                 "param": {
-                                    "target": [
-                                        799,
-                                        404,
-                                        127,
-                                        32
-                                    ]
+                                    "custom_action_param": {
+                                        "team": 1
+                                    }
                                 }
                             }
                         }
@@ -1150,6 +1371,8 @@
             ]
         },
         "醒梦上半编队": {
+            "type": "select",
+            "label": "上半编队",
             "cases": [
                 {
                     "name": "一",
@@ -1210,6 +1433,8 @@
             ]
         },
         "醒梦下半编队": {
+            "type": "select",
+            "label": "下半编队",
             "cases": [
                 {
                     "name": "二",
@@ -1270,6 +1495,7 @@
             ]
         },
         "仅领取每周浅眠域奖励": {
+            "type": "switch",
             "cases": [
                 {
                     "name": "No",
@@ -1283,9 +1509,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "description": "开启后仅领取每周浅眠域奖励，不进行深眠自动作战"
         },
-        "单账号（银行）": {
+        "单账号(银行)": {
+            "type": "switch",
+            "label": "单账号",
             "cases": [
                 {
                     "name": "Yes",
@@ -1334,6 +1563,8 @@
             ]
         },
         "柜台特奉": {
+            "type": "switch",
+            "label": "柜台特奉",
             "cases": [
                 {
                     "name": "Yes",
@@ -1347,9 +1578,42 @@
                         }
                     }
                 }
+            ],
+            "description": "每周免费礼包"
+        },
+        "低阶柜台": {
+            "type": "switch",
+            "label": "低阶柜台",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {},
+                    "option": [
+                        "金兔子(低阶柜台)",
+                        "紫地球仪(低阶柜台)",
+                        "蓝地球仪(低阶柜台)"
+                    ]
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Rabbit": {
+                            "enabled": false
+                        },
+                        "SmallGlobe": {
+                            "enabled": false
+                        },
+                        "TinyGlobe": {
+                            "enabled": false
+                        }
+                    }
+                }
             ]
         },
         "金兔子(低阶柜台)": {
+            "type": "switch",
+            "label": "独一律",
+            "icon": "./resource/announcement/images/Item-140001.png",
             "cases": [
                 {
                     "name": "Yes",
@@ -1366,6 +1630,9 @@
             ]
         },
         "紫地球仪(低阶柜台)": {
+            "type": "switch",
+            "label": "低频偏振",
+            "icon": "./resource/announcement/images/Item-180002.png",
             "cases": [
                 {
                     "name": "No",
@@ -1382,6 +1649,9 @@
             ]
         },
         "蓝地球仪(低阶柜台)": {
+            "type": "switch",
+            "label": "微频偏振",
+            "icon": "./resource/announcement/images/Item-180001.png",
             "cases": [
                 {
                     "name": "No",
@@ -1397,12 +1667,36 @@
                 }
             ]
         },
-        "饕餮": {
+        "心相观测": {
+            "type": "switch",
+            "label": "心相观测",
             "cases": [
                 {
-                    "name": "Yes",
-                    "pipeline_override": {}
+                    "name": "No",
+                    "pipeline_override": {
+                        "Gluttony": {
+                            "enabled": false
+                        },
+                        "TinyGlobe(1)": {
+                            "enabled": false
+                        }
+                    }
                 },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {},
+                    "option": [
+                        "饕餮",
+                        "蓝地球仪(心相观测)"
+                    ]
+                }
+            ]
+        },
+        "饕餮": {
+            "type": "switch",
+            "label": "饕餮",
+            "icon": "./resource/announcement/images/Equipment_suit-1000.png",
+            "cases": [
                 {
                     "name": "No",
                     "pipeline_override": {
@@ -1410,10 +1704,17 @@
                             "enabled": false
                         }
                     }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {}
                 }
             ]
         },
         "蓝地球仪(心相观测)": {
+            "type": "switch",
+            "label": "微频偏振",
+            "icon": "./resource/announcement/images/Item-180001.png",
             "cases": [
                 {
                     "name": "Yes",
@@ -1429,7 +1730,43 @@
                 }
             ]
         },
+        "梦境记述": {
+            "type": "switch",
+            "label": "梦境记述",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "ResonantCassette": {
+                            "enabled": false
+                        },
+                        "GoldenMelonSeeds": {
+                            "enabled": false
+                        },
+                        "OriginalChicken": {
+                            "enabled": false
+                        },
+                        "Fries": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {},
+                    "option": [
+                        "共鸣晶匣",
+                        "金瓜子(梦境记述)",
+                        "原味鸡(梦境记述)",
+                        "大薯(梦境记述)"
+                    ]
+                }
+            ]
+        },
         "共鸣晶匣": {
+            "type": "switch",
+            "label": "共鸣晶匣",
+            "icon": "./resource/announcement/images/Item-481005.png",
             "cases": [
                 {
                     "name": "Yes",
@@ -1446,6 +1783,9 @@
             ]
         },
         "金瓜子(梦境记述)": {
+            "type": "switch",
+            "label": "一瞬的躁动",
+            "icon": "./resource/announcement/images/Item-120011.png",
             "cases": [
                 {
                     "name": "No",
@@ -1462,6 +1802,9 @@
             ]
         },
         "原味鸡(梦境记述)": {
+            "type": "switch",
+            "label": "片刻的喧嚣",
+            "icon": "./resource/announcement/images/Item-120012.png",
             "cases": [
                 {
                     "name": "No",
@@ -1478,6 +1821,9 @@
             ]
         },
         "大薯(梦境记述)": {
+            "type": "switch",
+            "label": "悠远的振响",
+            "icon": "./resource/announcement/images/Item-120013.png",
             "cases": [
                 {
                     "name": "No",
@@ -1494,6 +1840,8 @@
             ]
         },
         "获取显影罐": {
+            "type": "switch",
+            "label": "获取显影罐",
             "cases": [
                 {
                     "name": "No",
@@ -1515,7 +1863,27 @@
                 }
             ]
         },
-        "单账号（迷思海）": {
+        "领取邮件奖励": {
+            "type": "switch",
+            "label": "领取邮件奖励",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {}
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Sub_MailBadge": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "单账号(迷思海)": {
+            "type": "switch",
+            "label": "单账号",
             "cases": [
                 {
                     "name": "Yes",
@@ -1532,6 +1900,8 @@
             ]
         },
         "触媒选择": {
+            "type": "select",
+            "label": "触媒选择",
             "cases": [
                 {
                     "name": "术式神灯",
@@ -1624,6 +1994,8 @@
             ]
         },
         "速刷模式": {
+            "type": "switch",
+            "label": "速刷模式",
             "cases": [
                 {
                     "name": "No",
@@ -1633,13 +2005,18 @@
                     "name": "Yes",
                     "pipeline_override": {
                         "SOD_UNOPENED": {
-                            "next": "ODR_Start"
+                            "next": [
+                                "ODR_Start",
+                                "[JumpBack]SODStop"
+                            ]
                         }
                     }
                 }
             ]
         },
         "演绎难度": {
+            "type": "select",
+            "label": "演绎难度",
             "cases": [
                 {
                     "name": "Current",
@@ -1713,7 +2090,203 @@
                 }
             ]
         },
+        "战斗编队": {
+            "type": "select",
+            "label": "战斗编队",
+            "cases": [
+                {
+                    "name": "一",
+                    "pipeline_override": {
+                        "SOSTeamSelect": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "二",
+                    "pipeline_override": {
+                        "SOSTeamSelect": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "三",
+                    "pipeline_override": {
+                        "SOSTeamSelect": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 3
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "四",
+                    "pipeline_override": {
+                        "SOSTeamSelect": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 4
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "携带好旅伴": {
+            "type": "switch",
+            "label": "携带好旅伴",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {}
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "SOSMainMenu": {
+                            "next": [
+                                "SOSWordlessWorkshop",
+                                "[JumpBack]SOSConfirm",
+                                "[JumpBack]SOSStart"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "难度选择": {
+            "type": "select",
+            "label": "难度选择",
+            "cases": [
+                {
+                    "name": "当前",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 0
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "颤动 Ⅰ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "颤动 Ⅱ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "嗡鸣 Ⅰ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 3
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "嗡鸣 Ⅱ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 4
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "配器选择": {
+            "type": "select",
+            "label": "配器选择",
+            "cases": [
+                {
+                    "name": "管钟",
+                    "pipeline_override": {
+                        "SOSSelectInstrument": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "instrument": "管钟"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "拨弦",
+                    "pipeline_override": {
+                        "SOSSelectInstrument": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "instrument": "拨弦"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
         "扫荡难度": {
+            "type": "select",
+            "label": "扫荡难度",
             "cases": [
                 {
                     "name": "日常出勤",
@@ -1938,6 +2511,28 @@
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+            ]
+        },
+        "雨前漫游刷取模式": {
+            "type": "select",
+            "label": "刷取模式",
+            "cases": [
+                {
+                    "name": "未击败教程中boss",
+                    "pipeline_override": {
+                        "PreStormProtocol1": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "已击败教程中boss",
+                    "pipeline_override": {
+                        "PreStormProtocol": {
+                            "enabled": false
                         }
                     }
                 }

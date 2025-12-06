@@ -37,14 +37,14 @@ class BankShop(CustomRecognition):
         img = context.tasker.controller.post_screencap().wait().get()
 
         roi_list = [
-            [325, 286, 87, 23],
-            [568, 284, 87, 23],
-            [798, 286, 101, 21],
-            [1047, 285, 87, 23],
-            [327, 547, 87, 23],
-            [566, 546, 87, 23],
-            [806, 546, 87, 23],
-            [1046, 547, 87, 23],
+            [325, 286, 93, 30],
+            [568, 284, 93, 30],
+            [798, 286, 107, 28],
+            [1047, 285, 93, 30],
+            [327, 547, 93, 30],
+            [566, 546, 93, 30],
+            [806, 546, 93, 30],
+            [1046, 547, 93, 30],
         ]
 
         for roi in roi_list:
@@ -55,7 +55,7 @@ class BankShop(CustomRecognition):
                     {"BankShopTemplate": {"roi": roi, "expected": expected}},
                 )
 
-                if reco_detail is not None:
+                if reco_detail and reco_detail.hit:
                     if inverse:
                         return None
                     return reco_detail.box

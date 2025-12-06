@@ -1,0 +1,146 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "custom_recognition": {
+            "enum": [
+                "MultiRecognition",
+                "Count"
+            ]
+        }
+    },
+    "anyOf": [
+        {
+            "$ref": "#/$defs/MultiRecognition"
+        },
+        {
+            "$ref": "#/$defs/Count"
+        }
+    ],
+    "$defs": {
+        "RequiredParam": {
+            "anyOf": [
+                {
+                    "required": [
+                        "custom_recognition_param"
+                    ]
+                },
+                {
+                    "required": [
+                        "custom_recognition_param_code"
+                    ]
+                }
+            ]
+        },
+        "MultiRecognition": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_recognition": {
+                    "const": "MultiRecognition"
+                },
+                "custom_recognition_param": {
+                    "type": "object",
+                    "properties": {
+                        "nodes": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "节点名称数组，按顺序对应 $0、$1、$2..."
+                        },
+                        "logic": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "AND",
+                                        "OR",
+                                        "CUSTOM"
+                                    ],
+                                    "default": "AND",
+                                    "description": "逻辑类型：AND(所有节点都识别成功)、OR(任意节点识别成功)、NOT(节点识别结果取反)、CUSTOM(使用自定义表达式)"
+                                },
+                                "expression": {
+                                    "type": "string",
+                                    "description": "自定义逻辑表达式，仅当type=CUSTOM时使用。支持$0、$1、$2引用nodes数组节点，{NodeName}引用其他节点，AND、OR、NOT运算符和括号分组"
+                                }
+                            },
+                            "required": [
+                                "type"
+                            ],
+                            "additionalProperties": false,
+                            "description": "逻辑判断条件"
+                        },
+                        "return": {
+                            "oneOf": [
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    },
+                                    "minItems": 4,
+                                    "maxItems": 4,
+                                    "description": "固定坐标 [x, y, w, h]"
+                                },
+                                {
+                                    "type": "string",
+                                    "description": "基于识别结果计算ROI表达式。支持$0、$1、$2引用节点区域，{NodeName}引用其他节点区域，UNION、INTERSECTION、OFFSET等函数"
+                                }
+                            ],
+                            "description": "返回的ROI区域"
+                        }
+                    },
+                    "required": [
+                        "nodes",
+                        "return"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        "Count": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_recognition": {
+                    "const": "Count"
+                },
+                "custom_recognition_param": {
+                    "type": "object",
+                    "properties": {
+                        "target": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "description": "目标匹配次数，默认sys.maxsize"
+                        },
+                        "recognition": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "default": "DirectHit",
+                                    "description": "识别类型，默认DirectHit"
+                                },
+                                "param": {
+                                    "type": "object",
+                                    "description": "识别相关字段"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "description": "v2协议的recognition字段"
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,395 @@
+{
+    "SSReopen": {
+        // 复刻时根据任务自动打图
+        "timeout": 3000,
+        "on_error": [],
+        "focus": {
+            "Node.PipelineNode.Failed": "请到复刻活动左边标有故事/探索模式的页面开始该任务"
+        },
+        "next": [
+            "FlagInSS"
+        ]
+    },
+    "FlagInSS": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "故事模式",
+                    "探索模式",
+                    "STORY MODE",
+                    "HARD MODE"
+                ],
+                "roi": [
+                    29,
+                    87,
+                    174,
+                    227
+                ]
+            }
+        },
+        "next": [
+            "SSTaskEntryGet"
+        ]
+    },
+    "SSTaskEntryGet": {
+        // 复刻任务入口获取
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SSTaskEntryGet"
+            }
+        },
+        "next": [
+            "[JumpBack]SSTaskAwardsObtained",
+            "SSTaskCompleted",
+            "[JumpBack]SSReadyForAction",
+            "[JumpBack]SSReopenLevelSelect",
+            "[JumpBack]SSTaskEntry",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "SSTaskAwardsObtained": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "领取",
+                    "CLAIM"
+                ],
+                "roi": [
+                    1158,
+                    95,
+                    90,
+                    91
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000
+    },
+    "SSReadyForAction": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    500,
+                    380,
+                    220
+                ],
+                "expected": [
+                    "开始行动"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "SSReopenReplay",
+            "SSReadyForAction",
+            "[JumpBack]CombatEntering"
+        ]
+    },
+    "SSReopenReplay": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    35,
+                    247,
+                    222,
+                    354
+                ],
+                "expected": "推荐等级"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SSReopenReplay"
+            }
+        }
+    },
+    "SSToReplayIfCan": {
+        "next": [
+            "SSCannotReplay",
+            "SSIsReplay",
+            "[JumpBack]SSSwitchToReplay"
+        ]
+    },
+    "SSSwitchToReplay": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    559,
+                    619,
+                    98,
+                    76
+                ],
+                "template": [
+                    "Combat/SwitchToReplay.png",
+                    "Combat/CannotReplay.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SSIsReplay": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    568,
+                    624,
+                    221,
+                    66
+                ],
+                "template": "Combat/IsReplay.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "SSCannotReplay": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    959,
+                    47,
+                    154,
+                    210
+                ],
+                "template": [
+                    "Combat/NoReplay1.png", // 未记忆
+                    "Combat/NoReplay2.png" // 首次剧情关卡无法存储记忆
+                ]
+            }
+        }
+    },
+    "SSNoReplay": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    984,
+                    614,
+                    265,
+                    86
+                ],
+                "expected": "开始行动"
+            }
+        },
+        "timeout": 420000,
+        "post_delay": 1500,
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CheckStopping",
+            "Victory_NoReplay",
+            "SSNoReplay",
+            "[JumpBack]EatCandyPage"
+        ]
+    },
+    "Victory_NoReplay": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    240
+                ],
+                "expected": [
+                    "战斗",
+                    "胜利"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "FlagInSSMain",
+            "Victory_NoReplay",
+            "[JumpBack]SSReopenBackToMain_ClickBlank",
+            "[JumpBack]SSReopenBackToMain_BackButton",
+            "[JumpBack]HomeLoading"
+        ]
+    },
+    "SSReopenBackToMain": {
+        "next": [
+            "FlagInSSMain",
+            "[JumpBack]SSReopenBackToMain_ClickBlank",
+            "[JumpBack]SSReopenBackToMain_BackButton",
+            "[JumpBack]HomeLoading"
+        ]
+    },
+    "SSReopenBackToMain_ClickBlank": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    892,
+                    281,
+                    83,
+                    30
+                ],
+                "only_rec": true,
+                "expected": "推荐等级"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    750,
+                    50,
+                    20,
+                    20
+                ]
+            }
+        },
+        "post_delay": 1000
+    },
+    "SSReopenBackToMain_BackButton": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    35,
+                    247,
+                    222,
+                    354
+                ],
+                "expected": "推荐等级"
+            }
+        },
+        "next": [
+            "BackButtonWithDelay"
+        ]
+    },
+    "FlagInSSMain": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "故事模式",
+                    "探索模式",
+                    "STORY MODE",
+                    "HARD MODE"
+                ],
+                "roi": [
+                    29,
+                    115,
+                    174,
+                    199
+                ]
+            }
+        }
+    },
+    "SSReopenLevelSelect": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "前往",
+                    "GO"
+                ],
+                "roi": [
+                    1166,
+                    94,
+                    71,
+                    93
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SSTaskCompleted": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "MultiRecognition",
+                "custom_recognition_param": {
+                    "nodes": [
+                        "SSTaskCompleted_1",
+                        "SSTaskCompleted_2"
+                    ],
+                    "logic": {
+                        "type": "OR"
+                    },
+                    "return": [
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            }
+        }
+    },
+    "SSTaskCompleted_1": {
+        // 完成标志1：第一栏完成度为1/1
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    530,
+                    128,
+                    51,
+                    47
+                ],
+                "expected": "1/"
+            }
+        }
+    },
+    "SSTaskCompleted_2": {
+        // 完成标志2：第一栏任务内容为消耗（代币）
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    622,
+                    99,
+                    380,
+                    87
+                ],
+                "expected": "消耗"
+            }
+        }
+    },
+    "SSTaskEntry": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "ss_task_entry"
+                ],
+                "roi": [
+                    1120,
+                    91,
+                    147,
+                    153
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000
+    }
+}

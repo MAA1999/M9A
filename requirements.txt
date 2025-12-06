@@ -1,4 +1,5 @@
-maafw>=4.0.0
+maafw==5.2.0-beta.2
 loguru
 pillow
 pytz
+requests

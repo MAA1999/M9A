@@ -16,12 +16,10 @@
             }
         },
         "next": [
-            "ReveriesInTheRainMainFlag"
-        ],
-        "interrupt": [
-            "ReveriesInTheRainMainEntry",
-            "EnterTheShow",
-            "ReturnMain"
+            "ReveriesInTheRainMainFlag",
+            "[JumpBack]ReveriesInTheRainMainEntry",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ReturnMain"
         ]
     },
     "ReveriesInTheRainMainEntry": {
@@ -59,11 +57,9 @@
         },
         "next": [
             "DepthsOfMythEnd",
-            "DepthsOfMythMainFlag"
-        ],
-        "interrupt": [
-            "DepthsOfMythEntry",
-            "DepthsOfMythLoading"
+            "DepthsOfMythMainFlag",
+            "[JumpBack]DepthsOfMythEntry",
+            "[JumpBack]DepthsOfMythLoading"
         ]
     },
     "DepthsOfMythLoading": {
@@ -140,10 +136,8 @@
         },
         "next": [
             "TranceEnd",
-            "TranceMainFlag"
-        ],
-        "interrupt": [
-            "TranceButtonClick"
+            "TranceMainFlag",
+            "[JumpBack]TranceButtonClick"
         ]
     },
     "TranceButtonClick": {
@@ -196,14 +190,12 @@
             }
         },
         "next": [
-            "TranceEnd_1"
-        ],
-        "interrupt": [
-            "ObtainedAwards",
-            "Trancele1",
-            "Trancele2",
-            "Trancele3",
-            "Tranceme4"
+            "TranceEnd_1",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]Trancele1",
+            "[JumpBack]Trancele2",
+            "[JumpBack]Trancele3",
+            "[JumpBack]Trancele4"
         ]
     },
     "TrancePlay": {
@@ -241,11 +233,10 @@
             }
         },
         "next": [
-            "TrancePlayTimesX1"
-        ],
-        "interrupt": [
-            "TranceSetPlayTimesX1",
-            "TranceOpenSetPlayTimes"
+            "ObtainedAwards",
+            "TrancePlayTimesX1",
+            "[JumpBack]TranceSetPlayTimesX1",
+            "[JumpBack]TranceOpenSetPlayTimes"
         ]
     },
     "Trancele2": {
@@ -264,11 +255,10 @@
             }
         },
         "next": [
-            "TrancePlayTimesX2"
-        ],
-        "interrupt": [
-            "TranceSetPlayTimesX2",
-            "TranceOpenSetPlayTimes"
+            "ObtainedAwards",
+            "TrancePlayTimesX2",
+            "[JumpBack]TranceSetPlayTimesX2",
+            "[JumpBack]TranceOpenSetPlayTimes"
         ]
     },
     "Trancele3": {
@@ -287,14 +277,13 @@
             }
         },
         "next": [
-            "TrancePlayTimesX3"
-        ],
-        "interrupt": [
-            "TranceSetPlayTimesX3",
-            "TranceOpenSetPlayTimes"
+            "ObtainedAwards",
+            "TrancePlayTimesX3",
+            "[JumpBack]TranceSetPlayTimesX3",
+            "[JumpBack]TranceOpenSetPlayTimes"
         ]
     },
-    "Tranceme4": {
+    "Trancele4": {
         "doc": "“寻思”x4-8",
         "recognition": {
             "type": "OCR",
@@ -310,11 +299,10 @@
             }
         },
         "next": [
-            "TrancePlayTimesX4"
-        ],
-        "interrupt": [
-            "TranceSetPlayTimesX4",
-            "TranceOpenSetPlayTimes"
+            "ObtainedAwards",
+            "TrancePlayTimesX4",
+            "[JumpBack]TranceSetPlayTimesX4",
+            "[JumpBack]TranceOpenSetPlayTimes"
         ]
     },
     "TranceSetPlayTimesX1": {
@@ -508,10 +496,8 @@
         },
         "post_wait_freezes": 300,
         "next": [
-            "TranceClose"
-        ],
-        "interrupt": [
-            "ObtainedAwards"
+            "TranceClose",
+            "[JumpBack]ObtainedAwards"
         ]
     },
     "TranceClose": {

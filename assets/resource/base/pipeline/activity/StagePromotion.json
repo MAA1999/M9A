@@ -2,17 +2,36 @@
     "StagePromotion": {
         "timeout": 30000,
         "next": [
-            "StagePromotionComplete"
-        ],
-        "interrupt": [
-            "StagePromotionFlagInCombat",
-            "StagePromotionCombatVictory",
-            "StagePromotionSkip",
-            "StagePromotionSkipConfirm",
-            "StagePromotionClickNextStage",
-            "StagePromotionFlagInStoryStage",
-            "StagePromotionStartAction",
-            "StagePromotionClickCurStage"
+            "StagePromotionCurComplete",
+            "[JumpBack]StagePromotionFlagInCombat",
+            "[JumpBack]StagePromotionCombatVictory",
+            "[JumpBack]StagePromotionSkipConfirm",
+            "[JumpBack]StagePromotionSkip",
+            "[JumpBack]StagePromotionClickNextStage",
+            "[JumpBack]StagePromotionFlagInStoryStage",
+            "[JumpBack]StagePromotionStartAction",
+            "[JumpBack]StagePromotionClickCurStage"
+        ]
+    },
+    "StagePromotionFlagInStoryStage_HasNext": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    681,
+                    545,
+                    202,
+                    36
+                ],
+                "expected": "\\d+",
+                "threshold": 0.4
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "StagePromotion"
         ]
     },
     "StagePromotionComplete": {
@@ -22,6 +41,18 @@
                 "custom_recognition": "StagePromotionComplete"
             }
         }
+    },
+    "StagePromotionCurComplete": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "StagePromotionComplete"
+            }
+        },
+        "next": [
+            "StagePromotionFlagInStoryStage_HasNext",
+            "StagePromotionComplete"
+        ]
     },
     "StagePromotionCurStageComplete": {
         "recognition": {
@@ -58,7 +89,7 @@
                     49,
                     43
                 ],
-                "count": 10,
+                "count": 5,
                 "connected": true,
                 "upper": [
                     229,
@@ -83,17 +114,17 @@
                     49,
                     43
                 ],
-                "count": 10,
+                "count": 5,
                 "connected": true,
                 "upper": [
-                    221,
-                    38,
-                    38
+                    210,
+                    90,
+                    90
                 ],
                 "lower": [
-                    183,
-                    29,
-                    29
+                    180,
+                    60,
+                    70
                 ]
             }
         }
@@ -168,10 +199,10 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    701,
-                    550,
-                    182,
-                    53
+                    681,
+                    545,
+                    202,
+                    36
                 ],
                 "expected": "\\d+"
             }
@@ -226,6 +257,17 @@
                     64
                 ],
                 "template": "OutsideDeduction/SOD_Combating.png"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    613,
+                    326,
+                    85,
+                    51
+                ]
             }
         },
         "post_delay": 5000

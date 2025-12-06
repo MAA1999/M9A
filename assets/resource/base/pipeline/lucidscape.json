@@ -2,16 +2,33 @@
     "Lucidscape": {
         "doc": "醒梦域",
         "next": [
-            "FlagInLucidscape"
-        ],
-        "interrupt": [
-            "LucidscapeEntry",
-            "ObtainedAwards",
-            "ArtificialSleepwalkingAwards",
-            "EnterTheShow",
-            "ClickBlank",
-            "ArtificialSleepwalking",
-            "ReturnMain"
+            "LucidscapeEntryEnd",
+            "FlagInLucidscape",
+            "[JumpBack]LucidscapeEntry",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]ArtificialSleepwalkingAwards",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ClickBlank",
+            "[JumpBack]ArtificialSleepwalking",
+            "[JumpBack]ReturnMain"
+        ]
+    },
+    "LucidscapeEntryEnd": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    861,
+                    499,
+                    103,
+                    21
+                ],
+                "only_rec": true,
+                "expected": "700/700"
+            }
+        },
+        "next": [
+            "ResetReturnMain"
         ]
     },
     "FlagInLucidscape": {
@@ -47,10 +64,10 @@
         "post_delay": 3000,
         "next": [
             "LucidscapeFlagInTotalAwards",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton"
+            "HomeFlag",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton",
+            "[JumpBack]ObtainedAwards"
         ]
     },
     "LucidscapeFlagInTotalAwards": {
@@ -68,11 +85,9 @@
             }
         },
         "next": [
-            "LucidscapeTotalAwardsCompleted"
-        ],
-        "interrupt": [
-            "LucidscapeAwardsClick",
-            "ObtainedAwards"
+            "LucidscapeTotalAwardsCompleted",
+            "[JumpBack]LucidscapeAwardsClick",
+            "[JumpBack]ObtainedAwards"
         ]
     },
     "LucidscapeTotalAwardsCompleted": {
@@ -95,20 +110,17 @@
         "action": {
             "type": "Click",
             "param": {
-                "target": "LucidscapeFlagInTotalAwards",
-                "target_offset": [
-                    0,
-                    -80,
-                    0,
-                    0
+                "target": [
+                    546,
+                    651,
+                    165,
+                    44
                 ]
             }
         },
         "next": [
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton"
+            "HomeFlag",
+            "[JumpBack]HomeButton"
         ]
     },
     "LucidscapeStageSelect": {
@@ -227,11 +239,9 @@
         "rate_limit": 10000,
         "next": [
             "LucidscapeFailed",
-            "LucidscapeVictory"
-        ],
-        "interrupt": [
-            "Combating",
-            "LucidscapeSkipWarning"
+            "LucidscapeVictory",
+            "[JumpBack]Combating",
+            "[JumpBack]LucidscapeSkipWarning"
         ]
     },
     "LucidscapeSkipWarning": {
@@ -288,12 +298,12 @@
         "post_delay": 2000,
         "next": [
             "HomeFlag",
-            "LucidscapeFailed"
+            "LucidscapeFailed",
+            "[JumpBack]HomeButton"
         ],
-        "interrupt": [
-            "HomeButton"
-        ],
-        "focus": "[color:red]战斗失败，任务结束[/color]"
+        "focus": {
+            "Node.Action.Starting": "err:战斗失败，任务结束"
+        }
     },
     "LucidscapeVictory": {
         "recognition": {
@@ -324,12 +334,10 @@
         },
         "next": [
             "LucidscapeStatusDetect",
-            "LucidscapeVictory"
-        ],
-        "interrupt": [
-            "HomeLoading",
-            "LucidscapeSkip",
-            "LucidscapeClickBlank"
+            "LucidscapeVictory",
+            "[JumpBack]HomeLoading",
+            "[JumpBack]LucidscapeSkip",
+            "[JumpBack]LucidscapeClickBlank"
         ]
     },
     "LucidscapeSkip": {
@@ -381,7 +389,7 @@
                     48,
                     48
                 ],
-                "template": "Limbo/LimboTeamList_Off.png",
+                "template": "Combat/TeamList_Off.png",
                 "threshold": 0.9
             }
         }
@@ -391,13 +399,36 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    940,
-                    631,
-                    48,
-                    48
+                    36,
+                    63,
+                    137,
+                    141
                 ],
-                "template": "Limbo/LimboTeamList_Open.png",
+                "template": "Combat/TeamList_Open.png",
                 "threshold": 0.9
+            }
+        }
+    },
+    "TeamListEditRoi": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    350,
+                    78,
+                    62,
+                    605
+                ],
+                "template": "Combat/TeamList_Edit.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "TeamListOCR": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": ".*"
             }
         }
     },
@@ -439,11 +470,9 @@
             }
         },
         "next": [
-            "LucidscapeNoAwards"
-        ],
-        "interrupt": [
-            "LucidscapeAwardsClick",
-            "ObtainedAwards"
+            "LucidscapeNoAwards",
+            "[JumpBack]LucidscapeAwardsClick",
+            "[JumpBack]ObtainedAwards"
         ]
     },
     "LucidscapeNoAwards": {
@@ -466,20 +495,17 @@
         "action": {
             "type": "Click",
             "param": {
-                "target": "LucidscapeFlagInAwards",
-                "target_offset": [
-                    158,
-                    -80,
-                    0,
-                    0
+                "target": [
+                    546,
+                    651,
+                    165,
+                    44
                 ]
             }
         },
         "next": [
-            "FlagInLucidscape"
-        ],
-        "interrupt": [
-            "BackButton"
+            "FlagInLucidscape",
+            "[JumpBack]BackButtonWithDelay"
         ]
     },
     "LucidscapeAwardsClick": {

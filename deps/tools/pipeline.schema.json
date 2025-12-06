@@ -1,25 +1,37 @@
 {
-    "$comments": [
-        "1. 添加属性字段需要给出 title 、 description 、 $ref ， $ref 优先使用或新增基础类型，能不写就不要写 default 。",
-        "2. 基础类型以 json 开头，需要给出 default 。",
-        "3. 专有类型如 SwipeListItem ，需要给出 unevaluatedProperties 。",
-        "4. 属性类型如果有 required ，请在 V2 中加入 TypeWithDependent 。"
-    ],
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "patternProperties": {
-        "^(?!.*_comment$)(?!^comment$)(?!.*?\\$schema).*$": {
+        "^(?!\\$).*": {
             "$ref": "#/$defs/Node"
         }
     },
+    "$comment": "*** 初次使用，请连同 custom.*.schema.json 一起复制。 ***",
     "$defs": {
         "CustomRecognitionSchema": {
-            "$comment": "若要使用拓展模式，请为 ref 添加 $ ，编写方法类似 RecognitionV2",
+            "$example": "../test/schema/custom.recognition.schema.json",
+            "$comment": "若要使用该拓展模式，请在下面文件中编写，编写方法类似 RecognitionV2",
             "$ref": "./custom.recognition.schema.json"
         },
         "CustomActionSchema": {
-            "$comment": "若要使用拓展模式，请为 ref 添加 $ ，编写方法类似 ActionV2",
+            "$comment": "若要使用该拓展模式，请在下面文件中编写，编写方法类似 ActionV2",
             "$ref": "./custom.action.schema.json"
+        },
+        "$comments": [
+            "如何编写 pipeline schema",
+            "1. 添加属性字段需要给出 title 、 description 、 $ref ， $ref 优先使用或新增基础类型，能不写就不要写 default 。",
+            "2. 基础类型以 json 开头，需要给出 default 。",
+            "3. 专有类型如 SwipeListItem ，需要给出 unevaluatedProperties 。",
+            "4. 属性类型如果有 required ，请在 V2 中加入 TypeWithDependent 。"
+        ],
+        "jsonCode": {
+            "patternProperties": {
+                ".*_code$|^code$": {
+                    "title": "Code Overridden Property",
+                    "description": "代码覆写 | 该节点属性通过外部代码覆写",
+                    "markdownDescription": "*any*\n\n注释 | 该节点属性的注释说明。"
+                }
+            }
         },
         "jsonDocument": {
             "patternProperties": {
@@ -31,35 +43,23 @@
                 }
             }
         },
-        "jsonComment": {
+        "jsonKeywords": {
             "patternProperties": {
-                ".*_comment$|^comment$": {
-                    "title": "Comment Property",
-                    "description": "注释 | 该节点属性的注释说明。",
-                    "type": "string",
-                    "markdownDescription": "*string*\n\n注释 | 该节点属性的注释说明。"
-                }
-            }
-        },
-        "jsonCode": {
-            "patternProperties": {
-                ".*_code$|^code$": {
-                    "title": "Code Overridden Property",
-                    "description": "代码覆写 | 该节点属性通过外部代码覆写",
-                    "markdownDescription": "*any*\n\n注释 | 该节点属性的注释说明。"
+                "^\\$.*": {
+                    "title": "Reserved Property"
                 }
             }
         },
         "jsonComments": {
             "allOf": [
                 {
+                    "$ref": "#/$defs/jsonCode"
+                },
+                {
                     "$ref": "#/$defs/jsonDocument"
                 },
                 {
-                    "$ref": "#/$defs/jsonComment"
-                },
-                {
-                    "$ref": "#/$defs/jsonCode"
+                    "$ref": "#/$defs/jsonKeywords"
                 }
             ]
         },
@@ -174,6 +174,13 @@
             "maximum": 2147483647,
             "default": 0
         },
+        "jsonNInt32": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0,
+            "maximum": 2147483647,
+            "default": 0
+        },
         "jsonUInt32": {
             "type": "integer",
             "format": "uint32",
@@ -185,6 +192,13 @@
             "type": "integer",
             "format": "int64",
             "minimum": -9223372036854775808,
+            "maximum": 9223372036854775807,
+            "default": 0
+        },
+        "jsonNInt64": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
             "maximum": 9223372036854775807,
             "default": 0
         },
@@ -202,21 +216,18 @@
             "maximum": 170141183460469231731687303715884105727,
             "default": 0
         },
+        "jsonNInt128": {
+            "type": "integer",
+            "format": "int128",
+            "minimum": 0,
+            "maximum": 170141183460469231731687303715884105727,
+            "default": 0
+        },
         "jsonUInt128": {
             "type": "integer",
             "format": "uint128",
             "minimum": 0,
             "maximum": 340282366920938463463374607431768211455,
-            "default": 0
-        },
-        "jsonNInt32": {
-            "$ref": "#/$defs/jsonInt32",
-            "minimum": 0,
-            "default": 0
-        },
-        "jsonNInt64": {
-            "$ref": "#/$defs/jsonInt64",
-            "minimum": 0,
             "default": 0
         },
         "jsonNumber01": {
@@ -290,6 +301,62 @@
                 },
                 {
                     "$ref": "#/$defs/jsonStringList"
+                }
+            ],
+            "default": []
+        },
+        "NodeAttr": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "节点名称"
+                },
+                "jump_back": {
+                    "type": "boolean",
+                    "description": "是否在执行完成后跳回父节点",
+                    "default": false
+                },
+                "anchor": {
+                    "type": "boolean",
+                    "description": "是否是锚点名称而非节点名称",
+                    "default": false
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": false
+        },
+        "jsonNodeItem": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "description": "节点名称，可带前缀如 [JumpBack]NodeName"
+                },
+                {
+                    "$ref": "#/$defs/NodeAttr"
+                }
+            ]
+        },
+        "jsonNodeList": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/jsonNodeItem"
+            },
+            "default": []
+        },
+        "jsonNodeOrList": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "description": "节点名称，可带前缀如 [JumpBack]NodeName"
+                },
+                {
+                    "$ref": "#/$defs/NodeAttr"
+                },
+                {
+                    "$ref": "#/$defs/jsonNodeList"
                 }
             ],
             "default": []
@@ -377,6 +444,18 @@
                 0
             ]
         },
+        "jsonPoint": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/jsonInt32"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "default": [
+                0,
+                0
+            ]
+        },
         "jsonRoi": {
             "anyOf": [
                 {
@@ -399,7 +478,28 @@
                     "$ref": "#/$defs/jsonConstTrue"
                 },
                 {
+                    "$ref": "#/$defs/jsonPoint"
+                },
+                {
                     "$ref": "#/$defs/jsonRoi"
+                }
+            ],
+            "default": true
+        },
+        "jsonTargetList": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/jsonTarget"
+            },
+            "default": []
+        },
+        "jsonTargetOrList": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/jsonTarget"
+                },
+                {
+                    "$ref": "#/$defs/jsonTargetList"
                 }
             ],
             "default": true
@@ -438,9 +538,11 @@
                     "const": "DirectHit"
                 },
                 "param": {
-                    "$ref": "#/$defs/DirectHit",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/DirectHit"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -502,7 +604,7 @@
                         3,
                         5
                     ],
-                    "markdownDescription": "*int*\n\n模板匹配算法，即 cv::TemplateMatchModes。可选，默认 5 。\n\n仅支持 1、3、5，可简单理解为越大的越精确，但也会更慢。\n\n详情请参考 [OpenCV 官方文档](https://docs.opencv.org/4.x/df/dfb/group__imgproc__object.html)。",
+                    "markdownDescription": "*int*\n\n模板匹配算法，即 cv::TemplateMatchModes。可选，默认 5 。\n\n详情请参考 [OpenCV 官方文档](https://docs.opencv.org/4.x/df/dfb/group__imgproc__object.html)。\n\n| method | 算法名称 | 匹配规则 | 速度 | 颜色敏感度 | 光照鲁棒性 | 适用场景 |\n|--------|---------|---------|------|-----------|-----------|----------|\n| 1 | TM_SQDIFF_NORMED | 分越**低**越匹配 | 快 | 敏感 | 差 | 精确匹配，阈值易设定 |\n| 3 | TM_CCORR_NORMED | 分越高越匹配 | 中等 | 敏感 | 中 | 模板较亮时效果好 |\n| 5 | TM_CCOEFF_NORMED | 分越高越匹配 | 较慢 | 不敏感 | 好 | **推荐**，阈值易设定 |",
                     "defaultSnippets": [
                         {
                             "label": "SQDIFF",
@@ -523,7 +625,7 @@
                     "title": "Green Mask Property",
                     "description": "是否进行绿色掩码。可选，默认 false 。",
                     "$ref": "#/$defs/jsonBooleanFalse",
-                    "markdownDescription": "*bool*\n\n是否进行绿色掩码。可选，默认 false 。\n\n若为 true，可以将图片中不希望匹配的部分涂绿 RGB: (0, 255, 0)，则不对绿色部分进行匹配。"
+                    "markdownDescription": "*bool*\n\n是否进行绿色掩码。可选，默认 false 。\n\n若为 true，可以将图片中不希望匹配的部分涂绿 RGB: (0, 255, 0)，则不对绿色部分进行匹配。\n\n注意：算法本身具有较强鲁棒性，常规背景变化通常无需使用此功能。若确需使用，应仅遮盖干扰区域，避免过度涂抹导致主体边缘特征丢失。"
                 }
             },
             "anyOf": [
@@ -557,9 +659,11 @@
                     "const": "TemplateMatch"
                 },
                 "param": {
-                    "$ref": "#/$defs/TemplateMatch",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/TemplateMatch"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -585,7 +689,7 @@
                     "title": "Template Property",
                     "description": "模板图片路径，需要 `image` 文件夹的相对路径。必选。",
                     "$ref": "#/$defs/jsonStringOrList",
-                    "markdownDescription": "*string* | *list<string, >*\n\n模板图片路径，需要 `image` 文件夹的相对路径。必选。\n\n支持填写文件夹路径，将递归加载其中所有图片文件。"
+                    "markdownDescription": "*string* | *list<string, >*\n\n模板图片路径，需要 `image` 文件夹的相对路径。必选。\n\n支持填写文件夹路径，将递归加载其中所有图片文件。\n\n注意事项：\n- 模板图片不宜过小，建议至少 64x64 像素，否则特征点过少可能导致匹配失败或误匹配。\n- 模板应包含足够的纹理细节（如边缘、角点），纯色或渐变区域特征点稀少。\n- 避免模板中包含大量重复纹理（如格子、条纹），可能导致特征点匹配混乱。"
                 },
                 "count": {
                     "title": "Count Property",
@@ -617,7 +721,7 @@
                     "title": "Green Mask Property",
                     "description": "是否进行绿色掩码。可选，默认 false 。",
                     "$ref": "#/$defs/jsonBooleanFalse",
-                    "markdownDescription": "*bool*\n\n是否进行绿色掩码。可选，默认 false 。\n\n若为 true，可以将图片中不希望匹配的部分涂绿 RGB: (0, 255, 0)，则不对绿色部分进行匹配。"
+                    "markdownDescription": "*bool*\n\n是否进行绿色掩码。可选，默认 false 。\n\n若为 true，可以将图片中不希望匹配的部分涂绿 RGB: (0, 255, 0)，则不对绿色部分进行匹配。\n\n注意：算法本身具有较强的鲁棒性，一般背景变化无需使用此功能。若确需使用，应仅遮盖干扰区域，避免过度涂抹导致主体边缘特征丢失。"
                 },
                 "detector": {
                     "title": "Detector Property",
@@ -629,7 +733,7 @@
                         "KAZE",
                         "AKAZE"
                     ],
-                    "markdownDescription": "*string*\n\n特征检测器。可选，默认 `SIFT` 。\n\n目前支持以下算法：\n\n  - SIFT\n\n计算复杂度高，具有尺度不变性、旋转不变性。效果最好。\n\n- KAZE\n\n适用于2D和3D图像，具有尺度不变性、旋转不变性。\n\n- AKAZE\n\n计算速度较快，具有尺度不变性、旋转不变性。\n\n- BRISK\n\n计算速度非常快，具有尺度不变性、旋转不变性。\n\n- ORB\n\n计算速度非常快，具有旋转不变性。但不具有尺度不变性。\n\n各算法特点详情可自行进一步查询。",
+                    "markdownDescription": "*string*\n\n特征检测器。可选，默认 `SIFT` 。\n\n| 检测器 | 速度 | 尺度不变性 | 旋转不变性 | 精度 | 适用场景 |\n|--------|------|-----------|-----------|------|----------|\n| SIFT | 慢 | 有 | 有 | 最高 | **推荐**，对精度要求高的场景 |\n| KAZE | 较慢 | 有 | 有 | 高 | 2D/3D 图像，边缘保持好 |\n| AKAZE | 中等 | 有 | 有 | 较高 | 速度与精度平衡 |\n| BRISK | 快 | 有 | 有 | 中等 | 实时性要求高的场景 |\n| ORB | 最快 | **无** | 有 | 较低 | 模板与目标尺寸一致时使用 |",
                     "default": "SIFT"
                 },
                 "ratio": {
@@ -671,9 +775,11 @@
                     "const": "FeatureMatch"
                 },
                 "param": {
-                    "$ref": "#/$defs/FeatureMatch",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/FeatureMatch"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -806,9 +912,11 @@
                     "const": "ColorMatch"
                 },
                 "param": {
-                    "$ref": "#/$defs/ColorMatch",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/ColorMatch"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -857,9 +965,10 @@
                         "Vertical",
                         "Area",
                         "Length",
-                        "Random"
+                        "Random",
+                        "Expected"
                     ],
-                    "markdownDescription": "*string*\n\n结果排序方式。可选，默认 `Horizontal`。\n\n可选的值：`Horizontal` | `Vertical` | `Area` | `Length` | `Random` 。\n\n可结合 `index` 字段使用。",
+                    "markdownDescription": "*string*\n\n结果排序方式。可选，默认 `Horizontal`。\n\n可选的值：`Horizontal` | `Vertical` | `Area` | `Length` | `Random` | `Expected` 。\n\n可结合 `index` 字段使用。",
                     "default": "Horizontal"
                 },
                 "index": {
@@ -912,9 +1021,11 @@
                     "const": "OCR"
                 },
                 "param": {
-                    "$ref": "#/$defs/Ocr",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/Ocr"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -961,9 +1072,10 @@
                         "Horizontal",
                         "Vertical",
                         "Score",
-                        "Random"
+                        "Random",
+                        "Expected"
                     ],
-                    "markdownDescription": "*string*\n\n结果排序方式。可选，默认 `Horizontal` 。\n\n可选的值：`Horizontal` | `Vertical` | `Score` | `Random` 。\n\n可结合 `index` 字段使用。",
+                    "markdownDescription": "*string*\n\n结果排序方式。可选，默认 `Horizontal` 。\n\n可选的值：`Horizontal` | `Vertical` | `Score` | `Random` | `Expected` 。\n\n可结合 `index` 字段使用。",
                     "default": "Horizontal"
                 },
                 "index": {
@@ -1018,9 +1130,11 @@
                     "const": "NeuralNetworkClassify"
                 },
                 "param": {
-                    "$ref": "#/$defs/NeuralNetworkClassify",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/NeuralNetworkClassify"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -1046,7 +1160,7 @@
                     "title": "Labels Property",
                     "description": "标注，即每个分类的名字。可选。",
                     "$ref": "#/$defs/jsonStringList",
-                    "markdownDescription": "*list<string, >*\n\n标注，即每个分类的名字。可选。\n\n仅影响调试图片及日志等，若未填写则会填充 \"Unknown\" 。"
+                    "markdownDescription": "*list<string, >*\n\n标注，即每个分类的名字。可选。\n\n仅影响调试图片及日志等。若未填写，会自动从模型 metadata 中读取（支持从 `names`、`name`、`labels`、`class_names` 字段读取），一般无需手动设置。若模型 metadata 中也没有，则会填充 \"Unknown\" 。"
                 },
                 "model": {
                     "title": "Model Property",
@@ -1075,9 +1189,10 @@
                         "Vertical",
                         "Score",
                         "Area",
-                        "Random"
+                        "Random",
+                        "Expected"
                     ],
-                    "markdownDescription": "*string*\n\n结果排序方式。可选，默认 `Horizontal` 。\n\n可选的值：`Horizontal` | `Vertical` | `Score` | `Area` | `Random` 。\n\n可结合 `index` 字段使用。",
+                    "markdownDescription": "*string*\n\n结果排序方式。可选，默认 `Horizontal` 。\n\n可选的值：`Horizontal` | `Vertical` | `Score` | `Area` | `Random` | `Expected` 。\n\n可结合 `index` 字段使用。",
                     "default": "Horizontal"
                 },
                 "index": {
@@ -1132,9 +1247,11 @@
                     "const": "NeuralNetworkDetect"
                 },
                 "param": {
-                    "$ref": "#/$defs/NeuralNetworkDetect",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/NeuralNetworkDetect"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -1164,9 +1281,9 @@
                 },
                 "custom_recognition_param": {
                     "title": "Custom Recognition Param Property",
-                    "description": "识别参数，任意类型，会通过 `MaaCustomRecognitionCallback`.`custom_recognition_param` 传出。可选，默认空 json，即 `{}` 。",
+                    "description": "识别参数，任意类型，会通过 `MaaCustomRecognitionCallback`.`custom_recognition_param` 传出。可选，默认 `null` 。",
                     "$ref": "#/$defs/jsonDefaultObject",
-                    "markdownDescription": "*any*\n\n识别参数，任意类型，会通过 `MaaCustomRecognitionCallback`.`custom_recognition_param` 传出。可选，默认空 json，即 `{}` 。"
+                    "markdownDescription": "*any*\n\n识别参数，任意类型，会通过 `MaaCustomRecognitionCallback`.`custom_recognition_param` 传出。可选，默认 `null` 。"
                 }
             },
             "allOf": [
@@ -1205,9 +1322,11 @@
                     "const": "Custom"
                 },
                 "param": {
-                    "$ref": "#/$defs/CustomRecognition",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/CustomRecognition"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -1240,9 +1359,11 @@
             },
             "properties": {
                 "param": {
-                    "$ref": "#/$defs/RecognitionPropertyFields",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/RecognitionPropertyFields"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -1744,9 +1865,11 @@
                     "const": "DoNothing"
                 },
                 "param": {
-                    "$ref": "#/$defs/DoNothing",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/DoNothing"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -1761,13 +1884,20 @@
                     "title": "Target Property",
                     "description": "点击目标的位置。可选，默认 true 。",
                     "$ref": "#/$defs/jsonTarget",
-                    "markdownDescription": "*true* | *string* | *array<int, 4>*\n\n点击目标的位置。可选，默认 true 。\n\n- *true*: 目标为本节点中刚刚识别到的位置（即自身）。\n\n- *string*: 填写节点名，目标为之前执行过的某节点识别到的位置。\n\n- *array<int, 4>*: 目标为固定坐标区域内随机一点，[x, y, w, h]，若希望全屏可设为 [0, 0, 0, 0] 。"
+                    "markdownDescription": "*true* | *string* | *array<int, 2>* | *array<int, 4>*\n\n点击目标的位置。可选，默认 true 。\n\n- *true*: 目标为本节点中刚刚识别到的位置（即自身）。\n\n- *string*: 填写节点名，目标为之前执行过的某节点识别到的位置。\n\n- *array<int, 2>*: 固定坐标点 [x, y]。\n\n- *array<int, 4>*: 固定坐标区域 [x, y, w, h]，会在矩形内随机选取一点（越靠近中心概率越高，边缘概率相对较低），若希望全屏可设为 [0, 0, 0, 0] 。"
                 },
                 "target_offset": {
                     "title": "Target Offset Property",
                     "description": "在 `target` 的基础上额外移动再作为点击目标，四个值分别相加。可选，默认 [0, 0, 0, 0] 。",
                     "$ref": "#/$defs/jsonRect",
                     "markdownDescription": "*array<int, 4>*\n\n在 `target` 的基础上额外移动再作为点击目标，四个值分别相加。可选，默认 [0, 0, 0, 0] 。"
+                },
+                "contact": {
+                    "title": "Contact Property",
+                    "description": "触点编号，用于区分不同的触控点。可选，默认 0 。",
+                    "$ref": "#/$defs/jsonUInt32",
+                    "markdownDescription": "*uint*\n\n触点编号，用于区分不同的触控点。可选，默认 0 。\n\n- Adb 控制器：表示手指编号（0 为第一根手指，1 为第二根手指，以此类推）\n- Win32 控制器：表示鼠标按键编号（0 为左键，1 为右键，2 为中键，3 为 XBUTTON1，4 为 XBUTTON2）",
+                    "default": 0
                 }
             }
         },
@@ -1789,9 +1919,11 @@
                     "const": "Click"
                 },
                 "param": {
-                    "$ref": "#/$defs/Click",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/Click"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -1806,7 +1938,7 @@
                     "title": "Target Property",
                     "description": "长按目标的位置。可选，默认 true 。",
                     "$ref": "#/$defs/jsonTarget",
-                    "markdownDescription": "*true* | *string* | *array<int, 4>*\n\n长按目标的位置。可选，默认 true 。\n\n- *true*: 目标为本节点中刚刚识别到的位置（即自身）。\n\n- *string*: 填写节点名，目标为之前执行过的某节点识别到的位置。\n\n- *array<int, 4>*: 目标为固定坐标区域内随机一点，[x, y, w, h]，若希望全屏可设为 [0, 0, 0, 0] 。"
+                    "markdownDescription": "*true* | *string* | *array<int, 2>* | *array<int, 4>*\n\n长按目标的位置。可选，默认 true 。\n\n- *true*: 目标为本节点中刚刚识别到的位置（即自身）。\n\n- *string*: 填写节点名，目标为之前执行过的某节点识别到的位置。\n\n- *array<int, 2>*: 固定坐标点 [x, y]。\n\n- *array<int, 4>*: 固定坐标区域 [x, y, w, h]，会在矩形内随机选取一点（越靠近中心概率越高，边缘概率相对较低），若希望全屏可设为 [0, 0, 0, 0] 。"
                 },
                 "target_offset": {
                     "title": "Target Offset Property",
@@ -1820,6 +1952,13 @@
                     "$ref": "#/$defs/jsonUInt32",
                     "markdownDescription": "*uint*\n\n长按持续时间，单位毫秒。可选，默认 1000 。",
                     "default": 1000
+                },
+                "contact": {
+                    "title": "Contact Property",
+                    "description": "触点编号，用于区分不同的触控点。可选，默认 0 。",
+                    "$ref": "#/$defs/jsonUInt32",
+                    "markdownDescription": "*uint*\n\n触点编号，用于区分不同的触控点。可选，默认 0 。\n\n- Adb 控制器：表示手指编号（0 为第一根手指，1 为第二根手指，以此类推）\n- Win32 控制器：表示鼠标按键编号（0 为左键，1 为右键，2 为中键，3 为 XBUTTON1，4 为 XBUTTON2）",
+                    "default": 0
                 }
             }
         },
@@ -1841,9 +1980,11 @@
                     "const": "LongPress"
                 },
                 "param": {
-                    "$ref": "#/$defs/LongPress",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/LongPress"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -1858,7 +1999,7 @@
                     "title": "Begin Property",
                     "description": "滑动起点。可选，默认 true 。",
                     "$ref": "#/$defs/jsonTarget",
-                    "markdownDescription": "*true* | *string* | *array<int, 4>*\n\n滑动起点。可选，默认 true 。\n\n- *true*: 目标为本节点中刚刚识别到的位置（即自身）。\n\n- *string*: 填写节点名，目标为之前执行过的某节点识别到的位置。\n\n- *array<int, 4>*: 目标为固定坐标区域内随机一点，[x, y, w, h]，若希望全屏可设为 [0, 0, 0, 0] 。"
+                    "markdownDescription": "*true* | *string* | *array<int, 2>* | *array<int, 4>*\n\n滑动起点。可选，默认 true 。\n\n- *true*: 目标为本节点中刚刚识别到的位置（即自身）。\n\n- *string*: 填写节点名，目标为之前执行过的某节点识别到的位置。\n\n- *array<int, 2>*: 固定坐标点 [x, y]。\n\n- *array<int, 4>*: 固定坐标区域 [x, y, w, h]，会在矩形内随机选取一点（越靠近中心概率越高，边缘概率相对较低），若希望全屏可设为 [0, 0, 0, 0] 。"
                 },
                 "begin_offset": {
                     "title": "Begin Offset Property",
@@ -1869,8 +2010,8 @@
                 "end": {
                     "title": "End Property",
                     "description": "滑动终点。可选，默认 true 。",
-                    "$ref": "#/$defs/jsonTarget",
-                    "markdownDescription": "*true* | *string* | *array<int, 4>*\n\n滑动终点。可选，默认 true 。\n\n- *true*: 目标为本节点中刚刚识别到的位置（即自身）。\n\n- *string*: 填写节点名，目标为之前执行过的某节点识别到的位置。\n\n- *array<int, 4>*: 目标为固定坐标区域内随机一点，[x, y, w, h]，若希望全屏可设为 [0, 0, 0, 0] 。"
+                    "$ref": "#/$defs/jsonTargetOrList",
+                    "markdownDescription": "*true* | *string* | *array<int, 2>* | *array<int, 4>* | *list<true | string | array<int, 2> | array<int, 4>>*\n\n滑动终点。可选，默认 true 。\n\n- *true*: 目标为本节点中刚刚识别到的位置（即自身）。\n\n- *string*: 填写节点名，目标为之前执行过的某节点识别到的位置。\n\n- *array<int, 2>*: 固定坐标点 [x, y]。\n\n- *array<int, 4>*: 固定坐标区域 [x, y, w, h]，会在矩形内随机选取一点（越靠近中心概率越高，边缘概率相对较低），若希望全屏可设为 [0, 0, 0, 0] 。\n\n- *list<...>*: v4.5.x 版本新增支持，可配置滑动途径点，列表内各项不抬手连续滑动。"
                 },
                 "end_offset": {
                     "title": "End Offset Property",
@@ -1884,6 +2025,13 @@
                     "$ref": "#/$defs/jsonUInt32",
                     "markdownDescription": "*uint*\n\n滑动持续时间，单位毫秒。可选，默认 200 。",
                     "default": 200
+                },
+                "contact": {
+                    "title": "Contact Property",
+                    "description": "触点编号，用于区分不同的触控点。可选，默认 0 。",
+                    "$ref": "#/$defs/jsonUInt32",
+                    "markdownDescription": "*uint*\n\n触点编号，用于区分不同的触控点。可选，默认 0 。\n\n- Adb 控制器：表示手指编号（0 为第一根手指，1 为第二根手指，以此类推）\n- Win32 控制器：表示鼠标按键编号（0 为左键，1 为右键，2 为中键，3 为 XBUTTON1，4 为 XBUTTON2）",
+                    "default": 0
                 }
             }
         },
@@ -1905,9 +2053,11 @@
                     "const": "Swipe"
                 },
                 "param": {
-                    "$ref": "#/$defs/Swipe",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/Swipe"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -1983,9 +2133,321 @@
                     "const": "MultiSwipe"
                 },
                 "param": {
-                    "$ref": "#/$defs/MultiSwipe",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/MultiSwipe"
+                        },
+                        {
+                            "$ref": "#/$defs/jsonComments"
+                        }
+                    ]
+                }
+            },
+            "dependentSchemas": {
+                "type": {
+                    "$ref": "#/$defs/TypeWithDependent"
+                }
+            }
+        },
+        "Touch": {
+            "type": "object",
+            "properties": {
+                "contact": {
+                    "title": "Contact Property",
+                    "description": "触点编号，用于区分不同的触控点。可选，默认 0 。",
+                    "$ref": "#/$defs/jsonUInt32",
+                    "markdownDescription": "*uint*\n\n触点编号，用于区分不同的触控点。可选，默认 0 。\n\n- Adb 控制器：表示手指编号（0 为第一根手指，1 为第二根手指，以此类推）\n- Win32 控制器：表示鼠标按键编号（0 为左键，1 为右键，2 为中键，3 为 XBUTTON1，4 为 XBUTTON2）",
+                    "default": 0
+                },
+                "target": {
+                    "title": "Target Property",
+                    "description": "触控目标的位置。可选，默认 true 。",
+                    "$ref": "#/$defs/jsonTarget",
+                    "markdownDescription": "*true* | *string* | *array<int, 4>*\n\n触控目标的位置。可选，默认 true 。\n\n- *true*: 目标为本节点中刚刚识别到的位置（即自身）。\n\n- *string*: 填写节点名，目标为之前执行过的某节点识别到的位置。\n\n- *array<int, 4>*: 目标为固定坐标区域内随机一点，[x, y, w, h]，若希望全屏可设为 [0, 0, 0, 0] 。"
+                },
+                "target_offset": {
+                    "title": "Target Offset Property",
+                    "description": "在 `target` 的基础上额外移动再作为触控目标，四个值分别相加。可选，默认 [0, 0, 0, 0] 。",
+                    "$ref": "#/$defs/jsonRect",
+                    "markdownDescription": "*array<int, 4>*\n\n在 `target` 的基础上额外移动再作为触控目标，四个值分别相加。可选，默认 [0, 0, 0, 0] 。"
+                },
+                "pressure": {
+                    "title": "Pressure Property",
+                    "description": "触控压力，范围取决于控制器实现。可选，默认 0 。",
+                    "$ref": "#/$defs/jsonInt32",
+                    "markdownDescription": "*int*\n\n触控压力，范围取决于控制器实现。可选，默认 0 。",
+                    "default": 0
+                }
+            }
+        },
+        "TouchDownV1": {
+            "properties": {
+                "action": {
+                    "const": "TouchDown"
+                }
+            },
+            "allOf": [
+                {
+                    "$ref": "#/$defs/Touch"
+                }
+            ]
+        },
+        "TouchDownV2": {
+            "properties": {
+                "type": {
+                    "const": "TouchDown"
+                },
+                "param": {
+                    "unevaluatedProperties": false,
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Touch"
+                        },
+                        {
+                            "$ref": "#/$defs/jsonComments"
+                        }
+                    ]
+                }
+            }
+        },
+        "TouchMoveV1": {
+            "properties": {
+                "action": {
+                    "const": "TouchMove"
+                }
+            },
+            "allOf": [
+                {
+                    "$ref": "#/$defs/Touch"
+                }
+            ]
+        },
+        "TouchMoveV2": {
+            "properties": {
+                "type": {
+                    "const": "TouchMove"
+                },
+                "param": {
+                    "unevaluatedProperties": false,
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Touch"
+                        },
+                        {
+                            "$ref": "#/$defs/jsonComments"
+                        }
+                    ]
+                }
+            }
+        },
+        "TouchUp": {
+            "type": "object",
+            "properties": {
+                "contact": {
+                    "title": "Contact Property",
+                    "description": "触点编号，用于区分不同的触控点。可选，默认 0 。",
+                    "$ref": "#/$defs/jsonUInt32",
+                    "markdownDescription": "*uint*\n\n触点编号，用于区分不同的触控点。可选，默认 0 。\n\n- Adb 控制器：表示手指编号（0 为第一根手指，1 为第二根手指，以此类推）\n- Win32 控制器：表示鼠标按键编号（0 为左键，1 为右键，2 为中键，3 为 XBUTTON1，4 为 XBUTTON2）",
+                    "default": 0
+                }
+            }
+        },
+        "TouchUpV1": {
+            "properties": {
+                "action": {
+                    "const": "TouchUp"
+                }
+            },
+            "allOf": [
+                {
+                    "$ref": "#/$defs/TouchUp"
+                }
+            ]
+        },
+        "TouchUpV2": {
+            "properties": {
+                "type": {
+                    "const": "TouchUp"
+                },
+                "param": {
+                    "unevaluatedProperties": false,
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/TouchUp"
+                        },
+                        {
+                            "$ref": "#/$defs/jsonComments"
+                        }
+                    ]
+                }
+            }
+        },
+        "Scroll": {
+            "type": "object",
+            "properties": {
+                "dx": {
+                    "title": "Scroll Dx Property",
+                    "description": "水平滚动距离，正值向右滚动，负值向左滚动。可选，默认 0。",
+                    "type": "integer",
+                    "default": 0,
+                    "markdownDescription": "*int*\n\n水平滚动距离，正值向右滚动，负值向左滚动。可选，默认 0。"
+                },
+                "dy": {
+                    "title": "Scroll Dy Property",
+                    "description": "垂直滚动距离，正值向下滚动，负值向上滚动。可选，默认 0。",
+                    "type": "integer",
+                    "default": 0,
+                    "markdownDescription": "*int*\n\n垂直滚动距离，正值向下滚动，负值向上滚动。可选，默认 0。"
+                }
+            }
+        },
+        "ScrollV1": {
+            "properties": {
+                "action": {
+                    "const": "Scroll"
+                }
+            },
+            "allOf": [
+                {
+                    "$ref": "#/$defs/Scroll"
+                }
+            ]
+        },
+        "ScrollV2": {
+            "properties": {
+                "type": {
+                    "const": "Scroll"
+                },
+                "param": {
+                    "unevaluatedProperties": false,
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Scroll"
+                        },
+                        {
+                            "$ref": "#/$defs/jsonComments"
+                        }
+                    ]
+                }
+            }
+        },
+        "KeyDown": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "title": "KeyDown Property",
+                    "description": "要按下的键，仅支持对应控制器的虚拟按键码。必选。注意：仅支持单个按键，不支持列表。",
+                    "$ref": "#/$defs/jsonInt32",
+                    "markdownDescription": "*int*\n\n要按下的键，仅支持对应控制器的虚拟按键码。必选。**注意：仅支持单个按键，不支持列表。**\n\n- [Adb 控制器](https://developer.android.com/reference/android/view/KeyEvent)\n\n- [Win32 控制器](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes)"
+                },
+                "key_code": {
+                    "title": "KeyDown Property (Legacy)",
+                    "description": "与 `key` 相同，向下兼容字段。",
+                    "$ref": "#/$defs/jsonInt32",
+                    "markdownDescription": "*int*\n\n与 `key` 相同，向下兼容字段。"
+                }
+            },
+            "anyOf": [
+                {
+                    "required": [
+                        "key"
+                    ]
+                },
+                {
+                    "required": [
+                        "key_code"
+                    ]
+                }
+            ]
+        },
+        "KeyDownV1": {
+            "properties": {
+                "action": {
+                    "const": "KeyDown"
+                }
+            },
+            "allOf": [
+                {
+                    "$ref": "#/$defs/KeyDown"
+                }
+            ]
+        },
+        "KeyDownV2": {
+            "properties": {
+                "type": {
+                    "const": "KeyDown"
+                },
+                "param": {
+                    "unevaluatedProperties": false,
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/KeyDown"
+                        },
+                        {
+                            "$ref": "#/$defs/jsonComments"
+                        }
+                    ]
+                }
+            },
+            "dependentSchemas": {
+                "type": {
+                    "$ref": "#/$defs/TypeWithDependent"
+                }
+            }
+        },
+        "KeyUp": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "title": "KeyUp Property",
+                    "description": "要松开的键，仅支持对应控制器的虚拟按键码。必选。注意：仅支持单个按键，不支持列表。",
+                    "$ref": "#/$defs/jsonInt32",
+                    "markdownDescription": "*int*\n\n要松开的键，仅支持对应控制器的虚拟按键码。必选。**注意：仅支持单个按键，不支持列表。**\n\n- [Adb 控制器](https://developer.android.com/reference/android/view/KeyEvent)\n\n- [Win32 控制器](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes)"
+                },
+                "key_code": {
+                    "title": "KeyUp Property (Legacy)",
+                    "description": "与 `key` 相同，向下兼容字段。",
+                    "$ref": "#/$defs/jsonInt32",
+                    "markdownDescription": "*int*\n\n与 `key` 相同，向下兼容字段。"
+                }
+            },
+            "anyOf": [
+                {
+                    "required": [
+                        "key"
+                    ]
+                },
+                {
+                    "required": [
+                        "key_code"
+                    ]
+                }
+            ]
+        },
+        "KeyUpV1": {
+            "properties": {
+                "action": {
+                    "const": "KeyUp"
+                }
+            },
+            "allOf": [
+                {
+                    "$ref": "#/$defs/KeyUp"
+                }
+            ]
+        },
+        "KeyUpV2": {
+            "properties": {
+                "type": {
+                    "const": "KeyUp"
+                },
+                "param": {
+                    "unevaluatedProperties": false,
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/KeyUp"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -2039,9 +2501,11 @@
                     "const": "ClickKey"
                 },
                 "param": {
-                    "$ref": "#/$defs/ClickKey",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/ClickKey"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -2061,7 +2525,7 @@
                     "title": "LongPressKey Property",
                     "description": "要按的键，仅支持对应控制器的虚拟按键码。必选。",
                     "$ref": "#/$defs/jsonInt32OrList",
-                    "markdownDescription": "*int*\n\n要按的键，仅支持对应控制器的虚拟按键码。必选。\n\n- [Adb 控制器](https://developer.android.com/reference/android/view/KeyEvent)\n\n- [Win32 控制器](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes)"
+                    "markdownDescription": "*int* | *list<int, >*\n\n要按的键，仅支持对应控制器的虚拟按键码。必选。\n\n- [Adb 控制器](https://developer.android.com/reference/android/view/KeyEvent)\n\n- [Win32 控制器](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes)"
                 },
                 "duration": {
                     "title": "Duration Property",
@@ -2102,9 +2566,11 @@
                     "const": "LongPressKey"
                 },
                 "param": {
-                    "$ref": "#/$defs/LongPressKey",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/LongPressKey"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -2158,9 +2624,11 @@
                     "const": "InputText"
                 },
                 "param": {
-                    "$ref": "#/$defs/InputText",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/InputText"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -2214,9 +2682,11 @@
                     "const": "StartApp"
                 },
                 "param": {
-                    "$ref": "#/$defs/StartApp",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/StartApp"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -2270,9 +2740,11 @@
                     "const": "StopApp"
                 },
                 "param": {
-                    "$ref": "#/$defs/StopApp",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/StopApp"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -2307,9 +2779,11 @@
                     "const": "StopTask"
                 },
                 "param": {
-                    "$ref": "#/$defs/StopTask",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/StopTask"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -2370,9 +2844,11 @@
                     "const": "Command"
                 },
                 "param": {
-                    "$ref": "#/$defs/Command",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/Command"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -2392,7 +2868,7 @@
                     "title": "Target Property",
                     "description": "目标的位置，会通过 `MaaCustomActionCallback`.`box` 传出。可选，默认 true 。",
                     "$ref": "#/$defs/jsonTarget",
-                    "markdownDescription": "*true* | *string* | *array<int, 4>*\n\n目标的位置，会通过 `MaaCustomActionCallback`.`box` 传出。可选，默认 true 。\n\n- *true*: 目标为本节点中刚刚识别到的位置（即自身）。\n\n- *string*: 填写节点名，目标为之前执行过的某节点识别到的位置。\n\n- *array<int, 4>*: 目标为固定坐标区域内随机一点，[x, y, w, h]，若希望全屏可设为 [0, 0, 0, 0] 。"
+                    "markdownDescription": "*true* | *string* | *array<int, 2>* | *array<int, 4>*\n\n目标的位置，会通过 `MaaCustomActionCallback`.`box` 传出。可选，默认 true 。\n\n- *true*: 目标为本节点中刚刚识别到的位置（即自身）。\n\n- *string*: 填写节点名，目标为之前执行过的某节点识别到的位置。\n\n- *array<int, 2>*: 固定坐标点 [x, y]。\n\n- *array<int, 4>*: 固定坐标区域 [x, y, w, h]，会在矩形内随机选取一点（越靠近中心概率越高，边缘概率相对较低），若希望全屏可设为 [0, 0, 0, 0] 。"
                 },
                 "target_offset": {
                     "title": "Target Offset Property",
@@ -2408,15 +2884,9 @@
                 },
                 "custom_action_param": {
                     "title": "Custom Action Param Property",
-                    "description": "动作参数，任意类型，会通过 `MaaCustomActionCallback`.`custom_action_param` 传出。可选，默认空 json，即 `{}` 。",
+                    "description": "动作参数，任意类型，会通过 `MaaCustomActionCallback`.`custom_action_param` 传出。可选，默认 `null` 。",
                     "$ref": "#/$defs/jsonDefaultObject",
-                    "markdownDescription": "*any*\n\n动作参数，任意类型，会通过 `MaaCustomActionCallback`.`custom_action_param` 传出。可选，默认空 json，即 `{}` 。"
-                },
-                "custom_action_param_code": {
-                    "title": "Custom Action Param Code Property",
-                    "description": "代码覆写 | 该节点属性通过外部代码覆写",
-                    "type": "string",
-                    "markdownDescription": "*string*\n\n代码覆写 | 该节点属性通过外部代码覆写。"
+                    "markdownDescription": "*any*\n\n动作参数，任意类型，会通过 `MaaCustomActionCallback`.`custom_action_param` 传出。可选，默认 `null` 。"
                 }
             },
             "allOf": [
@@ -2455,9 +2925,11 @@
                     "const": "Custom"
                 },
                 "param": {
-                    "$ref": "#/$defs/CustomAction",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/CustomAction"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -2490,9 +2962,11 @@
             },
             "properties": {
                 "param": {
-                    "$ref": "#/$defs/ActionPropertyFields",
                     "unevaluatedProperties": false,
                     "allOf": [
+                        {
+                            "$ref": "#/$defs/ActionPropertyFields"
+                        },
                         {
                             "$ref": "#/$defs/jsonComments"
                         }
@@ -2508,8 +2982,14 @@
                 "LongPress",
                 "Swipe",
                 "MultiSwipe",
+                "TouchDown",
+                "TouchMove",
+                "TouchUp",
+                "Scroll",
                 "ClickKey",
                 "LongPressKey",
+                "KeyDown",
+                "KeyUp",
                 "InputText",
                 "StartApp",
                 "StopApp",
@@ -2529,6 +3009,9 @@
                             "$ref": "#/$defs/LongPress/properties/target"
                         },
                         {
+                            "$ref": "#/$defs/Touch/properties/target"
+                        },
+                        {
                             "$ref": "#/$defs/CustomAction/properties/target"
                         }
                     ]
@@ -2542,7 +3025,36 @@
                             "$ref": "#/$defs/LongPress/properties/target_offset"
                         },
                         {
+                            "$ref": "#/$defs/Touch/properties/target_offset"
+                        },
+                        {
                             "$ref": "#/$defs/CustomAction/properties/target_offset"
+                        }
+                    ]
+                },
+                "contact": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Click/properties/contact"
+                        },
+                        {
+                            "$ref": "#/$defs/LongPress/properties/contact"
+                        },
+                        {
+                            "$ref": "#/$defs/Swipe/properties/contact"
+                        },
+                        {
+                            "$ref": "#/$defs/Touch/properties/contact"
+                        },
+                        {
+                            "$ref": "#/$defs/TouchUp/properties/contact"
+                        }
+                    ]
+                },
+                "pressure": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Touch/properties/pressure"
                         }
                     ]
                 },
@@ -2601,6 +3113,12 @@
                         },
                         {
                             "$ref": "#/$defs/LongPressKey/properties/key"
+                        },
+                        {
+                            "$ref": "#/$defs/KeyDown/properties/key"
+                        },
+                        {
+                            "$ref": "#/$defs/KeyUp/properties/key"
                         }
                     ]
                 },
@@ -2718,6 +3236,50 @@
                     }
                 },
                 {
+                    "label": "TouchDownV1",
+                    "body": "^ \"TouchDown\""
+                },
+                {
+                    "label": "TouchDownV2",
+                    "body": {
+                        "type": "TouchDown"
+                    }
+                },
+                {
+                    "label": "TouchMoveV1",
+                    "body": "^ \"TouchMove\""
+                },
+                {
+                    "label": "TouchMoveV2",
+                    "body": {
+                        "type": "TouchMove"
+                    }
+                },
+                {
+                    "label": "TouchUpV1",
+                    "body": "^ \"TouchUp\""
+                },
+                {
+                    "label": "TouchUpV2",
+                    "body": {
+                        "type": "TouchUp"
+                    }
+                },
+                {
+                    "label": "ScrollV1",
+                    "body": "^ \"Scroll\",\n\"dx\": 0,\n\"dy\": 0"
+                },
+                {
+                    "label": "ScrollV2",
+                    "body": {
+                        "type": "Scroll",
+                        "param": {
+                            "dx": 0,
+                            "dy": 0
+                        }
+                    }
+                },
+                {
                     "label": "ClickKeyV1",
                     "body": "^ \"ClickKey\",\n\"key\": []"
                 },
@@ -2727,6 +3289,32 @@
                         "type": "ClickKey",
                         "param": {
                             "key": []
+                        }
+                    }
+                },
+                {
+                    "label": "KeyDownV1",
+                    "body": "^ \"KeyDown\",\n\"key\": 0"
+                },
+                {
+                    "label": "KeyDownV2",
+                    "body": {
+                        "type": "KeyDown",
+                        "param": {
+                            "key": 0
+                        }
+                    }
+                },
+                {
+                    "label": "KeyUpV1",
+                    "body": "^ \"KeyUp\",\n\"key\": 0"
+                },
+                {
+                    "label": "KeyUpV2",
+                    "body": {
+                        "type": "KeyUp",
+                        "param": {
+                            "key": 0
                         }
                     }
                 },
@@ -2854,10 +3442,28 @@
                     "$ref": "#/$defs/MultiSwipeV1"
                 },
                 {
+                    "$ref": "#/$defs/TouchDownV1"
+                },
+                {
+                    "$ref": "#/$defs/TouchMoveV1"
+                },
+                {
+                    "$ref": "#/$defs/TouchUpV1"
+                },
+                {
+                    "$ref": "#/$defs/ScrollV1"
+                },
+                {
                     "$ref": "#/$defs/ClickKeyV1"
                 },
                 {
                     "$ref": "#/$defs/LongPressKeyV1"
+                },
+                {
+                    "$ref": "#/$defs/KeyDownV1"
+                },
+                {
+                    "$ref": "#/$defs/KeyUpV1"
                 },
                 {
                     "$ref": "#/$defs/InputTextV1"
@@ -2917,10 +3523,28 @@
                             "$ref": "#/$defs/MultiSwipeV2"
                         },
                         {
+                            "$ref": "#/$defs/TouchDownV2"
+                        },
+                        {
+                            "$ref": "#/$defs/TouchMoveV2"
+                        },
+                        {
+                            "$ref": "#/$defs/TouchUpV2"
+                        },
+                        {
+                            "$ref": "#/$defs/ScrollV2"
+                        },
+                        {
                             "$ref": "#/$defs/ClickKeyV2"
                         },
                         {
                             "$ref": "#/$defs/LongPressKeyV2"
+                        },
+                        {
+                            "$ref": "#/$defs/KeyDownV2"
+                        },
+                        {
+                            "$ref": "#/$defs/KeyUpV2"
                         },
                         {
                             "$ref": "#/$defs/InputTextV2"
@@ -2996,7 +3620,7 @@
                     "title": "Target Property",
                     "description": "等待目标的位置。可选，默认 true。",
                     "$ref": "#/$defs/jsonTarget",
-                    "markdownDescription": "*true* | *string* | *array<int, 4>*\n\n等待目标的位置。可选，默认 true。\n\n- *true*: 目标为本节点中刚刚识别到的位置（即自身）。\n\n- *string*: 填写节点名，目标为之前执行过的某节点识别到的位置。\n\n- *array<int, 4>*: 目标为固定坐标区域内随机一点，[x, y, w, h]，若希望全屏可设为 [0, 0, 0, 0] 。"
+                    "markdownDescription": "*true* | *string* | *array<int, 2>* | *array<int, 4>*\n\n等待目标的位置。可选，默认 true。\n\n- *true*: 目标为本节点中刚刚识别到的位置（即自身）。\n\n- *string*: 填写节点名，目标为之前执行过的某节点识别到的位置。\n\n- *array<int, 2>*: 固定坐标点 [x, y]。\n\n- *array<int, 4>*: 固定坐标区域 [x, y, w, h]，会在矩形内随机选取一点（越靠近中心概率越高，边缘概率相对较低），若希望全屏可设为 [0, 0, 0, 0] 。"
                 },
                 "target_offset": {
                     "title": "Target Offset Property",
@@ -3097,46 +3721,53 @@
                     "title": "Action Property",
                     "description": "执行的动作。可选，默认 `DoNothing` 。",
                     "$ref": "#/$defs/ActionProperty",
-                    "markdownDescription": "*string* | *object* (v2)\n\n执行的动作。可选，默认 `DoNothing` 。\n\n可选的值：`DoNothing` | `Click` | `LongPress` | `Swipe` | `MultiSwipe` | `ClickKey` | `LongPressKey` | `InputText` | `StartApp` | `StopApp` | `StopTask` | `Command` | `Custom`\n\n详见 [动作类型](#动作类型)。"
+                    "markdownDescription": "*string* | *object* (v2)\n\n执行的动作。可选，默认 `DoNothing` 。\n\n可选的值：`DoNothing` | `Click` | `LongPress` | `Swipe` | `MultiSwipe` | `TouchDown` | `TouchMove` | `TouchUp` | `ClickKey` | `LongPressKey` | `KeyDown` | `KeyUp` | `InputText` | `StartApp` | `StopApp` | `StopTask` | `Command` | `Custom`\n\n详见 [动作类型](#动作类型)。"
                 },
                 "next": {
                     "title": "Next Property",
                     "description": "接下来要执行的节点列表。可选，默认空。",
-                    "$ref": "#/$defs/jsonStringOrList",
-                    "markdownDescription": "*string* | *list<string, >*\n\n接下来要执行的节点列表。可选，默认空。\n\n按顺序识别 next 中的每个节点，只执行第一个识别到的。"
+                    "$ref": "#/$defs/jsonNodeOrList",
+                    "markdownDescription": "*string* | *NodeAttr* | *list<string | NodeAttr, >*\n\n接下来要执行的节点列表。可选，默认空。\n\n按顺序识别 next 中的每个节点，只执行第一个识别到的。\n\n💡 v5.1 版本起新增支持带属性节点、NodeAttr 形式对象，或两者结合的异质数组。详情参见文档中的「节点属性」章节。"
                 },
                 "interrupt": {
                     "title": "Interrupt Property",
-                    "description": "`next` 中全部未识别到时的候补节点列表，会执行类似中断操作。可选，默认空。",
+                    "deprecated": true,
+                    "description": "（已在 5.1 版本中废弃，推荐使用 节点前缀跳回功能 `[JumpBack]` 替代）",
                     "$ref": "#/$defs/jsonStringOrList",
-                    "markdownDescription": "*string* | *list<string, >*\n\n`next` 中全部未识别到时的候补节点列表，会执行类似中断操作。可选，默认空。\n\n若 `next` 中的节点全部未识别到，则会按序识别该中断列表中的每个节点，并执行第一个识别到的。在后续节点全部执行完成后，重新跳转到该节点来再次尝试识别。\n\n例如: A: { next: [B, C], interrupt: [D, E] }\n\n当 B, C 未识别到而识别到 D 时，会去完整的执行 D 及 D.next。但当 D 的流水线完全执行完毕后。会再次回到节点 A，继续尝试识别 B, C, D, E 。\n\n该字段多用于异常处理，例如 D 是识别 “网络断开提示框”，在点击确认并等待网络连接成功后，继续之前的节点流程。"
+                    "markdownDescription": "*string* | *list<string, >*\n\n**（已在 5.1 版本中废弃，推荐使用 节点前缀跳回功能 `[JumpBack]` 替代）**\n\n我们提供了 [迁移脚本](https://github.com/MaaXYZ/MaaFramework/blob/main/tools/migrate_pipeline_v5.py)，可帮助您无损地将 Pipeline 自动转换为新风格~"
                 },
                 "is_sub": {
                     "title": "Is Sub Property",
                     "deprecated": true,
-                    "description": "是否是子节点。可选，默认 false 。",
+                    "description": "（已在 5.1 版本中废弃，推荐使用 节点前缀跳回功能 `[JumpBack]` 替代）",
                     "$ref": "#/$defs/jsonBooleanFalse",
-                    "markdownDescription": "*bool*\n\n**（已在 2.x 版本中废弃，但保留兼容性，推荐使用 `interrupt` 替代）**\n\n是否是子节点。可选，默认 false 。\n\n如果是子节点，执行完本节点（及后续 next 等）后，会返回来再次识别本节点 **所在的** next 列表。\n\n例如：A.next = [B, Sub_C, D]，这里的 Sub_C.is_sub = true，\n\n若匹配上了 Sub_C，在完整执行完 Sub_C 及后续节点后，会返回来再次识别 [B, Sub_C, D] 并执行命中项及后续节点。"
+                    "markdownDescription": "*bool*\n\n**（已在 5.1 版本中废弃，推荐使用 节点前缀跳回功能 `[JumpBack]` 替代）**\n\n我们提供了 [迁移脚本](https://github.com/MaaXYZ/MaaFramework/blob/main/tools/migrate_pipeline_v5.py)，可帮助您无损地将 Pipeline 自动转换为新风格~"
                 },
                 "rate_limit": {
                     "title": "Rate Limit Property",
                     "description": "识别速率限制，单位毫秒。可选，默认 1000 。",
                     "$ref": "#/$defs/jsonNInt64",
                     "default": 1000,
-                    "markdownDescription": "*uint*\n\n识别速率限制，单位毫秒。可选，默认 1000 。\n\n每轮识别 `next` + `interrupt` 最低消耗 `rate_limit` 毫秒，不足的时间将会 sleep 等待。"
+                    "markdownDescription": "*uint*\n\n识别速率限制，单位毫秒。可选，默认 1000 。\n\n每轮识别最低消耗 `rate_limit` 毫秒，不足的时间将会 sleep 等待。"
                 },
                 "timeout": {
                     "title": "Timeout Property",
-                    "description": "`next` + `interrupt` 识别超时时间，毫秒。可选，默认 20 * 1000 。",
+                    "description": "识别超时时间，毫秒。可选，默认 20 * 1000 。",
                     "$ref": "#/$defs/jsonNInt64",
                     "default": 20000,
-                    "markdownDescription": "*uint*\n\n`next` + `interrupt` 识别超时时间，毫秒。可选，默认 20 * 1000 。\n\n具体逻辑为 `while(!timeout) { foreach(next + interrupt); sleep_until(rate_limit); }` 。"
+                    "markdownDescription": "*uint*\n\n识别超时时间，毫秒。可选，默认 20 * 1000 。\n\n具体逻辑为 `while(!timeout) { foreach(next); sleep_until(rate_limit); }` 。"
                 },
                 "on_error": {
                     "title": "On Error Property",
                     "description": "当识别超时，或动作执行失败后，接下来会执行该列表中的节点。可选，默认空。",
+                    "$ref": "#/$defs/jsonNodeOrList",
+                    "markdownDescription": "*string* | *NodeAttr* | *list<string | NodeAttr, >*\n\n当识别超时，或动作执行失败后，接下来会执行该列表中的节点。可选，默认空。\n\n💡 v5.1 版本起新增支持带属性节点、NodeAttr 形式对象，或两者结合的异质数组。详情参见文档中的「节点属性」章节。"
+                },
+                "anchor": {
+                    "title": "Anchor Property",
+                    "description": "锚点名称。可选，默认空。",
                     "$ref": "#/$defs/jsonStringOrList",
-                    "markdownDescription": "*string* | *list<string, >*\n\n当识别超时，或动作执行失败后，接下来会执行该列表中的节点。可选，默认空。"
+                    "markdownDescription": "*string* | *list<string, >*\n\n锚点名称。可选，默认空。\n\n当节点执行成功后，会将该锚点名设置为当前节点。多个节点可设置同一个锚点名，后执行的会覆盖先执行的。\n\n在 `next` 或 `on_error` 中可通过 `[Anchor]` 属性引用该锚点，运行时会解析为最后设置该锚点的节点。\n\n详见文档中的「节点属性」章节。"
                 },
                 "inverse": {
                     "title": "Inverse Property",
@@ -3149,6 +3780,12 @@
                     "description": "是否启用该 node。可选，默认 true 。",
                     "$ref": "#/$defs/jsonBooleanTrue",
                     "markdownDescription": "*bool*\n\n是否启用该 node。可选，默认 true 。\n\n若为 false，其他 node 的 next 列表中的该 node 会被跳过，既不会被识别也不会被执行。"
+                },
+                "max_hit": {
+                    "title": "Max Hit Property",
+                    "description": "该节点最多可被识别成功多少次。可选，默认 UINT_MAX ，即无限制。",
+                    "$ref": "#/$defs/jsonUInt32",
+                    "markdownDescription": "*uint*\n\n该节点最多可被识别成功多少次。可选，默认 UINT_MAX ，即无限制。\n\n若超过该次数，其他 node 的 next 列表中的该 node 会被跳过，既不会被识别也不会被执行。"
                 },
                 "pre_delay": {
                     "title": "Pre Delay Property",
@@ -3181,6 +3818,14 @@
                     "description": "关注节点，会额外产生部分回调消息。可选，默认 null，不产生回调消息。",
                     "$ref": "#/$defs/jsonDefaultNull",
                     "markdownDescription": "*any*\n\n关注节点，会额外产生部分回调消息。可选，默认 null，不产生回调消息。\n\n详见 [节点通知](#节点通知)。"
+                },
+                "attach": {
+                    "title": "Attach Property",
+                    "description": "附加 JSON 对象，用于保存节点的附加配置。可选，默认空对象。该字段会与默认值中的 attach 进行字典合并（dict merge），而不是覆盖。",
+                    "type": "object",
+                    "default": {},
+                    "additionalProperties": true,
+                    "markdownDescription": "*object*\n\n附加 JSON 对象，用于保存节点的附加配置。可选，默认空对象。\n\n该字段可用于存储自定义的配置信息，这些信息不会影响节点的执行逻辑，但可以通过相关接口获取。\n\n**注意**：该字段会与默认值中的 `attach` 进行字典合并（dict merge），而不是覆盖。即节点中的 `attach` 会与默认值中的 `attach` 合并，相同键的值会被节点中的值覆盖，但其他键会保留。"
                 }
             }
         }

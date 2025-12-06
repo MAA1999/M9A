@@ -2,12 +2,10 @@
     "Psychube": {
         "next": [
             "FreePsychube",
-            "NoFreePsychube"
-        ],
-        "interrupt": [
-            "EnterTheShow",
-            "ResourceChapterLabel",
-            "ReturnMain"
+            "NoFreePsychube",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ResourceChapterLabel",
+            "[JumpBack]ReturnMain"
         ]
     },
     "FreePsychube": {
@@ -29,10 +27,8 @@
         },
         "next": [
             "PsychubeReadyForAction",
-            "FreePsychube"
-        ],
-        "interrupt": [
-            "PsychubeStage07"
+            "FreePsychube",
+            "[JumpBack]PsychubeStage07"
         ]
     },
     "PsychubeStage07": {
@@ -72,11 +68,9 @@
             "type": "Click"
         },
         "next": [
-            "PsychubeFlagInReplayReady"
-        ],
-        "interrupt": [
-            "PsychubeSwitchToReplay",
-            "CombatEntering"
+            "PsychubeFlagInReplayReady",
+            "[JumpBack]PsychubeSwitchToReplay",
+            "[JumpBack]CombatEntering"
         ]
     },
     "PsychubeFlagInReplayReady": {
@@ -94,10 +88,8 @@
             }
         },
         "next": [
-            "PsychubeFlagInReplayTwoTimes"
-        ],
-        "interrupt": [
-            "SwitchCombatTimes"
+            "PsychubeFlagInReplayTwoTimes",
+            "[JumpBack]SwitchCombatTimes"
         ]
     },
     "PsychubeFlagInReplayTwoTimes": {
@@ -120,11 +112,30 @@
         "timeout": 60000,
         "next": [
             "PsychubeVictory",
-            "PsychubeFlagInReplayTwoTimes"
-        ],
-        "interrupt": [
-            "EatCandyPage",
-            "ReplayingNoNext"
+            "PsychubeFlagInReplayTwoTimes",
+            "[JumpBack]PsychubeEatCandyPage",
+            "[JumpBack]ReplayingNoNext"
+        ]
+    },
+    "PsychubeEatCandyPage": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    465,
+                    571,
+                    277,
+                    149
+                ],
+                "expected": [
+                    "活性",
+                    "恢复"
+                ]
+            }
+        },
+        "max_hit": 3,
+        "next": [
+            "EatCandyPage"
         ]
     },
     "PsychubeVictory": {
@@ -157,11 +168,9 @@
         },
         "next": [
             "PsychubeFlagInReadyForAction",
-            "PsychubeVictory"
-        ],
-        "interrupt": [
-            "BackButton",
-            "HomeLoading"
+            "PsychubeVictory",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeLoading"
         ]
     },
     "PsychubeFlagInReadyForAction": {
@@ -181,10 +190,8 @@
         },
         "next": [
             "PsychubeDouble",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton"
+            "HomeFlag",
+            "[JumpBack]HomeButton"
         ]
     },
     "PsychubeDouble": {
@@ -229,12 +236,10 @@
                     "PsychubeVictory": {
                         "next": [
                             "HomeFlag",
-                            "PsychubeVictory"
-                        ],
-                        "interrupt": [
-                            "HomeButton",
-                            "CombatEntering",
-                            "HomeLoading"
+                            "PsychubeVictory",
+                            "[JumpBack]HomeButton",
+                            "[JumpBack]CombatEntering",
+                            "[JumpBack]HomeLoading"
                         ]
                     },
                     "PsychubeDouble": {

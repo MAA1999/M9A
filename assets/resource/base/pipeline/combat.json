@@ -13,10 +13,10 @@
             }
         },
         "next": [
-            "EnterTheShow"
-        ],
-        "interrupt": [
-            "ReturnMain"
+            "EnterTheShowFlag",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ShowClickStory",
+            "[JumpBack]ReturnMain"
         ]
     },
     "ReturnMainStoryChapter": {
@@ -27,22 +27,15 @@
     },
     "ReturnMainStoryChapterTrue": {
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    0,
-                    90,
-                    1257,
-                    49
+                    57,
+                    122,
+                    1037,
+                    356
                 ],
-                "expected": [
-                    "生者",
-                    "余众",
-                    "旅行",
-                    "归来",
-                    "故事",
-                    "根须"
-                ]
+                "template": "Combat/MainStoryBigChapter.png"
             }
         },
         "action": {
@@ -59,7 +52,8 @@
                     1280,
                     460
                 ],
-                "template_code": "Set in code"
+                "template_code": "Set in code",
+                "threshold": 0.9
             }
         },
         "action": {
@@ -67,6 +61,7 @@
         }
     },
     "EnterTheShow": {
+        // 请不要为该任务加next，一般应当放于interrupt使用
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -78,7 +73,8 @@
                 ],
                 "template": [
                     "Combat/EnterTheShow.png",
-                    "Combat/EnterTheShow_sp01.png"
+                    "Combat/EnterTheShow_sp01.png",
+                    "Combat/EnterTheShow3.2.png"
                 ]
             }
         },
@@ -94,11 +90,59 @@
                 26
             ]
         },
-        "next": [
-            "EnterTheShowFlag"
-        ]
+        "post_delay": 5000
     },
     "EnterTheShowFlag": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "MultiRecognition",
+                "custom_recognition_param": {
+                    "nodes": [
+                        "EnterTheShowFlag1",
+                        "EnterTheShowFlag2"
+                    ],
+                    "return": [
+                        73,
+                        662,
+                        62,
+                        34
+                    ]
+                }
+            }
+        },
+        "next_code": "set in code"
+    },
+    "EnterTheShowFlag1": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    73,
+                    662,
+                    62,
+                    34
+                ],
+                "expected": "故事",
+                "only_rec": true
+            }
+        }
+    },
+    "EnterTheShowFlag2": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1154,
+                    20,
+                    106,
+                    95
+                ],
+                "template": "Combat/ShowFlag.png"
+            }
+        }
+    },
+    "ShowClickStory": {
         "recognition": {
             "type": "OCR",
             "param": {
@@ -122,10 +166,8 @@
             }
         },
         "next": [
-            "MainChapter_XEnter"
-        ],
-        "interrupt": [
-            "SwipeLeftForChapter"
+            "MainChapter_XEnter",
+            "[JumpBack]SwipeLeftForChapter"
         ]
     },
     "MainChapter_XEnter": {
@@ -144,7 +186,9 @@
         "action": {
             "type": "Click"
         },
-        "next": "SwipeLeftAndFindStage"
+        "next": [
+            "SwipeLeftAndFindStage"
+        ]
     },
     "ResourceChapterLabel": {
         "recognition": {
@@ -175,10 +219,8 @@
     "ResourceChapter_LP": {
         "doc": "尘埃运动",
         "next": [
-            "ResourceChapter_LPEnter"
-        ],
-        "interrupt": [
-            "ResourceChapterLabel"
+            "ResourceChapter_LPEnter",
+            "[JumpBack]ResourceChapterLabel"
         ]
     },
     "ResourceChapter_LPEnter": {
@@ -198,15 +240,15 @@
         "action": {
             "type": "Click"
         },
-        "next": "SwipeLeftAndFindStage"
+        "next": [
+            "SwipeLeftAndFindStage"
+        ]
     },
     "ResourceChapter_MA": {
         "doc": "铸币美学",
         "next": [
-            "ResourceChapter_MAEnter"
-        ],
-        "interrupt": [
-            "ResourceChapterLabel"
+            "ResourceChapter_MAEnter",
+            "[JumpBack]ResourceChapterLabel"
         ]
     },
     "ResourceChapter_MAEnter": {
@@ -234,21 +276,17 @@
             "type": "Click"
         },
         "next": [
-            "SwipeLeftAndFindStage"
-        ],
-        "interrupt": [
-            "SwipeRightForChapter"
+            "SwipeLeftAndFindStage",
+            "[JumpBack]SwipeRightForChapter"
         ]
     },
     "ResourceChapter_Psychube": {
         "doc": "意志解析",
         "next": [
             "ResourceChapter_Psychube07FreeEnter",
-            "ResourceChapter_NoFreePsychube07"
-        ],
-        "interrupt": [
-            "ResourceChapterLabel",
-            "SwipeRightForChapter"
+            "ResourceChapter_NoFreePsychube07",
+            "[JumpBack]ResourceChapterLabel",
+            "[JumpBack]SwipeRightForChapter"
         ]
     },
     "ResourceChapter_Psychube07FreeEnter": {
@@ -268,7 +306,9 @@
         "action": {
             "type": "Click"
         },
-        "next": "SwipeLeftAndFindStage"
+        "next": [
+            "SwipeLeftAndFindStage"
+        ]
     },
     "ResourceChapter_Psychube07Enter": {
         "recognition": {
@@ -287,7 +327,9 @@
         "action": {
             "type": "Click"
         },
-        "next": "SwipeLeftAndFindStage"
+        "next": [
+            "SwipeLeftAndFindStage"
+        ]
     },
     "ResourceChapter_NoFreePsychube07": {
         "recognition": {
@@ -359,6 +401,7 @@
         ]
     },
     "SwipeLeftForChapter": {
+        "max_hit": 10,
         "action": {
             "type": "Swipe",
             "param": {
@@ -405,6 +448,7 @@
         }
     },
     "SwipeLeftAndFindStage": {
+        "max_hit": 30,
         "next": [
             "TargetStageName",
             "TheFarLeftOfStageList",
@@ -617,10 +661,8 @@
             "type": "Click"
         },
         "next": [
-            "IsReplay"
-        ],
-        "interrupt": [
-            "SwitchToReplay"
+            "IsReplay",
+            "[JumpBack]SwitchToReplay"
         ]
     },
     "IsReplay": {
@@ -628,9 +670,9 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    736,
+                    568,
                     624,
-                    53,
+                    221,
                     66
                 ],
                 "template": "Combat/IsReplay.png",
@@ -648,7 +690,7 @@
                 "roi": [
                     559,
                     619,
-                    62,
+                    98,
                     76
                 ],
                 "template": "Combat/SwitchToReplay.png",

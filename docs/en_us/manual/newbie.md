@@ -1,25 +1,9 @@
+---
+order: 1
+icon: ri:guide-fill
+---
+<!-- markdownlint-disable MD033 -->
 # Getting Started
-
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-    - [1. Confirm System Version](#1-confirm-system-version)
-    - [2. Install Runtime Environment](#2-install-runtime-environment)
-      - [1. VCRedist x64](#1-vcredist-x64)
-      - [2. .NET 8](#2-net-8)
-      - [3. Python](#3-python)
-    - [3. Download the Correct Version](#3-download-the-correct-version)
-    - [4. Confirm Emulator and Device Support](#4-confirm-emulator-and-device-support)
-    - [5. Set Emulator Resolution Correctly](#5-set-emulator-resolution-correctly)
-    - [6. Getting Started](#6-getting-started)
-      - [Windows](#windows)
-      - [macOS](#macos)
-      - [Linux](#linux)
-    - [7. Configure M9A](#7-configure-m9a)
-      - [First Launch](#first-launch)
-      - [M9A Settings Interface](#m9a-settings-interface)
-      - [M9A Main Interface](#m9a-main-interface)
-      - [Pip Settings](#pip-settings)
-  - [Related Documentation](#related-documentation)
 
 ## Prerequisites
 
@@ -38,13 +22,17 @@
 | --- | --- |
 | Windows Users | In most cases, please download the x86_64 architecture |
 | Mac Users | M9A supports both Apple Silicon and Intel chip Mac computers<br>But it's more recommended for Intel chip Mac computers to use Mac's built-in multi-system installation of Windows<br>And use Windows version M9A and emulator |
-| Android Users | M9A no longer provides Android version release packages<br>If you are very familiar with mobile phone operations and wish to use Android physical devices, please go to [Development Documentation](../develop/Notes-Before-Development.md) to install it yourself<br>You can refer to [Usage Method](https://github.com/MaaXYZ/MaaFramework/issues/475), and [MAA Documentation](https://maa.plus/docs/zh-cn/manual/device/android.html)<br>This method is complex and has certain risks, not recommended for beginner players |
+| Android Users | M9A no longer provides Android version release packages<br>If you are very familiar with mobile phone operations and wish to use Android physical devices, please go to [MaaFramework](https://github.com/MaaXYZ/MaaFramework/) to install it yourself<br>You can refer to [Usage Method](https://github.com/MaaXYZ/MaaFramework/issues/475), and [MAA Documentation](https://maa.plus/docs/en-us/manual/device/android.html)<br>This method is complex and has certain risks, not recommended for beginner players |
 
 </div>
 
 ***
 
 ### 2. Install Runtime Environment
+
+>[!NOTE]
+>
+> Users can skip this section and proceed to step 3, after downloading and extracting the file, to run the dependency installation script. If the script fails to install automatically, then refer to this section.
 
 <div align="center">
 
@@ -72,11 +60,11 @@
             <td colspan="4"><div align="center">No</div></td>
         </tr>
         <tr>
-            <td><div align="center">Install<br>.NET 8 Required</div></td>
+            <td><div align="center">Install<br>.NET 10 Required</div></td>
             <td><div align="center">No</div></td>
-            <td><div align="center">Go to <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET official download page</a> to download the corresponding version or<br>install via winget (see below)</div></td>
+            <td><div align="center">Go to <a href="https://dotnet.microsoft.com/download/dotnet/10.0" target="_blank">.NET official download page</a> to download the corresponding version or<br>install via winget (see below)</div></td>
             <td><div align="center">No</div></td>
-            <td><div align="center"><a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET official download page</a></div></td>
+            <td><div align="center"><a href="https://dotnet.microsoft.com/download/dotnet/10.0" target="_blank">.NET official download page</a></div></td>
             <td><div align="center">No</div></td>
             <td><div align="center">Same as Mac</div></td>
         </tr>
@@ -112,9 +100,9 @@ Windows users **must install VCRedist x64**: This is the basic requirement for r
   </blockquote>
 </details>
 
-#### 2. .NET 8
+#### 2. .NET 10
 
-All users using MFAAvalonia need to download and install .NET 8 suitable for your system.
+All users using GUI need to download and install .NET 10 suitable for your system.
 
 <details>
   <summary>Detailed Installation Methods</summary>
@@ -123,7 +111,7 @@ All users using MFAAvalonia need to download and install .NET 8 suitable for you
     <ul>
       <li>
         Self-download: Click
-        <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET official download page</a>
+        <a href="https://dotnet.microsoft.com/download/dotnet/10.0" target="_blank">.NET official download page</a>
         , select the version suitable for your system to download and install.
         <div align="center">
           <table>
@@ -154,7 +142,7 @@ All users using MFAAvalonia need to download and install .NET 8 suitable for you
       </li>
       <li>
         (Windows users only) <code>winget</code> installation: Right-click the Windows Start button, select "Command Prompt" or "PowerShell (Administrator)", then paste the following command in the terminal and press Enter:
-        <pre><code>winget install Microsoft.DotNet.DesktopRuntime.8</code></pre>
+        <pre><code>winget install Microsoft.DotNet.DesktopRuntime.10</code></pre>
       </li>
     </ul>
   </blockquote>
@@ -239,7 +227,7 @@ For emulator support details, please refer to MAA documentation. **For reference
 
   | | Windows | macOS | Linux | Android |
   | -------- | -------- | ------- | ------- | ------- |
-  | Reference Documentation | [Windows Emulators](https://maa.plus/docs/zh-cn/manual/device/windows.html) | If your device has Apple Silicon, please refer to:<br>[Mac emulators running on Apple Silicon platform](https://maa.plus/docs/zh-cn/manual/device/macos.html#apple-silicon-%E8%8A%AF%E7%89%87)<br>If your device has Intel chip:<br>1. Recommended to use Mac's built-in multi-system to install Windows<br>and refer to Windows section documentation<br>2. Refer to [Mac emulators running on Intel platform](https://maa.plus/docs/zh-cn/manual/device/macos.html#intel-%E8%8A%AF%E7%89%87) | [Linux Emulators and Containers](https://maa.plus/docs/zh-cn/manual/device/linux.html) | [Android Physical Devices](<https://maa.plus/docs/zh-cn/manual/device/android.html>) |
+  | Reference Documentation | [Windows Emulators](https://maa.plus/docs/en-us/manual/device/windows.html) | If your device has Apple Silicon, please refer to:<br>[Mac emulators running on Apple Silicon platform](https://maa.plus/docs/en-us/manual/device/macos.html#apple-silicon-%E8%8A%AF%E7%89%87)<br>If your device has Intel chip:<br>1. Recommended to use Mac's built-in multi-system to install Windows<br>and refer to Windows section documentation<br>2. Refer to [Mac emulators running on Intel platform](https://maa.plus/docs/en-us/manual/device/macos.html#intel-%E8%8A%AF%E7%89%87) | [Linux Emulators and Containers](https://maa.plus/docs/en-us/manual/device/linux.html) | [Android Physical Devices](<https://maa.plus/docs/en-us/manual/device/android.html>) |
 
   </div>
 
@@ -262,7 +250,7 @@ The emulator resolution should be `landscape` `16:9` ratio, recommended (and min
 
 ### 6. Getting Started
 
-M9A supports both command line (MaaPiCli) and graphical interface (MFAAvalonia), but before use, you need to extract the archive correctly.
+M9A supports both command line (MaaPiCli) and graphical interface (MFAAvalonia), but before use, you need to extract the archive correctly and change the in-game display language to Simplified Chinese
 
 > [!IMPORTANT]
 > Don't run the program directly from the compression software!
@@ -341,7 +329,7 @@ You can configure M9A according to your needs for a better user experience.
 
 Some configuration items may cause M9A to **run abnormally** when configured incorrectly or not configured, so it's recommended to read this section before starting to use.
 
-This chapter will mainly introduce how to configure M9A through the graphical interface (MFAAvalonia). If you are using the command line version (MaaPiCli), please refer to [MaaPiCli Operation Instructions](./MaaPiCli.md).
+This chapter will mainly introduce how to configure M9A through the graphical interface (MFAAvalonia). If you are using the command line version (MaaPiCli), please refer to [MaaPiCli Operation Instructions](./cli.md).
 
 The following demonstrations are for reference only, please refer to the actual software situation.
 
@@ -351,7 +339,7 @@ The following demonstrations are for reference only, please refer to the actual 
   <summary>MFA Main Interface Display</summary>
   <p></p>
   <blockquote>
-    <img src="https://github.com/user-attachments/assets/540d961e-47ce-490d-a801-89d802f2bbab" alt="Main Interface">
+    <img src="/images/en-us/newbie-main-interface.png" alt="Main Interface">
   </blockquote>
 </details>
 
@@ -403,7 +391,7 @@ Users using MFA update-related functions should configure `Update Settings`. Use
     <p></p>
     <blockquote>
       <ul>
-        <img src="https://github.com/user-attachments/assets/69192c43-f257-40ba-b5d0-918e6b508f80" alt="rate limit exceeded">
+        <img src="/images/en-us/newbie-rate-limit.png" alt="rate limit exceeded">
       </ul>
     </blockquote>
   </details>
@@ -478,7 +466,7 @@ Users using MFA update-related functions should configure `Update Settings`. Use
             <li>Click the icon to the right of the <code>Software Path</code> input box to enter the file selection interface, select the 1999 shortcut on the desktop, and the path will be automatically filled in.</li>
           </ol>
           <ul>
-            <img src="https://github.com/user-attachments/assets/2289453c-dbbf-41a7-8d28-efac0f24d6e3" alt="image_439">
+            <img src="/images/en-us/newbie-emulator-path-example.png" alt="image_439">
           </ul>
       </details>
     </ul>
@@ -499,7 +487,7 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
       <blockquote>
         <ul>
           <li>You need to select the 1999 server installed in the emulator.</li>
-          <li>Currently supports: <b>Official Server</b>, <b>Bilibili Server</b>, <b>International Server (EN)</b>, <b>International Server (JP)</b>, <b>OPPO Server</b>, <b>Xiaomi Server</b>, <b>QQ Server</b>.</li>
+          <li>Currently supports: <b>Official Server</b>, <b>Bilibili Server</b>, <b>International Server (EN)</b>, <b>International Server (JP)</b>, <b>OPPO Server</b>, <b>Xiaomi Server</b>.</li>
         </ul>
       </blockquote>
     </details>
@@ -515,7 +503,7 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
     <p></p>
     <blockquote>
       <ul>
-        <img src="https://github.com/user-attachments/assets/8e3f0f90-4e0d-46e2-b718-837a6e9ae152" alt="image_440">
+        <img src="/images/en-us/newbie-main-interface-connection.png" alt="image_440">
       </ul>
     </blockquote>
   </details>
@@ -542,6 +530,17 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
       </ul>
     </blockquote>
   </details>
+  When using the International Server PC client, simply click the PC icon in the connection area to automatically detect and connect to the already opened PC client window.
+
+  <details>
+    <summary>Illustration</summary>
+    <p></p>
+    <blockquote>
+      <ul>
+        <img src="/images/en-us/newbie-main-interface-connection-pc.png" alt="connection-pc">
+      </ul>
+    </blockquote>
+  </details>
 
 ***
 
@@ -552,7 +551,7 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
     <p></p>
     <blockquote>
       <ul>
-        <img src="https://github.com/user-attachments/assets/56b031b4-db6c-40a4-85a6-557fe5f4ad80" alt="image_441">
+        <img src="/images/en-us/newbie-main-interface-task-lists.png" alt="image_441">
       </ul>
     </blockquote>
   </details>
@@ -573,11 +572,13 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
 
 >[!IMPORTANT]
 >
-> Most tasks need to be configured correctly before use, and some tasks also need to be executed in specific scenarios according to task descriptions. Before enabling tasks, please ensure you have read and understood the **Task Description** for that task, and configure **Task Settings** according to actual situations. For more information about tasks, please refer to [Feature Introduction](./feature.md).
+> Most tasks need to be configured correctly before use, and some tasks also need to be executed in specific scenarios according to task descriptions. Before enabling tasks, please ensure you have read and understood the **Task Description** for that task, and configure **Task Settings** according to actual situations. For more information about tasks, please refer to [Feature Introduction](./introduction.md).
 
 ***
 
-#### Pip Settings
+#### Settings
+
+##### pip Settings
 
   M9A supports configuring pip installation related settings through the `config/pip_config.json` file. Generally, you don't need to modify this file unless you have special requirements.
 
@@ -585,24 +586,34 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
     <summary>config/pip_config.json Example</summary>
     <p></p>
     <blockquote>
-  
+
   ```jsonc
   {
-      "enable_pip_install": true,  // Whether to enable pip installation, default true
-      "mirror": "https://pypi.tuna.tsinghua.edu.cn/simple",  // Mirror source
-      "backup_mirror": "https://mirrors.ustc.edu.cn/pypi/simple"  // Backup mirror sources
+    "enable_pip_install": true,  // Whether to enable pip installation, default true
+    "mirror": "https://pypi.tuna.tsinghua.edu.cn/simple",  // Mirror source
+    "backup_mirror": "https://mirrors.ustc.edu.cn/pypi/simple"  // Backup mirror sources
   }
   ```
-  
+
   </blockquote>
-</details>
+  </details>
+
+##### Resource Hot Update Configuration
+
+  M9A supports configuring hot update settings for certain resources (such as activity opening times) via the `config/hot_update.json` file.
+
+  <details>
+    <summary>config/hot_update.json Example</summary>
+    <p></p>
+    <blockquote>
+
+  ```jsonc
+  {
+    "enable_hot_update": true  // Whether to enable hot update for certain resources, default is true
+  }
+  ```
+
+  </blockquote>
+  </details>
 
 ***
-
-## Related Documentation
-
-- [Connection Settings](./connection.md): How to configure ADB and connect to the emulator.
-- [MaaPiCli Usage Instructions](./MaaPiCli.md): Introduces the usage of MaaPiCli
-- [Feature Introduction](./feature.md): Introduces the precautions for some features
-- [FAQ](./faq.md): Solutions to common problems.
-- [MirrorChyan Usage Instructions](./MirrorChyan.md): Introduces the usage of MirrorChyan

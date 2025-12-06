@@ -1,8 +1,8 @@
+---
+order: 5
+icon: ic:outline-fast-forward
+---
 # MirrorChyan Usage Guide
-
-- [MirrorChyan Usage Guide](#mirrorchyan-usage-guide)
-  - [Using on MaaFramework Generic UI](#using-on-maaframework-generic-ui)
-  - [Using the MirrorChyan Website](#using-the-mirrorchyan-website)
 
 MirrorChyan is a third-party application distribution platform that simplifies updates for open-source applications.
 Users pay to use it, and the revenue is shared with developers. Additionally, MirrorChyan itself is open-source.
@@ -11,7 +11,7 @@ By accessing or using the service, you agree to be bound by all terms of [this a
 
 ## Using on MaaFramework Generic UI
 
-Some MaaFramework generic UIs, such as [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia), [MFW-PyQt6](https://github.com/overflow65537/MFW-PyQt6), and [MFAWPF](https://github.com/SweetSmellFox/MFAWPF), have the functionality to update the UI and resources (like M9A) through MirrorChyan. You can configure this in the respective settings interface.
+Some MaaFramework generic UIs, such as [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia), [MFW-CFA](https://github.com/overflow65537/MFW-PyQt6), and [MFAWPF](https://github.com/SweetSmellFox/MFAWPF), have the functionality to update the UI and resources (like M9A) through MirrorChyan. You can configure this in the respective settings interface.
 
 ## Using the MirrorChyan Website
 

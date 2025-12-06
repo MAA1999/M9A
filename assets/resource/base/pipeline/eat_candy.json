@@ -1,5 +1,10 @@
 {
     "EatCandy": {
+        "next": [
+            "EatCandyEnter"
+        ]
+    },
+    "EatCandyEnter": {
         "recognition": {
             "type": "OCR",
             "param": {
@@ -47,122 +52,106 @@
             }
         },
         "next": [
-            "MiniCandy",
-            "SmallCandy",
-            "BigCandy",
+            "[JumpBack]EatMiniCandy",
+            "[JumpBack]EatCandyStart",
+            "[JumpBack]EatCandyCloseTip",
+            "[JumpBack]EatCandyConfirm",
             "QuitEatCandyPage"
         ]
     },
-    "MiniCandy": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    989,
-                    212,
-                    165,
-                    200
-                ],
-                "expected_code": "Set in code."
-            }
-        },
-        "next": [
-            "EatMiniCandy"
-        ]
-    },
-    "SmallCandy": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    829,
-                    65,
-                    145,
-                    295
-                ],
-                "expected_code": "Set in code."
-            }
-        },
-        "next": [
-            "EatSmallCandy"
-        ]
-    },
-    "BigCandy": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    856,
-                    373,
-                    196,
-                    344
-                ],
-                "expected_code": "Set in code."
-            }
-        },
-        "next": [
-            "EatBigCandy"
-        ]
-    },
-    "EatMiniCandy": {
+    "EatCandyCloseTip": {
+        "enabled": false,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    989,
-                    212,
-                    165,
-                    200
+                    531,
+                    319,
+                    36,
+                    35
                 ],
-                "template": "EatCandy/MiniCandy.png"
+                "template": "EatCandy/Tip.png",
+                "threshold": 0.95
             }
         },
         "action": {
             "type": "Click"
         },
-        "next": [
-            "SelectMiniCandyMax"
-        ]
+        "post_delay": 1000
     },
-    "EatSmallCandy": {
+    "EatCandyStart": {
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "Custom",
             "param": {
-                "roi": [
-                    829,
-                    65,
-                    145,
-                    295
-                ],
-                "template": "EatCandy/SmallCandy.png"
+                "custom_recognition": "CandyPageRecord"
             }
         },
         "action": {
             "type": "Click"
         },
-        "next": [
-            "EatCandyConfirm"
-        ]
+        "post_wait_freezes": {
+            "time": 1000,
+            "target_offset": [
+                -50,
+                -50,
+                100,
+                100
+            ]
+        },
+        "attach": {}
     },
-    "EatBigCandy": {
+    "EatCandyPageCountRecord": {
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "^\\d+$"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "EatCandyPageValidPeriodRecord": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    ".*"
+                ]
+            }
+        }
+    },
+    "CandyRecognizeRemainingAp": {
+        "recognition": {
+            "type": "OCR",
             "param": {
                 "roi": [
-                    856,
-                    373,
-                    196,
-                    344
+                    545,
+                    553,
+                    136,
+                    51
                 ],
-                "template": "EatCandy/BigCandy.png"
+                "expected": [
+                    "^\\d+$"
+                ]
             }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "EatCandyConfirm"
-        ]
+        }
+    },
+    "CandyRecognizeMaxAp": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    695,
+                    580,
+                    34,
+                    24
+                ],
+                "expected": [
+                    "^\\d+$"
+                ]
+            }
+        }
     },
     "EatCandyConfirm": {
         "recognition": {
@@ -179,10 +168,7 @@
         },
         "action": {
             "type": "Click"
-        },
-        "next": [
-            "QuitEatCandyPage"
-        ]
+        }
     },
     "QuitEatCandyPage": {
         "recognition": {
@@ -211,48 +197,35 @@
                 ]
             }
         },
+        "post_delay": 3000,
         "next": [
-            "WaitReplay"
-        ]
-    },
-    "SelectMiniCandyMax": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    782,
-                    414,
-                    52,
-                    40
-                ],
-                "template": "EatCandy/SelectMiniCandyMax.png"
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "ConvertCandyConfirm"
-        ]
-    },
-    "ConvertCandyConfirm": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    594,
-                    491,
-                    88,
-                    48
-                ],
-                "template": "EatCandy/ConvertCandyConfirm.png"
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
+            "WaitReplay",
             "QuitEatCandyPage"
         ]
+    },
+    "EatMiniCandy": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1016,
+                    235,
+                    104,
+                    100
+                ],
+                "template": "EatCandy/MiniCandy.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "ResetEatCandyFlag": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "ResetEatCandyFlag"
+            }
+        }
     }
 }

@@ -36,14 +36,14 @@ class LucidscapeStageSelect(CustomAction):
             logger.debug(f"stage: {stage}")
             if stage == 1 or stage == 2:
                 max = 200
-            elif stage == 3 or stage == 4:
+            else:
                 max = 150
             reco_detail = context.run_recognition(
                 "LucidscapeStageLocked",
                 img,
                 {"LucidscapeStageLocked": {"expected": f"\\d/{max}", "roi": roi}},
             )
-            if reco_detail is None:
+            if reco_detail is None or not reco_detail.hit:
                 return CustomAction.RunResult(success=False)
             pattern = f"(\\d{{1,3}})/{max}"
             text = reco_detail.best_result.text
@@ -92,11 +92,12 @@ class LucidscapeStatusDetect(CustomAction):
 
         stage = json.loads(argv.custom_action_param)["stage"]
 
+        time.sleep(3)
         img = context.tasker.controller.post_screencap().wait().get()
 
         # Finish
         reco_detail = context.run_recognition("LucidscapeFinish", img)
-        if reco_detail is not None:
+        if reco_detail and reco_detail.hit:
             logger.info(f"醒梦片段·{self._int2RomanNumeral(stage)}已完成")
             logger.info("领取本层酬劳")
             if stage == 4:
@@ -108,8 +109,7 @@ class LucidscapeStatusDetect(CustomAction):
         context.override_pipeline(
             {
                 "LucidscapeStatusDetect": {
-                    "next": ["LucidscapeCombatStartFlag"],
-                    "interrupt": ["CombatEntering"],
+                    "next": ["LucidscapeCombatStartFlag", "[JumpBack]CombatEntering"],
                     "custom_action_param": {"stage": stage},
                 }
             }
@@ -117,7 +117,7 @@ class LucidscapeStatusDetect(CustomAction):
 
         # StageFlag02
         reco_detail = context.run_recognition("LucidscapeStageFlag02", img)
-        if reco_detail is not None:
+        if reco_detail and reco_detail.hit:
             context.tasker.controller.post_click(990, 300).wait()
             context.override_next(
                 "LucidscapeCombatStartFlag", ["LucidscapeTeamSelect_2"]
@@ -127,7 +127,7 @@ class LucidscapeStatusDetect(CustomAction):
 
         # StageFlag01
         reco_detail = context.run_recognition("LucidscapeStageFlag01", img)
-        if reco_detail is not None:
+        if reco_detail and reco_detail.hit:
             context.tasker.controller.post_click(320, 445).wait()
             context.override_next(
                 "LucidscapeCombatStartFlag", ["LucidscapeTeamSelect_1"]

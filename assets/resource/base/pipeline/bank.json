@@ -15,10 +15,8 @@
             }
         },
         "next": [
-            "EnterBank"
-        ],
-        "interrupt": [
-            "ReturnMain"
+            "EnterBank",
+            "[JumpBack]ReturnMain"
         ]
     },
     "EnterBank": {
@@ -33,7 +31,8 @@
                 ],
                 "template": [
                     "Bank/Bank.png",
-                    "Bank/Bank2.png"
+                    "Bank/Bank2.png",
+                    "Bank/Bank3.2.png"
                 ]
             }
         },
@@ -51,7 +50,8 @@
         "post_delay": 1000,
         "next": [
             "FlagInBank",
-            "EnterBank"
+            "EnterBank",
+            "[JumpBack]ClickBlank"
         ]
     },
     "FlagInBank": {
@@ -73,30 +73,26 @@
         },
         "pre_delay": 1000,
         "next": [
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "FreeWeeklyGift",
-            "Rabbit",
-            "SmallGlobe",
-            "TinyGlobe",
-            "Gluttony",
-            "TinyGlobe(1)",
-            "ResonantCassette",
-            "GoldenMelonSeeds",
-            "OriginalChicken",
-            "Fries",
-            "ObtainedAwards",
-            "BackButton"
+            "HomeFlag",
+            "[JumpBack]FreeWeeklyGift",
+            "[JumpBack]Rabbit",
+            "[JumpBack]SmallGlobe",
+            "[JumpBack]TinyGlobe",
+            "[JumpBack]Gluttony",
+            "[JumpBack]TinyGlobe(1)",
+            "[JumpBack]ResonantCassette",
+            "[JumpBack]GoldenMelonSeeds",
+            "[JumpBack]OriginalChicken",
+            "[JumpBack]Fries",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]BackButton"
         ]
     },
     "FreeWeeklyGift": {
         "doc": "柜台特奉",
         "next": [
-            "FlagInTellerMachine"
-        ],
-        "interrupt": [
-            "EnterTellerMachine"
+            "FlagInTellerMachine",
+            "[JumpBack]EnterTellerMachine"
         ]
     },
     "FlagInTellerMachine": {
@@ -126,30 +122,24 @@
             ]
         },
         "next": [
-            "NoFree"
-        ],
-        "interrupt": [
-            "PurchaseFree"
+            "NoFree",
+            "[JumpBack]PurchaseFree"
         ]
     },
     "NoFree": {
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
-                    267,
-                    612,
-                    146,
-                    44
+                    330,
+                    602,
+                    330,
+                    64
                 ],
-                "replace": [
-                    "免费",
-                    ""
-                ],
-                "expected": ".+"
+                "expected": "免费"
             }
         },
+        "inverse": true,
         "action": {
             "type": "Custom",
             "param": {
@@ -254,10 +244,8 @@
     "Rabbit": {
         "doc": "独一律",
         "next": [
-            "FlagInPawnShop_1"
-        ],
-        "interrupt": [
-            "EnterPawnShop"
+            "FlagInPawnShop_1",
+            "[JumpBack]EnterPawnShop"
         ]
     },
     "FlagInPawnShop_1": {
@@ -286,10 +274,8 @@
             ]
         },
         "next": [
-            "NoRabbit"
-        ],
-        "interrupt": [
-            "PurchaseRabbit"
+            "NoRabbit",
+            "[JumpBack]PurchaseRabbit"
         ]
     },
     "NoRabbit": {
@@ -474,10 +460,8 @@
     "SmallGlobe": {
         "doc": "低频偏振",
         "next": [
-            "FlagInPawnShop_2"
-        ],
-        "interrupt": [
-            "EnterPawnShop"
+            "FlagInPawnShop_2",
+            "[JumpBack]EnterPawnShop"
         ]
     },
     "FlagInPawnShop_2": {
@@ -506,10 +490,8 @@
             ]
         },
         "next": [
-            "NoSmallGlobe"
-        ],
-        "interrupt": [
-            "PurchaseSmallGlobe"
+            "NoSmallGlobe",
+            "[JumpBack]PurchaseSmallGlobe"
         ]
     },
     "NoSmallGlobe": {
@@ -653,10 +635,8 @@
     "TinyGlobe": {
         "doc": "微频偏振",
         "next": [
-            "FlagInPawnShop_3"
-        ],
-        "interrupt": [
-            "EnterPawnShop"
+            "FlagInPawnShop_3",
+            "[JumpBack]EnterPawnShop"
         ]
     },
     "FlagInPawnShop_3": {
@@ -685,10 +665,8 @@
             ]
         },
         "next": [
-            "NoTinyGlobe"
-        ],
-        "interrupt": [
-            "PurchaseTinyGlobe"
+            "NoTinyGlobe",
+            "[JumpBack]PurchaseTinyGlobe"
         ]
     },
     "NoTinyGlobe": {
@@ -823,10 +801,8 @@
     "Gluttony": {
         "doc": "饕餮",
         "next": [
-            "FlagInFragmentsShop"
-        ],
-        "interrupt": [
-            "EnterFragmentsShop"
+            "FlagInFragmentsShop",
+            "[JumpBack]EnterFragmentsShop"
         ]
     },
     "FlagInFragmentsShop": {
@@ -856,10 +832,8 @@
             ]
         },
         "next": [
-            "NoGluttony"
-        ],
-        "interrupt": [
-            "PurchaseGluttony"
+            "NoGluttony",
+            "[JumpBack]PurchaseGluttony"
         ]
     },
     "NoGluttony": {
@@ -1034,10 +1008,8 @@
     "TinyGlobe(1)": {
         "doc": "微频偏振(心相观测)",
         "next": [
-            "FlagInFragmentsShop_1"
-        ],
-        "interrupt": [
-            "EnterFragmentsShop"
+            "FlagInFragmentsShop_1",
+            "[JumpBack]EnterFragmentsShop"
         ]
     },
     "FlagInFragmentsShop_1": {
@@ -1068,10 +1040,8 @@
         },
         "timeout": 60000,
         "next": [
-            "FindTinyGlobe(1)"
-        ],
-        "interrupt": [
-            "SwipeUp"
+            "FindTinyGlobe(1)",
+            "[JumpBack]SwipeUp"
         ]
     },
     "FindTinyGlobe(1)": {
@@ -1089,12 +1059,10 @@
         },
         "next": [
             "NoTinyGlobe(1)",
-            "PurchaseTinyGlobe(1)Max",
-            "PurchaseTinyGlobe(1)",
-            "SoldOut"
-        ],
-        "interrupt": [
-            "SwipeUp"
+            "[JumpBack]PurchaseTinyGlobe(1)Max",
+            "[JumpBack]PurchaseTinyGlobe(1)",
+            "SoldOut",
+            "[JumpBack]SwipeUp"
         ]
     },
     "SoldOut": {
@@ -1156,7 +1124,6 @@
         }
     },
     "PurchaseTinyGlobe(1)": {
-        "is_sub": true,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1174,7 +1141,6 @@
         }
     },
     "PurchaseTinyGlobe(1)Max": {
-        "is_sub": true,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1272,10 +1238,8 @@
     "ResonantCassette": {
         "doc": "共鸣晶匣",
         "next": [
-            "FlagInDneiricShop"
-        ],
-        "interrupt": [
-            "EnterFragmentsShop"
+            "FlagInDneiricShop",
+            "[JumpBack]EnterFragmentsShop"
         ]
     },
     "FlagInDneiricShop": {
@@ -1305,10 +1269,8 @@
             ]
         },
         "next": [
-            "NoResonantCassette"
-        ],
-        "interrupt": [
-            "PurchaseResonantCassette"
+            "NoResonantCassette",
+            "[JumpBack]PurchaseResonantCassette"
         ]
     },
     "NoResonantCassette": {
@@ -1432,10 +1394,8 @@
     "GoldenMelonSeeds": {
         "doc": "金瓜子",
         "next": [
-            "FlagInDneiricShop_1"
-        ],
-        "interrupt": [
-            "EnterFragmentsShop"
+            "FlagInDneiricShop_1",
+            "[JumpBack]EnterFragmentsShop"
         ]
     },
     "FlagInDneiricShop_1": {
@@ -1465,10 +1425,8 @@
             ]
         },
         "next": [
-            "NoGoldenMelonSeeds"
-        ],
-        "interrupt": [
-            "PurchaseGoldenMelonSeeds"
+            "NoGoldenMelonSeeds",
+            "[JumpBack]PurchaseGoldenMelonSeeds"
         ]
     },
     "NoGoldenMelonSeeds": {
@@ -1603,10 +1561,8 @@
     "OriginalChicken": {
         "doc": "原味鸡",
         "next": [
-            "FlagInDneiricShop_2"
-        ],
-        "interrupt": [
-            "EnterFragmentsShop"
+            "FlagInDneiricShop_2",
+            "[JumpBack]EnterFragmentsShop"
         ]
     },
     "FlagInDneiricShop_2": {
@@ -1636,10 +1592,8 @@
             ]
         },
         "next": [
-            "NoOriginalChicken"
-        ],
-        "interrupt": [
-            "PurchaseOriginalChicken"
+            "NoOriginalChicken",
+            "[JumpBack]PurchaseOriginalChicken"
         ]
     },
     "NoOriginalChicken": {
@@ -1774,10 +1728,8 @@
     "Fries": {
         "doc": "大薯",
         "next": [
-            "FlagInDneiricShop_3"
-        ],
-        "interrupt": [
-            "EnterFragmentsShop"
+            "FlagInDneiricShop_3",
+            "[JumpBack]EnterFragmentsShop"
         ]
     },
     "FlagInDneiricShop_3": {
@@ -1807,10 +1759,8 @@
             ]
         },
         "next": [
-            "NoFries"
-        ],
-        "interrupt": [
-            "PurchaseFries"
+            "NoFries",
+            "[JumpBack]PurchaseFries"
         ]
     },
     "NoFries": {

@@ -16,11 +16,20 @@
             }
         },
         "next": [
-            "FlagInActivityMain"
-        ],
-        "interrupt": [
-            "EnterTheActivityMain",
-            "ReturnMain"
+            "CombatActivityOverride"
+        ]
+    },
+    "CombatActivityOverride": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CombatActivityOverride"
+            }
+        },
+        "next": [
+            "FlagInActivityMain",
+            "[JumpBack]EnterTheActivityMain",
+            "[JumpBack]ReturnMain"
         ]
     },
     "FlagInActivityMain": {
@@ -54,7 +63,8 @@
                 ],
                 "template": [
                     "StartUp/HomeFlag.png",
-                    "StartUp/HomeFlag_sp01.png"
+                    "StartUp/HomeFlag_sp01.png",
+                    "StartUp/HomeFlag3.2.png"
                 ]
             }
         },
@@ -102,10 +112,8 @@
         "post_delay": 2000,
         "next": [
             "FlagInActivityStage",
-            "ActivityMainChapter"
-        ],
-        "interrupt": [
-            "ActivityClickCurStage"
+            "ActivityMainChapter",
+            "[JumpBack]ActivityClickCurStage"
         ]
     },
     "FlagInActivityStage": {
@@ -123,13 +131,43 @@
             }
         },
         "next": [
-            "FlagInActivityCombatStage"
-        ],
-        "interrupt": [
-            "ActivityClickPreStage"
+            "FlagInActivityCombatStage",
+            "[JumpBack]ActivityClickPreStage"
         ]
     },
     "FlagInActivityCombatStage": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "MultiRecognition",
+                "custom_recognition_param": {
+                    "nodes": [
+                        "ActivityCombatStageNum",
+                        "ActivityCombatStageCost"
+                    ],
+                    "return": "$0"
+                }
+            }
+        },
+        "next": [
+            "ActivityTargetLevel"
+        ]
+    },
+    "ActivityCombatStageNum": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    363,
+                    542,
+                    65,
+                    36
+                ],
+                "expected": "[012][0-9]"
+            }
+        }
+    },
+    "ActivityCombatStageCost": {
         "recognition": {
             "type": "OCR",
             "param": {
@@ -151,10 +189,7 @@
                 ],
                 "expected": "\\d"
             }
-        },
-        "next": [
-            "ActivityTargetLevel"
-        ]
+        }
     },
     "ActivityTargetLevel": {
         "action": {
@@ -178,6 +213,25 @@
         "next": [
             "ReadyForAction"
         ]
+    },
+    "ActivityTargetLevelClick": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action_param": {
+                    "clicks": [
+                        [
+                            945,
+                            245
+                        ],
+                        [
+                            1190,
+                            245
+                        ]
+                    ]
+                }
+            }
+        }
     },
     "ActivityTargetLevelRec": {
         "recognition": {
@@ -219,7 +273,8 @@
                 864,
                 473
             ]
-        }
+        },
+        "post_delay": 2000
     },
     "ActivityClickCurStage": {
         "action": {

@@ -14,11 +14,28 @@ try:
         os.makedirs(log_dir, exist_ok=True)
         _logger.remove()
 
+        # 定义日志级别的简短格式
+        def format_level(record):
+            level_map = {
+                "INFO": "info",
+                "ERROR": "err",
+                "WARNING": "warn",
+                "DEBUG": "debug",
+                "CRITICAL": "critical",
+                "SUCCESS": "success",
+                "TRACE": "trace",
+            }
+            record["extra"]["level_short"] = level_map.get(
+                record["level"].name, record["level"].name.lower()
+            )
+            return True
+
         _logger.add(
             sys.stderr,
-            format="[<level>{level}</level>] <level>{message}</level>",
+            format="<level>{extra[level_short]}</level>:<level>{message}</level>",
             colorize=True,
             level=console_level,
+            filter=format_level,
         )
         _logger.add(
             f"{log_dir}/{{time:YYYY-MM-DD}}.log",
@@ -43,7 +60,25 @@ try:
 except ImportError:
     import logging
 
-    logging.basicConfig(
-        format="%(asctime)s | %(levelname)s | %(message)s", level=logging.INFO
-    )
+    class ShortLevelFormatter(logging.Formatter):
+        """自定义 Formatter，使用简短的日志级别名称"""
+
+        level_map = {
+            "INFO": "info",
+            "ERROR": "err",
+            "WARNING": "warn",
+            "DEBUG": "debug",
+            "CRITICAL": "critical",
+        }
+
+        def format(self, record):
+            record.level_short = self.level_map.get(
+                record.levelname, record.levelname.lower()
+            )
+            return super().format(record)
+
+    handler = logging.StreamHandler(sys.stderr)
+    handler.setFormatter(ShortLevelFormatter("%(level_short)s:%(message)s"))
+    logging.root.addHandler(handler)
+    logging.root.setLevel(logging.INFO)
     logger = logging

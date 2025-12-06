@@ -1,0 +1,24 @@
+{
+    "JudgeDuringAct": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DuringAct",
+                "custom_action_param": {
+                    "resource": "tw"
+                }
+            }
+        }
+    },
+    "JudgeDuringRe_release": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DuringRe_release",
+                "custom_action_param": {
+                    "resource": "tw"
+                }
+            }
+        }
+    }
+}

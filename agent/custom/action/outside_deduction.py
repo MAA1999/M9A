@@ -29,7 +29,7 @@ class SOD_DifficultySelect(CustomAction):
 
         img = context.tasker.controller.post_screencap().wait().get()
         reco_detail = context.run_recognition("SOD_CurrentLevel", img)
-        if reco_detail is None:
+        if reco_detail is None or not reco_detail.hit:
             return CustomAction.RunResult(success=False)
         cur = int(reco_detail.best_result.text)
 
@@ -65,14 +65,14 @@ class SOD_DifficultySelect(CustomAction):
             img = context.tasker.controller.post_screencap().wait().get()
             reco_detail = context.run_recognition("SOD_LevelLocked", img)
 
-            while reco_detail is None:
+            while reco_detail is None or not reco_detail.hit:
                 context.tasker.controller.post_click(1260, 360).wait()
                 time.sleep(0.5)
                 img = context.tasker.controller.post_screencap().wait().get()
                 reco_detail = context.run_recognition("SOD_LevelLocked", img)
 
             # To UnLocked Level
-            while reco_detail is not None:
+            while reco_detail is not None and reco_detail.hit:
                 context.tasker.controller.post_click(20, 360).wait()
                 time.sleep(0.5)
                 img = context.tasker.controller.post_screencap().wait().get()
@@ -80,7 +80,7 @@ class SOD_DifficultySelect(CustomAction):
 
         img = context.tasker.controller.post_screencap().wait().get()
         reco_detail = context.run_recognition("SOD_CurrentLevel", img)
-        if reco_detail is None:
+        if reco_detail is None or not reco_detail.hit:
             return CustomAction.RunResult(success=False)
         cur = int(reco_detail.best_result.text)
 

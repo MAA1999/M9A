@@ -1,6 +1,8 @@
 <!-- markdownlint-disable MD033 MD041 -->
 <div align="center">
 
+<img alt="LOGO" src="https://1999.fan/images/m9a-logo_256x256.png" width="256" height="256" />
+
 # M9A
 
 Reverse: 1999 assistant based on a new architecture. Image technology + analog control, free your hands!  
@@ -37,34 +39,36 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 - Automatic awakening dream area
 - Bank shopping
 - Receive daily rewards
-- Current Anecdote
 - Suspended in the rain: Mystery Sea ("Searching" Weekly Sweep)
-- Outsider interpretation: Echo of the foothills (meat pigeon)
-- Friendly Match
+- Outside Deduction: The Series Of Dusks
+- Outside Deduction: The Syndrome Of Silence
+- SSReopen
+- Artefact Masters
 - When the Alarm Sounds
 - Continuous clear (under testing)
-- Critter Crash (below 1600 points)
+- Critter Crash
+- Pre-Storm Protocol
 
 ## Instructions for use
 
-- [Beginner's guide](./docs/en_us/manual/newbie.md)(**Must read before use**)
-- [Function introduction](./docs/en_us/manual/feature.md)
-- [MaaPiCli Instructions](./docs/en_us/manual/MaaPiCli.md)
-- [Connection Settings](./docs/en_us/manual/connection.md)
-- [FAQ](./docs/en_us/manual/faq.md)
-- [MirrorChyan Instructions](./docs/en_us/manual/MirrorChyan.md)
+- [Beginner's guide](https://1999.fan/en_us/manual/newbie.html)(**Must read before use**)
+- [Function introduction](https://1999.fan/en_us/manual/introduction.html)
+- [MaaPiCli Instructions](https://1999.fan/en_us/manual/cli.html)
+- [Connection Settings](https://1999.fan/en_us/manual/connection.html)
+- [FAQ](https://1999.fan/en_us/manual/faq.html)
+- [MirrorChyan Instructions](https://1999.fan/en_us/manual/MirrorChyan.html)
 
 ## Development related
 
-- [Notes Before Development](./docs/en_us/develop/Notes-Before-Development.md)
-- [Project structure](./docs/en_us/develop/Project-Structure.md)
-- [Interface.json writing](./docs/en_us/develop/Writing-interface.json.md)
-- [Pipeline writing](./docs/en_us/develop/Writing-Pipelines.md)
-- [Custom Writing](./docs/en_us/develop/Writing-Custom.md)
-- [Bug Troubleshooting](./docs/en_us/develop/Bug-Troubleshooting.md)
-- [Project Refactoring](./docs/en_us/develop/Project-Refactoring.md)
-- [Adapting Global Servers](./docs/en_us/develop/Adapting-Global-Servers.md)
-- [Document Writing](./docs/en_us/develop/Writing-Documentation.md)
+- [Notes Before Development](https://1999.fan/en_us/develop/development.html)
+- [Project structure](https://1999.fan/en_us/develop/structure.html)
+- [Interface.json writing](https://1999.fan/en_us/develop/interface.html)
+- [Pipeline writing](https://1999.fan/en_us/develop/pipeline.html)
+- [Custom Writing](https://1999.fan/en_us/develop/custom.html)
+- [Bug Troubleshooting](https://1999.fan/en_us/develop/fix.html)
+- [Project Refactoring](https://1999.fan/en_us/develop/refactor.html)
+- [Adapting Global Servers](https://1999.fan/en_us/develop/overseas-client-adaptation.htmld)
+- [Document Writing](https://1999.fan/en_us/develop/doc.html)
 
 For more documents, please visit the [MaaFramework](https://github.com/MaaXYZ/MaaFramework) main repository
 

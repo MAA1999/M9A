@@ -86,11 +86,8 @@ class MultiRecognition(CustomRecognition):
                 index_key = f"${i}"
 
                 reco_detail = context.run_recognition(node_name, argv.image)
-                logger.debug(
-                    f"{node_name}({index_key}): {reco_detail.box if (reco_detail is not None) else None}"
-                )
 
-                if reco_detail is not None and reco_detail.box is not None:
+                if reco_detail and reco_detail.hit:
                     # 标准化ROI，将[0,0,0,0]转换为实际全屏坐标，其它不变
                     normalized_roi = self._normalize_roi(list(reco_detail.box))
                     node_results[index_key] = normalized_roi
@@ -99,18 +96,14 @@ class MultiRecognition(CustomRecognition):
 
             # 逻辑判断
             if not self._check_logic_condition(logic, node_results):
-                logger.debug("逻辑条件不满足，识别失败")
                 return None
 
             # ROI计算
             final_roi = self._process_return_value(return_value, node_results)
             if final_roi:
                 logger.debug(f"MultiRecognition识别成功，返回ROI: {final_roi}")
-                return CustomRecognition.AnalyzeResult(
-                    box=final_roi, detail="MultiRecognition"
-                )
+                return CustomRecognition.AnalyzeResult(box=final_roi, detail={})
             else:
-                logger.debug("ROI计算失败，识别失败")
                 return None
 
         except Exception as e:
@@ -141,8 +134,6 @@ class MultiRecognition(CustomRecognition):
         if not uncached_nodes:
             return  # 所有节点都已缓存
 
-        logger.debug(f"缓存外部节点: {uncached_nodes}")
-
         task_id = self._argv.task_detail.task_id
         task_detail = self._context.tasker.get_task_detail(task_id)
 
@@ -166,10 +157,6 @@ class MultiRecognition(CustomRecognition):
                     else:
                         self._external_roi_cache[node_detail.name] = None
 
-                    logger.debug(
-                        f"缓存外部节点 {node_detail.name}: 成功={recognition_success}, "
-                        f"ROI={self._external_roi_cache[node_detail.name]}"
-                    )
                     uncached_nodes.remove(node_detail.name)
 
         # 对于未找到的节点，标记为失败
@@ -238,7 +225,6 @@ class MultiRecognition(CustomRecognition):
                         eval_expression = eval_expression.replace(
                             f"{{{node_name}}}", bool_value
                         )
-                        logger.debug(f"外部节点 {node_name}: {bool_value}")
 
             # 替换 $0、$1、$2... 为对应的识别结果
             for key, result in node_results.items():
@@ -248,8 +234,6 @@ class MultiRecognition(CustomRecognition):
             eval_expression = eval_expression.replace("AND", "and")
             eval_expression = eval_expression.replace("OR", "or")
             eval_expression = eval_expression.replace("NOT", "not")
-
-            logger.debug(f"表达式转换: {expression} -> {eval_expression}")
 
             # 计算表达式
             result = eval(eval_expression)
@@ -273,7 +257,6 @@ class MultiRecognition(CustomRecognition):
                 # 直接返回坐标数组 [x, y, w, h]
                 try:
                     result = [int(x) for x in return_value]
-                    logger.debug(f"返回固定坐标: {result}")
                     return result
                 except (ValueError, TypeError):
                     logger.error(f"return坐标格式错误: {return_value}")
@@ -318,8 +301,6 @@ class MultiRecognition(CustomRecognition):
                 else:
                     eval_expression = eval_expression.replace(key, "[0,0,0,0]")
 
-            logger.debug(f"ROI表达式转换: {expression} -> {eval_expression}")
-
             # 处理函数调用：UNION, INTERSECTION, OFFSET
             result = self._evaluate_roi_functions(eval_expression)
 
@@ -363,10 +344,8 @@ class MultiRecognition(CustomRecognition):
                 if roi is not None:
                     roi_str = f"[{roi[0]},{roi[1]},{roi[2]},{roi[3]}]"
                     expression = expression.replace(f"{{{node_name}}}", roi_str)
-                    logger.debug(f"{node_name} ROI: {roi_str}")
                 else:
                     expression = expression.replace(f"{{{node_name}}}", "[0,0,0,0]")
-                    logger.debug("{node_name} ROI: " + "[0,0,0,0]")
 
         return expression
 
@@ -657,13 +636,17 @@ class Count(CustomRecognition):
                 reco_detail = context.run_recognition(self._identifier, argv.image)
 
                 # 识别成功
-                if reco_detail is not None and reco_detail.box is not None:
+                if reco_detail and reco_detail.hit:
                     Count.record[node_name]["count"] += 1
-                    logger.debug(
-                        f"Count识别成功: {node_name}, 当前计数: {Count.record[node_name]['count']}"
-                    )
+                    # logger.debug(
+                    #     f"Count识别成功: {node_name}, 当前计数: {Count.record[node_name]['count']}"
+                    # )
                     return CustomRecognition.AnalyzeResult(
-                        box=reco_detail.box, detail=f"Count({node_name})"
+                        box=reco_detail.box,
+                        detail={
+                            "node": node_name,
+                            "count": Count.record[node_name]["count"],
+                        },
                     )
                 else:
                     # 识别失败
@@ -674,4 +657,24 @@ class Count(CustomRecognition):
 
         except Exception as e:
             logger.error(f"Count识别失败: {e}")
+            return None
+
+
+@AgentServer.custom_recognition("CheckStopping")
+class CheckStopping(CustomRecognition):
+    """
+    检查任务是否即将停止。
+    """
+
+    def analyze(
+        self,
+        context: Context,
+        argv: CustomRecognition.AnalyzeArg,
+    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+        if context.tasker.stopping:
+            return CustomRecognition.AnalyzeResult(
+                box=[0, 0, 0, 0],
+                detail={"node": "CheckStopping", "stopping": True},
+            )
+        else:
             return None

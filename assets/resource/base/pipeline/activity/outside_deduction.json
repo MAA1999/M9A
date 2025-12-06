@@ -1,12 +1,10 @@
 {
     "SeriesOfDusks": {
         "next": [
-            "SOD_Menu"
-        ],
-        "interrupt": [
-            "OutsideDeduction",
-            "EnterTheShow",
-            "ReturnMain"
+            "SOD_Menu",
+            "[JumpBack]OutsideDeduction",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ReturnMain"
         ]
     },
     "OutsideDeduction": {
@@ -50,11 +48,9 @@
             }
         },
         "next": [
-            "SOD_UNOPENED"
-        ],
-        "interrupt": [
-            "SODStop",
-            "SOD_unmount"
+            "SOD_UNOPENED",
+            "[JumpBack]SODStop",
+            "[JumpBack]SOD_unmount"
         ]
     },
     "SOD_MenuFlag": {
@@ -91,10 +87,8 @@
         },
         "next": [
             "SOD_unmount_completed_1",
-            "SOD_unmount"
-        ],
-        "interrupt": [
-            "SOD_unmount_confirm"
+            "SOD_unmount",
+            "[JumpBack]SOD_unmount_confirm"
         ]
     },
     "SOD_unmount_completed_1": {
@@ -132,10 +126,8 @@
             ]
         },
         "next": [
-            "SOD_unmount_completed_2"
-        ],
-        "interrupt": [
-            "SOD_unmount_confirm"
+            "SOD_unmount_completed_2",
+            "[JumpBack]SOD_unmount_confirm"
         ]
     },
     "SOD_unmount_completed_2": {
@@ -173,10 +165,8 @@
             ]
         },
         "next": [
-            "SOD_unmount_completed_3"
-        ],
-        "interrupt": [
-            "SOD_unmount_confirm"
+            "SOD_unmount_completed_3",
+            "[JumpBack]SOD_unmount_confirm"
         ]
     },
     "SOD_unmount_completed_3": {
@@ -203,10 +193,8 @@
             ]
         },
         "next": [
-            "SOD_MenuFlag"
-        ],
-        "interrupt": [
-            "BackButton"
+            "SOD_MenuFlag",
+            "[JumpBack]BackButton"
         ]
     },
     "SOD_unmount_confirm": {
@@ -250,10 +238,8 @@
             }
         },
         "next": [
-            "SODStart"
-        ],
-        "interrupt": [
-            "SODStop"
+            "SODStart",
+            "[JumpBack]SODStop"
         ]
     },
     "SODStop": {
@@ -276,7 +262,9 @@
             "SODStop_Confirm",
             "SODStop"
         ],
-        "focus": "[color:DeepSkyBlue]本轮肉鸽结束[/color]"
+        "focus": {
+            "Node.Action.Starting": "[color:DeepSkyBlue]本轮肉鸽结束[/color]"
+        }
     },
     "SODStop_Confirm": {
         "recognition": {
@@ -305,13 +293,11 @@
         },
         "next": [
             "SOD_MenuFlag",
-            "SODStop_Confirm"
-        ],
-        "interrupt": [
-            "SOD_Skip_NoNext",
-            "SODStop_Click_NoNext_3",
-            "SODStop_Click_NoNext_2",
-            "SODStop_Click_NoNext_1"
+            "SODStop_Confirm",
+            "[JumpBack]SOD_Skip_NoNext",
+            "[JumpBack]SODStop_Click_NoNext_3",
+            "[JumpBack]SODStop_Click_NoNext_2",
+            "[JumpBack]SODStop_Click_NoNext_1"
         ]
     },
     "SOD_Skip_NoNext": {
@@ -546,11 +532,13 @@
             ]
         },
         "next": [
-            "ODR_FlagInDifficultySelect",
+            "[JumpBack]ODR_FlagInDifficultySelect",
             "SODStart_Confirm",
             "SODStart"
         ],
-        "focus": "[color:tomato]开启本轮肉鸽[/color]"
+        "focus": {
+            "Node.Action.Starting": "err:开启本轮肉鸽"
+        }
     },
     "SODStart_Confirm": {
         "recognition": {
@@ -581,10 +569,8 @@
             "SODStart_GoodsSelect",
             "SODStart_MediaSelect",
             "SOD_ArcanistAdd",
-            "SODStart_Confirm"
-        ],
-        "interrupt": [
-            "SOD_SwipeLeft"
+            "SODStart_Confirm",
+            "[JumpBack]SOD_SwipeLeft"
         ]
     },
     "SODStart_GoodsSelect": {
@@ -604,17 +590,14 @@
         },
         "next": [
             "SODStart_Confirm",
-            "Sub_SODStart_GoodsSelect",
+            "[JumpBack]Sub_SODStart_GoodsSelect",
             "SOD_ItemSelect_1",
             "SODStart_MediaSelect",
-            "SOD_ArcanistAdd"
-        ],
-        "interrupt": [
-            "SOD_SwipeLeft"
+            "SOD_ArcanistAdd",
+            "[JumpBack]SOD_SwipeLeft"
         ]
     },
     "Sub_SODStart_GoodsSelect": {
-        "is_sub": true,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -740,10 +723,8 @@
         "post_delay": 2500,
         "next": [
             "SOD_Quickformation_On",
-            "SOD_ArcanistAdd"
-        ],
-        "interrupt": [
-            "SOD_Quickformation"
+            "SOD_ArcanistAdd",
+            "[JumpBack]SOD_Quickformation"
         ]
     },
     "SOD_Quickformation": {
@@ -979,10 +960,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_2": {
@@ -1040,10 +1019,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_3": {
@@ -1100,10 +1077,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_4": {
@@ -1159,10 +1134,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_5": {
@@ -1217,10 +1190,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_6": {
@@ -1274,10 +1245,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_7": {
@@ -1330,10 +1299,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_1_1": {
@@ -1385,10 +1352,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_2_1": {
@@ -1439,10 +1404,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_3_1": {
@@ -1492,10 +1455,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_4_1": {
@@ -1544,10 +1505,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_5_1": {
@@ -1595,10 +1554,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_6_1": {
@@ -1645,10 +1602,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_7_1": {
@@ -1694,10 +1649,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_1_2": {
@@ -1742,10 +1695,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_2_2": {
@@ -1789,10 +1740,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_3_2": {
@@ -1835,10 +1784,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_4_2": {
@@ -1880,10 +1827,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_5_2": {
@@ -1924,10 +1869,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_6_2": {
@@ -1967,10 +1910,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_7_2": {
@@ -2009,10 +1950,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_1_3": {
@@ -2050,10 +1989,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_2_3": {
@@ -2090,10 +2027,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_3_3": {
@@ -2129,10 +2064,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_4_3": {
@@ -2167,10 +2100,8 @@
             "SOD_ClearDeployment",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_5_3": {
@@ -2204,10 +2135,8 @@
             "SOD_Acquire",
             "SOD_ClearDeployment",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_6_3": {
@@ -2240,10 +2169,8 @@
             "SOD_Skip",
             "SOD_Acquire",
             "SOD_ClearDeployment",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_SelectNext_7_3": {
@@ -2275,10 +2202,8 @@
             "SOD_ItemLose_1",
             "SOD_Skip",
             "SOD_Acquire",
-            "SOD_ClearDeployment"
-        ],
-        "interrupt": [
-            "SOD_EndEvent"
+            "SOD_ClearDeployment",
+            "[JumpBack]SOD_EndEvent"
         ]
     },
     "SOD_Levelup": {
@@ -2301,10 +2226,8 @@
         },
         "next": [
             "SOD_NewArcanist",
-            "SOD_Levelup"
-        ],
-        "interrupt": [
-            "SOD_Acquire_NoNext"
+            "SOD_Levelup",
+            "[JumpBack]SOD_Acquire_NoNext"
         ]
     },
     "SOD_Move": {
@@ -2382,10 +2305,8 @@
         "post_delay": 2500,
         "next": [
             "SOD_Quickformation_On",
-            "SOD_ArcanistSelect"
-        ],
-        "interrupt": [
-            "SOD_Quickformation"
+            "SOD_ArcanistSelect",
+            "[JumpBack]SOD_Quickformation"
         ]
     },
     "SOD_ArcanistAdd_Single4": {
@@ -2493,13 +2414,12 @@
             "SOD_Skip",
             "SOD_Main",
             "SOD_Nothinghappen",
-            "SOD_Dialog_3",
-            "SOD_Dialog_5",
+            "[JumpBack]SOD_Dialog_3",
+            "[JumpBack]SOD_Dialog_5",
             "SOD_Combating"
         ]
     },
     "Sub_SOD_Dialog_1": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -2517,7 +2437,6 @@
         }
     },
     "Sub_SOD_Dialog_2": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -2535,7 +2454,6 @@
         }
     },
     "SOD_Dialog_3": {
-        "is_sub": true,
         "doc": "战斗中露西的升华",
         "recognition": {
             "type": "OCR",
@@ -2556,7 +2474,6 @@
         }
     },
     "Sub_SOD_Dialog_4": {
-        "is_sub": true,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -2575,7 +2492,6 @@
         }
     },
     "SOD_Dialog_5": {
-        "is_sub": true,
         "doc": "战斗中天使娜娜的缔结契约",
         "recognition": {
             "type": "OCR",
@@ -2602,7 +2518,7 @@
         },
         "next": [
             "SOD_Dialog_5_1",
-            "SOD_Dialog_5"
+            "[JumpBack]SOD_Dialog_5"
         ]
     },
     "SOD_Dialog_5_1": {
@@ -3280,10 +3196,8 @@
             "SOD_SelectNext_4_3",
             "SOD_SelectNext_5_3",
             "SOD_SelectNext_6_3",
-            "SOD_SelectNext_7_3"
-        ],
-        "interrupt": [
-            "SOD_Levelup"
+            "SOD_SelectNext_7_3",
+            "[JumpBack]SOD_Levelup"
         ]
     },
     "SOD_ClearDeployment": {
@@ -3329,10 +3243,8 @@
             "type": "Click"
         },
         "next": [
-            "SOD_Main"
-        ],
-        "interrupt": [
-            "SOD_BackButton"
+            "SOD_Main",
+            "[JumpBack]SOD_BackButton"
         ]
     },
     "SOD_BackButton": {
@@ -3451,10 +3363,8 @@
         "next": [
             "SOD_EndingSelect",
             "SOD_Departure",
-            "SOD_Ending_1"
-        ],
-        "interrupt": [
-            "SOD_Ending_SkipText"
+            "SOD_Ending_1",
+            "[JumpBack]SOD_Ending_SkipText"
         ]
     },
     "SOD_Ending_SkipText": {
@@ -3507,10 +3417,8 @@
         "next": [
             "SOD_EndingSelect",
             "SOD_Departure",
-            "SOD_Ending_2"
-        ],
-        "interrupt": [
-            "SOD_Ending_SkipText"
+            "SOD_Ending_2",
+            "[JumpBack]SOD_Ending_SkipText"
         ]
     },
     "SOD_EndingSelect": {
@@ -3548,10 +3456,8 @@
             "SOD_ArcanistSelect",
             "SOD_ArcanistAdd_Single4",
             "SOD_CombatStart",
-            "SOD_EndingSelect"
-        ],
-        "interrupt": [
-            "SOD_Ending_SkipText"
+            "SOD_EndingSelect",
+            "[JumpBack]SOD_Ending_SkipText"
         ]
     }
 }

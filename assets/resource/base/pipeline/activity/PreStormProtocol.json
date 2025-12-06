@@ -1,0 +1,237 @@
+{
+    "PreStormProtocolStart": {
+        "next": [
+            "PreStormProtocol",
+            "PreStormProtocol1"
+        ]
+    },
+    "PreStormProtocol": {
+        // 未打败教程中boss的任务链
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "Count",
+                "custom_recognition_param": {
+                    "target": 300,
+                    "recognition": {
+                        "type": "OCR",
+                        "param": {
+                            "roi": [
+                                1075,
+                                616,
+                                99,
+                                46
+                            ],
+                            "only_rec": true,
+                            "expected": "模拟"
+                        }
+                    }
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "PreStormProtocolGiveUp",
+            "PreStormProtocol",
+            "[JumpBack]PreStormProtocolReport",
+            "[JumpBack]Confirm",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "PreStormProtocolReport": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    640,
+                    50,
+                    56,
+                    30
+                ],
+                "only_rec": true,
+                "expected": "报告"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    627,
+                    645,
+                    33,
+                    24
+                ]
+            }
+        }
+    },
+    "PreStormProtocolGiveUp": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    857,
+                    616,
+                    54,
+                    57
+                ],
+                "template": "PreStormProtocol/GiveUp.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "PreStormProtocolGiveUp",
+            "PreStormProtocol",
+            "[JumpBack]PreStormProtocolReport",
+            "[JumpBack]Confirm",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "PreStormProtocol1": {
+        // 已打败教程中boss的任务链
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "Count",
+                "custom_recognition_param": {
+                    "target": 300,
+                    "recognition": {
+                        "type": "OCR",
+                        "param": {
+                            "roi": [
+                                1075,
+                                616,
+                                99,
+                                46
+                            ],
+                            "only_rec": true,
+                            "expected": "模拟"
+                        }
+                    }
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "PreStormProtocol1",
+            "[JumpBack]PreStormProtocolExit",
+            "[JumpBack]PreStormProtocolLoading",
+            "[JumpBack]PreStormProtocolReport",
+            "[JumpBack]Confirm",
+            "[JumpBack]PreStormProtocol1NextStep",
+            "[JumpBack]PreStormProtocol1StartClick",
+            "[JumpBack]PreStormProtocolFailed",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeLoading"
+        ]
+    },
+    "PreStormProtocol1NextStep": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    958,
+                    643,
+                    113,
+                    28
+                ],
+                "only_rec": true,
+                "expected": [
+                    "下一步",
+                    "开始模拟"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "PreStormProtocol1StartClick": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    640,
+                    50,
+                    56,
+                    30
+                ],
+                "only_rec": true,
+                "expected": "开始"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    627,
+                    645,
+                    33,
+                    24
+                ]
+            }
+        }
+    },
+    "PreStormProtocolLoading": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    696,
+                    395,
+                    141,
+                    165
+                ],
+                "template": "PreStormProtocol/Loading.png"
+            }
+        }
+    },
+    "PreStormProtocolExit": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    128,
+                    26,
+                    35,
+                    46
+                ],
+                "template": "PreStormProtocol/Exit.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "PreStormProtocolFailed": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    635,
+                    317,
+                    109,
+                    54
+                ],
+                "only_rec": true,
+                "expected": "失败"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    634,
+                    570,
+                    109,
+                    54
+                ]
+            }
+        }
+    }
+}

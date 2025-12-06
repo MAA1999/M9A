@@ -124,12 +124,15 @@
                             "type": "TemplateMatch",
                             "param": {
                                 "roi": [
-                                    893,
-                                    489,
-                                    366,
-                                    170
+                                    17,
+                                    507,
+                                    1263,
+                                    213
                                 ],
-                                "template": "Combat/Activity/ActivityMainChapter_sp01.png"
+                                "template": [
+                                    "Combat/Activity/ActivityMainChapter_sp01.png",
+                                    "Combat/Activity/ActivityMainChapter_sp01_1.png"
+                                ]
                             }
                         }
                     },
@@ -157,8 +160,111 @@
                     "FlagInActivityStage": {
                         "next": [
                             "ReadyForAction"
-                        ],
-                        "interrupt": []
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "2.8": {
+        "version_name": "复乐园",
+        "start_time": 1758290400000,
+        "end_time": 1761555599000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1758290400000,
+                "end_time": 1761555599000
+            },
+            "anecdote": {
+                "start_time": 1758704400000,
+                "end_time": 1759913999000
+            }
+        }
+    },
+    "3.0": {
+        "version_name": "行于漫漫长路上",
+        "start_time": 1761739200000,
+        "end_time": 1765349999000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1761739200000,
+                "end_time": 1765090799000
+            },
+            "anecdote": {
+                "start_time": 1762326000000,
+                "end_time": 1763535599000
+            },
+            "re-release": {
+                "name": "圣火纪行：东区黎明",
+                "alias": "圣火",
+                "start_time": 1764226800000,
+                "end_time": 1765090799000
+            }
+        }
+    },
+    "3.1": {
+        "version_name": "The Midnight Whistle",
+        "start_time": 1765465200000,
+        "end_time": 1769075999000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1765465200000,
+                "end_time": 1768816799000,
+                "override": {
+                    "FlagInActivityMain": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1010,
+                                    30,
+                                    46,
+                                    25
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    "ActivityMainChapter": {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "expected": [
+                                    "欢迎",
+                                    "乘车"
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "expected": "[01][0-9]"
+                            }
+                        }
+                    }
+                }
+            },
+            "re-release": {
+                "name": "地球上最后的夜晚",
+                "alias": "地球上最后的夜晚",
+                "start_time": 1767952800000,
+                "end_time": 1768816799000,
+                "override": {
+                    "FlagInActivityMain": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1010,
+                                    30,
+                                    46,
+                                    25
+                                ],
+                                "only_rec": true
+                            }
+                        }
                     }
                 }
             }

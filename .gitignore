@@ -458,3 +458,4 @@ tools/ImageCropper/**/*.png
 python/
 .venv/
 config/
+tmp/

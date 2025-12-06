@@ -1,0 +1,90 @@
+{
+    "3.0": {
+        "version_name": "行於漫漫長路上",
+        "start_time": 1761789600000,
+        "end_time": 1765400399000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1761789600000,
+                "end_time": 1765141199000
+            },
+            "anecdote": {
+                "start_time": 1762722000000,
+                "end_time": 1763585999000
+            },
+            "re-release": {
+                "name": "圣火纪行：东区黎明",
+                "alias": "圣火",
+                "start_time": 1764277200000,
+                "end_time": 1765141199000
+            }
+        }
+    },
+    "3.1": {
+        "version_name": "長夜鳴笛",
+        "start_time": 1765418400000,
+        "end_time": 1769029199000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1765418400000,
+                "end_time": 1768769999000,
+                "override": {
+                    "FlagInActivityMain": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1010,
+                                    30,
+                                    46,
+                                    25
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    "ActivityMainChapter": {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "expected": [
+                                    "欢迎",
+                                    "乘车"
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "expected": "[01][0-9]"
+                            }
+                        }
+                    }
+                }
+            },
+            "re-release": {
+                "name": "地球上最后的夜晚",
+                "alias": "地球上最后的夜晚",
+                "start_time": 1767906000000,
+                "end_time": 1768769999000,
+                "override": {
+                    "FlagInActivityMain": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1010,
+                                    30,
+                                    46,
+                                    25
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

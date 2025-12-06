@@ -32,25 +32,16 @@ VENV_DIR = Path(project_root_dir) / VENV_NAME
 
 
 def _is_running_in_our_venv():
-    """检查脚本是否在此脚本管理的特定venv中运行。"""
-    current_python = Path(sys.executable).resolve()
+    """检查脚本是否在虚拟环境中运行。"""
+    # 使用 sys.prefix 和 sys.base_prefix 来判断是否在虚拟环境中
+    in_venv = sys.prefix != sys.base_prefix
 
-    logger.debug(f"当前Python解释器: {current_python}")
-
-    if sys.platform.startswith("win"):
-        # Windows: 如果在虚拟环境中，Python应该在 Scripts 目录下
-        if current_python.parent.name == "Scripts":
-            return True
-        else:
-            logger.debug("当前不在目标虚拟环境中")
-            return False
+    if in_venv:
+        logger.debug(f"当前在虚拟环境中运行: {sys.prefix}")
     else:
-        # Linux/Unix: 如果在虚拟环境中，Python应该在 bin 目录下
-        if current_python.parent.name == "bin":
-            return True
-        else:
-            logger.debug("当前不在目标虚拟环境中")
-            return False
+        logger.debug(f"当前不在虚拟环境中，使用系统Python: {sys.prefix}")
+
+    return in_venv
 
 
 def ensure_venv_and_relaunch_if_needed():
@@ -107,7 +98,13 @@ def ensure_venv_and_relaunch_if_needed():
     logger.info(f"正在使用虚拟环境Python重新启动")
 
     try:
-        cmd = [str(python_in_venv)] + sys.argv
+        # Use absolute path to this script when relaunching inside the venv.
+        # sys.argv[0] may be a relative path (e.g. './../agent/main.py') which
+        # resolves differently when cwd changes. Use the absolute path of
+        # the currently running file (`current_file_path`) to avoid that.
+        script_abs = current_file_path
+        args = sys.argv[1:]
+        cmd = [str(python_in_venv), str(script_abs)] + args
         logger.info(f"执行命令: {' '.join(cmd)}")
 
         result = subprocess.run(
@@ -171,6 +168,29 @@ def read_pip_config() -> dict:
         return default_config
 
 
+def read_hot_update_config() -> dict:
+    """
+    读取热更配置
+    """
+    config_dir = Path("./config")
+    config_dir.mkdir(exist_ok=True)
+    config_path = config_dir / "hot_update.json"
+    default_conf = {"enable_hot_update": True}
+    if not config_path.exists():
+        try:
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump(default_conf, f, indent=4, ensure_ascii=False)
+        except Exception:
+            logger.debug("无法写入 hot_update.json，使用默认配置")
+        return default_conf
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        logger.exception("读取 hot_update.json 失败，使用默认配置")
+        return default_conf
+
+
 ### 依赖安装相关 ###
 
 
@@ -181,7 +201,7 @@ def find_local_wheels_dir():
 
     if deps_dir.exists() and any(deps_dir.glob("*.whl")):
         whl_count = len(list(deps_dir.glob("*.whl")))
-        logger.info(f"发现本地deps目录包含 {whl_count} 个 whl 文件")
+        logger.debug(f"发现本地deps目录包含 {whl_count} 个 whl 文件")
         return deps_dir
 
     logger.debug("未找到deps目录或目录中无 whl 文件")
@@ -212,7 +232,7 @@ def _run_pip_command(cmd_args: list, operation_name: str) -> bool:
         for line in iter(process.stdout.readline, ""):
             line = line.rstrip("\n\r")
             if line.strip():  # 只显示非空行
-                print(line)  # 实时显示到终端
+                # print(line)  # 实时显示到终端
                 all_output.append(line)  # 收集到列表中
 
         # 等待进程结束
@@ -244,7 +264,7 @@ def install_requirements(req_file="requirements.txt", pip_config=None) -> bool:
     # 查找本地deps目录
     deps_dir = find_local_wheels_dir()
     if deps_dir:
-        logger.info(f"使用本地 whl 文件安装，目录: {deps_dir}")
+        logger.debug(f"使用本地 whl 文件安装，目录: {deps_dir}")
 
         cmd = [
             sys.executable,
@@ -324,7 +344,7 @@ def check_and_install_dependencies():
     pip_config = read_pip_config()
     enable_pip_install = pip_config.get("enable_pip_install", True)
 
-    logger.info(f"启用 pip 安装依赖: {enable_pip_install}")
+    logger.debug(f"启用 pip 安装依赖: {enable_pip_install}")
 
     if enable_pip_install:
         logger.info("开始安装/更新依赖")
@@ -365,6 +385,67 @@ def agent(is_dev_mode=False):
             change_console_level("DEBUG")
             logger.info("开发模式：日志等级已设置为DEBUG")
 
+        if not is_dev_mode:
+            # ========== 版本检查（始终执行） ==========
+            from utils.version_checker import check_resource_version
+
+            version_info = check_resource_version()
+            if not version_info["is_latest"]:
+                logger.warning("检测到资源有新版本!")
+                logger.warning(f"当前资源版本: {version_info['current_version']}")
+                logger.warning(f"最新资源版本: {version_info['latest_version']}")
+            elif version_info["error"]:
+                logger.debug(f"资源版本检查遇到问题: {version_info['error']}")
+
+            # ========== 热更新：基于 manifest 时间戳优化 ==========
+            hot_update_conf = read_hot_update_config()
+            if not hot_update_conf.get("enable_hot_update", True):
+                logger.info("已配置为跳过部分资源热更")
+            else:
+                from utils.manifest_checker import (
+                    check_manifest_updates,
+                    save_manifest_cache_from_result,
+                )
+
+                manifest_result = check_manifest_updates()
+
+                # 如果没有任何更新，跳过热更新
+                if manifest_result["success"] and not manifest_result["has_any_update"]:
+                    logger.debug("资源无更新，跳过热更新")
+                else:
+                    # 有更新或检查失败，执行热更新流程
+                    updated_manifests = manifest_result.get("updated_manifests", [])
+
+                    if updated_manifests or not manifest_result["success"]:
+                        from utils.resource_updater import check_and_update_resources
+
+                        # 只更新有变化的 manifest
+                        manifests = (
+                            updated_manifests if manifest_result["success"] else None
+                        )
+                        if manifests:
+                            logger.debug(f"开始更新 {len(manifests)} 个资源清单...")
+                        else:
+                            logger.debug("开始检查所有资源...")
+
+                        update_result = check_and_update_resources(
+                            resource_manifests=manifests
+                        )
+                        if update_result and update_result.get("updated_files"):
+                            pass
+                        elif update_result and update_result.get("error"):
+                            logger.debug(
+                                f"热更部分资源更新遇到问题: {update_result['error']}"
+                            )
+                        else:
+                            logger.debug("热更部分资源已是最新")
+                    else:
+                        logger.debug("所有 manifest 无更新，跳过热更新")
+
+                # 检查成功后保存 manifest 缓存（无论是否有更新）
+                save_manifest_cache_from_result(manifest_result)
+            # ========== 热更新结束 ==========
+
         from maa.agent.agent_server import AgentServer
         from maa.toolkit import Toolkit
 
@@ -377,7 +458,7 @@ def agent(is_dev_mode=False):
             return
 
         socket_id = sys.argv[-1]
-        logger.info(f"socket_id: {socket_id}")
+        logger.debug(f"socket_id: {socket_id}")
 
         AgentServer.start_up(socket_id)
         logger.info("AgentServer启动")

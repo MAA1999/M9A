@@ -19,7 +19,7 @@ class JudgeDepthsOfMythWeekly(CustomAction):
 
     参数格式:
     {
-        "resource": "cn/en/jp"
+        "resource": "cn/en/jp/tw"
     }
     """
 
@@ -31,7 +31,7 @@ class JudgeDepthsOfMythWeekly(CustomAction):
 
         resource = json.loads(argv.custom_action_param)["resource"]
 
-        if resource == "cn":
+        if resource == "cn" or resource == "tw":
             timezone = "Asia/Shanghai"
         elif resource == "en":
             timezone = "America/New_York"
@@ -54,7 +54,7 @@ class JudgeDepthsOfMythWeekly(CustomAction):
         try:
             with open(file_path, encoding="utf-8") as f:
                 data = json.load(f)
-        except (json.JSONDecodeError) as e:
+        except json.JSONDecodeError as e:
             logger.warning(f"非标准json文件，正在初始化: {e}")
             with open(file_path, "w", encoding="utf-8") as file:
                 json.dump(default_data, file, indent=4)

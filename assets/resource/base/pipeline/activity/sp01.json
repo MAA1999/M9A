@@ -2,11 +2,42 @@
     "Sp01Daily": {
         "next": [
             "Sp01DailyEnter",
+            "HomeFlagForSp_01",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "HomeFlagForSp_01": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1022,
+                    419,
+                    194,
+                    166
+                ],
+                "template": [
+                    "StartUp/HomeFlag.png",
+                    "StartUp/HomeFlag_sp01.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    576,
+                    298,
+                    68,
+                    64
+                ]
+            }
+        },
+        "post_delay": 5000,
+        "next": [
+            "Sp01DailyEnter",
             "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton",
-            "BackButton"
         ]
     },
     "Sp01DailyEnter": {
@@ -14,10 +45,10 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    426,
-                    31,
-                    129,
-                    32
+                    335,
+                    32,
+                    147,
+                    60
                 ],
                 "template": [
                     "Sp01/Sp01Daily.png"
@@ -38,16 +69,395 @@
             "type": "Click"
         },
         "next": [
-            "Sub_Sp01RPS",
-            "Sub_Sp01DataCollect",
-            "Sp01Messagers",
-            "Sp01DailyEnter",
-            "HomeFlag"
-        ],
-        "interrupt": [
-            "HomeButton",
-            "BackButton"
+            "FlagInSp01Daily",
+            "Sp01DailyEnter"
         ]
+    },
+    "FlagInSp01Daily": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1009,
+                    493,
+                    238,
+                    137
+                ],
+                "expected": [
+                    "数据拾遗"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]Sub_SailingRecord",
+            "[JumpBack]Sub_Sp01DataCollect",
+            "Sp01DailyEnter",
+            "HomeFlag",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "Sub_SailingRecord": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    286,
+                    541,
+                    22,
+                    20
+                ],
+                "upper": [
+                    250,
+                    110,
+                    90
+                ],
+                "lower": [
+                    180,
+                    80,
+                    60
+                ],
+                "count": 50
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "SailingRecordStart"
+        ]
+    },
+    "SailingRecordStart": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    980,
+                    613,
+                    271,
+                    70
+                ],
+                "upper": [
+                    200,
+                    100,
+                    100
+                ],
+                "lower": [
+                    100,
+                    50,
+                    50
+                ],
+                "count": 1000
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 5000,
+        "next": [
+            "FlagInSailingRecordStart",
+            "SailingRecordStart"
+        ]
+    },
+    "FlagInSailingRecordStart": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    66,
+                    52,
+                    299,
+                    141
+                ],
+                "expected": [
+                    "选择航海目标"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "SailingRecordSelectTarget"
+        ]
+    },
+    "SailingRecordSelectTarget": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "SailingRecordSelectTarget",
+                "custom_recognition_param": {
+                    "level": 0
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "SailingRecordSelectTargetFinish",
+            "SailingRecordSelectTarget"
+        ]
+    },
+    "SailingRecordFindDifficult": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    388,
+                    135,
+                    148,
+                    374
+                ],
+                "expected": [
+                    "困难"
+                ]
+            }
+        }
+    },
+    "SailingRecordFindNormal": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "expected": [
+                    "所需点数-?\\d{1,2}~-?\\d{1,2}"
+                ]
+            }
+        }
+    },
+    "SailingRecordSelectTargetFinish": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": "SailingRecordSelectTarget",
+                "upper": [
+                    202,
+                    122,
+                    105
+                ],
+                "lower": [
+                    152,
+                    72,
+                    55
+                ],
+                "count": 2000
+            }
+        },
+        "next": [
+            "FlagInSailingRecordBoat",
+            "[JumpBack]SailingRecordSelectNextStep"
+        ]
+    },
+    "FlagInSailingRecordBoat": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    64,
+                    571,
+                    233,
+                    136
+                ],
+                "expected": [
+                    "选择船队"
+                ]
+            }
+        },
+        "next": [
+            "SailingRecordBoat"
+        ]
+    },
+    "SailingRecordBoat": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "SailingRecordBoatRecord"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SailingRecordDiceStrategy"
+            }
+        },
+        "next": [
+            "SailingRecordBoatSelect"
+        ]
+    },
+    "SailingRecordBoatSelect": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SailingRecordBoatSelect"
+            }
+        },
+        "next": [
+            "SailingRecordBoatSelectFinish"
+        ]
+    },
+    "SailingRecordBoatSelectFinish": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1010,
+                    582,
+                    212,
+                    132
+                ],
+                "expected": [
+                    "开始模拟"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 5000,
+        "next": [
+            "SailingRecordBoatWin",
+            "SailingRecordBoatFail",
+            "SailingRecordBoatSelectFinish"
+        ]
+    },
+    "SailingRecordBoatWin": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    737,
+                    35,
+                    394,
+                    182
+                ],
+                "expected": [
+                    "胜利"
+                ]
+            }
+        },
+        "next": [
+            "SailingRecordBoatStartNext",
+            "SailingRecordBoatEnd"
+        ],
+        "focus": {
+            "Node.Action.Starting": "航海胜利"
+        }
+    },
+    "SailingRecordBoatFail": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    737,
+                    35,
+                    394,
+                    182
+                ],
+                "expected": [
+                    "失败"
+                ]
+            }
+        },
+        "next": [
+            "SailingRecordBoatStartNext",
+            "SailingRecordBoatEnd"
+        ],
+        "focus": {
+            "Node.Action.Starting": "err:航海失败"
+        }
+    },
+    "SailingRecordBoatEnd": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    894,
+                    584,
+                    159,
+                    132
+                ],
+                "expected": [
+                    "完成"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SailingRecordBoatStartNext": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1010,
+                    582,
+                    212,
+                    132
+                ],
+                "expected": [
+                    "新一轮"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "post_wait_freezes": 300,
+        "next": [
+            "FlagInSailingRecordStart",
+            "SailingRecordBoatStartNext"
+        ]
+    },
+    "SailingRecordBoatOp": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template_code": "",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SailingRecordBoatPointRecord": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    131,
+                    476,
+                    24,
+                    19
+                ],
+                "expected": [
+                    "[\\?？\\d+]"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "SailingRecordSelectNextStep": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1023,
+                    584,
+                    186,
+                    128
+                ],
+                "expected": [
+                    "下一步"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "Sp01Messagers": {
         "recognition": {
@@ -68,15 +478,13 @@
             "type": "Click"
         },
         "next": [
-            "Sp01MessagersEnd"
-        ],
-        "interrupt": [
-            "Sp01MessagersChoose",
-            "Sp01MessagersComfirm",
-            "Sp01MessagersNextRound",
-            "ObtainedAwards",
-            "ClosePage",
-            "ClickHomeCount"
+            "Sp01MessagersEnd",
+            "[JumpBack]Sp01MessagersChoose",
+            "[JumpBack]Sp01MessagersComfirm",
+            "[JumpBack]Sp01MessagersNextRound",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]ClosePage",
+            "[JumpBack]ClickHomeCount"
         ]
     },
     "Sp01MessagersChoose": {
@@ -170,7 +578,6 @@
         ]
     },
     "Sub_Sp01RPS": {
-        "is_sub": true,
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -227,14 +634,12 @@
             "type": "Click"
         },
         "next": [
-            "RPSFinish"
-        ],
-        "interrupt": [
-            "SkipBattle",
-            "RPSStartNext",
-            "RPSNext",
-            "Arms",
-            "ActionPoints"
+            "RPSFinish",
+            "[JumpBack]SkipBattle",
+            "[JumpBack]RPSStartNext",
+            "[JumpBack]RPSNext",
+            "[JumpBack]Arms",
+            "[JumpBack]ActionPoints"
         ]
     },
     "SkipBattle": {
@@ -623,7 +1028,6 @@
         }
     },
     "Sub_Sp01DataCollect": {
-        "is_sub": true,
         "recognition": {
             "type": "ColorMatch",
             "param": {
@@ -650,24 +1054,15 @@
             "type": "Click"
         },
         "next": [
-            "Sp01DataCollect2",
-            "Sp01DataCollect3"
-        ],
-        "interrupt": [
-            "ObtainedAwards"
+            "[JumpBack]Sp01DataCollect2",
+            "Sp01DataCollect3",
+            "[JumpBack]ObtainedAwards"
         ]
     },
     "Sp01DataCollect2": {
-        "is_sub": true,
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi": [
-                    43,
-                    402,
-                    550,
-                    302
-                ],
                 "expected": [
                     "领取"
                 ]

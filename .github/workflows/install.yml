@@ -89,7 +89,7 @@ jobs:
         with:
           repository: MaaXYZ/MaaFramework
           fileName: "MAA-win-${{ matrix.arch }}*"
-          latest: true
+          tag: "v5.2.0-beta.2"
           out-file-path: "deps"
           extract: true
 
@@ -99,7 +99,7 @@ jobs:
         with:
           repository: SweetSmellFox/MFAAvalonia
           fileName: "MFAAvalonia-*-win-${{ matrix.arch == 'x86_64' && 'x64' || 'arm64' }}*"
-          tag: "v1.6.5"
+          tag: "v2.1.5-beta.1"
           out-file-path: "MFA"
           extract: true
 
@@ -131,6 +131,7 @@ jobs:
           else
             echo "MFA directory not found, skipping copy."
           fi
+          cp -rpvn tools/registry/. install/
 
       - uses: actions/upload-artifact@v4
         with:
@@ -155,7 +156,7 @@ jobs:
         with:
           repository: MaaXYZ/MaaFramework
           fileName: "MAA-linux-${{ matrix.arch }}*"
-          latest: true
+          tag: "v5.2.0-beta.2"
           out-file-path: "deps"
           extract: true
 
@@ -165,7 +166,7 @@ jobs:
         with:
           repository: SweetSmellFox/MFAAvalonia
           fileName: "MFAAvalonia-*-linux-${{ matrix.arch == 'x86_64' && 'x64' || 'arm64' }}*"
-          tag: "v1.6.5"
+          tag: "v2.1.5-beta.1"
           out-file-path: "MFA"
           extract: true
 
@@ -206,7 +207,7 @@ jobs:
       matrix:
         include:
           - arch: x86_64
-            runner: macos-13  # Intel-based macOS runner
+            runner: macos-15-intel  # Intel-based macOS runner
           - arch: aarch64
             runner: macos-latest  # Apple Silicon macOS runner
       fail-fast: false
@@ -221,7 +222,7 @@ jobs:
         with:
           repository: MaaXYZ/MaaFramework
           fileName: "MAA-macos-${{ matrix.arch }}*"
-          latest: true
+          tag: "v5.2.0-beta.2"
           out-file-path: "deps"
           extract: true
 
@@ -231,7 +232,7 @@ jobs:
         with:
           repository: SweetSmellFox/MFAAvalonia
           fileName: "MFAAvalonia-*-osx-${{ matrix.arch == 'x86_64' && 'x64' || 'arm64' }}*"
-          tag: "v1.6.5"
+          tag: "v2.1.5-beta.1"
           out-file-path: "MFA"
           extract: true
 
@@ -257,7 +258,7 @@ jobs:
       - name: Download Python dependencies
         shell: bash
         run: |
-          ./install/python/bin/python3 tools/ci/download_deps.py --deps-dir deps
+          ./install/python/bin/python3 tools/ci/download_deps.py --deps-dir install/deps
 
       - name: Install on macOS
         shell: bash
@@ -362,8 +363,9 @@ jobs:
           prerelease: ${{ needs.meta.outputs.is_prerelease == 'true' }}
 
       - name: Trigger MirrorChyanUploading
+        shell: bash
         run: |
-          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan
-          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_release_note
+          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan.yml -f tag=${{ needs.meta.outputs.tag }}
+          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_release_note.yml -f tag=${{ needs.meta.outputs.tag }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
