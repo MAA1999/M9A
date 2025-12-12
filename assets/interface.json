@@ -122,7 +122,8 @@
         {
             "name": "启动游戏",
             "entry": "StartUp",
-            "description": "暂不支持国际服PC端运行该任务"
+            "description": "暂不支持国际服PC端运行该任务",
+            "default_check": true
         },
         {
             "name": "收取荒原",
@@ -131,7 +132,8 @@
                 "好梦井",
                 "魔精收菜",
                 "交付订单"
-            ]
+            ],
+            "default_check": true
         },
         {
             "name": "每日心相（意志解析）",
@@ -139,7 +141,8 @@
             "option": [
                 "双重解析加成作战",
                 "吃糖"
-            ]
+            ],
+            "default_check": true
         },
         {
             "name": "常规作战",
@@ -150,7 +153,8 @@
                 "自定义作战次数",
                 "掉落统计上报"
             ],
-            "description": "点击放大图片，仅限刷材料关卡\n![bydjl](resource/announcement/images/mojing_tjb.png)"
+            "description": "点击放大图片，仅限刷材料关卡\n![bydjl](resource/announcement/images/mojing_tjb.png)",
+            "default_check": true
         },
         {
             "name": "活动刷取",
@@ -171,7 +175,8 @@
                 "下半编队",
                 "仅领取每周浅眠域奖励"
             ],
-            "description": "<span style=\"color:tomato;font-size:15px\">注意上下半编队不要重复。支持旧版和改版编队、支持编队自定义命名，未来可支持编队超出前四个</span>"
+            "description": "<span style=\"color:tomato;font-size:15px\">注意上下半编队不要重复。支持旧版和改版编队、支持编队自定义命名，未来可支持编队超出前四个</span>",
+            "default_check": true
         },
         {
             "name": "自动醒梦",
@@ -180,7 +185,8 @@
                 "醒梦上半编队",
                 "醒梦下半编队"
             ],
-            "description": "<span style=\"color:tomato;font-size:15px\">注意上下半编队不要重复。支持旧版和改版编队、支持编队自定义命名，未来可支持编队超出前四个</span>"
+            "description": "<span style=\"color:tomato;font-size:15px\">注意上下半编队不要重复。支持旧版和改版编队、支持编队自定义命名，未来可支持编队超出前四个</span>",
+            "default_check": true
         },
         {
             "name": "银行购物",
@@ -192,7 +198,8 @@
                 "心相观测",
                 "梦境记述"
             ],
-            "description": "<span style=\"color:tomato;font-size:15px\">单账号模式下会跳过当前周期执行过的任务</span>"
+            "description": "<span style=\"color:tomato;font-size:15px\">单账号模式下会跳过当前周期执行过的任务</span>",
+            "default_check": true
         },
         {
             "name": "领取奖励",
@@ -201,7 +208,8 @@
                 "领取邮件奖励",
                 "领取任务奖励",
                 "领取吼吼点唱机"
-            ]
+            ],
+            "default_check": true
         },
         {
             "name": "雨中悬想：迷思海",
@@ -209,7 +217,8 @@
             "option": [
                 "单账号(迷思海)"
             ],
-            "description": "<span style=\"color:tomato;font-size:15px\">本功能仅完成“寻思”每周扫荡</span>"
+            "description": "<span style=\"color:tomato;font-size:15px\">本功能仅完成“寻思”每周扫荡</span>",
+            "default_check": true
         },
         {
             "name": "切换账号",
