@@ -228,7 +228,8 @@
         {
             "name": "关闭游戏",
             "entry": "Close1999",
-            "description": "暂不支持国际服PC端运行该任务"
+            "description": "暂不支持国际服PC端运行该任务",
+            "default_check": true
         },
         {
             "name": "局外演绎：黄昏的音序",
