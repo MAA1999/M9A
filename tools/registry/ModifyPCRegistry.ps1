@@ -8,7 +8,7 @@ Safe helper to backup a registry key and update a Resolution-like value to "WIDT
 
 Usage examples:
 # Backup & set to 1920 x 1080 (will also set game defaults)
-pwsh .\modify_resolution.ps1 -KeyPath 'HKCU:\Software\bluepoch' -ValueName 'ResolutionRatio_h997442698' -Width 1920 -Height 1080 -BackupFile '.\\bluepoch_backup.reg'
+pwsh .\modify_resolution.ps1 -KeyPath 'HKCU:\Software\bluepoch' -ValueName 'ResolutionRatio_h997442698' -Width 1920 -Height 1080 -BackupFile '.\bluepoch_backup.reg'
 
 # Set to a custom string (will also set game defaults)
 pwsh .\modify_resolution.ps1 -KeyPath 'HKCU:\Software\bluepoch' -ValueName 'ResolutionRatio_h997442698' -NewValue '1280 * 720'
@@ -17,13 +17,13 @@ pwsh .\modify_resolution.ps1 -KeyPath 'HKCU:\Software\bluepoch' -ValueName 'Reso
 pwsh .\modify_resolution.ps1 -Width 1280 -Height 720 -NoGameDefaults
 
 # Restore from backup
-pwsh .\modify_resolution.ps1 -KeyPath 'HKCU:\Software\bluepoch' -BackupFile '.\\bluepoch_backup.reg' -Restore
+pwsh .\modify_resolution.ps1 -KeyPath 'HKCU:\Software\bluepoch' -BackupFile '.\bluepoch_backup.reg' -Restore
 #>
 
 param(
     [string]$KeyPath = 'HKCU:\Software\bluepoch\Reverse: 1999',
     [string]$ValueName = 'ResolutionRatio_h997442698',
-    [ValidateSet('1','2','3','4')]
+    [ValidateSet('1','2','3','4','5','6')]
     [string]$Preset,
     [int]$Width,
     [int]$Height,
@@ -134,43 +134,64 @@ if ($Restore) {
 # If no parameters provided, run an interactive main menu
 if ($PSBoundParameters.Count -eq 0 -and -not $Restore) {
     while ($true) {
+        Clear-Host
+        Write-Host "================ Main Menu ================"
         Write-Host "Select an action:"
         Write-Host "1) Set resolution from preset"
         Write-Host "2) Restore from backup (import .reg)"
         Write-Host "3) Exit"
+        Write-Host "=========================================="
         $action = Read-Host "Enter choice (1-3)"
+
         switch ($action) {
             '1' {
-                Write-Host "Presets (will also set game defaults: windowed mode, zh_CN language):"
-                Write-Host "  a) 1920 * 1080"
-                Write-Host "  b) 1600 * 900"
-                Write-Host "  c) 1366 * 768"
-                Write-Host "  d) 1280 * 720"
-                $p = Read-Host "Choose preset (a-d) or 'c' to cancel"
-                switch ($p) {
-                    'a' { $Width = 1920; $Height = 1080 }
-                    'b' { $Width = 1600; $Height = 900 }
-                    'c' { $Width = 1366; $Height = 768 }
-                    'd' { $Width = 1280; $Height = 720 }
-                    default { Write-Host "Cancelled preset selection."; continue }
+                while ($true) {
+                    Clear-Host
+                    Write-Host "Presets (will also set game defaults: windowed mode, zh_CN language):"
+                    Write-Host "  a) 3840 * 2160"
+                    Write-Host "  b) 2560 * 1440"
+                    Write-Host "  c) 1920 * 1080"
+                    Write-Host "  d) 1600 * 900"
+                    Write-Host "  e) 1366 * 768"
+                    Write-Host "  f) 1280 * 720"
+                    Write-Host "  q) Return to main menu"
+                    $p = Read-Host "Choose preset (a-f) or 'q' to return"
+
+                    if ($p -eq 'q' -or $p -eq 'Q') {
+                        Write-Host "Returning to main menu..."
+                        Start-Sleep -Seconds 1
+                        break  # Break inner loop to return to main menu
+                    }
+
+                    switch ($p.ToLower()) {
+                        'a' { $Width = 3840; $Height = 2160 }
+                        'b' { $Width = 2560; $Height = 1440 }
+                        'c' { $Width = 1920; $Height = 1080 }
+                        'd' { $Width = 1600; $Height = 900 }
+                        'e' { $Width = 1366; $Height = 768 }
+                        'f' { $Width = 1280; $Height = 720 }
+                        default { Write-Host "Invalid preset choice."; Start-Sleep -Seconds 1; continue }
+                    }
+                    $valueToSet = "{0} * {1}" -f $Width, $Height
+                    break  # Exit preset selection loop after valid choice
                 }
-                $valueToSet = "{0} * {1}" -f $Width, $Height
-                break
+                if ($valueToSet) { break }  # Exit main menu loop if a resolution was chosen
             }
             '2' {
                 # Restore flow
                 $bk = Read-Host "Enter backup .reg path to import (or press Enter to use default $BackupFile)"
                 if ($bk -ne '') { $BackupFile = $bk }
-                if (-not (Test-Path $BackupFile)) { Write-Host "Backup file not found: $BackupFile"; continue }
+                if (-not (Test-Path $BackupFile)) { Write-Host "Backup file not found: $BackupFile"; Start-Sleep -Seconds 2; continue }
                 Write-Host "Importing backup from: $BackupFile"
                 Start-Process -FilePath reg -ArgumentList "import `"$BackupFile`"" -NoNewWindow -Wait
-                Write-Host "Restore completed."; exit 0
+                Write-Host "Restore completed."
+                Start-Sleep -Seconds 2
             }
-            '3' { Write-Host "Exit."; exit 0 }
-            default { Write-Host "Invalid choice."; continue }
+            '3' { Write-Host "Exiting."; exit 0 }
+            default { Write-Host "Invalid choice."; Start-Sleep -Seconds 1 }
         }
-        # break outer loop if a valueToSet was prepared
-        if ($null -ne $valueToSet) { break }
+        # If a resolution was selected, exit the main loop to proceed with modification
+        if ($valueToSet) { break }
     }
 } else {
     if ($PSBoundParameters.ContainsKey('NewValue')) {
@@ -179,10 +200,12 @@ if ($PSBoundParameters.Count -eq 0 -and -not $Restore) {
         $valueToSet = "{0} * {1}" -f $Width, $Height
     } elseif ($PSBoundParameters.ContainsKey('Preset')) {
         switch ($Preset) {
-            '1' { $Width = 1920; $Height = 1080 }
-            '2' { $Width = 1600; $Height = 900 }
-            '3' { $Width = 1366; $Height = 768 }
-            '4' { $Width = 1280; $Height = 720 }
+            '1' { $Width = 3840; $Height = 2160 }  
+            '2' { $Width = 2560; $Height = 1440 }  
+            '3' { $Width = 1920; $Height = 1080 }  
+            '4' { $Width = 1600; $Height = 900 }
+            '5' { $Width = 1366; $Height = 768 }
+            '6' { $Width = 1280; $Height = 720 }
         }
         $valueToSet = "{0} * {1}" -f $Width, $Height
     } else {
@@ -229,7 +252,6 @@ if ($export.ExitCode -ne 0) {
                 Write-ErrAndExit "reg export failed for parent key '$parentKey' (exit code $($export.ExitCode)). Aborting."
             } else {
                 Write-Host "Parent key exported to $BackupFile. Note: backup contains parent key, not the exact subkey path."
-                # update exportTarget to parent for informational purposes
                 $exportTarget = $parentKey
             }
         } else {
