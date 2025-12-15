@@ -24,6 +24,7 @@ param(
     [string]$KeyPath = 'HKCU:\Software\bluepoch\Reverse: 1999',
     [string]$ValueName = 'ResolutionRatio_h997442698',
     [ValidateSet('1','2','3','4','5','6')]
+    [ValidateSet('1','2','3','4','5','6')]
     [string]$Preset,
     [int]$Width,
     [int]$Height,
