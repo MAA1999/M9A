@@ -18,7 +18,7 @@
             "type": "Win32",
             "win32": {
                 "class_regex": "UnityWndClass",
-                "window_regex": "(重返未来|Reverse|リバース)[：:：]1999",
+                "window_regex": "(重返未来|重返未來|Reverse|リバース)[：:：]1999",
                 "screencap": "PrintWindow",
                 "mouse": "SendMessageWithCursorPos",
                 "keyboard": "SendMessageWithCursorPos"
