@@ -36,11 +36,11 @@ param(
 
 # Centralized resolution presets
 $resolutionPresets = @(
-    @{ Label = 'a'; Number = '1'; Width = 3840; Height = 2160; Description = '3840 * 2160' }
-    @{ Label = 'b'; Number = '2'; Width = 2560; Height = 1440; Description = '2560 * 1440' }
-    @{ Label = 'c'; Number = '3'; Width = 1920; Height = 1080; Description = '1920 * 1080' }
-    @{ Label = 'd'; Number = '4'; Width = 1600; Height = 900; Description = '1600 * 900' }
-    @{ Label = 'e'; Number = '5'; Width = 1366; Height = 768; Description = '1366 * 768' }
+    @{ Label = 'a'; Number = '1'; Width = 3840; Height = 2160; Description = '3840 * 2160' },
+    @{ Label = 'b'; Number = '2'; Width = 2560; Height = 1440; Description = '2560 * 1440' },
+    @{ Label = 'c'; Number = '3'; Width = 1920; Height = 1080; Description = '1920 * 1080' },
+    @{ Label = 'd'; Number = '4'; Width = 1600; Height = 900; Description = '1600 * 900' },
+    @{ Label = 'e'; Number = '5'; Width = 1366; Height = 768; Description = '1366 * 768' },
     @{ Label = 'f'; Number = '6'; Width = 1280; Height = 720; Description = '1280 * 720' }
 )
 
@@ -159,7 +159,7 @@ if ($PSBoundParameters.Count -eq 0 -and -not $Restore) {
                     Clear-Host
                     Write-Host "Presets (will also set game defaults: windowed mode, zh_CN language):"
                     foreach ($res in $resolutionPresets) {
-                        Write-Host "  $($res.Label)) $($res.Description)"
+                        Write-Host "  $($res.Label): $($res.Description)"
                     }
                     Write-Host "  q) Return to main menu"
                     $presetLabels = ($resolutionPresets | ForEach-Object { $_.Label }) -join ', '
