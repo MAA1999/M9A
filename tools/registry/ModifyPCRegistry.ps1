@@ -162,7 +162,8 @@ if ($PSBoundParameters.Count -eq 0 -and -not $Restore) {
                         Write-Host "  $($res.Label)) $($res.Description)"
                     }
                     Write-Host "  q) Return to main menu"
-                    $p = Read-Host "Choose preset (a-f) or 'q' to return"
+                    $presetLabels = ($resolutionPresets | ForEach-Object { $_.Label }) -join ', '
+                    $p = Read-Host "Choose preset ($presetLabels) or 'q' to return"
 
                     if ($p -eq 'q' -or $p -eq 'Q') {
                         Write-Host "Returning to main menu..."
@@ -190,6 +191,8 @@ if ($PSBoundParameters.Count -eq 0 -and -not $Restore) {
                 Write-Host "Importing backup from: $BackupFile"
                 Start-Process -FilePath reg -ArgumentList "import `"$BackupFile`"" -NoNewWindow -Wait
                 Write-Host "Restore completed."
+                $confirmExit = Read-Host "Exit? (y/N)"
+                if ($confirmExit.ToLower() -eq 'y') { Write-Host "Exiting."; exit 0 }
                 Start-Sleep -Seconds 2
             }
             '3' { Write-Host "Exiting."; exit 0 }
