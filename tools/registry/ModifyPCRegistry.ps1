@@ -24,7 +24,6 @@ param(
     [string]$KeyPath = 'HKCU:\Software\bluepoch\Reverse: 1999',
     [string]$ValueName = 'ResolutionRatio_h997442698',
     [ValidateSet('1','2','3','4','5','6')]
-    [ValidateSet('1','2','3','4','5','6')]
     [string]$Preset,
     [int]$Width,
     [int]$Height,
@@ -33,6 +32,16 @@ param(
     [switch]$Restore,
     [switch]$Force,
     [switch]$NoGameDefaults
+)
+
+# Centralized resolution presets
+$resolutionPresets = @(
+    @{ Label = 'a'; Number = '1'; Width = 3840; Height = 2160; Description = '3840 * 2160' }
+    @{ Label = 'b'; Number = '2'; Width = 2560; Height = 1440; Description = '2560 * 1440' }
+    @{ Label = 'c'; Number = '3'; Width = 1920; Height = 1080; Description = '1920 * 1080' }
+    @{ Label = 'd'; Number = '4'; Width = 1600; Height = 900; Description = '1600 * 900' }
+    @{ Label = 'e'; Number = '5'; Width = 1366; Height = 768; Description = '1366 * 768' }
+    @{ Label = 'f'; Number = '6'; Width = 1280; Height = 720; Description = '1280 * 720' }
 )
 
 function Write-ErrAndExit($msg) {
@@ -149,12 +158,9 @@ if ($PSBoundParameters.Count -eq 0 -and -not $Restore) {
                 while ($true) {
                     Clear-Host
                     Write-Host "Presets (will also set game defaults: windowed mode, zh_CN language):"
-                    Write-Host "  a) 3840 * 2160"
-                    Write-Host "  b) 2560 * 1440"
-                    Write-Host "  c) 1920 * 1080"
-                    Write-Host "  d) 1600 * 900"
-                    Write-Host "  e) 1366 * 768"
-                    Write-Host "  f) 1280 * 720"
+                    foreach ($res in $resolutionPresets) {
+                        Write-Host "  $($res.Label)) $($res.Description)"
+                    }
                     Write-Host "  q) Return to main menu"
                     $p = Read-Host "Choose preset (a-f) or 'q' to return"
 
@@ -164,17 +170,15 @@ if ($PSBoundParameters.Count -eq 0 -and -not $Restore) {
                         break  # Break inner loop to return to main menu
                     }
 
-                    switch ($p.ToLower()) {
-                        'a' { $Width = 3840; $Height = 2160 }
-                        'b' { $Width = 2560; $Height = 1440 }
-                        'c' { $Width = 1920; $Height = 1080 }
-                        'd' { $Width = 1600; $Height = 900 }
-                        'e' { $Width = 1366; $Height = 768 }
-                        'f' { $Width = 1280; $Height = 720 }
-                        default { Write-Host "Invalid preset choice."; Start-Sleep -Seconds 1; continue }
+                    $selectedPreset = $resolutionPresets | Where-Object { $_.Label -eq $p.ToLower() }
+                    if ($selectedPreset) {
+                        $Width = $selectedPreset.Width
+                        $Height = $selectedPreset.Height
+                        $valueToSet = "{0} * {1}" -f $Width, $Height
+                        break  # Exit preset selection loop after valid choice
+                    } else {
+                        Write-Host "Invalid preset choice."; Start-Sleep -Seconds 1
                     }
-                    $valueToSet = "{0} * {1}" -f $Width, $Height
-                    break  # Exit preset selection loop after valid choice
                 }
                 if ($valueToSet) { break }  # Exit main menu loop if a resolution was chosen
             }
@@ -200,15 +204,14 @@ if ($PSBoundParameters.Count -eq 0 -and -not $Restore) {
     } elseif ($PSBoundParameters.ContainsKey('Width') -and $PSBoundParameters.ContainsKey('Height')) {
         $valueToSet = "{0} * {1}" -f $Width, $Height
     } elseif ($PSBoundParameters.ContainsKey('Preset')) {
-        switch ($Preset) {
-            '1' { $Width = 3840; $Height = 2160 }  
-            '2' { $Width = 2560; $Height = 1440 }  
-            '3' { $Width = 1920; $Height = 1080 }  
-            '4' { $Width = 1600; $Height = 900 }
-            '5' { $Width = 1366; $Height = 768 }
-            '6' { $Width = 1280; $Height = 720 }
+        $selectedPreset = $resolutionPresets | Where-Object { $_.Number -eq $Preset }
+        if ($selectedPreset) {
+            $Width = $selectedPreset.Width
+            $Height = $selectedPreset.Height
+            $valueToSet = "{0} * {1}" -f $Width, $Height
+        } else {
+            Write-ErrAndExit "Invalid Preset value."
         }
-        $valueToSet = "{0} * {1}" -f $Width, $Height
     } else {
         Write-ErrAndExit "Either supply -NewValue or both -Width and -Height (or run interactively without parameters)."
     }
