@@ -23,7 +23,7 @@ pwsh .\modify_resolution.ps1 -KeyPath 'HKCU:\Software\bluepoch' -BackupFile '.\\
 param(
     [string]$KeyPath = 'HKCU:\Software\bluepoch\Reverse: 1999',
     [string]$ValueName = 'ResolutionRatio_h997442698',
-    [ValidateSet('1','2','3','4')]
+    [ValidateSet('1','2','3','4','5','6')]
     [string]$Preset,
     [int]$Width,
     [int]$Height,
@@ -142,16 +142,20 @@ if ($PSBoundParameters.Count -eq 0 -and -not $Restore) {
         switch ($action) {
             '1' {
                 Write-Host "Presets (will also set game defaults: windowed mode, zh_CN language):"
-                Write-Host "  a) 1920 * 1080"
-                Write-Host "  b) 1600 * 900"
-                Write-Host "  c) 1366 * 768"
-                Write-Host "  d) 1280 * 720"
-                $p = Read-Host "Choose preset (a-d) or 'c' to cancel"
+                Write-Host "  a) 3840 * 2160 
+                Write-Host "  b) 2560 * 1440 
+                Write-Host "  c) 1920 * 1080 
+                Write-Host "  d) 1600 * 900"
+                Write-Host "  e) 1366 * 768"
+                Write-Host "  f) 1280 * 720"
+                $p = Read-Host "Choose preset (a-f) or 'c' to cancel"
                 switch ($p) {
-                    'a' { $Width = 1920; $Height = 1080 }
-                    'b' { $Width = 1600; $Height = 900 }
-                    'c' { $Width = 1366; $Height = 768 }
-                    'd' { $Width = 1280; $Height = 720 }
+                    'a' { $Width = 3840; $Height = 2160 }
+                    'b' { $Width = 2560; $Height = 1440 }
+                    'c' { $Width = 1920; $Height = 1080 }
+                    'd' { $Width = 1600; $Height = 900 }
+                    'e' { $Width = 1366; $Height = 768 }
+                    'f' { $Width = 1280; $Height = 720 }
                     default { Write-Host "Cancelled preset selection."; continue }
                 }
                 $valueToSet = "{0} * {1}" -f $Width, $Height
@@ -179,10 +183,12 @@ if ($PSBoundParameters.Count -eq 0 -and -not $Restore) {
         $valueToSet = "{0} * {1}" -f $Width, $Height
     } elseif ($PSBoundParameters.ContainsKey('Preset')) {
         switch ($Preset) {
-            '1' { $Width = 1920; $Height = 1080 }
-            '2' { $Width = 1600; $Height = 900 }
-            '3' { $Width = 1366; $Height = 768 }
-            '4' { $Width = 1280; $Height = 720 }
+            '1' { $Width = 3840; $Height = 2160 }  
+            '2' { $Width = 2560; $Height = 1440 }  
+            '3' { $Width = 1920; $Height = 1080 }  
+            '4' { $Width = 1600; $Height = 900 }
+            '5' { $Width = 1366; $Height = 768 }
+            '6' { $Width = 1280; $Height = 720 }
         }
         $valueToSet = "{0} * {1}" -f $Width, $Height
     } else {
