@@ -38,11 +38,11 @@ The most useful roguelike mode for farming credits.
 
 #### Pinning Demonstration
 
-![Pinning Demonstration](/images/en-us/introduction-pin-example.png)
+![Pinning Demonstration](/images/en-us/introduction-pin-example.webp)
 
 #### Pinning Successful
 
-![Pinning Successful](/images/en-us/introduction-pin-success.png)
+![Pinning Successful](/images/en-us/introduction-pin-success.webp)
 
 ## Outside Deduction: The Syndrome Of Silence
 

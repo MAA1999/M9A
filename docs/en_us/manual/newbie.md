@@ -266,7 +266,7 @@ Can't change to `16:9` ratio when using the International Version PC client? Use
             <li>After opening, enter 1 in the command line</li>
             <li>As shown below</li>
           </ol>
-          <img src="/images/en-us/newbie-init-script-step1.png" alt="Step 1">
+          <img src="/images/en-us/newbie-init-script-step1.webp" alt="Step 1">
       </details>
     </li>
     <li>
@@ -276,7 +276,7 @@ Can't change to `16:9` ratio when using the International Version PC client? Use
             <li>Enter a/b/c/d according to the resolution you want to select</li>
             <li>As shown below</li>
           </ol>
-          <img src="/images/en-us/newbie-init-script-step2.png" alt="Step 2">
+          <img src="/images/en-us/newbie-init-script-step2.webp" alt="Step 2">
       </details>
     </li>
     </ul>
@@ -380,7 +380,7 @@ The following demonstrations are for reference only, please refer to the actual 
   <summary>MFA Main Interface Display</summary>
   <p></p>
   <blockquote>
-    <img src="/images/en-us/newbie-main-interface.png" alt="Main Interface">
+    <img src="/images/en-us/newbie-main-interface.webp" alt="Main Interface">
   </blockquote>
 </details>
 
@@ -432,7 +432,7 @@ Users using MFA update-related functions should configure `Update Settings`. Use
     <p></p>
     <blockquote>
       <ul>
-        <img src="/images/en-us/newbie-rate-limit.png" alt="rate limit exceeded">
+        <img src="/images/en-us/newbie-rate-limit.webp" alt="rate limit exceeded">
       </ul>
     </blockquote>
   </details>
@@ -507,7 +507,7 @@ Users using MFA update-related functions should configure `Update Settings`. Use
             <li>Click the icon to the right of the <code>Software Path</code> input box to enter the file selection interface, select the 1999 shortcut on the desktop, and the path will be automatically filled in.</li>
           </ol>
           <ul>
-            <img src="/images/en-us/newbie-emulator-path-example.png" alt="image_439">
+            <img src="/images/en-us/newbie-emulator-path-example.webp" alt="image_439">
           </ul>
       </details>
     </ul>
@@ -544,7 +544,7 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
     <p></p>
     <blockquote>
       <ul>
-        <img src="/images/en-us/newbie-main-interface-connection.png" alt="image_440">
+        <img src="/images/en-us/newbie-main-interface-connection.webp" alt="image_440">
       </ul>
     </blockquote>
   </details>
@@ -583,7 +583,7 @@ When using the International Server PC client, simply click the PC icon in the c
     <p></p>
     <blockquote>
       <ul>
-        <img src="/images/en-us/newbie-main-interface-connection-pc.png" alt="connection-pc">
+        <img src="/images/en-us/newbie-main-interface-connection-pc.webp" alt="connection-pc">
       </ul>
     </blockquote>
   </details>
@@ -597,7 +597,7 @@ When using the International Server PC client, simply click the PC icon in the c
     <p></p>
     <blockquote>
       <ul>
-        <img src="/images/en-us/newbie-main-interface-task-lists.png" alt="image_441">
+        <img src="/images/en-us/newbie-main-interface-task-lists.webp" alt="image_441">
       </ul>
     </blockquote>
   </details>

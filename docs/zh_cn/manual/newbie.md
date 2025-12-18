@@ -267,7 +267,7 @@ M9A 支持主流模拟器与PC端，但您需要设置模拟器与PC端分辨率
             <li>打开后在命令行输入1</li>
             <li>如下图</li>
           </ol>
-          <img src="/images/zh-cn/newbie-init-script-step1.png" alt="步骤1">
+          <img src="/images/zh-cn/newbie-init-script-step1.webp" alt="步骤1">
       </details>
     </li>
     <li>
@@ -277,7 +277,7 @@ M9A 支持主流模拟器与PC端，但您需要设置模拟器与PC端分辨率
             <li>根据你要选择的分辨率选择输入a/b/c/d</li>
             <li>如下图</li>
           </ol>
-          <img src="/images/zh-cn/newbie-init-script-step2.png" alt="步骤2">
+          <img src="/images/zh-cn/newbie-init-script-step2.webp" alt="步骤2">
       </details>
     </li>
     </ul>
@@ -381,7 +381,7 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
   <summary>MFA主页面展示</summary>
   <p></p>
   <blockquote>
-    <img src="/images/zh-cn/newbie-main-interface.png" alt="主界面">
+    <img src="/images/zh-cn/newbie-main-interface.webp" alt="主界面">
   </blockquote>
 </details>
 
@@ -433,7 +433,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
     <p></p>
     <blockquote>
       <ul>
-        <img src="/images/zh-cn/newbie-rate-limit.png" alt="rate limit exceeded">
+        <img src="/images/zh-cn/newbie-rate-limit.webp" alt="rate limit exceeded">
       </ul>
     </blockquote>
   </details>
@@ -508,7 +508,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
             <li>点击 <code>软件路径</code> 输入框右侧图标进入文件选择界面，选择桌面上的 1999 快捷方式，路径将自动填入。</li>
           </ol>
           <ul>
-            <img src="/images/zh-cn/newbie-emulator-path-example.png" alt="image_439">
+            <img src="/images/zh-cn/newbie-emulator-path-example.webp" alt="image_439">
           </ul>
       </details>
     </ul>
@@ -545,7 +545,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
     <p></p>
     <blockquote>
       <ul>
-        <img src="/images/zh-cn/newbie-main-interface-connection.png" alt="image_440">
+        <img src="/images/zh-cn/newbie-main-interface-connection.webp" alt="image_440">
       </ul>
     </blockquote>
   </details>
@@ -584,7 +584,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
     <p></p>
     <blockquote>
       <ul>
-        <img src="/images/zh-cn/newbie-main-interface-connection-pc.png" alt="PC连接">
+        <img src="/images/zh-cn/newbie-main-interface-connection-pc.webp" alt="PC连接">
       </ul>
     </blockquote>
   </details>
@@ -598,7 +598,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
     <p></p>
     <blockquote>
       <ul>
-        <img src="/images/zh-cn/newbie-main-interface-task-lists.png" alt="image_441">
+        <img src="/images/zh-cn/newbie-main-interface-task-lists.webp" alt="image_441">
       </ul>
     </blockquote>
   </details>
