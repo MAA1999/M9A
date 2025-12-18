@@ -8,9 +8,9 @@ icon: iconoir:developer
 >
 > 只有当您想要开发 M9A 时才需要看当前页面！
 >
-> 用户请转到 [M9A 使用手册](../manual/newbie.md)。
+> 用户请转到 [M9A 使用手册](../manual/newbie.md)
 >
-> 开发 MaaFramework 或开发自己的项目请到 [MaaXYZ/MaaFramework](https://github.com/MaaXYZ/MaaFramework)。
+> 开发 MaaFramework 或开发自己的项目请到 [MaaXYZ/MaaFramework](https://maafw.xyz)
 
 ## Github Pull Request 流程简述
 
@@ -33,9 +33,19 @@ icon: iconoir:developer
     > ⚠
     >
     > **--recursive 一定不要忘！****--recursive 一定不要忘！****--recursive 一定不要忘！**  
-    > OCR异常失败很可能就是没加recursive导致。
+    > OCR异常失败很可能就是没加recursive导致
+
+    如已克隆但发现资源缺失，可运行：
+
+    ```bash
+    git submodule update --init --recursive
+    ```
 
 4. 下载 MaaFramework 的 [Release 包](https://github.com/MaaXYZ/MaaFramework/releases)，解压到 `deps` 文件夹中。
+
+    > [!TIP]
+    >
+    > 目前可跳过这步，仅在需要本地测试命令行版本时执行
 
 5. 配置编程环境
 
@@ -49,6 +59,11 @@ icon: iconoir:developer
         | [Maa Pipeline Support](https://marketplace.visualstudio.com/items?itemName=nekosu.maa-support) | VSCode 插件，提供调试、截图、获取 ROI 、取色等功能 |
         | [MFA Tools(仅win)](https://github.com/SweetSmellFox/MFATools) | 独立截图、获取 ROI 及取色工具 |
         | [ImageCropper(不推荐)](https://github.com/MaaXYZ/MaaFramework/tree/main/tools/ImageCropper) | 独立截图及获取 ROI 工具 |
+        | [MaaLogAnalyzer](https://github.com/Windsland52/MAALogAnalyzer) | 可视化分析基于 MaaFramework 开发应用的日志 |
+
+    > [!TIP]
+    >
+    > 推荐使用 VSCode 插件进行开发调试、MaaLogAnalyzer 进行用户日志分析
 
 6. 开始开发
 
@@ -87,7 +102,7 @@ icon: iconoir:developer
     1. 关联 M9A 原仓库：
 
         ```bash
-        git remote add upstream https://github.com/MAA1999/M9A.git`
+        git remote add upstream https://github.com/MAA1999/M9A.git
         ```
 
     2. 拉取远程仓库更新：

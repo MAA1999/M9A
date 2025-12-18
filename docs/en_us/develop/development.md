@@ -10,7 +10,7 @@ icon: iconoir:developer
 >
 > Users should refer to the [M9A User Manual](../manual/newbie.md).
 >
-> For developing MaaFramework or your own projects, please visit [MaaXYZ/MaaFramework](https://github.com/MaaXYZ/MaaFramework).
+> For developing MaaFramework or your own projects, please visit [MaaXYZ/MaaFramework](https://maafw.xyz).
 
 ## A Brief Overview of the GitHub Pull Request Process
 
@@ -35,7 +35,17 @@ Check out the [GitHub Pull Request Guide for Beginners](https://maa.plus/docs/en
     > **Do not forget `--recursive`! Do not forget `--recursive`! Do not forget `--recursive`!**  
     > OCR failures are often caused by forgetting to include `--recursive`.
 
+    If you already cloned but find resources missing, run:
+
+    ```bash
+    git submodule update --init --recursive
+    ```
+
 4. Download the [Release Package](https://github.com/MaaXYZ/MaaFramework/releases) of MaaFramework and extract it into the `deps` folder.
+
+    > [!TIP]
+    >
+    > This step can now be skipped and only needs to be performed when local testing of the command-line version is required.
 
 5. Set up the development environment:
 
@@ -49,6 +59,11 @@ Check out the [GitHub Pull Request Guide for Beginners](https://maa.plus/docs/en
         | [Maa Pipeline Support](https://marketplace.visualstudio.com/items?itemName=nekosu.maa-support) | VSCode plugin for debugging, screenshots, ROI extraction, color picking, etc. |
         | [MFA Tools(Windows Only)](https://github.com/SweetSmellFox/MFATools) | Standalone tool for screenshots, ROI extraction, and color picking |
         | [ImageCropper(Not recommended)](https://github.com/MaaXYZ/MaaFramework/tree/main/tools/ImageCropper) | Standalone tool for screenshots and ROI extraction |
+        | [MaaLogAnalyzer](https://github.com/Windsland52/MAALogAnalyzer) | Visual analysis of logs from MaaFramework-based applications |
+
+    > [!TIP]
+    >
+    > It is recommended to use the VSCode plugin for development and debugging, and MaaLogAnalyzer for user log analysis.
 
 6. Start developing:
 
