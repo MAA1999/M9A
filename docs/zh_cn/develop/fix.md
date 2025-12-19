@@ -21,39 +21,44 @@ icon: qlementine-icons:debug-16
 
 ## 定位关键 log
 
-1. 确认资源版本以及运行方式
+### 使用 MaaLogAnalyzer 分析日志
 
-   对于 M9A 来说，有两种运行方式：1. MaaPiCli 2. MFA
+推荐使用 [MaaLogAnalyzer](https://github.com/Windsland52/MAALogAnalyzer) 进行日志可视化分析，它可以：
 
-   log 一般在以下位置：
-      - logs 文件夹下 MFA 的 log
-      - debug 文件夹下的 maa.log
-      - debug/custom 文件夹下 custom 生成的 log
+- 自动识别版本
+- 可视化展示 Pipeline 执行流程
+- 快速定位错误和异常节点
+- 分析节点匹配情况和执行耗时
 
-   下面简单说下 maa.log 中的版本如何找。  
-   根据观察，MaaPiCli 运行时有行log为
+**使用步骤**：
 
-   ```plaintext
-   [2024-11-28 19:46:32.571][INF][Px14600][Tx16498][Parser.cpp][L56][MaaNS::ProjectInterfaceNS::Parser::parse_interface] Interface Version: [data.version=v2.4.11]
-   ```
+1. 从 [Releases](https://github.com/Windsland52/MAALogAnalyzer/releases) 下载最新版本
+2. 打开工具，导入日志文件（`debug/maa.log` 或 `logs/` 下的 MFA 日志）
+3. 查看可视化执行流程，定位问题节点
 
-   而 MFAWPF 运行时有log为
+### 日志文件位置
 
-   ```plaintext
-   MFAWPF Version: [mfa.version=v1.2.2.0] Interface Version: [data.version=v2.5.5] 
-   ```
+M9A 的日志一般在以下位置：
 
-   由 data.version 可以确定资源版本。以此判断当前问题发生的版本是否已修复当前 bug。  
-   同时确认运行方式。因为不同运行方式，可能影响问题的复刻。
+- `debug/maa.log` - MaaFramework 核心日志
+- `debug/custom/` - Custom 模块生成的日志
+- `debug/sink/` - Sink 事件监听日志（结构化 JSONL 格式）（Deprecated）
+- `logs/` - MFA 的日志（仅 MFA 运行时）
 
-2. 定位问题所在的 log 位置
+### 手动分析（备用方案）
 
-   分两种情况：
-   - 任务提前结束
-   - 任务陷入无限循环
+如果无法使用 MaaLogAnalyzer，可以手动分析：
 
-   前者全局搜素 **[ERR]** ，查看报错是与什么有关。  
-   后者全局搜索 **Node Hit** ，查找不正常的匹配情况（如持续匹配一个本不该一直匹配的 node）。
+1. **确认版本信息**
+
+   在 `maa.log` 中搜索：
+   - `Interface Version: [data.version=` - 查看资源版本
+   - `MFAA Version` 或 `MaaPiCli` - 确认运行方式
+
+2. **定位问题**
+
+   - **任务提前结束**：搜索 `[ERR]` 查看错误信息
+   - **任务循环**：搜索 `reco hit` 查找异常匹配模式
 
 ## 分析问题
 
