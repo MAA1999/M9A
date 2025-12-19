@@ -357,11 +357,12 @@ input 字段说明：
 
 ::: tip
 对于 `contact`、`license`、`welcome`、`description` 等字段：
-    - 可以是文件路径（相对于 interface.json）
-    - 可以是 URL
-    - 可以是直接文本
-    - 内容支持 Markdown 格式
-    - 使用 `$` 前缀可实现国际化
+
+- 可以是文件路径（相对于 interface.json）
+- 可以是 URL
+- 可以是直接文本
+- 内容支持 Markdown 格式
+- 使用 `$` 前缀可实现国际化
 
 对于 `icon` 字段，`$` 前缀用于路径本地化（不同语言使用不同图标文件）。
 :::
