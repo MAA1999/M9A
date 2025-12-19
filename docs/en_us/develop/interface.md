@@ -194,7 +194,6 @@ After executing the "Anecdote Dispatch (Please read character stories yourself)"
 
 Option definition object, key is option identifier, value is option configuration. Each option contains:
 
-- `key`: Option unique identifier (as object key)
 - `type`: Option type (optional, default `"select"`)
   - `"select"`: Dropdown selection box
   - `"input"`: User input box
@@ -325,7 +324,12 @@ Use `{field_name}` in `pipeline_override` to reference input values.
 
 ## Internationalization Support
 
-For all string fields that support internationalization, if the string starts with `$`, it needs to be read from translation files.
+Fields that support internationalization can use direct values (paths, URLs, text) or use the `$` prefix for internationalization.
+
+**Internationalization mechanism:**
+
+- If a field value **starts with `$`**, it's a translation key that needs to be looked up in the translation files configured in `languages`
+- If a field value **does not start with `$`**, the value is used directly (path, URL, or text)
 
 Configure multi-language:
 
@@ -335,7 +339,9 @@ Configure multi-language:
         "zh_cn": "interface_zh.json",
         "en_us": "interface_en.json"
     },
-    "label": "$project_name"
+    "label": "$project_name",        // Use translation key
+    "contact": "CONTACT",             // Direct file path
+    "description": "Direct text"     // Direct text
 }
 ```
 
@@ -347,7 +353,19 @@ Translation file example (`interface_zh.json`):
 }
 ```
 
-Fields supporting internationalization include: `label`, `description`, `icon`, `title`, `contact`, `license`, `welcome`, etc.
+**Fields supporting internationalization:** `label`, `description`, `title`, `contact`, `license`, `welcome`, `icon`, etc.
+
+::: tip
+For `contact`, `license`, `welcome`, `description` fields:
+
+- Can be a file path (relative to interface.json)
+- Can be a URL
+- Can be direct text
+- Content supports Markdown format
+- Use `$` prefix for internationalization
+
+For the `icon` field, the `$` prefix is used for path localization (different icon files for different languages).
+:::
 
 ## version
 

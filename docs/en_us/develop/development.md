@@ -148,7 +148,7 @@ Currently enabled formatting tools:
 ### Automatically Format Code Using Pre-commit Hooks
 
 ::: tip
-In actual collaboration, when developing in vscode, after installing the recommended plugin, automatic formatting can basically be completed, so this part can be skipped.
+In actual collaboration, when developing in VSCode, after installing the recommended plugin, automatic formatting can basically be completed, so this part can be skipped.
 :::
 
 1. Ensure that Python and Node environments are installed on your computer.

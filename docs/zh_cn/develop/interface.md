@@ -194,7 +194,6 @@ icon: tdesign:system-interface
 
 选项定义对象，键为选项标识符，值为选项配置。每个选项包含：
 
-- `key`: 选项唯一标识符（作为对象的键）
 - `type`: 选项类型（可选，默认 `"select"`）
   - `"select"`: 下拉选项框
   - `"input"`: 用户输入框
@@ -326,7 +325,11 @@ input 字段说明：
 
 ## 国际化支持
 
-所有支持国际化的字符串字段，如果以 `$` 开头，表示需要从翻译文件中读取。
+支持国际化的字段可以直接使用具体值（如路径、URL、文本），也可以使用 `$` 前缀进行国际化。
+
+**国际化机制：**
+    - 如果字段值**以 `$` 开头**，表示这是一个翻译键，需要从 `languages` 配置的翻译文件中读取实际值
+    - 如果字段值**不以 `$` 开头**，则直接使用该值（路径、URL 或文本）
 
 配置多语言：
 
@@ -336,7 +339,9 @@ input 字段说明：
         "zh_cn": "interface_zh.json",
         "en_us": "interface_en.json"
     },
-    "label": "$project_name"
+    "label": "$project_name",        // 使用翻译键
+    "contact": "CONTACT",             // 直接使用文件路径
+    "description": "这是直接文本"     // 直接使用文本
 }
 ```
 
@@ -348,7 +353,18 @@ input 字段说明：
 }
 ```
 
-支持国际化的字段包括：`label`、`description`、`icon`、`title`、`contact`、`license`、`welcome` 等。
+**支持国际化的字段：** `label`、`description`、`title`、`contact`、`license`、`welcome`、`icon` 等。
+
+::: tip
+对于 `contact`、`license`、`welcome`、`description` 等字段：
+    - 可以是文件路径（相对于 interface.json）
+    - 可以是 URL
+    - 可以是直接文本
+    - 内容支持 Markdown 格式
+    - 使用 `$` 前缀可实现国际化
+
+对于 `icon` 字段，`$` 前缀用于路径本地化（不同语言使用不同图标文件）。
+:::
 
 ## version
 
