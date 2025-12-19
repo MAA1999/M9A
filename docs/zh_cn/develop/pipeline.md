@@ -14,7 +14,7 @@ Pipeline（任务流水线）是 MaaFramework 的核心概念，通过 JSON 格�
 
 ## 协议版本
 
-M9A 当前使用 **Pipeline v5** 协议（MaaFramework v5.1+）：
+M9A 基于 **MaaFramework v5.1+**，使用 **Pipeline v2** 协议：
 
 ```json
 {

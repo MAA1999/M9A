@@ -14,7 +14,7 @@ Pipeline is the core concept of MaaFramework, describing the execution flow of a
 
 ## Protocol Version
 
-M9A currently uses the **Pipeline v5** protocol (MaaFramework v5.1+):
+M9A is based on **MaaFramework v5.1+** and uses the **Pipeline v2** protocol:
 
 ```json
 {
