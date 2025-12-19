@@ -38,10 +38,10 @@ class YourAction(CustomAction):
 
 **Project Examples**:
 
-- [`Screenshot`](../../agent/custom/action/general.py) - Save screenshot after task timeout
-- [`DisableNode`](../../agent/custom/action/general.py) - Set specific node to disabled state
-- [`NodeOverride`](../../agent/custom/action/general.py) - Dynamically override Pipeline configuration in node
-- [`ResetCount`](../../agent/custom/action/general.py) - Reset counter state
+- [`Screenshot`](https://github.com/MAA1999/M9A/blob/main/agent/custom/action/general.py) - Save screenshot after task timeout
+- [`DisableNode`](https://github.com/MAA1999/M9A/blob/main/agent/custom/action/general.py) - Set specific node to disabled state
+- [`NodeOverride`](https://github.com/MAA1999/M9A/blob/main/agent/custom/action/general.py) - Dynamically override Pipeline configuration in node
+- [`ResetCount`](https://github.com/MAA1999/M9A/blob/main/agent/custom/action/general.py) - Reset counter state
 
 ### 2. Custom Recognition
 
@@ -71,9 +71,9 @@ class YourRecognition(CustomRecognition):
 
 **Project Examples**:
 
-- [`MultiRecognition`](../../agent/custom/reco/general.py) - Multi-algorithm combined recognition, supports AND/OR/custom logic
-- [`Count`](../../agent/custom/reco/general.py) - Recognition counter, stops after specified count
-- [`CheckStopping`](../../agent/custom/reco/general.py) - Check if task is about to stop
+- [`MultiRecognition`](https://github.com/MAA1999/M9A/blob/main/agent/custom/reco/general.py) - Multi-algorithm combined recognition, supports AND/OR/custom logic
+- [`Count`](https://github.com/MAA1999/M9A/blob/main/agent/custom/reco/general.py) - Recognition counter, stops after specified number of executions
+- [`CheckStopping`](https://github.com/MAA1999/M9A/blob/main/agent/custom/reco/general.py) - Check if task is about to stop
 
 ### 3. Sink (Event Listener)
 
@@ -96,8 +96,8 @@ class MyContextSink(ContextEventSink):
 
 **Project Examples**:
 
-- [Sink Module](../../agent/custom/sink/__init__.py) - Implements Resource, Controller, Tasker, Context event listeners
-- [Logger Module](../../agent/custom/sink/logger.py) - Structured logging system(Deprecated)
+- [Sink Module](https://github.com/MAA1999/M9A/blob/main/agent/custom/sink/__init__.py) - Implements Resource, Controller, Tasker, Context event listeners
+- [Logger Module](https://github.com/MAA1999/M9A/blob/main/agent/custom/sink/logger.py) - Structured logging system(Deprecated)
 
 ## Common APIs
 

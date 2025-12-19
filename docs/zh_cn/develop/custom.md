@@ -38,10 +38,10 @@ class YourAction(CustomAction):
 
 **项目实例**：
 
-- [`Screenshot`](../../agent/custom/action/general.py) - 任务超时后截图保存
-- [`DisableNode`](../../agent/custom/action/general.py) - 将特定节点设置为禁用状态
-- [`NodeOverride`](../../agent/custom/action/general.py) - 在节点中动态覆盖 Pipeline 配置
-- [`ResetCount`](../../agent/custom/action/general.py) - 重置计数器状态
+- [`Screenshot`](https://github.com/MAA1999/M9A/blob/main/agent/custom/action/general.py) - 任务超时后截图保存
+- [`DisableNode`](https://github.com/MAA1999/M9A/blob/main/agent/custom/action/general.py) - 将特定节点设置为禁用状态
+- [`NodeOverride`](https://github.com/MAA1999/M9A/blob/main/agent/custom/action/general.py) - 在节点中动态覆盖 Pipeline 配置
+- [`ResetCount`](https://github.com/MAA1999/M9A/blob/main/agent/custom/action/general.py) - 重置计数器状态
 
 ### 2. Custom Recognition（自定义识别）
 
@@ -71,9 +71,9 @@ class YourRecognition(CustomRecognition):
 
 **项目实例**：
 
-- [`MultiRecognition`](../../agent/custom/reco/general.py) - 多算法组合识别，支持 AND/OR/自定义逻辑
-- [`Count`](../../agent/custom/reco/general.py) - 识别计数器，执行指定次数后停止
-- [`CheckStopping`](../../agent/custom/reco/general.py) - 检查任务是否即将停止
+- [`MultiRecognition`](https://github.com/MAA1999/M9A/blob/main/agent/custom/reco/general.py) - 多算法组合识别，支持 AND/OR/自定义逻辑
+- [`Count`](https://github.com/MAA1999/M9A/blob/main/agent/custom/reco/general.py) - 识别计数器，执行指定次数后停止
+- [`CheckStopping`](https://github.com/MAA1999/M9A/blob/main/agent/custom/reco/general.py) - 检查任务是否即将停止
 
 ### 3. Sink（事件监听器）
 
@@ -96,8 +96,8 @@ class MyContextSink(ContextEventSink):
 
 **项目实例**：
 
-- [Sink 模块](../../agent/custom/sink/__init__.py) - 实现了 Resource、Controller、Tasker、Context 四类事件监听
-- [Logger 模块](../../agent/custom/sink/logger.py) - 结构化日志系统（废弃）
+- [Sink 模块](https://github.com/MAA1999/M9A/blob/main/agent/custom/sink/__init__.py) - 实现了 Resource、Controller、Tasker、Context 四类事件监听
+- [Logger 模块](https://github.com/MAA1999/M9A/blob/main/agent/custom/sink/logger.py) - 结构化日志系统（废弃）
 
 ## 常用 API
 
