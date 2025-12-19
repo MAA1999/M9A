@@ -4,13 +4,11 @@ icon: iconoir:developer
 ---
 # Notes Before Development
 
-> [!NOTE]
->
-> You only need to read this page if you want to take part in the development of M9A!
->
-> Users should refer to the [M9A User Manual](../manual/newbie.md).
->
-> For developing MaaFramework or your own projects, please visit [MaaXYZ/MaaFramework](https://maafw.xyz).
+::: tip
+You only need to read this page if you want to take part in the development of M9A!
+Users should refer to the [M9A User Manual](../manual/newbie.md).
+For developing MaaFramework or your own projects, please visit [MaaXYZ/MaaFramework](https://maafw.xyz).
+:::
 
 ## A Brief Overview of the GitHub Pull Request Process
 
@@ -30,10 +28,10 @@ Check out the [GitHub Pull Request Guide for Beginners](https://maa.plus/docs/en
     git clone --recursive https://github.com/<your-username>/M9A.git
     ```
 
-    > ⚠
-    >
-    > **Do not forget `--recursive`! Do not forget `--recursive`! Do not forget `--recursive`!**  
-    > OCR failures are often caused by forgetting to include `--recursive`.
+    ::: warning
+    **Do not forget `--recursive`! Do not forget `--recursive`! Do not forget `--recursive`!**  
+    OCR failures are often caused by forgetting to include `--recursive`.
+    :::
 
     If you already cloned but find resources missing, run:
 
@@ -43,9 +41,9 @@ Check out the [GitHub Pull Request Guide for Beginners](https://maa.plus/docs/en
 
 4. Download the [Release Package](https://github.com/MaaXYZ/MaaFramework/releases) of MaaFramework and extract it into the `deps` folder.
 
-    > [!TIP]
-    >
-    > This step can now be skipped and only needs to be performed when local testing of the command-line version is required.
+    ::: tip
+    This step can now be skipped and only needs to be performed when local testing of the command-line version is required.
+    :::
 
 5. Set up the development environment:
 
@@ -61,9 +59,9 @@ Check out the [GitHub Pull Request Guide for Beginners](https://maa.plus/docs/en
         | [ImageCropper(Not recommended)](https://github.com/MaaXYZ/MaaFramework/tree/main/tools/ImageCropper) | Standalone tool for screenshots and ROI extraction |
         | [MaaLogAnalyzer](https://github.com/Windsland52/MAALogAnalyzer) | Visual analysis of logs from MaaFramework-based applications |
 
-    > [!TIP]
-    >
-    > It is recommended to use the VSCode plugin for development and debugging, and MaaLogAnalyzer for user log analysis.
+    ::: tip
+    It is recommended to use the VSCode plugin for development and debugging, and MaaLogAnalyzer for user log analysis.
+    :::
 
 6. Start developing:
 
@@ -81,11 +79,11 @@ Check out the [GitHub Pull Request Guide for Beginners](https://maa.plus/docs/en
     - `git pull origin <branch>`: Pull updates from the remote repository to the local repository.
     - `git push origin <branch>`: Push local changes to the remote repository.
 
-    > ⚠
-    >
-    > During development, remember to commit changes regularly with a message.
-    > If you're not familiar with Git, you may need to create and switch to a new branch instead of committing directly to `main`.
-    > This way, your commits will grow on the new branch without being affected by updates to `main`.
+    ::: warning
+    During development, remember to commit changes regularly with a message.
+    If you're not familiar with Git, you may need to create and switch to a new branch instead of committing directly to `main`.
+    This way, your commits will grow on the new branch without being affected by updates to `main`.
+    :::
 
     ```bash
     git checkout -b <branch-name> # Create and switch to a new branch
@@ -149,9 +147,9 @@ Currently enabled formatting tools:
 
 ### Automatically Format Code Using Pre-commit Hooks
 
-> [!NOTE]
->
-> In actual collaboration, when developing in vscode, after installing the recommended plugin, automatic formatting can basically be completed, so this part can be skipped.
+::: tip
+In actual collaboration, when developing in vscode, after installing the recommended plugin, automatic formatting can basically be completed, so this part can be skipped.
+:::
 
 1. Ensure that Python and Node environments are installed on your computer.
 
@@ -167,7 +165,6 @@ If `pre-commit` cannot run after installation, ensure that the pip installation 
 From now on, formatting tools will automatically run during each commit to ensure your code meets the formatting standards.
 
 Manually trigger formatting:
-
-```bash
-pre-commit run --all-files
-```
+    ```bash
+    pre-commit run --all-files
+    ```
