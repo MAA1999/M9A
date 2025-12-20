@@ -52,7 +52,7 @@ Farm event stages, including the following options:
 - **Custom Combat Count**: Specify combat count
 
 ::: warning
-During main story version, disabling rerun mode will skip the current task. If you need to farm main story stages, please use the Regular Combat feature
+When a main story version is live, disabling rerun mode will skip the current task. If you need to farm main story stages, please use the Regular Combat feature.
 :::
 
 ## Auto Deep Sleep
@@ -159,7 +159,7 @@ Roguelike mode for farming credits, including the following options:
 :::
 
 ::: warning
-M9A does not handle story, tutorials, etc. that only appear when playing roguelike for the first time. You need to complete it manually once before using this feature.
+M9A does not handle story content, tutorials, and other elements that only appear when playing roguelike for the first time. You need to complete these once manually before using this feature.
 :::
 
 ::: note
