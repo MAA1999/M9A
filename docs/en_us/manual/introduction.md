@@ -130,7 +130,7 @@ Switch to the last account (accounts beyond the third one will be ignored).
 Close the game process.
 
 ::: warning
-Same as Start Game
+This feature is currently not supported on the Global server PC client. If you need this feature, please configure it in Software Settings → Launch Settings.
 :::
 
 ## Outside Deduction: The Series of Dusks
@@ -159,7 +159,7 @@ Roguelike mode for farming credits, including the following options:
 :::
 
 ::: warning
-M9A does not handle story, tutorials, etc. that only appear when playing roguelike for the first time. You need to complete it manually once before using
+M9A does not handle story, tutorials, etc. that only appear when playing roguelike for the first time. You need to complete it manually once before using this feature.
 :::
 
 ::: note
