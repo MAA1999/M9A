@@ -9,7 +9,7 @@ icon: mdi:information-outline
 Start the game and wait for it to enter the main interface.
 
 ::: warning
-Currently not supported for Global server PC client. If you need this feature, please configure it in Software Settings - Launch Settings
+This feature is currently not supported on the Global server PC client. If you need this feature, please configure it in Software Settings → Launch Settings.
 :::
 
 ## Collect Wasteland
@@ -35,7 +35,7 @@ Execute regular stage combat, including the following options:
   - When disabled, you can select stage type (Main Story/Resource/Insight)
   - When enabled, you can input specific main story stage number
 - **Consume Candy**: Automatically use candy
-- **Custom Combat Count**: Specify combat count, will consume all stamina when disabled
+- **Custom Combat Count**: Specify combat count. It will consume all stamina when disabled.
 - **Drop Statistics Report**: Report stage drop data
 
 ::: tip
@@ -90,7 +90,7 @@ Automatically complete Awakening Dream battles, including the following options:
 
 Automatically purchase specified items at the bank, including the following options:
 
-- **Single Account Mode**: In single account mode, will skip tasks already executed in the current cycle
+- **Single Account Mode**: In single account mode, it will skip tasks already executed in the current cycle
 - **Counter Specials**: Purchase counter special items
 - **Lower Counter**: Purchase lower counter items
 - **Psychube Observation**: Purchase psychube observation
@@ -146,7 +146,7 @@ Roguelike mode for farming credits, including the following options:
 ::: warning
 
 1. Before using fast mode, please fully level up `Engrave Growth - Song of Guidance` and `Engrave Growth - Building Code`
-2. Please increase difficulty level as much as possible (difficulty 11 achieves maximum credit efficiency of 200%) and max out credit efficiency bonuses in the tech tree to prevent insufficient score of 2k5 leading to farming failure
+2. Please increase difficulty level as much as possible (difficulty 11 achieves maximum credit efficiency of 200%) and max out credit efficiency bonuses in the tech tree to prevent insufficient score of 2,500 leading to farming failure
 :::
 
 ### Non-Fast Mode
@@ -179,7 +179,7 @@ Due to the complexity of this feature's implementation, strange issues may occur
 Syndrome of Silence roguelike mode, including the following options:
 
 - **Battle Formation**: Select battle formation to use
-- **Carry Good Companion**: Choose whether to carry good companion
+- **Carry a Good Companion**: Choose whether to carry a good companion
 - **Difficulty Selection**: Select game difficulty
 - **Instrument Selection**: Select instrument to use
 
@@ -199,7 +199,7 @@ Based on testing, it's best to choose difficulty 2 or 3 for the mission. Difficu
 
 The following tasks need to be **run independently** at specified interfaces and cannot be combined with other tasks:
 
-## Rerun Event Stage Clear
+### Rerun Event Stage Clear
 
 Complete rerun event stage clear according to task list, including the following options:
 
@@ -209,7 +209,7 @@ Complete rerun event stage clear according to task list, including the following
 This task completes tasks according to the task list, only supports previously completed rerun event stages
 :::
 
-## Artefact Masters (Rubbing Acrobatics)
+### Artefact Masters (Rubbing Acrobatics)
 
 Complete the first floor sweep of the arena.
 
@@ -217,7 +217,7 @@ Complete the first floor sweep of the arena.
 Please manually open the arena page before running this task
 :::
 
-## When the Alarm Sounds (High-Level Required)
+### When the Alarm Sounds (High-Level Required)
 
 Complete When the Alarm Sounds sweep, including the following options:
 
@@ -236,18 +236,18 @@ This feature does not change characters and takes all debuffs, so it's only suit
 - Test team: 37 + Eternity + Melmoth + Semmelweis + Tutu (note: place main DPS in 5th position)
 :::
 
-## Critter Crash
+### Critter Crash
 
 Quick farming in Critter Crash interface.
 
 ::: warning
 
 - Start in Critter Crash interface
-- Supports CN server 3.2 version
+- Supports CN server version 3.2
 - Please play two rounds manually first to raise alert level to 3 before using
 :::
 
-## Pre-Storm Protocol
+### Pre-Storm Protocol
 
 Complete Pre-Storm Protocol mini-game, including the following options:
 
@@ -266,7 +266,7 @@ This task has two scenarios:
 Please select the corresponding option based on your situation
 :::
 
-## (Testing) Auto Stage Clear
+### Auto Stage Clear (Testing)
 
 Auto stage clear feature, currently in testing phase.
 
