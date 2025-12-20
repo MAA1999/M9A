@@ -108,7 +108,7 @@ Claim various rewards, including the following options:
 
 Complete "Think" weekly sweep task.
 
-- **Single Account Mode**: In single account mode, will skip tasks already executed in the current cycle
+- **Single Account Mode**: In single account mode, it will skip tasks already executed in the current cycle
 
 ::: note
 This feature only completes "Think" weekly sweep
