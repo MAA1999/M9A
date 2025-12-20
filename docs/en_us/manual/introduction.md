@@ -273,6 +273,6 @@ Auto stage clear feature, currently in testing phase.
 ::: warning
 
 - This feature is in testing and is not guaranteed to work properly
-- Currently not available for main story
+- Currently not available for the main story
 - Please manually open the page you need to clear (such as current event, anecdote, etc.) before running this task
 :::
