@@ -7,7 +7,8 @@
 
 Reverse: 1999 assistant based on a new architecture. Image technology + analog control, free your hands!  
 Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!  
-<a href="https://github.com/MAA1999/M9A" target="_blank" style="font-weight: bold;">🔗 This project's GitHub repository</a>
+<a href="https://github.com/MAA1999/M9A" target="_blank" style="font-weight: bold;">🔗 This project's GitHub repository</a><br>
+🌟Star us if you like this project!🌟
 
 </div>
 
@@ -28,47 +29,47 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 
 </div>
 
-## Function list
+## Function List
 
-- Start/Close the game
-- Switch accounts
-- Collect wasteland and magic essence to collect production items
-- Daily heart phase (will analysis)
-- Brush physical strength, optimal material level, activity level, candy eating option
-- Automatic deep sleep area
-- Automatic awakening dream area
-- Bank shopping
-- Receive daily rewards
-- Suspended in the rain: Mystery Sea ("Searching" Weekly Sweep)
-- Outside Deduction: The Series Of Dusks
-- Outside Deduction: The Syndrome Of Silence
-- SSReopen
-- Artefact Masters
+- Start/Close Game
+- Collect Wasteland
+- Daily Psychube (Will Analysis)
+- Regular Combat
+- Event Farming
+- Auto Deep Sleep
+- Auto Awakening Dream
+- Bank Shopping
+- Claim Rewards
+- Suspended in the Rain: Mystery Sea ("Think" Weekly Sweep)
+- Switch Account
+- Outside Deduction: The Series of Dusks
+- Outside Deduction: The Syndrome of Silence
+- Rerun Event Stage Clear
+- Artefact Masters (Rubbing Acrobatics)
 - When the Alarm Sounds
-- Continuous clear (under testing)
 - Critter Crash
 - Pre-Storm Protocol
+- Auto Stage Clear (Testing)
 
-## Instructions for use
+## User Guide
 
-- [Beginner's guide](https://1999.fan/en_us/manual/newbie.html)(**Must read before use**)
-- [Function introduction](https://1999.fan/en_us/manual/introduction.html)
-- [MaaPiCli Instructions](https://1999.fan/en_us/manual/cli.html)
-- [Connection Settings](https://1999.fan/en_us/manual/connection.html)
-- [FAQ](https://1999.fan/en_us/manual/faq.html)
-- [MirrorChyan Instructions](https://1999.fan/en_us/manual/MirrorChyan.html)
+- [Beginner's Guide](https://1999.fan/en_us/manual/newbie.html) - **Must read before use**, quick configuration and startup
+- [Function Introduction](https://1999.fan/en_us/manual/introduction.html) - Detailed feature descriptions and usage tips
+- [Connection Settings](https://1999.fan/en_us/manual/connection.html) - Emulator and PC client connection configuration
+- [FAQ](https://1999.fan/en_us/manual/faq.html) - Check here first when encountering problems
+- [MaaPiCli Instructions](https://1999.fan/en_us/manual/cli.html) - Command-line version user guide
+- [MirrorChyan Instructions](https://1999.fan/en_us/manual/MirrorChyan.html) - High-speed downloads and auto-updates
 
-## Development related
+## Development
 
-- [Notes Before Development](https://1999.fan/en_us/develop/development.html)
-- [Project structure](https://1999.fan/en_us/develop/structure.html)
-- [Interface.json writing](https://1999.fan/en_us/develop/interface.html)
-- [Pipeline writing](https://1999.fan/en_us/develop/pipeline.html)
-- [Custom Writing](https://1999.fan/en_us/develop/custom.html)
-- [Bug Troubleshooting](https://1999.fan/en_us/develop/fix.html)
-- [Project Refactoring](https://1999.fan/en_us/develop/refactor.html)
-- [Adapting Global Servers](https://1999.fan/en_us/develop/overseas-client-adaptation.htmld)
-- [Document Writing](https://1999.fan/en_us/develop/doc.html)
+- [Development Prerequisites](https://1999.fan/en_us/develop/development.html) - Environment setup and development workflow
+- [Project Structure](https://1999.fan/en_us/develop/structure.html) - Code organization and directory structure
+- [Pipeline Writing](https://1999.fan/en_us/develop/pipeline.html) - Task workflow development
+- [Custom Writing](https://1999.fan/en_us/develop/custom.html) - Custom logic extension
+- [Interface Writing](https://1999.fan/en_us/develop/interface.html) - Task interface configuration
+- [Bug Troubleshooting](https://1999.fan/en_us/develop/fix.html) - Problem locating and log analysis
+- [Global Server Adaptation](https://1999.fan/en_us/develop/overseas-client-adaptation.html) - Multi-server resource support
+- [Document Writing](https://1999.fan/en_us/develop/doc.html) - Document writing guidelines
 
 For more documents, please visit the [MaaFramework](https://github.com/MaaXYZ/MaaFramework) main repository
 
@@ -84,8 +85,21 @@ For more documents, please visit the [MaaFramework](https://github.com/MaaXYZ/Ma
 
 ## Acknowledgements
 
-This project is strongly driven by **[MaaFramework](https://github.com/MaaXYZ/MaaFramework)**!
-The UI is strongly supported by [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia), ~~[MFW-CFA](https://github.com/overflow65537/MFW-PyQt6)~~, ~~[MFAWPF](https://github.com/SweetSmellFox/MFAWPF)~~!
+### Core Framework
+
+- [MaaFramework](https://github.com/MaaXYZ/MaaFramework)  
+  An automation black-box testing framework based on image recognition
+
+### UI Support
+
+- [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia)  
+  Universal MaaFramework GUI solution built with Avalonia UI
+- ~~[MFW-CFA](https://github.com/overflow65537/MFW-PyQt6)~~  
+  ~~Cross-platform GUI based on PySide6 and MaaFramework~~
+- ~~[MFAWPF](https://github.com/SweetSmellFox/MFAWPF)~~  
+  ~~User interface developed with WPF framework, aiming to provide functionality similar to MaaPiCli~~
+
+### Contributors
 
 Thanks to the following developers for their contributions to this project:
 

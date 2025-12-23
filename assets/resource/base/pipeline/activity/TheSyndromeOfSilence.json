@@ -1507,7 +1507,7 @@
             "param": {
                 "roi": "SOSEventRec",
                 "expected": [
-                    "[\\u4e00-\\u9fa5]"
+                    "[\\x{4e00}-\\x{9fa5}]"
                 ],
                 "threshold": 0.6
             }
@@ -1787,7 +1787,7 @@
                 // ],
                 "only_rec": true,
                 "expected": [
-                    "[\\u4e00-\\u9fa5]+"
+                    "[\\x{4e00}-\\x{9fa5}]+"
                 ],
                 "threshold": 0.6,
                 "replace": [
@@ -1939,7 +1939,7 @@
             "type": "OCR",
             "param": {
                 "expected": [
-                    "[\\u4e00-\\u9fa5]+"
+                    "[\\x{4e00}-\\x{9fa5}]+"
                 ],
                 "only_rec": true
             }

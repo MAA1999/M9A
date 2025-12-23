@@ -1,0 +1,10 @@
+{
+    "Start1999": {
+        "action": {
+            "type": "StartApp",
+            "param": {
+                "package": "kr.haoplay.game.and.reverse"
+            }
+        }
+    }
+}

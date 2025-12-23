@@ -131,8 +131,8 @@ class CandyPageRecord(CustomRecognition):
     valid_period_rois = [
         [1030, 364, 78, 49],
         [451, 177, 59, 31],
-        [904, 270, 56, 31],
-        [936, 609, 56, 31],
+        [904, 270, 68, 31],
+        [936, 609, 71, 31],
     ]
 
     # 点击区域（与 eat_candy.json 中的 EatXxxCandy 节点 roi 对应）

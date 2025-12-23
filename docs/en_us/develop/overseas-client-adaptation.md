@@ -1,5 +1,5 @@
 ---
-order: 8
+order: 7
 icon: ri:earth-fill
 ---
 # Foreign Server Adaptation

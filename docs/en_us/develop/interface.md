@@ -4,17 +4,58 @@ icon: tdesign:system-interface
 ---
 # Writing interface.json
 
-> [!TIP]
->
-> Reference materials:
-> [interface.schema.json](https://github.com/MaaXYZ/MaaFramework/blob/main/tools/interface.schema.json)
-> [ProjectInterface Protocol.md](https://github.com/MaaXYZ/MaaFramework/blob/main/docs/en_us/3.2-ProjectInterface.md)
+::: tip
+Reference materials:
+[interface.schema.json](https://github.com/MaaXYZ/MaaFramework/blob/main/tools/interface.schema.json)
+[ProjectInterfaceV2 Protocol](https://maafw.xyz/docs/3.3-ProjectInterfaceV2)
+:::
 
-`interface.json` is designed to provide menu configuration.
+`interface.json` is the standardized project structure declaration for MaaFramework, designed to provide menu configuration for graphical interfaces.  
+`interface_cli.json` provides configuration for the command-line version.
+
+## Overall Structure
+
+Main fields include:
+
+- `interface_version`: Interface version number, currently 2, required
+- `name`: Project unique identifier
+- `label`: Project display name (optional, supports internationalization)
+- `icon`: Project icon path (optional)
+- `version`: Project version number
+- `github`: GitHub repository URL
+- `contact`: Contact information
+- `license`: License information
+- `welcome`: Welcome message/announcement (optional)
+- `description`: Project description (optional)
+- `languages`: Multi-language support configuration (optional)
+- `controller`: Controller configuration array
+- `resource`: Resource configuration array
+- `agent`: Agent configuration object
+- `task`: Task configuration array
+- `option`: Option definition object
 
 ## controller
 
-For M9A, the adb method is fixed and generally does not require modification.
+Controller configuration array, each controller contains:
+
+- `name`: Controller unique identifier (required)
+- `label`: Display name (optional, supports internationalization)
+- `description`: Controller description (optional)
+- `icon`: Controller icon (optional)
+- `type`: Controller type, `"Adb"` or `"Win32"` (required)
+- `display_short_side` / `display_long_side` / `display_raw`: Resolution settings (optional)
+- `adb`: Adb controller configuration (when type is Adb)
+- `win32`: Win32 controller configuration (when type is Win32)
+
+::: tip
+In V2 protocol, Adb controller's input/screencap are automatically detected and optimized by MaaFramework, no manual configuration needed.
+:::
+
+For Win32 controller, you can configure:
+
+- `class_regex`: Window class name regex
+- `window_regex`: Window title regex
+- `mouse` / `keyboard` / `screencap`: Control methods (optional, uses default if not provided)
 
 ## agent
 
@@ -30,9 +71,18 @@ For M9A, the adb method is fixed and generally does not require modification.
 
 ## resource
 
-Resource configuration. Each resource requires a resource name `name` and a resource path `path`, both of which are mandatory.
+Resource configuration array, each resource contains:
 
-Specifically, for the resource path 'path', M9A loads resources sequentially. If there are resources with the same name, the later-loaded resource will overwrite the earlier one.
+- `name`: Resource package unique identifier (required)
+- `label`: Display name (optional, supports internationalization)
+- `description`: Resource description (optional)
+- `icon`: Resource icon (optional)
+- `path`: Resource path array (required)
+- `controller`: Supported controller list (optional, supports all controllers if not specified)
+
+::: tip
+For the `path` array, M9A loads resources sequentially. If tasks/nodes with the same name exist, later-loaded resources will override earlier ones (top-level key replacement).
+:::
 
 For example, for bilibili Server, the resource configuration is as follows:
 
@@ -54,7 +104,17 @@ Here, `.` is the root directory of the M9A project. The `base` folder contains o
 
 ## task
 
-Task list. The task list contains multiple tasks, and each task has a task name `name`, task entry `entry`, task parameters `pipeline_override`, and task options `option`, where `name` and `entry` are mandatory.
+Task configuration array, each task contains:
+
+- `name`: Task unique identifier (required)
+- `label`: Display name (optional, supports internationalization)
+- `entry`: Task entry, the Task name in `pipeline` (required)
+- `default_check`: Whether selected by default (optional, default false)
+- `description`: Task description (optional)
+- `icon`: Task icon (optional)
+- `resource`: Supported resource package list (optional, available in all resource packages if not specified)
+- `pipeline_override`: Task parameter override (optional)
+- `option`: Task configuration item list (optional)
 
 In `pipeline_override`, it should be a pipeline node with override parameters, for example:
 
@@ -132,9 +192,23 @@ After executing the "Anecdote Dispatch (Please read character stories yourself)"
 
 ## option
 
-Option definitions. Each option has selectable `cases` and a default option `default_case`, where `cases` is mandatory.
+Option definition object, key is option identifier, value is option configuration. Each option contains:
 
-Typically, use `cases`. For example:
+- `type`: Option type (optional, default `"select"`)
+  - `"select"`: Dropdown selection box
+  - `"input"`: User input box
+  - `"switch"`: Switch selection (Yes/No)
+- `label`: Display label (optional, supports internationalization)
+- `description`: Option description (optional)
+- `icon`: Option icon (optional)
+- `cases`: Selectable items array (`select`/`switch` type required)
+- `default_case`: Default option name (`select` type optional)
+- `inputs`: Input field configuration (`input` type required)
+- `pipeline_override`: Pipeline override (`input` type usage)
+
+### select Type Option
+
+The most commonly used option type, example:
 
 ```json
 {
@@ -144,14 +218,13 @@ Typically, use `cases`. For example:
             "entry": "Combat",
             "option": [
                 "Combat Stages",
-                "Repetition Count",
-                "Use All Stamina",
-                "Consume All Temporary Sugar"
+                "Use All Stamina"
             ]
         }
     ],
     "option": {
         "Use All Stamina": {
+            "type": "select",
             "cases": [
                 {
                     "name": "Yes",
@@ -177,10 +250,123 @@ Typically, use `cases`. For example:
 
 `default_case` is the default option, selected from `cases`.
 
+### switch Type Option
+
+Switch type, supports only two cases, must use `"Yes"`/`"No"` as name:
+
+```json
+{
+    "Use All Stamina": {
+        "type": "switch",
+        "label": "Use All Stamina",
+        "cases": [
+            {
+                "name": "Yes",
+                "pipeline_override": {
+                    "AllIn": {
+                        "enabled": true
+                    }
+                }
+            },
+            {
+                "name": "No",
+                "pipeline_override": {
+                    "AllIn": {
+                        "enabled": false
+                    }
+                }
+            }
+        ]
+    }
+}
+```
+
+### input Type Option
+
+User input type, defines input fields via `inputs`:
+
+```json
+{
+    "Custom Stage": {
+        "type": "input",
+        "label": "Custom Stage",
+        "inputs": [
+            {
+                "name": "Chapter Number",
+                "label": "Chapter Number",
+                "description": "Stage chapter number in digits",
+                "default": "4",
+                "pipeline_type": "string",
+                "verify": "^\\d+$",
+                "pattern_msg": "Please enter a number"
+            }
+        ],
+        "pipeline_override": {
+            "EnterTheShow": {
+                "next": "MainChapter_{Chapter Number}"
+            }
+        }
+    }
+}
+```
+
+Input field descriptions:
+
+- `name`: Field identifier
+- `label`: Display name
+- `description`: Field description
+- `default`: Default value
+- `pipeline_type`: Data type (`"string"` / `"int"` / `"bool"`)
+- `verify`: Regex validation
+- `pattern_msg`: Validation failure message
+
+Use `{field_name}` in `pipeline_override` to reference input values.
+
+## Internationalization Support
+
+Fields that support internationalization can use direct values (paths, URLs, text) or use the `$` prefix for internationalization.
+
+**Internationalization mechanism:**
+
+- If a field value **starts with `$`**, it's a translation key that needs to be looked up in the translation files configured in `languages`
+- If a field value **does not start with `$`**, the value is used directly (path, URL, or text)
+
+Configure multi-language:
+
+```json
+{
+    "languages": {
+        "zh_cn": "interface_zh.json",
+        "en_us": "interface_en.json"
+    },
+    "label": "$project_name",        // Use translation key
+    "contact": "CONTACT",             // Direct file path
+    "description": "Direct text"     // Direct text
+}
+```
+
+Translation file example (`interface_zh.json`):
+
+```json
+{
+    "project_name": "My Project"
+}
+```
+
+**Fields supporting internationalization:** `label`, `description`, `title`, `contact`, `license`, `welcome`, `icon`, etc.
+
+::: tip
+For `contact`, `license`, `welcome`, `description` fields:
+
+- Can be a file path (relative to interface.json)
+- Can be a URL
+- Can be direct text
+- Content supports Markdown format
+- Use `$` prefix for internationalization
+
+For the `icon` field, the `$` prefix is used for path localization (different icon files for different languages).
+:::
+
 ## version
 
-Version. No need to fill in; it will be automatically generated during CI installation.
-
-## message
-
-Message. Currently, it is the first line of output when `MaaPiCli` runs.
+Version number. No need to fill in; it will be automatically generated during CI build.

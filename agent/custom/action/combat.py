@@ -1425,13 +1425,18 @@ class DropRecognitionState:
 
         # 构造 item 列表，过滤掉落数为 0 的物品
         items = []
-        total = 0
         for item_id, count in cls.current_drops.items():
             if count <= 0:
                 continue
             item_name = cls.get_item_name(item_id)
             items.append({"name": item_name, "num": count, "id": item_id})
-            total += count
+
+        # 获取刷取次数（复现次数）
+        total = (
+            _TargetCountState.current_times
+            if _TargetCountState.current_times > 0
+            else 1
+        )
 
         # 构造请求体
         payload = {
@@ -1564,7 +1569,7 @@ class DropRecognition(CustomAction):
                     continue
 
                 # 数量在物品右下角，调整 ROI
-                count_roi = [box[0] + 12, box[1] + 58, box[2] - 24, box[3] - 38]
+                count_roi = [box[0] + 12, 613, box[2] - 24, 17]
                 rec = context.run_recognition(
                     "DropCountRec",
                     filtered_img,
@@ -1601,10 +1606,10 @@ class DropRecognition(CustomAction):
                     if rarity in ("gold", "purple"):
                         rare_drop_counts[rarity] += count
 
-                        # 检查是否满足保存截图的条件（金≥2 或 紫≥4）
+                        # 检查是否满足保存截图的条件（金≥2 或 紫≥5）
                         should_save = (
                             rare_drop_counts["gold"] >= 2
-                            or rare_drop_counts["purple"] >= 4
+                            or rare_drop_counts["purple"] >= 5
                         )
 
                         if should_save and not screenshot_saved:

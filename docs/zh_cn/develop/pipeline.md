@@ -2,145 +2,337 @@
 order: 4
 icon: eos-icons:pipeline
 ---
-# Pipeline 编写
+# Pipeline 编写指南
 
-## 编写规范
+## 什么是 Pipeline？
 
-### 命名规范
+Pipeline（任务流水线）是 MaaFramework 的核心概念，通过 JSON 格式描述自动化任务的执行流程。每个 Pipeline 由多个节点（Node）组成，每个节点定义了：
 
-为保证资源的美观一致，请尽量遵循以下现有规则。
+- **识别算法**（recognition）：如何识别屏幕上的目标
+- **执行动作**（action）：识别成功后要执行的操作
+- **后继节点**（next）：完成当前节点后要执行的下一步
 
-#### 资源命名
+## 协议版本
 
-- 对于图片等文件，采用大驼峰命名法，所有单词的首字母都大写。
-- 对于 `pipeline` 文件夹下的 json 文件名，一般采用蛇形命名法，单词之间用下划线分隔，所有字母小写，  
-  特别地，专有名词的活动采取大驼峰命名法，一般在 `activity` 文件夹内。
-- 对于 `image` 下文件夹，每个文件夹对应一个 `pipeline` 文件夹下的 json 文件，文件夹名采用大驼峰命名法，  
-  特别地，`activity` 内 json 文件对应的 `image` 放到 `Combat/Activity` 处。
-
-#### Node 命名
-
-node 的定义为符合任务流水线（Pipeline）协议的一个完整的 `JsonObject`，大多数采用大驼峰命名法，特别地，部分情况下用 `_` 连接前、后缀。
-
-前缀一般为 `Sub` 或 当前活动缩写（如 `SOD` 黄昏的音序、`EITM` 山麓的回音）等。（其他情况建议不要前缀）
-
-后缀一般为 `数字` 或 `状态` 等，表示该 node 的具体阶段或状态。（建议新写的 node 不加后缀）
-
-### Node 编写
-
-具体内容参见[Pipeline 协议详细说明](https://github.com/MaaXYZ/MaaFramework/blob/main/docs/zh_cn/3.1-%E4%BB%BB%E5%8A%A1%E6%B5%81%E6%B0%B4%E7%BA%BF%E5%8D%8F%E8%AE%AE.md)
-
-> [!NOTE]
->
-> - `next` 放置当前 node 的出口 node，`interrupt` 放置当前 node 的中断 node。
-> - 多将具有 Flag 性质的 node 设为出口 node，作为当前 node 完成的标志。
-> - 降低 node 之间的耦合。  
-> 如 `BackButton` 一般不设置 `next`，而是作为一个“异常处理”放入 `interrupt`，以便保证任务流程的清晰，并方便 interrupt node 被其它任务复用。
-> - 部分情况下，可将 node 加入自身 `next` 。（存在动作未被游戏正确接受/尚未在游戏内生效的情况）
-> - 在涉及切换页面的 node 中加入 `post_wait_freezes` ，并使用 `object` 作为值，设置合适的 `time` 和 `target`。
-> - 涉及滑动的操作时，在后面加个点击操作，以便确保画面稳定。
-
-> [!WARNING]
->
-> - 慎用 `inverse` 字段，这可能会导致任务的不可预测。  
-> 如必须使用，请保证其有带 `post_wait_freezes` 的前置 node，以保证匹配该 node 时处于预期状态。
-> - 慎用“无条件匹配” node。  
-> node 的 `recognition` 字段默认为 `DirectHit`。 `recognition` 字段为 `DirectHit` 的 node 即为“无条件匹配” node。  
-> 使用“无条件匹配” node，可能导致任务运行到非预期状态时，程序未能正常报错，而是循环匹配该 node，造成任务卡死。  
-> 如非必要，请选择其它实现逻辑完成任务。
-
-#### Node 连接
-
-Node 间主要通过 `next` 或 `interrupt` 字段连接。
-
-`next`完成 node 间的串联，`interrupt`实现执行以当前 interrupt node为 entry 的新任务链，并在该任务链完成后返回当前 node。
-
-简单表示如下：
-
-```mermaid
-graph LR
-    A(Task Entry<br>Node A) --> |next| B(Node B)
-    A --> |interrupt| C(Node C)
-    C --> |return| A
-```
-
-将 interrupt node 变复杂点：
-
-```mermaid
-graph LR
-    A(Task Entry<br>Node A) --> |next| B(Node B)
-    A --> |interrupt| C(Node C)
-    C --> |next| D(Node D)
-    C --> |interrupt| E(Node E)
-    D --> |return| A
-    E --> |return| C
-```
-
-为保证任务链有一个较好的结构，请按以下原则进行 node 连接：
-
-1. 标志完成阶段性任务的 node 应放在 `next` 中。
-2. 为达到匹配 `next` 中 node 而处理其他状况的 node 应放在 `interrupt` 中。
-
-如 活动刷取任务、位于活动主界面、进入活动主界面 三者关系如下：
-
-```mermaid
-graph LR
-   A(活动刷取任务) --> |next| B(位于活动主界面)
-   A --> |interrupt| C(进入活动主界面)
-   C --> |return| A
-```
-
-这里“进入活动主界面”就不会放在 `next` ，而是放入 `interrupt` 。
-
-#### Next & Interrupt Node 排序
-
-总体上，`interrupt` 第一个 node 比 `next` 最后一个 node 低一优先级。
-
-在 `next` 或 `interrupt` 内部，统一先按照优先级由高到低顺序排列，不能出现优先级倒挂的情况。举例：
-
-```plaintext
-现有判断一个小弹窗的 node B，和判断跳出弹窗前界面的 node A。
-如果弹窗出现时依旧能匹配到A，则B的优先级应该高于A，否则会出现无法处理B而卡死于A的情况。
-```
-
-同一优先级内的 node，可按照匹配频率由高到低顺序排列，以便提高 node 命中率，降低资源消耗。
-
-#### 注释规范
-
-`pipeline.json` 文件中，注释共两种属性字段：
-
-1. `.*_doc$|^doc$`： 以 _doc 结尾的字符串或者正好是 doc 的字符串。
-2. `.*_code$|^code$`：以 _code 结尾的字符串或者正好是 code 的字符串。
-
-前者为对当前 node（或某字段）的说明，后者为对必填字段的占位。举例：
+M9A 基于 **MaaFramework v5.1+**，使用 **Pipeline v2** 协议：
 
 ```json
 {
-    "EnterTheActivityMain": {
-        "doc": "进入当期活动主界面",
-        "template_code": "在interface.json中修改template",
-        "recognition": "TemplateMatch",
-        "roi": [
-            885,
-            123,
-            340,
-            183
-        ],
-        "action": "Click",
-        "post_wait_freezes": {
-            "time": 500,
-            "target": [
-                0,
-                179,
-                190,
-                541
-            ]
+    "NodeName": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [100, 100, 200, 50],
+                "expected": ["确认"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": ["NextNode"]
+    }
+}
+```
+
+:::tip
+v2 协议将识别和动作相关参数统一放入 `type` 和 `param` 字段中，结构更清晰。
+详细协议说明请参考 [MaaFramework Pipeline 协议](https://maafw.xyz/docs/3.1-PipelineProtocol)。
+:::
+
+## 基本结构与执行流程
+
+### 节点执行顺序
+
+Pipeline 按以下流程执行：
+
+1. 从入口节点开始
+2. 依次检测 `next` 列表中的节点
+3. 找到第一个匹配的节点后，执行其动作
+4. 将该节点作为新的当前节点，重复步骤 2
+5. 直到 `next` 为空或超时，任务结束
+
+### 节点连接机制
+
+节点通过 `next` 字段连接，支持节点属性语法：
+
+```json
+{
+    "StartTask": {
+        "next": [
+            "CheckStatus",           // 普通节点
+            "[JumpBack]HandleError"  // 带 JumpBack 属性的节点
+        ]
+    }
+}
+```
+
+**JumpBack 机制**（v5.1+ 新增，替代已废弃的 `interrupt` 和 `is_sub`）：
+
+- 标记为 `[JumpBack]` 的节点执行完成后，会返回到父节点继续执行
+- 适用于异常处理、弹窗关闭等场景
+
+示例流程：
+
+```mermaid
+graph LR
+    A[任务入口] --> |next| B[检查状态]
+    A --> |next| C["[JumpBack]处理异常"]
+    C --> |执行完返回| A
+    A --> |继续| D[下一步]
+```
+
+## M9A 编写规范
+
+### 文件与资源命名
+
+为保证资源的美观一致，请遵循以下规则：
+
+**Pipeline JSON 文件**：
+
+- 一般采用**蛇形命名法**：`all_in.json`、`combat_stage.json`
+- 活动相关采用**大驼峰命名法**：`LondonDawning.json`
+
+**图片文件**：
+
+- 采用**大驼峰命名法**：`OpenReplaysTimes.png`、`StartButton.png`
+- 按功能分类放入 `image/` 下的对应文件夹
+
+**Image 文件夹结构**：
+
+- 每个 pipeline JSON 对应一个 image 文件夹
+- 活动图片统一放在 `image/Combat/Activity/` 下
+
+### 节点命名规范
+
+查看现有的文件，保持风格一致。
+
+### 编写最佳实践
+
+:::tip 节点连接原则
+
+- **`next` 字段**：放置当前节点的出口节点，表示完成阶段性任务
+- **`[JumpBack]` 节点**：用于异常处理、弹窗关闭等场景，执行后返回父节点
+- **降低耦合**：将复用性高的节点（如 `BackButton`）设计为 `[JumpBack]` 节点
+- **自循环**：部分情况下可将节点加入自身 `next`（应对操作未生效的情况）
+- **页面切换**：加入 `post_wait_freezes` 字段，设置 `time` 和 `target` 确保界面稳定
+- **滑动操作**：滑动后添加点击操作，确保画面稳定
+
+:::
+
+**JumpBack 使用示例**：
+
+```json
+{
+    "ActivityMain": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "ActivityMainPage.png"
+            }
+        },
+        "next": [
+            "StartBattle",
+            "[JumpBack]ClosePopup",
+            "[JumpBack]BackToMain"
+        ]
+    },
+    "ClosePopup": {
+        "doc": "关闭可能出现的弹窗",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "CloseButton.png"
+            }
+        },
+        "action": {
+            "type": "Click"
         }
     }
 }
 ```
 
-`doc` 为当前 node 说明。
+:::warning 注意事项
 
-`template_code` 为必填字段占位，
-原因是 `recognition` 为 `TemplateMatch` 时， "template" 字段必填，但我们想在 `interface.json` 中修改，而不是该 json 文件中。故用 `template_code` 占位。
+- **慎用 `inverse`**：可能导致任务不可预测，如必须使用需配合 `post_wait_freezes` 确保状态
+- **避免无条件匹配**：`DirectHit` 类型节点无任何判断条件，可能导致非预期循环
+- **优先级顺序**：`next` 中节点按优先级从高到低排列，避免优先级倒挂
+- **匹配频率优化**：同优先级节点可按匹配频率排序，提高命中效率
+
+:::
+
+**优先级排序示例**：
+
+```plaintext
+假设有以下场景：
+- Node B：判断小弹窗（优先级高，但频率低）
+- Node A：判断主界面（优先级低，但频率高）
+
+如果弹窗出现时依旧能匹配到 A，则必须：
+  "next": ["B", "A"]  // ✓ B 优先级高，先判断
+而不是：
+  "next": ["A", "B"]  // ✗ 会导致无法处理 B 而卡死
+```
+
+### 注释规范
+
+`pipeline.json` 文件中，注释共两种属性字段：
+
+1. `.*_doc$|^doc$`：以 `_doc` 结尾或正好是 `doc` 的字符串，用于说明
+2. `.*_code$|^code$`：以 `_code` 结尾或正好是 `code` 的字符串，用于必填字段占位
+
+**示例**（Pipeline v2 格式）：
+
+```json
+{
+    "EnterTheActivityMain": {
+        "doc": "进入当期活动主界面",
+        "template_code": "在 interface.json 中修改 template",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [885, 123, 340, 183]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [0, 179, 190, 541]
+        }
+    }
+}
+```
+
+**说明**：
+
+- `doc`：当前节点的功能说明
+- `template_code`：必填字段占位符，提示在 `interface.json` 中配置 `template`
+
+:::tip 为什么需要 _code 字段？
+
+当 `recognition.type` 为 `TemplateMatch` 时，`template` 字段为必填项。但在实际项目中，我们通常在 `interface.json` 中统一配置 `template`，而不是在每个 pipeline JSON 中硬编码。因此使用 `template_code` 占位，提示开发者在正确位置配置。
+
+:::
+
+## 实战示例
+
+以下是从 M9A 项目 `all_in.json` 中提取的真实示例，展示 Pipeline v2 协议的实际应用：
+
+### 示例 1：战斗入口检测
+
+```json
+{
+    "CombatEntering": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [0, 5, 90, 70]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": [
+            "TargetCountProgress",
+            "[JumpBack]CombatEntering"
+        ]
+    },
+    "TargetCountProgress": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [1118, 34, 140, 37]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": ["StageChoose"]
+    }
+}
+```
+
+**分析**：
+
+- `CombatEntering` 检测战斗入口界面
+- 使用 `[JumpBack]CombatEntering` 实现自循环，确保界面加载完成
+- `TargetCountProgress` 作为进度标志节点，完成后进入关卡选择
+
+### 示例 2：页面切换与等待
+
+```json
+{
+    "OpenReplaysTimes": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [855, 615, 80, 45]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 800,
+            "target": [563, 307, 155, 92]
+        },
+        "next": ["ChangeReplaysTimes"]
+    }
+}
+```
+
+**分析**：
+
+- 点击打开重刷次数设置
+- 使用 `post_wait_freezes` 等待弹窗稳定（800ms）
+- `target` 指定弹窗区域，确保弹窗完全显示后再继续
+
+### 示例 3：JumpBack 异常处理
+
+```json
+{
+    "StageChoose": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [0, 59, 1280, 661]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "next": [
+            "TargetCountProgress",
+            "[JumpBack]StageChoose",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "BackButton": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [23, 14, 60, 50]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}
+```
+
+**分析**：
+
+- `StageChoose` 执行关卡选择操作
+- `[JumpBack]StageChoose` 处理点击未生效的情况
+- `[JumpBack]BackButton` 处理意外进入其他界面的情况（返回后重新执行 `StageChoose`）
+- `BackButton` 不设置 `next`，作为纯工具节点供多处复用
+
+## 参考资源
+
+- [MaaFramework 任务流水线协议](https://maafw.xyz/docs/3.1-PipelineProtocol)
+- [MaaFramework 项目接口协议](https://maafw.xyz/docs/3.3-ProjectInterfaceV2)

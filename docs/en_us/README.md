@@ -13,7 +13,8 @@ dir:
 
 Reverse: 1999 assistant based on a new architecture. Image technology + analog control, free your hands!  
 Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!  
-<a href="https://github.com/MAA1999/M9A" target="_blank" style="font-weight: bold;">🔗 This project's GitHub repository</a><br>🌟It will be very helpful for us to star github repo🌟
+<a href="https://github.com/MAA1999/M9A" target="_blank" style="font-weight: bold;">🔗 This project's GitHub repository</a><br>
+🌟Star us if you like this project!🌟
 
 </div>
 
@@ -28,48 +29,48 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
   <a href="https://mirrorchyan.com/en/projects?rid=M9A&source=m9agh-badge-en" target="_blank"><img alt="mirrorc" src="https://img.shields.io/badge/Mirror%E9%85%B1-%239af3f6?logo=countingworkspro&logoColor=4f46e5"></a>
 </p>
 
-## Function list
+## Function List
 
-- Start/Close the game
-- Switch accounts
-- Collect wasteland and magic essence to collect production items
-- Daily heart phase (will analysis)
-- Brush physical strength, optimal material level, activity level, candy eating option
-- Automatic deep sleep area
-- Automatic awakening dream area
-- Bank shopping
-- Receive daily rewards
-- Suspended in the rain: Mystery Sea ("Searching" Weekly Sweep)
-- Outside Deduction: The Series Of Dusks
-- Outside Deduction: The Syndrome Of Silence
-- SSReopen
-- Artefact Masters
+- Start/Close Game
+- Collect Wasteland
+- Daily Psychube (Will Analysis)
+- Regular Combat
+- Event Farming
+- Auto Deep Sleep
+- Auto Awakening Dream
+- Bank Shopping
+- Claim Rewards
+- Suspended in the Rain: Mystery Sea ("Think" Weekly Sweep)
+- Switch Account
+- Outside Deduction: The Series of Dusks
+- Outside Deduction: The Syndrome of Silence
+- Rerun Event Stage Clear
+- Artefact Masters (Rubbing Acrobatics)
 - When the Alarm Sounds
-- Continuous clear (under testing)
 - Critter Crash
 - Pre-Storm Protocol
+- Auto Stage Clear (Testing)
 
-## Instructions for use
+## User Guide
 
-- [Beginner's guide](./manual/newbie.md)(**Must read before use**)
-- [Function introduction](./manual/introduction.md)
-- [MaaPiCli Instructions](./manual/cli.md)
-- [Connection Settings](./manual/connection.md)
-- [FAQ](./manual/faq.md)
-- [MirrorChyan Instructions](./manual/MirrorChyan.md)
+- [Beginner's Guide](./manual/newbie.md) - **Must read before use**, quick configuration and startup
+- [Function Introduction](./manual/introduction.md) - Detailed feature descriptions and usage tips
+- [Connection Settings](./manual/connection.md) - Emulator and PC client connection configuration
+- [FAQ](./manual/faq.md) - Check here first when encountering problems
+- [MaaPiCli Instructions](./manual/cli.md) - Command-line version user guide
+- [MirrorChyan Instructions](./manual/MirrorChyan.md) - High-speed downloads and auto-updates
 
-## Development related
+## Development
 
-- [Notes Before Development](./develop/development.md)
-- [Project structure](./develop/structure.md)
-- [Interface.json writing](./develop/interface.md)
-- [Pipeline writing](./develop/pipeline.md)
-- [Custom Writing](./develop/custom.md)
-- [Bug Troubleshooting](./develop/fix.md)
-- [Project Refactoring](./develop/refactor.md)
-- [Adapting Global Servers](./develop/overseas-client-adaptation.md)
-- [Document Writing](./develop/doc.md)
-- [Protocol Docs](./protocol/sos.md)
+- [Development Prerequisites](./develop/development.md) - Environment setup and development workflow
+- [Project Structure](./develop/structure.md) - Code organization and directory structure
+- [Pipeline Writing](./develop/pipeline.md) - Task workflow development
+- [Custom Writing](./develop/custom.md) - Custom logic extension
+- [Interface Writing](./develop/interface.md) - Task interface configuration
+- [Bug Troubleshooting](./develop/fix.md) - Problem locating and log analysis
+- [Global Server Adaptation](./develop/overseas-client-adaptation.md) - Multi-server resource support
+- [Document Writing](./develop/doc.md) - Document writing guidelines
+- [Protocol Documentation](./protocol/sos.md) - Syndrome of Silence protocol explanation
 
 For more documents, please visit the [MaaFramework](https://github.com/MaaXYZ/MaaFramework) main repository
 
@@ -85,8 +86,21 @@ For more documents, please visit the [MaaFramework](https://github.com/MaaXYZ/Ma
 
 ## Acknowledgements
 
-This project is strongly driven by **[MaaFramework](https://github.com/MaaXYZ/MaaFramework)**!
-The UI is strongly supported by [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia), ~~[MFW-CFA](https://github.com/overflow65537/MFW-PyQt6)~~, ~~[MFAWPF](https://github.com/SweetSmellFox/MFAWPF)~~!
+### Core Framework
+
+- [MaaFramework](https://github.com/MaaXYZ/MaaFramework)  
+  An automation black-box testing framework based on image recognition
+
+### UI Support
+
+- [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia)  
+  Universal MaaFramework GUI solution built with Avalonia UI
+- ~~[MFW-CFA](https://github.com/overflow65537/MFW-PyQt6)~~  
+  ~~Cross-platform GUI based on PySide6 and MaaFramework~~
+- ~~[MFAWPF](https://github.com/SweetSmellFox/MFAWPF)~~  
+  ~~User interface developed with WPF framework, aiming to provide functionality similar to MaaPiCli~~
+
+### Contributors
 
 Thanks to the following developers for their contributions to this project:
 

@@ -2,146 +2,333 @@
 order: 4
 icon: eos-icons:pipeline
 ---
-# Pipeline Writing
+# Pipeline Writing Guide
 
-## Writing Standards
+## What is Pipeline?
 
-### Naming Conventions
+Pipeline is the core concept of MaaFramework, describing the execution flow of automated tasks in JSON format. Each Pipeline consists of multiple nodes (Nodes), each defining:
 
-To ensure the resources are aesthetically consistent, please try to follow the existing rules below.
+- **Recognition algorithm** (recognition): How to identify targets on the screen
+- **Execution action** (action): The operation to perform after successful recognition
+- **Successor nodes** (next): The next step to execute after completing the current node
 
-#### Resource Naming
+## Protocol Version
 
-- For files such as images, use PascalCase, where the first letter of each word is capitalized.
-- For JSON files under the `pipeline` folder, use snake_case, where words are separated by underscores and all letters are lowercase.  
-  Specifically, activity-related files use PascalCase and are generally located in the `activity` folder.
-- For folders under `image`, each folder corresponds to a JSON file under the `pipeline` folder. Folder names use PascalCase.  
-  Specifically, JSON files in the `activity` folder correspond to images placed in `Combat/Activity`.
-
-#### Node Naming
-
-A node is defined as a complete `JsonObject` that conforms to the task pipeline protocol. Most nodes use PascalCase, but in some cases, `_` is used to connect prefixes and suffixes.
-
-Prefixes are generally `Sub` or abbreviations of the current activity (e.g., `SOD` for Sound of Dusk, `EITM` for Echoes in the Mountains). (Other cases are recommended to avoid prefixes.)
-
-Suffixes are generally `numbers` or `states`, indicating the specific stage or state of the node. (It is recommended not to add suffixes to newly written nodes.)
-
-### Node Writing
-
-For detailed content, refer to [Pipeline Protocol Detailed Explanation](https://github.com/MaaXYZ/MaaFramework/blob/main/docs/en_us/3.1-PipelineProtocol.md)
-
-> [!NOTE]
->
-> - `next` specifies the exit node of the current node, and `interrupt` specifies the interrupt node of the current node.
-> - Nodes with a flag-like nature are often set as exit nodes to mark the completion of the current node.
-> - Reduce coupling between nodes.  
-> For example, `BackButton` is generally not set with `next` but is used as an "exception handler" placed in `interrupt` to ensure task flow clarity and facilitate the reuse of interrupt nodes in other tasks.
-> - In some cases, a node can be added to its own `next`. (This is for situations where actions are not correctly accepted by the game or have not yet taken effect in the game.)
-> - For nodes involving page switching, add `post_wait_freezes` and use an `object` as the value to set appropriate `time` and `target`.
-> - For operations involving swiping, add a click operation afterward to ensure screen stability.
-
-> [!WARNING]
->
-> - Use the `inverse` field cautiously, as it may lead to unpredictable tasks.  
-> If it must be used, ensure it has a preceding node with `post_wait_freezes` to ensure the state matches the expected conditions when the node is matched.
-> - Use "unconditional match" nodes cautiously.  
-> Nodes with the `recognition` field defaulting to `DirectHit` are considered "unconditional match" nodes.  
-> Using "unconditional match" nodes may cause the program to loop on the node and freeze the task if it reaches an unexpected state without proper error handling.  
-> Unless necessary, choose other logical implementations to complete the task.
-
-#### Node Connections
-
-Nodes are primarily connected through the `next` or `interrupt` fields.
-
-`next` connects nodes sequentially, while `interrupt` initiates a new task chain with the current interrupt node as the entry point and returns to the current node after the task chain is completed.
-
-A simple representation is as follows:
-
-```mermaid
-graph LR
-    A(Task Entry<br>Node A) --> |next| B(Node B)
-    A --> |interrupt| C(Node C)
-    C --> |return| A
-```
-
-Making the interrupt node more complex:
-
-```mermaid
-graph LR
-    A(Task Entry<br>Node A) --> |next| B(Node B)
-    A --> |interrupt| C(Node C)
-    C --> |next| D(Node D)
-    C --> |interrupt| E(Node E)
-    D --> |return| A
-    E --> |return| C
-```
-
-To ensure a good structure for the task chain, follow these principles for node connections:
-
-1. Nodes marking the completion of a phase task should be placed in `next`.
-2. Nodes handling other conditions to match the `next` node should be placed in `interrupt`.
-
-For example, the relationship between activity farming tasks, being on the activity main screen, and entering the activity main screen is as follows:
-
-```mermaid
-graph LR
-   A(Activity Farming Task) --> |next| B(On Activity Main Screen)
-   A --> |interrupt| C(Enter Activity Main Screen)
-   C --> |return| A
-```
-
-Here, "Enter Activity Main Screen" is not placed in `next` but in `interrupt`.
-
-#### Next & Interrupt Node Ordering
-
-Overall, the first node in `interrupt` has a lower priority than the last node in `next`.
-
-Within `next` or `interrupt`, nodes should be arranged in descending order of priority, and priority inversion should not occur. For example:
-
-```plaintext
-If there is a node B that checks for a small popup and a node A that checks for the interface before the popup appears, 
-and if the popup can still match A when it appears, then B should have a higher priority than A. 
-Otherwise, the task may freeze at A without handling B.
-```
-
-Nodes with the same priority can be arranged in descending order of matching frequency to improve node hit rates and reduce resource consumption.
-
-#### Comment Standards
-
-In `pipeline.json` files, there are two types of comment fields:
-
-1. `.*_doc$|^doc$`: Strings ending with `_doc` or exactly `doc`.
-2. `.*_code$|^code$`: Strings ending with `_code` or exactly `code`.
-
-The former provides explanations for the current node (or field), while the latter serves as placeholders for required fields. For example:
+M9A is based on **MaaFramework v5.1+** and uses the **Pipeline v2** protocol:
 
 ```json
 {
-    "EnterTheActivityMain": {
-        "doc": "Enter the main screen of the current activity",
-        "template_code": "Modify the template in interface.json",
-        "recognition": "TemplateMatch",
-        "roi": [
-            885,
-            123,
-            340,
-            183
-        ],
-        "action": "Click",
-        "post_wait_freezes": {
-            "time": 500,
-            "target": [
-                0,
-                179,
-                190,
-                541
-            ]
+    "NodeName": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [100, 100, 200, 50],
+                "expected": ["Confirm"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": ["NextNode"]
+    }
+}
+```
+
+:::tip
+The v2 protocol unifies recognition and action-related parameters into `type` and `param` fields for a clearer structure.
+For detailed protocol specifications, refer to [MaaFramework Pipeline Protocol](https://maafw.xyz/docs/3.1-PipelineProtocol).
+:::
+
+## Basic Structure and Execution Flow
+
+### Node Execution Order
+
+Pipeline executes according to the following flow:
+
+1. Start from the entry node
+2. Check nodes in the `next` list sequentially
+3. Execute the action of the first matching node
+4. Use that node as the new current node, repeat step 2
+5. Continue until `next` is empty or timeout occurs, ending the task
+
+### Node Connection Mechanism
+
+Nodes are connected through the `next` field, supporting node attribute syntax:
+
+```json
+{
+    "StartTask": {
+        "next": [
+            "CheckStatus",           // Regular node
+            "[JumpBack]HandleError"  // Node with JumpBack attribute
+        ]
+    }
+}
+```
+
+**JumpBack Mechanism** (v5.1+ new feature, replaces deprecated `interrupt` and `is_sub`):
+
+- Nodes marked with `[JumpBack]` return to the parent node after execution
+- Suitable for exception handling, popup closing, and similar scenarios
+
+Example flow:
+
+```mermaid
+graph LR
+    A[Task Entry] --> |next| B[Check Status]
+    A --> |next| C["[JumpBack]Handle Exception"]
+    C --> |Return after execution| A
+    A --> |Continue| D[Next Step]
+```
+
+## M9A Writing Standards
+
+### File and Resource Naming
+
+To ensure resource consistency and aesthetics, follow these rules:
+
+**Pipeline JSON Files**:
+
+- Generally use **snake_case**: `all_in.json`, `combat_stage.json`
+- Event-related files use **PascalCase**: `LondonDawning.json`
+
+**Image Files**:
+
+- Use **PascalCase**: `OpenReplaysTimes.png`, `StartButton.png`
+- Organize by function into corresponding folders under `image/`
+
+**Image Folder Structure**:
+
+- Each pipeline JSON corresponds to one image folder
+- Event images are unified in `image/Combat/Activity/`
+
+### Node Naming Standards
+
+Review existing files and maintain consistent style.
+
+### Writing Best Practices
+
+:::tip Node Connection Principles
+
+- **`next` field**: Place exit nodes of the current node, marking completion of staged tasks
+- **`[JumpBack]` nodes**: Used for exception handling, popup closing, etc., returning to parent after execution
+- **Reduce coupling**: Design highly reusable nodes (like `BackButton`) as `[JumpBack]` nodes
+- **Self-loop**: In some cases, add the node to its own `next` (handling cases where operations don't take effect)
+- **Page transitions**: Add `post_wait_freezes` field, set `time` and `target` to ensure interface stability
+- **Swipe operations**: Add click operation after swiping to ensure screen stability
+
+:::
+
+**JumpBack Usage Example**:
+
+```json
+{
+    "ActivityMain": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": { "template": "ActivityMainPage.png" }
+        },
+        "next": [
+            "StartBattle",
+            "[JumpBack]ClosePopup",
+            "[JumpBack]BackToMain"
+        ]
+    },
+    "ClosePopup": {
+        "doc": "Close possible popups",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": { "template": "CloseButton.png" }
+        },
+        "action": {
+            "type": "Click"
         }
     }
 }
 ```
 
-`doc` explains the current node.
+:::warning Cautions
 
-`template_code` is a placeholder for required fields.  
-The reason is that when `recognition` is `TemplateMatch`, the "template" field is required, but we want to modify it in `interface.json` instead of this JSON file. Hence, `template_code` is used as a placeholder.
+- **Use `inverse` cautiously**: May lead to unpredictable tasks, if necessary use with `post_wait_freezes` to ensure state
+- **Avoid unconditional matching**: `DirectHit` type nodes have no judgment conditions, may cause unexpected loops
+- **Priority order**: Nodes in `next` should be arranged from high to low priority, avoid priority inversion
+- **Match frequency optimization**: Nodes with same priority can be sorted by match frequency to improve hit efficiency
+
+:::
+
+**Priority Sorting Example**:
+
+```plaintext
+Assume the following scenario:
+- Node B: Detect small popup (high priority, low frequency)
+- Node A: Detect main interface (low priority, high frequency)
+
+If A can still match when popup appears, must use:
+  "next": ["B", "A"]  // ✓ B has higher priority, check first
+Instead of:
+  "next": ["A", "B"]  // ✗ Will fail to handle B and get stuck on A
+```
+
+### Comment Standards
+
+In `pipeline.json` files, there are two types of comment attribute fields:
+
+1. `.*_doc$|^doc$`: Strings ending with `_doc` or exactly `doc`, used for descriptions
+2. `.*_code$|^code$`: Strings ending with `_code` or exactly `code`, used for required field placeholders
+
+**Example** (Pipeline v2 format):
+
+```json
+{
+    "EnterTheActivityMain": {
+        "doc": "Enter current event main interface",
+        "template_code": "Modify template in interface.json",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [885, 123, 340, 183]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [0, 179, 190, 541]
+        }
+    }
+}
+```
+
+**Explanation**:
+
+- `doc`: Functional description of current node
+- `template_code`: Required field placeholder, prompts to configure `template` in `interface.json`
+
+:::tip Why do we need _code fields?
+
+When `recognition.type` is `TemplateMatch`, the `template` field is required. However, in actual projects, we typically configure `template` uniformly in `interface.json` rather than hardcoding it in each pipeline JSON. Therefore, `template_code` is used as a placeholder to remind developers to configure it in the correct location.
+
+:::
+
+## Practical Examples
+
+The following are real examples extracted from M9A project's `all_in.json`, demonstrating the practical application of Pipeline v2 protocol:
+
+### Example 1: Battle Entry Detection
+
+```json
+{
+    "CombatEntering": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [0, 5, 90, 70]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": [
+            "TargetCountProgress",
+            "[JumpBack]CombatEntering"
+        ]
+    },
+    "TargetCountProgress": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [1118, 34, 140, 37]
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": ["StageChoose"]
+    }
+}
+```
+
+**Analysis**:
+
+- `CombatEntering` detects battle entry interface
+- Uses `[JumpBack]CombatEntering` to implement self-loop, ensuring interface loading completion
+- `TargetCountProgress` serves as progress marker node, proceeding to stage selection after completion
+
+### Example 2: Page Transition and Waiting
+
+```json
+{
+    "OpenReplaysTimes": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [855, 615, 80, 45]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 800,
+            "target": [563, 307, 155, 92]
+        },
+        "next": ["ChangeReplaysTimes"]
+    }
+}
+```
+
+**Analysis**:
+
+- Clicks to open replay times settings
+- Uses `post_wait_freezes` to wait for popup stabilization (800ms)
+- `target` specifies popup area, ensuring popup is fully displayed before continuing
+
+### Example 3: JumpBack Exception Handling
+
+```json
+{
+    "StageChoose": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [0, 59, 1280, 661]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "next": [
+            "TargetCountProgress",
+            "[JumpBack]StageChoose",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "BackButton": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [23, 14, 60, 50]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}
+```
+
+**Analysis**:
+
+- `StageChoose` performs stage selection operation
+- `[JumpBack]StageChoose` handles cases where click didn't take effect
+- `[JumpBack]BackButton` handles accidentally entering other interfaces (returns and re-executes `StageChoose`)
+- `BackButton` doesn't set `next`, serves as pure utility node for reuse across multiple locations
+
+## Reference Resources
+
+- [MaaFramework Task Pipeline Protocol](https://maafw.xyz/docs/3.1-PipelineProtocol)
+- [MaaFramework Project Interface Protocol](https://maafw.xyz/docs/3.3-ProjectInterfaceV2)
