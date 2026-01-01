@@ -21,6 +21,7 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
   <img alt="stars" src="https://img.shields.io/github/stars/MAA1999/M9A?style=social">
   <img alt="downloads" src="https://img.shields.io/github/downloads/MAA1999/M9A/total?style=social">
   <a href="https://mirrorchyan.com/zh/projects?rid=M9A&source=m9agh-badge-en" target="_blank"><img alt="mirrorc" src="https://img.shields.io/badge/Mirror%E9%85%B1-%239af3f6?logo=countingworkspro&logoColor=4f46e5"></a>
+  <a href="https://deepwiki.com/MAA1999/M9A"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
 </p>
 
 <div align="center">

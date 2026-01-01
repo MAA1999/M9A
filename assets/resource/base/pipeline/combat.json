@@ -673,15 +673,17 @@
     },
     "TargetStageName": {
         "recognition": {
-            "type": "OCR",
+            "type": "Custom",
             "param": {
-                "roi": [
-                    0,
-                    470,
-                    1280,
-                    160
-                ],
-                "expected_code": "Set in code."
+                "custom_recognition": "ColorOCR",
+                "custom_recognition_param": {
+                    "recognition": "TargetStageName_OCR",
+                    "target_color": [
+                        243,
+                        241,
+                        223
+                    ]
+                }
             }
         },
         "action": {
@@ -699,6 +701,20 @@
         "next": [
             "StageDifficulty"
         ]
+    },
+    "TargetStageName_OCR": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    470,
+                    1280,
+                    160
+                ],
+                "expected_code": "Set in code."
+            }
+        }
     },
     "TheFarLeftOfStageList": {
         "recognition": {
@@ -895,7 +911,15 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 500,
+        "post_wait_freezes": {
+            "time": 1500,
+            "target": [
+                0,
+                381,
+                238,
+                138
+            ]
+        },
         "next": [
             "IsReplay",
             "[JumpBack]SwitchToReplay",

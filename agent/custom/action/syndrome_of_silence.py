@@ -674,7 +674,10 @@ class SOSShoppingList(CustomAction):
             # 只保留接近黑色的像素，其他颜色都变成白色
             # 允许 RGB 每个通道在 0-95 范围内都认为是黑色
             mask = np.all(img <= 95, axis=-1)
-            processed_img = np.where(mask[..., None], img, 255).astype(np.uint8)
+            # 创建一个全白图像
+            processed_img = np.full_like(img, 255, dtype=np.uint8)
+            # 保留暗色像素
+            processed_img[mask] = img[mask]
 
             reco_detail = context.run_recognition("SOSShoppingListOCR", processed_img)
             if not reco_detail or not reco_detail.hit:
@@ -1011,7 +1014,10 @@ class SOSBuyItems(CustomAction):
 
             # 使用黑色过滤后的图像再次识别，以检查价格是否可见（红色价格会被过滤）
             mask = np.all(img <= 95, axis=-1)
-            processed_img = np.where(mask[..., None], img, 255).astype(np.uint8)
+            # 创建一个全白图像
+            processed_img = np.full_like(img, 255, dtype=np.uint8)
+            # 保留暗色像素
+            processed_img[mask] = img[mask]
             price_reco_detail = context.run_recognition(
                 "SOSShoppingListOCR", processed_img
             )

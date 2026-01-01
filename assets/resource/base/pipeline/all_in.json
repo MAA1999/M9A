@@ -445,10 +445,9 @@
                     "Items_processed/"
                 ],
                 "green_mask": true,
-                "method": 1,
-                "threshold": 0.15,
-                "order_by": "Score",
-                "index": -1
+                "method": 10001,
+                "threshold": 0.85,
+                "order_by": "Score"
             }
         }
     },
@@ -458,7 +457,8 @@
             "param": {
                 "expected": [
                     "\\d+"
-                ]
+                ],
+                "only_rec": true
             }
         }
     },

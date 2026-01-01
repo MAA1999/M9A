@@ -12,6 +12,7 @@ from .critter_crash import *
 __all__ = [
     "MultiRecognition",
     "Count",
+    "ColorOCR",
     "BankShop",
     "ActivityRe_releaseChapter",
     "FindFirstUnplayedStageByCheckmark",

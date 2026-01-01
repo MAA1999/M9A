@@ -459,3 +459,4 @@ python/
 .venv/
 config/
 tmp/
+agent/libs/*.pyd

@@ -149,8 +149,8 @@
                 "template": [
                     "CritterCrash/ToDo.png"
                 ],
-                "method": 1,
-                "threshold": 0.1
+                "method": 10001,
+                "threshold": 0.9
             }
         },
         "post_delay": 1500,

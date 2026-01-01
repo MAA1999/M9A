@@ -149,7 +149,10 @@ class CCRemainMoney(CustomRecognition):
         color_mask = np.all((img >= lower_bound) & (img <= upper_bound), axis=-1)
 
         # 处理图像：保留目标颜色，其他颜色变成黑色
-        processed_img = np.where(color_mask[..., None], img, 0).astype(np.uint8)
+        # 创建一个全黑图像
+        processed_img = np.zeros_like(img, dtype=np.uint8)
+        # 保留匹配目标颜色的像素
+        processed_img[color_mask] = img[color_mask]
 
         reco_detail = context.run_recognition("CCRemainMoney_rec", processed_img)
 

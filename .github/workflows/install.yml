@@ -1,7 +1,7 @@
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+*"  
+      - "v[0-9]+.[0-9]+.[0-9]+*"
     branches:
       - "**"
     paths:
@@ -16,6 +16,10 @@ on:
       - "assets/**"
       - "**.py"
   workflow_dispatch:
+
+env:
+  MAA_FRAMEWORK_VERSION: "v5.3.0-beta.5"
+  MFAA_VERSION: "v2.2.7"
 
 permissions:
   contents: write
@@ -46,7 +50,7 @@ jobs:
             tag=$(date "+$tag-%y%m%d-$(git rev-parse --short HEAD)")
           fi
 
-          if ! $($is_release) ; then
+          if [ "$is_release" != "true" ] ; then
             prefix=${tag%-*-*}
             suffix=${tag#$prefix-}
             tag="$prefix-ci.$suffix"
@@ -84,12 +88,22 @@ jobs:
         with:
           submodules: true
 
+      - name: Set platform variables
+        id: platform
+        shell: bash
+        run: |
+          if [ "${{ matrix.arch }}" = "x86_64" ]; then
+            echo "tag=x64" >> $GITHUB_OUTPUT
+          else
+            echo "tag=arm64" >> $GITHUB_OUTPUT
+          fi
+
       - name: Download MaaFramework
         uses: robinraju/release-downloader@v1
         with:
           repository: MaaXYZ/MaaFramework
           fileName: "MAA-win-${{ matrix.arch }}*"
-          tag: "v5.3.0-beta.5"
+          tag: ${{ env.MAA_FRAMEWORK_VERSION }}
           out-file-path: "deps"
           extract: true
 
@@ -98,8 +112,8 @@ jobs:
         uses: robinraju/release-downloader@v1
         with:
           repository: SweetSmellFox/MFAAvalonia
-          fileName: "MFAAvalonia-*-win-${{ matrix.arch == 'x86_64' && 'x64' || 'arm64' }}*"
-          tag: "v2.2.3"
+          fileName: "MFAAvalonia-*-win-${{ steps.platform.outputs.tag }}*"
+          tag: ${{ env.MFAA_VERSION }}
           out-file-path: "MFA"
           extract: true
 
@@ -109,6 +123,28 @@ jobs:
           ARCHIVE_FILE_PATH="${{ fromJson(steps.download_mfa.outputs.downloaded_files)[0] }}"
           rm -f "${ARCHIVE_FILE_PATH}"
           echo "Archive cleanup command executed for MFAAvalonia on Windows."
+
+      - name: Convert PNG to ICO
+        if: matrix.arch == 'x86_64'
+        shell: bash
+        run: |
+          # 安装 ImageMagick
+          choco install imagemagick -y
+
+          # 转换 PNG 到 ICO
+          magick convert assets/logo.png -define icon:auto-resize=256,128,64,48,32,24,16 m9a.ico
+
+      - name: Modify MFAAvalonia exe icon
+        if: matrix.arch == 'x86_64'
+        shell: bash
+        run: |
+          # 下载 rcedit
+          curl -L https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe -o rcedit.exe
+
+          # 修改 exe 图标
+          ./rcedit.exe "MFA/MFAAvalonia.exe" --set-icon "m9a.ico"
+
+          echo "MFAAvalonia icon modified successfully"
 
       - name: Setup Embed Python on Windows
         shell: bash
@@ -120,10 +156,17 @@ jobs:
         run: |
           ./install/python/python.exe tools/ci/download_deps.py --deps-dir install/deps
 
+      - name: Download drop_core module
+        shell: bash
+        env:
+          PRIVATE_REPO_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
+        run: |
+          ./install/python/python.exe tools/ci/download_drop_core.py --os windows --arch ${{ matrix.arch }} || echo "drop_core download skipped"
+
       - name: Install
         shell: bash
         run: |
-          PLATFORM_TAG="win-${{ matrix.arch == 'x86_64' && 'x64' || 'arm64' }}"
+          PLATFORM_TAG="win-${{ steps.platform.outputs.tag }}"
           ./install/python/python.exe ./tools/ci/install.py ${{ needs.meta.outputs.tag }} $PLATFORM_TAG
           cp -rpvn tools/registry/. install/
 
@@ -144,6 +187,24 @@ jobs:
             cp -rpvn MFA/. install/
           else
             echo "MFA directory not found, skipping copy."
+          fi
+
+      - name: Replace Assets with custom assets folder
+        shell: bash
+        run: |
+          # 删除大写的 Assets 文件夹
+          if [ -d "install/Assets" ]; then
+            rm -rf install/Assets
+            echo "Removed original Assets folder"
+          fi
+
+          # 创建小写的 assets 文件夹
+          mkdir -p install/assets
+
+          # 如果有自定义图标，复制并重命名为 logo.ico
+          if [ -f "m9a.ico" ]; then
+            cp m9a.ico install/assets/logo.ico
+            echo "Copied custom icon to assets/logo.ico"
           fi
 
       - uses: actions/upload-artifact@v4
@@ -169,12 +230,22 @@ jobs:
         with:
           submodules: true
 
+      - name: Set platform variables
+        id: platform
+        shell: bash
+        run: |
+          if [ "${{ matrix.arch }}" = "x86_64" ]; then
+            echo "tag=x64" >> $GITHUB_OUTPUT
+          else
+            echo "tag=arm64" >> $GITHUB_OUTPUT
+          fi
+
       - name: Download MaaFramework for Linux
         uses: robinraju/release-downloader@v1
         with:
           repository: MaaXYZ/MaaFramework
           fileName: "MAA-linux-${{ matrix.arch }}*"
-          tag: "v5.3.0-beta.5"
+          tag: ${{ env.MAA_FRAMEWORK_VERSION }}
           out-file-path: "deps"
           extract: true
 
@@ -183,8 +254,8 @@ jobs:
         uses: robinraju/release-downloader@v1
         with:
           repository: SweetSmellFox/MFAAvalonia
-          fileName: "MFAAvalonia-*-linux-${{ matrix.arch == 'x86_64' && 'x64' || 'arm64' }}*"
-          tag: "v2.2.3"
+          fileName: "MFAAvalonia-*-linux-${{ steps.platform.outputs.tag }}*"
+          tag: ${{ env.MFAA_VERSION }}
           out-file-path: "MFA"
           extract: true
 
@@ -195,16 +266,32 @@ jobs:
           rm -f "${ARCHIVE_FILE_PATH}"
           echo "Archive cleanup command executed for MFAAvalonia on Linux."
 
+      - name: Convert PNG to ICO
+        shell: bash
+        run: |
+          # 安装 ImageMagick（如果未安装）
+          sudo apt-get update && sudo apt-get install -y imagemagick
+
+          # 转换 PNG 到 ICO
+          convert assets/logo.png -define icon:auto-resize=256,128,64,48,32,24,16 m9a.ico
+
       - name: Download Python dependencies
         shell: bash
         run: |
           python tools/ci/download_deps.py --deps-dir install/deps
 
+      - name: Download drop_core module
+        shell: bash
+        env:
+          PRIVATE_REPO_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
+        run: |
+          python tools/ci/download_drop_core.py --os linux --arch ${{ matrix.arch }} || echo "drop_core download skipped"
+
       - name: Install on Linux
         shell: bash
         run: |
           PYTHON_EXECUTABLE="python"
-          PLATFORM_TAG="linux-${{ matrix.arch == 'x86_64' && 'x64' || 'arm64' }}"
+          PLATFORM_TAG="linux-${{ steps.platform.outputs.tag }}"
           echo "Using Python executable: $PYTHON_EXECUTABLE for Linux"
           $PYTHON_EXECUTABLE ./tools/ci/install.py ${{ needs.meta.outputs.tag }} $PLATFORM_TAG
 
@@ -226,6 +313,24 @@ jobs:
             rsync -av --ignore-existing MFA/ install/
           else
             echo "MFA directory not found on Linux, skipping copy."
+          fi
+
+      - name: Replace Assets with custom assets folder
+        shell: bash
+        run: |
+          # 删除大写的 Assets 文件夹
+          if [ -d "install/Assets" ]; then
+            rm -rf install/Assets
+            echo "Removed original Assets folder"
+          fi
+
+          # 创建小写的 assets 文件夹
+          mkdir -p install/assets
+
+          # 如果有自定义图标，复制并重命名为 logo.ico
+          if [ -f "m9a.ico" ]; then
+            cp m9a.ico install/assets/logo.ico
+            echo "Copied custom icon to assets/logo.ico"
           fi
 
       - uses: actions/upload-artifact@v4
@@ -254,12 +359,22 @@ jobs:
         with:
           submodules: true
 
+      - name: Set platform variables
+        id: platform
+        shell: bash
+        run: |
+          if [ "${{ matrix.arch }}" = "x86_64" ]; then
+            echo "tag=x64" >> $GITHUB_OUTPUT
+          else
+            echo "tag=arm64" >> $GITHUB_OUTPUT
+          fi
+
       - name: Download MaaFramework for macOS
         uses: robinraju/release-downloader@v1
         with:
           repository: MaaXYZ/MaaFramework
           fileName: "MAA-macos-${{ matrix.arch }}*"
-          tag: "v5.3.0-beta.5"
+          tag: ${{ env.MAA_FRAMEWORK_VERSION }}
           out-file-path: "deps"
           extract: true
 
@@ -268,8 +383,8 @@ jobs:
         uses: robinraju/release-downloader@v1
         with:
           repository: SweetSmellFox/MFAAvalonia
-          fileName: "MFAAvalonia-*-osx-${{ matrix.arch == 'x86_64' && 'x64' || 'arm64' }}*"
-          tag: "v2.2.3"
+          fileName: "MFAAvalonia-*-osx-${{ steps.platform.outputs.tag }}*"
+          tag: ${{ env.MFAA_VERSION }}
           out-file-path: "MFA"
           extract: true
 
@@ -279,6 +394,15 @@ jobs:
           ARCHIVE_FILE_PATH="${{ fromJson(steps.download_mfa.outputs.downloaded_files)[0] }}"
           rm -f "${ARCHIVE_FILE_PATH}"
           echo "Archive cleanup command executed for MFAAvalonia on macOS."
+
+      - name: Convert PNG to ICO
+        shell: bash
+        run: |
+          # 安装 ImageMagick（如果未安装）
+          brew install imagemagick
+
+          # 转换 PNG 到 ICO
+          magick convert assets/logo.png -define icon:auto-resize=256,128,64,48,32,24,16 m9a.ico
 
       - name: Setup Embed Python on macOS
         shell: bash
@@ -297,11 +421,18 @@ jobs:
         run: |
           ./install/python/bin/python3 tools/ci/download_deps.py --deps-dir install/deps
 
+      - name: Download drop_core module
+        shell: bash
+        env:
+          PRIVATE_REPO_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
+        run: |
+          ./install/python/bin/python3 tools/ci/download_drop_core.py --os darwin --arch ${{ matrix.arch }} || echo "drop_core download skipped"
+
       - name: Install on macOS
         shell: bash
         run: |
           PYTHON_EXECUTABLE="./install/python/bin/python3"
-          PLATFORM_TAG="osx-${{ matrix.arch == 'x86_64' && 'x64' || 'arm64' }}"
+          PLATFORM_TAG="osx-${{ steps.platform.outputs.tag }}"
           echo "Using Python executable: $PYTHON_EXECUTABLE for macOS"
           $PYTHON_EXECUTABLE ./tools/ci/install.py ${{ needs.meta.outputs.tag }} $PLATFORM_TAG
 
@@ -323,6 +454,24 @@ jobs:
             echo "MFA directory not found on macOS, skipping copy."
           fi
 
+      - name: Replace Assets with custom assets folder
+        shell: bash
+        run: |
+          # 删除大写的 Assets 文件夹
+          if [ -d "install/Assets" ]; then
+            rm -rf install/Assets
+            echo "Removed original Assets folder"
+          fi
+
+          # 创建小写的 assets 文件夹
+          mkdir -p install/assets
+
+          # 如果有自定义图标，复制并重命名为 logo.ico
+          if [ -f "m9a.ico" ]; then
+            cp m9a.ico install/assets/logo.ico
+            echo "Copied custom icon to assets/logo.ico"
+          fi
+
       - uses: actions/upload-artifact@v4
         with:
           name: M9A-macos-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-Full
@@ -335,6 +484,7 @@ jobs:
 
   changelog:
     name: Generate changelog
+    needs: meta
     runs-on: ubuntu-latest
     outputs:
       release_body: ${{ steps.git-cliff.outputs.content }}
@@ -349,7 +499,11 @@ jobs:
         id: git-cliff
         with:
           config: .github/cliff.toml
-          args: -vv --latest --strip header
+          # 正式版：使用 tag-pattern 只匹配正式版标签，包含所有从上一个正式版以来的提交
+          # 预发布版：正常生成，只包含从上一个标签以来的提交
+          args: >-
+            -vv --latest --strip header
+            ${{ needs.meta.outputs.is_prerelease == 'false' && '--tag-pattern "^v[0-9]+\\.[0-9]+\\.[0-9]+$"' || '' }}
         env:
           OUTPUT: CHANGES.md
           GITHUB_REPO: ${{ github.repository }}

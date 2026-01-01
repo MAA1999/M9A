@@ -28,7 +28,9 @@ from utils import logger
 VENV_NAME = ".venv"  # 虚拟环境目录的名称
 VENV_DIR = Path(project_root_dir) / VENV_NAME
 
-### 虚拟环境相关 ###
+# -----
+# region 虚拟环境
+# -----
 
 
 def _is_running_in_our_venv():
@@ -121,7 +123,40 @@ def ensure_venv_and_relaunch_if_needed():
         sys.exit(1)
 
 
-### 配置相关 ###
+# -----
+# region 配置相关
+# -----
+
+
+def read_config(config_name: str, default_config: dict) -> dict:
+    """
+    通用配置文件读取函数
+
+    Args:
+        config_name: 配置文件名（不含.json后缀）
+        default_config: 默认配置字典
+
+    Returns:
+        配置字典
+    """
+    config_dir = Path("./config")
+    config_dir.mkdir(exist_ok=True)
+    config_path = config_dir / f"{config_name}.json"
+
+    if not config_path.exists():
+        try:
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump(default_config, f, indent=4, ensure_ascii=False)
+        except Exception:
+            logger.debug(f"无法写入 {config_name}.json，使用默认配置")
+        return default_config
+
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        logger.exception(f"读取 {config_name}.json 失败，使用默认配置")
+        return default_config
 
 
 def read_interface_version(interface_file_name="./interface.json") -> str:
@@ -148,50 +183,25 @@ def read_interface_version(interface_file_name="./interface.json") -> str:
 
 
 def read_pip_config() -> dict:
-    config_dir = Path("./config")
-    config_dir.mkdir(exist_ok=True)
-    config_path = config_dir / "pip_config.json"
     default_config = {
         "enable_pip_install": True,
         "mirror": "https://pypi.tuna.tsinghua.edu.cn/simple",
         "backup_mirror": "https://mirrors.ustc.edu.cn/pypi/simple",
     }
-    if not config_path.exists():
-        with open(config_path, "w", encoding="utf-8") as f:
-            json.dump(default_config, f, indent=4, ensure_ascii=False)
-        return default_config
-    try:
-        with open(config_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        logger.exception("读取pip配置失败，使用默认配置")
-        return default_config
+    return read_config("pip_config", default_config)
 
 
 def read_hot_update_config() -> dict:
     """
     读取热更配置
     """
-    config_dir = Path("./config")
-    config_dir.mkdir(exist_ok=True)
-    config_path = config_dir / "hot_update.json"
-    default_conf = {"enable_hot_update": True}
-    if not config_path.exists():
-        try:
-            with open(config_path, "w", encoding="utf-8") as f:
-                json.dump(default_conf, f, indent=4, ensure_ascii=False)
-        except Exception:
-            logger.debug("无法写入 hot_update.json，使用默认配置")
-        return default_conf
-    try:
-        with open(config_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        logger.exception("读取 hot_update.json 失败，使用默认配置")
-        return default_conf
+    default_config = {"enable_hot_update": True}
+    return read_config("hot_update", default_config)
 
 
-### 依赖安装相关 ###
+# -----
+# region 依赖安装
+# -----
 
 
 def find_local_wheels_dir():
@@ -232,7 +242,6 @@ def _run_pip_command(cmd_args: list, operation_name: str) -> bool:
         for line in iter(process.stdout.readline, ""):
             line = line.rstrip("\n\r")
             if line.strip():  # 只显示非空行
-                # print(line)  # 实时显示到终端
                 all_output.append(line)  # 收集到列表中
 
         # 等待进程结束
@@ -356,7 +365,9 @@ def check_and_install_dependencies():
         logger.info("Pip 依赖安装已禁用，跳过依赖安装")
 
 
-### 核心业务 ###
+# -----
+# region 核心业务
+# -----
 
 
 def agent(is_dev_mode=False):
@@ -474,7 +485,9 @@ def agent(is_dev_mode=False):
         raise
 
 
-### 程序入口 ###
+# -----
+# region 程序入口
+# -----
 
 
 def main():
