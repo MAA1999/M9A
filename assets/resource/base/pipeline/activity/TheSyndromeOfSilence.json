@@ -700,6 +700,7 @@
         },
         "next": [
             "SOSMainMenu",
+            "[JumpBack]SOSCollectBack",
             "[JumpBack]SOSSelectArtefact",
             "[JumpBack]SOSArtefactsObtained",
             "[JumpBack]SOSSetOff",
@@ -2088,6 +2089,33 @@
                 "only_rec": true,
                 "expected": [
                     "区域委托"
+                ]
+            }
+        }
+    },
+    "SOSCollectBack": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    571,
+                    411,
+                    39,
+                    21
+                ],
+                "expected": [
+                    "收集"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    47,
+                    47,
+                    2,
+                    2
                 ]
             }
         }
