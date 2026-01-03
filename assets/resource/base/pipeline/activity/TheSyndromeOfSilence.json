@@ -700,7 +700,6 @@
         },
         "next": [
             "SOSMainMenu",
-            "[JumpBack]SOSCollectBack",
             "[JumpBack]SOSSelectArtefact",
             "[JumpBack]SOSArtefactsObtained",
             "[JumpBack]SOSSetOff",
@@ -720,6 +719,7 @@
             "[JumpBack]SOS_Skip",
             "[JumpBack]SOSConfirm",
             "[JumpBack]SOSInformation",
+            "[JumpBack]SOSCollectBack",
             "[JumpBack]CloseTip"
         ]
     },
@@ -2095,17 +2095,9 @@
     },
     "SOSCollectBack": {
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
-                "roi": [
-                    571,
-                    411,
-                    39,
-                    21
-                ],
-                "expected": [
-                    "收集"
-                ]
+                "template": "SyndromeOfSilence/SOSCollectBack.png"
             }
         },
         "action": {
