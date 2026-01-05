@@ -563,6 +563,7 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
           <summary>Interface Button Descriptions</summary>
             <ul>
               <li>Click <b>Custom</b>: Modify ADB parameters (generally no manual modification required).</li>
+              <li>Click <b>Reconnect</b>: Reconnect to the selected emulator.</li>
               <li>Click <b>Refresh</b>: Re-detect all running emulators.</li>
               <li><b>Connection Status</b>: Green indicates connected.</li>
             </ul>
