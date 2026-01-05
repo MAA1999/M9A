@@ -588,7 +588,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
     </blockquote>
   </details>
 
-Mac用户使用 PlayCover 时，在连接区域的**控制器类型**中选择 PlayCover ，详情请参考 [PlayCover使用](https://maa.plus/docs/zh-cn/manual/device/macos.html#apple-silicon-%E8%8A%AF%E7%89%87)。
+Mac 用户使用 PlayCover 时，在连接区域的**控制器类型**中选择 PlayCover ，详情请参考 [PlayCover使用](https://maa.plus/docs/zh-cn/manual/device/macos.html#apple-silicon-%E8%8A%AF%E7%89%87)。
 
 <details>
     <summary>示意图</summary>

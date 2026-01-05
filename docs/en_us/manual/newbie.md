@@ -587,7 +587,7 @@ When using the International Server PC client, select PC in the **Controller Typ
     </blockquote>
   </details>
 
-For Mac users using PlayCover, select PlayCover in the **Controller Type** section of the connection area. For details, please refer to [PlayCover Usage](https://maa.plus/docs/zh-cn/manual/device/macos.html#apple-silicon-%E8%8A%AF%E7%89%87).
+For Mac users using PlayCover, select PlayCover in the **Controller Type** section of the connection area. For details, please refer to [PlayCover Usage](https://docs.maa.plus/en-us/manual/device/macos.html#apple-silicon-chips).
 
 <details>
     <summary>Illustration</summary>
