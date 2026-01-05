@@ -122,4 +122,4 @@ This setting only exists in MFAWPF/MFAAvalonia.
 
 **Generally, you don't need to modify this; keep it as `{}`.**
 
-This corresponds to the `"AdbDevice"` `"Config"` field value in `debug/config.json`,
+This corresponds to the `"AdbDevice"` `"Config"` field value in `debug/config.json`.
