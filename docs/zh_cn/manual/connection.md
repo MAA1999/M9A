@@ -122,4 +122,4 @@ ADB 路径是指 M9A 连接模拟器所需的 ADB 可执行文件路径。ADB �
 
 **一般来说你不需要修改，保持 `{}` 即可**。
 
-对应 `debug/config.json` 中 `"AdbDevice"` `"Config"` 字段的值,  
+对应 `debug/config.json` 中 `"AdbDevice"` `"Config"` 字段的值。

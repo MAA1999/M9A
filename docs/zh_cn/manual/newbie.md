@@ -384,7 +384,7 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
   </blockquote>
 </details>
 
-在主界面中，可看到 **`资源类型`** **`任务列表`** **`任务设置`** **`任务说明`** **`连接`** **`日志`** 六大板块。
+在主界面中，可看到 **`资源类型`** **`任务列表`** **`任务设置`** **`任务说明`** **`连接`** **`日志`** **`实时视图`** 七大板块。
 
 > [!CAUTION]
 > 首次启动 MFA 时， M9A 将进行初始化。在 `日志` 板块显示 “**AgentServer 启动**”后，直到看见 “**任务已全部完成**” 前，请不要点击 `停止任务` 。
@@ -528,7 +528,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
       <blockquote>
         <ul>
           <li>需选择模拟器中安装的 1999 区服。</li>
-          <li>目前支持：<b>官服</b>、<b>B服</b>、<b>国际服（EN）</b>、<b>国际服（JP）</b>、<b>OPPO服</b>、<b>小米服</b>。</li>
+          <li>目前支持：<b>官服</b>、<b>B服</b>、<b>国际服（EN）</b>、<b>国际服（JP）</b>、<b>国际服（KR）</b>、<b>港澳台服</b>、<b>OPPO服</b>、<b>小米服</b>、<b>华为服</b>。</li>
         </ul>
       </blockquote>
     </details>
@@ -572,18 +572,29 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
     </blockquote>
   </details>
   
-当您使用国际服 PC 端时，只需要点击连接区域的 PC 图标即可自动检测并连接已打开的 PC 端窗口。  
+当您使用国际服 PC 端时，在连接区域的**控制器类型**中选择 PC 即可自动检测并连接已打开的 PC 端窗口。  
 > [!WARNING]
 >
 > 连接PC时请**以管理员模式**运行M9A，并**不要将游戏窗口最小化**！
 
-***
   <details>
     <summary>示意图</summary>
     <p></p>
     <blockquote>
       <ul>
         <img src="/images/zh-cn/newbie-main-interface-connection-pc.webp" alt="PC连接">
+      </ul>
+    </blockquote>
+  </details>
+
+Mac用户使用 PlayCover 时，在连接区域的**控制器类型**中选择 PlayCover ，详情请参考 [PlayCover使用](https://maa.plus/docs/zh-cn/manual/device/macos.html#apple-silicon-%E8%8A%AF%E7%89%87)。
+
+<details>
+    <summary>示意图</summary>
+    <p></p>
+    <blockquote>
+      <ul>
+        <img src="/images/zh-cn/newbie-main-interface-connection-playcover.webp" alt="PlayCover">
       </ul>
     </blockquote>
   </details>
