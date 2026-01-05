@@ -49,7 +49,7 @@ class SwitchCombatTimes(CustomAction):
                         f"Combat/SetReplaysTimesX{times}_selected.png",
                     ],
                     "order_by": "Score",
-                    "next": [],
+                    "next": ["SetReplaysTimes", "FlagInStartReplay"],
                 }
             },
         )
@@ -880,7 +880,7 @@ class TargetCountSelectTimes(CustomAction):
                         f"Combat/SetReplaysTimesX{times}.png",
                         f"Combat/SetReplaysTimesX{times}_selected.png",
                     ],
-                    "next": [],
+                    "next": ["SetReplaysTimes", "FlagInStartReplay"],
                 }
             },
         )

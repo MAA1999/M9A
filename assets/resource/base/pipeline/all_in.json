@@ -344,6 +344,23 @@
             "StartReplay"
         ]
     },
+    "FlagInStartReplay": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "roi": [
+                    1030,
+                    634,
+                    139,
+                    33
+                ],
+                "expected": [
+                    "复现"
+                ]
+            }
+        }
+    },
     "Replaying": {
         "recognition": {
             "type": "OCR",

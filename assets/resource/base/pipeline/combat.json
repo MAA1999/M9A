@@ -688,12 +688,21 @@
                         243,
                         241,
                         223
-                    ]
+                    ],
+                    "tolerance": 140
                 }
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    0,
+                    40,
+                    30
+                ]
+            }
         },
         "post_wait_freezes": {
             "time": 300,
@@ -713,9 +722,9 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    64,
+                    9,
                     539,
-                    1155,
+                    1210,
                     46
                 ],
                 "expected_code": "Set in code.",

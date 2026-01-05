@@ -940,7 +940,20 @@
                         "expected": [
                             "获得"
                         ]
-                    }
+                    },
+                    [
+                        {
+                            "type": "RunNode",
+                            "name": "FlagInSOSMain"
+                        },
+                        {
+                            "type": "SelectOption",
+                            "method": "OCR",
+                            "expected": [
+                                "获得"
+                            ]
+                        }
+                    ]
                 ],
                 "interrupts": "@TheOnlyWay"
             },
