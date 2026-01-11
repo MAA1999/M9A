@@ -1033,17 +1033,40 @@
     },
     "SOSHarmonicObtained": {
         "recognition": {
-            "type": "OCR",
+            "type": "Or",
             "param": {
-                "roi": [
-                    581,
-                    52,
-                    118,
-                    33
-                ],
-                "only_rec": true,
-                "expected": [
-                    "获得谐波"
+                "any_of": [
+                    {
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "roi": [
+                                    534,
+                                    11,
+                                    230,
+                                    95
+                                ],
+                                "template": "SyndromeOfSilence/HarmonicObtained.png"
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    581,
+                                    52,
+                                    118,
+                                    33
+                                ],
+                                "only_rec": true,
+                                "expected": [
+                                    "获得谐波"
+                                ]
+                            }
+                        }
+                    }
                 ]
             }
         },
@@ -1253,17 +1276,40 @@
     },
     "SOSSelectHarmonic": {
         "recognition": {
-            "type": "OCR",
+            "type": "Or",
             "param": {
-                "roi": [
-                    581,
-                    52,
-                    118,
-                    33
-                ],
-                "only_rec": true,
-                "expected": [
-                    "谐波选择"
+                "any_of": [
+                    {
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "roi": [
+                                    534,
+                                    11,
+                                    230,
+                                    95
+                                ],
+                                "template": "SyndromeOfSilence/SelectHarmonic.png"
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    581,
+                                    52,
+                                    118,
+                                    33
+                                ],
+                                "only_rec": true,
+                                "expected": [
+                                    "谐波选择"
+                                ]
+                            }
+                        }
+                    }
                 ]
             }
         },
