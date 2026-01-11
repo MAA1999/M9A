@@ -1119,6 +1119,35 @@
         },
         "post_wait_freezes": 500
     },
+    "SOSStatBreakthrough": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    549,
+                    52,
+                    182,
+                    34
+                ],
+                "only_rec": true,
+                "expected": [
+                    "属性突破选择"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    388,
+                    495,
+                    105,
+                    33
+                ]
+            }
+        },
+        "post_wait_freezes": 500
+    },
     "SOSEventEnd": {
         "recognition": {
             "type": "OCR",
