@@ -869,10 +869,7 @@
                 "actions": [
                     {
                         "type": "SelectOption",
-                        "method": "OCR",
-                        "expected": [
-                            "获得"
-                        ]
+                        "method": "HSV"
                     }
                 ],
                 "interrupts": "@TheOnlyWay"
