@@ -869,17 +869,40 @@
     "SOSResonatorObtained": {
         // 获得共鸣器
         "recognition": {
-            "type": "OCR",
+            "type": "Or",
             "param": {
-                "roi": [
-                    561,
-                    50,
-                    159,
-                    37
-                ],
-                "only_rec": true,
-                "expected": [
-                    "获得共鸣器"
+                "any_of": [
+                    {
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "roi": [
+                                    534,
+                                    11,
+                                    230,
+                                    95
+                                ],
+                                "template": "SyndromeOfSilence/ResonatorObtained.png"
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    561,
+                                    50,
+                                    159,
+                                    37
+                                ],
+                                "only_rec": true,
+                                "expected": [
+                                    "获得共鸣器"
+                                ]
+                            }
+                        }
+                    }
                 ]
             }
         },
