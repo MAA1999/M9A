@@ -157,6 +157,7 @@ icon: ri:game-fill
 - `SOSLoseArtefact` - 失去遗器
 - `SOSSelectResonator` - 选择共鸣者
 - `SOSResonatorObtained` - 获得共鸣者
+- `SOSStatBreakthrough` - 属性突破
 - `SOSStatsUpButton` - 属性提升按钮
 - `SOSStatsUp` - 属性提升
 - `SOSNextMessage` - 下一条消息

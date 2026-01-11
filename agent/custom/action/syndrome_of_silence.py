@@ -170,6 +170,7 @@ class SOSSelectNode(CustomAction):
                     # 检查并处理可能的弹窗节点
                     interrupts = [
                         "SOSWarning",
+                        "SOSStatBreakthrough",
                         "SOSStatsUpButton",
                         "SOSStatsUp",
                         "SOSArtefactsObtained",
@@ -901,6 +902,7 @@ class SOSBuyItems(CustomAction):
             "SOSLoseArtefact",
             "SOSStrengthenArtefact",
             "SOSWarning",
+            "SOSStatBreakthrough",
             "SOSStatsUpButton",
             "SOSStatsUp",
             "CloseTip",

@@ -23,6 +23,7 @@
         ],
         "stats": [
             "SOSWarning",
+            "SOSStatBreakthrough",
             "SOSStatsUpButton",
             "SOSStatsUp"
         ],

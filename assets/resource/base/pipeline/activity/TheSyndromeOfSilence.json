@@ -708,6 +708,7 @@
             "[JumpBack]SOSHarmonicObtained",
             "[JumpBack]SOSStatsUpButton",
             "[JumpBack]SOSStatsUp",
+            "[JumpBack]SOSStatBreakthrough",
             "[JumpBack]SOSSelectResonator",
             "[JumpBack]SOSResonatorObtained",
             "[JumpBack]SOSLoseArtefact",
@@ -1672,6 +1673,7 @@
         "next": [
             "FlagInSOSMain",
             "SOSGoToNextScene",
+            "[JumpBack]SOSStatBreakthrough",
             "[JumpBack]SOSStatsUpButton",
             "[JumpBack]SOSStatsUp",
             "[JumpBack]SOSArtefactsObtained",
