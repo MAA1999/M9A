@@ -1407,7 +1407,7 @@ class SOSSelectInstrument(CustomAction):
 
         logger.info(f"选择配器类型: {instrument}")
 
-        instrument_map = {"管钟": "TubularBell", "拨弦": "Strings"}
+        instrument_map = {"管钟": "TubularBell", "拨弦": "Strings", "乐鞭": "SlapStick"}
 
         context.run_task(
             "SOSInstrumentSelect",

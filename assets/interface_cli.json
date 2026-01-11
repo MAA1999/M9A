@@ -3084,6 +3084,20 @@
                             }
                         }
                     }
+                },
+                {
+                    "name": "乐鞭",
+                    "pipeline_override": {
+                        "SOSSelectInstrument": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "instrument": "乐鞭"
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             ]
         },
