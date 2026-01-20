@@ -568,11 +568,7 @@
                     383,
                     75
                 ],
-                "template": [
-                    "Awards/JukeboxBadge1.png",
-                    "Awards/JukeboxBadge2.png",
-                    "Awards/JukeboxBadge3.png"
-                ],
+                "template": "Awards/JukeboxBadges/",
                 "threshold": 0.85
             }
         },

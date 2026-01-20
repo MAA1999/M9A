@@ -427,5 +427,20 @@
     "resource/base/image/SyndromeOfSilence/SlapStick": "e413c9457da31eead1cf0d37c3e145f57d6619a9578dc5c15bc3dc00016c9bf8",
     "resource/base/image/SyndromeOfSilence/ResonatorObtained": "55c9ec46fdaf4fb6d402fcb0fe50087b7ec7563282f3232e26b59ac29b579cf7",
     "resource/base/image/SyndromeOfSilence/HarmonicObtained": "1f5ef0ac7b248fbceb328ce46c63b285a289e234174f594661746eb4e8e0b33b",
-    "resource/base/image/SyndromeOfSilence/SelectHarmonic": "387b7a6b6fd355880436d9e3b5a2b005e9a9a6d4ca6570f78e3cc650ec3fae03"
+    "resource/base/image/SyndromeOfSilence/SelectHarmonic": "387b7a6b6fd355880436d9e3b5a2b005e9a9a6d4ca6570f78e3cc650ec3fae03",
+    "resource/base/image/StartUp/Rewards/Reward1": "7493dc38da8e091449ca2ea3cf956539244607b02db9eb656e37c449668d69d2",
+    "resource/base/image/StartUp/Rewards/Reward3": "927a21f39a6693c8bbfe312a30c8c33d34cad750709d6d0e83793d629484e966",
+    "resource/base/image/StartUp/Rewards/Reward4": "6f0f6d32912831ce0d2f01c5f579ec250dea32a9999a0a2b534cc836c9351345",
+    "resource/base/image/StartUp/Rewards/Reward5": "0111f168a4426a34c74d72b528e166bae6d12dfcb27e90949d021df90e66ec67",
+    "resource/base/image/StartUp/Rewards/Reward2": "7da9d56154896fe6a83bbb76456e7e746aae78a7e1052c36f08c5d6ef2b4a85a",
+    "resource/base/image/StartUp/Rewards/Reward": "a6ced37b999e3f4c41882049e02946c80ab00422b1a0c27f67efb75d074cbf28",
+    "resource/base/image/StartUp/CloseButton/CloseRewardPage_2.2": "3f87d0533d6e093193ea7194e8771aac32f527d6307d2d503dadaf81990a4115",
+    "resource/base/image/StartUp/CloseButton/CloseRewardPage_2.4": "ed98c4fe75082b258a029c561b76cc87a31dde794ace7f454d51c91f0ce35eca",
+    "resource/base/image/StartUp/CloseButton/BigClose": "192bf9d0e3a3fabbf59cba6307e52e68cd02b8c73e7afe5ca4b52f8db96356da",
+    "resource/base/image/StartUp/CloseButton/CloseItemDetail": "18c635b5431ee52e15e25c19074441f3b7dd9ad6bbc61862485ebc60029b63a7",
+    "resource/base/image/StartUp/CloseButton/CloseItemDetail1": "7b75edb825d2a86296d83ffec6b5e2035007164b14ee0b470b05ff71c0be320f",
+    "resource/base/image/Awards/JukeboxBadges/JukeboxBadge4": "01e8e7eee7a1d818f3dcd29ca1bb3759ef903a7f44a95fbaa3e9d2cb7236c272",
+    "resource/base/image/Awards/JukeboxBadges/JukeboxBadge3": "2df7183bd53f3d999bdf1f38c04abccdde1fb01e7c32c9a0b3d6dcbf7c713448",
+    "resource/base/image/Awards/JukeboxBadges/JukeboxBadge1": "61e206af40b927d02673e74fe5dbf210c19021ea07cabba9fc4e3abf06dd8f97",
+    "resource/base/image/Awards/JukeboxBadges/JukeboxBadge2": "3ec64ec71e0cca73307856fbcda5f81744a2d1bd25cd776ceae81e76a0f3a175"
 }

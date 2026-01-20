@@ -573,13 +573,7 @@
                     297,
                     148
                 ],
-                "template": [
-                    "StartUp/Reward.png",
-                    "StartUp/Reward1.png",
-                    "StartUp/Reward2.png",
-                    "StartUp/Reward3.png", // 刺客联动版本
-                    "StartUp/Reward4.png"
-                ]
+                "template": "StartUp/Rewards/"
             }
         },
         "action": {
@@ -643,17 +637,12 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    1040,
+                    1013,
                     40,
-                    239,
+                    266,
                     178
                 ],
-                "template": [
-                    "StartUp/CloseRewardPage_2.2.png",
-                    "StartUp/CloseRewardPage_2.4.png",
-                    "StartUp/CloseItemDetail.png",
-                    "StartUp/CloseItemDetail1.png"
-                ],
+                "template": "StartUp/CloseButton/",
                 "green_mask": true,
                 "threshold": 0.6,
                 "order_by": "Score"
@@ -676,12 +665,7 @@
                     394,
                     177
                 ],
-                "template": [
-                    "StartUp/CloseRewardPage_2.2.png",
-                    "StartUp/CloseRewardPage_2.4.png",
-                    "StartUp/CloseItemDetail.png",
-                    "StartUp/CloseItemDetail1.png"
-                ],
+                "template": "StartUp/CloseButton/",
                 "green_mask": true,
                 "threshold": 0.6,
                 "order_by": "Score"
