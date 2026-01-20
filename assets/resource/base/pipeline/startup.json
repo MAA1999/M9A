@@ -98,26 +98,39 @@
     },
     "HomeLoading": {
         "recognition": {
-            "type": "Custom",
+            "type": "And",
             "param": {
-                "custom_recognition": "MultiRecognition",
-                "custom_recognition_param": {
-                    "nodes": [
-                        "HomeLoading_Old",
-                        "HomeLoading_NewRightDown",
-                        "HomeLoading_OCR"
-                    ],
-                    "logic": {
-                        "type": "CUSTOM",
-                        "expression": "$0 OR $1 AND $2"
+                "all_of": [
+                    {
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "roi": [
+                                    1101,
+                                    612,
+                                    179,
+                                    108
+                                ],
+                                "template": "StartUp/HomeLoading_NewRightDown.png"
+                            }
+                        }
                     },
-                    "return": [
-                        459,
-                        359,
-                        364,
-                        152
-                    ]
-                }
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    415,
+                                    469,
+                                    417,
+                                    30
+                                ],
+                                "expected": ".*",
+                                "only_rec": true
+                            }
+                        }
+                    }
+                ]
             }
         },
         "post_wait_freezes": {
@@ -130,72 +143,42 @@
             ]
         }
     },
-    "HomeLoading_Old": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    459,
-                    359,
-                    364,
-                    152
-                ],
-                "template": "StartUp/HomeLoading.png"
-            }
-        }
-    },
-    "HomeLoading_NewRightDown": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    1101,
-                    612,
-                    179,
-                    108
-                ],
-                "template": "StartUp/HomeLoading_NewRightDown.png"
-            }
-        }
-    },
-    "HomeLoading_OCR": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    415,
-                    469,
-                    417,
-                    30
-                ],
-                "expected": ".*",
-                "only_rec": true
-            }
-        }
-    },
     "HomeLoading_wait": {
         "doc": "专供启动时使用，与原版分开以防止ReturnMain大面积报错",
         "recognition": {
-            "type": "Custom",
+            "type": "And",
             "param": {
-                "custom_recognition": "MultiRecognition",
-                "custom_recognition_param": {
-                    "nodes": [
-                        "HomeLoading_Old",
-                        "HomeLoading_NewRightDown",
-                        "HomeLoading_OCR"
-                    ],
-                    "logic": {
-                        "type": "CUSTOM",
-                        "expression": "$0 OR $1 AND $2"
+                "all_of": [
+                    {
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "roi": [
+                                    1101,
+                                    612,
+                                    179,
+                                    108
+                                ],
+                                "template": "StartUp/HomeLoading_NewRightDown.png"
+                            }
+                        }
                     },
-                    "return": [
-                        459,
-                        359,
-                        364,
-                        152
-                    ]
-                }
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    415,
+                                    469,
+                                    417,
+                                    30
+                                ],
+                                "expected": ".*",
+                                "only_rec": true
+                            }
+                        }
+                    }
+                ]
             }
         },
         "action": {
@@ -728,82 +711,94 @@
     "SignInReward": {
         // 领取签到奖励
         "recognition": {
-            "type": "Custom",
+            "type": "And",
             "param": {
-                "custom_recognition": "MultiRecognition",
-                "custom_recognition_param": {
-                    "nodes": [
-                        "SignInReward_template",
-                        "SignInReward_color",
-                        "SignInReward_color1"
-                    ],
-                    "logic": {
-                        "type": "CUSTOM",
-                        "expression": "$0 AND ($1 OR $2)"
+                "all_of": [
+                    {
+                        "sub_name": "SignInReward_template",
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "template": "StartUp/SignInReward.png",
+                                "roi": [
+                                    115,
+                                    562,
+                                    1048,
+                                    155
+                                ],
+                                "threshold": 0.88
+                            }
+                        }
                     },
-                    "return": "INTERSECTION(OFFSET($0,20,0,0,0),UNION($1,$2))"
-                }
+                    {
+                        "sub_name": "SignInReward_color",
+                        "recognition": {
+                            "type": "Or",
+                            "param": {
+                                "any_of": [
+                                    {
+                                        "sub_name": "SignInReward_color_orange",
+                                        "recognition": {
+                                            "type": "ColorMatch",
+                                            "param": {
+                                                "upper": [
+                                                    255,
+                                                    117,
+                                                    36
+                                                ],
+                                                "lower": [
+                                                    218,
+                                                    67,
+                                                    0
+                                                ],
+                                                "roi": "SignInReward_template",
+                                                "roi_offset": [
+                                                    0,
+                                                    20,
+                                                    0,
+                                                    0
+                                                ],
+                                                "count": 130
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "sub_name": "SignInReward_color_yellow",
+                                        "recognition": {
+                                            "type": "ColorMatch",
+                                            "param": {
+                                                "upper": [
+                                                    255,
+                                                    186,
+                                                    47
+                                                ],
+                                                "lower": [
+                                                    218,
+                                                    136,
+                                                    0
+                                                ],
+                                                "roi": "SignInReward_template",
+                                                "roi_offset": [
+                                                    0,
+                                                    20,
+                                                    0,
+                                                    0
+                                                ],
+                                                "count": 250
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
             }
         },
         "action": {
             "type": "Click"
         },
         "post_delay": 3000
-    },
-    "SignInReward_template": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "template": "StartUp/SignInReward.png",
-                "roi": [
-                    115,
-                    562,
-                    1048,
-                    155
-                ],
-                "threshold": 0.88
-            }
-        }
-    },
-    "SignInReward_color": {
-        // 偏橙的颜色（独一律签到）
-        "recognition": {
-            "type": "ColorMatch",
-            "param": {
-                "upper": [
-                    255,
-                    117,
-                    36
-                ],
-                "lower": [
-                    218,
-                    67,
-                    0
-                ],
-                "roi": "SignInReward_template",
-                "count": 130
-            }
-        }
-    },
-    "SignInReward_color1": {
-        // 偏黄的颜色
-        "recognition": {
-            "type": "ColorMatch",
-            "param": {
-                "upper": [
-                    255,
-                    186,
-                    47
-                ],
-                "lower": [
-                    218,
-                    136,
-                    0
-                ],
-                "roi": "SignInReward_template",
-                "count": 250
-            }
-        }
     },
     "ClickTarot": {
         "recognition": {

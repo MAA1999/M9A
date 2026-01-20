@@ -86,5 +86,17 @@
                 }
             }
         }
+    },
+    "3.2": {
+        "version_name": "遷流的盛宴",
+        "start_time": 1768874400000,
+        "end_time": 1772657999000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1768874400000,
+                "end_time": 1772398799000
+            }
+        }
     }
 }

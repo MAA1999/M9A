@@ -16,13 +16,16 @@
     ],
     "common_interrupts": {
         "message": [
+            "SOSSkipMessage",
             "SOSNextMessage"
         ],
         "message_left": [
+            "SOSSkipMessage",
             "SOSNextMessage_left"
         ],
         "stats": [
             "SOSWarning",
+            "SOSStatBreakthrough",
             "SOSStatsUpButton",
             "SOSStatsUp"
         ],
@@ -46,8 +49,8 @@
             "SOSEventEnd",
             "CloseTip"
         ],
-        "EncounterAlongTheWay": "@message_left+@stats+@artefact+@harmonic+@resonator+@others+SOSClickEventRec",
-        "TheOnlyWay": "@message+@stats+@artefact+@harmonic+@resonator+@others"
+        "EncounterAlongTheWay": "@stats+@artefact+@harmonic+@resonator+@others+@message_left+SOSClickEventRec",
+        "TheOnlyWay": "@stats+@artefact+@harmonic+@resonator+@others+@message"
     },
     "冲突": {
         "event_name_roi": null,
@@ -868,10 +871,7 @@
                 "actions": [
                     {
                         "type": "SelectOption",
-                        "method": "OCR",
-                        "expected": [
-                            "获得"
-                        ]
+                        "method": "HSV"
                     }
                 ],
                 "interrupts": "@TheOnlyWay"

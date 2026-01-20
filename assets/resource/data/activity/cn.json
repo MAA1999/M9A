@@ -449,5 +449,21 @@
                 "end_time": 1768769999000
             }
         }
+    },
+    "3.4": {
+        "version_name": "不老春",
+        "start_time": 1768874400000,
+        "end_time": 1772917199000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1768874400000,
+                "end_time": 1772657999000
+            },
+            "re-release": {
+                "start_time": 1771534800000,
+                "end_time": 1772398799000
+            }
+        }
     }
 }

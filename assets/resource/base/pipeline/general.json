@@ -1,5 +1,11 @@
 {
-    "Screenshot": {
+    "CheckResolution": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CheckResolution"
+            }
+        },
         "focus": {
             "Node.Action.Starting": "err:任务超时，可能未按预期进行。"
         }

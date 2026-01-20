@@ -19,13 +19,13 @@ platform_tag = len(sys.argv) > 2 and sys.argv[2] or ""
 
 def install_deps(platform_tag: str):
     """安装 MaaFramework 依赖到对应架构路径
-    
+
     Args:
         platform_tag: 平台标签，如 win-x64, linux-arm64, osx-arm64
     """
     if not platform_tag:
         raise ValueError("platform_tag is required")
-    
+
     shutil.copytree(
         working_dir / "deps" / "bin",
         install_path / "runtimes" / platform_tag / "native",
@@ -35,12 +35,20 @@ def install_deps(platform_tag: str):
             "*MaaWin32ControlUnit*",
             "*MaaRpc*",
             "*MaaHttp*",
+            "plugins",
+            "*.node",
+            "*MaaPiCli*",
         ),
         dirs_exist_ok=True,
     )
     shutil.copytree(
         working_dir / "deps" / "share" / "MaaAgentBinary",
-        install_path / "MaaAgentBinary",
+        install_path / "libs" / "MaaAgentBinary",
+        dirs_exist_ok=True,
+    )
+    shutil.copytree(
+        working_dir / "deps" / "bin" / "plugins",
+        install_path / "plugins" / platform_tag,
         dirs_exist_ok=True,
     )
 

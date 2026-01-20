@@ -269,5 +269,17 @@
                 }
             }
         }
+    },
+    "3.2": {
+        "version_name": "うつろう饗宴",
+        "start_time": 1768870800000,
+        "end_time": 1772654399000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1768870800000,
+                "end_time": 1772395199000
+            }
+        }
     }
 }

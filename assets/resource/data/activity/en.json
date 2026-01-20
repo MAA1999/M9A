@@ -269,5 +269,17 @@
                 }
             }
         }
+    },
+    "3.2": {
+        "version_name": "A Flowing Feast",
+        "start_time": 1768824000000,
+        "end_time": 1772607599000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1768824000000,
+                "end_time": 1772348399000
+            }
+        }
     }
 }

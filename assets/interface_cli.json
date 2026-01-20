@@ -22,7 +22,8 @@
                 "screencap": "PrintWindow",
                 "mouse": "SendMessageWithCursorPos",
                 "keyboard": "SendMessageWithCursorPos"
-            }
+            },
+            "permission_required": true
         },
         {
             "name": "PlayCover",
@@ -148,7 +149,9 @@
         {
             "name": "启动游戏",
             "entry": "StartUp",
-            "description": "暂不支持国际服PC端运行该任务"
+            "controller": [
+                "ADB"
+            ]
         },
         {
             "name": "收取荒原",
@@ -245,7 +248,9 @@
         {
             "name": "关闭游戏",
             "entry": "Close1999",
-            "description": "暂不支持国际服PC端运行该任务"
+            "controller": [
+                "ADB"
+            ]
         },
         {
             "name": "局外演绎：黄昏的音序",
@@ -3050,6 +3055,34 @@
                             }
                         }
                     }
+                },
+                {
+                    "name": "尖啸 Ⅰ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 5
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "尖啸 Ⅱ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 6
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             ]
         },
@@ -3079,6 +3112,20 @@
                                 "param": {
                                     "custom_action_param": {
                                         "instrument": "拨弦"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "乐鞭",
+                    "pipeline_override": {
+                        "SOSSelectInstrument": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "instrument": "乐鞭"
                                     }
                                 }
                             }

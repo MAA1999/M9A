@@ -55,7 +55,7 @@ Check out the [GitHub Pull Request Guide for Beginners](https://maa.plus/docs/en
         | --- | --- |
         | [MaaDebugger](https://github.com/MaaXYZ/MaaDebugger) | Standalone debugging tool |
         | [Maa Pipeline Support](https://marketplace.visualstudio.com/items?itemName=nekosu.maa-support) | VSCode plugin for debugging, screenshots, ROI extraction, color picking, etc. |
-        | [MFA Tools(Windows Only)](https://github.com/SweetSmellFox/MFATools) | Standalone tool for screenshots, ROI extraction, and color picking |
+        | [MFAToolsPlus](https://github.com/SweetSmellFox/MFAToolsPlus) | Cross-platform toolbox providing convenient data acquisition and simulation testing methods |
         | [ImageCropper(Not recommended)](https://github.com/MaaXYZ/MaaFramework/tree/main/tools/ImageCropper) | Standalone tool for screenshots and ROI extraction |
         | [MaaLogAnalyzer](https://github.com/Windsland52/MAALogAnalyzer) | Visual analysis of logs from MaaFramework-based applications |
 

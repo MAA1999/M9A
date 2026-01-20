@@ -150,13 +150,14 @@ Specialized for "Encounter on the Road" scenarios (horizontally arranged)
 
 Interrupt handler nodes that may be triggered during action execution:
 
-- `SOSSelectHarmonic` - Select Harmonic
-- `SOSHarmonicObtained` - Harmonic obtained
-- `SOSSelectArtefact` - Select Artefact
-- `SOSArtefactsObtained` - Artefact obtained
-- `SOSLoseArtefact` - Lose Artefact
+- `SOSSelectHarmonic` - Select Harmonic Resonance
+- `SOSHarmonicObtained` - Harmonic Resonance obtained
+- `SOSSelectArtefact` - Select Creation
+- `SOSArtefactsObtained` - Creation obtained
+- `SOSLoseArtefact` - Lose Creation
 - `SOSSelectResonator` - Select Resonator
 - `SOSResonatorObtained` - Resonator obtained
+- `SOSStatBreakthrough` - Stat Breakthrough
 - `SOSStatsUpButton` - Stats up button
 - `SOSStatsUp` - Stats up
 - `SOSNextMessage` - Next message

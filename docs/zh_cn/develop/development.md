@@ -55,7 +55,7 @@ icon: iconoir:developer
         | --- | --- |
         | [MaaDebugger](https://github.com/MaaXYZ/MaaDebugger) | 独立调试工具 |
         | [Maa Pipeline Support](https://marketplace.visualstudio.com/items?itemName=nekosu.maa-support) | VSCode 插件，提供调试、截图、获取 ROI 、取色等功能 |
-        | [MFA Tools(仅win)](https://github.com/SweetSmellFox/MFATools) | 独立截图、获取 ROI 及取色工具 |
+        | [MFAToolsPlus](https://github.com/SweetSmellFox/MFAToolsPlus) | 跨平台开发工具箱，提供便捷的数据获取和模拟测试方法 |
         | [ImageCropper(不推荐)](https://github.com/MaaXYZ/MaaFramework/tree/main/tools/ImageCropper) | 独立截图及获取 ROI 工具 |
         | [MaaLogAnalyzer](https://github.com/Windsland52/MAALogAnalyzer) | 可视化分析基于 MaaFramework 开发应用的日志 |
 

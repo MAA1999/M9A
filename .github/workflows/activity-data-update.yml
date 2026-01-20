@@ -11,7 +11,8 @@ permissions:
 jobs:
   update-activities:
     runs-on: ubuntu-latest
-    
+    if: github.repository == 'MAA1999/M9A'
+
     steps:
       - name: Check Out Repository
         uses: actions/checkout@v3

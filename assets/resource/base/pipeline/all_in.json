@@ -463,7 +463,7 @@
                 ],
                 "green_mask": true,
                 "method": 10001,
-                "threshold": 0.85,
+                "threshold": 0.9,
                 "order_by": "Score"
             }
         }
@@ -496,16 +496,16 @@
     "DropRarityYellow": {
         "recognition": "ColorMatch",
         "lower": [
-            189,
-            159,
-            86
+            130,
+            109,
+            52
         ],
         "upper": [
-            209,
-            179,
+            211,
+            181,
             106
         ],
-        "count": 200
+        "count": 100
     },
     "DropRarityPurple": {
         "recognition": "ColorMatch",

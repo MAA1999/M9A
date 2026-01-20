@@ -8,7 +8,7 @@ import zipfile
 import tarfile
 import stat  # 用于在 macOS/Linux 上设置文件权限
 
-sys.stdout.reconfigure(encoding="utf-8")
+sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
 print(os.getcwd())
 # --- 配置 ---
 # 可以根据需要修改这些值

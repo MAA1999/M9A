@@ -125,53 +125,42 @@
     },
     "EnterTheShowFlag": {
         "recognition": {
-            "type": "Custom",
+            "type": "And",
             "param": {
-                "custom_recognition": "MultiRecognition",
-                "custom_recognition_param": {
-                    "nodes": [
-                        "EnterTheShowFlag1",
-                        "EnterTheShowFlag2"
-                    ],
-                    "return": [
-                        73,
-                        662,
-                        62,
-                        34
-                    ]
-                }
+                "all_of": [
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    73,
+                                    662,
+                                    62,
+                                    34
+                                ],
+                                "expected": "故事",
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "roi": [
+                                    1154,
+                                    20,
+                                    106,
+                                    95
+                                ],
+                                "template": "Combat/ShowFlag.png"
+                            }
+                        }
+                    }
+                ]
             }
         },
         "next_code": "set in code"
-    },
-    "EnterTheShowFlag1": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    73,
-                    662,
-                    62,
-                    34
-                ],
-                "expected": "故事",
-                "only_rec": true
-            }
-        }
-    },
-    "EnterTheShowFlag2": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    1154,
-                    20,
-                    106,
-                    95
-                ],
-                "template": "Combat/ShowFlag.png"
-            }
-        }
     },
     "ShowClickStory": {
         "recognition": {
@@ -681,7 +670,7 @@
         "recognition": {
             "type": "Custom",
             "param": {
-                "custom_recognition": "ColorOCRWithFallback",
+                "custom_recognition": "ColorOCR",
                 "custom_recognition_param": {
                     "recognition": "TargetStageName_OCR",
                     "target_color": [

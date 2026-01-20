@@ -7,7 +7,7 @@ import subprocess
 from pathlib import Path
 
 # utf-8
-sys.stdout.reconfigure(encoding="utf-8")
+sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
 
 # 获取当前main.py路径并设置上级目录为工作目录
 current_file_path = os.path.abspath(__file__)
@@ -239,10 +239,11 @@ def _run_pip_command(cmd_args: list, operation_name: str) -> bool:
         all_output = []
 
         # 实时读取并显示输出
-        for line in iter(process.stdout.readline, ""):
-            line = line.rstrip("\n\r")
-            if line.strip():  # 只显示非空行
-                all_output.append(line)  # 收集到列表中
+        if process.stdout:
+            for line in iter(process.stdout.readline, ""):
+                line = line.rstrip("\n\r")
+                if line.strip():  # 只显示非空行
+                    all_output.append(line)  # 收集到列表中
 
         # 等待进程结束
         return_code = process.wait()
@@ -264,7 +265,9 @@ def _run_pip_command(cmd_args: list, operation_name: str) -> bool:
         return False
 
 
-def install_requirements(req_file="requirements.txt", pip_config=None) -> bool:
+def install_requirements(
+    req_file="requirements.txt", pip_config: dict | None = None
+) -> bool:
     req_path = Path(project_root_dir) / req_file  # 确保相对于项目根目录
     if not req_path.exists():
         logger.error(f"{req_file} 文件不存在于 {req_path.resolve()}")
@@ -296,8 +299,8 @@ def install_requirements(req_file="requirements.txt", pip_config=None) -> bool:
             logger.warning("本地deps安装失败，回退到纯在线安装")
 
     # 回退到在线安装
-    primary_mirror = pip_config.get("mirror", "")
-    backup_mirror = pip_config.get("backup_mirror", "")
+    primary_mirror = pip_config.get("mirror", "") if pip_config else ""
+    backup_mirror = pip_config.get("backup_mirror", "") if pip_config else ""
 
     if primary_mirror:
         # 使用主镜像源，只添加一个备用源避免冲突

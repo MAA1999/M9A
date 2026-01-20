@@ -19,8 +19,50 @@ icon: ri:game-fill
 
 ```jsonc
 {
-    "types": [],           // 节点类型数组，包含所有可能的节点类型
-    "节点类型名称": {}     // 每个节点类型的具体配置
+    "types": [],              // 节点类型数组，包含所有可能的节点类型
+    "common_interrupts": {},  // 公共中断配置（可选）
+    "节点类型名称": {}        // 每个节点类型的具体配置
+}
+```
+
+#### common_interrupts - 公共中断配置
+
+`common_interrupts` 字段用于定义可重用的中断组，避免在多个节点中重复配置相同的中断列表。
+
+```jsonc
+{
+    "common_interrupts": {
+        "message": ["SOSNextMessage"],                    // 消息中断组
+        "message_left": ["SOSNextMessage_left"],          // 左侧消息中断组
+        "stats": [                                        // 属性提升中断组
+            "SOSWarning",
+            "SOSStatsUpButton",
+            "SOSStatsUp"
+        ],
+        "artefact": [                                     // 造物相关中断组
+            "SOSArtefactsObtained",
+            "SOSSelectArtefact",
+            "SOSLoseArtefact",
+            "SOSStrengthenArtefact"
+        ],
+        "harmonic": [                                     // 谐波相关中断组
+            "SOSHarmonicObtained",
+            "SOSSelectHarmonic"
+        ],
+        "resonator": [                                    // 共鸣者相关中断组
+            "SOSResonatorObtained",
+            "SOSSelectResonator"
+        ],
+        "others": [                                       // 其他常用中断
+            "SOSDice",
+            "SOSContinue",
+            "SOSEventEnd",
+            "CloseTip"
+        ],
+        // 可以组合多个中断组创建新的组合
+        "EncounterAlongTheWay": "@message_left+@stats+@artefact+@harmonic+@resonator+@others+SOSClickEventRec",
+        "TheOnlyWay": "@message+@stats+@artefact+@harmonic+@resonator+@others"
+    }
 }
 ```
 
@@ -150,18 +192,78 @@ icon: ri:game-fill
 
 在执行动作过程中可能触发的中断处理节点：
 
-- `SOSSelectHarmonic` - 选择和弦
-- `SOSHarmonicObtained` - 获得和弦
-- `SOSSelectArtefact` - 选择遗器
-- `SOSArtefactsObtained` - 获得遗器
-- `SOSLoseArtefact` - 失去遗器
+- `SOSSelectHarmonic` - 选择谐波
+- `SOSHarmonicObtained` - 获得谐波
+- `SOSSelectArtefact` - 选择造物
+- `SOSArtefactsObtained` - 获得造物
+- `SOSLoseArtefact` - 失去造物
+- `SOSStrengthenArtefact` - 强化造物
 - `SOSSelectResonator` - 选择共鸣者
 - `SOSResonatorObtained` - 获得共鸣者
+- `SOSStatBreakthrough` - 属性突破
 - `SOSStatsUpButton` - 属性提升按钮
 - `SOSStatsUp` - 属性提升
+- `SOSWarning` - 警告提示
 - `SOSNextMessage` - 下一条消息
+- `SOSNextMessage_left` - 下一条消息（左侧）
 - `SOSContinue` - 继续按钮
 - `SOSDice` - 骰子事件
+- `SOSEventEnd` - 事件结束
+- `SOSClickEventRec` - 点击事件矩形
+- `CloseTip` - 关闭提示
+
+#### 中断引用语法
+
+`interrupts` 字段支持两种配置方式：
+
+**1. 数组方式**（传统方式）：
+
+```jsonc
+{
+    "interrupts": [
+        "SOSArtefactsObtained",
+        "SOSStatsUpButton",
+        "SOSStatsUp"
+    ]
+}
+```
+
+**2. 字符串引用方式**（推荐）：
+
+使用 `@` 符号引用 `common_interrupts` 中定义的中断组：
+
+```jsonc
+{
+    "interrupts": "@stats+@artefact+@harmonic+@resonator+CloseTip"
+}
+```
+
+**引用语法规则**：
+
+- 使用 `@组名` 引用 `common_interrupts` 中定义的中断组
+- 使用 `+` 连接多个引用或中断节点
+- 可以混合使用引用和直接指定的中断节点
+- 引用会在运行时展开为对应的中断节点列表
+
+**示例**：
+
+```jsonc
+// 引用单个中断组
+"interrupts": "@stats"
+// 展开为: ["SOSWarning", "SOSStatsUpButton", "SOSStatsUp"]
+
+// 组合多个中断组
+"interrupts": "@stats+@artefact"
+// 展开为: ["SOSWarning", "SOSStatsUpButton", "SOSStatsUp", "SOSArtefactsObtained", "SOSSelectArtefact", "SOSLoseArtefact", "SOSStrengthenArtefact"]
+
+// 混合引用和直接指定
+"interrupts": "@stats+@artefact+CloseTip"
+// 展开为: ["SOSWarning", "SOSStatsUpButton", "SOSStatsUp", "SOSArtefactsObtained", "SOSSelectArtefact", "SOSLoseArtefact", "SOSStrengthenArtefact", "CloseTip"]
+
+// 使用预定义的组合
+"interrupts": "@TheOnlyWay"
+// 展开为: ["SOSNextMessage", "SOSWarning", "SOSStatsUpButton", "SOSStatsUp", "SOSArtefactsObtained", "SOSSelectArtefact", "SOSLoseArtefact", "SOSStrengthenArtefact", "SOSHarmonicObtained", "SOSSelectHarmonic", "SOSResonatorObtained", "SOSSelectResonator", "SOSDice", "SOSContinue", "SOSEventEnd", "CloseTip"]
+```
 
 ### 事件配置示例
 
@@ -179,7 +281,8 @@ icon: ri:game-fill
             "type": "RunNode",
             "name": "SOSCombat"  // 2. 进入战斗
         }
-    ]
+    ],
+    "interrupts": "@stats+@artefact+@harmonic+@resonator+CloseTip"  // 使用中断引用语法
 }
 ```
 

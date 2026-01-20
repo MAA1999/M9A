@@ -321,54 +321,40 @@
     },
     "SSTaskCompleted": {
         "recognition": {
-            "type": "Custom",
+            "type": "Or",
             "param": {
-                "custom_recognition": "MultiRecognition",
-                "custom_recognition_param": {
-                    "nodes": [
-                        "SSTaskCompleted_1",
-                        "SSTaskCompleted_2"
-                    ],
-                    "logic": {
-                        "type": "OR"
+                "any_of": [
+                    {
+                        // 完成标志1：第一栏完成度为1/1
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    530,
+                                    128,
+                                    51,
+                                    47
+                                ],
+                                "expected": "1/"
+                            }
+                        }
                     },
-                    "return": [
-                        0,
-                        0,
-                        0,
-                        0
-                    ]
-                }
-            }
-        }
-    },
-    "SSTaskCompleted_1": {
-        // 完成标志1：第一栏完成度为1/1
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    530,
-                    128,
-                    51,
-                    47
-                ],
-                "expected": "1/"
-            }
-        }
-    },
-    "SSTaskCompleted_2": {
-        // 完成标志2：第一栏任务内容为消耗（代币）
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    622,
-                    99,
-                    380,
-                    87
-                ],
-                "expected": "消耗"
+                    {
+                        // 完成标志2：第一栏任务内容为消耗（代币）
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    622,
+                                    99,
+                                    380,
+                                    87
+                                ],
+                                "expected": "消耗"
+                            }
+                        }
+                    }
+                ]
             }
         }
     },

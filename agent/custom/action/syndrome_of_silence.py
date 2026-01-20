@@ -170,6 +170,7 @@ class SOSSelectNode(CustomAction):
                     # 检查并处理可能的弹窗节点
                     interrupts = [
                         "SOSWarning",
+                        "SOSStatBreakthrough",
                         "SOSStatsUpButton",
                         "SOSStatsUp",
                         "SOSArtefactsObtained",
@@ -901,6 +902,7 @@ class SOSBuyItems(CustomAction):
             "SOSLoseArtefact",
             "SOSStrengthenArtefact",
             "SOSWarning",
+            "SOSStatBreakthrough",
             "SOSStatsUpButton",
             "SOSStatsUp",
             "CloseTip",
@@ -1289,7 +1291,7 @@ class SOSSelectNoise(CustomAction):
 
         level: int = json.loads(argv.custom_action_param)["level"]
 
-        levels = ["当前", "颤动 Ⅰ", "颤动 Ⅱ", "嗡鸣 Ⅰ", "嗡鸣 Ⅱ"]
+        levels = ["当前", "颤动 Ⅰ", "颤动 Ⅱ", "嗡鸣 Ⅰ", "嗡鸣 Ⅱ", "尖啸 Ⅰ", "尖啸 Ⅱ"]
 
         logger.info(f"选择噪音类型: {levels[level]}")
         if level == 0:
@@ -1311,14 +1313,34 @@ class SOSSelectNoise(CustomAction):
         if reco_detail and reco_detail.hit:
             ocr_result = cast(OCRResult, reco_detail.best_result)
             current_level_text = ocr_result.text
-            page = 1 if "颤动" in current_level_text else 2
+            if "颤动" in current_level_text:
+                page = 1
+            elif "嗡鸣" in current_level_text:
+                page = 2
+            elif "尖啸" in current_level_text:
+                page = 3
+            else:
+                logger.error(f"无法识别当前噪音类型页面: {current_level_text}")
+                return CustomAction.RunResult(success=False)
         else:
             logger.error("无法识别当前噪音类型页面")
             return CustomAction.RunResult(success=False)
 
-        # 到目标页面
-        while True:
-            if page == 1 and level >= 3:
+        # 确定目标页面
+        if 1 <= level <= 2:
+            target_page = 1
+        elif 3 <= level <= 4:
+            target_page = 2
+        elif 5 <= level <= 6:
+            target_page = 3
+        else:
+            logger.error(f"无效的难度级别: {level}")
+            return CustomAction.RunResult(success=False)
+
+        # 切换到目标页面
+        while page != target_page:
+            if page < target_page:
+                # 点击右箭头
                 context.run_task(
                     "Click",
                     {
@@ -1329,26 +1351,8 @@ class SOSSelectNoise(CustomAction):
                         }
                     },
                 )
-                # 更新页面状态
-                time.sleep(0.5)
-                img = context.tasker.controller.post_screencap().wait().get()
-                reco_detail = context.run_recognition(
-                    "OCR",
-                    img,
-                    {
-                        "OCR": {
-                            "recognition": "OCR",
-                            "roi": [343, 427, 84, 46],
-                            "expected": ".*",
-                        }
-                    },
-                )
-                if reco_detail and reco_detail.hit:
-                    ocr_result = cast(OCRResult, reco_detail.best_result)
-                    current_level_text = ocr_result.text
-                    page = 1 if "颤动" in current_level_text else 2
-                continue
-            elif page == 2 and level < 3:
+            else:
+                # 点击左箭头
                 context.run_task(
                     "Click",
                     {
@@ -1359,26 +1363,36 @@ class SOSSelectNoise(CustomAction):
                         }
                     },
                 )
-                # 更新页面状态
-                time.sleep(0.5)
-                img = context.tasker.controller.post_screencap().wait().get()
-                reco_detail = context.run_recognition(
-                    "OCR",
-                    img,
-                    {
-                        "OCR": {
-                            "recognition": "OCR",
-                            "roi": [343, 427, 84, 46],
-                            "expected": ".*",
-                        }
-                    },
-                )
-                if reco_detail and reco_detail.hit:
-                    ocr_result = cast(OCRResult, reco_detail.best_result)
-                    current_level_text = ocr_result.text
-                    page = 1 if "颤动" in current_level_text else 2
-                continue
-            break
+
+            # 更新页面状态
+            time.sleep(0.5)
+            img = context.tasker.controller.post_screencap().wait().get()
+            reco_detail = context.run_recognition(
+                "OCR",
+                img,
+                {
+                    "OCR": {
+                        "recognition": "OCR",
+                        "roi": [343, 427, 84, 46],
+                        "expected": ".*",
+                    }
+                },
+            )
+            if reco_detail and reco_detail.hit:
+                ocr_result = cast(OCRResult, reco_detail.best_result)
+                current_level_text = ocr_result.text
+                if "颤动" in current_level_text:
+                    page = 1
+                elif "嗡鸣" in current_level_text:
+                    page = 2
+                elif "尖啸" in current_level_text:
+                    page = 3
+                else:
+                    logger.error(f"页面切换后无法识别页面: {current_level_text}")
+                    return CustomAction.RunResult(success=False)
+            else:
+                logger.error("页面切换后无法识别页面")
+                return CustomAction.RunResult(success=False)
 
         # 选择目标噪音
         roi = [[735, 194, 221, 221], [288, 187, 221, 221]][level % 2]
@@ -1407,7 +1421,7 @@ class SOSSelectInstrument(CustomAction):
 
         logger.info(f"选择配器类型: {instrument}")
 
-        instrument_map = {"管钟": "TubularBell", "拨弦": "Strings"}
+        instrument_map = {"管钟": "TubularBell", "拨弦": "Strings", "乐鞭": "SlapStick"}
 
         context.run_task(
             "SOSInstrumentSelect",
