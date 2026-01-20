@@ -18,7 +18,8 @@
                 "template": [
                     "StartUp/HomeFlag.png",
                     "StartUp/HomeFlag_sp01.png",
-                    "StartUp/HomeFlag3.2.png"
+                    "StartUp/HomeFlag3.2.png",
+                    "StartUp/HomeFlag3.4.png"
                 ]
             }
         },
@@ -56,7 +57,8 @@
                 "template": [
                     "Awards/MailBadge.png",
                     "Awards/MailBadge_sp01.png",
-                    "Awards/MailBadge3.2.png"
+                    "Awards/MailBadge3.2.png",
+                    "Awards/MailBadge3.4.png"
                 ],
                 "threshold": 0.9
             }
@@ -82,7 +84,8 @@
                 "template": [
                     "Awards/MailBadge.png",
                     "Awards/MailBadge_sp01.png",
-                    "Awards/MailBadge3.2.png"
+                    "Awards/MailBadge3.2.png",
+                    "Awards/MailBadge3.4.png"
                 ],
                 "threshold": 0.9
             }
@@ -407,7 +410,8 @@
                 "template": [
                     "Awards/DailyBadge.png",
                     "Awards/DailyBadge_sp01.png",
-                    "Awards/DailyBadge3.2.png"
+                    "Awards/DailyBadge3.2.png",
+                    "Awards/DailyBadge3.4.png"
                 ],
                 "threshold": 0.9
             }
@@ -571,7 +575,7 @@
                 "template": [
                     "Awards/JukeboxBadge1.png",
                     "Awards/JukeboxBadge2.png",
-                    "Awards/JukeboxBadge3.png"
+                    "Awards/JukeboxBadge3.png",
                 ],
                 "threshold": 0.85
             }
