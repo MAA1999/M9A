@@ -39,10 +39,14 @@
             "[JumpBack]Sub_DailyBadge",
             "[JumpBack]Sub_JukeboxBadge",
             "[JumpBack]Sub_JukeboxBadge_3.2",
+            "[JumpBack]HomeFlagMaxTimesFive",
             "HomeFlag",
             "[JumpBack]HomeButton",
             "[JumpBack]BackButton"
         ]
+    },
+    "HomeFlagMaxTimesFive": {
+        "max_hit": 5
     },
     "Sub_MailBadge": {
         "recognition": {
