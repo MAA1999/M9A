@@ -75,7 +75,15 @@
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    290,
+                    0,
+                    -180
+                ]
+            }
         },
         "next": [
             "HomeFlagFirst",
