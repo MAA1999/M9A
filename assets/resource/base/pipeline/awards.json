@@ -46,6 +46,34 @@
         ]
     },
     "HomeFlagMaxTimesFive": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1022,
+                    419,
+                    194,
+                    166
+                ],
+                "template": [
+                    "StartUp/HomeFlag.png",
+                    "StartUp/HomeFlag_sp01.png",
+                    "StartUp/HomeFlag3.2.png",
+                    "StartUp/HomeFlag3.4.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    576,
+                    298,
+                    68,
+                    64
+                ]
+            }
+        },
         "max_hit": 5
     },
     "Sub_MailBadge": {
