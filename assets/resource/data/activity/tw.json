@@ -93,9 +93,90 @@
         "end_time": 1772657999000,
         "activity": {
             "combat": {
-                "event_type": "MainStory",
+                "event_type": "SideStory",
                 "start_time": 1768874400000,
-                "end_time": 1772398799000
+                "end_time": 1772398799000,
+                "override": {
+                    "FlagInActivityStage": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1077,
+                                    632,
+                                    131,
+                                    41
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    484,
+                                    29,
+                                    557,
+                                    234
+                                ],
+                                "expected": "0[1-9]|1[0-7]"
+                            }
+                        }
+                    },
+                    "ActivityCombatStageCost": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    900,
+                                    629,
+                                    101,
+                                    54
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityTargetLevelClick": {
+                        "action": {
+                            "param": {
+                                "custom_action_param": {
+                                    "clicks": [
+                                        [
+                                            912,
+                                            584
+                                        ],
+                                        [
+                                            1211,
+                                            585
+                                        ]
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "ActivityTargetLevelRec": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1036,
+                                    573,
+                                    57,
+                                    26
+                                ]
+                            }
+                        },
+                        "ActivityClickPreStage": {
+                            "action": {
+                                "param": {
+                                    "target": [
+                                        25,
+                                        334,
+                                        32,
+                                        53
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

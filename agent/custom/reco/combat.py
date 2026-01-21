@@ -44,7 +44,7 @@ def get_valid_period_threshold(period_option: str) -> float:
     24h -> 24小时
     7d -> 168小时
     14d -> 336小时
-    infinite -> -1（只吃无限期的）
+    infinite -> -1（吃所有糖，不限有效期）
     """
     thresholds = {
         "24h": 24.0,
@@ -320,8 +320,8 @@ class CandyPageRecord(CustomRecognition):
 
             should_eat = False
             if user_period_option == "infinite":
-                # 选择无限期：只吃无限期的糖（period_hours == -1 表示无限期）
-                should_eat = period_hours == -1
+                # 选择无限期：吃所有糖，不限有效期
+                should_eat = True
             else:
                 # 选择有时限的：吃有效期在阈值内的糖
                 if period_hours > 0 and period_hours <= threshold_hours:

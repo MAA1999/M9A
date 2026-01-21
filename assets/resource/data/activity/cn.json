@@ -458,11 +458,133 @@
             "combat": {
                 "event_type": "SideStory",
                 "start_time": 1768874400000,
-                "end_time": 1772657999000
+                "end_time": 1772657999000,
+                "override": {
+                    "FlagInActivityMain": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1012,
+                                    31,
+                                    42,
+                                    21
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    "ActivityMainChapter": {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    968,
+                                    619,
+                                    121,
+                                    70
+                                ]
+                            }
+                        }
+                    },
+                    "FlagInActivityStage": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1077,
+                                    632,
+                                    131,
+                                    41
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    226,
+                                    29,
+                                    815,
+                                    234
+                                ],
+                                "expected": "[0-1][0-9]|20"
+                            }
+                        }
+                    },
+                    "ActivityCombatStageCost": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    900,
+                                    629,
+                                    101,
+                                    54
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityTargetLevelClick": {
+                        "action": {
+                            "param": {
+                                "custom_action_param": {
+                                    "clicks": [
+                                        [
+                                            912,
+                                            584
+                                        ],
+                                        [
+                                            1211,
+                                            585
+                                        ]
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "ActivityTargetLevelRec": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1036,
+                                    573,
+                                    57,
+                                    26
+                                ]
+                            }
+                        },
+                        "ActivityClickPreStage": {
+                            "action": {
+                                "param": {
+                                    "target": [
+                                        25,
+                                        334,
+                                        32,
+                                        53
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
             },
             "re-release": {
                 "start_time": 1771534800000,
-                "end_time": 1772398799000
+                "end_time": 1772398799000,
+                "override": {
+                    "FlagInActivityMain": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1012,
+                                    31,
+                                    42,
+                                    21
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    }
+                }
             }
         }
     }

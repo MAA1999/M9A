@@ -4,11 +4,11 @@
         "next": [
             "SOSMainMenu",
             "[JumpBack]SOSStop",
-            "[JumpBack]FlagInSOSMenu",
-            "[JumpBack]ReturnMain",
-            "[JumpBack]EnterTheActivityMain",
-            "[JumpBack]EnterSOSMenu",
-            "[JumpBack]SOSSwipeBottomBar"
+            "[JumpBack]FlagInSOSMenu"
+            // "[JumpBack]ReturnMain",
+            // "[JumpBack]EnterTheActivityMain",
+            // "[JumpBack]EnterSOSMenu",
+            // "[JumpBack]SOSSwipeBottomBar"
         ]
     },
     // 到 SOS Main Menu
@@ -537,7 +537,7 @@
                     199
                 ],
                 "template": [
-                    "SyndromeOfSilence/SOSGiveup.png"
+                    "SyndromeOfSilence/SOSGiveUp.png"
                 ]
             }
         },
@@ -727,7 +727,7 @@
                 "roi": [
                     575,
                     40,
-                    172,
+                    195,
                     31
                 ],
                 "only_rec": true,
