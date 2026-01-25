@@ -32,8 +32,42 @@ class YourAction(CustomAction):
         context: Context,
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
+        # Read passed parameters (optional)
+        # param = json.loads(argv.custom_action_param)
+        
         # Implement your logic
         return CustomAction.RunResult(success=True)
+```
+
+The method to call the above action in the pipeline is as follows. The passed parameters can be any JSON object, which will be loaded as a `dict` type in the code above. If you need to change the input parameters based on user input, you can use the `pipeline_override` operation of the interface (see [Interface V2 Protocol](https://maafw.xyz/en/docs/3.3-ProjectInterfaceV2) for details).
+
+```json
+{
+    "YourNodeName":{
+        "action":"Custom",
+        "custom_action":"YourActionName",
+        "custom_action_param": {
+            // Pass parameters (optional)
+            // object
+        }
+        // ...
+    },
+    // or
+    "YourNodeName":{
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "YourActionName",
+                "custom_action_param": {
+                    // Pass parameters (optional)
+                    // object
+                }
+            }
+        },
+        // ...
+    },
+    // ...
+}
 ```
 
 **Project Examples**:
@@ -65,8 +99,42 @@ class YourRecognition(CustomRecognition):
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
     ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+        # Read passed parameters (optional)
+        # param = json.loads(argv.custom_recognition_param)
+
         # Implement recognition logic
         return CustomRecognition.AnalyzeResult(box=[x, y, w, h], detail={})
+```
+
+The method to call the above recognition process in the pipeline is as follows. The passed parameters can be any JSON object, which will be loaded as a `dict` type in the code above. If you need to change the input parameters based on user input, you can use the `pipeline_override` operation of the interface (see [Interface V2 Protocol](https://maafw.xyz/en/docs/3.3-ProjectInterfaceV2) for details).
+
+```json
+{
+    "YourNodeName":{
+        "recognition": "Custom",
+        "custom_recognition": "YourRecognitionName",
+        "custom_recognition_param": {
+            // Pass parameters (optional)
+            // object
+        }
+        // ...
+    },
+    // or
+    "YourNodeName":{
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "YourRecognitionName",
+                    "custom_recognition_param": {
+                    // Pass parameters (optional)
+                    // object
+                }
+            }
+        },
+        // ...
+    },
+    // ...
+}
 ```
 
 **Project Examples**:
@@ -137,8 +205,7 @@ if reco_detail and reco_detail.hit:
 
 ## Development Resources
 
-- **Getting Started**: [MaaFramework Quick Start](https://maafw.xyz/docs/1.1-QuickStart)
-- **Integration API**: [Integration Interface](https://maafw.xyz/docs/2.2-IntegrationAPI)
+- **Integration Interface**: [Integration Interface](https://maafw.xyz/en/docs/2.2-IntegratedInterfaceOverview)
 - **Python Binding Source**: [maa/source/binding/Python](https://github.com/MaaXYZ/MaaFramework/tree/main/source/binding/Python/maa)
 - **Project Examples**: Browse existing implementations in `agent/custom/`
 

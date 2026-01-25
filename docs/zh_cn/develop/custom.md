@@ -32,8 +32,42 @@ class YourAction(CustomAction):
         context: Context,
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
+        # 读取传递的参数（可选）
+        # param = json.loads(argv.custom_action_param)
+        
         # 实现你的逻辑
         return CustomAction.RunResult(success=True)
+```
+
+以上动作在pipeline的调用方法如下。其中传递的参数可以是任意json object，它在上述部分中会被加载为dict类型。如果需要按照按照用户的输入来更改传入参数，则可以使用interface的pipeline_override操作（详情见[interface v2 协议](https://maafw.xyz/docs/3.3-ProjectInterfaceV2)）。
+
+```json
+{
+    "YourNodeName":{
+        "action":"Custom",
+        "custom_action":"YourActionName",
+        "custom_action_param": {
+            // 传递参数（可选）
+            // object
+        }
+        // ...
+    },
+    // 或者
+    "YourNodeName":{
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "YourActionName",
+                "custom_action_param": {
+                    // 传递参数（可选）
+                    // object
+                }
+            }
+        },
+        // ...
+    },
+    // ...
+}
 ```
 
 **项目实例**：
@@ -65,8 +99,42 @@ class YourRecognition(CustomRecognition):
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
     ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+        # 读取传递的参数（可选）
+        # param = json.loads(argv.custom_recognition_param)
+
         # 实现识别逻辑
         return CustomRecognition.AnalyzeResult(box=[x, y, w, h], detail={})
+```
+
+以上识别过程在pipeline的调用方法如下。其中传递的参数可以是任意json object，它在上述部分中会被加载为dict类型。如果需要按照按照用户的输入来更改传入参数，则可以使用interface的pipeline_override操作（详情见[interface v2 协议](https://maafw.xyz/docs/3.3-ProjectInterfaceV2)）。
+
+```json
+{
+    "YourNodeName":{
+        "recognition": "Custom",
+        "custom_recognition": "YourRecognitionName",
+        "custom_recognition_param": {
+            // 传递参数（可选）
+            // object
+        }
+        // ...
+    },
+    // 或者
+    "YourNodeName":{
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "YourRecognitionName",
+                    "custom_recognition_param": {
+                    // 传递参数（可选）
+                    // object
+                }
+            }
+        },
+        // ...
+    },
+    // ...
+}
 ```
 
 **项目实例**：
