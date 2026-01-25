@@ -39,7 +39,7 @@ class YourAction(CustomAction):
         return CustomAction.RunResult(success=True)
 ```
 
-以上动作在pipeline的调用方法如下。其中传递的参数可以是任意json object，它在上述部分中会被加载为dict类型。如果需要按照按照用户的输入来更改传入参数，则可以使用interface的pipeline_override操作（详情见[interface v2 协议](https://maafw.xyz/docs/3.3-ProjectInterfaceV2)）。
+以上动作在pipeline的调用方法如下。其中传递的参数可以是任意json object，它在上述部分中会被加载为dict类型。如果需要按照用户的输入来更改传入参数，则可以使用interface的pipeline_override操作（详情见[interface v2 协议](https://maafw.xyz/docs/3.3-ProjectInterfaceV2)）。
 
 ```json
 {
