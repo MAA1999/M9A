@@ -41,7 +41,7 @@ class YourAction(CustomAction):
 
 The method to call the above action in the pipeline is as follows. The passed parameters can be any JSON object, which will be loaded as a `dict` type in the code above. If you need to change the input parameters based on user input, you can use the `pipeline_override` operation of the interface (see [Interface V2 Protocol](https://maafw.xyz/en/docs/3.3-ProjectInterfaceV2) for details).
 
-```json
+```jsonc
 {
     "YourNodeName":{
         "action":"Custom",
@@ -108,7 +108,7 @@ class YourRecognition(CustomRecognition):
 
 The method to call the above recognition process in the pipeline is as follows. The passed parameters can be any JSON object, which will be loaded as a `dict` type in the code above. If you need to change the input parameters based on user input, you can use the `pipeline_override` operation of the interface (see [Interface V2 Protocol](https://maafw.xyz/en/docs/3.3-ProjectInterfaceV2) for details).
 
-```json
+```jsonc
 {
     "YourNodeName":{
         "recognition": "Custom",
