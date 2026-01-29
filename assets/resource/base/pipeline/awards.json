@@ -86,12 +86,7 @@
                     108,
                     108
                 ],
-                "template": [
-                    "Awards/MailBadge.png",
-                    "Awards/MailBadge_sp01.png",
-                    "Awards/MailBadge3.2.png",
-                    "Awards/MailBadge3.4.png"
-                ],
+                "template": "Awards/MailBadges/",
                 "threshold": 0.9
             }
         },
@@ -113,12 +108,7 @@
                     108,
                     108
                 ],
-                "template": [
-                    "Awards/MailBadge.png",
-                    "Awards/MailBadge_sp01.png",
-                    "Awards/MailBadge3.2.png",
-                    "Awards/MailBadge3.4.png"
-                ],
+                "template": "Awards/MailBadges/",
                 "threshold": 0.9
             }
         },
