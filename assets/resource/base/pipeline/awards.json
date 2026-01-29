@@ -439,12 +439,7 @@
                     111,
                     110
                 ],
-                "template": [
-                    "Awards/DailyBadge.png",
-                    "Awards/DailyBadge_sp01.png",
-                    "Awards/DailyBadge3.2.png",
-                    "Awards/DailyBadge3.4.png"
-                ],
+                "template": "Awards/DailyBadges/",
                 "threshold": 0.9
             }
         },
