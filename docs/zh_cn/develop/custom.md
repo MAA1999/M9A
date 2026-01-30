@@ -188,6 +188,10 @@ context.override_image("image_name", image_array)
 img = context.tasker.controller.post_screencap().wait().get()
 ```
 
+> [!INFO]
+> MaaFramework 使用 OpenCV 处理图片，因此获取到的图片数据均为 numpy.ndarray 类型，且为 **BGR** 格式。
+> 在与 MaaFramework 进行交互时无需另行处理，但如果需要保存图片，需先转换为 **RGB** 格式。（参考用例：[Screenshot](https://github.com/MAA1999/M9A/blob/1cc7ca5e212fe0393fa544eae7acfd93aac9c2d7/agent/custom/action/general.py#L25)）
+
 ### 识别结果处理
 
 ```python

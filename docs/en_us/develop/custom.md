@@ -188,6 +188,10 @@ context.override_image("image_name", image_array)
 img = context.tasker.controller.post_screencap().wait().get()
 ```
 
+> [!INFO]
+> MaaFramework uses OpenCV to process images, so the captured image data is of `numpy.ndarray` type and in **BGR** format.
+> No additional processing is required for interaction with MaaFramework, but if you need to save the image, you must convert it to **RGB** format first. (Refer to the example: [Screenshot](https://github.com/MAA1999/M9A/blob/1cc7ca5e212fe0393fa544eae7acfd93aac9c2d7/agent/custom/action/general.py#L25))
+
 ### Recognition Result Processing
 
 ```python
