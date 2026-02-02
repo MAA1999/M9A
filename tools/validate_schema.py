@@ -104,7 +104,11 @@ def get_validator_class(schema):
 
 
 def find_line_number(file_path, json_path):
-    """在文件中查找JSON路径对应的行号"""
+    """在文件中查找JSON路径对应的行号
+
+    为了避免找到错误的子字段，只返回顶层对象的行号
+    例如：/NoSmallGlobe/recognition -> 返回 NoSmallGlobe 的行号
+    """
     if not json_path or json_path == "/":
         return None
 
@@ -116,22 +120,17 @@ def find_line_number(file_path, json_path):
         with open(file_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
-        # 按顺序查找所有层级
-        current_line = 0
-        for key in parts:
-            found = False
-            for i in range(current_line, len(lines)):
-                if f'"{key}"' in lines[i]:
-                    current_line = i + 1  # 下一次从这一行之后开始搜索
-                    found = True
-                    break
+        # 只查找第一层（顶层对象）
+        # 确保找到的是键名（后面跟着冒号），而不是注释或字符串值
+        key = parts[0]
+        import re
 
-            if not found:
-                # 如果某一层找不到，返回None
-                return None
+        # 匹配 "key": 或 "key" : 的模式
+        pattern = re.compile(rf'"{re.escape(key)}"\s*:')
 
-        # 返回最后一个键的行号
-        return current_line
+        for i, line in enumerate(lines):
+            if pattern.search(line):
+                return i + 1  # 行号从1开始
 
     except:
         pass
