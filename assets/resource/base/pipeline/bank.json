@@ -489,7 +489,7 @@
     },
     "test": {
         "recognition": {
-            "type": "Ocr",
+            "type": "OCR",
             "param": {
                 "box_index": 0
             }
