@@ -487,6 +487,14 @@
             "[JumpBack]PurchaseSmallGlobe"
         ]
     },
+    "test": {
+        "recognition": {
+            "type": "Ocr",
+            "param": {
+                "box_index": 0
+            }
+        }
+    },
     "NoSmallGlobe": {
         "recognition": {
             "type": "Custom",
