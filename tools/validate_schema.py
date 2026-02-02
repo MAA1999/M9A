@@ -2,6 +2,7 @@
 import json
 import sys
 import tempfile
+import argparse
 from pathlib import Path
 from jsonschema import Draft7Validator, Draft202012Validator
 from jsonschema.exceptions import ValidationError
@@ -9,6 +10,7 @@ from jsonschema.exceptions import ValidationError
 try:
     from referencing import Registry, Resource
     from referencing.jsonschema import DRAFT202012, DRAFT7
+    import referencing.retrieval
 
     HAS_REFERENCING = True
 except ImportError:
@@ -82,7 +84,7 @@ def load_jsonc(file_path):
         print(f"JSON decode error in {file_path}: {e}")
         # 调试：保存清理后的内容
         debug_file = Path(tempfile.gettempdir()) / f"debug_{Path(file_path).name}"
-        with open(debug_file, "w", encoding="utf-8") as f:
+        with open(debug_file, "w") as f:
             f.write(clean_content)
         print(f"Cleaned content saved to {debug_file}")
         raise
@@ -122,50 +124,33 @@ def validate_file(file_path, validator):
         return False
 
 
-def create_validator(schema, schema_store, base_uri=None):
+def create_validator(schema, schema_store):
     """创建 validator，使用新的 referencing API 或回退到 RefResolver"""
     ValidatorClass = get_validator_class(schema)
 
     if HAS_REFERENCING:
         # 使用新的 referencing API
-        from referencing import Registry, Resource
-        from referencing.jsonschema import DRAFT202012, DRAFT7
-        import referencing.retrieval
+        registry = Registry()
 
         # 根据 schema 类型选择规范
         spec = DRAFT202012 if ValidatorClass == Draft202012Validator else DRAFT7
 
-        # 创建一个函数来检索 schema - 用于解析相对引用
-        @referencing.retrieval.to_cached_resource()
-        def retrieve(uri):
-            if uri in schema_store:
-                return schema_store[uri]
-            raise referencing.exceptions.NoSuchResource(ref=uri)
-
-        # 构建 registry
-        registry = Registry(retrieve=retrieve)
-
-        # 为每个 schema 添加资源，使用其 file URI 作为标识
+        # 添加所有 schema 到 registry
         for uri, schema_content in schema_store.items():
             resource = Resource.from_contents(
                 schema_content, default_specification=spec
             )
             registry = registry.with_resource(uri, resource)
 
-        # 如果提供了 base_uri，我们需要将其作为主 schema 的标识
-        if base_uri:
-            main_resource = Resource.from_contents(schema, default_specification=spec)
-            registry = registry.with_resource(base_uri, main_resource)
-
         return ValidatorClass(schema, registry=registry)
     else:
         # 回退到旧的 RefResolver
-        schema_uri = base_uri
-        if schema_uri is None:
-            for uri, content in schema_store.items():
-                if content == schema:
-                    schema_uri = uri
-                    break
+        # 从 schema_store 中找到主 schema 的 URI
+        schema_uri = None
+        for uri, content in schema_store.items():
+            if content == schema:
+                schema_uri = uri
+                break
 
         if schema_uri is None:
             schema_uri = "file:///schema.json"
@@ -175,58 +160,123 @@ def create_validator(schema, schema_store, base_uri=None):
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Validate JSON/JSONC files against JSON Schema"
+    )
+    parser.add_argument(
+        "--schema-dir",
+        type=str,
+        default="tools/schema",
+        help="Directory containing schema files (default: tools/schema)",
+    )
+    parser.add_argument(
+        "--resource-dirs",
+        type=str,
+        nargs="+",
+        default=["assets/resource"],
+        help="Directories containing resource files to validate (default: assets/resource)",
+    )
+    parser.add_argument(
+        "--exclude-dirs",
+        type=str,
+        nargs="*",
+        default=[],
+        help="Directories to exclude from validation (default: none)",
+    )
+    parser.add_argument(
+        "--interface-files",
+        type=str,
+        nargs="+",
+        default=["assets/interface.json"],
+        help="Path to interface.json files (default: assets/interface.json)",
+    )
+
+    args = parser.parse_args()
+
     all_valid = True
 
     # 加载所有 schema 文件
-    schema_dir = Path("deps/tools").resolve()
+    schema_dir = Path(args.schema_dir).resolve()
     schema_store = {}
-    base_uri = schema_dir.as_uri() + "/"
 
     print("Loading schemas...")
     for schema_file in schema_dir.glob("*.json"):
         try:
             schema = load_jsonc(schema_file)
-            # 使用完整的 file URI 作为 key（用于解析相对引用）
+            # 使用多种格式的 URI 作为 key
             file_uri = schema_file.as_uri()
-            # 也保存相对路径格式（用于解析 $ref: "./xxx.json" 这样的引用）
             relative_path = f"./{schema_file.name}"
+            absolute_path = f"/{schema_file.name}"
 
             schema_store[file_uri] = schema
             schema_store[relative_path] = schema
+            schema_store[absolute_path] = schema
         except Exception as e:
             print(f"Warning: Failed to load schema {schema_file}: {e}")
 
     # 加载并创建 pipeline validator
-    pipeline_schema = load_jsonc("deps/tools/pipeline.schema.json")
-    pipeline_schema_uri = (schema_dir / "pipeline.schema.json").as_uri()
+    pipeline_schema_path = schema_dir / "pipeline.schema.json"
+    pipeline_schema = load_jsonc(pipeline_schema_path)
+    pipeline_schema_uri = pipeline_schema_path.as_uri()
     schema_store[pipeline_schema_uri] = pipeline_schema
 
-    pipeline_validator = create_validator(
-        pipeline_schema, schema_store, base_uri=pipeline_schema_uri
-    )
+    pipeline_validator = create_validator(pipeline_schema, schema_store)
+
+    # 准备排除目录列表
+    exclude_paths = [Path(d).resolve() for d in args.exclude_dirs]
+
+    def is_excluded(file_path):
+        """检查文件是否在排除目录中"""
+        file_path = Path(file_path).resolve()
+        for exclude_path in exclude_paths:
+            try:
+                file_path.relative_to(exclude_path)
+                return True
+            except ValueError:
+                continue
+        return False
 
     print("Validating pipeline resources...")
     # 验证 pipeline 资源文件
-    for file_path in Path("assets/resource/base").rglob("*.json"):
-        if not validate_file(file_path, pipeline_validator):
-            all_valid = False
+    for resource_dir in args.resource_dirs:
+        resource_path = Path(resource_dir)
+        if not resource_path.exists():
+            print(
+                f"Warning: Resource directory {resource_dir} does not exist, skipping..."
+            )
+            continue
 
-    for file_path in Path("assets/resource/base").rglob("*.jsonc"):
-        if not validate_file(file_path, pipeline_validator):
-            all_valid = False
+        for file_path in resource_path.rglob("*.json"):
+            if is_excluded(file_path):
+                continue
+            if not validate_file(file_path, pipeline_validator):
+                all_valid = False
+
+        for file_path in resource_path.rglob("*.jsonc"):
+            if is_excluded(file_path):
+                continue
+            if not validate_file(file_path, pipeline_validator):
+                all_valid = False
 
     print("\nValidating interface files...")
     # 验证 interface 文件
-    if Path("assets/interface.json").exists():
-        interface_schema = load_jsonc("deps/tools/interface.schema.json")
-        interface_schema_uri = (schema_dir / "interface.schema.json").as_uri()
+    interface_schema_path = schema_dir / "interface.schema.json"
+    if interface_schema_path.exists():
+        interface_schema = load_jsonc(interface_schema_path)
+        interface_schema_uri = interface_schema_path.as_uri()
         schema_store[interface_schema_uri] = interface_schema
 
-        interface_validator = create_validator(
-            interface_schema, schema_store, base_uri=interface_schema_uri
-        )
-        if not validate_file("assets/interface.json", interface_validator):
-            all_valid = False
+        interface_validator = create_validator(interface_schema, schema_store)
+
+        for interface_file in args.interface_files:
+            interface_path = Path(interface_file)
+            if interface_path.exists():
+                if not validate_file(interface_path, interface_validator):
+                    all_valid = False
+            else:
+                print(
+                    f"Warning: Interface file {interface_file} does not exist, skipping..."
+                )
 
     if all_valid:
         print("\n✅ All validations passed!")
