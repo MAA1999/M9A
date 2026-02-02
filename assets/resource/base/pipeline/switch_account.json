@@ -16,7 +16,7 @@
                     166,
                     125
                 ],
-                "template": "./SwitchAccount/Detail.png"
+                "template": "SwitchAccount/Detail.png"
             }
         },
         "next": [
@@ -67,7 +67,7 @@
                     587,
                     183
                 ],
-                "template": "./StartUp/StartGame.png",
+                "template": "StartUp/StartGame.png",
                 "green_mask": true
             }
         },
@@ -87,7 +87,7 @@
                     243,
                     158
                 ],
-                "template": "./SwitchAccount/SwitchAccountMain.png"
+                "template": "SwitchAccount/SwitchAccountMain.png"
             }
         },
         "next": [
@@ -108,7 +108,7 @@
                     278
                 ],
                 "template": [
-                    "./SwitchAccount/AccountDel.png"
+                    "SwitchAccount/AccountDel.png"
                 ]
             }
         },
@@ -188,7 +188,7 @@
                     278
                 ],
                 "template": [
-                    "./SwitchAccount/AccountDel.png"
+                    "SwitchAccount/AccountDel.png"
                 ],
                 "index": -1,
                 "order_by": "Vertical"
@@ -262,7 +262,7 @@
                     130
                 ],
                 "template": [
-                    "./SwitchAccount/AccountMainExpand.png"
+                    "SwitchAccount/AccountMainExpand.png"
                 ]
             }
         },
@@ -342,7 +342,7 @@
                     114,
                     130
                 ],
-                "template": "./SwitchAccount/AccountExitButton.png"
+                "template": "SwitchAccount/AccountExitButton.png"
             }
         },
         "action": {
@@ -415,7 +415,7 @@
                     119,
                     125
                 ],
-                "template": "./SwitchAccount/MenuRight.png"
+                "template": "SwitchAccount/MenuRight.png"
             }
         },
         "action": {
@@ -441,7 +441,7 @@
                     141,
                     151
                 ],
-                "template": "./SwitchAccount/MainMenuEntry.png"
+                "template": "SwitchAccount/MainMenuEntry.png"
             }
         },
         "action": {

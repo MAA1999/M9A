@@ -1801,7 +1801,7 @@
                     150,
                     172
                 ],
-                "template": "./OutsideDeductionRapid/WindowsCompleted.png"
+                "template": "OutsideDeductionRapid/WindowsCompleted.png"
             }
         }
     },

@@ -1005,5 +1005,6 @@
                 "threshold": 0.7
             }
         }
-    }
+    },
+    "DropRecognition": {}
 }
