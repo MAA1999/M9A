@@ -32,8 +32,8 @@ jobs:
 
       - name: Run maa-checker
         run: |
-          npx @nekosu/maa-checker@latest ./assets/interface.json
-          npx @nekosu/maa-checker@latest ./assets/interface_cli.json
+          npx @nekosu/maa-checker@latest ./assets/interface.json --github=.
+          npx @nekosu/maa-checker@latest ./assets/interface_cli.json --github=.
 
       # Install maafw: dynamically read version/spec from requirements.txt and install that
       - name: Install maafw (from requirements.txt)
