@@ -115,12 +115,18 @@ def validate_file(file_path, validator):
             for idx, error in enumerate(errors[:10], 1):
                 path = "/" + "/".join(str(p) for p in error.path) if error.path else "/"
                 print(f"   {idx}. {path}: {error.message}")
+                # 输出GitHub Actions格式的错误注解
+                print(
+                    f"::error file={file_path},title=Schema Validation Error::{path}: {error.message}"
+                )
             return False
 
         print(f"✓ {file_path}")
         return True
     except Exception as e:
         print(f"\n❌ Error validating {file_path}: {e}")
+        # 输出GitHub Actions格式的错误注解
+        print(f"::error file={file_path},title=Validation Error::{e}")
         return False
 
 
