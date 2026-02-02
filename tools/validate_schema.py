@@ -188,11 +188,11 @@ def main():
             schema = load_jsonc(schema_file)
             # 使用完整的 file URI 作为 key（用于解析相对引用）
             file_uri = schema_file.as_uri()
-            # 也保存相对路径格式（RefResolver 会将 ./file.json 解析为完整 URI）
-            resolved_relative_uri = base_uri + schema_file.name
+            # 也保存相对路径格式（用于解析 $ref: "./xxx.json" 这样的引用）
+            relative_path = f"./{schema_file.name}"
 
             schema_store[file_uri] = schema
-            schema_store[resolved_relative_uri] = schema
+            schema_store[relative_path] = schema
         except Exception as e:
             print(f"Warning: Failed to load schema {schema_file}: {e}")
 
