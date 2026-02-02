@@ -103,6 +103,42 @@ def get_validator_class(schema):
         return Draft202012Validator
 
 
+def find_line_number(file_path, json_path):
+    """在文件中查找JSON路径对应的行号"""
+    if not json_path or json_path == "/":
+        return None
+
+    parts = [p for p in json_path.split("/") if p]
+    if not parts:
+        return None
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+        # 按顺序查找所有层级
+        current_line = 0
+        for key in parts:
+            found = False
+            for i in range(current_line, len(lines)):
+                if f'"{key}"' in lines[i]:
+                    current_line = i + 1  # 下一次从这一行之后开始搜索
+                    found = True
+                    break
+
+            if not found:
+                # 如果某一层找不到，返回None
+                return None
+
+        # 返回最后一个键的行号
+        return current_line
+
+    except:
+        pass
+
+    return None
+
+
 def validate_file(file_path, validator):
     """验证单个文件"""
     try:
@@ -115,10 +151,17 @@ def validate_file(file_path, validator):
             for idx, error in enumerate(errors[:10], 1):
                 path = "/" + "/".join(str(p) for p in error.path) if error.path else "/"
                 print(f"   {idx}. {path}: {error.message}")
-                # 输出GitHub Actions格式的错误注解
-                print(
-                    f"::error file={file_path},title=Schema Validation Error::{path}: {error.message}"
-                )
+
+                # 尝试找到行号并输出GitHub Actions格式的错误注解
+                line_num = find_line_number(file_path, path)
+                if line_num:
+                    print(
+                        f"::error file={file_path},line={line_num},title=Schema Validation Error::{path}: {error.message}"
+                    )
+                else:
+                    print(
+                        f"::error file={file_path},title=Schema Validation Error::{path}: {error.message}"
+                    )
             return False
 
         print(f"✓ {file_path}")
