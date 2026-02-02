@@ -82,7 +82,7 @@ def load_jsonc(file_path):
         print(f"JSON decode error in {file_path}: {e}")
         # 调试：保存清理后的内容
         debug_file = Path(tempfile.gettempdir()) / f"debug_{Path(file_path).name}"
-        with open(debug_file, "w") as f:
+        with open(debug_file, "w", encoding="utf-8") as f:
             f.write(clean_content)
         print(f"Cleaned content saved to {debug_file}")
         raise
