@@ -229,15 +229,11 @@ jobs:
           if [ -d "MXU" ]; then
             echo "Copying MXU files to install-mxu directory..."
             mkdir -p install-mxu
-            rm -f MXU/*.zip MXU/*.tar.gz
             if [ -f "MXU/mxu.exe" ]; then
               cp MXU/mxu.exe install-mxu/M9A.exe
-              rm -f MXU/mxu.exe
             elif [ -f "MXU/mxu" ]; then
               cp MXU/mxu install-mxu/M9A
-              rm -f MXU/mxu
             fi
-            cp -rpvn MXU/. install-mxu/
           else
             echo "MXU directory not found, skipping copy."
           fi
@@ -417,12 +413,9 @@ jobs:
           if [ -d "MXU" ]; then
             echo "Copying MXU files to install-mxu directory on Linux..."
             mkdir -p install-mxu
-            rm -f MXU/*.zip MXU/*.tar.gz
             if [ -f "MXU/mxu" ]; then
               cp MXU/mxu install-mxu/M9A
-              rm -f MXU/mxu
             fi
-            rsync -av --ignore-existing MXU/ install-mxu/
           else
             echo "MXU directory not found on Linux, skipping copy."
           fi
@@ -610,12 +603,9 @@ jobs:
           if [ -d "MXU" ]; then
             echo "Copying MXU files to install-mxu directory on macOS..."
             mkdir -p install-mxu
-            rm -f MXU/*.zip MXU/*.tar.gz
             if [ -f "MXU/mxu" ]; then
               cp MXU/mxu install-mxu/M9A
-              rm -f MXU/mxu
             fi
-            rsync -av --ignore-existing MXU/ install-mxu/
           else
             echo "MXU directory not found on macOS, skipping copy."
           fi
