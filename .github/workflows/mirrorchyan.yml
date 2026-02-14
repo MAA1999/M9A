@@ -3,15 +3,15 @@ name: mirrorchyan_release
 on:
   workflow_dispatch:
     inputs:
-        tag:
-            default: ''
-            required: false
+      tag:
+        default: ''
+        required: false
   release:
     types: [released]
 
 jobs:
   mirrorchyan_mfa:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     # Mirror酱为第三方分发服务，新项目默认关闭
     # 若有需要请联系 Mirror酱 开通，直接自行开启是无法使用的
     # https://mirrorchyan.com/
@@ -38,7 +38,7 @@ jobs:
           upload_token: ${{ secrets.MirrorChyanUploadToken }}
 
   mirrorchyan_mxu:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     # Mirror酱为第三方分发服务，新项目默认关闭
     # 若有需要请联系 Mirror酱 开通，直接自行开启是无法使用的
     # https://mirrorchyan.com/
