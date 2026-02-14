@@ -14,20 +14,14 @@ from generate_manifest_cache import generate_manifest_cache
 working_dir = Path(__file__).parent.parent.parent
 install_path = working_dir / Path("install-mxu")
 version = len(sys.argv) > 1 and sys.argv[1] or "v0.0.1"
-platform_tag = len(sys.argv) > 2 and sys.argv[2] or ""
 
 
-def install_deps(platform_tag: str):
+def install_deps():
     """安装 MaaFramework 依赖到 maafw 目录（MXU 要求的目录结构）
 
     MXU 要求将 MaaFramework 的 bin 文件夹内容解压到 maafw 文件夹中。
     参考: https://github.com/MistEO/MXU#依赖文件
-
-    Args:
-        platform_tag: 平台标签，如 win-x64, linux-x64, osx-arm64
     """
-    if not platform_tag:
-        raise ValueError("platform_tag is required")
 
     # MaaFramework 运行库 → maafw/
     shutil.copytree(
@@ -119,7 +113,7 @@ def install_manifest_cache():
 
 
 if __name__ == "__main__":
-    install_deps(platform_tag)
+    install_deps()
     install_resource()
     install_chores()
     install_agent()
