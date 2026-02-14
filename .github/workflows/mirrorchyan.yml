@@ -50,6 +50,7 @@ jobs:
         arch: [aarch64, x86_64]
     steps:
       - uses: MirrorChyan/uploading-action@v1
+        if: ${{ matrix.os != 'linux' || matrix.arch != 'aarch64' }}
         with:
           filetype: latest-release
           filename: ${{ format('M9A-{0}-{1}-*-MXU*', matrix.os, matrix.arch) }}
