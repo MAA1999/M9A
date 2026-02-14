@@ -73,12 +73,12 @@ footer = """
 {%- endfor -%}
 
 {% if latest_version -%}
-**绝大部分用户请下载 [M9A-win-x86_64-{{ latest_version }}-Full.zip]({{ self::remote_url() }}/releases/download/{{ latest_version }}/M9A-win-x86_64-{{ latest_version }}-Full.zip)**
+**绝大部分用户请下载 [M9A-win-x86_64-{{ latest_version }}-MFAA.zip]({{ self::remote_url() }}/releases/download/{{ latest_version }}/M9A-win-x86_64-{{ latest_version }}-MFAA.zip) 或 [M9A-win-x86_64-{{ latest_version }}-MXU.zip]({{ self::remote_url() }}/releases/download/{{ latest_version }}/M9A-win-x86_64-{{ latest_version }}-MXU.zip)**
 {%- else -%}
-**绝大部分用户请下载 M9A-win-x86_64-vx.x.x-Full.zip，没找到的请点 show all x assets**
+**绝大部分用户请下载 M9A-win-x86_64-vx.x.x-MFAA.zip 或 M9A-win-x86_64-vx.x.x-MXU.zip，没找到的请点 show all x assets**
 {%- endif %}
 
-> Full = 图形界面版 | Lite = 命令行版
+> MFAA = 图形界面版 | MXU = 图形界面版 | Lite = 命令行版
 
 [已有 Mirror酱 CDK？点击前往高速下载](https://mirrorchyan.com/zh/projects?rid=M9A&source=m9agh-release)
 

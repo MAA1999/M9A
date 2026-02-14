@@ -263,7 +263,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: M9A-win-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-Full
+          name: M9A-win-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MFAA
           path: "install"
 
       - uses: actions/upload-artifact@v4
@@ -445,7 +445,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: M9A-linux-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-Full
+          name: M9A-linux-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MFAA
           path: "install"
 
       - uses: actions/upload-artifact@v4
@@ -635,7 +635,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: M9A-macos-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-Full
+          name: M9A-macos-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MFAA
           path: "install"
 
       - uses: actions/upload-artifact@v4

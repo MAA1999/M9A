@@ -25,7 +25,7 @@ jobs:
       - uses: MirrorChyan/uploading-action@v1
         with:
           filetype: latest-release
-          filename: ${{ format('M9A-{0}-{1}-*-Full*', matrix.os, matrix.arch) }}
+          filename: ${{ format('M9A-{0}-{1}-*-MFAA*', matrix.os, matrix.arch) }}
           mirrorchyan_rid: M9A
           tag: ${{ inputs.tag }}
 
