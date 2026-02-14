@@ -24,6 +24,11 @@ jobs:
           mirrorchyan_rid: M9A
           version_name: ${{ inputs.tag }}
 
+          owner: MAA1999
+          repo: M9A
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          upload_token: ${{ secrets.MirrorChyanUploadToken }}
+
   mirrorchyan_mxu:
     runs-on: ubuntu-latest
     # Mirror酱为第三方分发服务，新项目默认关闭
