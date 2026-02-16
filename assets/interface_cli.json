@@ -3,6 +3,7 @@
     "contact": "CONTACT",
     "license": "LICENSE",
     "name": "M9A",
+    "icon": "logo.ico",
     "github": "https://github.com/MAA1999/M9A",
     "mirrorchyan_rid": "M9A",
     "mirrorchyan_multiplatform": true,

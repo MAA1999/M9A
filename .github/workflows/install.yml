@@ -19,7 +19,8 @@ on:
 
 env:
   MAA_FRAMEWORK_VERSION: "v5.6.0"
-  MFAA_VERSION: "v2.7.0-beta.1"
+  MFAA_VERSION: "v2.7.2"
+  MXU_VERSION: "v1.13.1"
 
 permissions:
   contents: write
@@ -124,6 +125,23 @@ jobs:
           rm -f "${ARCHIVE_FILE_PATH}"
           echo "Archive cleanup command executed for MFAAvalonia on Windows."
 
+      - name: Download MXU
+        id: download_mxu
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: MistEO/MXU
+          fileName: "MXU-win-${{ matrix.arch }}*"
+          tag: ${{ env.MXU_VERSION }}
+          out-file-path: "MXU"
+          extract: true
+
+      - name: Clean up MXU archive on Windows
+        shell: bash
+        run: |
+          ARCHIVE_FILE_PATH="${{ fromJson(steps.download_mxu.outputs.downloaded_files)[0] }}"
+          rm -f "${ARCHIVE_FILE_PATH}"
+          echo "Archive cleanup command executed for MXU on Windows."
+
       - name: Convert PNG to ICO
         if: matrix.arch == 'x86_64'
         shell: bash
@@ -145,6 +163,12 @@ jobs:
           ./rcedit.exe "MFA/MFAAvalonia.exe" --set-icon "m9a.ico"
 
           echo "MFAAvalonia icon modified successfully"
+
+          # 修改 MXU 图标
+          if [ -f "MXU/mxu.exe" ]; then
+            ./rcedit.exe "MXU/mxu.exe" --set-icon "m9a.ico"
+            echo "MXU icon modified successfully"
+          fi
 
       - name: Setup Embed Python on Windows
         shell: bash
@@ -178,6 +202,16 @@ jobs:
           cp -rpvn install/python/. install-cli/python/
           rm -rf install-cli/deps 2>/dev/null || true
 
+      - name: Create MXU version
+        shell: bash
+        run: |
+          ./install/python/python.exe ./tools/ci/install_mxu.py ${{ needs.meta.outputs.tag }}
+          cp -rpvn tools/registry/. install-mxu/
+          cp -rpvn install/python/. install-mxu/python/
+          if [ -d "install/deps" ]; then
+            cp -rpvn install/deps/. install-mxu/deps/
+          fi
+
       - name: Copy MFA files to main version
         shell: bash
         run: |
@@ -189,33 +223,55 @@ jobs:
             echo "MFA directory not found, skipping copy."
           fi
 
-      - name: Replace Assets with custom assets folder
+      - name: Copy MXU files to MXU version
         shell: bash
         run: |
-          # 删除大写的 Assets 文件夹
+          if [ -d "MXU" ]; then
+            echo "Copying MXU files to install-mxu directory..."
+            mkdir -p install-mxu
+            if [ -f "MXU/mxu.exe" ]; then
+              cp MXU/mxu.exe install-mxu/M9A.exe
+            elif [ -f "MXU/mxu" ]; then
+              cp MXU/mxu install-mxu/M9A
+            fi
+          else
+            echo "MXU directory not found, skipping copy."
+          fi
+
+      - name: Copy custom icons
+        shell: bash
+        run: |
+          # 删除 MFAA 自带的 Assets 文件夹
           if [ -d "install/Assets" ]; then
             rm -rf install/Assets
             echo "Removed original Assets folder"
           fi
 
-          # 创建小写的 assets 文件夹
-          mkdir -p install/assets
-
-          # 如果有自定义图标，复制并重命名为 logo.ico
+          # MFAA 版本的图标放根目录
           if [ -f "m9a.ico" ]; then
-            cp m9a.ico install/assets/logo.ico
-            echo "Copied custom icon to assets/logo.ico"
+            cp m9a.ico install/logo.ico
+            echo "Copied custom icon to install/logo.ico"
+          fi
+
+          # MXU 版本的图标
+          if [ -f "m9a.ico" ]; then
+            cp m9a.ico install-mxu/logo.ico
           fi
 
       - uses: actions/upload-artifact@v4
         with:
-          name: M9A-win-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-Full
+          name: M9A-win-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MFAA
           path: "install"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: M9A-win-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-Lite
+          name: M9A-win-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-PiCLI
           path: "install-cli"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: M9A-win-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MXU
+          path: "install-mxu"
 
   linux:
     needs: meta
@@ -266,6 +322,25 @@ jobs:
           rm -f "${ARCHIVE_FILE_PATH}"
           echo "Archive cleanup command executed for MFAAvalonia on Linux."
 
+      - name: Download MXU for Linux
+        if: matrix.arch == 'x86_64'
+        id: download_mxu
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: MistEO/MXU
+          fileName: "MXU-linux-${{ matrix.arch }}*"
+          tag: ${{ env.MXU_VERSION }}
+          out-file-path: "MXU"
+          extract: true
+
+      - name: Clean up MXU archive on Linux
+        if: matrix.arch == 'x86_64'
+        shell: bash
+        run: |
+          ARCHIVE_FILE_PATH="${{ fromJson(steps.download_mxu.outputs.downloaded_files)[0] }}"
+          rm -f "${ARCHIVE_FILE_PATH}"
+          echo "Archive cleanup command executed for MXU on Linux."
+
       - name: Convert PNG to ICO
         shell: bash
         run: |
@@ -304,6 +379,19 @@ jobs:
           fi
           rm -rf install-cli/deps 2>/dev/null || true
 
+      - name: Create MXU version
+        if: matrix.arch == 'x86_64'
+        shell: bash
+        run: |
+          PYTHON_EXECUTABLE="python"
+          $PYTHON_EXECUTABLE ./tools/ci/install_mxu.py ${{ needs.meta.outputs.tag }}
+          if [ -d "install/python" ]; then
+            cp -rpvn install/python/. install-mxu/python/
+          fi
+          if [ -d "install/deps" ]; then
+            cp -rpvn install/deps/. install-mxu/deps/
+          fi
+
       - name: Copy MFA files to main version
         shell: bash
         run: |
@@ -315,33 +403,55 @@ jobs:
             echo "MFA directory not found on Linux, skipping copy."
           fi
 
-      - name: Replace Assets with custom assets folder
+      - name: Copy MXU files to MXU version
+        if: matrix.arch == 'x86_64'
         shell: bash
         run: |
-          # 删除大写的 Assets 文件夹
+          if [ -d "MXU" ]; then
+            echo "Copying MXU files to install-mxu directory on Linux..."
+            mkdir -p install-mxu
+            if [ -f "MXU/mxu" ]; then
+              cp MXU/mxu install-mxu/M9A
+            fi
+          else
+            echo "MXU directory not found on Linux, skipping copy."
+          fi
+
+      - name: Copy custom icons
+        shell: bash
+        run: |
+          # 删除 MFAA 自带的 Assets 文件夹
           if [ -d "install/Assets" ]; then
             rm -rf install/Assets
             echo "Removed original Assets folder"
           fi
 
-          # 创建小写的 assets 文件夹
-          mkdir -p install/assets
-
-          # 如果有自定义图标，复制并重命名为 logo.ico
+          # MFAA 版本的图标放根目录
           if [ -f "m9a.ico" ]; then
-            cp m9a.ico install/assets/logo.ico
-            echo "Copied custom icon to assets/logo.ico"
+            cp m9a.ico install/logo.ico
+            echo "Copied custom icon to install/logo.ico"
+          fi
+
+          # MXU 版本的图标
+          if [ -d "install-mxu" ] && [ -f "m9a.ico" ]; then
+            cp m9a.ico install-mxu/logo.ico
           fi
 
       - uses: actions/upload-artifact@v4
         with:
-          name: M9A-linux-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-Full
+          name: M9A-linux-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MFAA
           path: "install"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: M9A-linux-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-Lite
+          name: M9A-linux-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-PiCLI
           path: "install-cli"
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.arch == 'x86_64'
+        with:
+          name: M9A-linux-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MXU
+          path: "install-mxu"
 
   macos:
     needs: meta
@@ -395,6 +505,23 @@ jobs:
           rm -f "${ARCHIVE_FILE_PATH}"
           echo "Archive cleanup command executed for MFAAvalonia on macOS."
 
+      - name: Download MXU for macOS
+        id: download_mxu
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: MistEO/MXU
+          fileName: "MXU-macos-${{ matrix.arch }}*"
+          tag: ${{ env.MXU_VERSION }}
+          out-file-path: "MXU"
+          extract: true
+
+      - name: Clean up MXU archive on macOS
+        shell: bash
+        run: |
+          ARCHIVE_FILE_PATH="${{ fromJson(steps.download_mxu.outputs.downloaded_files)[0] }}"
+          rm -f "${ARCHIVE_FILE_PATH}"
+          echo "Archive cleanup command executed for MXU on macOS."
+
       - name: Convert PNG to ICO
         shell: bash
         run: |
@@ -443,6 +570,16 @@ jobs:
           cp -rpvn install/python/. install-cli/python/
           rm -rf install-cli/deps 2>/dev/null || true
 
+      - name: Create MXU version
+        shell: bash
+        run: |
+          PYTHON_EXECUTABLE="./install/python/bin/python3"
+          $PYTHON_EXECUTABLE ./tools/ci/install_mxu.py ${{ needs.meta.outputs.tag }}
+          cp -rpvn install/python/. install-mxu/python/
+          if [ -d "install/deps" ]; then
+            cp -rpvn install/deps/. install-mxu/deps/
+          fi
+
       - name: Copy MFA files to main version
         shell: bash
         run: |
@@ -454,33 +591,53 @@ jobs:
             echo "MFA directory not found on macOS, skipping copy."
           fi
 
-      - name: Replace Assets with custom assets folder
+      - name: Copy MXU files to MXU version
         shell: bash
         run: |
-          # 删除大写的 Assets 文件夹
+          if [ -d "MXU" ]; then
+            echo "Copying MXU files to install-mxu directory on macOS..."
+            mkdir -p install-mxu
+            if [ -f "MXU/mxu" ]; then
+              cp MXU/mxu install-mxu/M9A
+            fi
+          else
+            echo "MXU directory not found on macOS, skipping copy."
+          fi
+
+      - name: Copy custom icons
+        shell: bash
+        run: |
+          # 删除 MFAA 自带的 Assets 文件夹
           if [ -d "install/Assets" ]; then
             rm -rf install/Assets
             echo "Removed original Assets folder"
           fi
 
-          # 创建小写的 assets 文件夹
-          mkdir -p install/assets
-
-          # 如果有自定义图标，复制并重命名为 logo.ico
+          # MFAA 版本的图标放根目录
           if [ -f "m9a.ico" ]; then
-            cp m9a.ico install/assets/logo.ico
-            echo "Copied custom icon to assets/logo.ico"
+            cp m9a.ico install/logo.ico
+            echo "Copied custom icon to install/logo.ico"
+          fi
+
+          # MXU 版本的图标
+          if [ -f "m9a.ico" ]; then
+            cp m9a.ico install-mxu/logo.ico
           fi
 
       - uses: actions/upload-artifact@v4
         with:
-          name: M9A-macos-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-Full
+          name: M9A-macos-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MFAA
           path: "install"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: M9A-macos-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-Lite
+          name: M9A-macos-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-PiCLI
           path: "install-cli"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: M9A-macos-${{ matrix.arch }}-${{ needs.meta.outputs.tag }}-MXU
+          path: "install-mxu"
 
   changelog:
     name: Generate changelog
@@ -536,6 +693,11 @@ jobs:
 
               find "$f" -type f -name "MFAUpdater*" -exec chmod +x {} \; 2>/dev/null || true
               echo "Set execute permission for all MFAUpdater files"
+
+              if [[ -f "$f/M9A" ]]; then
+                chmod +x "$f/M9A"
+                echo "Set execute permission for $f/M9A"
+              fi
 
               PYTHON_PATHS=(
                 "$f/python/bin/python3"
