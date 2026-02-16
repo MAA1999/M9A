@@ -40,6 +40,7 @@
             "[JumpBack]Sub_JukeboxBadge",
             "[JumpBack]Sub_JukeboxBadge_3.2",
             "[JumpBack]HomeFlagMaxTimesFive",
+            "[JumpBack]ActivityAwardsLaplace",
             "HomeFlag",
             "[JumpBack]HomeButton",
             "[JumpBack]BackButton"
@@ -510,6 +511,261 @@
             "ShowFlag",
             "[JumpBack]EnterTheShow",
             "[JumpBack]BackButton"
+        ]
+    },
+    "ActivityAwardsLaplace": {
+        "doc": "进入左上角的拉普拉斯活动界面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    494,
+                    30,
+                    21,
+                    24
+                ],
+                "template": "Awards/ActivityBadges/ActivityAwardsLaplace.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]ActivityAwardsLaplaceBoxes",
+            // "[JumpBack]ActivityAwardsLaplaceLab",
+            "[JumpBack]ActivityAwardsLaplaceParty",
+            "[JumpBack]ActivityAwardsLaplacePartyBabel",
+            "BackButton"
+        ]
+    },
+    "ActivityAwardsLaplaceBoxes": {
+        "doc": "进入观测者之盒",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    478,
+                    207,
+                    15,
+                    16
+                ],
+                "template": "Awards/ActivityBadges/ActivityAwardsLaplaceBoxes.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "ActivityAwardsLaplaceBoxesClaim",
+            "ActivityAwardsLaplaceFoxesNumber",
+            "BackButton"
+        ]
+    },
+    "ActivityAwardsLaplaceBoxesClaim": {
+        "doc": "领取观测者之盒的次数",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1048,
+                    402,
+                    82,
+                    186
+                ],
+                "template": "Awards/ActivityBadges/ActivityAwardsLaplaceClaim.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "pre_wait_freezes": {
+            "time": 500
+        },
+        "next": [
+            "ActivityAwardsLaplaceBoxesClaim", // 识别成功时重复执行  
+            "ActivityAwardsLaplaceFoxesNumber", // 识别失败时认为是没有盒子次数可以领取了，进而判断可观测次数  
+            "BackButton"
+        ]
+    },
+    "ActivityAwardsLaplaceFoxesNumber": {
+        "doc": "判断可观测次数",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": "^[1-9][0-9]?$",
+                "only_rec": true,
+                "roi": [
+                    897,
+                    282,
+                    47,
+                    61
+                ]
+            }
+        },
+        "action": "DoNothing",
+        "next": [
+            "ActivityAwardsLaplaceFoxesClaim", // 若有可观测次数则尝试用次数来观测盒子  
+            "[JumpBack]ObtainedAwards", //结算领取页面
+            "BackButton"
+        ]
+    },
+    "ActivityAwardsLaplaceFoxesClaim": {
+        "doc": "用次数来观测盒子",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    201,
+                    150,
+                    412,
+                    424
+                ],
+                "template": "Awards/ActivityBadges/ActivityAwardsLaplaceFoxesClaim.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]ObtainedAwards", //结算领取页面
+            "ActivityAwardsLaplaceFoxesNumber", // 识别成功时再次判断 
+            "BackButton"
+        ]
+    },
+    "ActivityAwardsLaplaceParty": {
+        "doc": "进入微型派对",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    477,
+                    421,
+                    24,
+                    23
+                ],
+                "template": "Awards/ActivityBadges/ActivityAwardsLaplaceParty.png",
+                "threshold": 0.95
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500
+        },
+        "next": [
+            "ActivityAwardsLaplacePartyTarget"
+        ]
+    },
+    "ActivityAwardsLaplacePartyTarget": {
+        "doc": "点击目标红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    842,
+                    93,
+                    402,
+                    22
+                ],
+                "template": "Awards/ActivityBadges/ActivityAwardsLaplacePartyTarget.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500
+        },
+        "next": [
+            "ActivityAwardsLaplacePartyClaim"
+        ]
+    },
+    "ActivityAwardsLaplacePartyClaim": {
+        "doc": "领取奖励",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1106,
+                    152,
+                    134,
+                    155
+                ],
+                "template": [
+                    "Awards/CollectSingleDailyAwards.png",
+                    "Awards/CollectDailyAwards.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                465,
+                197,
+                786,
+                222
+            ]
+        },
+        "next": [
+            "[JumpBack]ObtainedAwards",
+            "ActivityAwardsLaplacePartyTarget",
+            "BackButton"
+        ]
+    },
+    "ActivityAwardsLaplacePartyBabel": {
+        "doc": "进入巴别塔词砖奖励页面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1240,
+                    20,
+                    27,
+                    26
+                ],
+                "template": [
+                    "Awards/ActivityBadges/ActivityAwardsLaplacePartyBabel.png"
+                ],
+                "threshold": 0.95
+            }
+        },
+        "post_wait_freezes": {
+            "time": 500
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "ActivityAwardsLaplacePartyBabelClaim",
+            "BackButton"
+        ]
+    },
+    "ActivityAwardsLaplacePartyBabelClaim": {
+        "doc": "领取巴别塔词砖奖励",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    42,
+                    424,
+                    1184,
+                    153
+                ],
+                "template": [
+                    "Awards/ActivityBadges/ActivityAwardsLaplacePartyBabelClaim.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]ObtainedAwards",
+            "BackButton"
         ]
     },
     "ShowFlag": {
