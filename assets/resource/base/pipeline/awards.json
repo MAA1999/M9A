@@ -524,7 +524,8 @@
                     21,
                     24
                 ],
-                "template": "Awards/ActivityBadges/ActivityAwardsLaplace.png"
+                "template": "Awards/ActivityBadges/ActivityAwardsLaplace.png",
+                "threshold": 0.90
             }
         },
         "action": {
