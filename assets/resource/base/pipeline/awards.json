@@ -530,6 +530,7 @@
         "action": {
             "type": "Click"
         },
+        "max_hit": 3,
         "next": [
             "[JumpBack]ActivityAwardsLaplaceBoxes",
             // "[JumpBack]ActivityAwardsLaplaceLab",
