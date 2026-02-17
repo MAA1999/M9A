@@ -678,7 +678,8 @@
             "time": 500
         },
         "next": [
-            "ActivityAwardsLaplacePartyClaim"
+            "ActivityAwardsLaplacePartyClaim",
+            "ActivityAwardsLaplacePartyTarget"
         ]
     },
     "ActivityAwardsLaplacePartyClaim": {
