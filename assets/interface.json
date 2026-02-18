@@ -2654,7 +2654,7 @@
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "ActivityAwardsLaplace": {
+                        "EventLaplace": {
                             "enabled": false
                         }
                     }
@@ -2710,7 +2710,7 @@
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "ActivityAwardsLaplace": {
+                        "EventLaplace": {
                             "enabled": false
                         }
                     }
