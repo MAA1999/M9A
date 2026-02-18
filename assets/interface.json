@@ -240,7 +240,7 @@
                 "领取活动奖励",
                 "领取吼吼点唱机"
             ],
-            "description": "<span style=\"color:tomato;font-size:15px\">领取活动奖励仅支持默认模板</span>",
+            "description": "<span style=\"color:tomato;font-size:15px\">领取活动奖励仅支持默认UI</span>",
             "default_check": true
         },
         {

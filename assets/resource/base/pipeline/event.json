@@ -52,15 +52,16 @@
     "EventLaplaceBoxesClaim": {
         "doc": "领取观测者之盒的次数",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
+                "expected": "领取",
+                "only_rec": true,
                 "roi": [
-                    1048,
-                    402,
-                    82,
-                    186
-                ],
-                "template": "Event/EventLaplaceClaim.png"
+                    1046,
+                    397,
+                    88,
+                    195
+                ]
             }
         },
         "action": {
