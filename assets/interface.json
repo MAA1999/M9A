@@ -240,6 +240,7 @@
                 "领取活动奖励",
                 "领取吼吼点唱机"
             ],
+            "description": "<span style=\"color:tomato;font-size:15px\">领取活动奖励仅支持默认模板</span>",
             "default_check": true
         },
         {
@@ -2648,16 +2649,16 @@
             "label": "领取活动奖励",
             "cases": [
                 {
-                    "name": "Yes",
-                    "pipeline_override": {}
-                },
-                {
                     "name": "No",
                     "pipeline_override": {
                         "EventLaplace": {
                             "enabled": false
                         }
                     }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {}
                 }
             ]
         },
@@ -2693,24 +2694,6 @@
                     "name": "No",
                     "pipeline_override": {
                         "WeeklyAwardsBadge": {
-                            "enabled": false
-                        }
-                    }
-                }
-            ]
-        },
-        "领取限时活动奖励": {
-            "type": "switch",
-            "label": "领取限时活动奖励",
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {}
-                },
-                {
-                    "name": "No",
-                    "pipeline_override": {
-                        "EventLaplace": {
                             "enabled": false
                         }
                     }

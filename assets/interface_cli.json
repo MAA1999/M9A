@@ -231,7 +231,8 @@
                 "领取邮件奖励",
                 "领取任务奖励",
                 "领取吼吼点唱机"
-            ]
+            ],
+            "description": "领取活动奖励仅支持默认模板"
         },
         {
             "name": "雨中悬想：迷思海",
@@ -2629,6 +2630,24 @@
                             "enabled": false
                         }
                     }
+                }
+            ]
+        },
+        "领取活动奖励": {
+            "type": "switch",
+            "label": "领取活动奖励",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EventLaplace": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {}
                 }
             ]
         },
