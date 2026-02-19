@@ -40,6 +40,7 @@
             "[JumpBack]Sub_JukeboxBadge",
             "[JumpBack]Sub_JukeboxBadge_3.2",
             "[JumpBack]EventLaplace",
+            "[JumpBack]AwardWarRoom",
             "[JumpBack]HomeFlagMaxTimesFive",
             "HomeFlag",
             "[JumpBack]HomeButton",
@@ -745,5 +746,123 @@
         "action": {
             "type": "Click"
         }
+    },
+    "AwardWarRoom": {
+        "doc": "进入前线观察室",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1160,
+                    589,
+                    18,
+                    18
+                ],
+                "template": "Awards/WarRoom/AwardWarRoom.png",
+                "threshold": 0.90
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AwardWarRoomTelegram",
+            "BackButton"
+        ]
+    },
+    "AwardWarRoomTelegram": {
+        "doc": "进入函电汇报",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1006,
+                    320,
+                    29,
+                    29
+                ],
+                "template": "Awards/WarRoom/AwardWarRoomTelegram.png",
+                "threshold": 0.90
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AwardWarRoomTelegramScroll",
+            "AwardWarRoomTelegram" // 第一次点击可能失效，此时回滚
+        ]
+    },
+    "AwardWarRoomTelegramScroll": {
+        "doc": "进入寻找卷轴",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    293,
+                    571,
+                    19,
+                    17
+                ],
+                "template": "Awards/WarRoom/AwardWarRoomTelegramScroll.png",
+                "threshold": 0.90
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AwardWarRoomTelegramScrollClaim",
+            "AwardWarRoomTelegramAwardClaim"
+        ]
+    },
+    "AwardWarRoomTelegramScrollClaim": {
+        "doc": "领取卷轴",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": "领取",
+                "only_rec": true,
+                "roi": [
+                    1166,
+                    154,
+                    71,
+                    35
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "[JumpBack]ObtainedAwards",
+            "AwardWarRoomTelegramAwardClaim"
+        ]
+    },
+    "AwardWarRoomTelegramAwardClaim": {
+        "doc": "领取下方奖励",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": "领取",
+                // "only_rec": true,
+                "roi": [
+                    656,
+                    564,
+                    595,
+                    75
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "[JumpBack]ObtainedAwards",
+            "AwardWarRoomTelegramAwardClaim", // 第一次点击可能失效，此时回滚
+            "HomeButton"
+        ]
     }
 }

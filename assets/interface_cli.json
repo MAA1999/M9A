@@ -230,7 +230,9 @@
             "option": [
                 "领取邮件奖励",
                 "领取任务奖励",
-                "领取吼吼点唱机"
+                "领取活动奖励",
+                "领取吼吼点唱机",
+                "领取前线观察室奖励"
             ],
             "description": "领取活动奖励仅支持默认UI"
         },
@@ -2703,6 +2705,24 @@
                             "enabled": false
                         },
                         "Sub_JukeboxBadge_3.2": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "领取前线观察室奖励": {
+            "type": "switch",
+            "label": "领取前线观察室奖励",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {}
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AwardWarRoom": {
                             "enabled": false
                         }
                     }
