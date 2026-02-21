@@ -599,20 +599,21 @@
                     },
                     "ActivityRe_releaseChapter": {
                         "recognition": {
-                            "type": "DirectHit",
+                            "type": "DirectHit"
+                        },
+                        "action": {
+                            "type": "Click",
                             "param": {
-                                "roi": [
+                                "target": [
                                     107,
                                     419,
                                     75,
                                     48
                                 ]
                             }
-                        },
-                        "action": "Click"
+                        }
                     }
                 }
             }
         }
     }
-}
