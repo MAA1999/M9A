@@ -55,7 +55,6 @@
             "type": "OCR",
             "param": {
                 "expected": "领取",
-                "only_rec": true,
                 "roi": [
                     1046,
                     397,
