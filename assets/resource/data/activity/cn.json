@@ -583,9 +583,37 @@
                                 "only_rec": true
                             }
                         }
+                    },
+                    "ActivityMainChapter": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    512,
+                                    554,
+                                    286,
+                                    98
+                                ],
+                                "expected": "开始"
+                            }
+                        }
+                    },
+                    "ActivityRe_releaseChapter": {
+                        "recognition": {
+                            "type": "DirectHit"
+                        },
+                        "action": {
+                            "type": "Click",
+                            "param": {
+                                "target": [
+                                    107,
+                                    419,
+                                    75,
+                                    48
+                                ]
+                            }
+                        }
                     }
                 }
             }
         }
     }
-}
