@@ -7,7 +7,20 @@
                 "MultiRecognition",
                 "Count",
                 "ColorOCR",
-                "ColorOCRWithFallback"
+                "ColorOCRWithFallback",
+                "CheckStopping",
+                "CandyPageRecord",
+                "BankShop",
+                "ActivityRe_releaseChapter",
+                "SailingRecordSelectTarget",
+                "SailingRecordBoatRecord",
+                "FindFirstUnplayedStageByCheckmark",
+                "CCBuyCard",
+                "CCRemainMoney",
+                "StagePromotionComplete",
+                "SOSSelectNode",
+                "SOSSelectEncounterOptionList",
+                "SOSSelectEncounterOptionFindSelected"
             ]
         }
     },
@@ -23,6 +36,45 @@
         },
         {
             "$ref": "#/$defs/ColorOCRWithFallback"
+        },
+        {
+            "$ref": "#/$defs/CheckStopping"
+        },
+        {
+            "$ref": "#/$defs/CandyPageRecord"
+        },
+        {
+            "$ref": "#/$defs/BankShop"
+        },
+        {
+            "$ref": "#/$defs/ActivityRe_releaseChapter"
+        },
+        {
+            "$ref": "#/$defs/SailingRecordSelectTarget"
+        },
+        {
+            "$ref": "#/$defs/SailingRecordBoatRecord"
+        },
+        {
+            "$ref": "#/$defs/FindFirstUnplayedStageByCheckmark"
+        },
+        {
+            "$ref": "#/$defs/CCBuyCard"
+        },
+        {
+            "$ref": "#/$defs/CCRemainMoney"
+        },
+        {
+            "$ref": "#/$defs/StagePromotionComplete"
+        },
+        {
+            "$ref": "#/$defs/SOSSelectNode"
+        },
+        {
+            "$ref": "#/$defs/SOSSelectEncounterOptionList"
+        },
+        {
+            "$ref": "#/$defs/SOSSelectEncounterOptionFindSelected"
         }
     ],
     "$defs": {
@@ -172,7 +224,11 @@
                             },
                             "minItems": 3,
                             "maxItems": 3,
-                            "default": [255, 255, 255],
+                            "default": [
+                                255,
+                                255,
+                                255
+                            ],
                             "description": "目标颜色RGB值，默认 [255, 255, 255] (白色)"
                         },
                         "tolerance": {
@@ -216,7 +272,11 @@
                             },
                             "minItems": 3,
                             "maxItems": 3,
-                            "default": [255, 255, 255],
+                            "default": [
+                                255,
+                                255,
+                                255
+                            ],
                             "description": "目标颜色RGB值，默认 [255, 255, 255] (白色)"
                         },
                         "tolerance": {
@@ -235,6 +295,205 @@
                         "recognition"
                     ],
                     "additionalProperties": false
+                }
+            }
+        },
+        "CheckStopping": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "CheckStopping",
+                    "description": "检查任务是否即将停止"
+                }
+            }
+        },
+        "CandyPageRecord": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "CandyPageRecord",
+                    "description": "记录糖果页面状态"
+                }
+            }
+        },
+        "BankShop": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_recognition": {
+                    "const": "BankShop",
+                    "description": "在8个商品内容中寻找结果"
+                },
+                "custom_recognition_param": {
+                    "type": "object",
+                    "properties": {
+                        "expected": {
+                            "type": "string",
+                            "description": "商品名称"
+                        },
+                        "inverse": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "是否反转，默认 false"
+                        }
+                    },
+                    "required": [
+                        "expected"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        "ActivityRe_releaseChapter": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_recognition": {
+                    "const": "ActivityRe_releaseChapter",
+                    "description": "识别复刻活动对应别名"
+                },
+                "custom_recognition_param": {
+                    "type": "object",
+                    "properties": {
+                        "Re_release_name": {
+                            "type": "string",
+                            "description": "复刻活动别名"
+                        }
+                    },
+                    "required": [
+                        "Re_release_name"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        "SailingRecordSelectTarget": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_recognition": {
+                    "const": "SailingRecordSelectTarget",
+                    "description": "识别航海记录界面中的目标关卡"
+                },
+                "custom_recognition_param": {
+                    "type": "object",
+                    "properties": {
+                        "level": {
+                            "type": "integer",
+                            "enum": [
+                                0,
+                                1
+                            ],
+                            "description": "0: 普通, 1: 困难"
+                        }
+                    },
+                    "required": [
+                        "level"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        "SailingRecordBoatRecord": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "SailingRecordBoatRecord",
+                    "description": "识别选择船队界面中骰子的点数"
+                }
+            }
+        },
+        "FindFirstUnplayedStageByCheckmark": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_recognition": {
+                    "const": "FindFirstUnplayedStageByCheckmark",
+                    "description": "遍历定义的关卡列表，查找第一个未通关的关卡"
+                },
+                "custom_recognition_param": {
+                    "type": "object",
+                    "properties": {
+                        "difficulty": {
+                            "type": "string",
+                            "enum": [
+                                "Easy",
+                                "Normal",
+                                "Hard"
+                            ],
+                            "description": "难度选择"
+                        },
+                        "mode": {
+                            "type": "string",
+                            "enum": [
+                                "Normal",
+                                "Quickly"
+                            ],
+                            "description": "模式选择"
+                        }
+                    },
+                    "required": [
+                        "difficulty",
+                        "mode"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        "CCBuyCard": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "CCBuyCard",
+                    "description": "翻斗棋：识别可购买卡牌"
+                }
+            }
+        },
+        "CCRemainMoney": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "CCRemainMoney",
+                    "description": "翻斗棋：识别剩余缪斯币"
+                }
+            }
+        },
+        "StagePromotionComplete": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "StagePromotionComplete",
+                    "description": "推图模式完成判断（当前关为满星且无下一关）"
+                }
+            }
+        },
+        "SOSSelectNode": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "SOSSelectNode",
+                    "description": "局外演绎：无声综合征-节点选择"
+                }
+            }
+        },
+        "SOSSelectEncounterOptionList": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "SOSSelectEncounterOptionList",
+                    "description": "局外演绎：无声综合征-途中偶遇选项内容识别"
+                }
+            }
+        },
+        "SOSSelectEncounterOptionFindSelected": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "SOSSelectEncounterOptionFindSelected",
+                    "description": "局外演绎：无声综合征-途中偶遇选项识别已选中的选项"
                 }
             }
         }

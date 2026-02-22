@@ -32,7 +32,29 @@
                 "TargetCountProgress",
                 "TargetCountFinish",
                 "TargetCountAbort",
-                "JudgeDepthsOfMythWeekly"
+                "JudgeDepthsOfMythWeekly",
+                "CheckResolution",
+                "ResetEatCandyFlag",
+                "CombatActivityOverride",
+                "SOSShoppingList",
+                "SOSBuyItems",
+                "SOSSwitchStat",
+                "SSTaskEntryGet",
+                "SSReopenReplay",
+                "SailingRecordDiceStrategy",
+                "SailingRecordBoatSelect",
+                "CCResetData",
+                "CCChessboard",
+                "CCLevelUp",
+                "CCBuyCard",
+                "SOSSelectNoise",
+                "SOSSelectInstrument",
+                "SOSSelectNode",
+                "SOSNodeProcess",
+                "SOSSelectEncounterOption_OCR",
+                "SOSSelectEncounterOption_HSV",
+                "EatCandyStart",
+                "DropRecognition"
             ]
         }
     },
@@ -123,6 +145,75 @@
         },
         {
             "$ref": "#/$defs/JudgeDepthsOfMythWeekly"
+        },
+        {
+            "$ref": "#/$defs/CheckResolution"
+        },
+        {
+            "$ref": "#/$defs/ResetEatCandyFlag"
+        },
+        {
+            "$ref": "#/$defs/CombatActivityOverride"
+        },
+        {
+            "$ref": "#/$defs/SOSShoppingList"
+        },
+        {
+            "$ref": "#/$defs/SOSBuyItems"
+        },
+        {
+            "$ref": "#/$defs/SOSSwitchStat"
+        },
+        {
+            "$ref": "#/$defs/DataOnlyAction"
+        },
+        {
+            "$ref": "#/$defs/SSTaskEntryGet"
+        },
+        {
+            "$ref": "#/$defs/SSReopenReplay"
+        },
+        {
+            "$ref": "#/$defs/SailingRecordDiceStrategy"
+        },
+        {
+            "$ref": "#/$defs/SailingRecordBoatSelect"
+        },
+        {
+            "$ref": "#/$defs/CCResetData"
+        },
+        {
+            "$ref": "#/$defs/CCChessboard"
+        },
+        {
+            "$ref": "#/$defs/CCLevelUp"
+        },
+        {
+            "$ref": "#/$defs/CCBuyCard"
+        },
+        {
+            "$ref": "#/$defs/SOSSelectNoise"
+        },
+        {
+            "$ref": "#/$defs/SOSSelectInstrument"
+        },
+        {
+            "$ref": "#/$defs/SOSSelectNode"
+        },
+        {
+            "$ref": "#/$defs/SOSNodeProcess"
+        },
+        {
+            "$ref": "#/$defs/SOSSelectEncounterOption_OCR"
+        },
+        {
+            "$ref": "#/$defs/SOSSelectEncounterOption_HSV"
+        },
+        {
+            "$ref": "#/$defs/EatCandyStart"
+        },
+        {
+            "$ref": "#/$defs/DropRecognition"
         }
     ],
     "$defs": {
@@ -138,6 +229,18 @@
                         "custom_action_param_code"
                     ]
                 }
+            ]
+        },
+        "DataOnlyAction": {
+            "description": "数据节点：只有custom_action_param，没有custom_action，用于存放其他action读取的数据",
+            "properties": {
+                "custom_action": false,
+                "custom_action_param": {
+                    "type": "object"
+                }
+            },
+            "required": [
+                "custom_action_param"
             ]
         },
         "Screenshot": {
@@ -576,7 +679,7 @@
             ],
             "properties": {
                 "custom_action": {
-                    "const": "CombatTargetLevel",
+                    "const": "ActivityTargetLevel",
                     "description": "选择活动作战目标难度。"
                 },
                 "custom_action_param": {
@@ -743,6 +846,233 @@
                         "resource"
                     ],
                     "unevaluatedProperties": false
+                }
+            }
+        },
+        "CheckResolution": {
+            "properties": {
+                "custom_action": {
+                    "const": "CheckResolution",
+                    "description": "检查当前模拟器分辨率是否符合预期（16:9）"
+                }
+            }
+        },
+        "ResetEatCandyFlag": {
+            "properties": {
+                "custom_action": {
+                    "const": "ResetEatCandyFlag",
+                    "description": "重置吃糖标记"
+                }
+            }
+        },
+        "CombatActivityOverride": {
+            "properties": {
+                "custom_action": {
+                    "const": "CombatActivityOverride",
+                    "description": "数据中如有override字段，则进行覆盖"
+                },
+                "custom_action_param": {
+                    "type": "object",
+                    "properties": {
+                        "mode": {
+                            "type": "integer",
+                            "enum": [
+                                0,
+                                1
+                            ],
+                            "description": "0: 普通模式, 1: 复刻模式"
+                        }
+                    },
+                    "unevaluatedProperties": false
+                }
+            }
+        },
+        "SOSShoppingList": {
+            "properties": {
+                "custom_action": {
+                    "const": "SOSShoppingList",
+                    "description": "局外演绎：无声综合征-购物列表处理"
+                }
+            }
+        },
+        "SOSBuyItems": {
+            "properties": {
+                "custom_action": {
+                    "const": "SOSBuyItems",
+                    "description": "局外演绎：无声综合征-购买物品"
+                }
+            }
+        },
+        "SOSSwitchStat": {
+            "properties": {
+                "custom_action": {
+                    "const": "SOSSwitchStat",
+                    "description": "局外演绎：无声综合征-切换待提升的属性"
+                }
+            }
+        },
+        "SSTaskEntryGet": {
+            "properties": {
+                "custom_action": {
+                    "const": "SSTaskEntryGet",
+                    "description": "获取SS任务入口"
+                }
+            }
+        },
+        "SSReopenReplay": {
+            "properties": {
+                "custom_action": {
+                    "const": "SSReopenReplay",
+                    "description": "SS复刻重玩"
+                }
+            }
+        },
+        "SailingRecordDiceStrategy": {
+            "properties": {
+                "custom_action": {
+                    "const": "SailingRecordDiceStrategy",
+                    "description": "计算骰子选择的最优策略"
+                }
+            }
+        },
+        "SailingRecordBoatSelect": {
+            "properties": {
+                "custom_action": {
+                    "const": "SailingRecordBoatSelect",
+                    "description": "选择骰子"
+                }
+            }
+        },
+        "CCResetData": {
+            "properties": {
+                "custom_action": {
+                    "const": "CCResetData",
+                    "description": "翻斗棋：重置数据"
+                }
+            }
+        },
+        "CCChessboard": {
+            "properties": {
+                "custom_action": {
+                    "const": "CCChessboard",
+                    "description": "翻斗棋：棋盘位置记录"
+                }
+            }
+        },
+        "CCLevelUp": {
+            "properties": {
+                "custom_action": {
+                    "const": "CCLevelUp",
+                    "description": "翻斗棋：粘贴处升级识别，如升级则等待"
+                }
+            }
+        },
+        "CCBuyCard": {
+            "properties": {
+                "custom_action": {
+                    "const": "CCBuyCard",
+                    "description": "翻斗棋：购买卡牌"
+                }
+            }
+        },
+        "SOSSelectNoise": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_action": {
+                    "const": "SOSSelectNoise",
+                    "description": "局外演绎：无声综合征-选择噪声等级"
+                },
+                "custom_action_param": {
+                    "type": "object",
+                    "properties": {
+                        "level": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "噪声等级"
+                        }
+                    },
+                    "required": [
+                        "level"
+                    ],
+                    "unevaluatedProperties": false
+                }
+            }
+        },
+        "SOSSelectInstrument": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_action": {
+                    "const": "SOSSelectInstrument",
+                    "description": "局外演绎：无声综合征-选择乐器"
+                },
+                "custom_action_param": {
+                    "type": "object",
+                    "properties": {
+                        "instrument": {
+                            "type": "string",
+                            "description": "乐器名称"
+                        }
+                    },
+                    "required": [
+                        "instrument"
+                    ],
+                    "unevaluatedProperties": false
+                }
+            }
+        },
+        "SOSSelectNode": {
+            "properties": {
+                "custom_action": {
+                    "const": "SOSSelectNode",
+                    "description": "局外演绎：无声综合征-节点选择"
+                }
+            }
+        },
+        "SOSNodeProcess": {
+            "properties": {
+                "custom_action": {
+                    "const": "SOSNodeProcess",
+                    "description": "局外演绎：无声综合征-节点处理"
+                }
+            }
+        },
+        "SOSSelectEncounterOption_OCR": {
+            "properties": {
+                "custom_action": {
+                    "const": "SOSSelectEncounterOption_OCR",
+                    "description": "局外演绎：无声综合征-选择遭遇选项（OCR方式）"
+                }
+            }
+        },
+        "SOSSelectEncounterOption_HSV": {
+            "properties": {
+                "custom_action": {
+                    "const": "SOSSelectEncounterOption_HSV",
+                    "description": "局外演绎：无声综合征-选择遭遇选项（HSV方式）"
+                }
+            }
+        },
+        "EatCandyStart": {
+            "properties": {
+                "custom_action": {
+                    "const": "EatCandyStart",
+                    "description": "开始吃糖"
+                }
+            }
+        },
+        "DropRecognition": {
+            "properties": {
+                "custom_action": {
+                    "const": "DropRecognition",
+                    "description": "掉落识别"
                 }
             }
         }
