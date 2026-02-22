@@ -125,10 +125,29 @@
             "[JumpBack]Confirm",
             "[JumpBack]PreStormProtocol1NextStep",
             "[JumpBack]PreStormProtocol1StartClick",
+            "[JumpBack]PreStormProtocol1SelectPeople",
             "[JumpBack]PreStormProtocolFailed",
             "[JumpBack]BackButton",
             "[JumpBack]HomeLoading"
         ]
+    },
+    "PreStormProtocol1SelectPeople": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    995,
+                    623,
+                    71,
+                    34
+                ],
+                "only_rec": true,
+                "expected": "选择"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "PreStormProtocol1NextStep": {
         "recognition": {

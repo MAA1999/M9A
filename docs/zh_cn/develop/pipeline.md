@@ -307,7 +307,7 @@ graph LR
         },
         "next": [
             "TargetCountProgress",
-            "[JumpBack]StageChoose",
+            "StageChoose",
             "[JumpBack]BackButton"
         ]
     },
@@ -328,8 +328,7 @@ graph LR
 **分析**：
 
 - `StageChoose` 执行关卡选择操作
-- `[JumpBack]StageChoose` 处理点击未生效的情况
-- `[JumpBack]BackButton` 处理意外进入其他界面的情况（返回后重新执行 `StageChoose`）
+- `[JumpBack]BackButton` 处理意外进入其他界面的情况（返回后重新识别 `StageChoose` 的 next 列表）
 - `BackButton` 不设置 `next`，作为纯工具节点供多处复用
 
 ## 参考资源

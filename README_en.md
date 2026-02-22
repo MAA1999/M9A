@@ -95,6 +95,8 @@ For more documents, please visit the [MaaFramework](https://github.com/MaaXYZ/Ma
 
 - [MFAAvalonia](https://github.com/SweetSmellFox/MFAAvalonia)  
   Universal MaaFramework GUI solution built with Avalonia UI
+- [MXU](https://github.com/MistEO/MXU)  
+  A universal GUI client based on the MaaFramework PI V2 protocol, built with Tauri + React + TypeScript
 - ~~[MFW-CFA](https://github.com/overflow65537/MFW-PyQt6)~~  
   ~~Cross-platform GUI based on PySide6 and MaaFramework~~
 - ~~[MFAWPF](https://github.com/SweetSmellFox/MFAWPF)~~  

@@ -12,26 +12,35 @@ from configure import configure_ocr_model
 from generate_manifest_cache import generate_manifest_cache
 
 working_dir = Path(__file__).parent.parent.parent
-install_path = working_dir / Path("install-cli")
+install_path = working_dir / Path("install-mxu")
 version = len(sys.argv) > 1 and sys.argv[1] or "v0.0.1"
 
 
 def install_deps():
+    """安装 MaaFramework 依赖到 maafw 目录（MXU 要求的目录结构）
+
+    MXU 要求将 MaaFramework 的 bin 文件夹内容解压到 maafw 文件夹中。
+    参考: https://github.com/MistEO/MXU#依赖文件
+    """
+
+    # MaaFramework 运行库 → maafw/
     shutil.copytree(
         working_dir / "deps" / "bin",
-        install_path,
+        install_path / "maafw",
         ignore=shutil.ignore_patterns(
             "*MaaDbgControlUnit*",
             "*MaaThriftControlUnit*",
             "*MaaWin32ControlUnit*",
             "*MaaRpc*",
             "*MaaHttp*",
+            "*.node",
+            "*MaaPiCli*",
         ),
         dirs_exist_ok=True,
     )
     shutil.copytree(
         working_dir / "deps" / "share" / "MaaAgentBinary",
-        install_path / "MaaAgentBinary",
+        install_path / "maafw" / "MaaAgentBinary",
         dirs_exist_ok=True,
     )
 
@@ -46,8 +55,8 @@ def install_resource():
         dirs_exist_ok=True,
     )
     shutil.copy2(
-        working_dir / "assets" / "interface_cli.json",
-        install_path / "interface.json",
+        working_dir / "assets" / "interface.json",
+        install_path,
     )
 
     with open(install_path / "interface.json", "r", encoding="utf-8") as f:
@@ -55,6 +64,7 @@ def install_resource():
 
     interface["version"] = version
     interface["title"] = f"M9A {version} | 亿韭韭韭小助手"
+    interface["mirrorchyan_rid"] = "M9A-MXU"
 
     with open(install_path / "interface.json", "w", encoding="utf-8") as f:
         json.dump(interface, f, ensure_ascii=False, indent=4)
@@ -66,12 +76,6 @@ def install_chores():
             working_dir / file,
             install_path,
         )
-    # shutil.copytree(
-    #     working_dir / "docs",
-    #     install_path / "docs",
-    #     dirs_exist_ok=True,
-    #     ignore=shutil.ignore_patterns("*.yaml"),
-    # )
 
 
 def install_agent():
@@ -116,4 +120,4 @@ if __name__ == "__main__":
     install_agent()
     install_manifest_cache()
 
-    print(f"Install to {install_path} successfully.")
+    print(f"Install MXU to {install_path} successfully.")

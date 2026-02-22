@@ -1,0 +1,260 @@
+{
+    "EventLaplace": {
+        "doc": "进入左上角的拉普拉斯活动界面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    494,
+                    30,
+                    98,
+                    24
+                ],
+                "template": "Event/EventLaplace.png",
+                "threshold": 0.90
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "max_hit": 3,
+        "next": [
+            "[JumpBack]EventLaplaceBoxes",
+            // "[JumpBack]EventLaplaceLab",
+            "[JumpBack]EventLaplaceParty",
+            "[JumpBack]EventLaplacePartyBabel",
+            "BackButton"
+        ]
+    },
+    "EventLaplaceBoxes": {
+        "doc": "进入观测者之盒",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    478,
+                    207,
+                    15,
+                    16
+                ],
+                "template": "Event/EventLaplaceBoxes.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "EventLaplaceBoxesClaim",
+            "EventLaplaceFoxesNumber",
+            "BackButton"
+        ]
+    },
+    "EventLaplaceBoxesClaim": {
+        "doc": "领取观测者之盒的次数",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": "领取",
+                "roi": [
+                    1046,
+                    397,
+                    88,
+                    195
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "pre_wait_freezes": {
+            "time": 500
+        },
+        "next": [
+            "EventLaplaceBoxesClaim", // 识别成功时重复执行  
+            "EventLaplaceFoxesNumber", // 识别失败时认为是没有盒子次数可以领取了，进而判断可观测次数  
+            "BackButton"
+        ]
+    },
+    "EventLaplaceFoxesNumber": {
+        "doc": "判断可观测次数",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": "^[1-9][0-9]?$",
+                "only_rec": true,
+                "roi": [
+                    897,
+                    282,
+                    47,
+                    61
+                ]
+            }
+        },
+        "action": "DoNothing",
+        "next": [
+            "EventLaplaceFoxesClaim", // 若有可观测次数则尝试用次数来观测盒子  
+            "[JumpBack]ObtainedAwards", //结算领取页面
+            "BackButton"
+        ]
+    },
+    "EventLaplaceFoxesClaim": {
+        "doc": "用次数来观测盒子",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    201,
+                    150,
+                    412,
+                    424
+                ],
+                "template": "Event/EventLaplaceFoxesClaim.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]ObtainedAwards", //结算领取页面
+            "EventLaplaceFoxesNumber", // 识别成功时再次判断 
+            "BackButton"
+        ]
+    },
+    "EventLaplaceParty": {
+        "doc": "进入微型派对",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    477,
+                    421,
+                    24,
+                    23
+                ],
+                "template": "Event/EventLaplaceParty.png",
+                "threshold": 0.95
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500
+        },
+        "next": [
+            "EventLaplacePartyTarget"
+        ]
+    },
+    "EventLaplacePartyTarget": {
+        "doc": "点击目标红点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    842,
+                    93,
+                    402,
+                    22
+                ],
+                "template": "Event/EventLaplacePartyTarget.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500
+        },
+        "next": [
+            "EventLaplacePartyClaim",
+            "EventLaplacePartyTarget"
+        ]
+    },
+    "EventLaplacePartyClaim": {
+        "doc": "领取奖励",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1106,
+                    152,
+                    134,
+                    155
+                ],
+                "template": [
+                    "Awards/CollectSingleDailyAwards.png",
+                    "Awards/CollectDailyAwards.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                465,
+                197,
+                786,
+                222
+            ]
+        },
+        "next": [
+            "[JumpBack]ObtainedAwards",
+            "EventLaplacePartyTarget",
+            "BackButton"
+        ]
+    },
+    "EventLaplacePartyBabel": {
+        "doc": "进入巴别塔词砖奖励页面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1240,
+                    20,
+                    27,
+                    26
+                ],
+                "template": [
+                    "Event/EventLaplacePartyBabel.png"
+                ],
+                "threshold": 0.95
+            }
+        },
+        "post_wait_freezes": {
+            "time": 500
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "EventLaplacePartyBabelClaim",
+            "BackButton"
+        ]
+    },
+    "EventLaplacePartyBabelClaim": {
+        "doc": "领取巴别塔词砖奖励",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    42,
+                    424,
+                    1184,
+                    153
+                ],
+                "template": [
+                    "Event/EventLaplacePartyBabelClaim.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]ObtainedAwards",
+            "BackButton"
+        ]
+    }
+}

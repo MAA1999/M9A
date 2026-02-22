@@ -583,8 +583,53 @@
                                 "only_rec": true
                             }
                         }
+                    },
+                    "ActivityMainChapter": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    512,
+                                    554,
+                                    286,
+                                    98
+                                ],
+                                "expected": "开始"
+                            }
+                        }
+                    },
+                    "ActivityRe_releaseChapter": {
+                        "recognition": {
+                            "type": "DirectHit"
+                        },
+                        "action": {
+                            "type": "Click",
+                            "param": {
+                                "target": [
+                                    107,
+                                    419,
+                                    75,
+                                    48
+                                ]
+                            }
+                        }
                     }
                 }
+            }
+        }
+    },
+    "3.5": {
+        "version_name": "《绿松石蛇俱乐部》",
+        "start_time": 1772676000000,
+        "end_time": 1775681999000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1772676000000,
+                "end_time": 1775422799000
+            },
+            "re-release": {
+                "start_time": 1774558800000,
+                "end_time": 1775422799000
             }
         }
     }

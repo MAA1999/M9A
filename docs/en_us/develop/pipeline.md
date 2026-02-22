@@ -303,7 +303,7 @@ The following are real examples extracted from M9A project's `all_in.json`, demo
         },
         "next": [
             "TargetCountProgress",
-            "[JumpBack]StageChoose",
+            "StageChoose",
             "[JumpBack]BackButton"
         ]
     },
@@ -324,8 +324,7 @@ The following are real examples extracted from M9A project's `all_in.json`, demo
 **Analysis**:
 
 - `StageChoose` performs stage selection operation
-- `[JumpBack]StageChoose` handles cases where click didn't take effect
-- `[JumpBack]BackButton` handles accidentally entering other interfaces (returns and re-executes `StageChoose`)
+- `[JumpBack]BackButton` handles accidentally entering other interfaces (returns and re-identifies `StageChoose`'s next list)
 - `BackButton` doesn't set `next`, serves as pure utility node for reuse across multiple locations
 
 ## Reference Resources
