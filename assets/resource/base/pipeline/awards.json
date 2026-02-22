@@ -819,15 +819,18 @@
     "AwardWarRoomTelegramScrollClaim": {
         "doc": "领取卷轴",
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
-                "expected": "领取",
-                "only_rec": true,
+                "template": [
+                    "Awards/WarRoom/Claim.png",
+                    "Awards/WarRoom/ClaimAll.png"
+                ],
+                "threshold": 0.8,
                 "roi": [
-                    1166,
-                    154,
-                    71,
-                    35
+                    1138,
+                    129,
+                    124,
+                    100
                 ]
             }
         },

@@ -392,22 +392,18 @@
                             }
                         }
                     },
-                    "ActivityTargetLevelClick": {
-                        "action": {
-                            "param": {
-                                "custom_action_param": {
-                                    "clicks": [
-                                        [
-                                            912,
-                                            584
-                                        ],
-                                        [
-                                            1211,
-                                            585
-                                        ]
-                                    ]
-                                }
-                            }
+                    "ActivityTargetLevel": {
+                        "attach": {
+                            "clicks": [
+                                [
+                                    912,
+                                    584
+                                ],
+                                [
+                                    1211,
+                                    585
+                                ]
+                            ]
                         }
                     },
                     "ActivityTargetLevelRec": {
@@ -523,22 +519,18 @@
                             }
                         }
                     },
-                    "ActivityTargetLevelClick": {
-                        "action": {
-                            "param": {
-                                "custom_action_param": {
-                                    "clicks": [
-                                        [
-                                            912,
-                                            584
-                                        ],
-                                        [
-                                            1211,
-                                            585
-                                        ]
-                                    ]
-                                }
-                            }
+                    "ActivityTargetLevel": {
+                        "attach": {
+                            "clicks": [
+                                [
+                                    912,
+                                    584
+                                ],
+                                [
+                                    1211,
+                                    585
+                                ]
+                            ]
                         }
                     },
                     "ActivityTargetLevelRec": {
@@ -568,6 +560,8 @@
                 }
             },
             "re-release": {
+                "name": "唐人街影话",
+                "alias": "唐人街",
                 "start_time": 1771534800000,
                 "end_time": 1772398799000,
                 "override": {

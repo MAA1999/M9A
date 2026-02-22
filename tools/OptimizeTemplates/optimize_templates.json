@@ -171,7 +171,7 @@
     "resource/base/image/CritterCrash/Spirit": "a36c80bae26f740a2931b17fdfafb89d479a602e2ae0d3b203aaf012358bfc66",
     "resource/base/image/CritterCrash/20": "a83f0958a6c8790cff8e370f5d3eae6a288cf5a299ab2745d0b9993377714186",
     "resource/base/image/CritterCrash/SelectPeople": "67fdce420d015915b83373ec28a671e722988d5ae186a51c77f506dd842346d2",
-    "resource/base/image/CritterCrash/Achievement": "07cacbc7e2368cfd4bb31532266bdf7f7f59b1058aa0764609c8e991f316bcb3",
+    "resource/base/image/CritterCrash/Achievement": "5461e1776a9b6515f41cc47559d0f36c2936e16baa2bea2b35b6253d91a6c071",
     "resource/base/image/CritterCrash/ObtainAwards": "2568e7034c88c4b57b9dbb8abbb10d1a82a52727286c52047b87c703ad56fcc9",
     "resource/base/image/CritterCrash/Blank/ClickBlank2": "6d11240dc60fe659606ff287138bacd99443fe871d377ad431bec6ddc83034a5",
     "resource/base/image/CritterCrash/Blank/ClickBlank": "632941751e1f704fd8b54085e42d4d9f69cc8c399e57a200be68fb770805cddc",
@@ -465,5 +465,17 @@
     "resource/base/image/Wilderness/EnterWilderness3.4": "fd1713f78cfabcf9cef6cc042c389910868525856bfe458dce7d7278fbf2ab75",
     "resource/base/image/Bank/Bank3.4": "a807b8a82b1ef80e0d675a5d5f3a46d74b757cbe0370dfc8b919f0968d580d2c",
     "resource/base/image/StartUp/HomeFlag3.4": "fabe5ae48cb0f5b7a4b324a45b62affdb74f1b45185486979efdc3f7081ad923",
-    "resource/base/image/Awards/DailyBadges/DailyBadge3.4_4": "e7d8827d724f6bf84951268420e86ffca0087fc6e9c9df03c4232578430add6a"
+    "resource/base/image/Awards/DailyBadges/DailyBadge3.4_4": "e7d8827d724f6bf84951268420e86ffca0087fc6e9c9df03c4232578430add6a",
+    "resource/base/image/Event/EventLaplaceBoxes": "cfe66a60acf66e150133e2171cdfd4bc52c8824964b60d84e5c0424a6bda7da6",
+    "resource/base/image/Event/EventLaplacePartyBabel": "269d94de225332e224af887f013ec08e68a8729342a4efb2ccab5fd23e2bddaa",
+    "resource/base/image/Event/EventLaplacePartyTarget": "fd4442de1050909d2e1c7f7832a36f1da3d87611715c0f9b75647991f3e53d4a",
+    "resource/base/image/Event/EventLaplace": "1da66625c83ba26c3d86fceeeddae63bb0553a2c170fe8d46e7ce2fcf58a58fa",
+    "resource/base/image/Event/EventLaplacePartyBabelClaim": "f8929d6c3a31311bebd59187f76b5d1236e1c90dbe1a13a1993485e7f4b5bb01",
+    "resource/base/image/Event/EventLaplaceFoxesClaim": "03ddebba60368eadbc563a59f671a4dd0005728454ac8a18c4f20c1d571ddf12",
+    "resource/base/image/Event/EventLaplaceParty": "22a4366fbaafdc511e43c83e46eb66bea1028bd181cdd88a817e14160dff46bb",
+    "resource/base/image/Awards/WarRoom/AwardWarRoom": "dc48b5705564dddac3ef38c37885961c2c903f7a493bba95bce37ad8c3349a11",
+    "resource/base/image/Awards/WarRoom/AwardWarRoomTelegram": "e9c1d4fd1759905de8db73388ad6a1244da5c6c471f5bce0bcd95c011c78ab30",
+    "resource/base/image/Awards/WarRoom/Claim": "b085913a62532c69c151ab5f0bf3c3bab0876a3c40ff24fa7c495163a3e9c45e",
+    "resource/base/image/Awards/WarRoom/AwardWarRoomTelegramScroll": "64e3513f2a843edced491fb727bfd75c4adce1204d4eda6d76f347aa059adbf2",
+    "resource/base/image/Awards/WarRoom/ClaimAll": "68869c4c104e132dc5380fd85e97a0d1f6a2a38cf0ce14ebc0bfb56a79a73026"
 }

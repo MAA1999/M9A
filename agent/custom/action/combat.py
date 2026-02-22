@@ -510,15 +510,10 @@ class ActivityTargetLevel(CustomAction):
         valid_levels = {"故事", "意外", "艰难"}
         level = json.loads(argv.custom_action_param)["level"]
 
-        node = context.get_node_data("ActivityTargetLevelClick")
+        node = context.get_node_data("ActivityTargetLevel")
         click = None
         if isinstance(node, dict):
-            click = (
-                node.get("action", {})
-                .get("param", {})
-                .get("custom_action_param", {})
-                .get("clicks")
-            )
+            click = node.get("attach", {}).get("clicks")
         if not click:
             click = [[945, 245], [1190, 245]]
 
