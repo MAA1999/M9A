@@ -46,7 +46,7 @@ icon: ri:guide-fill
         </tr>
         <tr>
             <th><div align="center">CLI (MaaPiCli)</div></th>
-            <th><div align="center">GUI (MFAAvalonia)</div></th>
+            <th><div align="center">GUI (MFAAvalonia/MXU)</div></th>
             <th><div align="center">CLI</div></th>
             <th><div align="center">GUI</div></th>
             <th><div align="center">CLI</div></th>
@@ -290,18 +290,18 @@ Can't change to `16:9` ratio when using the International Version PC client? Use
 
 ### 6. Getting Started
 
-M9A supports both command line (MaaPiCli) and graphical interface (MFAAvalonia), but before use, you need to extract the archive correctly and change the in-game display language to Simplified Chinese
+M9A supports both command line (MaaPiCli) and graphical interface (MFAAvalonia/MXU), but before use, you need to extract the archive correctly and change the in-game display language to Simplified Chinese
 
 > [!IMPORTANT]
 > Don't run the program directly from the compression software!
 
-For general users, it's recommended to use M9A through **MFAAvalonia**.
+For general users, it is recommended to use M9A via **MFAAvalonia** or **MXU**.
 
 #### Windows
 
 Confirm complete extraction and ensure M9A is extracted to an independent folder. Recommended extraction path like: `D:\M9A`. Except for closing the built-in administrator-approved Administrator account, please do not extract M9A to paths requiring UAC permissions such as `C:\`, `C:\Program Files\`, etc.
 
-- After extraction, run `MaaPiCli.exe` or `MFAAvalonia.exe`
+-After extraction, run `MaaPiCli.exe`, `MFAAvalonia.exe`, or `M9A.exe`.
 
 #### macOS
 
@@ -333,7 +333,7 @@ Confirm complete extraction and ensure M9A is extracted to an independent folder
     ./MaaPiCli
     ```
 
-If you want to use the **graphical interface**, follow step 2 but execute `MFAAvalonia` instead of `MaaPiCli`.
+If you want to use the **graphical interface**, follow step 2 and run the `MFAAvalonia` or `M9A.exe` program instead of `MaaPiCli`.
 
 ⚠️Gatekeeper security prompt handling:
 
@@ -359,7 +359,7 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
 
 #### Linux
 
-Same as macOS, download the corresponding version archive, extract and run `MaaPiCli` or `MFAAvalonia`.
+Same as macOS, download the corresponding version of the archive, extract it, and then run `MaaPiCli`, `MFAAvalonia`, or `M9A.exe`.
 
 ***
 
@@ -369,21 +369,28 @@ You can configure M9A according to your needs for a better user experience.
 
 Some configuration items may cause M9A to **run abnormally** when configured incorrectly or not configured, so it's recommended to read this section before starting to use.
 
-This chapter will mainly introduce how to configure M9A through the graphical interface (MFAAvalonia). If you are using the command line version (MaaPiCli), please refer to [MaaPiCli Operation Instructions](./cli.md).
+This chapter will mainly introduce how to configure M9A through the graphical interface (MFAAvalonia/MXU). If you are using the command line version (MaaPiCli), please refer to [MaaPiCli Operation Instructions](./cli.md).
 
 The following demonstrations are for reference only, please refer to the actual software situation.
 
 #### First Launch
 
 <details open>
-  <summary>MFA Main Interface Display</summary>
-  <p></p>
+  <summary>Main Interface Display</summary>
   <blockquote>
-    <img src="/images/en-us/newbie-main-interface.webp" alt="Main Interface">
+    <p>
+      <strong>MFA main interface:</strong><br>
+      <img src="/images/en-us/newbie-main-interface.webp" alt="MFA main interface" loading="lazy">
+    </p>
+    <p>
+      <strong>MXU main interface:</strong><br>
+      <img src="/images/en-us/newbie-mxu-main-interface.webp" alt="MXU main interface" loading="lazy">
+    </p>
   </blockquote>
 </details>
 
-In the main interface, you can see seven major sections: **`Resource Type`** **`Task List`** **`Task Settings`** **`Task Description`** **`Connection`** **`Log`** **`Live View`**.
+In the MFA main interface, you can see seven major sections: **`Resource Type`** **`Task List`** **`Task Settings`** **`Task Description`** **`Connection`** **`Log`** **`Live View`**.
+In the MXU main interface, you can see five main sections: **`Task List`** **`Task Management`** **`Connection Settings`** **`Live View`** **`Run Log`**.
 
 > [!CAUTION]
 > When starting MFA for the first time, M9A will initialize. After the `Log` section shows "**AgentServer Started**" until you see "**All tasks completed**", please do not click `Stop Tasks`.
@@ -538,15 +545,13 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
 
   M9A requires correct ADB connection to execute tasks on the **target** emulator. In most cases, you only need to keep only the target emulator running and click "Refresh" to complete the connection. If you need to manually configure ADB parameters, please refer to [Connection Settings](./connection.md).
 
-  <details>
-    <summary>Illustration</summary>
-    <p></p>
+<details>
+    <summary>Schematic Diagram</summary>
     <blockquote>
-      <ul>
-        <img src="/images/en-us/newbie-main-interface-connection.webp" alt="image_440">
-      </ul>
+        <p>MFA diagram:<br><img src="/images/en-us/newbie-main-interface-connection.webp" alt="MFA connection diagram"></p>
+        <p>MXU diagram:<br><img src="/images/en-us/newbie-mxu-main-interface-connection.webp" alt="MXU connection diagram"></p>
     </blockquote>
-  </details>
+</details>
 
   <details open>
     <summary>Details</summary>
@@ -573,19 +578,24 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
   </details>
 
 When using the International Server PC client, select PC in the **Controller Type** section of the connection area to automatically detect and connect to an open PC client window.
+
+<details>
+  <summary>Schematic Diagram</summary>
+  <blockquote>
+    <p>
+      <strong>MFA connection diagram:</strong><br>
+      <img src="/images/en-us/newbie-main-interface-connection-pc.webp" alt="MFA connection diagram (PC version)" loading="lazy">
+    </p>
+    <p>
+      <strong>MXU connection diagram:</strong><br>
+      <img src="/images/en-us/newbie-mxu-main-interface-connection-pc.webp" alt="MXU connection diagram (PC version)" loading="lazy">
+    </p>
+  </blockquote>
+</details>
+
 > [!WARNING]
 >
 > When connecting to a PC, run M9A in **administrator mode**, and **do not minimize the game window**!
-
-  <details>
-    <summary>Illustration</summary>
-    <p></p>
-    <blockquote>
-      <ul>
-        <img src="/images/en-us/newbie-main-interface-connection-pc.webp" alt="connection-pc">
-      </ul>
-    </blockquote>
-  </details>
 
 For Mac users using PlayCover, select PlayCover in the **Controller Type** section of the connection area. For details, please refer to [PlayCover Usage](https://docs.maa.plus/en-us/manual/device/macos.html#apple-silicon-chips).
 
@@ -603,29 +613,45 @@ For Mac users using PlayCover, select PlayCover in the **Controller Type** secti
 
 **`Task List`**
 
-  <details>
-    <summary>Illustration</summary>
-    <p></p>
+<details>
+    <summary>Schematic Diagram</summary>
     <blockquote>
-      <ul>
-        <img src="/images/en-us/newbie-main-interface-task-lists.webp" alt="image_441">
-      </ul>
+        <p>
+            <strong>MFA task list diagram:</strong><br>
+            <img src="/images/en-us/newbie-main-interface-task-lists.webp" alt="MFA task list interface" loading="lazy">
+        </p>
+        <p>
+            <strong>MXU task list diagram:</strong><br>
+            <img src="/images/en-us/newbie-mxu-main-interface-task-lists.webp" alt="MXU task list interface" loading="lazy">
+        </p>
     </blockquote>
-  </details>
+</details>
 
-  <details open>
+<details open>
     <summary>Details</summary>
-    <p></p>
     <blockquote>
-      <ul>
-        <li>The checkbox before the task name is used to enable/disable tasks</li>
-        <li>Right-clicking the checkbox will execute that task once</li>
-        <li>Click the add task button in the upper right corner to add tasks not visible in the current list or repeatedly add existing tasks</li>
-        <li>Click the button to the right of the task to view <b>Task Settings</b> and <b>Task Description</b></li>
-        <li>Drag task names to adjust task order</li>
-      </ul>
+        <details open>
+            <summary>How to Use the MFA Task List</summary>
+            <ul>
+                <li>The checkbox before the task name enables/disables the task.</li>
+                <li>Right-click the checkbox to run the task once.</li>
+                <li>Click the Add Task button in the top right corner to add tasks not currently visible in the list or to duplicate existing tasks.</li>
+                <li>Click the button on the right side of a task to view <b>Task Settings</b> and <b>Task Description</b>.</li>
+                <li>Drag the task name to reorder tasks.</li>
+            </ul>
+        </details>
+        <details open>
+            <summary>How to Use the MXU Task List</summary>
+            <ul>
+                <li>The checkbox before the task name enables/disables the task.</li>
+                <li>Click the Add Task button in the bottom left corner to add tasks not currently visible in the list or to duplicate existing tasks.</li>
+                <li>Right-click a task to open the management menu.</li>
+                <li>Left-click a task to expand task options and view <b>Task Settings</b> and <b>Task Description</b>.</li>
+                <li>Press and hold the button on the left side of a task to drag and reorder tasks.</li>
+            </ul>
+        </details>
     </blockquote>
-  </details>
+</details>
 
 >[!IMPORTANT]
 >
