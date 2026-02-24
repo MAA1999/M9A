@@ -546,13 +546,13 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
 
   M9A 需正确的 ADB 连接才能在**目标**模拟器执行任务。绝大多数情况下，您只需保持有且仅有目标模拟器启动，点击“刷新”即可完成连接。如需手动配置 ADB 参数，请参考 [连接设置](./connection.md)。
 
-<details>
+  <details>
     <summary>示意图</summary>
     <blockquote>
         <p>MFA示意图：<br><img src="/images/zh-cn/newbie-main-interface-connection.webp" alt="MFA连接示意图"></p>
         <p>MXU示意图：<br><img src="/images/zh-cn/newbie-mxu-main-interface-connection.webp" alt="MXU连接示意图"></p>
     </blockquote>
-</details>
+  </details>
 
   <details open>
     <summary>详情</summary>
@@ -580,19 +580,19 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
   
 当您使用国际服 PC 端时，在连接区域的**控制器类型**中选择 PC 即可自动检测并连接已打开的 PC 端窗口。  
 
-<details>
-  <summary>示意图</summary>
-  <blockquote>
-    <p>
-      <strong>MFA连接示意图：</strong><br>
-      <img src="/images/zh-cn/newbie-main-interface-connection-pc.webp" alt="MFA连接示意图（PC端）" loading="lazy">
-    </p>
-    <p>
-      <strong>MXU连接示意图：</strong><br>
-      <img src="/images/zh-cn/newbie-mxu-main-interface-connection-pc.webp" alt="MXU连接示意图（PC端）" loading="lazy">
-    </p>
-  </blockquote>
-</details>
+  <details>
+    <summary>示意图</summary>
+    <blockquote>
+      <p>
+        <strong>MFA连接示意图：</strong><br>
+        <img src="/images/zh-cn/newbie-main-interface-connection-pc.webp" alt="MFA连接示意图（PC端）" loading="lazy">
+      </p>
+      <p>
+        <strong>MXU连接示意图：</strong><br>
+        <img src="/images/zh-cn/newbie-mxu-main-interface-connection-pc.webp" alt="MXU连接示意图（PC端）" loading="lazy">
+      </p>
+    </blockquote>
+  </details>
 
 > [!WARNING]
 >
@@ -600,7 +600,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
 
 Mac 用户使用 PlayCover 时，在连接区域的**控制器类型**中选择 PlayCover ，详情请参考 [PlayCover使用](https://maa.plus/docs/zh-cn/manual/device/macos.html#apple-silicon-%E8%8A%AF%E7%89%87)。
 
-<details>
+  <details>
     <summary>示意图</summary>
     <p></p>
     <blockquote>
@@ -614,7 +614,7 @@ Mac 用户使用 PlayCover 时，在连接区域的**控制器类型**中选择 
 
 **`任务列表`**
 
-<details>
+  <details>
     <summary>示意图</summary>
     <blockquote>
         <p>
@@ -626,9 +626,9 @@ Mac 用户使用 PlayCover 时，在连接区域的**控制器类型**中选择 
             <img src="/images/zh-cn/newbie-mxu-main-interface-task-lists.webp" alt="MXU任务列表界面" loading="lazy">
         </p>
     </blockquote>
-</details>
+  </details>
 
-<details open>
+  <details open>
     <summary>详情</summary>
     <blockquote>
         <details open>
@@ -652,7 +652,7 @@ Mac 用户使用 PlayCover 时，在连接区域的**控制器类型**中选择 
             </ul>
         </details>
     </blockquote>
-</details>
+  </details>
 
 >[!IMPORTANT]
 >

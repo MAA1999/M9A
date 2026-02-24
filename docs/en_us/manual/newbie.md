@@ -545,13 +545,13 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
 
   M9A requires correct ADB connection to execute tasks on the **target** emulator. In most cases, you only need to keep only the target emulator running and click "Refresh" to complete the connection. If you need to manually configure ADB parameters, please refer to [Connection Settings](./connection.md).
 
-<details>
+  <details>
     <summary>Schematic Diagram</summary>
     <blockquote>
         <p>MFA diagram:<br><img src="/images/en-us/newbie-main-interface-connection.webp" alt="MFA connection diagram"></p>
         <p>MXU diagram:<br><img src="/images/en-us/newbie-mxu-main-interface-connection.webp" alt="MXU connection diagram"></p>
     </blockquote>
-</details>
+  </details>
 
   <details open>
     <summary>Details</summary>
@@ -579,19 +579,19 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
 
 When using the International Server PC client, select PC in the **Controller Type** section of the connection area to automatically detect and connect to an open PC client window.
 
-<details>
-  <summary>Schematic Diagram</summary>
-  <blockquote>
-    <p>
-      <strong>MFA connection diagram:</strong><br>
-      <img src="/images/en-us/newbie-main-interface-connection-pc.webp" alt="MFA connection diagram (PC version)" loading="lazy">
-    </p>
-    <p>
-      <strong>MXU connection diagram:</strong><br>
-      <img src="/images/en-us/newbie-mxu-main-interface-connection-pc.webp" alt="MXU connection diagram (PC version)" loading="lazy">
-    </p>
-  </blockquote>
-</details>
+  <details>
+    <summary>Schematic Diagram</summary>
+    <blockquote>
+      <p>
+        <strong>MFA connection diagram:</strong><br>
+        <img src="/images/en-us/newbie-main-interface-connection-pc.webp" alt="MFA connection diagram (PC version)" loading="lazy">
+      </p>
+      <p>
+        <strong>MXU connection diagram:</strong><br>
+        <img src="/images/en-us/newbie-mxu-main-interface-connection-pc.webp" alt="MXU connection diagram (PC version)" loading="lazy">
+      </p>
+    </blockquote>
+  </details>
 
 > [!WARNING]
 >
@@ -599,7 +599,7 @@ When using the International Server PC client, select PC in the **Controller Typ
 
 For Mac users using PlayCover, select PlayCover in the **Controller Type** section of the connection area. For details, please refer to [PlayCover Usage](https://docs.maa.plus/en-us/manual/device/macos.html#apple-silicon-chips).
 
-<details>
+  <details>
     <summary>Illustration</summary>
     <p></p>
     <blockquote>
@@ -613,7 +613,7 @@ For Mac users using PlayCover, select PlayCover in the **Controller Type** secti
 
 **`Task List`**
 
-<details>
+  <details>
     <summary>Schematic Diagram</summary>
     <blockquote>
         <p>
@@ -625,9 +625,9 @@ For Mac users using PlayCover, select PlayCover in the **Controller Type** secti
             <img src="/images/en-us/newbie-mxu-main-interface-task-lists.webp" alt="MXU task list interface" loading="lazy">
         </p>
     </blockquote>
-</details>
+  </details>
 
-<details open>
+  <details open>
     <summary>Details</summary>
     <blockquote>
         <details open>
@@ -651,7 +651,7 @@ For Mac users using PlayCover, select PlayCover in the **Controller Type** secti
             </ul>
         </details>
     </blockquote>
-</details>
+  </details>
 
 >[!IMPORTANT]
 >
