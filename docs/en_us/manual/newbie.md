@@ -301,7 +301,7 @@ For general users, it is recommended to use M9A via **MFAAvalonia** or **MXU**.
 
 Confirm complete extraction and ensure M9A is extracted to an independent folder. Recommended extraction path like: `D:\M9A`. Except for closing the built-in administrator-approved Administrator account, please do not extract M9A to paths requiring UAC permissions such as `C:\`, `C:\Program Files\`, etc.
 
--After extraction, run `MaaPiCli.exe`, `MFAAvalonia.exe`, or `M9A.exe`.
+- After extraction, run `MaaPiCli.exe`, `MFAAvalonia.exe`, or `M9A.exe`.
 
 #### macOS
 
