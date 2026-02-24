@@ -360,7 +360,7 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
 
 #### Linux
 
-同macOS，下载对应版本的压缩包，解压后运行 `MaaPiCli` ， `MFAAvalonia` 或 `M9A.exe` 即可。
+同macOS，下载对应版本的压缩包，解压后运行 `MaaPiCli` ， `MFAAvalonia` 或 `M9A` 即可。
 
 ***
 

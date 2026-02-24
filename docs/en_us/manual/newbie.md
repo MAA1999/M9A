@@ -359,7 +359,7 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
 
 #### Linux
 
-Same as macOS, download the corresponding version of the archive, extract it, and then run `MaaPiCli`, `MFAAvalonia`, or `M9A.exe`.
+Same as macOS, download the corresponding version of the archive, extract it, and then run `MaaPiCli`, `MFAAvalonia`, or `M9A`.
 
 ***
 
