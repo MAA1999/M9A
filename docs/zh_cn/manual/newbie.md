@@ -334,7 +334,7 @@ M9A 支持通过命令行（MaaPiCli）和图形化界面（MFAAvalonia/MXU）�
     ./MaaPiCli
     ```
 
-若想使用**图形操作页面**请按第二步操作，由执行 `MaaPiCli` 改为执行 `MFAAvalonia` 或 `M9A.exe` 程序。
+若想使用**图形操作页面**请按第二步操作，由执行 `MaaPiCli` 改为执行 `MFAAvalonia` 或 `M9A` 程序。
 
 ⚠️Gatekeeper 安全提示处理：
 

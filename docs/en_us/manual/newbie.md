@@ -333,7 +333,7 @@ Confirm complete extraction and ensure M9A is extracted to an independent folder
     ./MaaPiCli
     ```
 
-If you want to use the **graphical interface**, follow step 2 and run the `MFAAvalonia` or `M9A.exe` program instead of `MaaPiCli`.
+If you want to use the **graphical interface**, follow step 2 and run the `MFAAvalonia` or `M9A` program instead of `MaaPiCli`.
 
 ⚠️Gatekeeper security prompt handling:
 
