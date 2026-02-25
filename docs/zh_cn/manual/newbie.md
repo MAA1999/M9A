@@ -37,43 +37,49 @@ icon: ri:guide-fill
 <div align="center">
 
 <table>
-    <thead>
-        <tr>
-            <th rowspan="2"><div align="center">启动方式</div></th>
-            <th colspan="2"><div align="center">Windows</div></th>
-            <th colspan="2"><div align="center">macOS</div></th>
-            <th colspan="2"><div align="center">Linux</div></th>
-        </tr>
-        <tr>
-            <th><div align="center">命令行（MaaPiCli）</div></th>
-            <th><div align="center">图形界面（MFAAvalonia/MXU）</div></th>
-            <th><div align="center">命令行</div></th>
-            <th><div align="center">图形界面</div></th>
-            <th><div align="center">命令行</div></th>
-            <th><div align="center">图形界面</div></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><div align="center">需安装<br>VCRedist</div></td>
-            <td colspan="2"><div align="center">点击 <a href="https://aka.ms/vs/17/release/vc_redist.x64.exe" target="_blank">vc_redist.x64</a> 下载或通过 winget 安装（详见下方）</div></td>
-            <td colspan="4"><div align="center">否</div></td>
-        </tr>
-        <tr>
-            <td><div align="center">需安装<br>.NET 10</div></td>
-            <td><div align="center">否</div></td>
-            <td><div align="center">前往 <a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/10.0" target="_blank">.NET 官方下载页面</a> 下载对应版本或<br>通过 winget 安装（详见下方）</div></td>
-            <td><div align="center">否</div></td>
-            <td><div align="center"> <a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/10.0" target="_blank">.NET 官方下载页面</a> </div></td>
-            <td><div align="center">否</div></td>
-            <td><div align="center">同 Mac</div></td>
-        </tr>
-        <tr>
-            <td><div align="center">需安装<br>Python</div></td>
-            <td colspan="4"><div align="center">压缩包自带，无需其他操作</div></td>
-            <td colspan="2"><div align="center">3.10≤python<3.14</div></td>
-        </tr>
-    </tbody>
+  <thead>
+    <tr>
+        <th rowspan="2"><div align="center">启动方式</div></th>
+        <th colspan="3"><div align="center">Windows</div></th>
+        <th colspan="3"><div align="center">macOS</div></th>
+        <th colspan="3"><div align="center">Linux</div></th>
+    </tr>
+    <tr>
+        <th><div align="center">命令行（MaaPiCli）</div></th>
+        <th><div align="center">图形界面（MFAAvalonia）</div></th>
+        <th><div align="center">图形界面（MXU）</div></th>
+        <th><div align="center">命令行</div></th>
+        <th><div align="center">图形界面</div></th>
+        <th><div align="center">图形界面（MXU）</div></th>
+        <th><div align="center">命令行</div></th>
+        <th><div align="center">图形界面</div></th>
+        <th><div align="center">图形界面（MXU）</div></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+        <td><div align="center">需安装<br>VCRedist</div></td>
+        <td colspan="2"><div align="center">点击 <a href="https://aka.ms/vs/17/release/vc_redist.x64.exe" target="_blank">vc_redist.x64</a> 下载或通过 winget 安装（详见下方）</div></td>
+        <td colspan="4"><div align="center">否</div></td>
+    </tr>
+    <tr>
+        <td><div align="center">需安装<br>.NET 10</div></td>
+        <td><div align="center">否</div></td>
+        <td><div align="center">前往 <a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/10.0" target="_blank">.NET 官方下载页面</a> 下载对应版本或<br>通过 winget 安装（详见下方）</div></td>
+        <td><div align="center">否</div></td>
+        <td><div align="center">否</div></td>
+        <td><div align="center"><a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/10.0" target="_blank">.NET 官方下载页面</a></div></td>
+        <td><div align="center">否</div></td>
+        <td><div align="center">否</div></td>
+        <td><div align="center">同 Mac</div></td>
+        <td><div align="center">否</div></td>
+    </tr>
+    <tr>
+       <td><div align="center">需安装<br>Python</div></td>
+        <td colspan="6"><div align="center">压缩包自带，无需其他操作</div></td>
+        <td colspan="3"><div align="center">需要 Python 3.10 ≤ version < 3.14</div></td>
+    </tr>
+  </tbody>
 </table>
 
 </div>

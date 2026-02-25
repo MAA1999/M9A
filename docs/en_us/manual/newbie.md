@@ -37,43 +37,49 @@ icon: ri:guide-fill
 <div align="center">
 
 <table>
-    <thead>
-        <tr>
-            <th rowspan="2"><div align="center">Launch Method</div></th>
-            <th colspan="2"><div align="center">Windows</div></th>
-            <th colspan="2"><div align="center">macOS</div></th>
-            <th colspan="2"><div align="center">Linux</div></th>
-        </tr>
-        <tr>
-            <th><div align="center">CLI (MaaPiCli)</div></th>
-            <th><div align="center">GUI (MFAAvalonia/MXU)</div></th>
-            <th><div align="center">CLI</div></th>
-            <th><div align="center">GUI</div></th>
-            <th><div align="center">CLI</div></th>
-            <th><div align="center">GUI</div></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><div align="center">Install<br>VCRedist Required</div></td>
-            <td colspan="2"><div align="center">Click <a href="https://aka.ms/vs/17/release/vc_redist.x64.exe" target="_blank">vc_redist.x64</a> to download or install via winget (see below)</div></td>
-            <td colspan="4"><div align="center">No</div></td>
-        </tr>
-        <tr>
-            <td><div align="center">Install<br>.NET 10 Required</div></td>
-            <td><div align="center">No</div></td>
-            <td><div align="center">Go to <a href="https://dotnet.microsoft.com/download/dotnet/10.0" target="_blank">.NET official download page</a> to download the corresponding version or<br>install via winget (see below)</div></td>
-            <td><div align="center">No</div></td>
-            <td><div align="center"><a href="https://dotnet.microsoft.com/download/dotnet/10.0" target="_blank">.NET official download page</a></div></td>
-            <td><div align="center">No</div></td>
-            <td><div align="center">Same as Mac</div></td>
-        </tr>
-        <tr>
-            <td><div align="center">Install<br>Python Required</div></td>
-            <td colspan="4"><div align="center">Included in package, no other operations needed</div></td>
-            <td colspan="2"><div align="center">3.10≤python<3.14</div></td>
-        </tr>
-    </tbody>
+  <thead>
+    <tr>
+        <th rowspan="2"><div align="center">Launch Method</div></th>
+        <th colspan="3"><div align="center">Windows</div></th>
+        <th colspan="3"><div align="center">macOS</div></th>
+        <th colspan="3"><div align="center">Linux</div></th>
+    </tr>
+    <tr>
+        <th><div align="center">CLI (MaaPiCli)</div></th>
+        <th><div align="center">GUI (MFAAvalonia)</div></th>
+        <th><div align="center">GUI (MXU)</div></th>
+        <th><div align="center">CLI</div></th>
+        <th><div align="center">GUI</div></th>
+        <th><div align="center">GUI (MXU)</div></th>
+        <th><div align="center">CLI</div></th>
+        <th><div align="center">GUI</div></th>
+        <th><div align="center">GUI (MXU)</div></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+        <td><div align="center">Requires<br>VCRedist</div></td>
+        <td colspan="2"><div align="center">Download from <a href="https://aka.ms/vs/17/release/vc_redist.x64.exe" target="_blank">vc_redist.x64</a> or install via winget (see below)</div></td>
+        <td colspan="4"><div align="center">No</div></td>
+    </tr>
+    <tr>
+        <td><div align="center">Requires<br>.NET 10</div></td>
+        <td><div align="center">No</div></td>
+        <td><div align="center">Go to the <a href="https://dotnet.microsoft.com/en-us/download/dotnet/10.0" target="_blank">official .NET download page</a> to download the appropriate version or install via winget (see below)</div></td>
+        <td><div align="center">No</div></td>
+        <td><div align="center">No</div></td>
+        <td><div align="center"><a href="https://dotnet.microsoft.com/en-us/download/dotnet/10.0" target="_blank">Official .NET download page</a></div></td>
+        <td><div align="center">No</div></td>
+        <td><div align="center">No</div></td>
+        <td><div align="center">Same as Mac</div></td>
+        <td><div align="center">No</div></td>
+    </tr>
+    <tr>
+       <td><div align="center">Requires<br>Python</div></td>
+        <td colspan="6"><div align="center">The archive comes with it, no additional steps required</div></td>
+        <td colspan="3"><div align="center">Requires Python 3.10 ≤ version < 3.14</div></td>
+    </tr>
+  </tbody>
 </table>
 
 </div>
