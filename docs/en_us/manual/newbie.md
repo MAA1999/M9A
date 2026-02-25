@@ -102,7 +102,7 @@ Windows users **must install VCRedist x64**: This is the basic requirement for r
 
 #### 2. .NET 10
 
-All users using GUI need to download and install .NET 10 suitable for your system.
+All users of the **MFA** graphical interface need to download and install **.NET 10** suitable for your system.
 
 <details>
   <summary>Detailed Installation Methods</summary>
