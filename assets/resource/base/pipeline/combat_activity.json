@@ -45,10 +45,18 @@
                 "expected": "预告"
             }
         },
+        "on_error": [
+            "FlagInActivityMainError"
+        ],
         "next": [
             "JudgeDuringRe_release",
             "ActivityMainChapter"
         ]
+    },
+    "FlagInActivityMainError": {
+        "focus": {
+            "Node.Action.Starting": "err:未识别到活动界面，请检查资源类型是否正确"
+        }
     },
     "EnterTheActivityMain": {
         "doc": "进入当期活动主界面",
@@ -110,12 +118,20 @@
         "action": {
             "type": "Click"
         },
+        "on_error": [
+            "ActivityMainChapterError"
+        ],
         "post_delay": 2000,
         "next": [
             "FlagInActivityStage",
             "ActivityMainChapter",
             "[JumpBack]ActivityClickCurStage"
         ]
+    },
+    "ActivityMainChapterError": {
+        "focus": {
+            "Node.Action.Starting": "err:未识别到活动章节入口，请检查资源类型是否正确"
+        }
     },
     "FlagInActivityStage": {
         "recognition": {
