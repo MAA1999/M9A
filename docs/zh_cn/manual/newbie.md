@@ -59,8 +59,8 @@ icon: ri:guide-fill
   <tbody>
     <tr>
         <td><div align="center">需安装<br>VCRedist</div></td>
-        <td colspan="2"><div align="center">点击 <a href="https://aka.ms/vs/17/release/vc_redist.x64.exe" target="_blank">vc_redist.x64</a> 下载或通过 winget 安装（详见下方）</div></td>
-        <td colspan="4"><div align="center">否</div></td>
+        <td colspan="3"><div align="center">点击 <a href="https://aka.ms/vs/17/release/vc_redist.x64.exe" target="_blank">vc_redist.x64</a> 下载或通过 winget 安装（详见下方）</div></td>
+        <td colspan="6"><div align="center">否</div></td>
     </tr>
     <tr>
         <td><div align="center">需安装<br>.NET 10</div></td>

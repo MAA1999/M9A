@@ -59,8 +59,8 @@ icon: ri:guide-fill
   <tbody>
     <tr>
         <td><div align="center">Requires<br>VCRedist</div></td>
-        <td colspan="2"><div align="center">Download from <a href="https://aka.ms/vs/17/release/vc_redist.x64.exe" target="_blank">vc_redist.x64</a> or install via winget (see below)</div></td>
-        <td colspan="4"><div align="center">No</div></td>
+        <td colspan="3"><div align="center">Download from <a href="https://aka.ms/vs/17/release/vc_redist.x64.exe" target="_blank">vc_redist.x64</a> or install via winget (see below)</div></td>
+        <td colspan="6"><div align="center">No</div></td>
     </tr>
     <tr>
         <td><div align="center">Requires<br>.NET 10</div></td>
