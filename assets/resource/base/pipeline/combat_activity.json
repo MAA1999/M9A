@@ -26,11 +26,19 @@
                 "custom_action": "CombatActivityOverride"
             }
         },
+        "on_error": [
+            "CombatActivityOverrideError"
+        ],
         "next": [
             "FlagInActivityMain",
             "[JumpBack]EnterTheActivityMain",
             "[JumpBack]ReturnMain"
         ]
+    },
+    "CombatActivityOverrideError": {
+        "focus": {
+            "Node.Action.Starting": "err:未能进入活动界面，请检查资源类型是否正确"
+        }
     },
     "FlagInActivityMain": {
         "recognition": {
@@ -336,10 +344,18 @@
         "action": {
             "type": "Click"
         },
+        "on_error": [
+            "ActivityRe_releaseChapterError"
+        ],
         "post_delay": 3000,
         "next": [
             "ActivityMainChapter"
         ]
+    },
+    "ActivityRe_releaseChapterError": {
+        "focus": {
+            "Node.Action.Starting": "err:未识别到复刻活动章节，请检查资源类型是否正确"
+        }
     },
     "ActivityLeftList": {
         "recognition": {
