@@ -46,13 +46,13 @@ icon: ri:guide-fill
     </tr>
     <tr>
         <th><div align="center">CLI (MaaPiCli)</div></th>
-        <th><div align="center">GUI (MFAAvalonia)</div></th>
+        <th><div align="center">GUI (MFAA)</div></th>
         <th><div align="center">GUI (MXU)</div></th>
         <th><div align="center">CLI</div></th>
-        <th><div align="center">GUI</div></th>
+        <th><div align="center">GUI (MFAA)</div></th>
         <th><div align="center">GUI (MXU)</div></th>
         <th><div align="center">CLI</div></th>
-        <th><div align="center">GUI</div></th>
+        <th><div align="center">GUI (MFAA)</div></th>
         <th><div align="center">GUI (MXU)</div></th>
     </tr>
   </thead>

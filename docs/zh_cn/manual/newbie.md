@@ -46,13 +46,13 @@ icon: ri:guide-fill
     </tr>
     <tr>
         <th><div align="center">命令行（MaaPiCli）</div></th>
-        <th><div align="center">图形界面（MFAAvalonia）</div></th>
+        <th><div align="center">图形界面（MFAA）</div></th>
         <th><div align="center">图形界面（MXU）</div></th>
         <th><div align="center">命令行</div></th>
-        <th><div align="center">图形界面</div></th>
+        <th><div align="center">图形界面（MFAA）</div></th>
         <th><div align="center">图形界面（MXU）</div></th>
         <th><div align="center">命令行</div></th>
-        <th><div align="center">图形界面</div></th>
+        <th><div align="center">图形界面（MFAA）</div></th>
         <th><div align="center">图形界面（MXU）</div></th>
     </tr>
   </thead>
