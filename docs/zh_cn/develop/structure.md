@@ -21,8 +21,7 @@ icon: hugeicons:structure-01
 |-- assets/                       # 资源文件目录
 |   |-- MaaCommonAssets/          # MAA 公共资源（子模块）
 |   |-- resource/                 # 项目资源文件
-|   |-- interface.json            # MaaFramework 标准化项目结构声明
-|   `-- interface_cli.json        # 命令行接口配置
+|   `-- interface.json            # MaaFramework 标准化项目结构声明
 |-- deps/                         # MaaFramework 依赖库，存放 schema 的地方
 |-- docs/                         # 文档目录
 |   |-- en_us/                    # 英文文档

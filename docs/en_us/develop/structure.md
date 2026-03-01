@@ -21,8 +21,7 @@ icon: hugeicons:structure-01
 |-- assets/                       # Resource files directory
 |   |-- MaaCommonAssets/          # MAA common resources (submodule)
 |   |-- resource/                 # Project resource files
-|   |-- interface.json            # MaaFramework standardized project structure declaration
-|   `-- interface_cli.json        # Command-line interface configuration
+|   `-- interface.json            # MaaFramework standardized project structure declaration
 |-- deps/                         # MaaFramework dependency libraries, where schemas are stored
 |-- docs/                         # Documentation directory
 |   |-- en_us/                    # English documentation
