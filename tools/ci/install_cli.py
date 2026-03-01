@@ -19,8 +19,6 @@ version = len(sys.argv) > 1 and sys.argv[1] or "v0.0.1"
 
 def strip_html_tags(text: str) -> str:
     """移除字符串中的 HTML 标签，将 <br> 转换为换行符"""
-    if not isinstance(text, str):
-        return text
     # 将 <br> 和 <br/> 转换为换行符
     text = re.sub(r"<br\s*/?>", "\n", text, flags=re.IGNORECASE)
     # 移除所有其他 HTML 标签
@@ -28,18 +26,18 @@ def strip_html_tags(text: str) -> str:
     return text
 
 
-def strip_html_from_interface(interface: dict) -> dict:
-    """递归处理 interface 中所有 description 字段，移除 HTML 标签"""
-    if isinstance(interface, dict):
-        for key, value in interface.items():
+def strip_html_from_interface(obj: dict | list) -> None:
+    """递归处理 interface 中所有 description 字段，移除 HTML 标签（就地修改）"""
+    if isinstance(obj, dict):
+        for key, value in obj.items():
             if key == "description" and isinstance(value, str):
-                interface[key] = strip_html_tags(value)
+                obj[key] = strip_html_tags(value)
             elif isinstance(value, (dict, list)):
                 strip_html_from_interface(value)
-    elif isinstance(interface, list):
-        for item in interface:
-            strip_html_from_interface(item)
-    return interface
+    elif isinstance(obj, list):
+        for item in obj:
+            if isinstance(item, (dict, list)):
+                strip_html_from_interface(item)
 
 
 def install_deps():
