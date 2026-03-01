@@ -33,7 +33,6 @@ jobs:
       - name: Run maa-checker
         run: |
           npx @nekosu/maa-checker@latest ./assets/interface.json --github=.
-          npx @nekosu/maa-checker@latest ./assets/interface_cli.json --github=.
 
       # Install maafw: dynamically read version/spec from requirements.txt and install that
       - name: Install maafw (from requirements.txt)
@@ -54,4 +53,4 @@ jobs:
       - name: Validate JSON Schema
         run: |
           python -m pip install jsonschema==4.26.0 referencing==0.37.0
-          python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource --exclude-dirs assets/resource/announcement assets/resource/data --interface-files assets/interface.json assets/interface_cli.json
+          python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource --exclude-dirs assets/resource/announcement assets/resource/data --interface-files assets/interface.json

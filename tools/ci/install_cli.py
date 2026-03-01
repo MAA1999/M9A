@@ -4,6 +4,7 @@ import shutil
 import sys
 import json
 import os
+import re
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(script_dir)
@@ -14,6 +15,31 @@ from generate_manifest_cache import generate_manifest_cache
 working_dir = Path(__file__).parent.parent.parent
 install_path = working_dir / Path("install-cli")
 version = len(sys.argv) > 1 and sys.argv[1] or "v0.0.1"
+
+
+def strip_html_tags(text: str) -> str:
+    """移除字符串中的 HTML 标签，将 <br> 转换为换行符"""
+    if not isinstance(text, str):
+        return text
+    # 将 <br> 和 <br/> 转换为换行符
+    text = re.sub(r"<br\s*/?>", "\n", text, flags=re.IGNORECASE)
+    # 移除所有其他 HTML 标签
+    text = re.sub(r"<[^>]+>", "", text)
+    return text
+
+
+def strip_html_from_interface(interface: dict) -> dict:
+    """递归处理 interface 中所有 description 字段，移除 HTML 标签"""
+    if isinstance(interface, dict):
+        for key, value in interface.items():
+            if key == "description" and isinstance(value, str):
+                interface[key] = strip_html_tags(value)
+            elif isinstance(value, (dict, list)):
+                strip_html_from_interface(value)
+    elif isinstance(interface, list):
+        for item in interface:
+            strip_html_from_interface(item)
+    return interface
 
 
 def install_deps():
@@ -45,16 +71,14 @@ def install_resource():
         install_path / "resource",
         dirs_exist_ok=True,
     )
-    shutil.copy2(
-        working_dir / "assets" / "interface_cli.json",
-        install_path / "interface.json",
-    )
-
-    with open(install_path / "interface.json", "r", encoding="utf-8") as f:
+    with open(working_dir / "assets" / "interface.json", "r", encoding="utf-8") as f:
         interface = json.load(f)
 
     interface["version"] = version
     interface["title"] = f"M9A {version} | 亿韭韭韭小助手"
+
+    # CLI 版本需要移除 HTML 标签
+    strip_html_from_interface(interface)
 
     with open(install_path / "interface.json", "w", encoding="utf-8") as f:
         json.dump(interface, f, ensure_ascii=False, indent=4)
