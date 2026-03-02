@@ -42,4 +42,5 @@ __all__ = [
     "SOSSelectEncounterOption_OCR",
     "SOSSelectEncounterOption_HSV",
     "ResetEatCandyFlag",
+    "FrameArtAction"
 ]

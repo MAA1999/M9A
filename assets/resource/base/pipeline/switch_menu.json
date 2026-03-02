@@ -1,0 +1,216 @@
+{
+    "switch_menu": {
+        "next": [
+            "[JumpBack]ReturnMain",
+            "switch_menu_start"
+        ]
+    },
+    "switch_menu_start": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    35,
+                    202,
+                    91,
+                    366
+                ],
+                "template": "SwitchMenu/menu.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "switch_menu_main"
+        ]
+    },
+    "switch_menu_main": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    {
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "template": "SwitchMenu/switch_menu_buttom1.png",
+                                "roi": [
+                                    1155,
+                                    565,
+                                    60,
+                                    68
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "expected": [
+                                    "ID"
+                                ],
+                                "roi": [
+                                    86,
+                                    161,
+                                    31,
+                                    22
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    }
+                ],
+                "box_index": 0
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "screen_replacement",
+            "switch_menu_main"
+        ]
+    },
+    "screen_replacement": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    663,
+                    21,
+                    93,
+                    37
+                ],
+                "expected": "幕布更换"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "frame_art",
+            "screen_replacement"
+        ]
+    },
+    "frame_art": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    86,
+                    225,
+                    92,
+                    38
+                ],
+                "expected": "框架艺术",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "frame_art_action",
+            "frame_art"
+        ]
+    },
+    "frame_art_action": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "method": 4,
+                "roi": [
+                    71,
+                    241,
+                    6,
+                    5
+                ],
+                "lower": [
+                    211,
+                    95,
+                    39
+                ],
+                "upper": [
+                    231,
+                    115,
+                    59
+                ],
+                "count": 2,
+                "connected": true
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "FrameArtAction",
+                "custom_action_param": {
+                    "expected_text": "渐弱之心弦"
+                }
+            }
+        }
+    },
+    "frame_art_expected": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    74,
+                    542,
+                    234,
+                    54
+                ],
+                "expected": ""
+            }
+        }
+    },
+    "frame_art_switch": {
+        "next": [
+            "frame_art_switch_true",
+            "frame_art_switch_error"
+        ]
+    },
+    "frame_art_switch_true": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1103,
+                    648,
+                    61,
+                    28
+                ],
+                "expected": "更换"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "ReturnMain"
+        ]
+    },
+    "frame_art_switch_error": {
+        "doc": "未解锁",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1097,
+                    622,
+                    118,
+                    80
+                ],
+                "expected": [
+                    "未解锁",
+                    "获取",
+                    "装扮中"
+                ]
+            }
+        },
+        "next": [
+            "ReturnMain"
+        ]
+    }
+}
