@@ -3439,7 +3439,7 @@
             "label": "框架艺术",
             "cases": [
                 {
-                    "name": "手提箱制式",
+                    "name": "手提箱制式（默认）",
                     "pipeline_override": {
                         "frame_art_action": {
                             "action": {
