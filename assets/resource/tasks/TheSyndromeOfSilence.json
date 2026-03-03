@@ -1,0 +1,253 @@
+{
+    "task": [
+        {
+            "name": "局外演绎：无声综合征",
+            "entry": "TheSyndromeOfSilence",
+            "option": [
+                "战斗编队",
+                "携带好旅伴",
+                "难度选择",
+                "配器选择"
+            ],
+            "description": "<span style=\"color:darkgray;font-size:15px\">不再支持从游戏主页面启动，须手动到如下界面启动</span>![SOSMain](resource/announcement/images/SOSMain.png)<span style=\"color:darkgray;font-size:15px\">M9A不能检查是否处于自动战斗状态，请确定上一次使用的是自动战斗</span><br><span style=\"color:orange;font-size:15px\">⚠使用前请先至少手动打完第一层，更多详细说明请看文档</span>"
+        }
+    ],
+    "option": {
+        "战斗编队": {
+            "type": "select",
+            "label": "战斗编队",
+            "cases": [
+                {
+                    "name": "一",
+                    "pipeline_override": {
+                        "SOSTeamSelect": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "二",
+                    "pipeline_override": {
+                        "SOSTeamSelect": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "三",
+                    "pipeline_override": {
+                        "SOSTeamSelect": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 3
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "四",
+                    "pipeline_override": {
+                        "SOSTeamSelect": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 4
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "携带好旅伴": {
+            "type": "switch",
+            "label": "携带好旅伴",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {}
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "SOSMainMenu": {
+                            "next": [
+                                "SOSWordlessWorkshop",
+                                "[JumpBack]SOSConfirm",
+                                "[JumpBack]SOSStart"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "难度选择": {
+            "type": "select",
+            "label": "难度选择",
+            "cases": [
+                {
+                    "name": "当前",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 0
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "颤动 Ⅰ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "颤动 Ⅱ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "嗡鸣 Ⅰ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 3
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "嗡鸣 Ⅱ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 4
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "尖啸 Ⅰ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 5
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "尖啸 Ⅱ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 6
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "配器选择": {
+            "type": "select",
+            "label": "配器选择",
+            "cases": [
+                {
+                    "name": "管钟",
+                    "pipeline_override": {
+                        "SOSSelectInstrument": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "instrument": "管钟"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "拨弦",
+                    "pipeline_override": {
+                        "SOSSelectInstrument": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "instrument": "拨弦"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "乐鞭",
+                    "pipeline_override": {
+                        "SOSSelectInstrument": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "instrument": "乐鞭"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

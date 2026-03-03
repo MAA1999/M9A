@@ -1,0 +1,101 @@
+{
+    "task": [
+        {
+            "name": "活动刷取",
+            "entry": "CombatActivity",
+            "option": [
+                "复刻模式",
+                "活动难度",
+                "吃糖",
+                "自定义作战次数"
+            ],
+            "description": "主线版本时关闭复刻模式会直接跳过当前任务，如有刷取主线关卡需求请使用常规作战功能"
+        }
+    ],
+    "option": {
+        "复刻模式": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "CombatActivityOverride": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "mode": 0
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "CombatActivityOverride": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "mode": 1
+                                    }
+                                }
+                            }
+                        },
+                        "JudgeDuringRe_release": {
+                            "enabled": true
+                        }
+                    }
+                }
+            ],
+            "description": "开启后只尝试刷复刻活动，不开启尝试刷当期活动"
+        },
+        "活动难度": {
+            "type": "select",
+            "cases": [
+                {
+                    "name": "艰难",
+                    "pipeline_override": {
+                        "ActivityTargetLevel": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": "艰难"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "意外",
+                    "pipeline_override": {
+                        "ActivityTargetLevel": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": "意外"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "故事",
+                    "pipeline_override": {
+                        "ActivityTargetLevel": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": "故事"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

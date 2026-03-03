@@ -1,0 +1,80 @@
+{
+    "task": [
+        {
+            "name": "收取荒原",
+            "entry": "Wilderness",
+            "option": [
+                "好梦井",
+                "魔精收菜",
+                "交付订单"
+            ]
+        }
+    ],
+    "option": {
+        "好梦井": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EnterGoodDreamWell": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EnterGoodDreamWell": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "魔精收菜": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EnterProduct": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EnterProduct": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ],
+            "description": "不会换运输的魔精，无收益"
+        },
+        "交付订单": {
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EnterTrade": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EnterTrade": {
+                            "enabled": true
+                        }
+                    }
+                }
+            ],
+            "type": "switch",
+            "description": "交付魔精订单"
+        }
+    }
+}

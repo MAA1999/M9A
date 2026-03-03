@@ -1,0 +1,9 @@
+{
+    "task": [
+        {
+            "name": "切换账号",
+            "entry": "SwitchAccount",
+            "description": "<span style=\"color:tomato;font-size:15px\">本功能仅会切换至最后一个账号（超过3个的账号会被忽略）</span><br><span style=\"color:tomato;font-size:15px\">切换后可继续添加任务，以便多账号多配置运行任务</span><br><span style=\"color:tomato;font-size:15px\">目前该功能支持官服和b服，且建议使用该功能的用户将模拟器分辨率调至1280*720</span>"
+        }
+    ]
+}

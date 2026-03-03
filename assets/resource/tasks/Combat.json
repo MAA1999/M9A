@@ -1,0 +1,1317 @@
+{
+    "task": [
+        {
+            "name": "常规作战",
+            "entry": "Combat",
+            "option": [
+                "自定义作战关卡",
+                "吃糖",
+                "自定义作战次数",
+                "掉落统计上报"
+            ],
+            "description": "12章更新了，加了新材料，大家可以帮忙刷刷新关卡助力一图流更新，谢谢喵Thanks♪(･ω･)ﾉ<br>点击放大图片，仅限刷材料关卡<br>![bydjl](resource/announcement/images/mojing_tjb.png)"
+        }
+    ],
+    "option": {
+        "自定义作战关卡": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {},
+                    "option": [
+                        "关卡类型"
+                    ]
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {},
+                    "option": [
+                        "作战关卡(自定义)",
+                        "主线关卡难度"
+                    ]
+                }
+            ]
+        },
+        "关卡类型": {
+            "type": "select",
+            "label": "关卡类型",
+            "cases": [
+                {
+                    "name": "主线",
+                    "option": [
+                        "作战关卡(主线)"
+                    ]
+                },
+                {
+                    "name": "资源",
+                    "option": [
+                        "作战关卡(资源)"
+                    ]
+                },
+                {
+                    "name": "洞悉",
+                    "option": [
+                        "作战关卡(洞悉)"
+                    ]
+                }
+            ]
+        },
+        "作战关卡(主线)": {
+            "type": "select",
+            "label": "作战关卡",
+            "cases": [
+                {
+                    "name": "盒子(银光子弹)：5-19 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "5-19"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "盒子(床下怪物)：7-26 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "7-26"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "盒子：12-17 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "12-17"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "曼德拉(狂人絮语)：3-13 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "3-13"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "曼德拉：12-16 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "12-16"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "骨架：10-13 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-13"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "骨架：4-20 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "4-20"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "秘银：10-09 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-9"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "秘银(幼龙骨标本)：6-14 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "6-14"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "秘银：12-5 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "12-5"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "百灵鸟：2-6 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "2-6"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "百灵鸟：9-8 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-8"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "百灵鸟：12-7 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "12-7"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "钥匙(微光蛾翼灯)：9-15 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-15"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "钥匙：12-18 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "12-18"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "鹅颈：5-4 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "5-4"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "鹅颈(轮与轴之芯)：10-22 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-22"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "焚香：4-4 故事",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "4-4"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Story"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "焚香：8-18 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "8-18"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "泥板：9-1 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-1"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "泥板(翡翠石板)：12-21 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "12-21"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "灵摆：5-14 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "5-14"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "灵摆：7-20 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "7-20"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "甲虫：10-2 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-2"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "甲虫：3-15 故事",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "3-15"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Story"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "甲虫：12-11 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "12-11"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "彩蛋：2-14 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "2-14"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "彩蛋：12-3 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "12-3"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "战栗：10-17 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-17"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "战栗：9-3 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-3"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "蓝盐：5-8 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "5-8"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "蓝盐：9-16 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-16"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "蓝骨：5-7 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "5-7"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "蓝骨：5-3 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "5-3"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "蓝银：9-6 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-6"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "蓝银：7-19 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "7-19"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "蓝咒：4-20 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "4-20"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "蝉翼：10-4 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-4"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "轮子：7-16 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "7-16"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "狐儿尾：8-18 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "8-18"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "辉石：9-1 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "9-1"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "作战关卡(资源)": {
+            "type": "select",
+            "label": "作战关卡",
+            "cases": [
+                {
+                    "name": "尘埃运动 06",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "LP-06"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "铸币美学 06",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "MA-06"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "意志解析 07",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "Psychube-07"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "作战关卡(洞悉)": {
+            "type": "select",
+            "label": "灵感",
+            "cases": [
+                {
+                    "name": "岩",
+                    "option": [
+                        "作战关卡(岩)"
+                    ]
+                },
+                {
+                    "name": "星",
+                    "option": [
+                        "作战关卡(星)"
+                    ]
+                },
+                {
+                    "name": "木",
+                    "option": [
+                        "作战关卡(木)"
+                    ]
+                },
+                {
+                    "name": "兽",
+                    "option": [
+                        "作战关卡(兽)"
+                    ]
+                }
+            ]
+        },
+        "作战关卡(岩)": {
+            "type": "select",
+            "label": "作战关卡",
+            "cases": [
+                {
+                    "name": "群山之声 02",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "ME-02"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        },
+                        "TargetStageName_OCR": {
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "02"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "群山之声 04",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "ME-04"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        },
+                        "TargetStageName_OCR": {
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "04"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "群山之声 06",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "ME-06"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        },
+                        "TargetStageName_OCR": {
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "06"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "作战关卡(星)": {
+            "type": "select",
+            "label": "作战关卡",
+            "cases": [
+                {
+                    "name": "星陨之所 02",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "SL-02"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        },
+                        "TargetStageName_OCR": {
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "02"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "星陨之所 04",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "SL-04"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        },
+                        "TargetStageName_OCR": {
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "04"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "星陨之所 06",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "SL-06"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        },
+                        "TargetStageName_OCR": {
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "06"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "作战关卡(木)": {
+            "type": "select",
+            "label": "作战关卡",
+            "cases": [
+                {
+                    "name": "深林之形 02",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "SS-02"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        },
+                        "TargetStageName_OCR": {
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "02"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "深林之形 04",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "SS-04"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        },
+                        "TargetStageName_OCR": {
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "04"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "深林之形 06",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "SS-06"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        },
+                        "TargetStageName_OCR": {
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "06"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "作战关卡(兽)": {
+            "type": "select",
+            "label": "作战关卡",
+            "cases": [
+                {
+                    "name": "荒兽之野 02",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "BW-02"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        },
+                        "TargetStageName_OCR": {
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "02"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "荒兽之野 04",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "BW-04"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        },
+                        "TargetStageName_OCR": {
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "04"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "荒兽之野 06",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "BW-06"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": null
+                            }
+                        },
+                        "TargetStageName_OCR": {
+                            "recognition": {
+                                "param": {
+                                    "expected": [
+                                        "06"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "作战关卡(自定义)": {
+            "type": "input",
+            "label": "作战关卡",
+            "inputs": [
+                {
+                    "name": "章节号",
+                    "pipeline_type": "string",
+                    "default": "2",
+                    "pattern_msg": "请输入章节号，如2",
+                    "verify": "^(\\d+)$",
+                    "description": "请输入章节号，如2"
+                },
+                {
+                    "name": "关卡号",
+                    "pipeline_type": "string",
+                    "default": "6",
+                    "pattern_msg": "请输入关卡号，如6",
+                    "verify": "^(\\d+)$",
+                    "description": "请输入关卡号，如6"
+                }
+            ],
+            "pipeline_override": {
+                "SelectCombatStage": {
+                    "action": {
+                        "param": {
+                            "custom_action_param": {
+                                "stage": "{章节号}-{关卡号}"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "主线关卡难度": {
+            "type": "select",
+            "label": "关卡难度",
+            "cases": [
+                {
+                    "name": "厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "故事",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "attach": {
+                                "level": "Story"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "自定义作战次数": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AllIn": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "target_count": 114514
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "option": [
+                        "作战次数(自定义)"
+                    ]
+                }
+            ],
+            "description": "关闭时会清空体力"
+        },
+        "作战次数(自定义)": {
+            "type": "input",
+            "label": "作战次数",
+            "inputs": [
+                {
+                    "name": "作战次数",
+                    "pipeline_type": "int",
+                    "default": "114514",
+                    "verify": "^(0|[1-9]\\d*)$"
+                }
+            ],
+            "pipeline_override": {
+                "AllIn": {
+                    "action": {
+                        "param": {
+                            "custom_action_param": {
+                                "target_count": "{作战次数}"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "掉落统计上报": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "DropRecognition": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "DropRecognition": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ],
+            "description": "是否统计主线关卡掉落并将掉落结果上报到[必要的记录](https://www.kdocs.cn/l/cd5MWeCl5bKw)（仅主线关卡生效），非国服该选项无效"
+        }
+    }
+}

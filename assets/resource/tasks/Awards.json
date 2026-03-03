@@ -1,0 +1,180 @@
+{
+    "task": [
+        {
+            "name": "领取奖励",
+            "entry": "Awards",
+            "option": [
+                "领取邮件奖励",
+                "领取任务奖励",
+                "领取吼吼点唱机",
+                "领取前线观察室奖励",
+                "领取拉普拉斯论坛奖励"
+            ],
+            "description": "<span style=\"color:tomato;font-size:15px\">领取拉普拉斯论坛奖励仅支持默认UI</span>"
+        }
+    ],
+    "option": {
+        "领取邮件奖励": {
+            "type": "switch",
+            "label": "领取邮件奖励",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {}
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Sub_MailBadge": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "领取任务奖励": {
+            "type": "switch",
+            "label": "领取任务奖励",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "Sub_DailyBadge": {
+                            "enabled": true
+                        }
+                    },
+                    "option": [
+                        "领取每日活跃奖励",
+                        "领取每周活跃奖励"
+                    ]
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Sub_DailyBadge": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "领取每日活跃奖励": {
+            "type": "switch",
+            "label": "领取每日活跃奖励",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {}
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Sub_CollectDailyAwards": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "领取每周活跃奖励": {
+            "type": "switch",
+            "label": "领取每周活跃奖励",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "option": [
+                        "领取每周显影罐"
+                    ]
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "WeeklyAwardsBadge": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "领取每周显影罐": {
+            "type": "switch",
+            "label": "领取每周显影罐",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "WeeklyAwardsCompleted": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "ShowFlag": {
+                            "next": [
+                                "DevelopmentTank"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        "领取吼吼点唱机": {
+            "type": "switch",
+            "label": "领取吼吼点唱机",
+            "cases": [
+                {
+                    "name": "Yes"
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "Sub_JukeboxBadge": {
+                            "enabled": false
+                        },
+                        "Sub_JukeboxBadge_3.2": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "领取前线观察室奖励": {
+            "type": "switch",
+            "label": "领取前线观察室奖励",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {}
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AwardWarRoom": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "领取拉普拉斯论坛奖励": {
+            "type": "switch",
+            "label": "领取拉普拉斯论坛奖励",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EventLaplace": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {}
+                }
+            ]
+        }
+    }
+}

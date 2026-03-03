@@ -1,0 +1,156 @@
+{
+    "task": [
+        {
+            "name": "自动深眠",
+            "entry": "Limbo",
+            "option": [
+                "上半编队",
+                "下半编队",
+                "仅领取每周浅眠域奖励"
+            ],
+            "description": "<span style=\"color:tomato;font-size:15px\">注意上下半编队不要重复。支持旧版和改版编队、支持编队自定义命名，未来可支持编队超出前四个</span>"
+        }
+    ],
+    "option": {
+        "上半编队": {
+            "type": "select",
+            "cases": [
+                {
+                    "name": "一",
+                    "pipeline_override": {
+                        "LimboTeamSelection_1": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "二",
+                    "pipeline_override": {
+                        "LimboTeamSelection_1": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "三",
+                    "pipeline_override": {
+                        "LimboTeamSelection_1": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 3
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "四",
+                    "pipeline_override": {
+                        "LimboTeamSelection_1": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 4
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "下半编队": {
+            "type": "select",
+            "cases": [
+                {
+                    "name": "二",
+                    "pipeline_override": {
+                        "LimboTeamSelection_2": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "三",
+                    "pipeline_override": {
+                        "LimboTeamSelection_2": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 3
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "四",
+                    "pipeline_override": {
+                        "LimboTeamSelection_2": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 4
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "一",
+                    "pipeline_override": {
+                        "LimboTeamSelection_2": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "team": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "仅领取每周浅眠域奖励": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {}
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "LimboStageRightest": {
+                            "next": []
+                        }
+                    }
+                }
+            ],
+            "description": "开启后仅领取每周浅眠域奖励，不进行深眠自动作战"
+        }
+    }
+}
