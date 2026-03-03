@@ -1,4 +1,34 @@
 {
+    "is_default_theme": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "StartUp/HomeFlag.png",
+                "roi": [
+                    1022,
+                    419,
+                    194,
+                    166
+                ]
+            }
+        }
+    },
+    "not_default_theme": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "StartUp/HomeFlag.png",
+                "roi": [
+                    1022,
+                    419,
+                    194,
+                    166
+                ]
+            }
+        },
+        "inverse": true,
+        "next": "switch_menu_start"
+    },
     "switch_menu": {
         "next": [
             "[JumpBack]ReturnMain",
@@ -146,7 +176,7 @@
             "param": {
                 "custom_action": "FrameArtAction",
                 "custom_action_param": {
-                    "expected_text": "渐弱之心弦"
+                    "expected_text": "手提箱制式"
                 }
             }
         }
@@ -188,7 +218,8 @@
             "type": "Click"
         },
         "next": [
-            "ReturnMain"
+            "[JumpBack]BackButton",
+            "HomeFlag"
         ]
     },
     "frame_art_switch_error": {
@@ -210,7 +241,8 @@
             }
         },
         "next": [
-            "ReturnMain"
+            "[JumpBack]BackButton",
+            "HomeFlag"
         ]
     }
 }

@@ -486,7 +486,11 @@
                     "node_name": "ReturnMain"
                 }
             }
-        }
+        },
+        "next": [
+            "is_default_theme",
+            "not_default_theme"
+        ]
     },
     "BackButton": {
         "recognition": {
