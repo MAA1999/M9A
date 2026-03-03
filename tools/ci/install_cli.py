@@ -80,6 +80,17 @@ def install_resource():
 
     with open(install_path / "interface.json", "w", encoding="utf-8") as f:
         json.dump(interface, f, ensure_ascii=False, indent=4)
+        f.write("\n")
+
+    # 处理 tasks 文件夹下所有 json 文件的 HTML 标签
+    tasks_dir = install_path / "resource" / "tasks"
+    for json_file in tasks_dir.rglob("*.json"):
+        with open(json_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        strip_html_from_interface(data)
+        with open(json_file, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+            f.write("\n")
 
 
 def install_chores():
