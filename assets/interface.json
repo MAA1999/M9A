@@ -153,10 +153,6 @@
                 "单账号(迷思海)"
             ],
             "description": "<span style=\"color:tomato;font-size:15px\">本功能仅完成“寻思”每周扫荡</span>"
-        },
-        {
-            "name": "以下任务需【独立运行】",
-            "entry": "Stop"
         }
     ],
     "option": {
