@@ -52,8 +52,7 @@
                 "SOSSelectEncounterOption_OCR",
                 "SOSSelectEncounterOption_HSV",
                 "EatCandyStart",
-                "DropRecognition",
-                "FrameArtAction"
+                "DropRecognition"
             ]
         }
     },
