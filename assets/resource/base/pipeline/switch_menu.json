@@ -108,16 +108,22 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    663,
-                    21,
-                    93,
-                    37
+                    1124,
+                    89,
+                    70,
+                    29
                 ],
-                "expected": "幕布更换"
+                "expected": "稀有度"
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "target": [
+                693,
+                33,
+                32,
+                15
+            ]
         },
         "next": [
             "frame_art",
@@ -126,16 +132,61 @@
     },
     "frame_art": {
         "recognition": {
-            "type": "OCR",
+            "type": "And",
             "param": {
-                "roi": [
-                    86,
-                    225,
-                    92,
-                    38
+                "all_of": [
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    69,
+                                    238,
+                                    11,
+                                    11
+                                ],
+                                "upper": [
+                                    201,
+                                    199,
+                                    195
+                                ],
+                                "lower": [
+                                    201,
+                                    199,
+                                    195
+                                ],
+                                "count": 15,
+                                "connected": true
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    645,
+                                    38,
+                                    10,
+                                    13
+                                ],
+                                "upper": [
+                                    255,
+                                    124,
+                                    64
+                                ],
+                                "lower": [
+                                    255,
+                                    124,
+                                    64
+                                ],
+                                "connected": true,
+                                "count": 15
+                            }
+                        }
+                    }
                 ],
-                "expected": "框架艺术",
-                "only_rec": true
+                "box_index": 0
             }
         },
         "action": {

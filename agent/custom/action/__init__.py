@@ -8,6 +8,7 @@ from .outside_deduction import *
 from .reveries_in_the_rain import *
 from .syndrome_of_silence import *
 from .critter_crash import *
+from .frame_art_action import *
 
 __all__ = [
     "DisableNode",
