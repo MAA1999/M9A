@@ -964,7 +964,8 @@
         "post_delay": 1500,
         "next": [
             "[Anchor]NextTarget"
-        ]
+        ],
+        "max_hit": 5
     },
     "AwardSignals": {
         "doc": "活动·崭新的电波",
