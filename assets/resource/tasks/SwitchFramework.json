@@ -1,0 +1,8 @@
+{
+    "task": [
+        {
+            "name": "切换艺术框架",
+            "entry": "switch_menu"
+        }
+    ]
+}

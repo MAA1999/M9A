@@ -190,6 +190,7 @@
         "resource/tasks/Bank.json",
         "resource/tasks/Awards.json",
         "resource/tasks/SwitchAccount.json",
+        "resource/tasks/SwitchFramework.json",
         "resource/tasks/Close1999.json",
         "resource/tasks/SeriesOfDusks.json",
         "resource/tasks/TheSyndromeOfSilence.json",
