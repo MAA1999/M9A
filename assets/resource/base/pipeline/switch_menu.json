@@ -118,12 +118,14 @@
         },
         "action": {
             "type": "Click",
-            "target": [
-                693,
-                33,
-                32,
-                15
-            ]
+            "param": {
+                "target": [
+                    693,
+                    33,
+                    32,
+                    15
+                ]
+            }
         },
         "next": [
             "frame_art",
