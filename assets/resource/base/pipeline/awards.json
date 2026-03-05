@@ -1051,9 +1051,10 @@
         "post_delay": 1500,
         "next": [
             "[JumpBack]AwardMoonlightClaim",
-            "[JumpBack]AwardMoonlightWheatNumber",
             "[JumpBack]ObtainedAwards",
-            "HomeButton"
+            "[JumpBack]AwardMoonlightWheatNumber",
+            "BackButton",
+            "HomeFlag"
         ]
     },
     "AwardMoonlightClaim": {
