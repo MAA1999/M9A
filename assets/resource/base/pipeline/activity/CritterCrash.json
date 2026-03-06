@@ -5,13 +5,13 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    1073,
-                    16,
-                    146,
-                    65
+                    1076,
+                    26,
+                    132,
+                    44
                 ],
                 "template": [
-                    "CritterCrash/Achievement.png"
+                    "CritterCrash/History.png"
                 ]
             }
         },
