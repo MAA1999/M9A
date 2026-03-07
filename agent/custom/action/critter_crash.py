@@ -63,7 +63,6 @@ class CCChessboard(CustomAction):
     # ]
 
     # 3.5 版本策略：鹿蜀成长流
-
     chess_types = [
         {"name": "Shiva", "max_level": 1, "positions": [(0, 0), (2, 0)]},
         {
