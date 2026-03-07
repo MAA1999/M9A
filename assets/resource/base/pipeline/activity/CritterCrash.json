@@ -490,7 +490,8 @@
                 ],
                 "template": [
                     "CritterCrash/Award/Deer.png",
-                    "CritterCrash/Award/Man.png"
+                    "CritterCrash/Award/Man.png",
+                    "CritterCrash/Award/Shiva.png"
                 ]
             }
         },
