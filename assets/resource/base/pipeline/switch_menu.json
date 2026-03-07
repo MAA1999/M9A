@@ -224,34 +224,67 @@
                 "connected": true
             }
         },
-        "action": {
-            "type": "Custom",
+        "next": [
+            "frame_art_open",
+            "[JumpBack]frame_art_select"
+        ]
+    },
+    "frame_art_open": {
+        "recognition": {
+            "type": "TemplateMatch",
             "param": {
-                "custom_action": "FrameArtAction",
-                "custom_action_param": {
-                    "expected_text": "手提箱制式"
-                }
+                "roi": [
+                    1013,
+                    83,
+                    244,
+                    546
+                ],
+                "template": [
+                    "SwitchMenu/frame/frame1open.png"
+                ]
             }
+        },
+        "next": [
+            "frame_art_complete",
+            "[JumpBack]frame_art_switch_true"
+        ]
+    },
+    "frame_art_select": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1052,
+                    83,
+                    202,
+                    546
+                ],
+                "template": [
+                    "SwitchMenu/frame/frame1close.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
         }
     },
-    "frame_art_expected": {
+    "frame_art_complete": {
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
-                    74,
-                    542,
-                    234,
-                    54
+                    1114,
+                    647,
+                    76,
+                    29
                 ],
-                "expected": ""
+                "only_rec": true,
+                "expected": "装扮中"
             }
-        }
-    },
-    "frame_art_switch": {
+        },
         "next": [
-            "frame_art_switch_true",
-            "frame_art_switch_error"
+            "HomeFlag",
+            "[JumpBack]BackButton"
         ]
     },
     "frame_art_switch_true": {
@@ -269,33 +302,6 @@
         },
         "action": {
             "type": "Click"
-        },
-        "next": [
-            "[JumpBack]BackButton",
-            "HomeFlag"
-        ]
-    },
-    "frame_art_switch_error": {
-        "doc": "未解锁",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    1097,
-                    622,
-                    118,
-                    80
-                ],
-                "expected": [
-                    "未解锁",
-                    "获取",
-                    "装扮中"
-                ]
-            }
-        },
-        "next": [
-            "[JumpBack]BackButton",
-            "HomeFlag"
-        ]
+        }
     }
 }
