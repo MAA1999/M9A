@@ -39,10 +39,9 @@
             "[JumpBack]Sub_DailyBadge",
             "[JumpBack]Sub_JukeboxBadge",
             "[JumpBack]Sub_JukeboxBadge_3.2",
-            "[JumpBack]EventLaplace",
-            "[JumpBack]AwardSignals",
-            "[JumpBack]AwardMoonlight",
+            "[JumpBack]AwardBox",
             "[JumpBack]AwardWarRoom",
+            "[JumpBack]EventLaplace",
             "[JumpBack]HomeFlagMaxTimesFive",
             "HomeFlag",
             "[JumpBack]HomeButton",
@@ -935,20 +934,19 @@
             }
         }
     },
-    "OtherAwards": {
-        "doc": "进入其他奖励页面",
+    "AwardBox": {
+        "doc": "进入吼吼点唱机右边的盒子",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "template": [
-                    "Awards/OtherAwards.png"
-                ],
-                "threshold": 0.8,
                 "roi": [
-                    154,
-                    29,
-                    383,
-                    75
+                    298,
+                    30,
+                    123,
+                    30
+                ],
+                "template": [
+                    "Awards/Box.png"
                 ]
             }
         },
@@ -963,35 +961,72 @@
                 ]
             }
         },
-        "post_delay": 1500,
+        "post_wait_freezes": {
+            "target": [
+                185,
+                14,
+                421,
+                75
+            ],
+            "time": 500
+        },
+        "max_hit": 5,
         "next": [
-            "[Anchor]NextTarget"
-        ],
-        "max_hit": 5
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AwardBreakingSignals",
+            "[JumpBack]AwardMoonlightGardening",
+            "BackButton",
+            "AwardBox"
+        ]
     },
-    "AwardSignals": {
+    "AwardBreakingSignals": {
         "doc": "活动·崭新的电波",
-        "next": [
-            "[JumpBack]HomeButton",
-            "[JumpBack]BackButton",
-            "OtherAwards"
-        ],
-        "anchor": {
-            "NextTarget": "AwardSignalsFlag"
-        }
-    },
-    "AwardSignalsFlag": {
-        "doc": "点击崭新的电波",
         "recognition": {
-            "type": "OCR",
+            "type": "And",
             "param": {
-                "roi": [
-                    36,
-                    139,
-                    139,
-                    413
-                ],
-                "expected": "崭新的电波"
+                "all_of": [
+                    {
+                        "sub_name": "EventName",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    36,
+                                    139,
+                                    139,
+                                    413
+                                ],
+                                "expected": "崭新的电波"
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": "EventName",
+                                "roi_offset": [
+                                    123,
+                                    -29,
+                                    -71,
+                                    10
+                                ],
+                                "connected": true,
+                                "count": 50,
+                                "upper": [
+                                    199,
+                                    61,
+                                    47
+                                ],
+                                "lower": [
+                                    179,
+                                    41,
+                                    27
+                                ]
+                            }
+                        }
+                    }
+                ]
             }
         },
         "action": {
@@ -999,13 +1034,11 @@
         },
         "post_delay": 1500,
         "next": [
-            "[JumpBack]AwardSignalsAward",
-            "[JumpBack]ObtainedAwards",
-            "HomeButton"
+            "AwardBreakingSignalsAward"
         ]
     },
-    "AwardSignalsAward": {
-        "doc": "领取签到奖励",
+    "AwardBreakingSignalsAward": {
+        "doc": "崭新的电波-领取签到奖励",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1023,29 +1056,54 @@
         },
         "post_delay": 1500
     },
-    "AwardMoonlight": {
+    "AwardMoonlightGardening": {
         "doc": "活动·播种于月光下",
-        "next": [
-            "[JumpBack]HomeButton",
-            "[JumpBack]BackButton",
-            "OtherAwards"
-        ],
-        "anchor": {
-            "NextTarget": "AwardMoonlightFlag"
-        }
-    },
-    "AwardMoonlightFlag": {
-        "doc": "点击播种于月光下",
         "recognition": {
-            "type": "OCR",
+            "type": "And",
             "param": {
-                "roi": [
-                    36,
-                    139,
-                    139,
-                    413
-                ],
-                "expected": "播种于月光下"
+                "all_of": [
+                    {
+                        "sub_name": "EventName",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    36,
+                                    139,
+                                    139,
+                                    413
+                                ],
+                                "expected": "播种于月光下"
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": "EventName",
+                                "roi_offset": [
+                                    123,
+                                    -29,
+                                    -71,
+                                    10
+                                ],
+                                "connected": true,
+                                "count": 50,
+                                "upper": [
+                                    199,
+                                    61,
+                                    47
+                                ],
+                                "lower": [
+                                    179,
+                                    41,
+                                    27
+                                ]
+                            }
+                        }
+                    }
+                ]
             }
         },
         "action": {
@@ -1053,14 +1111,12 @@
         },
         "post_delay": 1500,
         "next": [
-            "[JumpBack]AwardMoonlightClaim",
-            "[JumpBack]ObtainedAwards",
-            "[JumpBack]AwardMoonlightWheatNumber",
-            "BackButton",
-            "HomeFlag"
+            "[JumpBack]AwardMoonlightGardeningClaim",
+            "AwardMoonlightWheat",
+            "[JumpBack]ObtainedAwards"
         ]
     },
-    "AwardMoonlightClaim": {
+    "AwardMoonlightGardeningClaim": {
         "doc": "领取新麦粒儿",
         "recognition": {
             "type": "OCR",
@@ -1079,40 +1135,45 @@
         },
         "post_delay": 1500
     },
-    "AwardMoonlightWheatNumber": {
-        "doc": "判断可播种次数",
+    "AwardMoonlightWheat": {
+        "doc": "播种",
         "recognition": {
-            "type": "OCR",
+            "type": "And",
             "param": {
-                "only_rec": true,
-                "expected": "^[1-9][0-9]?$",
-                "roi": [
-                    707,
-                    86,
-                    32,
-                    23
-                ]
-            }
-        },
-        "action": "DoNothing",
-        "next": [
-            "AwardMoonlightAward",
-            "[JumpBack]ObtainedAwards",
-            "BackButton"
-        ]
-    },
-    "AwardMoonlightAward": {
-        "doc": "进行播种",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    210,
-                    120,
-                    538,
-                    530
+                "all_of": [
+                    {
+                        "doc": "判断可播种次数，1-99",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "only_rec": true,
+                                "expected": "[1-9][0-9]?",
+                                "roi": [
+                                    707,
+                                    87,
+                                    32,
+                                    22
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "doc": "进行播种，先随便种",
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "roi": [
+                                    210,
+                                    120,
+                                    538,
+                                    530
+                                ],
+                                "template": "Awards/Other/AwardMoonlightAward.png"
+                            }
+                        }
+                    }
                 ],
-                "template": "Awards/Other/AwardMoonlightAward.png"
+                "box_index": 1
             }
         },
         "action": {
@@ -1120,10 +1181,25 @@
         },
         "post_delay": 1500,
         "next": [
+            "AwardMoonlightWheat",
             "[JumpBack]ObtainedAwards",
-            "AwardMoonlightWheatNumber", // 识别成功时再次判断
-            "BackButton",
-            "HomeFlag"
+            "AwardMoonlightNoWheat"
         ]
+    },
+    "AwardMoonlightNoWheat": {
+        "doc": "判断可播种次数，0",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "expected": "0",
+                "roi": [
+                    707,
+                    87,
+                    32,
+                    22
+                ]
+            }
+        }
     }
 }

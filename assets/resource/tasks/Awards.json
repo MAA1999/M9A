@@ -8,8 +8,7 @@
                 "领取任务奖励",
                 "领取吼吼点唱机",
                 "领取前线观察室奖励",
-                "活动奖励·崭新的电波",
-                "活动奖励·播种于月光下",
+                "活动盒子奖励",
                 "领取拉普拉斯论坛奖励"
             ],
             "description": "<span style=\"color:tomato;font-size:15px\">领取拉普拉斯论坛奖励仅支持默认UI</span>"
@@ -178,18 +177,47 @@
                 }
             ]
         },
-        "活动奖励·崭新的电波": {
+        "活动盒子奖励": {
             "type": "switch",
-            "label": "活动奖励·崭新的电波",
             "cases": [
                 {
                     "name": "Yes",
-                    "pipeline_override": {}
+                    "pipeline_override": {
+                        "AwardBox": {
+                            "enabled": true
+                        }
+                    },
+                    "option": [
+                        "活动奖励·崭新的电波",
+                        "活动奖励·播种于月光下"
+                    ]
                 },
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "AwardSignals": {
+                        "AwardBox": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "活动奖励·崭新的电波": {
+            "type": "switch",
+            "label": "崭新的电波",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "AwardBreakingSignals": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AwardBreakingSignals": {
                             "enabled": false
                         }
                     }
@@ -198,16 +226,20 @@
         },
         "活动奖励·播种于月光下": {
             "type": "switch",
-            "label": "活动奖励·播种于月光下",
+            "label": "播种于月光下",
             "cases": [
                 {
                     "name": "Yes",
-                    "pipeline_override": {}
+                    "pipeline_override": {
+                        "AwardMoonlightGardening": {
+                            "enabled": true
+                        }
+                    }
                 },
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "AwardMoonlight": {
+                        "AwardMoonlightGardening": {
                             "enabled": false
                         }
                     }
