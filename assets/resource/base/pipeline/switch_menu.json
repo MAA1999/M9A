@@ -279,7 +279,10 @@
                     29
                 ],
                 "only_rec": true,
-                "expected": "装扮中"
+                "expected": [
+                    "装扮中",
+                    "未解锁"
+                ]
             }
         },
         "next": [
