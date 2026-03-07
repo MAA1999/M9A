@@ -68,7 +68,7 @@ class CCChessboard(CustomAction):
         {"name": "Shiva", "max_level": 1, "positions": [(0, 0), (2, 0)]},
         {
             "name": "Deer",
-            "max_level": 4,
+            "max_level": 5,
             "positions": [
                 (0, 4),
                 (2, 4),
