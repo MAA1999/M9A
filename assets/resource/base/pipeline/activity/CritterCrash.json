@@ -192,7 +192,8 @@
                     290
                 ],
                 "template": [
-                    "CritterCrash/NewBabel.png"
+                    // "CritterCrash/NewBabel.png" // 3.2 制定计划 新巴别塔 工具采购
+                    "CritterCrash/JiuNiangzi.png" // 3.5 制定计划 曲娘 勤学苦练
                 ]
             }
         },
