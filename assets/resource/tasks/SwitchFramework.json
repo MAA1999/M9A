@@ -5,7 +5,12 @@
             "entry": "switch_menu",
             "option": [
                 "艺术框架"
-            ]
+            ],
+            "pipeline_override": {
+                "HomeFlagCloseReturnMain": {
+                    "next": []
+                }
+            }
         }
     ],
     "option": {
