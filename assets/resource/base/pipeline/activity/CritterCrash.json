@@ -224,7 +224,7 @@
             // "[JumpBack]CCSelectPeople1",
             // "[JumpBack]CCSelectPeople2",
             // "[JumpBack]CCSelectPeople3",
-            "CCSelectPeople3p5",
+            "[JumpBack]CCSelectPeople3p5",
             "[JumpBack]CCRefreshPeople",
             "[JumpBack]BackButton"
         ]
