@@ -669,7 +669,7 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "CCRemainMoney",
+                    "CCRemainMoney_refresh",
                     "CCRefreshMoney_pre",
                     "CCRoundPre"
                 ],
@@ -686,7 +686,7 @@
             "type": "And",
             "param": {
                 "all_of": [
-                    "CCRemainMoney",
+                    "CCRemainMoney_refresh",
                     "CCRefreshMoney_post"
                 ],
                 "box_index": 1
@@ -701,7 +701,21 @@
         "recognition": {
             "type": "Custom",
             "param": {
-                "custom_recognition": "CCRemainMoney"
+                "custom_recognition": "CCRemainMoney",
+                "custom_recognition_param": {
+                    "type": 0
+                }
+            }
+        }
+    },
+    "CCRemainMoney_refresh": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CCRemainMoney",
+                "custom_recognition_param": {
+                    "type": 1
+                }
             }
         }
     },
@@ -718,6 +732,33 @@
                 "only_rec": true,
                 "expected": [
                     "^[3-9]|[1][0-9]$"
+                ],
+                "replace": [
+                    [
+                        "[Oo]",
+                        "0"
+                    ],
+                    [
+                        "//.",
+                        ""
+                    ]
+                ]
+            }
+        }
+    },
+    "CCRemainMoney_rec_refresh": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    669,
+                    29,
+                    36,
+                    25
+                ],
+                "only_rec": true,
+                "expected": [
+                    "^[4-9]|[1][0-9]$"
                 ],
                 "replace": [
                     [
