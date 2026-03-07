@@ -221,9 +221,10 @@
             "CritterCrash",
             "CCFlagInCombatMain",
             "[JumpBack]CCToDo",
-            "[JumpBack]CCSelectPeople1",
-            "[JumpBack]CCSelectPeople2",
-            "[JumpBack]CCSelectPeople3",
+            // "[JumpBack]CCSelectPeople1",
+            // "[JumpBack]CCSelectPeople2",
+            // "[JumpBack]CCSelectPeople3",
+            "CCSelectPeople3.5",
             "[JumpBack]CCRefreshPeople",
             "[JumpBack]BackButton"
         ]
@@ -300,6 +301,30 @@
                 ],
                 "template": [
                     "CritterCrash/Peoples/People6.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectPeople3.5": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    184,
+                    194,
+                    936,
+                    325
+                ],
+                "template": [
+                    "CritterCrash/Peoples/People2.png", // 玛尔纱
+                    "CritterCrash/Peoples/People3.png", // 37
+                    "CritterCrash/Peoples/People4.png", // 6
+                    "CritterCrash/Peoples/People5.png", // 诺谛卡
+                    "CritterCrash/Peoples/People7.png", // 梁月
+                    "CritterCrash/Peoples/People8.png" // 小叶尼塞
                 ]
             }
         },
