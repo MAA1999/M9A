@@ -46,19 +46,70 @@ class CCChessboard(CustomAction):
         [None, None, None, None, None],
     ]
 
+    # # 3.2 版本策略：工厂流
+    # chess_types = [
+    #     {"name": "Knight", "max_level": 8, "positions": [(0, 0), (2, 0)]},
+    #     {"name": "Cat4", "max_level": 4, "positions": [(2, 1)]},
+    #     {"name": "Cat3", "max_level": 4, "positions": [(2, 2)]},
+    #     {"name": "Cat2", "max_level": 4, "positions": [(2, 3)]},
+    #     {"name": "Cat1", "max_level": 4, "positions": [(2, 4)]},
+    #     {"name": "Robot4", "max_level": 4, "positions": [(0, 1)]},
+    #     {"name": "Robot3", "max_level": 4, "positions": [(0, 1)]},
+    #     {"name": "Robot1", "max_level": 1, "positions": [(0, 4), (0, 3), (0, 2)]},
+    #     {"name": "Robot2", "max_level": 1, "positions": [(0, 4), (0, 3), (0, 2)]},
+    #     {"name": "Item3", "max_level": 1, "positions": [(1, 3)]},
+    #     {"name": "Item1", "max_level": 1, "positions": [(1, 1)]},
+    #     {"name": "Item2", "max_level": 1, "positions": [(1, 2)]},
+    # ]
+
+    # 3.5 版本策略：鹿蜀成长流
+
     chess_types = [
-        {"name": "Knight", "max_level": 8, "positions": [(0, 0), (2, 0)]},
-        {"name": "Cat4", "max_level": 4, "positions": [(2, 1)]},
-        {"name": "Cat3", "max_level": 4, "positions": [(2, 2)]},
-        {"name": "Cat2", "max_level": 4, "positions": [(2, 3)]},
-        {"name": "Cat1", "max_level": 4, "positions": [(2, 4)]},
-        {"name": "Robot4", "max_level": 4, "positions": [(0, 1)]},
-        {"name": "Robot3", "max_level": 4, "positions": [(0, 1)]},
-        {"name": "Robot1", "max_level": 1, "positions": [(0, 4), (0, 3), (0, 2)]},
-        {"name": "Robot2", "max_level": 1, "positions": [(0, 4), (0, 3), (0, 2)]},
-        {"name": "Item3", "max_level": 1, "positions": [(1, 3)]},
-        {"name": "Item1", "max_level": 1, "positions": [(1, 1)]},
-        {"name": "Item2", "max_level": 1, "positions": [(1, 2)]},
+        {"name": "Shiva", "max_level": 1, "positions": [(0, 0), (2, 0)]},
+        {
+            "name": "Deer",
+            "max_level": 4,
+            "positions": [
+                (0, 4),
+                (2, 4),
+                (0, 3),
+                (2, 3),
+                (0, 2),
+                (2, 2),
+                (0, 1),
+                (2, 1),
+            ],
+        },
+        {
+            "name": "People2",
+            "max_level": 1,
+            "positions": [
+                (0, 4),
+                (2, 4),
+                (0, 3),
+                (2, 3),
+                (0, 2),
+                (2, 2),
+                (0, 1),
+                (2, 1),
+            ],
+        },
+        {
+            "name": "People1",
+            "max_level": 1,
+            "positions": [
+                (0, 4),
+                (2, 4),
+                (0, 3),
+                (2, 3),
+                (0, 2),
+                (2, 2),
+                (0, 1),
+                (2, 1),
+            ],
+        },
+        {"name": "Man", "max_level": 1, "positions": [(1, 0), (1, 1), (1, 2), (1, 3)]},
+        {"name": "Woman", "max_level": 1, "positions": [(1, 4)]},
     ]
 
     board_chesses = []

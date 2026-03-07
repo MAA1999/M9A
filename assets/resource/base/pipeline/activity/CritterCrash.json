@@ -473,7 +473,9 @@
         "next": [
             "CCFlagInCombatMain",
             "[JumpBack]CCSelectAwardCard_Template",
-            "[JumpBack]CCSelectAwardCard_NoMore"
+            // "[JumpBack]CCSelectAwardCard_NoMore" // 3.2 版本在无目标的时候会随便选个奖励棋子
+            "[JumpBack]CCSelectAwardCard_NoMore3p5", // 3.5 版本在无目标的时候会选择放弃按钮
+            "[JumpBack]CCSelectAwardCard_NoMore3p5Confirm"
         ]
     },
     "CCSelectAwardCard_Template": {
@@ -487,7 +489,8 @@
                     257
                 ],
                 "template": [
-                    "CritterCrash/Award/"
+                    "CritterCrash/Award/Deer.png",
+                    "CritterCrash/Award/Man.png"
                 ]
             }
         },
@@ -508,6 +511,42 @@
                 "expected": [
                     "选择"
                 ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectAwardCard_NoMore3p5": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    110,
+                    36,
+                    48,
+                    29
+                ],
+                "only_rec": true,
+                "expected": "放弃"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectAwardCard_NoMore3p5Confirm": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    765,
+                    404,
+                    62,
+                    35
+                ],
+                "only_rec": true,
+                "expected": "确认"
             }
         },
         "action": {
