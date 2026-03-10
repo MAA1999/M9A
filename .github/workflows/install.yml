@@ -18,9 +18,9 @@ on:
   workflow_dispatch:
 
 env:
-  MAA_FRAMEWORK_VERSION: "v5.7.1"
-  MFAA_VERSION: "v2.8.0"
-  MXU_VERSION: "v1.15.0-beta.1"
+  MAA_FRAMEWORK_VERSION: "v5.8.1"
+  MFAA_VERSION: "v2.10.5"
+  MXU_VERSION: "v1.18.6"
 
 permissions:
   contents: write
@@ -201,6 +201,11 @@ jobs:
           cp -rpvn tools/registry/. install-cli/
           cp -rpvn install/python/. install-cli/python/
           rm -rf install-cli/deps 2>/dev/null || true
+          if [ -f "install-cli/MaaPiCli.exe" ]; then
+            mv -f install-cli/MaaPiCli.exe install-cli/M9A.exe
+          elif [ -f "install-cli/MaaPiCli" ]; then
+            mv -f install-cli/MaaPiCli install-cli/M9A
+          fi
 
       - name: Create MXU version
         shell: bash
@@ -219,6 +224,11 @@ jobs:
             echo "Copying MFA files to install directory..."
             mkdir -p install
             cp -rpvn MFA/. install/
+            if [ -f "install/MFAAvalonia.exe" ]; then
+              mv -f install/MFAAvalonia.exe install/M9A.exe
+            elif [ -f "install/MFAAvalonia" ]; then
+              mv -f install/MFAAvalonia install/M9A
+            fi
           else
             echo "MFA directory not found, skipping copy."
           fi
@@ -378,6 +388,11 @@ jobs:
             cp -rpvn install/python/. install-cli/python/
           fi
           rm -rf install-cli/deps 2>/dev/null || true
+          if [ -f "install-cli/MaaPiCli" ]; then
+            mv -f install-cli/MaaPiCli install-cli/M9A
+          elif [ -f "install-cli/MaaPiCli.exe" ]; then
+            mv -f install-cli/MaaPiCli.exe install-cli/M9A.exe
+          fi
 
       - name: Create MXU version
         if: matrix.arch == 'x86_64'
@@ -399,6 +414,11 @@ jobs:
             echo "Copying MFA files to install directory on Linux..."
             mkdir -p install
             rsync -av --ignore-existing MFA/ install/
+            if [ -f "install/MFAAvalonia" ]; then
+              mv -f install/MFAAvalonia install/M9A
+            elif [ -f "install/MFAAvalonia.exe" ]; then
+              mv -f install/MFAAvalonia.exe install/M9A.exe
+            fi
           else
             echo "MFA directory not found on Linux, skipping copy."
           fi
@@ -569,6 +589,11 @@ jobs:
           ./install/python/bin/python3 ./tools/ci/install_cli.py ${{ needs.meta.outputs.tag }}
           cp -rpvn install/python/. install-cli/python/
           rm -rf install-cli/deps 2>/dev/null || true
+          if [ -f "install-cli/MaaPiCli" ]; then
+            mv -f install-cli/MaaPiCli install-cli/M9A
+          elif [ -f "install-cli/MaaPiCli.exe" ]; then
+            mv -f install-cli/MaaPiCli.exe install-cli/M9A.exe
+          fi
 
       - name: Create MXU version
         shell: bash
@@ -587,6 +612,11 @@ jobs:
             echo "Copying MFA files to install directory on macOS..."
             mkdir -p install
             rsync -av --ignore-existing MFA/ install/ # Using rsync like on Linux
+            if [ -f "install/MFAAvalonia" ]; then
+              mv -f install/MFAAvalonia install/M9A
+            elif [ -f "install/MFAAvalonia.exe" ]; then
+              mv -f install/MFAAvalonia.exe install/M9A.exe
+            fi
           else
             echo "MFA directory not found on macOS, skipping copy."
           fi

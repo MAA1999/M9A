@@ -15,7 +15,6 @@ from maa.define import NeuralNetworkDetectResult, OCRResult
 
 from utils import logger
 
-
 __all__ = [
     "SOSSelectNode",
     "SOSNodeProcess",

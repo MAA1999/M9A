@@ -175,5 +175,17 @@
                 }
             }
         }
+    },
+    "3.3": {
+        "version_name": "遠征記",
+        "start_time": 1772676000000,
+        "end_time": 1776286799000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1772676000000,
+                "end_time": 1776027599000
+            }
+        }
     }
 }

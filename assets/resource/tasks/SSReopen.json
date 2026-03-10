@@ -1,0 +1,30 @@
+{
+    "task": [
+        {
+            "name": "复刻活动推图",
+            "entry": "SSReopen",
+            "option": [
+                "吃糖"
+            ],
+            "pipeline_override": {
+                "WaitReplay": {
+                    "recognition": {
+                        "param": {
+                            "roi": [
+                                1048,
+                                630,
+                                124,
+                                41
+                            ],
+                            "expected": [
+                                "复现",
+                                "开始行动"
+                            ]
+                        }
+                    }
+                }
+            },
+            "description": "本任务根据任务列表完成任务，仅支持已打过的往期活动推图"
+        }
+    ]
+}

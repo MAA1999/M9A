@@ -1,0 +1,201 @@
+{
+    "task": [
+        {
+            "name": "每日心相（意志解析）",
+            "entry": "Psychube",
+            "option": [
+                "双重解析加成作战",
+                "吃糖"
+            ]
+        }
+    ],
+    "option": {
+        "双重解析加成作战": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "PsychubeDouble": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {}
+                }
+            ],
+            "description": "双重解析期间是否进行加成作战"
+        },
+        "吃糖": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "option": [
+                        "糖果有效期",
+                        "自定义吃糖次数",
+                        "连续吃糖",
+                        "关闭吃糖提示"
+                    ]
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EatCandy": {
+                            "enabled": false
+                        },
+                        "EatMiniCandy": {
+                            "enabled": false
+                        },
+                        "EatCandyStart": {
+                            "enabled": false
+                        },
+                        "EatCandyPage": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ],
+            "description": "是否吃糖"
+        },
+        "糖果有效期": {
+            "label": "有效期",
+            "type": "select",
+            "cases": [
+                {
+                    "name": "24h",
+                    "description": "24小时内过期的糖",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "valid_period": "24h"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "7d",
+                    "description": "7天内过期的糖",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "valid_period": "7d"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "14d",
+                    "description": "14天内过期的糖",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "valid_period": "14d"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "无限期",
+                    "description": "不会过期的糖",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "valid_period": "infinite"
+                            }
+                        }
+                    }
+                }
+            ],
+            "description": "可以吃的糖果的有效期"
+        },
+        "自定义吃糖次数": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "max_hit": 114514
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "option": [
+                        "吃糖次数"
+                    ]
+                }
+            ],
+            "description": "关闭时，吃所有符合要求的糖"
+        },
+        "吃糖次数": {
+            "type": "input",
+            "label": "吃糖次数",
+            "inputs": [
+                {
+                    "name": "吃糖次数",
+                    "pipeline_type": "int",
+                    "default": "114514",
+                    "verify": "^(0|[1-9]\\d*)$"
+                }
+            ],
+            "pipeline_override": {
+                "EatCandyStart": {
+                    "max_hit": "{吃糖次数}"
+                }
+            },
+            "description": "注意小熊软糖(主线掉落5体力糖)会默认吃完，不会被计入该次数"
+        },
+        "连续吃糖": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "fast": 1
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "fast": 0
+                            }
+                        }
+                    }
+                }
+            ],
+            "description": "开启后，每次进入吃糖界面尽可能多吃糖；关闭后，每次进入吃糖界面只吃一次糖"
+        },
+        "关闭吃糖提示": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EatCandyCloseTip": {
+                            "enabled": false
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EatCandyCloseTip": {
+                            "enabled": true
+                        }
+                    }
+                }
+            ],
+            "description": "关闭吃糖时弹出的本日登录不再提醒的提示，关闭后可能导致多吃糖，请慎重选择！"
+        }
+    }
+}

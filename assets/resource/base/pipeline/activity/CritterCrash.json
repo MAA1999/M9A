@@ -5,13 +5,13 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    1073,
-                    16,
-                    146,
-                    65
+                    1076,
+                    26,
+                    132,
+                    44
                 ],
                 "template": [
-                    "CritterCrash/Achievement.png"
+                    "CritterCrash/History.png"
                 ]
             }
         },
@@ -192,7 +192,8 @@
                     290
                 ],
                 "template": [
-                    "CritterCrash/NewBabel.png"
+                    // "CritterCrash/NewBabel.png" // 3.2 制定计划 新巴别塔 工具采购
+                    "CritterCrash/JiuNiangzi.png" // 3.5 制定计划 曲娘 勤学苦练
                 ]
             }
         },
@@ -220,9 +221,10 @@
             "CritterCrash",
             "CCFlagInCombatMain",
             "[JumpBack]CCToDo",
-            "[JumpBack]CCSelectPeople1",
-            "[JumpBack]CCSelectPeople2",
-            "[JumpBack]CCSelectPeople3",
+            // "[JumpBack]CCSelectPeople1",
+            // "[JumpBack]CCSelectPeople2",
+            // "[JumpBack]CCSelectPeople3",
+            "[JumpBack]CCSelectPeople3p5",
             "[JumpBack]CCRefreshPeople",
             "[JumpBack]BackButton"
         ]
@@ -299,6 +301,31 @@
                 ],
                 "template": [
                     "CritterCrash/Peoples/People6.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectPeople3p5": {
+        "doc": "3.5版本选择角色",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    184,
+                    194,
+                    936,
+                    325
+                ],
+                "template": [
+                    "CritterCrash/Peoples/People2.png", // 玛尔纱
+                    "CritterCrash/Peoples/People3.png", // 37
+                    "CritterCrash/Peoples/People4.png", // 6
+                    "CritterCrash/Peoples/People5.png", // 诺谛卡
+                    "CritterCrash/Peoples/People7.png", // 梁月
+                    "CritterCrash/Peoples/People8.png" // 小叶尼塞
                 ]
             }
         },
@@ -446,7 +473,9 @@
         "next": [
             "CCFlagInCombatMain",
             "[JumpBack]CCSelectAwardCard_Template",
-            "[JumpBack]CCSelectAwardCard_NoMore"
+            // "[JumpBack]CCSelectAwardCard_NoMore" // 3.2 版本在无目标的时候会随便选个奖励棋子
+            "[JumpBack]CCSelectAwardCard_NoMore3p5", // 3.5 版本在无目标的时候会选择放弃按钮
+            "[JumpBack]CCSelectAwardCard_NoMore3p5Confirm"
         ]
     },
     "CCSelectAwardCard_Template": {
@@ -460,7 +489,9 @@
                     257
                 ],
                 "template": [
-                    "CritterCrash/Award/"
+                    "CritterCrash/Award/Deer.png",
+                    "CritterCrash/Award/Man.png",
+                    "CritterCrash/Award/Shiva.png"
                 ]
             }
         },
@@ -481,6 +512,42 @@
                 "expected": [
                     "选择"
                 ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectAwardCard_NoMore3p5": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    110,
+                    36,
+                    48,
+                    29
+                ],
+                "only_rec": true,
+                "expected": "放弃"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectAwardCard_NoMore3p5Confirm": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    765,
+                    404,
+                    62,
+                    35
+                ],
+                "only_rec": true,
+                "expected": "确认"
             }
         },
         "action": {
@@ -600,17 +667,14 @@
     },
     "CCRefreshCard_pre": {
         "recognition": {
-            "type": "Custom",
+            "type": "And",
             "param": {
-                "custom_recognition": "MultiRecognition",
-                "custom_recognition_param": {
-                    "nodes": [
-                        "CCRemainMoney",
-                        "CCRefreshMoney_pre",
-                        "CCRoundPre"
-                    ],
-                    "return": "$1"
-                }
+                "all_of": [
+                    "CCRemainMoney_refresh",
+                    "CCRefreshMoney_pre",
+                    "CCRoundPre"
+                ],
+                "box_index": 1
             }
         },
         "action": {
@@ -620,16 +684,13 @@
     },
     "CCRefreshCard_post": {
         "recognition": {
-            "type": "Custom",
+            "type": "And",
             "param": {
-                "custom_recognition": "MultiRecognition",
-                "custom_recognition_param": {
-                    "nodes": [
-                        "CCRemainMoney",
-                        "CCRefreshMoney_post"
-                    ],
-                    "return": "$1"
-                }
+                "all_of": [
+                    "CCRemainMoney_refresh",
+                    "CCRefreshMoney_post"
+                ],
+                "box_index": 1
             }
         },
         "action": {
@@ -641,7 +702,21 @@
         "recognition": {
             "type": "Custom",
             "param": {
-                "custom_recognition": "CCRemainMoney"
+                "custom_recognition": "CCRemainMoney",
+                "custom_recognition_param": {
+                    "type": 0
+                }
+            }
+        }
+    },
+    "CCRemainMoney_refresh": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CCRemainMoney",
+                "custom_recognition_param": {
+                    "type": 1
+                }
             }
         }
     },
@@ -657,11 +732,44 @@
                 ],
                 "only_rec": true,
                 "expected": [
-                    "^[3-9]|[1][0-9]$"
+                    "^[3-9]|[12][0-9]$"
                 ],
                 "replace": [
-                    "[Oo]",
-                    "0"
+                    [
+                        "[Oo]",
+                        "0"
+                    ],
+                    [
+                        "//.",
+                        ""
+                    ]
+                ]
+            }
+        }
+    },
+    "CCRemainMoney_rec_refresh": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    669,
+                    29,
+                    36,
+                    25
+                ],
+                "only_rec": true,
+                "expected": [
+                    "^[4-9]|[12][0-9]$"
+                ],
+                "replace": [
+                    [
+                        "[Oo]",
+                        "0"
+                    ],
+                    [
+                        "//.",
+                        ""
+                    ]
                 ]
             }
         }
@@ -880,6 +988,16 @@
                 "only_rec": true,
                 "expected": [
                     "^(1[0-2]|[7-9])/"
+                ]
+            }
+        }
+    },
+    "CCLevelMax": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "CritterCrash/Lv3.png"
                 ]
             }
         }

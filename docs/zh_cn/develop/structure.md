@@ -21,8 +21,7 @@ icon: hugeicons:structure-01
 |-- assets/                       # 资源文件目录
 |   |-- MaaCommonAssets/          # MAA 公共资源（子模块）
 |   |-- resource/                 # 项目资源文件
-|   |-- interface.json            # MaaFramework 标准化项目结构声明
-|   `-- interface_cli.json        # 命令行接口配置
+|   `-- interface.json            # MaaFramework 标准化项目结构声明
 |-- deps/                         # MaaFramework 依赖库，存放 schema 的地方
 |-- docs/                         # 文档目录
 |   |-- en_us/                    # 英文文档
@@ -32,7 +31,7 @@ icon: hugeicons:structure-01
 |   |-- activity_data/            # 活动数据处理工具
 |   |-- ci/                       # 持续集成相关脚本
 |   |-- image/                    # 掉落物品图片处理工具
-|   |-- OptimizeTemplates/        # 模板图片优化工具
+|   |-- optimize_templates/        # 模板图片优化工具
 |   |-- registry/                 # PC端注册表相关工具
 |   |-- migrate_pipeline_v5.py    # Pipeline v5 迁移脚本
 |   |-- minify_json.py            # JSON 压缩工具

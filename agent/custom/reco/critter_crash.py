@@ -136,6 +136,8 @@ class CCRemainMoney(CustomRecognition):
         argv: CustomRecognition.AnalyzeArg,
     ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
 
+        type = json.loads(argv.custom_recognition_param)["type"]
+
         img = argv.image
         # 定义目标颜色和颜色容差
         target_color = np.array([215, 241, 249])
@@ -154,7 +156,12 @@ class CCRemainMoney(CustomRecognition):
         # 保留匹配目标颜色的像素
         processed_img[color_mask] = img[color_mask]
 
-        reco_detail = context.run_recognition("CCRemainMoney_rec", processed_img)
+        if type == 0:
+            reco_detail = context.run_recognition("CCRemainMoney_rec", processed_img)
+        elif type == 1:
+            reco_detail = context.run_recognition(
+                "CCRemainMoney_rec_refresh", processed_img
+            )
 
         if reco_detail and reco_detail.hit:
             logger.debug(f"识别到剩余缪斯币: {reco_detail.best_result.text}")

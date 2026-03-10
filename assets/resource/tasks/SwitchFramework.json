@@ -1,0 +1,99 @@
+{
+    "task": [
+        {
+            "name": "切换艺术框架",
+            "entry": "switch_menu",
+            "option": [
+                "艺术框架"
+            ],
+            "pipeline_override": {
+                "HomeFlagCloseReturnMain": {
+                    "next": []
+                }
+            }
+        }
+    ],
+    "option": {
+        "艺术框架": {
+            "type": "select",
+            "cases": [
+                {
+                    "name": "手提箱制式（初始）",
+                    "pipeline_override": {
+                        "frame_art_open": {
+                            "recognition": {
+                                "param": {
+                                    "template": "SwitchMenu/frame/frame1open.png"
+                                }
+                            }
+                        },
+                        "frame_art_select": {
+                            "recognition": {
+                                "param": {
+                                    "template": "SwitchMenu/frame/frame1close.png"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "伊卡洛斯所见",
+                    "pipeline_override": {
+                        "frame_art_open": {
+                            "recognition": {
+                                "param": {
+                                    "template": "SwitchMenu/frame/frame2open.png"
+                                }
+                            }
+                        },
+                        "frame_art_select": {
+                            "recognition": {
+                                "param": {
+                                    "template": "SwitchMenu/frame/frame2close.png"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "渐弱之心弦",
+                    "pipeline_override": {
+                        "frame_art_open": {
+                            "recognition": {
+                                "param": {
+                                    "template": "SwitchMenu/frame/frame3open.png"
+                                }
+                            }
+                        },
+                        "frame_art_select": {
+                            "recognition": {
+                                "param": {
+                                    "template": "SwitchMenu/frame/frame3close.png"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "裁纸饰朱梅",
+                    "pipeline_override": {
+                        "frame_art_open": {
+                            "recognition": {
+                                "param": {
+                                    "template": "SwitchMenu/frame/frame4open.png"
+                                }
+                            }
+                        },
+                        "frame_art_select": {
+                            "recognition": {
+                                "param": {
+                                    "template": "SwitchMenu/frame/frame4close.png"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

@@ -64,19 +64,47 @@
     "ClickBlank": {
         "doc": "点击空白关闭",
         "recognition": {
-            "type": "OCR",
+            "type": "Or",
             "param": {
-                "only_rec": true,
-                "roi": [
-                    569,
-                    660,
-                    121,
-                    27
-                ],
-                "expected": [
-                    "点击",
-                    "空白",
-                    "关闭"
+                "any_of": [
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "only_rec": true,
+                                "roi": [
+                                    569,
+                                    660,
+                                    121,
+                                    27
+                                ],
+                                "expected": [
+                                    "点击",
+                                    "空白",
+                                    "关闭"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "only_rec": true,
+                                "roi": [
+                                    572,
+                                    607,
+                                    143,
+                                    24
+                                ],
+                                "expected": [
+                                    "点击",
+                                    "空白",
+                                    "关闭"
+                                ]
+                            }
+                        }
+                    }
                 ]
             }
         },

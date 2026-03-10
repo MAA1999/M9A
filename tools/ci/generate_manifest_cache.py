@@ -31,7 +31,7 @@ def _fetch_json(opener, url: str) -> dict:
 def _collect_all_manifests(opener, manifest_path: str, collected: dict):
     """
     递归收集所有 manifest 的 updated 时间戳
-    
+
     Args:
         opener: urllib opener
         manifest_path: manifest 路径（如 "resource/manifest.json"）
@@ -39,11 +39,11 @@ def _collect_all_manifests(opener, manifest_path: str, collected: dict):
     """
     url = f"{API_BASE_URL}/{manifest_path}"
     print(f"  Fetching: {manifest_path}")
-    
+
     try:
         manifest = _fetch_json(opener, url)
         collected[manifest_path] = manifest.get("updated", 0)
-        
+
         # 如果有子目录，递归获取
         for dir_info in manifest.get("directories", []):
             sub_manifest = dir_info.get("manifest", "")
@@ -56,10 +56,10 @@ def _collect_all_manifests(opener, manifest_path: str, collected: dict):
 def generate_manifest_cache(output_dir: Path) -> bool:
     """
     从远程递归获取所有 manifest 并生成缓存文件
-    
+
     Args:
         output_dir: 输出目录（如 install/config）
-        
+
     Returns:
         bool: 是否成功
     """
@@ -68,27 +68,25 @@ def generate_manifest_cache(output_dir: Path) -> bool:
         # 创建不使用代理的 opener（国内服务器直连更快）
         no_proxy_handler = urllib.request.ProxyHandler({})
         opener = urllib.request.build_opener(no_proxy_handler)
-        
+
         root_manifest = _fetch_json(opener, MANIFEST_URL)
 
         # 构建缓存数据（扁平结构，保存所有 manifest 的时间戳）
         cache = {
             "root_updated": root_manifest.get("updated", 0),
-            "manifests": {
-                "manifest.json": root_manifest.get("updated", 0)
-            }
+            "manifests": {"manifest.json": root_manifest.get("updated", 0)},
         }
 
         # 递归收集所有子 manifest 的时间戳
         print("Collecting all sub-manifests...")
         for dir_info in root_manifest.get("directories", []):
             dir_name = dir_info["name"]
-            
+
             # 跳过忽略的目录
             if dir_name in IGNORED_DIRS:
                 print(f"  Skipping ignored directory: {dir_name}")
                 continue
-                
+
             sub_manifest = dir_info.get("manifest", "")
             if sub_manifest:
                 _collect_all_manifests(opener, sub_manifest, cache["manifests"])

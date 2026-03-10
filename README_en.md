@@ -63,14 +63,7 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 
 ## Development
 
-- [Development Prerequisites](https://1999.fan/en_us/develop/development.html) - Environment setup and development workflow
-- [Project Structure](https://1999.fan/en_us/develop/structure.html) - Code organization and directory structure
-- [Pipeline Writing](https://1999.fan/en_us/develop/pipeline.html) - Task workflow development
-- [Custom Writing](https://1999.fan/en_us/develop/custom.html) - Custom logic extension
-- [Interface Writing](https://1999.fan/en_us/develop/interface.html) - Task interface configuration
-- [Bug Troubleshooting](https://1999.fan/en_us/develop/fix.html) - Problem locating and log analysis
-- [Global Server Adaptation](https://1999.fan/en_us/develop/overseas-client-adaptation.html) - Multi-server resource support
-- [Document Writing](https://1999.fan/en_us/develop/doc.html) - Document writing guidelines
+- [Development Documentation](https://1999.fan/en_us/develop/development.html)
 
 For more documents, please visit the [MaaFramework](https://github.com/MaaXYZ/MaaFramework) main repository
 

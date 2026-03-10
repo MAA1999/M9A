@@ -30,7 +30,6 @@ def install_deps():
         ignore=shutil.ignore_patterns(
             "*MaaDbgControlUnit*",
             "*MaaThriftControlUnit*",
-            "*MaaWin32ControlUnit*",
             "*MaaRpc*",
             "*MaaHttp*",
             "*.node",

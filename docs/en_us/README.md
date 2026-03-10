@@ -62,15 +62,7 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 
 ## Development
 
-- [Development Prerequisites](./develop/development.md) - Environment setup and development workflow
-- [Project Structure](./develop/structure.md) - Code organization and directory structure
-- [Pipeline Writing](./develop/pipeline.md) - Task workflow development
-- [Custom Writing](./develop/custom.md) - Custom logic extension
-- [Interface Writing](./develop/interface.md) - Task interface configuration
-- [Bug Troubleshooting](./develop/fix.md) - Problem locating and log analysis
-- [Global Server Adaptation](./develop/overseas-client-adaptation.md) - Multi-server resource support
-- [Document Writing](./develop/doc.md) - Document writing guidelines
-- [Protocol Documentation](./protocol/sos.md) - Syndrome of Silence protocol explanation
+- [Development Documentation](./develop/development.md)
 
 For more documents, please visit the [MaaFramework](https://github.com/MaaXYZ/MaaFramework) main repository
 

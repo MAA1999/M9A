@@ -1,0 +1,42 @@
+{
+    "preset": [
+        {
+            "name": "各种小游戏",
+            "description": "这部分的每个任务都需独立运行",
+            "task": [
+                {
+                    "name": "局外演绎：黄昏的音序",
+                    "enabled": false
+                },
+                {
+                    "name": "局外演绎：无声综合征",
+                    "enabled": false
+                },
+                {
+                    "name": "复刻活动推图",
+                    "enabled": false
+                },
+                {
+                    "name": "匣中交流赛（拓片杂技赛）",
+                    "enabled": false
+                },
+                {
+                    "name": "警铃鸣响时（需高练度）",
+                    "enabled": false
+                },
+                {
+                    "name": "(测试中)推图模式",
+                    "enabled": false
+                },
+                {
+                    "name": "翻斗棋速刷",
+                    "enabled": false
+                },
+                {
+                    "name": "雨前漫游指南",
+                    "enabled": false
+                }
+            ]
+        }
+    ]
+}

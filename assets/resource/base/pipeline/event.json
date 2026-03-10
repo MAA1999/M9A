@@ -11,7 +11,7 @@
                     24
                 ],
                 "template": "Event/EventLaplace.png",
-                "threshold": 0.90
+                "threshold": 0.9
             }
         },
         "action": {
@@ -70,8 +70,8 @@
             "time": 500
         },
         "next": [
-            "EventLaplaceBoxesClaim", // 识别成功时重复执行  
-            "EventLaplaceFoxesNumber", // 识别失败时认为是没有盒子次数可以领取了，进而判断可观测次数  
+            "EventLaplaceBoxesClaim", // 识别成功时重复执行
+            "EventLaplaceFoxesNumber", // 识别失败时认为是没有盒子次数可以领取了，进而判断可观测次数
             "BackButton"
         ]
     },
@@ -92,7 +92,7 @@
         },
         "action": "DoNothing",
         "next": [
-            "EventLaplaceFoxesClaim", // 若有可观测次数则尝试用次数来观测盒子  
+            "EventLaplaceFoxesClaim", // 若有可观测次数则尝试用次数来观测盒子
             "[JumpBack]ObtainedAwards", //结算领取页面
             "BackButton"
         ]
@@ -116,7 +116,7 @@
         },
         "next": [
             "[JumpBack]ObtainedAwards", //结算领取页面
-            "EventLaplaceFoxesNumber", // 识别成功时再次判断 
+            "EventLaplaceFoxesNumber", // 识别成功时再次判断
             "BackButton"
         ]
     },

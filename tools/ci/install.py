@@ -32,7 +32,6 @@ def install_deps(platform_tag: str):
         ignore=shutil.ignore_patterns(
             "*MaaDbgControlUnit*",
             "*MaaThriftControlUnit*",
-            "*MaaWin32ControlUnit*",
             "*MaaRpc*",
             "*MaaHttp*",
             "plugins",

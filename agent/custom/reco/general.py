@@ -549,9 +549,9 @@ class MultiRecognition(CustomRecognition):
                 scaled_width = int(original_width * (720 / original_height))
 
             normalized_roi = [0, 0, scaled_width, scaled_height]
-            logger.debug(
-                f"全屏ROI标准化: 原始尺寸({original_width}x{original_height}) -> 缩放尺寸({scaled_width}x{scaled_height})"
-            )
+            # logger.debug(
+            #     f"全屏ROI标准化: 原始尺寸({original_width}x{original_height}) -> 缩放尺寸({scaled_width}x{scaled_height})"
+            # )
             return normalized_roi
 
         return roi

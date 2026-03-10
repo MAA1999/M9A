@@ -3,7 +3,6 @@ import json
 import requests
 from bs4 import BeautifulSoup
 
-
 CN_CONTENT_URL = "https://notice.sl916.com/noticecp/client/query"
 OTHER_URL = "https://re1999.bluepoch.com/activity/official/websites/information/query"
 

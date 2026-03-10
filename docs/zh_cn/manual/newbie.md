@@ -37,43 +37,49 @@ icon: ri:guide-fill
 <div align="center">
 
 <table>
-    <thead>
-        <tr>
-            <th rowspan="2"><div align="center">启动方式</div></th>
-            <th colspan="2"><div align="center">Windows</div></th>
-            <th colspan="2"><div align="center">macOS</div></th>
-            <th colspan="2"><div align="center">Linux</div></th>
-        </tr>
-        <tr>
-            <th><div align="center">命令行（MaaPiCli）</div></th>
-            <th><div align="center">图形界面（MFAAvalonia）</div></th>
-            <th><div align="center">命令行</div></th>
-            <th><div align="center">图形界面</div></th>
-            <th><div align="center">命令行</div></th>
-            <th><div align="center">图形界面</div></th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td><div align="center">需安装<br>VCRedist</div></td>
-            <td colspan="2"><div align="center">点击 <a href="https://aka.ms/vs/17/release/vc_redist.x64.exe" target="_blank">vc_redist.x64</a> 下载或通过 winget 安装（详见下方）</div></td>
-            <td colspan="4"><div align="center">否</div></td>
-        </tr>
-        <tr>
-            <td><div align="center">需安装<br>.NET 10</div></td>
-            <td><div align="center">否</div></td>
-            <td><div align="center">前往 <a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/10.0" target="_blank">.NET 官方下载页面</a> 下载对应版本或<br>通过 winget 安装（详见下方）</div></td>
-            <td><div align="center">否</div></td>
-            <td><div align="center"> <a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/10.0" target="_blank">.NET 官方下载页面</a> </div></td>
-            <td><div align="center">否</div></td>
-            <td><div align="center">同 Mac</div></td>
-        </tr>
-        <tr>
-            <td><div align="center">需安装<br>Python</div></td>
-            <td colspan="4"><div align="center">压缩包自带，无需其他操作</div></td>
-            <td colspan="2"><div align="center">3.10≤python<3.14</div></td>
-        </tr>
-    </tbody>
+  <thead>
+    <tr>
+        <th rowspan="2"><div align="center">启动方式</div></th>
+        <th colspan="3"><div align="center">Windows</div></th>
+        <th colspan="3"><div align="center">macOS</div></th>
+        <th colspan="3"><div align="center">Linux</div></th>
+    </tr>
+    <tr>
+        <th><div align="center">命令行（MaaPiCli）</div></th>
+        <th><div align="center">图形界面（MFAA）</div></th>
+        <th><div align="center">图形界面（MXU）</div></th>
+        <th><div align="center">命令行</div></th>
+        <th><div align="center">图形界面（MFAA）</div></th>
+        <th><div align="center">图形界面（MXU）</div></th>
+        <th><div align="center">命令行</div></th>
+        <th><div align="center">图形界面（MFAA）</div></th>
+        <th><div align="center">图形界面（MXU）</div></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+        <td><div align="center">需安装<br>VCRedist</div></td>
+        <td colspan="3"><div align="center">点击 <a href="https://aka.ms/vs/17/release/vc_redist.x64.exe" target="_blank">vc_redist.x64</a> 下载或通过 winget 安装（详见下方）</div></td>
+        <td colspan="6"><div align="center">否</div></td>
+    </tr>
+    <tr>
+        <td><div align="center">需安装<br>.NET 10</div></td>
+        <td><div align="center">否</div></td>
+        <td><div align="center">前往 <a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/10.0" target="_blank">.NET 官方下载页面</a> 下载对应版本或<br>通过 winget 安装（详见下方）</div></td>
+        <td><div align="center">否</div></td>
+        <td><div align="center">否</div></td>
+        <td><div align="center"><a href="https://dotnet.microsoft.com/zh-cn/download/dotnet/10.0" target="_blank">.NET 官方下载页面</a></div></td>
+        <td><div align="center">否</div></td>
+        <td><div align="center">否</div></td>
+        <td><div align="center">同 Mac</div></td>
+        <td><div align="center">否</div></td>
+    </tr>
+    <tr>
+       <td><div align="center">需安装<br>Python</div></td>
+        <td colspan="6"><div align="center">压缩包自带，无需其他操作</div></td>
+        <td colspan="3"><div align="center">需要 Python 3.10 ≤ version < 3.14</div></td>
+    </tr>
+  </tbody>
 </table>
 
 </div>
@@ -102,7 +108,7 @@ Windows 用户**必须安装 VCRedist x64**：这是运行 M9A (无论是命令�
 
 #### 2. .NET 10
 
-所有使用图形界面的用户都需要自行下载并安装适用于您系统的 .NET 10 。
+所有使用 **MFA** 图形界面的用户都需要自行下载并安装适用于您系统的 .NET 10 。
 
 <details>
   <summary>详细安装方式</summary>
@@ -291,18 +297,18 @@ M9A 支持主流模拟器与PC端，但您需要设置模拟器与PC端分辨率
 
 ### 6. 开始使用
 
-M9A 支持通过命令行（MaaPiCli）和图形化界面（MFAAvalonia），但在使用前，需正确解压压缩包、游戏内显示语言请改为简体中文。
+M9A 支持通过命令行（MaaPiCli）和图形化界面（MFAAvalonia/MXU），但在使用前，需正确解压压缩包、游戏内显示语言请改为简体中文。
 
 > [!IMPORTANT]
 > 不要在压缩软件直接打开程序！
 
-对于一般用户，推荐通过 **MFAAvalonia** 使用 M9A 。
+对于一般用户，推荐通过 **MFAAvalonia** 或 **MXU** 使用 M9A 。
 
 #### Windows
 
 确认解压完整，并确保将 M9A 解压到一个独立的文件夹中。推荐解压路径如：`D:\M9A`。除关闭内建管理员批准的Administrator账号外，请勿将 MAA 解压到如 `C:\`、`C:\Program Files\` 等需要 UAC 权限的路径。
 
-- 解压后运行 `MaaPiCli.exe` 或 `MFAAvalonia.exe` 即可
+- 解压后运行 `M9A.exe` 即可。
 
 #### macOS
 
@@ -331,10 +337,10 @@ M9A 支持通过命令行（MaaPiCli）和图形化界面（MFAAvalonia），但
 
     ```shell
     cd /usr/local/bin/M9A
-    ./MaaPiCli
+    ./M9A
     ```
 
-若想使用**图形操作页面**请按第二步操作，由执行 `MaaPiCli` 改为执行 `MFAAvalonia` 程序。
+若想使用**图形操作页面**请按第二步操作，执行 `M9A` 程序即可。
 
 ⚠️Gatekeeper 安全提示处理：
 
@@ -342,13 +348,13 @@ M9A 支持通过命令行（MaaPiCli）和图形化界面（MFAAvalonia），但
 如果遇到"无法打开，因为无法验证开发者"等错误，请选择以下任一方案:
 
 ```shell
-# 方案1：以 MaaPiCli 为例，移除隔离属性（推荐，以实际路径为准）
-sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/MaaPiCli
-# 或用户目录版本：xattr -rd com.apple.quarantine ~/M9A/MaaPiCli
+# 方案1：以 M9A 为例，移除隔离属性（推荐，以实际路径为准）
+sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/M9A
+# 或用户目录版本：xattr -rd com.apple.quarantine ~/M9A/M9A
 
 # 方案2：添加到 Gatekeeper 白名单
-sudo spctl --add /usr/local/bin/M9A/MaaPiCli
-# 或用户目录版本：spctl --add ~/M9A/MaaPiCli
+sudo spctl --add /usr/local/bin/M9A/M9A
+# 或用户目录版本：spctl --add ~/M9A/M9A
 
 # 方案3：一次性处理整个目录
 sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
@@ -360,7 +366,7 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
 
 #### Linux
 
-同macOS，下载对应版本的压缩包，解压后运行 `MaaPiCli` 或 `MFAAvalonia` 即可。
+同macOS，下载对应版本的压缩包，解压后运行 `M9A` 即可。
 
 ***
 
@@ -370,21 +376,28 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
 
 部分配置项在配置错误或未配置时可能会导致 M9A **运行异常**，因此推荐您在开始使用前阅读本章节。
 
-本章将主要介绍如何通过图形界面（MFAAvalonia）配置 M9A 。如果您正在使用命令行版本（MaaPiCli），请参考 [MaaPiCli操作说明](./cli.md) 。
+本章将主要介绍如何通过图形界面（MFAAvalonia/MXU）配置 M9A 。如果您正在使用命令行版本（MaaPiCli），请参考 [MaaPiCli操作说明](./cli.md) 。
 
 下列演示仅供参考，请以软件实际情况为准。
 
 #### 首次启动
 
 <details open>
-  <summary>MFA主页面展示</summary>
-  <p></p>
+  <summary>主页面展示</summary>
   <blockquote>
-    <img src="/images/zh-cn/newbie-main-interface.webp" alt="主界面">
+    <p>
+      <strong>MFA主页面：</strong><br>
+      <img src="/images/zh-cn/newbie-main-interface.webp" alt="MFA主界面" loading="lazy">
+    </p>
+    <p>
+      <strong>MXU主页面：</strong><br>
+      <img src="/images/zh-cn/newbie-mxu-main-interface.webp" alt="MXU主界面" loading="lazy">
+    </p>
   </blockquote>
 </details>
 
-在主界面中，可看到 **`资源类型`** **`任务列表`** **`任务设置`** **`任务说明`** **`连接`** **`日志`** **`实时视图`** 七大板块。
+在MFA主界面中，可看到 **`资源类型`** **`任务列表`** **`任务设置`** **`任务说明`** **`连接`** **`日志`** **`实时视图`** 七大板块。
+在MXU主页面中，可看到 **`任务列表`** **`任务管理`** **`连接设置`** **`实时视图`** **`运行日志`** 五大板块。
 
 > [!CAUTION]
 > 首次启动 MFA 时， M9A 将进行初始化。在 `日志` 板块显示 “**AgentServer 启动**”后，直到看见 “**任务已全部完成**” 前，请不要点击 `停止任务` 。
@@ -541,11 +554,9 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
 
   <details>
     <summary>示意图</summary>
-    <p></p>
     <blockquote>
-      <ul>
-        <img src="/images/zh-cn/newbie-main-interface-connection.webp" alt="image_440">
-      </ul>
+        <p>MFA示意图：<br><img src="/images/zh-cn/newbie-main-interface-connection.webp" alt="MFA连接示意图"></p>
+        <p>MXU示意图：<br><img src="/images/zh-cn/newbie-mxu-main-interface-connection.webp" alt="MXU连接示意图"></p>
     </blockquote>
   </details>
 
@@ -574,23 +585,28 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
   </details>
   
 当您使用国际服 PC 端时，在连接区域的**控制器类型**中选择 PC 即可自动检测并连接已打开的 PC 端窗口。  
+
+  <details>
+    <summary>示意图</summary>
+    <blockquote>
+      <p>
+        <strong>MFA连接示意图：</strong><br>
+        <img src="/images/zh-cn/newbie-main-interface-connection-pc.webp" alt="MFA连接示意图（PC端）" loading="lazy">
+      </p>
+      <p>
+        <strong>MXU连接示意图：</strong><br>
+        <img src="/images/zh-cn/newbie-mxu-main-interface-connection-pc.webp" alt="MXU连接示意图（PC端）" loading="lazy">
+      </p>
+    </blockquote>
+  </details>
+
 > [!WARNING]
 >
 > 连接PC时请**以管理员模式**运行M9A，并**不要将游戏窗口最小化**！
 
-  <details>
-    <summary>示意图</summary>
-    <p></p>
-    <blockquote>
-      <ul>
-        <img src="/images/zh-cn/newbie-main-interface-connection-pc.webp" alt="PC连接">
-      </ul>
-    </blockquote>
-  </details>
-
 Mac 用户使用 PlayCover 时，在连接区域的**控制器类型**中选择 PlayCover ，详情请参考 [PlayCover使用](https://maa.plus/docs/zh-cn/manual/device/macos.html#apple-silicon-%E8%8A%AF%E7%89%87)。
 
-<details>
+  <details>
     <summary>示意图</summary>
     <p></p>
     <blockquote>
@@ -606,25 +622,41 @@ Mac 用户使用 PlayCover 时，在连接区域的**控制器类型**中选择 
 
   <details>
     <summary>示意图</summary>
-    <p></p>
     <blockquote>
-      <ul>
-        <img src="/images/zh-cn/newbie-main-interface-task-lists.webp" alt="image_441">
-      </ul>
+        <p>
+            <strong>MFA任务列表示意图：</strong><br>
+            <img src="/images/zh-cn/newbie-main-interface-task-lists.webp" alt="MFA任务列表界面" loading="lazy">
+        </p>
+        <p>
+            <strong>MXU任务列表示意图：</strong><br>
+            <img src="/images/zh-cn/newbie-mxu-main-interface-task-lists.webp" alt="MXU任务列表界面" loading="lazy">
+        </p>
     </blockquote>
   </details>
 
   <details open>
     <summary>详情</summary>
-    <p></p>
     <blockquote>
-      <ul>
-        <li>任务名前的复选框用于启用/禁用任务</li>
-        <li>右键单击复选框将单次执行该任务</li>
-        <li>点击右上角添加任务按钮可添加当前列表不可见任务或重复添加已有任务</li>
-        <li>点击任务右侧按钮查看 <b>任务设置</b> 与 <b>任务说明</b></li>
-        <li>拖动任务名可调整任务顺序</li>
-      </ul>
+        <details open>
+            <summary>MFA任务列表使用方式</summary>
+            <ul>
+                <li>任务名前的复选框用于启用/禁用任务</li>
+                <li>右键单击复选框将单次执行该任务</li>
+                <li>点击右上角添加任务按钮可添加当前列表不可见任务或重复添加已有任务</li>
+                <li>点击任务右侧按钮查看 <b>任务设置</b> 与 <b>任务说明</b></li>
+                <li>拖动任务名可调整任务顺序</li>
+            </ul>
+        </details>
+        <details open>
+            <summary>MXU任务列表使用方式</summary>
+            <ul>
+                <li>任务名前的复选框用于启用/禁用任务</li>
+                <li>点击左下角添加任务按钮可添加当前列表不可见任务或重复添加已有任务</li>
+                <li>右键单击任务将打开管理菜单</li>
+                <li>左键单击任务将展开任务选项来查看 <b>任务设置</b> 与 <b>任务说明</b></li>
+                <li>长按拖动任务左侧按钮可调整任务顺序</li>
+            </ul>
+        </details>
     </blockquote>
   </details>
 

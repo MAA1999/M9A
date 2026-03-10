@@ -162,16 +162,12 @@
     },
     "FlagInActivityCombatStage": {
         "recognition": {
-            "type": "Custom",
+            "type": "And",
             "param": {
-                "custom_recognition": "MultiRecognition",
-                "custom_recognition_param": {
-                    "nodes": [
-                        "ActivityCombatStageNum",
-                        "ActivityCombatStageCost"
-                    ],
-                    "return": "$0"
-                }
+                "all_of": [
+                    "ActivityCombatStageNum",
+                    "ActivityCombatStageCost"
+                ]
             }
         },
         "next": [

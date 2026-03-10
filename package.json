@@ -1,5 +1,11 @@
 {
-  "devDependencies": {
-    "prettier-plugin-multiline-arrays": "^3.0.6"
-  }
+    "scripts": {
+        "format:json": "prettier --write \"**/*.json\"",
+        "format:py": "black .",
+        "format:all": "pnpm format:json && pnpm format:py"
+    },
+    "devDependencies": {
+        "prettier": "3.5.3",
+        "prettier-plugin-multiline-arrays": "4.1.4"
+    }
 }

@@ -63,14 +63,7 @@
 
 ## 开发相关
 
-- [开发前须知](https://1999.fan/zh_cn/develop/development.html) - 环境配置与开发流程
-- [项目结构](https://1999.fan/zh_cn/develop/structure.html) - 代码组织与目录说明
-- [Pipeline编写](https://1999.fan/zh_cn/develop/pipeline.html) - 任务流程开发
-- [Custom编写](https://1999.fan/zh_cn/develop/custom.html) - 自定义逻辑扩展
-- [Interface编写](https://1999.fan/zh_cn/develop/interface.html) - 任务界面配置
-- [Bug排查](https://1999.fan/zh_cn/develop/fix.html) - 问题定位与日志分析
-- [外服适配](https://1999.fan/zh_cn/develop/overseas-client-adaptation.html) - 多服务器资源支持
-- [文档编写](https://1999.fan/zh_cn/develop/doc.html) - 编写文档说明
+- [开发文档](https://1999.fan/zh_cn/develop/development.html)
 
 更多文档请前往 [MaaFramework](https://github.com/MaaXYZ/MaaFramework) 主仓库查看
 

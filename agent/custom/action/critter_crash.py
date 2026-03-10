@@ -46,19 +46,69 @@ class CCChessboard(CustomAction):
         [None, None, None, None, None],
     ]
 
+    # # 3.2 版本策略：工厂流
+    # chess_types = [
+    #     {"name": "Knight", "max_level": 8, "positions": [(0, 0), (2, 0)]},
+    #     {"name": "Cat4", "max_level": 4, "positions": [(2, 1)]},
+    #     {"name": "Cat3", "max_level": 4, "positions": [(2, 2)]},
+    #     {"name": "Cat2", "max_level": 4, "positions": [(2, 3)]},
+    #     {"name": "Cat1", "max_level": 4, "positions": [(2, 4)]},
+    #     {"name": "Robot4", "max_level": 4, "positions": [(0, 1)]},
+    #     {"name": "Robot3", "max_level": 4, "positions": [(0, 1)]},
+    #     {"name": "Robot1", "max_level": 1, "positions": [(0, 4), (0, 3), (0, 2)]},
+    #     {"name": "Robot2", "max_level": 1, "positions": [(0, 4), (0, 3), (0, 2)]},
+    #     {"name": "Item3", "max_level": 1, "positions": [(1, 3)]},
+    #     {"name": "Item1", "max_level": 1, "positions": [(1, 1)]},
+    #     {"name": "Item2", "max_level": 1, "positions": [(1, 2)]},
+    # ]
+
+    # 3.5 版本策略：鹿蜀成长流
     chess_types = [
-        {"name": "Knight", "max_level": 8, "positions": [(0, 0), (2, 0)]},
-        {"name": "Cat4", "max_level": 4, "positions": [(2, 1)]},
-        {"name": "Cat3", "max_level": 4, "positions": [(2, 2)]},
-        {"name": "Cat2", "max_level": 4, "positions": [(2, 3)]},
-        {"name": "Cat1", "max_level": 4, "positions": [(2, 4)]},
-        {"name": "Robot4", "max_level": 4, "positions": [(0, 1)]},
-        {"name": "Robot3", "max_level": 4, "positions": [(0, 1)]},
-        {"name": "Robot1", "max_level": 1, "positions": [(0, 4), (0, 3), (0, 2)]},
-        {"name": "Robot2", "max_level": 1, "positions": [(0, 4), (0, 3), (0, 2)]},
-        {"name": "Item3", "max_level": 1, "positions": [(1, 3)]},
-        {"name": "Item1", "max_level": 1, "positions": [(1, 1)]},
-        {"name": "Item2", "max_level": 1, "positions": [(1, 2)]},
+        {"name": "Shiva", "max_level": 1, "positions": [(0, 0), (2, 0)]},
+        {
+            "name": "Deer",
+            "max_level": 5,
+            "positions": [
+                (0, 4),
+                (2, 4),
+                (0, 3),
+                (2, 3),
+                (0, 2),
+                (2, 2),
+                (0, 1),
+                (2, 1),
+            ],
+        },
+        {
+            "name": "People2",
+            "max_level": 1,
+            "positions": [
+                (0, 4),
+                (2, 4),
+                (0, 3),
+                (2, 3),
+                (0, 2),
+                (2, 2),
+                (0, 1),
+                (2, 1),
+            ],
+        },
+        {
+            "name": "People1",
+            "max_level": 1,
+            "positions": [
+                (0, 4),
+                (2, 4),
+                (0, 3),
+                (2, 3),
+                (0, 2),
+                (2, 2),
+                (0, 1),
+                (2, 1),
+            ],
+        },
+        {"name": "Man", "max_level": 1, "positions": [(1, 0), (1, 1), (1, 2), (1, 3)]},
+        {"name": "Woman", "max_level": 1, "positions": [(1, 4)]},
     ]
 
     board_chesses = []
@@ -289,6 +339,29 @@ class CCBuyCard(CustomAction):
                         box[1] : box[1] + box[3],
                         box[0] : box[0] + box[2],
                     ]
+                    offset = [-52, -58, 45, 15]
+                    roi_max = [
+                        target_roi[0] + offset[0],
+                        target_roi[1] + offset[1],
+                        target_roi[2] + offset[2],
+                        target_roi[3] + offset[3],
+                    ]
+                    level_max_reco = context.run_recognition(
+                        "CCLevelMax",
+                        img,
+                        pipeline_override={"CCLevelMax": {"roi": roi_max}},
+                    )
+                    if level_max_reco and level_max_reco.hit:
+                        max_level = CCChessboard.get_chess_info(card_name).get(
+                            "max_level", 1
+                        )
+                        chess["level"] = max_level
+                        if CCChessboard.board[row][col] is not None:
+                            CCChessboard.board[row][col]["level"] = max_level
+                        logger.debug(
+                            f"{card_name} 在位置 ({row}, {col}) 已满级，跳过升级"
+                        )
+                        return CustomAction.RunResult(success=True)
                     context.override_image("ccupdate", roi_array)
                     context.run_task(
                         "CCUpdate",

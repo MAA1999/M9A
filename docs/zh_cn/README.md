@@ -62,15 +62,7 @@ dir:
 
 ## 开发相关
 
-- [开发前须知](./develop/development.md) - 环境配置与开发流程
-- [项目结构](./develop/structure.md) - 代码组织与目录说明
-- [Pipeline编写](./develop/pipeline.md) - 任务流程开发
-- [Custom编写](./develop/custom.md) - 自定义逻辑扩展
-- [Interface编写](./develop/interface.md) - 任务界面配置
-- [Bug排查](./develop/fix.md) - 问题定位与日志分析
-- [外服适配](./develop/overseas-client-adaptation.md) - 多服务器资源支持
-- [文档编写](./develop/doc.md) - 编写文档说明
-- [协议文档](./protocol/sos.md) - 无声综合征协议说明
+- [开发文档](./develop/development.md)
 
 更多文档请前往 [MaaFramework](https://github.com/MaaXYZ/MaaFramework) 主仓库查看
 

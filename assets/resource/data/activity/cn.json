@@ -449,12 +449,12 @@
     "3.4": {
         "version_name": "不老春",
         "start_time": 1768874400000,
-        "end_time": 1772917199000,
+        "end_time": 1772657999000,
         "activity": {
             "combat": {
                 "event_type": "SideStory",
                 "start_time": 1768874400000,
-                "end_time": 1772657999000,
+                "end_time": 1772398799000,
                 "override": {
                     "FlagInActivityMain": {
                         "recognition": {
@@ -619,7 +619,84 @@
             "combat": {
                 "event_type": "SideStory",
                 "start_time": 1772676000000,
-                "end_time": 1775422799000
+                "end_time": 1775422799000,
+                "override": {
+                    "FlagInActivityStage": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1077,
+                                    632,
+                                    131,
+                                    41
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    226,
+                                    29,
+                                    815,
+                                    234
+                                ],
+                                "expected": "[0-1][0-9]|20"
+                            }
+                        }
+                    },
+                    "ActivityCombatStageCost": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    900,
+                                    629,
+                                    101,
+                                    54
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityTargetLevel": {
+                        "attach": {
+                            "clicks": [
+                                [
+                                    912,
+                                    584
+                                ],
+                                [
+                                    1211,
+                                    585
+                                ]
+                            ]
+                        }
+                    },
+                    "ActivityTargetLevelRec": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1036,
+                                    573,
+                                    57,
+                                    26
+                                ]
+                            }
+                        },
+                        "ActivityClickPreStage": {
+                            "action": {
+                                "param": {
+                                    "target": [
+                                        25,
+                                        334,
+                                        32,
+                                        53
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
             },
             "re-release": {
                 "start_time": 1774558800000,
