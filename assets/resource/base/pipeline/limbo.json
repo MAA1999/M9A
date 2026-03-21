@@ -523,16 +523,10 @@
             "param": {
                 "model": "limbo_stage_lightest.onnx",
                 "labels": [
-                    "mojing",
-                    "mojing1",
-                    "objects",
-                    "people"
+                    "lighting"
                 ],
                 "expected": [
-                    0,
-                    1,
-                    2,
-                    3
+                    0
                 ]
             }
         },
@@ -658,16 +652,10 @@
             "param": {
                 "model": "limbo_stage_lightest.onnx",
                 "labels": [
-                    "mojing",
-                    "mojing1",
-                    "objects",
-                    "people"
+                    "lighting"
                 ],
                 "expected": [
-                    0,
-                    1,
-                    2,
-                    3
+                    0
                 ]
             }
         },
