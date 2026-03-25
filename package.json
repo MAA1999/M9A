@@ -5,6 +5,7 @@
         "format:all": "pnpm format:json && pnpm format:py"
     },
     "devDependencies": {
+        "@nekosu/maa-tools": "1.0.22",
         "prettier": "3.5.3",
         "prettier-plugin-multiline-arrays": "4.1.4"
     }

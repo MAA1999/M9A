@@ -29,6 +29,20 @@
                 "useTabs": false,
                 "bracketSameLine": false
             }
+        },
+        {
+            "files": [
+                "*.mts",
+                "**/*.ts"
+            ],
+            "options": {
+                "tabWidth": 2,
+                "semi": false,
+                "trailingComma": "all",
+                "bracketSpacing": true,
+                "singleQuote": true,
+                "multilineArraysWrapThreshold": -1
+            }
         }
     ]
 }
