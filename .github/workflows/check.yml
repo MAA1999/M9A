@@ -32,7 +32,7 @@ jobs:
 
       - name: Run maa-checker
         run: |
-          npm i
+          npm ci
           npx @nekosu/maa-tools check
 
       - name: Validate JSON Schema
