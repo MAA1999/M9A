@@ -61,7 +61,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1030,
                     634,
@@ -70,7 +69,8 @@
                 ],
                 "expected": [
                     "复现"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -121,9 +121,6 @@
                 ]
             }
         },
-        "action": {
-            "type": "Click"
-        },
         "pre_wait_freezes": {
             "time": 500,
             "target": [
@@ -132,6 +129,9 @@
                 666,
                 263
             ]
+        },
+        "action": {
+            "type": "Click"
         },
         "post_wait_freezes": {
             "time": 500,
@@ -152,7 +152,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1097,
                     630,
@@ -161,7 +160,8 @@
                 ],
                 "expected": [
                     "复现"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "next": [
@@ -213,12 +213,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1146,
                     26,
                     43,
                     19
+                ],
+                "expected": [
+                    "^(?:[0-9]{1,3}|1[0-9]{3})$"
                 ],
                 "replace": [
                     [
@@ -230,9 +232,7 @@
                         "0"
                     ]
                 ],
-                "expected": [
-                    "^(?:[0-9]{1,3}|1[0-9]{3})$"
-                ]
+                "only_rec": true
             }
         }
     },
@@ -240,7 +240,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     952,
                     640,
@@ -255,7 +254,8 @@
                         "-",
                         ""
                     ]
-                ]
+                ],
+                "only_rec": true
             }
         }
     },
@@ -263,7 +263,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     844,
                     646,
@@ -272,7 +271,8 @@
                 ],
                 "expected": [
                     "^[1-4]$"
-                ]
+                ],
+                "only_rec": true
             }
         }
     },
@@ -302,14 +302,14 @@
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "template_code": "Set in interface.json.",
                 "roi": [
                     751,
                     333,
                     188,
                     347
                 ],
-                "order_by": "Score"
+                "order_by": "Score",
+                "template_code": "Set in interface.json."
             }
         },
         "action": {
@@ -324,7 +324,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1030,
                     634,
@@ -333,7 +332,8 @@
                 ],
                 "expected": [
                     "复现"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -348,7 +348,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1030,
                     634,
@@ -357,7 +356,8 @@
                 ],
                 "expected": [
                     "复现"
-                ]
+                ],
+                "only_rec": true
             }
         }
     },
@@ -401,9 +401,6 @@
                 ]
             }
         },
-        "action": {
-            "type": "Click"
-        },
         "pre_wait_freezes": {
             "time": 500,
             "target": [
@@ -412,6 +409,9 @@
                 666,
                 263
             ]
+        },
+        "action": {
+            "type": "Click"
         },
         "post_wait_freezes": {
             "time": 500,
@@ -432,7 +432,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1097,
                     630,
@@ -441,7 +440,8 @@
                 ],
                 "expected": [
                     "复现"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "next": [

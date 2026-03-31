@@ -5,7 +5,8 @@
             "entry": "StartUp",
             "controller": [
                 "ADB"
-            ]
+            ],
+            "group": ["daily"]
         }
     ]
 }

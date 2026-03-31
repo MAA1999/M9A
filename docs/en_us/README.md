@@ -40,7 +40,6 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 - Auto Awakening Dream
 - Bank Shopping
 - Claim Rewards
-- Suspended in the Rain: Mystery Sea ("Think" Weekly Sweep)
 - Switch Account
 - Outside Deduction: The Series of Dusks
 - Outside Deduction: The Syndrome of Silence

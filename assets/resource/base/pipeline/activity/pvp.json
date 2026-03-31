@@ -30,14 +30,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     200,
                     603,
                     78,
                     35
                 ],
-                "expected": "选择"
+                "expected": "选择",
+                "only_rec": true
             }
         },
         "action": {
@@ -52,14 +52,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     92,
                     559,
                     92,
                     43
                 ],
-                "expected": "队伍评级"
+                "expected": "队伍评级",
+                "only_rec": true
             }
         },
         "next": [
@@ -76,14 +76,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     605,
                     15,
                     69,
                     32
                 ],
-                "expected": "2-1"
+                "expected": "2-1",
+                "only_rec": true
             }
         },
         "action": {
@@ -196,14 +196,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     605,
                     15,
                     69,
                     32
                 ],
-                "expected": "1-1"
+                "expected": "1-1",
+                "only_rec": true
             }
         },
         "action": {
@@ -226,14 +226,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     405,
                     599,
                     68,
                     40
                 ],
-                "expected": "选择"
+                "expected": "选择",
+                "only_rec": true
             }
         },
         "action": {
@@ -248,14 +248,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     566,
                     280,
                     149,
                     44
                 ],
-                "expected": "获得偶"
+                "expected": "获得偶",
+                "only_rec": true
             }
         },
         "action": {
@@ -274,14 +274,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     95,
                     564,
                     83,
                     34
                 ],
-                "expected": "队伍评级"
+                "expected": "队伍评级",
+                "only_rec": true
             }
         }
     },
@@ -310,14 +310,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     794,
                     580,
                     129,
                     42
                 ],
-                "expected": "领取"
+                "expected": "领取",
+                "only_rec": true
             }
         },
         "action": {
@@ -358,14 +358,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     605,
                     15,
                     69,
                     32
                 ],
-                "expected": "1-3"
+                "expected": "1-3",
+                "only_rec": true
             }
         },
         "action": {
@@ -388,14 +388,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     64,
                     143,
                     136,
                     51
                 ],
-                "expected": "敌方评级"
+                "expected": "敌方评级",
+                "only_rec": true
             }
         },
         "next": ["开始配对1"]
@@ -534,14 +534,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     605,
                     15,
                     69,
                     32
                 ],
-                "expected": "1-5"
+                "expected": "1-5",
+                "only_rec": true
             }
         },
         "action": {

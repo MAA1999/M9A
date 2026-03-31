@@ -2,29 +2,29 @@
     "SSReopen": {
         // 复刻时根据任务自动打图
         "timeout": 3000,
+        "next": [
+            "FlagInSS"
+        ],
         "on_error": [],
         "focus": {
             "Node.PipelineNode.Failed": "请到复刻活动左边标有故事/探索模式的页面开始该任务"
-        },
-        "next": [
-            "FlagInSS"
-        ]
+        }
     },
     "FlagInSS": {
         "recognition": {
             "type": "OCR",
             "param": {
-                "expected": [
-                    "故事模式",
-                    "探索模式",
-                    "STORY MODE",
-                    "HARD MODE"
-                ],
                 "roi": [
                     29,
                     87,
                     174,
                     227
+                ],
+                "expected": [
+                    "故事模式",
+                    "探索模式",
+                    "STORY MODE",
+                    "HARD MODE"
                 ]
             }
         },
@@ -53,15 +53,15 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "expected": [
-                    "领取",
-                    "CLAIM"
-                ],
                 "roi": [
                     1158,
                     95,
                     90,
                     91
+                ],
+                "expected": [
+                    "领取",
+                    "CLAIM"
                 ]
             }
         },
@@ -188,11 +188,11 @@
                 "expected": "开始行动"
             }
         },
-        "timeout": 420000,
-        "post_delay": 1500,
         "action": {
             "type": "Click"
         },
+        "post_delay": 1500,
+        "timeout": 420000,
         "next": [
             "CheckStopping",
             "Victory_NoReplay",
@@ -246,8 +246,8 @@
                     83,
                     30
                 ],
-                "only_rec": true,
-                "expected": "推荐等级"
+                "expected": "推荐等级",
+                "only_rec": true
             }
         },
         "action": {
@@ -284,17 +284,17 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "expected": [
-                    "故事模式",
-                    "探索模式",
-                    "STORY MODE",
-                    "HARD MODE"
-                ],
                 "roi": [
                     29,
                     115,
                     174,
                     199
+                ],
+                "expected": [
+                    "故事模式",
+                    "探索模式",
+                    "STORY MODE",
+                    "HARD MODE"
                 ]
             }
         }
@@ -303,15 +303,15 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "expected": [
-                    "前往",
-                    "GO"
-                ],
                 "roi": [
                     1166,
                     94,
                     71,
                     93
+                ],
+                "expected": [
+                    "前往",
+                    "GO"
                 ]
             }
         },
@@ -362,14 +362,14 @@
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "template": [
-                    "ss_task_entry"
-                ],
                 "roi": [
                     1120,
                     91,
                     147,
                     153
+                ],
+                "template": [
+                    "ss_task_entry"
                 ]
             }
         },

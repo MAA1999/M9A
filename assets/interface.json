@@ -145,36 +145,18 @@
             "./../agent/main.py"
         ]
     },
-    "task": [
+    "task": [],
+    "group": [
         {
-            "name": "雨中悬想：迷思海",
-            "entry": "ReveriesInTheRain",
-            "option": [
-                "单账号(迷思海)"
-            ],
-            "description": "<span style=\"color:tomato;font-size:15px\">本功能仅完成“寻思”每周扫荡</span>"
+            "name": "daily",
+            "label": "日常任务"
+        },
+        {
+            "name": "standalone",
+            "label": "独立任务"
         }
     ],
-    "option": {
-        "单账号(迷思海)": {
-            "type": "switch",
-            "label": "单账号",
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {}
-                },
-                {
-                    "name": "No",
-                    "pipeline_override": {
-                        "JudgeDepthsOfMythWeekly": {
-                            "action": "DoNothing"
-                        }
-                    }
-                }
-            ]
-        }
-    },
+    "option": {},
     "import": [
         "resource/tasks/preset/Daily.json",
         "resource/tasks/preset/DailyActivity.json",
@@ -199,6 +181,7 @@
         "resource/tasks/TheAlarm.json",
         "resource/tasks/StagePromotion.json",
         "resource/tasks/CritterCrash.json",
-        "resource/tasks/PreStormProtocol.json"
+        "resource/tasks/PreStormProtocol.json",
+        "resource/tasks/UTTU.json"
     ]
 }

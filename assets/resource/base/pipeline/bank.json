@@ -82,7 +82,7 @@
         ]
     },
     "FreeWeeklyGift": {
-        "doc": "柜台特奉",
+        "desc": "柜台特奉",
         "next": [
             "FlagInTellerMachine",
             "[JumpBack]EnterTellerMachine"
@@ -92,14 +92,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     320,
                     67,
                     83,
                     22
                 ],
-                "expected": "吼声推荐"
+                "expected": "吼声推荐",
+                "only_rec": true
             }
         },
         "action": {
@@ -191,14 +191,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     760,
                     509,
                     60,
                     27
                 ],
-                "expected": "购买"
+                "expected": "购买",
+                "only_rec": true
             }
         },
         "action": {
@@ -235,7 +235,7 @@
         }
     },
     "Rabbit": {
-        "doc": "独一律",
+        "desc": "独一律",
         "next": [
             "FlagInPawnShop_1",
             "[JumpBack]EnterPawnShop"
@@ -275,18 +275,18 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     325,
                     286,
                     87,
                     23
                 ],
+                "expected": ".+",
                 "replace": [
                     "独一律",
                     ""
                 ],
-                "expected": ".+"
+                "only_rec": true
             }
         },
         "action": {
@@ -339,14 +339,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     935,
                     462,
                     46,
                     24
                 ],
-                "expected": "MAX"
+                "expected": "MAX",
+                "only_rec": true
             }
         },
         "action": {
@@ -360,14 +360,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     760,
                     509,
                     60,
                     27
                 ],
-                "expected": "购买"
+                "expected": "购买",
+                "only_rec": true
             }
         },
         "action": {
@@ -451,7 +451,7 @@
         }
     },
     "SmallGlobe": {
-        "doc": "低频偏振",
+        "desc": "低频偏振",
         "next": [
             "FlagInPawnShop_2",
             "[JumpBack]EnterPawnShop"
@@ -554,14 +554,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     935,
                     462,
                     46,
                     24
                 ],
-                "expected": "MAX"
+                "expected": "MAX",
+                "only_rec": true
             }
         },
         "action": {
@@ -575,14 +575,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     760,
                     509,
                     60,
                     27
                 ],
-                "expected": "购买"
+                "expected": "购买",
+                "only_rec": true
             }
         },
         "action": {
@@ -626,7 +626,7 @@
         ]
     },
     "TinyGlobe": {
-        "doc": "微频偏振",
+        "desc": "微频偏振",
         "next": [
             "FlagInPawnShop_3",
             "[JumpBack]EnterPawnShop"
@@ -720,14 +720,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     935,
                     462,
                     46,
                     24
                 ],
-                "expected": "MAX"
+                "expected": "MAX",
+                "only_rec": true
             }
         },
         "action": {
@@ -741,14 +741,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     760,
                     509,
                     60,
                     27
                 ],
-                "expected": "购买"
+                "expected": "购买",
+                "only_rec": true
             }
         },
         "action": {
@@ -792,7 +792,7 @@
         ]
     },
     "Gluttony": {
-        "doc": "饕餮",
+        "desc": "饕餮",
         "next": [
             "FlagInFragmentsShop",
             "[JumpBack]EnterFragmentsShop"
@@ -802,14 +802,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     321,
                     65,
                     80,
                     24
                 ],
-                "expected": "心相观测"
+                "expected": "心相观测",
+                "only_rec": true
             }
         },
         "action": {
@@ -833,18 +833,18 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     326,
                     293,
                     87,
                     23
                 ],
+                "expected": ".+",
                 "replace": [
                     "饕餮",
                     ""
                 ],
-                "expected": ".+"
+                "only_rec": true
             }
         },
         "action": {
@@ -875,14 +875,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     326,
                     293,
                     87,
                     23
                 ],
-                "expected": "饕餮"
+                "expected": "饕餮",
+                "only_rec": true
             }
         },
         "action": {
@@ -898,14 +898,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     935,
                     462,
                     46,
                     24
                 ],
-                "expected": "MAX"
+                "expected": "MAX",
+                "only_rec": true
             }
         },
         "action": {
@@ -919,14 +919,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     760,
                     509,
                     60,
                     27
                 ],
-                "expected": "购买"
+                "expected": "购买",
+                "only_rec": true
             }
         },
         "action": {
@@ -999,7 +999,7 @@
         }
     },
     "TinyGlobe(1)": {
-        "doc": "微频偏振(心相观测)",
+        "desc": "微频偏振(心相观测)",
         "next": [
             "FlagInFragmentsShop_1",
             "[JumpBack]EnterFragmentsShop"
@@ -1009,14 +1009,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     321,
                     65,
                     80,
                     24
                 ],
-                "expected": "心相观测"
+                "expected": "心相观测",
+                "only_rec": true
             }
         },
         "action": {
@@ -1068,12 +1068,12 @@
                     969,
                     557
                 ],
+                "expected": [
+                    "售罄"
+                ],
                 "replace": [
                     "馨",
                     "罄"
-                ],
-                "expected": [
-                    "售罄"
                 ]
             }
         }
@@ -1082,14 +1082,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1071,
                     110,
                     147,
                     24
                 ],
-                "expected": "商品"
+                "expected": "商品",
+                "only_rec": true
             }
         },
         "action": {
@@ -1137,14 +1137,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     935,
                     462,
                     46,
                     24
                 ],
-                "expected": "MAX"
+                "expected": "MAX",
+                "only_rec": true
             }
         },
         "action": {
@@ -1158,14 +1158,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     760,
                     509,
                     60,
                     27
                 ],
-                "expected": "购买"
+                "expected": "购买",
+                "only_rec": true
             }
         },
         "action": {
@@ -1229,7 +1229,7 @@
         }
     },
     "ResonantCassette": {
-        "doc": "共鸣晶匣",
+        "desc": "共鸣晶匣",
         "next": [
             "FlagInDneiricShop",
             "[JumpBack]EnterFragmentsShop"
@@ -1239,14 +1239,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     520,
                     67,
                     83,
                     22
                 ],
-                "expected": "梦境记述"
+                "expected": "梦境记述",
+                "only_rec": true
             }
         },
         "action": {
@@ -1270,18 +1270,18 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     325,
                     286,
                     87,
                     23
                 ],
+                "expected": ".+",
                 "replace": [
                     "共鸣晶匣",
                     ""
                 ],
-                "expected": ".+"
+                "only_rec": true
             }
         },
         "action": {
@@ -1312,14 +1312,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     325,
                     286,
                     87,
                     23
                 ],
-                "expected": "共鸣晶匣"
+                "expected": "共鸣晶匣",
+                "only_rec": true
             }
         },
         "action": {
@@ -1334,14 +1334,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     760,
                     509,
                     60,
                     27
                 ],
-                "expected": "购买"
+                "expected": "购买",
+                "only_rec": true
             }
         },
         "action": {
@@ -1385,7 +1385,7 @@
         ]
     },
     "GoldenMelonSeeds": {
-        "doc": "金瓜子",
+        "desc": "金瓜子",
         "next": [
             "FlagInDneiricShop_1",
             "[JumpBack]EnterFragmentsShop"
@@ -1395,14 +1395,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     520,
                     67,
                     83,
                     22
                 ],
-                "expected": "梦境记述"
+                "expected": "梦境记述",
+                "only_rec": true
             }
         },
         "action": {
@@ -1480,14 +1480,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     935,
                     462,
                     46,
                     24
                 ],
-                "expected": "MAX"
+                "expected": "MAX",
+                "only_rec": true
             }
         },
         "action": {
@@ -1501,14 +1501,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     760,
                     509,
                     60,
                     27
                 ],
-                "expected": "购买"
+                "expected": "购买",
+                "only_rec": true
             }
         },
         "action": {
@@ -1552,7 +1552,7 @@
         ]
     },
     "OriginalChicken": {
-        "doc": "原味鸡",
+        "desc": "原味鸡",
         "next": [
             "FlagInDneiricShop_2",
             "[JumpBack]EnterFragmentsShop"
@@ -1562,14 +1562,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     520,
                     67,
                     83,
                     22
                 ],
-                "expected": "梦境记述"
+                "expected": "梦境记述",
+                "only_rec": true
             }
         },
         "action": {
@@ -1647,14 +1647,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     935,
                     462,
                     46,
                     24
                 ],
-                "expected": "MAX"
+                "expected": "MAX",
+                "only_rec": true
             }
         },
         "action": {
@@ -1668,14 +1668,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     760,
                     509,
                     60,
                     27
                 ],
-                "expected": "购买"
+                "expected": "购买",
+                "only_rec": true
             }
         },
         "action": {
@@ -1719,7 +1719,7 @@
         ]
     },
     "Fries": {
-        "doc": "大薯",
+        "desc": "大薯",
         "next": [
             "FlagInDneiricShop_3",
             "[JumpBack]EnterFragmentsShop"
@@ -1729,14 +1729,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     520,
                     67,
                     83,
                     22
                 ],
-                "expected": "梦境记述"
+                "expected": "梦境记述",
+                "only_rec": true
             }
         },
         "action": {
@@ -1814,14 +1814,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     935,
                     462,
                     46,
                     24
                 ],
-                "expected": "MAX"
+                "expected": "MAX",
+                "only_rec": true
             }
         },
         "action": {
@@ -1835,14 +1835,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     760,
                     509,
                     60,
                     27
                 ],
-                "expected": "购买"
+                "expected": "购买",
+                "only_rec": true
             }
         },
         "action": {

@@ -461,11 +461,11 @@ def agent(is_dev_mode=False):
             # ========== 热更新结束 ==========
 
         from maa.agent.agent_server import AgentServer
-        from maa.toolkit import Toolkit
+        from maa.tasker import Tasker
 
         import custom
 
-        Toolkit.init_option("./")
+        Tasker.set_log_dir("./debug")
 
         if len(sys.argv) < 2:
             logger.error("缺少必要的 socket_id 参数")

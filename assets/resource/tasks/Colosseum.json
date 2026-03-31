@@ -3,6 +3,7 @@
         {
             "name": "匣中交流赛（拓片杂技赛）",
             "entry": "角斗场",
+            "group": ["standalone"],
             "description": "<span style=\"color:darkgray;font-size:15px\">本功能仅完成“角斗场”第一层扫荡</span><br><span style=\"color:red;font-size:15px\">请手动打开角斗场页面</span>"
         }
     ]

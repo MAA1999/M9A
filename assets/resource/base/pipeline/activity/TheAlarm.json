@@ -52,19 +52,19 @@
         ]
     },
     "Alarm_Select": {
+        "enabled": false,
         "recognition": {
             "type": "OCR",
             "param": {
-                "expected_code": "set in code",
                 "roi": [
                     6,
                     134,
                     122,
                     148
-                ]
+                ],
+                "expected_code": "set in code"
             }
         },
-        "enabled": false,
         "action": {
             "type": "Click"
         },
@@ -169,14 +169,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     765,
                     404,
                     80,
                     36
                 ],
-                "expected": "确认"
+                "expected": "确认",
+                "only_rec": true
             }
         },
         "action": {
@@ -215,14 +215,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     589,
                     614,
                     95,
                     38
                 ],
-                "expected": "确定"
+                "expected": "确定",
+                "only_rec": true
             }
         },
         "action": {
@@ -237,14 +237,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     761,
                     403,
                     86,
                     40
                 ],
-                "expected": "确认"
+                "expected": "确认",
+                "only_rec": true
             }
         },
         "action": {
@@ -289,9 +289,6 @@
                 "expected": "战斗"
             }
         },
-        "action": {
-            "type": "Click"
-        },
         "pre_wait_freezes": {
             "time": 500,
             "target": [
@@ -300,6 +297,9 @@
                 218,
                 54
             ]
+        },
+        "action": {
+            "type": "Click"
         }
     },
     "Alarm_StageFlagEnd": {
@@ -320,14 +320,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     940,
                     465,
                     77,
                     36
                 ],
-                "expected": "回合数"
+                "expected": "回合数",
+                "only_rec": true
             }
         },
         "action": {

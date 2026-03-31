@@ -1,6 +1,21 @@
 {
-    "ReveriesInTheRain": {
-        "doc": "常驻活动：雨中悬想",
+    "AwardReveriesInTheRain": {
+        "desc": "常驻活动：雨中悬想",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1022,
+                    419,
+                    194,
+                    166
+                ],
+                "template": [
+                    "StartUp/HomeFlag/HomeFlag.png"
+                ]
+            }
+        },
         "next": [
             "JudgeDepthsOfMythWeekly"
         ]
@@ -18,12 +33,11 @@
         "next": [
             "ReveriesInTheRainMainFlag",
             "[JumpBack]ReveriesInTheRainMainEntry",
-            "[JumpBack]EnterTheShow",
-            "[JumpBack]ReturnMain"
+            "[JumpBack]EnterTheShow"
         ]
     },
     "ReveriesInTheRainMainEntry": {
-        "doc": "进入雨中悬想主页面",
+        "desc": "进入雨中悬想主页面",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -42,7 +56,7 @@
         "post_wait_freezes": 300
     },
     "ReveriesInTheRainMainFlag": {
-        "doc": "判断位于雨中悬想主页面",
+        "desc": "判断位于雨中悬想主页面",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -64,39 +78,39 @@
         ]
     },
     "DepthsOfMythEnd": {
-        "doc": "迷思海“寻思”耗尽（雨中悬想主页面）",
+        "desc": "迷思海“寻思”耗尽（雨中悬想主页面）",
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1101,
                     443,
                     51,
                     25
                 ],
-                "expected": "0/8"
+                "expected": "0/8",
+                "only_rec": true
             }
         }
     },
     "DepthsOfMythEndNew": {
-        "doc": "迷思海“寻思”耗尽（雨中悬想主页面）",
+        "desc": "迷思海“寻思”耗尽（雨中悬想主页面）",
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1138,
                     23,
                     51,
                     25
                 ],
-                "expected": "0/8"
+                "expected": "0/8",
+                "only_rec": true
             }
         }
     },
     "TranceButtonClick": {
-        "doc": "点击“寻思”按钮",
+        "desc": "点击“寻思”按钮",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -115,18 +129,18 @@
         "post_delay": 1500
     },
     "TranceButtonClickNew": {
-        "doc": "点击展示按钮",
+        "desc": "点击展示按钮",
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1101,
                     443,
                     51,
                     25
                 ],
-                "expected": "0/8"
+                "expected": "0/8",
+                "only_rec": true
             }
         },
         "action": {
@@ -135,18 +149,18 @@
         "post_delay": 1500
     },
     "TranceMainFlag": {
-        "doc": "判断位于迷思海“寻思”页面",
+        "desc": "判断位于迷思海“寻思”页面",
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     606,
                     117,
                     71,
                     36
                 ],
-                "expected": "寻思"
+                "expected": "寻思",
+                "only_rec": true
             }
         },
         "next": [
@@ -159,18 +173,18 @@
         ]
     },
     "TrancePlay": {
-        "doc": "寻思寻思",
+        "desc": "寻思寻思",
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1040,
                     461,
                     123,
                     33
                 ],
-                "expected": "寻思"
+                "expected": "寻思",
+                "only_rec": true
             }
         },
         "action": {
@@ -178,18 +192,18 @@
         }
     },
     "Trancele1": {
-        "doc": "“寻思”x1（寻思小于等于1）",
+        "desc": "“寻思”x1（寻思小于等于1）",
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1103,
                     402,
                     41,
                     21
                 ],
-                "expected": "1/"
+                "expected": "1/",
+                "only_rec": true
             }
         },
         "next": [
@@ -200,18 +214,18 @@
         ]
     },
     "Trancele2": {
-        "doc": "“寻思”x2",
+        "desc": "“寻思”x2",
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1103,
                     402,
                     41,
                     21
                 ],
-                "expected": "2/"
+                "expected": "2/",
+                "only_rec": true
             }
         },
         "next": [
@@ -222,18 +236,18 @@
         ]
     },
     "Trancele3": {
-        "doc": "“寻思”x3",
+        "desc": "“寻思”x3",
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1103,
                     402,
                     41,
                     21
                 ],
-                "expected": "3/"
+                "expected": "3/",
+                "only_rec": true
             }
         },
         "next": [
@@ -244,18 +258,18 @@
         ]
     },
     "Trancele4": {
-        "doc": "“寻思”x4-8",
+        "desc": "“寻思”x4-8",
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1103,
                     402,
                     41,
                     21
                 ],
-                "expected": "[4-8]/"
+                "expected": "[4-8]/",
+                "only_rec": true
             }
         },
         "next": [
@@ -266,7 +280,7 @@
         ]
     },
     "TranceSetPlayTimesX1": {
-        "doc": "设置寻思次数X1",
+        "desc": "设置寻思次数X1",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -287,7 +301,7 @@
         }
     },
     "TranceSetPlayTimesX2": {
-        "doc": "设置寻思次数X2",
+        "desc": "设置寻思次数X2",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -308,7 +322,7 @@
         }
     },
     "TranceSetPlayTimesX3": {
-        "doc": "设置寻思次数X3",
+        "desc": "设置寻思次数X3",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -329,7 +343,7 @@
         }
     },
     "TranceSetPlayTimesX4": {
-        "doc": "设置寻思次数X4",
+        "desc": "设置寻思次数X4",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -350,7 +364,7 @@
         }
     },
     "TranceOpenSetPlayTimes": {
-        "doc": "打开设置寻思次数",
+        "desc": "打开设置寻思次数",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -368,7 +382,7 @@
         }
     },
     "TrancePlayTimesX1": {
-        "doc": "当前预消耗“寻思”X1",
+        "desc": "当前预消耗“寻思”X1",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -386,7 +400,7 @@
         ]
     },
     "TrancePlayTimesX2": {
-        "doc": "当前预消耗“寻思”X2",
+        "desc": "当前预消耗“寻思”X2",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -404,7 +418,7 @@
         ]
     },
     "TrancePlayTimesX3": {
-        "doc": "当前预消耗“寻思”X3",
+        "desc": "当前预消耗“寻思”X3",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -422,7 +436,7 @@
         ]
     },
     "TrancePlayTimesX4": {
-        "doc": "当前预消耗“寻思”X4",
+        "desc": "当前预消耗“寻思”X4",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -440,18 +454,18 @@
         ]
     },
     "TranceEnd": {
-        "doc": "迷思海“寻思”耗尽（迷思海“寻思”页面）",
+        "desc": "迷思海“寻思”耗尽（迷思海“寻思”页面）",
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1103,
                     402,
                     40,
                     22
                 ],
-                "expected": "0/8"
+                "expected": "0/8",
+                "only_rec": true
             }
         },
         "post_wait_freezes": 300,
@@ -463,7 +477,7 @@
         ]
     },
     "TranceClose": {
-        "doc": "关闭迷思海“寻思”页面",
+        "desc": "关闭迷思海“寻思”页面",
         "recognition": {
             "type": "TemplateMatch",
             "param": {

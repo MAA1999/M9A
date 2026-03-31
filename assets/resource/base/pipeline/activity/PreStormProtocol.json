@@ -50,8 +50,8 @@
                     56,
                     30
                 ],
-                "only_rec": true,
-                "expected": "报告"
+                "expected": "报告",
+                "only_rec": true
             }
         },
         "action": {
@@ -141,8 +141,8 @@
                     71,
                     34
                 ],
-                "only_rec": true,
-                "expected": "选择"
+                "expected": "选择",
+                "only_rec": true
             }
         },
         "action": {
@@ -159,11 +159,11 @@
                     113,
                     28
                 ],
-                "only_rec": true,
                 "expected": [
                     "下一步",
                     "开始模拟"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -180,8 +180,8 @@
                     56,
                     30
                 ],
-                "only_rec": true,
-                "expected": "开始"
+                "expected": "开始",
+                "only_rec": true
             }
         },
         "action": {
@@ -237,8 +237,8 @@
                     109,
                     54
                 ],
-                "only_rec": true,
-                "expected": "失败"
+                "expected": "失败",
+                "only_rec": true
             }
         },
         "action": {

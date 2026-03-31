@@ -63,10 +63,10 @@
                     70,
                     34
                 ],
-                "only_rec": true,
                 "expected": [
                     "确认"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -126,10 +126,10 @@
                     187,
                     49
                 ],
-                "only_rec": true,
                 "expected": [
                     "守卫名单"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "next": [
@@ -154,10 +154,10 @@
                 "threshold": 0.9
             }
         },
-        "post_delay": 1500,
         "action": {
             "type": "Click"
-        }
+        },
+        "post_delay": 1500
     },
     "CCFlagInMakePlan": {
         "recognition": {
@@ -169,10 +169,10 @@
                     187,
                     49
                 ],
-                "only_rec": true,
                 "expected": [
                     "制定计划"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "next": [
@@ -211,10 +211,10 @@
                     187,
                     49
                 ],
-                "only_rec": true,
                 "expected": [
                     "选择领队"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "next": [
@@ -309,7 +309,7 @@
         }
     },
     "CCSelectPeople3p5": {
-        "doc": "3.5版本选择角色",
+        "desc": "3.5版本选择角色",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -379,10 +379,10 @@
                     203,
                     59
                 ],
-                "only_rec": true,
                 "expected": [
                     "对战结束"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -410,10 +410,10 @@
                     18,
                     26
                 ],
-                "only_rec": true,
                 "expected": [
                     "^\\d"
-                ]
+                ],
+                "only_rec": true
             }
         }
     },
@@ -528,8 +528,8 @@
                     48,
                     29
                 ],
-                "only_rec": true,
-                "expected": "放弃"
+                "expected": "放弃",
+                "only_rec": true
             }
         },
         "action": {
@@ -546,8 +546,8 @@
                     62,
                     35
                 ],
-                "only_rec": true,
-                "expected": "确认"
+                "expected": "确认",
+                "only_rec": true
             }
         },
         "action": {
@@ -730,7 +730,6 @@
                     36,
                     25
                 ],
-                "only_rec": true,
                 "expected": [
                     "^[3-9]|[12][0-9]$"
                 ],
@@ -743,7 +742,8 @@
                         "//.",
                         ""
                     ]
-                ]
+                ],
+                "only_rec": true
             }
         }
     },
@@ -757,7 +757,6 @@
                     36,
                     25
                 ],
-                "only_rec": true,
                 "expected": [
                     "^[4-9]|[12][0-9]$"
                 ],
@@ -770,7 +769,8 @@
                         "//.",
                         ""
                     ]
-                ]
+                ],
+                "only_rec": true
             }
         }
     },
@@ -784,11 +784,11 @@
                     28,
                     40
                 ],
-                "only_rec": true,
                 "expected": [
                     "0",
                     "1"
-                ]
+                ],
+                "only_rec": true
             }
         }
     },
@@ -802,13 +802,13 @@
                     28,
                     40
                 ],
-                "only_rec": true,
                 "expected": [
                     "0",
                     "1",
                     "2",
                     "3"
-                ]
+                ],
+                "only_rec": true
             }
         }
     },
@@ -825,13 +825,13 @@
         "action": {
             "type": "Swipe",
             "param": {
-                "duration": 500,
                 "end_offset": [
                     -5,
                     -10,
                     -10,
                     -20
-                ]
+                ],
+                "duration": 500
             }
         },
         "timeout": 10000,
@@ -870,7 +870,7 @@
             "param": {
                 "custom_recognition": "Count",
                 "custom_recognition_param": {
-                    "target": 5
+                    "target": 2
                 }
             }
         },
@@ -880,10 +880,13 @@
                 "duration": 500
             }
         },
-        "timeout": 10000,
+        "timeout": 3000,
         "next": [
             "CCUpdateFinished",
             "CCUpdate"
+        ],
+        "on_error": [
+            "Stop"
         ]
     },
     "CCUpdateFinished": {
@@ -968,10 +971,10 @@
                     77,
                     30
                 ],
-                "only_rec": true,
                 "expected": [
                     "^[1-6]/"
-                ]
+                ],
+                "only_rec": true
             }
         }
     },
@@ -985,10 +988,10 @@
                     77,
                     30
                 ],
-                "only_rec": true,
                 "expected": [
                     "^(1[0-2]|[7-9])/"
-                ]
+                ],
+                "only_rec": true
             }
         }
     },

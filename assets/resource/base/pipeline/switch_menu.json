@@ -3,13 +3,13 @@
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "template": "StartUp/HomeFlag.png",
                 "roi": [
                     1022,
                     419,
                     194,
                     166
-                ]
+                ],
+                "template": "StartUp/HomeFlag/HomeFlag.png"
             }
         }
     },
@@ -17,13 +17,13 @@
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "template": "StartUp/HomeFlag.png",
                 "roi": [
                     1022,
                     419,
                     194,
                     166
-                ]
+                ],
+                "template": "StartUp/HomeFlag/HomeFlag.png"
             }
         },
         "inverse": true,
@@ -64,13 +64,13 @@
                         "recognition": {
                             "type": "TemplateMatch",
                             "param": {
-                                "template": "SwitchMenu/switch_menu_buttom1.png",
                                 "roi": [
                                     1155,
                                     565,
                                     60,
                                     68
-                                ]
+                                ],
+                                "template": "SwitchMenu/switch_menu_buttom1.png"
                             }
                         }
                     },
@@ -78,14 +78,14 @@
                         "recognition": {
                             "type": "OCR",
                             "param": {
-                                "expected": [
-                                    "ID"
-                                ],
                                 "roi": [
                                     86,
                                     161,
                                     31,
                                     22
+                                ],
+                                "expected": [
+                                    "ID"
                                 ],
                                 "only_rec": true
                             }
@@ -152,18 +152,18 @@
                                                     11,
                                                     11
                                                 ],
-                                                "upper": [
-                                                    211,
-                                                    211,
-                                                    205
-                                                ],
                                                 "lower": [
                                                     191,
                                                     191,
                                                     185
                                                 ],
-                                                "count": 15,
-                                                "connected": true
+                                                "upper": [
+                                                    211,
+                                                    211,
+                                                    205
+                                                ],
+                                                "connected": true,
+                                                "count": 15
                                             }
                                         }
                                     },
@@ -172,23 +172,23 @@
                                             "type": "ColorMatch",
                                             "param": {
                                                 "roi": [
-                                                    69,
-                                                    238,
-                                                    11,
-                                                    11
-                                                ],
-                                                "upper": [
-                                                    201,
-                                                    199,
-                                                    195
+                                                    46,
+                                                    258,
+                                                    10,
+                                                    9
                                                 ],
                                                 "lower": [
-                                                    201,
-                                                    199,
-                                                    195
+                                                    191,
+                                                    191,
+                                                    185
                                                 ],
-                                                "count": 15,
-                                                "connected": true
+                                                "upper": [
+                                                    211,
+                                                    211,
+                                                    205
+                                                ],
+                                                "connected": true,
+                                                "count": 15
                                             }
                                         }
                                     }
@@ -206,12 +206,12 @@
                                     10,
                                     13
                                 ],
-                                "upper": [
+                                "lower": [
                                     255,
                                     124,
                                     64
                                 ],
-                                "lower": [
+                                "upper": [
                                     255,
                                     124,
                                     64
@@ -235,27 +235,58 @@
     },
     "frame_art_action": {
         "recognition": {
-            "type": "ColorMatch",
+            "type": "Or",
             "param": {
-                "method": 4,
-                "roi": [
-                    71,
-                    241,
-                    6,
-                    5
-                ],
-                "lower": [
-                    211,
-                    95,
-                    39
-                ],
-                "upper": [
-                    231,
-                    115,
-                    59
-                ],
-                "count": 2,
-                "connected": true
+                "any_of": [
+                    {
+                        "type": "ColorMatch",
+                        "param": {
+                            "method": 4,
+                            "roi": [
+                                71,
+                                241,
+                                6,
+                                5
+                            ],
+                            "lower": [
+                                211,
+                                95,
+                                39
+                            ],
+                            "upper": [
+                                231,
+                                115,
+                                59
+                            ],
+                            "count": 2,
+                            "connected": true
+                        }
+                    },
+                    {
+                        "type": "ColorMatch",
+                        "param": {
+                            "method": 4,
+                            "roi": [
+                                46,
+                                258,
+                                10,
+                                9
+                            ],
+                            "lower": [
+                                211,
+                                95,
+                                39
+                            ],
+                            "upper": [
+                                231,
+                                115,
+                                59
+                            ],
+                            "count": 2,
+                            "connected": true
+                        }
+                    }
+                ]
             }
         },
         "next": [
@@ -312,11 +343,11 @@
                     76,
                     29
                 ],
-                "only_rec": true,
                 "expected": [
                     "装扮中",
                     "未解锁"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "next": [

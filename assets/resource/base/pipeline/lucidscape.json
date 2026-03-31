@@ -1,6 +1,6 @@
 {
     "Lucidscape": {
-        "doc": "醒梦域",
+        "desc": "醒梦域",
         "next": [
             "LucidscapeEntryEnd",
             "FlagInLucidscape",
@@ -23,8 +23,8 @@
                     103,
                     21
                 ],
-                "only_rec": true,
-                "expected": "700/700"
+                "expected": "700/700",
+                "only_rec": true
             }
         },
         "next": [
@@ -35,14 +35,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     275,
                     635,
                     167,
                     32
                 ],
-                "expected": "LUCIDSCAPE"
+                "expected": "LUCIDSCAPE",
+                "only_rec": true
             }
         },
         "next": [
@@ -74,14 +74,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     285,
                     97,
                     76,
                     41
                 ],
-                "expected": "首通"
+                "expected": "首通",
+                "only_rec": true
             }
         },
         "next": [
@@ -94,7 +94,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     988,
                     200,
@@ -104,7 +103,8 @@
                 "expected": [
                     "已领取",
                     "未达成"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -124,7 +124,7 @@
         ]
     },
     "LucidscapeStageSelect": {
-        "doc": "醒梦片段选择",
+        "desc": "醒梦片段选择",
         "pre_delay": 2000,
         "action": {
             "type": "Custom",
@@ -137,18 +137,18 @@
         ]
     },
     "LucidscapeStatusDetect": {
-        "doc": "进入醒梦片段后的判断",
+        "desc": "进入醒梦片段后的判断",
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     712,
                     107,
                     91,
                     51
                 ],
-                "expected": "片段"
+                "expected": "片段",
+                "only_rec": true
             }
         },
         "pre_wait_freezes": {
@@ -161,7 +161,6 @@
             ]
         },
         "pre_delay": 3000,
-        "post_delay": 1000,
         "action": {
             "type": "Custom",
             "param": {
@@ -170,20 +169,21 @@
                     "stage": 4
                 }
             }
-        }
+        },
+        "post_delay": 1000
     },
     "LucidscapeCombatStartFlag": {
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1054,
                     637,
                     126,
                     32
                 ],
-                "expected": "开始行动"
+                "expected": "开始行动",
+                "only_rec": true
             }
         },
         "next": [
@@ -222,14 +222,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1054,
                     637,
                     126,
                     32
                 ],
-                "expected": "开始行动"
+                "expected": "开始行动",
+                "only_rec": true
             }
         },
         "action": {
@@ -248,14 +248,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     774,
                     406,
                     64,
                     30
                 ],
-                "expected": "确认"
+                "expected": "确认",
+                "only_rec": true
             }
         },
         "action": {
@@ -280,7 +280,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     490,
                     115,
@@ -289,7 +288,8 @@
                 ],
                 "expected": [
                     "战斗失败"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -320,6 +320,9 @@
                 ]
             }
         },
+        "action": {
+            "type": "Click"
+        },
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -328,9 +331,6 @@
                 666,
                 263
             ]
-        },
-        "action": {
-            "type": "Click"
         },
         "next": [
             "LucidscapeStatusDetect",
@@ -344,7 +344,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1142,
                     42,
@@ -354,7 +353,8 @@
                 "expected": [
                     "跳过",
                     "SKIP"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -365,14 +365,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     575,
                     597,
                     128,
                     30
                 ],
-                "expected": "空白"
+                "expected": "空白",
+                "only_rec": true
             }
         },
         "action": {
@@ -436,14 +436,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     146,
                     678,
                     68,
                     19
                 ],
-                "expected": "本层酬劳"
+                "expected": "本层酬劳",
+                "only_rec": true
             }
         },
         "action": {
@@ -459,14 +459,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     159,
                     98,
                     165,
                     44
                 ],
-                "expected": "醒梦片段"
+                "expected": "醒梦片段",
+                "only_rec": true
             }
         },
         "next": [
@@ -479,7 +479,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     988,
                     200,
@@ -489,7 +488,8 @@
                 "expected": [
                     "已领取",
                     "未达成"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -512,14 +512,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     988,
                     200,
                     102,
                     30
                 ],
-                "expected": "领取"
+                "expected": "领取",
+                "only_rec": true
             }
         },
         "action": {
@@ -572,8 +572,8 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
-                "expected": "\\d/[12][50]0"
+                "expected": "\\d/[12][50]0",
+                "only_rec": true
             }
         },
         "roi_code": "Locked所在位置"
@@ -582,14 +582,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     254,
                     319,
                     37,
                     28
                 ],
-                "expected": "01"
+                "expected": "01",
+                "only_rec": true
             }
         }
     },
@@ -597,14 +597,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     922,
                     196,
                     40,
                     29
                 ],
-                "expected": "02"
+                "expected": "02",
+                "only_rec": true
             }
         }
     }

@@ -82,8 +82,8 @@
                     1280,
                     460
                 ],
-                "template_code": "Set in code",
-                "threshold": 0.9
+                "threshold": 0.9,
+                "template_code": "Set in code"
             }
         },
         "action": {
@@ -103,10 +103,7 @@
                     153
                 ],
                 "template": [
-                    "Combat/EnterTheShow.png",
-                    "Combat/EnterTheShow_sp01.png",
-                    "Combat/EnterTheShow3.2.png",
-                    "Combat/EnterTheShow3.4.png"
+                    "Combat/EnterTheShow.png"
                 ]
             }
         },
@@ -242,7 +239,7 @@
         }
     },
     "ResourceChapter_LP": {
-        "doc": "尘埃运动",
+        "desc": "尘埃运动",
         "next": [
             "ResourceChapter_LPEnter",
             "[JumpBack]ResourceChapterLabel"
@@ -270,7 +267,7 @@
         ]
     },
     "ResourceChapter_MA": {
-        "doc": "铸币美学",
+        "desc": "铸币美学",
         "next": [
             "ResourceChapter_MAEnter",
             "[JumpBack]ResourceChapterLabel"
@@ -286,14 +283,14 @@
                     1280,
                     367
                 ],
-                "replace": [
-                    "市",
-                    "币"
-                ],
                 "expected": [
                     "铸币",
                     "铸",
                     "美学"
+                ],
+                "replace": [
+                    "市",
+                    "币"
                 ]
             }
         },
@@ -306,7 +303,7 @@
         ]
     },
     "ResourceChapter_Psychube": {
-        "doc": "意志解析",
+        "desc": "意志解析",
         "next": [
             "ResourceChapter_Psychube07FreeEnter",
             "ResourceChapter_NoFreePsychube07",
@@ -403,7 +400,7 @@
         ]
     },
     "ResourceChapter_ME": {
-        "doc": "群山之声",
+        "desc": "群山之声",
         "next": [
             "ResourceChapter_MEEnter",
             "[JumpBack]InsightChapterLabel"
@@ -434,7 +431,7 @@
         ]
     },
     "ResourceChapter_SL": {
-        "doc": "星陨之所",
+        "desc": "星陨之所",
         "next": [
             "ResourceChapter_SLEnter",
             "[JumpBack]InsightChapterLabel"
@@ -465,7 +462,7 @@
         ]
     },
     "ResourceChapter_SS": {
-        "doc": "深林之形",
+        "desc": "深林之形",
         "next": [
             "ResourceChapter_SSEnterPre",
             "[JumpBack]InsightChapterLabel"
@@ -519,7 +516,7 @@
         ]
     },
     "ResourceChapter_BW": {
-        "doc": "荒兽之野",
+        "desc": "荒兽之野",
         "next": [
             "ResourceChapter_BWEnterPre",
             "[JumpBack]InsightChapterLabel"
@@ -637,6 +634,7 @@
         ]
     },
     "SwipeStop": {
+        "pre_delay": 1,
         "action": {
             "type": "Click",
             "param": {
@@ -648,7 +646,6 @@
                 ]
             }
         },
-        "pre_delay": 1,
         "post_wait_freezes": {
             "time": 300,
             "target": [
@@ -717,8 +714,8 @@
                     1210,
                     46
                 ],
-                "expected_code": "Set in code.",
-                "threshold": 0.4
+                "threshold": 0.4,
+                "expected_code": "Set in code."
             }
         }
     },
@@ -806,20 +803,20 @@
                     328,
                     50
                 ],
-                "index": 0,
                 "method": 4,
-                "order_by": "Score",
-                "count": 1,
+                "lower": [
+                    175,
+                    81,
+                    49
+                ],
                 "upper": [
                     247,
                     113,
                     66
                 ],
-                "lower": [
-                    175,
-                    81,
-                    49
-                ]
+                "count": 1,
+                "order_by": "Score",
+                "index": 0
             }
         },
         "action": {
@@ -848,20 +845,20 @@
                     328,
                     50
                 ],
-                "index": 0,
                 "method": 4,
-                "order_by": "Score",
-                "count": 1,
+                "lower": [
+                    193,
+                    52,
+                    51
+                ],
                 "upper": [
                     255,
                     67,
                     66
                 ],
-                "lower": [
-                    193,
-                    52,
-                    51
-                ]
+                "count": 1,
+                "order_by": "Score",
+                "index": 0
             }
         },
         "action": {
@@ -994,7 +991,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     999,
                     247,
@@ -1002,6 +998,7 @@
                     38
                 ],
                 "expected": "[\\s\\S]+",
+                "only_rec": true,
                 "threshold": 0.7
             }
         }

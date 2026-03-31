@@ -13,6 +13,7 @@
     },
     // 到 SOS Main Menu
     "SOSSwipeBottomBar": {
+        "max_hit": 5,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -28,7 +29,6 @@
                 ]
             }
         },
-        "max_hit": 5,
         "action": {
             "type": "Swipe",
             "param": {
@@ -170,10 +170,10 @@
                     147,
                     32
                 ],
-                "only_rec": true,
                 "expected": [
                     "好旅伴详情"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "next": [
@@ -192,8 +192,8 @@
                     57,
                     30
                 ],
-                "only_rec": true,
-                "expected": "缺少"
+                "expected": "缺少",
+                "only_rec": true
             }
         },
         "next": [
@@ -213,10 +213,10 @@
                     76,
                     40
                 ],
-                "only_rec": true,
                 "expected": [
                     "添加"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -292,10 +292,10 @@
                     76,
                     40
                 ],
-                "only_rec": true,
                 "expected": [
                     "添加"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -338,10 +338,10 @@
                     61,
                     32
                 ],
-                "only_rec": true,
                 "expected": [
                     "确认"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -400,13 +400,14 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    1054,
-                    564,
-                    182,
-                    50
+                    1036,
+                    549,
+                    213,
+                    73
                 ],
                 "template": [
-                    "SyndromeOfSilence/WordlessWorkshopEntry.png"
+                    "SyndromeOfSilence/WordlessWorkshopEntry.png",
+                    "SyndromeOfSilence/WordlessWorkshopEntry1.png"
                 ]
             }
         },
@@ -561,10 +562,10 @@
                 "only_rec": true
             }
         },
-        "post_delay": 1500,
         "action": {
             "type": "Click"
         },
+        "post_delay": 1500,
         "next": [
             "SOSConfirmFinished",
             "SOSConfirm"
@@ -628,10 +629,10 @@
                     124,
                     36
                 ],
-                "only_rec": true,
                 "expected": [
                     "难度选择"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -658,10 +659,10 @@
                     124,
                     36
                 ],
-                "only_rec": true,
                 "expected": [
                     "选择配器"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -730,7 +731,6 @@
                     195,
                     31
                 ],
-                "only_rec": true,
                 "expected": [
                     "蒙帕斯大街",
                     "宴会厅",
@@ -740,7 +740,8 @@
                     "乔治的杂志社",
                     "仪式之路",
                     "凯旋门前"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "next": [
@@ -786,7 +787,8 @@
         },
         "next": [
             "SOSNodeProcess"
-        ]
+        ],
+        "on_error": ["SOSMain"]
     },
     "SOSNodeProcess": {
         "action": {
@@ -808,10 +810,10 @@
                     124,
                     36
                 ],
-                "only_rec": true,
                 "expected": [
                     "获得造物"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -829,10 +831,10 @@
                     124,
                     36
                 ],
-                "only_rec": true,
                 "expected": [
                     "造物选择"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -880,10 +882,10 @@
                     124,
                     36
                 ],
-                "only_rec": true,
                 "expected": [
                     "失去造物"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -901,10 +903,10 @@
                     124,
                     36
                 ],
-                "only_rec": true,
                 "expected": [
                     "造物强化"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -942,10 +944,10 @@
                                     159,
                                     37
                                 ],
-                                "only_rec": true,
                                 "expected": [
                                     "获得共鸣器"
-                                ]
+                                ],
+                                "only_rec": true
                             }
                         }
                     }
@@ -967,10 +969,10 @@
                     159,
                     37
                 ],
-                "only_rec": true,
                 "expected": [
                     "选择共鸣器"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -999,10 +1001,10 @@
                     65,
                     36
                 ],
-                "only_rec": true,
                 "expected": [
                     "确认"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -1038,10 +1040,10 @@
                     69,
                     36
                 ],
-                "only_rec": true,
                 "expected": [
                     "前往"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -1063,10 +1065,10 @@
                     69,
                     36
                 ],
-                "only_rec": true,
                 "expected": [
                     "前往"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "inverse": true
@@ -1081,10 +1083,10 @@
                     69,
                     38
                 ],
-                "only_rec": true,
                 "expected": [
                     "继续"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -1129,10 +1131,10 @@
                                     118,
                                     33
                                 ],
-                                "only_rec": true,
                                 "expected": [
                                     "获得谐波"
-                                ]
+                                ],
+                                "only_rec": true
                             }
                         }
                     }
@@ -1154,10 +1156,10 @@
                     118,
                     33
                 ],
-                "only_rec": true,
                 "expected": [
                     "属性提升"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -1175,10 +1177,10 @@
                     182,
                     34
                 ],
-                "only_rec": true,
                 "expected": [
                     "属性突破选择"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -1208,10 +1210,10 @@
                     182,
                     34
                 ],
-                "only_rec": true,
                 "expected": [
                     "属性突破选择"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "inverse": true
@@ -1226,10 +1228,10 @@
                     62,
                     31
                 ],
-                "only_rec": true,
                 "expected": [
                     "结束"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -1247,10 +1249,10 @@
                     126,
                     33
                 ],
-                "only_rec": true,
                 "expected": [
                     "开始行动"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -1273,10 +1275,10 @@
                     126,
                     33
                 ],
-                "only_rec": true,
                 "expected": [
                     "开始行动"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -1291,7 +1293,8 @@
             "SOSFailed",
             "[JumpBack]SOSCombatDialog",
             "SOS_Skip",
-            "[JumpBack]CloseTip"
+            "[JumpBack]CloseTip",
+            "[JumpBack]BackButton"
         ]
     },
     "SOSCombatDialog": {
@@ -1329,9 +1332,6 @@
                 ]
             }
         },
-        "action": {
-            "type": "Click"
-        },
         "pre_wait_freezes": {
             "time": 500,
             "target": [
@@ -1340,6 +1340,9 @@
                 666,
                 263
             ]
+        },
+        "action": {
+            "type": "Click"
         },
         "next": [
             "SOSVictoryFinished",
@@ -1362,14 +1365,13 @@
             }
         },
         "inverse": true,
-        "post_delay": 1500,
-        "post_wait_freezes": 300
+        "post_wait_freezes": 300,
+        "post_delay": 1500
     },
     "SOSFailed": {
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     490,
                     115,
@@ -1378,11 +1380,9 @@
                 ],
                 "expected": [
                     "战斗失败"
-                ]
+                ],
+                "only_rec": true
             }
-        },
-        "action": {
-            "type": "Click"
         },
         "pre_wait_freezes": {
             "time": 500,
@@ -1392,6 +1392,9 @@
                 666,
                 263
             ]
+        },
+        "action": {
+            "type": "Click"
         }
     },
     "SOSSelectHarmonic": {
@@ -1423,10 +1426,10 @@
                                     118,
                                     33
                                 ],
-                                "only_rec": true,
                                 "expected": [
                                     "谐波选择"
-                                ]
+                                ],
+                                "only_rec": true
                             }
                         }
                     }
@@ -1479,6 +1482,7 @@
                     62,
                     608
                 ],
+                "method": 40,
                 "lower": [
                     105,
                     150,
@@ -1489,7 +1493,6 @@
                     255,
                     255
                 ],
-                "method": 40,
                 "connected": true,
                 "count": 500
             }
@@ -1532,6 +1535,7 @@
                     62,
                     608
                 ],
+                "method": 40,
                 "lower": [
                     105,
                     150,
@@ -1542,7 +1546,6 @@
                     255,
                     255
                 ],
-                "method": 40,
                 "connected": true,
                 "count": 500
             }
@@ -1593,6 +1596,7 @@
                 "custom_recognition": "SOSSelectEncounterOptionFindSelected"
             }
         },
+        "pre_delay": 700,
         "action": {
             "type": "Click",
             "param": {
@@ -1604,7 +1608,6 @@
                 ]
             }
         },
-        "pre_delay": 700,
         "next": [
             "SOSSelectEncounterOptionConfirmFinished",
             "SOSSelectEncounterOptionConfirm"
@@ -1678,10 +1681,10 @@
                     69,
                     38
                 ],
-                "only_rec": true,
                 "expected": [
                     "跳过"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -1722,10 +1725,10 @@
                     54,
                     35
                 ],
-                "only_rec": true,
                 "expected": [
                     "提升"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -1792,10 +1795,10 @@
                     99,
                     28
                 ],
-                "only_rec": true,
                 "expected": [
                     "点击投掷"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -1816,10 +1819,10 @@
                     71,
                     26
                 ],
-                "only_rec": true,
                 "expected": [
                     "成功率"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "inverse": true
@@ -1834,10 +1837,10 @@
                     119,
                     36
                 ],
-                "only_rec": true,
                 "expected": [
                     "购物契机"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -1881,7 +1884,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1143,
                     36,
@@ -1893,7 +1895,8 @@
                     "SKIP",
                     "退出",
                     "EXIT"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -1976,17 +1979,9 @@
                     155,
                     33
                 ],
-                // "roi": [
-                //     45,
-                //     74,
-                //     207,
-                //     29
-                // ],
-                "only_rec": true,
                 "expected": [
                     "[\\x{4e00}-\\x{9fa5}]+"
                 ],
-                "threshold": 0.6,
                 "replace": [
                     [
                         "到子手",
@@ -2044,7 +2039,15 @@
                         "[\"”]滂",
                         "“滂"
                     ]
-                ]
+                ],
+                // "roi": [
+                //     45,
+                //     74,
+                //     207,
+                //     29
+                // ],
+                "only_rec": true,
+                "threshold": 0.6
             }
         }
     },
@@ -2058,7 +2061,6 @@
                     195,
                     31
                 ],
-                "only_rec": true,
                 "expected": [
                     "蒙帕斯大街",
                     "宴会厅",
@@ -2068,7 +2070,8 @@
                     "乔治的杂志社",
                     "仪式之路",
                     "凯旋门前"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "post_wait_freezes": {
@@ -2086,6 +2089,7 @@
         "recognition": {
             "type": "ColorMatch",
             "param": {
+                "method": 40,
                 "lower": [
                     105,
                     150,
@@ -2096,7 +2100,6 @@
                     255,
                     255
                 ],
-                "method": 40,
                 "count": 500
             }
         }
@@ -2105,6 +2108,7 @@
         "recognition": {
             "type": "ColorMatch",
             "param": {
+                "method": 40,
                 "lower": [
                     27,
                     150,
@@ -2115,7 +2119,6 @@
                     210,
                     190
                 ],
-                "method": 40,
                 "count": 500
             }
         }
@@ -2182,10 +2185,10 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "expected": [
                     "已售出"
-                ]
+                ],
+                "only_rec": true
             }
         }
     },
@@ -2239,6 +2242,19 @@
         "recognition": {
             "type": "NeuralNetworkDetect",
             "param": {
+                "expected": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    8,
+                    9,
+                    10,
+                    11,
+                    12
+                ],
                 "model": "sos_nodes.onnx",
                 "labels": [
                     "C", // 已完成节点
@@ -2255,19 +2271,6 @@
                     "TheOnlyWay", // 必经之路
                     "TreasureLand" // 藏宝地
                 ],
-                "expected": [
-                    1,
-                    2,
-                    3,
-                    4,
-                    5,
-                    6,
-                    8,
-                    9,
-                    10,
-                    11,
-                    12
-                ],
                 "order_by": "Score"
             }
         }
@@ -2282,10 +2285,10 @@
                     108,
                     31
                 ],
-                "only_rec": true,
                 "expected": [
                     "区域委托"
-                ]
+                ],
+                "only_rec": true
             }
         }
     },

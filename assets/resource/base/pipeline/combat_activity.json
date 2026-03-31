@@ -1,6 +1,6 @@
 {
     "CombatActivity": {
-        "doc": "活动战斗流程",
+        "desc": "活动战斗流程",
         "next": [
             "JudgeDuringAct"
         ]
@@ -26,13 +26,13 @@
                 "custom_action": "CombatActivityOverride"
             }
         },
-        "on_error": [
-            "CombatActivityOverrideError"
-        ],
         "next": [
             "FlagInActivityMain",
             "[JumpBack]EnterTheActivityMain",
             "[JumpBack]ReturnMain"
+        ],
+        "on_error": [
+            "CombatActivityOverrideError"
         ]
     },
     "CombatActivityOverrideError": {
@@ -53,12 +53,12 @@
                 "expected": "预告"
             }
         },
-        "on_error": [
-            "FlagInActivityMainError"
-        ],
         "next": [
             "JudgeDuringRe_release",
             "ActivityMainChapter"
+        ],
+        "on_error": [
+            "FlagInActivityMainError"
         ]
     },
     "FlagInActivityMainError": {
@@ -67,7 +67,7 @@
         }
     },
     "EnterTheActivityMain": {
-        "doc": "进入当期活动主界面",
+        "desc": "进入当期活动主界面",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -78,10 +78,7 @@
                     166
                 ],
                 "template": [
-                    "StartUp/HomeFlag.png",
-                    "StartUp/HomeFlag_sp01.png",
-                    "StartUp/HomeFlag3.2.png",
-                    "StartUp/HomeFlag3.4.png"
+                    "StartUp/HomeFlag/HomeFlag.png"
                 ]
             }
         },
@@ -96,7 +93,6 @@
                 ]
             }
         },
-        "post_delay": 3000,
         "post_wait_freezes": {
             "time": 500,
             "target": [
@@ -105,7 +101,8 @@
                 190,
                 541
             ]
-        }
+        },
+        "post_delay": 3000
     },
     "ActivityMainChapter": {
         "recognition": {
@@ -126,14 +123,14 @@
         "action": {
             "type": "Click"
         },
-        "on_error": [
-            "ActivityMainChapterError"
-        ],
         "post_delay": 2000,
         "next": [
             "FlagInActivityStage",
             "ActivityMainChapter",
             "[JumpBack]ActivityClickCurStage"
+        ],
+        "on_error": [
+            "ActivityMainChapterError"
         ]
     },
     "ActivityMainChapterError": {
@@ -145,14 +142,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1089,
                     588,
                     131,
                     41
                 ],
-                "expected": "开始行动"
+                "expected": "开始行动",
+                "only_rec": true
             }
         },
         "next": [
@@ -198,6 +195,7 @@
                     101,
                     54
                 ],
+                "expected": "\\d",
                 "replace": [
                     [
                         "-",
@@ -207,8 +205,7 @@
                         "0",
                         ""
                     ]
-                ],
-                "expected": "\\d"
+                ]
             }
         }
     },
@@ -251,7 +248,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1036,
                     231,
@@ -263,6 +259,7 @@
                     "意外",
                     "故事"
                 ],
+                "only_rec": true,
                 "threshold": 0.7
             }
         }
@@ -340,12 +337,12 @@
         "action": {
             "type": "Click"
         },
-        "on_error": [
-            "ActivityRe_releaseChapterError"
-        ],
         "post_delay": 3000,
         "next": [
             "ActivityMainChapter"
+        ],
+        "on_error": [
+            "ActivityRe_releaseChapterError"
         ]
     },
     "ActivityRe_releaseChapterError": {

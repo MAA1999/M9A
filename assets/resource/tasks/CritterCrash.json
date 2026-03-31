@@ -3,6 +3,7 @@
         {
             "name": "翻斗棋速刷",
             "entry": "CritterCrash",
+            "group": ["standalone"],
             "description": "<span style=\"color:tomato;font-size:15px\">在如下翻斗棋界面启动，已支持国服3.5版本！</span><br>![CCMain](resource/announcement/images/CCMain.png)"
         }
     ]

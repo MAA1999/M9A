@@ -10,6 +10,7 @@
                 "心相观测",
                 "梦境记述"
             ],
+            "group": ["daily"],
             "description": "<span style=\"color:tomato;font-size:15px\">单账号模式下会跳过当前周期执行过的任务</span>"
         }
     ],

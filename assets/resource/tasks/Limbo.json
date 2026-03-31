@@ -8,6 +8,7 @@
                 "下半编队",
                 "仅领取每周浅眠域奖励"
             ],
+            "group": ["daily"],
             "description": "<span style=\"color:tomato;font-size:15px\">注意上下半编队不要重复。支持旧版和改版编队、支持编队自定义命名，未来可支持编队超出前四个</span>"
         }
     ],

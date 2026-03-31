@@ -64,18 +64,18 @@
                     49,
                     43
                 ],
-                "count": 10,
-                "connected": true,
+                "lower": [
+                    220,
+                    87,
+                    39
+                ],
                 "upper": [
                     255,
                     137,
                     89
                 ],
-                "lower": [
-                    220,
-                    87,
-                    39
-                ]
+                "connected": true,
+                "count": 10
             }
         }
     },
@@ -89,18 +89,18 @@
                     49,
                     43
                 ],
-                "count": 5,
-                "connected": true,
+                "lower": [
+                    209,
+                    193,
+                    133
+                ],
                 "upper": [
                     229,
                     213,
                     153
                 ],
-                "lower": [
-                    209,
-                    193,
-                    133
-                ]
+                "connected": true,
+                "count": 5
             }
         }
     },
@@ -114,18 +114,18 @@
                     49,
                     43
                 ],
-                "count": 5,
-                "connected": true,
+                "lower": [
+                    180,
+                    60,
+                    70
+                ],
                 "upper": [
                     210,
                     90,
                     90
                 ],
-                "lower": [
-                    180,
-                    60,
-                    70
-                ]
+                "connected": true,
+                "count": 5
             }
         }
     },
@@ -162,14 +162,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     776,
                     406,
                     60,
                     31
                 ],
-                "expected": "确认"
+                "expected": "确认",
+                "only_rec": true
             }
         },
         "action": {
@@ -180,14 +180,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1092,
                     590,
                     128,
                     33
                 ],
-                "expected": "开始行动"
+                "expected": "开始行动",
+                "only_rec": true
             }
         },
         "action": {
@@ -232,14 +232,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1054,
                     638,
                     124,
                     32
                 ],
-                "expected": "开始行动"
+                "expected": "开始行动",
+                "only_rec": true
             }
         },
         "action": {
@@ -288,9 +288,6 @@
                 ]
             }
         },
-        "action": {
-            "type": "Click"
-        },
         "pre_wait_freezes": {
             "time": 500,
             "target": [
@@ -299,6 +296,9 @@
                 659,
                 145
             ]
+        },
+        "action": {
+            "type": "Click"
         }
     }
 }

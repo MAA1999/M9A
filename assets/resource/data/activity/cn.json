@@ -699,8 +699,36 @@
                 }
             },
             "re-release": {
+                "name": "1987宇宙组曲",
+                "alias": "1987宇宙",
                 "start_time": 1774558800000,
-                "end_time": 1775422799000
+                "end_time": 1775422799000,
+                "override": {
+                    "ActivityLeftList": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    299,
+                                    593,
+                                    663,
+                                    125
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    377,
+                                    552,
+                                    34,
+                                    31
+                                ]
+                            }
+                        }
+                    }
+                }
             }
         }
     }

@@ -20,11 +20,7 @@
                     132
                 ],
                 "template": [
-                    "Wilderness/EnterWilderness.png",
-                    "Wilderness/EnterWilderness_new.png",
-                    "Wilderness/EnterWilderness_sp01.png",
-                    "Wilderness/EnterWilderness3.2.png",
-                    "Wilderness/EnterWilderness3.4.png"
+                    "Wilderness/EnterWilderness.png"
                 ]
             }
         },
@@ -41,7 +37,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1168,
                     148,
@@ -58,7 +53,8 @@
                         "居",
                         "古"
                     ]
-                ]
+                ],
+                "only_rec": true
             }
         },
         "post_delay": 1500,
@@ -73,14 +69,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     574,
                     672,
                     64,
                     22
                 ],
-                "expected": "好梦井"
+                "expected": "好梦井",
+                "only_rec": true
             }
         },
         "action": {
@@ -133,8 +129,8 @@
                     109,
                     24
                 ],
-                "only_rec": true,
-                "expected": "好梦井定位"
+                "expected": "好梦井定位",
+                "only_rec": true
             }
         },
         "action": {
@@ -227,15 +223,15 @@
         "recognition": {
             "type": "ColorMatch",
             "param": {
-                "upper": [
-                    225,
-                    225,
-                    225
-                ],
                 "lower": [
                     200,
                     200,
                     200
+                ],
+                "upper": [
+                    225,
+                    225,
+                    225
                 ],
                 "connected": true,
                 "count": 10000
@@ -252,8 +248,8 @@
                     74,
                     24
                 ],
-                "only_rec": true,
-                "expected": "\\d/\\d"
+                "expected": "\\d/\\d",
+                "only_rec": true
             }
         },
         "action": {
@@ -264,14 +260,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     399,
                     670,
                     47,
                     24
                 ],
-                "expected": "交易"
+                "expected": "交易",
+                "only_rec": true
             }
         },
         "action": {
@@ -325,14 +321,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     713,
                     60,
                     108,
                     30
                 ],
-                "expected": "批发交易"
+                "expected": "批发交易",
+                "only_rec": true
             }
         },
         "next": [
@@ -344,7 +340,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1168,
                     148,
@@ -361,7 +356,8 @@
                         "居",
                         "古"
                     ]
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -384,7 +380,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     843,
                     75,
@@ -401,7 +396,8 @@
                         "居",
                         "古"
                     ]
-                ]
+                ],
+                "only_rec": true
             }
         },
         "next": [
@@ -649,7 +645,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     311,
                     670,
@@ -658,9 +653,11 @@
                 ],
                 "expected": [
                     "生产"
-                ]
+                ],
+                "only_rec": true
             }
         },
+        "pre_delay": 3000,
         "action": {
             "type": "Click",
             "param": {
@@ -681,7 +678,6 @@
                 212
             ]
         },
-        "pre_delay": 3000,
         "next": [
             "CollectProduct",
             "AutoAssignCritters",
@@ -931,8 +927,8 @@
                     611
                 ],
                 "template": "Wilderness/UniqueParxxxx.png",
-                "index": 0,
-                "order_by": "Horizontal"
+                "order_by": "Horizontal",
+                "index": 0
             }
         }
     },
@@ -947,8 +943,8 @@
                     611
                 ],
                 "template": "Wilderness/UniqueParxxxx.png",
-                "index": -1,
-                "order_by": "Horizontal"
+                "order_by": "Horizontal",
+                "index": -1
             }
         }
     },

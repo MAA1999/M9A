@@ -9,9 +9,10 @@
                 "领取吼吼点唱机",
                 "领取前线观察室奖励",
                 "活动盒子奖励",
+                "迷思海周扫荡奖励",
                 "领取拉普拉斯论坛奖励"
             ],
-            "description": "<span style=\"color:tomato;font-size:15px\">领取拉普拉斯论坛奖励仅支持默认UI</span>"
+            "group": ["daily"]
         }
     ],
     "option": {
@@ -190,6 +191,7 @@
                     },
                     "option": [
                         "活动奖励·崭新的电波",
+                        "活动奖励·吼吼狂欢夜",
                         "活动奖励·播种于月光下"
                     ]
                 },
@@ -225,6 +227,28 @@
                 }
             ]
         },
+        "活动奖励·吼吼狂欢夜": {
+            "type": "switch",
+            "label": "吼吼狂欢夜",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "AwardRoaringRevelry": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AwardRoaringRevelry": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
         "活动奖励·播种于月光下": {
             "type": "switch",
             "label": "播种于月光下",
@@ -242,6 +266,48 @@
                     "pipeline_override": {
                         "AwardMoonlightGardening": {
                             "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "迷思海周扫荡奖励": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "option": [
+                        "单账号(迷思海)"
+                    ],
+                    "pipeline_override": {
+                        "AwardReveriesInTheRain": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AwardReveriesInTheRain": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "单账号(迷思海)": {
+            "type": "switch",
+            "label": "单账号",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {}
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "JudgeDepthsOfMythWeekly": {
+                            "action": "DoNothing"
                         }
                     }
                 }

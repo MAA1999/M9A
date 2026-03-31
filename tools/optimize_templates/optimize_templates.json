@@ -505,5 +505,12 @@
     "resource/base/image/CritterCrash/Award/Deer": "346cdf98f5c53756f03ea922cce0c3f662544d5cbcc5bf1661fb302790448934",
     "resource/base/image/CritterCrash/Award/Man": "a8a43d18efc32d436d14db46d09e39801ff7b82288ea94a273066fa118a932a3",
     "resource/base/image/CritterCrash/Lv3": "8d8a09a7ffe98f6188e08feca4c4f6181abfb597d5a98da73a8ad19693156f50",
-    "resource/announcement/images/CCMain": "80ad7f2b2dc54e5c32e53007eebaf1be35432e98ac1f9a3e4fecba15983791a5"
+    "resource/announcement/images/CCMain": "80ad7f2b2dc54e5c32e53007eebaf1be35432e98ac1f9a3e4fecba15983791a5",
+    "resource/base/image/SyndromeOfSilence/WordlessWorkshopEntry1": "38534eade2450822b259b944fc5277c3e55fba1e8f364526446c6401c0a168e2",
+    "resource/base/image/StartUp/HomeFlag/HomeFlag_sp01": "16034acf3c995ae0744ebac5781b8b8e4f7c5a66c6a1865b271a51d20592e1b4",
+    "resource/base/image/StartUp/HomeFlag/HomeFlag3.2": "72eee2861fbecdd5b13ae4d81cbb10d07d5a1d6aedd8f29d59cf25b8b79bf04a",
+    "resource/base/image/StartUp/HomeFlag/HomeFlag": "1de040120c40bffcbf31d2d142ee14e893f144f96d40483c4d4a2bdeebf73a14",
+    "resource/base/image/StartUp/HomeFlag/HomeFlag3.4": "fabe5ae48cb0f5b7a4b324a45b62affdb74f1b45185486979efdc3f7081ad923",
+    "resource/base/image/UTTU/UTTU_stage_flag": "046bc9cb44d17fa7beb49a2d4975616bb4b2744e8cab08c550a09fb54cda4ac9",
+    "resource/announcement/images/uttu": "498ebc06b5dd51bf3f89965fc16f09414188dbffcd0f0e3a71967f1a4e83aa15"
 }

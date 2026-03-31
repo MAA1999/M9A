@@ -28,7 +28,7 @@
         ]
     },
     "ReturnMain": {
-        "doc": "返回主界面（专供任务开始前使用）",
+        "desc": "返回主界面（专供任务开始前使用）",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -78,10 +78,10 @@
             "type": "Click",
             "param": {
                 "target_offset": [
-                    268,
-                    296,
-                    -580,
-                    -180
+                    207,
+                    279,
+                    -425,
+                    -124
                 ]
             }
         },
@@ -152,7 +152,7 @@
         }
     },
     "HomeLoading_wait": {
-        "doc": "专供启动时使用，与原版分开以防止ReturnMain大面积报错",
+        "desc": "专供启动时使用，与原版分开以防止ReturnMain大面积报错",
         "recognition": {
             "type": "And",
             "param": {
@@ -218,11 +218,11 @@
                 "package": "com.shenlan.m.reverse1999/com.ssgame.mobile.gamesdk.frame.AppStartUpActivity"
             }
         },
-        "on_error": [
-            "Start1999Error"
-        ],
         "next": [
             "DisableStart1999"
+        ],
+        "on_error": [
+            "Start1999Error"
         ]
     },
     "Start1999Error": {
@@ -338,6 +338,7 @@
         }
     },
     "Download": {
+        "max_hit": 5,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -355,8 +356,7 @@
         },
         "action": {
             "type": "Click"
-        },
-        "max_hit": 5
+        }
     },
     "SkipButton": {
         "recognition": {
@@ -393,10 +393,7 @@
                     166
                 ],
                 "template": [
-                    "StartUp/HomeFlag.png",
-                    "StartUp/HomeFlag_sp01.png",
-                    "StartUp/HomeFlag3.2.png",
-                    "StartUp/HomeFlag3.4.png"
+                    "StartUp/HomeFlag/"
                 ]
             }
         },
@@ -423,10 +420,7 @@
                     166
                 ],
                 "template": [
-                    "StartUp/HomeFlag.png",
-                    "StartUp/HomeFlag_sp01.png",
-                    "StartUp/HomeFlag3.2.png",
-                    "StartUp/HomeFlag3.4.png"
+                    "StartUp/HomeFlag/"
                 ]
             }
         },
@@ -471,10 +465,7 @@
                     166
                 ],
                 "template": [
-                    "StartUp/HomeFlag.png",
-                    "StartUp/HomeFlag_sp01.png",
-                    "StartUp/HomeFlag3.2.png",
-                    "StartUp/HomeFlag3.4.png"
+                    "StartUp/HomeFlag/"
                 ]
             }
         },
@@ -578,7 +569,7 @@
     },
     "Stop": {},
     "Reward": {
-        "doc": "防卡日历",
+        "desc": "防卡日历",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -718,13 +709,13 @@
                         "recognition": {
                             "type": "TemplateMatch",
                             "param": {
-                                "template": "StartUp/SignInReward.png",
                                 "roi": [
                                     115,
                                     562,
                                     1048,
                                     155
                                 ],
+                                "template": "StartUp/SignInReward.png",
                                 "threshold": 0.88
                             }
                         }
@@ -740,22 +731,22 @@
                                         "recognition": {
                                             "type": "ColorMatch",
                                             "param": {
-                                                "upper": [
-                                                    255,
-                                                    117,
-                                                    36
-                                                ],
-                                                "lower": [
-                                                    218,
-                                                    67,
-                                                    0
-                                                ],
                                                 "roi": "SignInReward_template",
                                                 "roi_offset": [
                                                     0,
                                                     20,
                                                     0,
                                                     0
+                                                ],
+                                                "lower": [
+                                                    218,
+                                                    67,
+                                                    0
+                                                ],
+                                                "upper": [
+                                                    255,
+                                                    117,
+                                                    36
                                                 ],
                                                 "count": 130
                                             }
@@ -766,22 +757,22 @@
                                         "recognition": {
                                             "type": "ColorMatch",
                                             "param": {
-                                                "upper": [
-                                                    255,
-                                                    186,
-                                                    47
-                                                ],
-                                                "lower": [
-                                                    218,
-                                                    136,
-                                                    0
-                                                ],
                                                 "roi": "SignInReward_template",
                                                 "roi_offset": [
                                                     0,
                                                     20,
                                                     0,
                                                     0
+                                                ],
+                                                "lower": [
+                                                    218,
+                                                    136,
+                                                    0
+                                                ],
+                                                "upper": [
+                                                    255,
+                                                    186,
+                                                    47
                                                 ],
                                                 "count": 250
                                             }
@@ -803,17 +794,17 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "expected": [
-                    "点击",
-                    "揭开",
-                    "奥秘",
-                    "继续"
-                ],
                 "roi": [
                     528,
                     580,
                     226,
                     121
+                ],
+                "expected": [
+                    "点击",
+                    "揭开",
+                    "奥秘",
+                    "继续"
                 ]
             }
         },
@@ -825,15 +816,15 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "expected": [
-                    "确认",
-                    "确定"
-                ],
                 "roi": [
                     590,
                     392,
                     255,
                     61
+                ],
+                "expected": [
+                    "确认",
+                    "确定"
                 ]
             }
         },

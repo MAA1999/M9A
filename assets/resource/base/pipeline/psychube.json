@@ -35,14 +35,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     367,
                     551,
                     43,
                     33
                 ],
-                "expected": "7"
+                "expected": "7",
+                "only_rec": true
             }
         },
         "action": {
@@ -77,14 +77,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1031,
                     633,
                     141,
                     36
                 ],
-                "expected": "复现"
+                "expected": "复现",
+                "only_rec": true
             }
         },
         "next": [
@@ -96,14 +96,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1032,
                     634,
                     70,
                     31
                 ],
-                "expected": "二"
+                "expected": "二",
+                "only_rec": true
             }
         },
         "action": {
@@ -118,6 +118,7 @@
         ]
     },
     "PsychubeEatCandyPage": {
+        "max_hit": 3,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -133,7 +134,6 @@
                 ]
             }
         },
-        "max_hit": 3,
         "next": [
             "EatCandyPage"
         ]
@@ -195,18 +195,18 @@
         ]
     },
     "PsychubeDouble": {
-        "doc": "识别加成次数，根据结果覆盖 PsychubeVictoryOverrideTask 中参数",
+        "desc": "识别加成次数，根据结果覆盖 PsychubeVictoryOverrideTask 中参数",
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1121,
                     565,
                     43,
                     21
                 ],
-                "expected": "[1-4]/4"
+                "expected": "[1-4]/4",
+                "only_rec": true
             }
         },
         "action": {

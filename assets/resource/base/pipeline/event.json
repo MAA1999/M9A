@@ -1,6 +1,7 @@
 {
     "EventLaplace": {
-        "doc": "进入左上角的拉普拉斯活动界面",
+        "desc": "进入左上角的拉普拉斯活动界面",
+        "max_hit": 3,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -17,7 +18,6 @@
         "action": {
             "type": "Click"
         },
-        "max_hit": 3,
         "next": [
             "[JumpBack]EventLaplaceBoxes",
             // "[JumpBack]EventLaplaceLab",
@@ -27,7 +27,7 @@
         ]
     },
     "EventLaplaceBoxes": {
-        "doc": "进入观测者之盒",
+        "desc": "进入观测者之盒",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -50,24 +50,24 @@
         ]
     },
     "EventLaplaceBoxesClaim": {
-        "doc": "领取观测者之盒的次数",
+        "desc": "领取观测者之盒的次数",
         "recognition": {
             "type": "OCR",
             "param": {
-                "expected": "领取",
                 "roi": [
                     1046,
                     397,
                     88,
                     195
-                ]
+                ],
+                "expected": "领取"
             }
-        },
-        "action": {
-            "type": "Click"
         },
         "pre_wait_freezes": {
             "time": 500
+        },
+        "action": {
+            "type": "Click"
         },
         "next": [
             "EventLaplaceBoxesClaim", // 识别成功时重复执行
@@ -76,18 +76,18 @@
         ]
     },
     "EventLaplaceFoxesNumber": {
-        "doc": "判断可观测次数",
+        "desc": "判断可观测次数",
         "recognition": {
             "type": "OCR",
             "param": {
-                "expected": "^[1-9][0-9]?$",
-                "only_rec": true,
                 "roi": [
                     897,
                     282,
                     47,
                     61
-                ]
+                ],
+                "expected": "^[1-9][0-9]?$",
+                "only_rec": true
             }
         },
         "action": "DoNothing",
@@ -98,7 +98,7 @@
         ]
     },
     "EventLaplaceFoxesClaim": {
-        "doc": "用次数来观测盒子",
+        "desc": "用次数来观测盒子",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -121,7 +121,7 @@
         ]
     },
     "EventLaplaceParty": {
-        "doc": "进入微型派对",
+        "desc": "进入微型派对",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -146,7 +146,7 @@
         ]
     },
     "EventLaplacePartyTarget": {
-        "doc": "点击目标红点",
+        "desc": "点击目标红点",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -171,7 +171,7 @@
         ]
     },
     "EventLaplacePartyClaim": {
-        "doc": "领取奖励",
+        "desc": "领取奖励",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -206,7 +206,7 @@
         ]
     },
     "EventLaplacePartyBabel": {
-        "doc": "进入巴别塔词砖奖励页面",
+        "desc": "进入巴别塔词砖奖励页面",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -222,11 +222,11 @@
                 "threshold": 0.95
             }
         },
-        "post_wait_freezes": {
-            "time": 500
-        },
         "action": {
             "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500
         },
         "next": [
             "EventLaplacePartyBabelClaim",
@@ -234,7 +234,7 @@
         ]
     },
     "EventLaplacePartyBabelClaim": {
-        "doc": "领取巴别塔词砖奖励",
+        "desc": "领取巴别塔词砖奖励",
         "recognition": {
             "type": "TemplateMatch",
             "param": {

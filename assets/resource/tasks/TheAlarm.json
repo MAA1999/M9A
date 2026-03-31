@@ -6,6 +6,7 @@
             "option": [
                 "扫荡难度"
             ],
+            "group": ["standalone"],
             "description": "<span style=\"color:tomato;font-size:15px\">本功能不换角色，debuff吃满，故只适合高练队伍挂机。推荐配队：三巨头（薪电启）+图图石子、追击队。使用前请手动打开警铃鸣响时主页面（中间有雨迹追查和雨痕处置字样）</span><br><span style=\"color:deepskyblue;font-size:14px\">“速刷选项”：直接打boss关，没有五号位buff，适合大成三巨头+双奶妈挂机通关。非速刷则会选择拉满五号位buff后再打boss，提高通关稳定性。</span><br><span style=\"color:deepskyblue;font-size:14px\">测试用队伍：诺谛卡 + 圈 + 蘑菇 + 塞梅 + 图图（注意五号位放主C）</span>"
         }
     ],

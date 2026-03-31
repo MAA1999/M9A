@@ -5,7 +5,8 @@
             "entry": "Close1999",
             "controller": [
                 "ADB"
-            ]
+            ],
+            "group": ["daily"]
         }
     ]
 }

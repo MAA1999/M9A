@@ -3,6 +3,7 @@
         {
             "name": "(测试中)推图模式",
             "entry": "StagePromotion",
+            "group": ["standalone"],
             "description": "<span style=\"color:tomato;font-size:15px\">本功能处于测试中，不保证正常运行。当前本功能主线不可用。</span><br><span style=\"color:tomato;font-size:15px\">使用时请先手动打开需要推图的页面，如当期活动、佚事等，然后再运行此任务</span>"
         }
     ]

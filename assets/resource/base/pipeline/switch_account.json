@@ -146,8 +146,8 @@
                     126
                 ],
                 "expected": "(登|.)录",
-                "index": 0,
-                "order_by": "Horizontal"
+                "order_by": "Horizontal",
+                "index": 0
             }
         },
         "next": [
@@ -159,9 +159,9 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": "SwitchLastAccountComplete",
-                "expected": "(登|.)录"
+                "expected": "(登|.)录",
+                "only_rec": true
             }
         },
         "action": {
@@ -190,8 +190,8 @@
                 "template": [
                     "SwitchAccount/AccountDel.png"
                 ],
-                "index": -1,
-                "order_by": "Vertical"
+                "order_by": "Vertical",
+                "index": -1
             }
         },
         "action": {
@@ -226,8 +226,8 @@
                     99
                 ],
                 "expected": "[×xX✕✖]",
-                "index": -1,
-                "order_by": "Vertical"
+                "order_by": "Vertical",
+                "index": -1
             }
         },
         "action": {
@@ -309,14 +309,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     773,
                     403,
                     63,
                     35
                 ],
-                "expected": "确认"
+                "expected": "确认",
+                "only_rec": true
             }
         },
         "action": {

@@ -9,6 +9,7 @@
                 "难度选择",
                 "配器选择"
             ],
+            "group": ["standalone"],
             "description": "<span style=\"color:darkgray;font-size:15px\">不再支持从游戏主页面启动，须手动到如下界面启动</span>![SOSMain](resource/announcement/images/SOSMain.png)<span style=\"color:darkgray;font-size:15px\">M9A不能检查是否处于自动战斗状态，请确定上一次使用的是自动战斗</span><br><span style=\"color:orange;font-size:15px\">⚠使用前请先至少手动打完第一层，更多详细说明请看文档</span>"
         }
     ],

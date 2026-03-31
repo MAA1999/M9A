@@ -8,7 +8,6 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "only_rec": true,
                 "roi": [
                     1030,
                     634,
@@ -17,7 +16,8 @@
                 ],
                 "expected": [
                     "复现"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "action": {
@@ -229,14 +229,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "expected": [
-                    "MAX"
-                ],
                 "roi": [
                     783,
                     424,
                     46,
                     21
+                ],
+                "expected": [
+                    "MAX"
                 ],
                 "only_rec": true
             }
@@ -254,14 +254,14 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "expected": [
-                    "兑换"
-                ],
                 "roi": [
                     607,
                     499,
                     68,
                     33
+                ],
+                "expected": [
+                    "兑换"
                 ],
                 "only_rec": true
             }

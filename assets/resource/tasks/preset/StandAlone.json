@@ -35,6 +35,10 @@
                 {
                     "name": "雨前漫游指南",
                     "enabled": false
+                },
+                {
+                    "name": "UTTU闪烁集会",
+                    "enabled": false
                 }
             ]
         }
