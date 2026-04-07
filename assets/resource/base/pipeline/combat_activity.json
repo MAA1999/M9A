@@ -37,7 +37,7 @@
     },
     "CombatActivityOverrideError": {
         "focus": {
-            "Node.Action.Starting": "err:未能进入活动界面，请检查资源类型是否正确"
+            "Node.Action.Starting": "<span style=\"color:crimson;\">未能进入活动界面，请检查资源类型是否正确</span>"
         }
     },
     "FlagInActivityMain": {
@@ -63,7 +63,7 @@
     },
     "FlagInActivityMainError": {
         "focus": {
-            "Node.Action.Starting": "err:未识别到活动界面，请检查资源类型是否正确"
+            "Node.Action.Starting": "<span style=\"color:crimson;\">未识别到活动界面，请检查资源类型是否正确</span>"
         }
     },
     "EnterTheActivityMain": {
@@ -135,7 +135,7 @@
     },
     "ActivityMainChapterError": {
         "focus": {
-            "Node.Action.Starting": "err:未识别到活动章节入口，请检查资源类型是否正确"
+            "Node.Action.Starting": "<span style=\"color:crimson;\">未识别到活动章节入口，请检查资源类型是否正确</span>"
         }
     },
     "FlagInActivityStage": {
@@ -347,7 +347,7 @@
     },
     "ActivityRe_releaseChapterError": {
         "focus": {
-            "Node.Action.Starting": "err:未识别到复刻活动章节，请检查资源类型是否正确"
+            "Node.Action.Starting": "<span style=\"color:crimson;\">未识别到复刻活动章节，请检查资源类型是否正确</span>"
         }
     },
     "ActivityLeftList": {

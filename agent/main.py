@@ -199,6 +199,31 @@ def read_hot_update_config() -> dict:
     return read_config("hot_update", default_config)
 
 
+def _format_env_value(value: str, limit: int = 300) -> str:
+    if not value:
+        return "<empty>"
+    if len(value) <= limit:
+        return value
+    return f"{value[:limit]}...(truncated, total={len(value)})"
+
+
+def log_pi_environment() -> None:
+    pi_env_keys = [
+        "PI_INTERFACE_VERSION",
+        "PI_CLIENT_NAME",
+        "PI_CLIENT_VERSION",
+        "PI_CLIENT_LANGUAGE",
+        "PI_CLIENT_MAAFW_VERSION",
+        "PI_VERSION",
+        "PI_CONTROLLER",
+        "PI_RESOURCE",
+    ]
+
+    logger.debug("PI environment snapshot:")
+    for key in pi_env_keys:
+        logger.debug(f"{key}={_format_env_value(os.getenv(key, ''))}")
+
+
 # -----
 # region 依赖安装
 # -----
@@ -474,6 +499,7 @@ def agent(is_dev_mode=False):
         socket_id = sys.argv[-1]
         logger.debug(f"socket_id: {socket_id}")
 
+        log_pi_environment()
         AgentServer.start_up(socket_id)
         logger.info("AgentServer启动")
         AgentServer.join()

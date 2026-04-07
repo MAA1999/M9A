@@ -236,7 +236,7 @@
             }
         },
         "focus": {
-            "Node.Action.Starting": "err:启动游戏失败，请检查是否正确选择游戏资源"
+            "Node.Action.Starting": "<span style=\"color:crimson;\">启动游戏失败，请检查是否正确选择游戏资源</span>"
         }
     },
     "DisableStart1999": {

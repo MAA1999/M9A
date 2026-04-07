@@ -263,7 +263,7 @@
             "SODStop"
         ],
         "focus": {
-            "Node.Action.Starting": "[color:DeepSkyBlue]本轮肉鸽结束[/color]"
+            "Node.Action.Starting": "<span style=\"color:deepskyblue;\">本轮肉鸽结束</span>"
         }
     },
     "SODStop_Confirm": {
@@ -537,7 +537,7 @@
             "SODStart"
         ],
         "focus": {
-            "Node.Action.Starting": "err:开启本轮肉鸽"
+            "Node.Action.Starting": "<span style=\"color:crimson;\">开启本轮肉鸽</span>"
         }
     },
     "SODStart_Confirm": {

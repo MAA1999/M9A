@@ -731,5 +731,17 @@
                 }
             }
         }
+    },
+    "3.6": {
+        "version_name": "人们向何处去",
+        "start_time": 1775700000000,
+        "end_time": 1777496399000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1775700000000,
+                "end_time": 1777237199000
+            }
+        }
     }
 }

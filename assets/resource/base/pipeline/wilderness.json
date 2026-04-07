@@ -292,7 +292,8 @@
         },
         "next": [
             "Trade",
-            "TradeCompleted"
+            "TradeCompleted",
+            "EnterTrade"
         ]
     },
     "Trade": {

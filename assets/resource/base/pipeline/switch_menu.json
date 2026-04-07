@@ -36,6 +36,7 @@
         ]
     },
     "switch_menu_start": {
+        "max_hit": 10,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -51,8 +52,18 @@
         "action": {
             "type": "Click"
         },
+        "post_wait_freezes": {
+            "target": [
+                50,
+                509,
+                56,
+                54
+            ],
+            "time": 100
+        },
         "next": [
-            "switch_menu_main"
+            "switch_menu_main",
+            "switch_menu_start"
         ]
     },
     "switch_menu_main": {

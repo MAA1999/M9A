@@ -942,7 +942,7 @@ class TargetCountFinish(CustomAction):
 
         # 输出掉落总结
         if _DROP_RECOGNITION_AVAILABLE:
-            DropRecognitionState.print_total_summary()
+            DropRecognitionState.print_total_summary(context)
             DropRecognitionState.reset_total()
 
         context.run_task("HomeButton")

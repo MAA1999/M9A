@@ -187,5 +187,21 @@
                 "end_time": 1776027599000
             }
         }
+    },
+    "3.4": {
+        "version_name": "不老春",
+        "start_time": 1776304800000,
+        "end_time": 1779915599000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1776304800000,
+                "end_time": 1779656399000
+            },
+            "re-release": {
+                "start_time": 1778792400000,
+                "end_time": 1779656399000
+            }
+        }
     }
 }

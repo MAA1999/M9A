@@ -2,6 +2,7 @@
     "Limbo": {
         "desc": "深眠域",
         "next": [
+            "LucidscapeUnlocked",
             "LimboEntryEnd",
             "LimboEnd",
             "LimboStageFlag",
@@ -73,9 +74,9 @@
                             "param": {
                                 "roi": [
                                     569,
-                                    660,
-                                    121,
-                                    27
+                                    649,
+                                    140,
+                                    38
                                 ],
                                 "expected": [
                                     "点击",
@@ -109,7 +110,15 @@
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -40,
+                    0,
+                    80
+                ]
+            }
         },
         "post_wait_freezes": {
             "time": 300,
