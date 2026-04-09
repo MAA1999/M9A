@@ -721,9 +721,9 @@
             "param": {
                 "roi": [
                     1160,
-                    589,
+                    564,
                     18,
-                    18
+                    43
                 ],
                 "template": "Awards/WarRoom/AwardWarRoom.png",
                 "threshold": 0.9
@@ -1010,10 +1010,10 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    792,
-                    586,
-                    381,
-                    67
+                    946,
+                    12,
+                    294,
+                    78
                 ],
                 "expected": "领取"
             }
