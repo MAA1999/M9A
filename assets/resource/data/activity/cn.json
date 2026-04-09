@@ -742,6 +742,18 @@
                 "start_time": 1775700000000,
                 "end_time": 1777237199000,
                 "override": {
+                    "FlagInActivityStage": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1089,
+                                    635,
+                                    131,
+                                    41
+                                ]
+                            }
+                        }
+                    },
                     "ActivityTargetLevelRec": {
                         "recognition": {
                             "param": {
