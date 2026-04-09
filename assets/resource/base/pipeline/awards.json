@@ -1007,15 +1007,38 @@
     "AwardBreakingSignalsAward": {
         "desc": "崭新的电波-领取签到奖励",
         "recognition": {
-            "type": "OCR",
+            "type": "Or",
             "param": {
-                "roi": [
-                    946,
-                    12,
-                    294,
-                    78
-                ],
-                "expected": "领取"
+                "any_of": [
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    946,
+                                    12,
+                                    294,
+                                    78
+                                ],
+                                "expected": "领取"
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    792,
+                                    586,
+                                    381,
+                                    67
+                                ],
+                                "expected": "领取"
+                            }
+                        }
+                    }
+                ]
             }
         },
         "action": {
