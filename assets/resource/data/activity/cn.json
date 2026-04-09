@@ -740,7 +740,21 @@
             "combat": {
                 "event_type": "SideStory",
                 "start_time": 1775700000000,
-                "end_time": 1777237199000
+                "end_time": 1777237199000,
+                "override": {
+                    "ActivityTargetLevelRec": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1036,
+                                    573,
+                                    57,
+                                    26
+                                ]
+                            }
+                        }
+                    }
+                }
             }
         }
     }
