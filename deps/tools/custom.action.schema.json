@@ -7,6 +7,7 @@
                 "DisableNode",
                 "NodeOverride",
                 "ResetCount",
+                "SubTask",
                 "DuringAct",
                 "DuringAnecdote",
                 "DuringRe_release",
@@ -65,6 +66,9 @@
         },
         {
             "$ref": "#/$defs/ResetCount"
+        },
+        {
+            "$ref": "#/$defs/SubTask"
         },
         {
             "$ref": "#/$defs/DuringAct"
@@ -298,6 +302,46 @@
                             "description": "需要重置计数器的节点名称"
                         }
                     },
+                    "unevaluatedProperties": false
+                }
+            }
+        },
+        "SubTask": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_action": {
+                    "const": "SubTask",
+                    "description": "按顺序执行 custom_action_param.sub 中的子任务。"
+                },
+                "custom_action_param": {
+                    "type": "object",
+                    "properties": {
+                        "sub": {
+                            "type": "array",
+                            "description": "按顺序执行的子任务名称列表",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 1
+                        },
+                        "continue": {
+                            "type": "boolean",
+                            "description": "任一子任务失败后是否继续执行后续子任务",
+                            "default": false
+                        },
+                        "strict": {
+                            "type": "boolean",
+                            "description": "任一子任务失败时，当前 action 是否视为失败",
+                            "default": true
+                        }
+                    },
+                    "required": [
+                        "sub"
+                    ],
                     "unevaluatedProperties": false
                 }
             }

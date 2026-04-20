@@ -1,0 +1,195 @@
+{
+    "WildernessGoodDreamWellTask": {
+        "recognition": "DirectHit",
+        "next": [
+            "EnterGoodDreamWell"
+        ]
+    },
+    "EnterGoodDreamWell": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    574,
+                    672,
+                    64,
+                    22
+                ],
+                "expected": "好梦井",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -30,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "FlagInGoodDreamWell",
+            "EnterGoodDreamWell",
+            "[JumpBack]Cloud",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickBlank"
+        ]
+    },
+    "FlagInGoodDreamWell": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    64,
+                    93,
+                    110,
+                    63
+                ],
+                "expected": "我的好梦井"
+            }
+        },
+        "next": [
+            "FlagInGoodDreamWellCenter",
+            "FlagInGoodDreamWellFinish",
+            "[JumpBack]PositionGoodDreamWellCenter",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickBlank"
+        ]
+    },
+    "PositionGoodDreamWellCenter": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1158,
+                    148,
+                    109,
+                    24
+                ],
+                "expected": "好梦井定位",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -30,
+                    0,
+                    0
+                ]
+            }
+        }
+    },
+    "FlagInGoodDreamWellCenter": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    654,
+                    163,
+                    70,
+                    111
+                ],
+                "expected": "打捞"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000,
+        "next": [
+            "FlagInGoodDreamWellFishing",
+            "FlagInGoodDreamWellCenter",
+            "[JumpBack]SkipButton",
+            "[JumpBack]ClickBlank"
+        ]
+    },
+    "FlagInGoodDreamWellFinish": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    645,
+                    163,
+                    98,
+                    111
+                ],
+                "expected": [
+                    "剩余",
+                    "耗时"
+                ]
+            }
+        },
+        "next": [
+            "FlagInWilderness_rec",
+            "[JumpBack]Cloud",
+            "[JumpBack]BackButtonWithDelay"
+        ]
+    },
+    "FlagInGoodDreamWellFishing": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    919,
+                    145,
+                    102,
+                    327
+                ],
+                "expected": "打捞"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "GoodDreamWellFishing"
+            }
+        },
+        "next": [
+            "FlagInWilderness_rec",
+            "[JumpBack]Cloud"
+        ]
+    },
+    "Cloud": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "lower": [
+                    200,
+                    200,
+                    200
+                ],
+                "upper": [
+                    225,
+                    225,
+                    225
+                ],
+                "connected": true,
+                "count": 10000
+            }
+        }
+    },
+    "GoodDreamWellOCR": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1137,
+                    23,
+                    74,
+                    24
+                ],
+                "expected": "\\d/\\d",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}

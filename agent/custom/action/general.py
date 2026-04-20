@@ -94,3 +94,62 @@ class ResetCount(CustomAction):
         node_name = param.get("node_name", None)
         Count.reset_count(node_name)
         return CustomAction.RunResult(success=True)
+
+
+@AgentServer.custom_action("SubTask")
+class SubTask(CustomAction):
+    """
+    按顺序执行子任务。
+
+    参数格式:
+    {
+        "sub": ["任务名称1", "任务名称2"],
+        "continue": false, # 任一子任务失败后是否继续执行后续子任务
+        "strict": true # 任一子任务失败时，当前 action 是否视为失败
+    }
+    """
+
+    def run(
+        self,
+        context: Context,
+        argv: CustomAction.RunArg,
+    ) -> CustomAction.RunResult:
+
+        if not argv.custom_action_param:
+            logger.error("SubTask requires non-empty custom_action_param")
+            return CustomAction.RunResult(success=False)
+
+        try:
+            param = json.loads(argv.custom_action_param)
+        except json.JSONDecodeError:
+            logger.exception("SubTask failed to parse custom_action_param")
+            return CustomAction.RunResult(success=False)
+
+        sub = param.get("sub", None)
+        if not isinstance(sub, list) or not sub:
+            logger.error("SubTask requires non-empty custom_action_param.sub")
+            return CustomAction.RunResult(success=False)
+
+        continue_on_failure = bool(param.get("continue", False))
+        strict = bool(param.get("strict", True))
+        has_sub_failure = False
+
+        for index, task_name in enumerate(sub):
+            if not isinstance(task_name, str) or not task_name:
+                logger.error(
+                    f"SubTask received empty task name in custom_action_param.sub[{index}]"
+                )
+                has_sub_failure = True
+                if not continue_on_failure:
+                    break
+                continue
+
+            try:
+                context.run_task(task_name)
+            except Exception:
+                logger.exception(f"字任务运行失败: index={index}, task={task_name}")
+                has_sub_failure = True
+                if not continue_on_failure:
+                    break
+
+        return CustomAction.RunResult(success=not (has_sub_failure and strict))

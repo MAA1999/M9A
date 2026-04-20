@@ -1,0 +1,159 @@
+{
+    "WildernessAncientHallTask": {
+        "recognition": "DirectHit",
+        "next": [
+            "EnterAncientHall"
+        ]
+    },
+    "EnterAncientHall": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1168,
+                    148,
+                    86,
+                    24
+                ],
+                "expected": "古厅定位",
+                "replace": [
+                    [
+                        "厂",
+                        "厅"
+                    ],
+                    [
+                        "居",
+                        "古"
+                    ]
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "AncientHallFlag",
+            "[JumpBack]ClickAncientHall"
+        ]
+    },
+    "AncientHallFlag": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    843,
+                    75,
+                    55,
+                    30
+                ],
+                "expected": "古厅",
+                "replace": [
+                    [
+                        "厂",
+                        "厅"
+                    ],
+                    [
+                        "居",
+                        "古"
+                    ]
+                ],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "NoExpMoney",
+            "[JumpBack]CollectExpMoney"
+        ]
+    },
+    "NoExpMoney": {
+        "desc": "钱和微尘领完了，回荒原主页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1015,
+                    162,
+                    65,
+                    312
+                ],
+                "expected": "^(100|[1-9]\\d?)%$"
+            }
+        },
+        "inverse": true,
+        "next": [
+            "FlagInWilderness_rec",
+            "[JumpBack]BackButtonWithDelay"
+        ]
+    },
+    "CollectExpMoney": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1106,
+                    180,
+                    110,
+                    258
+                ],
+                "expected": "收取"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                843,
+                0,
+                242,
+                719
+            ]
+        }
+    },
+    "ClickAncientHall": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    596,
+                    93,
+                    237,
+                    172
+                ],
+                "expected": "荒原古厅",
+                "replace": [
+                    [
+                        "厂",
+                        "厅"
+                    ],
+                    [
+                        "居",
+                        "古"
+                    ]
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                843,
+                0,
+                242,
+                719
+            ]
+        }
+    }
+}

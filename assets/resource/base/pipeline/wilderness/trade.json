@@ -1,0 +1,89 @@
+{
+    "WildernessTradeTask": {
+        "recognition": "DirectHit",
+        "next": [
+            "EnterTrade"
+        ]
+    },
+    "EnterTrade": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    399,
+                    670,
+                    47,
+                    24
+                ],
+                "expected": "交易",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -30,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                90,
+                223,
+                1082,
+                394
+            ]
+        },
+        "next": [
+            "Trade",
+            "TradeCompleted",
+            "EnterTrade"
+        ]
+    },
+    "Trade": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    172,
+                    553,
+                    990,
+                    81
+                ],
+                "expected": "订单交付"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "Trade",
+            "TradeCompleted"
+        ]
+    },
+    "TradeCompleted": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    713,
+                    60,
+                    108,
+                    30
+                ],
+                "expected": "批发交易",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "FlagInWilderness_rec",
+            "[JumpBack]BackButtonWithDelay"
+        ]
+    }
+}

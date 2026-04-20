@@ -17,17 +17,13 @@
             "cases": [
                 {
                     "name": "Yes",
-                    "pipeline_override": {
-                        "EnterGoodDreamWell": {
-                            "enabled": true
-                        }
-                    }
+                    "pipeline_override": {}
                 },
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "EnterGoodDreamWell": {
-                            "enabled": false
+                        "WildernessGoodDreamWellTask": {
+                            "next": []
                         }
                     }
                 }
@@ -38,17 +34,13 @@
             "cases": [
                 {
                     "name": "Yes",
-                    "pipeline_override": {
-                        "EnterProduct": {
-                            "enabled": true
-                        }
-                    }
+                    "pipeline_override": {}
                 },
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "EnterProduct": {
-                            "enabled": false
+                        "WildernessProductTask": {
+                            "next": []
                         }
                     }
                 }
@@ -60,18 +52,14 @@
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "EnterTrade": {
-                            "enabled": false
+                        "WildernessTradeTask": {
+                            "next": []
                         }
                     }
                 },
                 {
                     "name": "Yes",
-                    "pipeline_override": {
-                        "EnterTrade": {
-                            "enabled": true
-                        }
-                    }
+                    "pipeline_override": {}
                 }
             ],
             "type": "switch",

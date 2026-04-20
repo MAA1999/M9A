@@ -51,6 +51,20 @@ const config: FullConfig = {
             }
           }
         }
+      } else if (name === 'SubTask') {
+        for (const [key, obj] of utils.parseObject(param)) {
+          if (key === 'sub') {
+            for (const task of utils.parseArray(obj)) {
+              if (utils.isString(task)) {
+                result.push({
+                  node: task,
+                  type: 'taskRef',
+                  missingPolicy: 'error',
+                })
+              }
+            }
+          }
+        }
       }
       return result
     },

@@ -13,6 +13,7 @@ __all__ = [
     "DisableNode",
     "NodeOverride",
     "ResetCount",
+    "SubTask",
     "DuringAct",
     "DuringAnecdote",
     "DuringRe_release",

@@ -1,0 +1,26 @@
+{
+    "WildernessRewardsTask": {
+        "recognition": "DirectHit",
+        "next": [
+            "[JumpBack]CollectAwards",
+            "WildernessTrustTask"
+        ]
+    },
+    "CollectAwards": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    680,
+                    170,
+                    140,
+                    140
+                ],
+                "template": "Wilderness/CollectAwards.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}
