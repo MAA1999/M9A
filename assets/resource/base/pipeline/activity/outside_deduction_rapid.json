@@ -38,7 +38,9 @@
             "param": {
                 "custom_action": "ResetCount",
                 "custom_action_param": {
-                    "node_name": "ODR_SkipText"
+                    "nodes": [
+                        "ODR_SkipText"
+                    ]
                 }
             }
         },
@@ -1020,15 +1022,7 @@
     },
     "ODR_SkipText": {
         "desc": "点击一下屏幕以跳过文本加载",
-        "recognition": {
-            "type": "Custom",
-            "param": {
-                "custom_recognition": "Count",
-                "custom_recognition_param": {
-                    "target": 25
-                }
-            }
-        },
+        "max_hit": 25,
         "action": {
             "type": "Click",
             "param": {

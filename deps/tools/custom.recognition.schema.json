@@ -5,7 +5,6 @@
         "custom_recognition": {
             "enum": [
                 "MultiRecognition",
-                "Count",
                 "ColorOCR",
                 "ColorOCRWithFallback",
                 "CheckStopping",
@@ -27,9 +26,6 @@
     "anyOf": [
         {
             "$ref": "#/$defs/MultiRecognition"
-        },
-        {
-            "$ref": "#/$defs/Count"
         },
         {
             "$ref": "#/$defs/ColorOCR"
@@ -159,45 +155,6 @@
                         "nodes",
                         "return"
                     ],
-                    "additionalProperties": false
-                }
-            }
-        },
-        "Count": {
-            "allOf": [
-                {
-                    "$ref": "#/$defs/RequiredParam"
-                }
-            ],
-            "properties": {
-                "custom_recognition": {
-                    "const": "Count"
-                },
-                "custom_recognition_param": {
-                    "type": "object",
-                    "properties": {
-                        "target": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "description": "目标匹配次数，默认sys.maxsize"
-                        },
-                        "recognition": {
-                            "type": "object",
-                            "properties": {
-                                "type": {
-                                    "type": "string",
-                                    "default": "DirectHit",
-                                    "description": "识别类型，默认DirectHit"
-                                },
-                                "param": {
-                                    "type": "object",
-                                    "description": "识别相关字段"
-                                }
-                            },
-                            "additionalProperties": false,
-                            "description": "v2协议的recognition字段"
-                        }
-                    },
                     "additionalProperties": false
                 }
             }

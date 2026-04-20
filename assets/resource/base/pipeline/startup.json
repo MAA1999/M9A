@@ -29,15 +29,7 @@
     },
     "ReturnMain": {
         "desc": "返回主界面（专供任务开始前使用）",
-        "recognition": {
-            "type": "Custom",
-            "param": {
-                "custom_recognition": "Count",
-                "custom_recognition_param": {
-                    "target": 2
-                }
-            }
-        },
+        "max_hit": 2,
         "next": [
             "[JumpBack]Confirm",
             "HomeFlagCloseReturnMain",
@@ -553,6 +545,7 @@
         }
     },
     "ClickHomeCount": {
+        "desc": "点击固定位置，用于限定角色入场动画时点出“跳过”按钮",
         "max_hit": 20,
         "action": {
             "type": "Click",

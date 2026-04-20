@@ -8,7 +8,6 @@ from maa.custom_action import CustomAction
 from maa.context import Context
 
 from utils import logger
-from custom.reco import Count
 
 
 @AgentServer.custom_action("DisableNode")
@@ -72,7 +71,8 @@ class ResetCount(CustomAction):
 
     参数格式:
     {
-        "node_name": String # 目标计数器节点名称，不存在时重置全部节点
+        "nodes": [String], # 目标计数器节点名称列表
+        "strict": bool # 可选，任一节点重置失败时 action 是否视为失败，默认 false
     }
     """
 
@@ -83,16 +83,41 @@ class ResetCount(CustomAction):
     ) -> CustomAction.RunResult:
 
         if not argv.custom_action_param:
-            Count.reset_count()
-            return CustomAction.RunResult(success=True)
+            logger.error("ResetCount requires non-empty custom_action_param")
+            return CustomAction.RunResult(success=False)
 
         param = json.loads(argv.custom_action_param)
-        if not param:
-            Count.reset_count()
-            return CustomAction.RunResult(success=True)
+        nodes = param.get("nodes", None)
+        if not isinstance(nodes, list) or not nodes:
+            logger.error("ResetCount requires non-empty custom_action_param.nodes")
+            return CustomAction.RunResult(success=False)
 
-        node_name = param.get("node_name", None)
-        Count.reset_count(node_name)
+        strict = bool(param.get("strict", False))
+        has_failure = False
+
+        for index, node_name in enumerate(nodes):
+            if not isinstance(node_name, str) or not node_name:
+                log = logger.error if strict else logger.warning
+                log(
+                    f"ResetCount received invalid node name in custom_action_param.nodes[{index}]: {node_name!r}"
+                )
+                has_failure = True
+                continue
+
+            if not context.clear_hit_count(node_name):
+                log = logger.error if strict else logger.warning
+                log(
+                    f"ResetCount failed to clear hit count: index={index}, node={node_name}"
+                )
+                has_failure = True
+                continue
+
+            logger.info(f"ResetCount successfully cleared hit count: node={node_name}")
+
+        if has_failure and strict:
+            logger.error("ResetCount failed to clear some nodes in strict mode")
+            return CustomAction.RunResult(success=False)
+
         return CustomAction.RunResult(success=True)
 
 

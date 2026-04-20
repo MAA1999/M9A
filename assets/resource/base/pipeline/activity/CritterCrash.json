@@ -813,15 +813,7 @@
         }
     },
     "CCDeploy": {
-        "recognition": {
-            "type": "Custom",
-            "param": {
-                "custom_recognition": "Count",
-                "custom_recognition_param": {
-                    "target": 5
-                }
-            }
-        },
+        "max_hit": 5,
         "action": {
             "type": "Swipe",
             "param": {
@@ -858,22 +850,16 @@
             "param": {
                 "custom_action": "ResetCount",
                 "custom_action_param": {
-                    "node_name": "CCDeploy"
+                    "nodes": [
+                        "CCDeploy"
+                    ]
                 }
             }
         },
         "post_delay": 1500
     },
     "CCUpdate": {
-        "recognition": {
-            "type": "Custom",
-            "param": {
-                "custom_recognition": "Count",
-                "custom_recognition_param": {
-                    "target": 2
-                }
-            }
-        },
+        "max_hit": 2,
         "action": {
             "type": "Swipe",
             "param": {
@@ -907,7 +893,9 @@
             "param": {
                 "custom_action": "ResetCount",
                 "custom_action_param": {
-                    "node_name": "CCUpdate"
+                    "nodes": [
+                        "CCUpdate"
+                    ]
                 }
             }
         }

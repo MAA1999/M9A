@@ -7,26 +7,18 @@
     },
     "PreStormProtocol": {
         // 未打败教程中boss的任务链
+        "max_hit": 300,
         "recognition": {
-            "type": "Custom",
+            "type": "OCR",
             "param": {
-                "custom_recognition": "Count",
-                "custom_recognition_param": {
-                    "target": 300,
-                    "recognition": {
-                        "type": "OCR",
-                        "param": {
-                            "roi": [
-                                1075,
-                                616,
-                                99,
-                                46
-                            ],
-                            "only_rec": true,
-                            "expected": "模拟"
-                        }
-                    }
-                }
+                "roi": [
+                    1075,
+                    616,
+                    99,
+                    46
+                ],
+                "expected": "模拟",
+                "only_rec": true
             }
         },
         "action": {
@@ -92,26 +84,18 @@
     },
     "PreStormProtocol1": {
         // 已打败教程中boss的任务链
+        "max_hit": 300,
         "recognition": {
-            "type": "Custom",
+            "type": "OCR",
             "param": {
-                "custom_recognition": "Count",
-                "custom_recognition_param": {
-                    "target": 300,
-                    "recognition": {
-                        "type": "OCR",
-                        "param": {
-                            "roi": [
-                                1075,
-                                616,
-                                99,
-                                46
-                            ],
-                            "only_rec": true,
-                            "expected": "模拟"
-                        }
-                    }
-                }
+                "roi": [
+                    1075,
+                    616,
+                    99,
+                    46
+                ],
+                "expected": "模拟",
+                "only_rec": true
             }
         },
         "action": {

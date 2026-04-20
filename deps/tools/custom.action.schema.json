@@ -289,19 +289,37 @@
             }
         },
         "ResetCount": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
             "properties": {
                 "custom_action": {
                     "const": "ResetCount",
-                    "description": "重置计数器的值。无参数或空参数调用时置空全部计数器。"
+                    "description": "重置指定节点的命中计数。"
                 },
                 "custom_action_param": {
                     "type": "object",
                     "properties": {
-                        "node_name": {
-                            "type": "string",
-                            "description": "需要重置计数器的节点名称"
+                        "nodes": {
+                            "type": "array",
+                            "description": "需要重置命中计数的节点名称列表",
+                            "items": {
+                                "type": "string",
+                                "minLength": 1
+                            },
+                            "minItems": 1
+                        },
+                        "strict": {
+                            "type": "boolean",
+                            "description": "任一节点重置失败时，当前 action 是否视为失败",
+                            "default": false
                         }
                     },
+                    "required": [
+                        "nodes"
+                    ],
                     "unevaluatedProperties": false
                 }
             }

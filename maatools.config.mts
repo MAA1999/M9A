@@ -39,7 +39,7 @@ const config: FullConfig = {
     },
     customAction: (name, param, utils) => {
       const result: PropSelectorResult[] = []
-      if (name === 'DisableNode' || name === 'ResetCount') {
+      if (name === 'DisableNode') {
         for (const [key, obj] of utils.parseObject(param)) {
           if (key === 'node_name') {
             if (utils.isString(obj)) {
@@ -48,6 +48,20 @@ const config: FullConfig = {
                 type: 'taskRef',
                 missingPolicy: 'error',
               })
+            }
+          }
+        }
+      } else if (name === 'ResetCount') {
+        for (const [key, obj] of utils.parseObject(param)) {
+          if (key === 'nodes') {
+            for (const task of utils.parseArray(obj)) {
+              if (utils.isString(task)) {
+                result.push({
+                  node: task,
+                  type: 'taskRef',
+                  missingPolicy: 'error',
+                })
+              }
             }
           }
         }
