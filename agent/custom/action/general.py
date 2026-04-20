@@ -92,7 +92,11 @@ class ResetCount(CustomAction):
             logger.error("ResetCount requires non-empty custom_action_param.nodes")
             return CustomAction.RunResult(success=False)
 
-        strict = bool(param.get("strict", False))
+        strict = param.get("strict", False)
+        if not isinstance(strict, bool):
+            logger.error("ResetCount requires boolean custom_action_param.strict")
+            return CustomAction.RunResult(success=False)
+
         has_failure = False
 
         for index, node_name in enumerate(nodes):
