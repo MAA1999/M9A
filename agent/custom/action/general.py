@@ -137,17 +137,16 @@ class SubTask(CustomAction):
         for index, task_name in enumerate(sub):
             if not isinstance(task_name, str) or not task_name:
                 logger.error(
-                    f"SubTask received empty task name in custom_action_param.sub[{index}]"
+                    f"SubTask received invalid task name in custom_action_param.sub[{index}]: {task_name!r}"
                 )
                 has_sub_failure = True
                 if not continue_on_failure:
                     break
                 continue
 
-            try:
-                context.run_task(task_name)
-            except Exception:
-                logger.exception(f"子任务运行失败: index={index}, task={task_name}")
+            task_detail = context.run_task(task_name)
+            if task_detail and task_detail.status._status.name == "failed":
+                logger.error(f"子任务运行失败: index={index}, task={task_name}")
                 has_sub_failure = True
                 if not continue_on_failure:
                     break
