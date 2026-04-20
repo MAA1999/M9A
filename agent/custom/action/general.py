@@ -147,7 +147,7 @@ class SubTask(CustomAction):
             try:
                 context.run_task(task_name)
             except Exception:
-                logger.exception(f"字任务运行失败: index={index}, task={task_name}")
+                logger.exception(f"子任务运行失败: index={index}, task={task_name}")
                 has_sub_failure = True
                 if not continue_on_failure:
                     break
