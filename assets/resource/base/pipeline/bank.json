@@ -83,6 +83,7 @@
     },
     "FreeWeeklyGift": {
         "desc": "柜台特奉",
+        "enabled": false,
         "next": [
             "FlagInTellerMachine",
             "[JumpBack]EnterTellerMachine"
@@ -236,6 +237,7 @@
     },
     "Rabbit": {
         "desc": "独一律",
+        "enabled": false,
         "next": [
             "FlagInPawnShop_1",
             "[JumpBack]EnterPawnShop"
@@ -452,6 +454,7 @@
     },
     "SmallGlobe": {
         "desc": "低频偏振",
+        "enabled": false,
         "next": [
             "FlagInPawnShop_2",
             "[JumpBack]EnterPawnShop"
@@ -627,6 +630,7 @@
     },
     "TinyGlobe": {
         "desc": "微频偏振",
+        "enabled": false,
         "next": [
             "FlagInPawnShop_3",
             "[JumpBack]EnterPawnShop"
@@ -793,6 +797,7 @@
     },
     "Gluttony": {
         "desc": "饕餮",
+        "enabled": false,
         "next": [
             "FlagInFragmentsShop",
             "[JumpBack]EnterFragmentsShop"
@@ -1000,6 +1005,7 @@
     },
     "TinyGlobe(1)": {
         "desc": "微频偏振(心相观测)",
+        "enabled": false,
         "next": [
             "FlagInFragmentsShop_1",
             "[JumpBack]EnterFragmentsShop"
@@ -1230,6 +1236,7 @@
     },
     "ResonantCassette": {
         "desc": "共鸣晶匣",
+        "enabled": false,
         "next": [
             "FlagInDneiricShop",
             "[JumpBack]EnterFragmentsShop"
@@ -1386,6 +1393,7 @@
     },
     "GoldenMelonSeeds": {
         "desc": "金瓜子",
+        "enabled": false,
         "next": [
             "FlagInDneiricShop_1",
             "[JumpBack]EnterFragmentsShop"
@@ -1553,6 +1561,7 @@
     },
     "OriginalChicken": {
         "desc": "原味鸡",
+        "enabled": false,
         "next": [
             "FlagInDneiricShop_2",
             "[JumpBack]EnterFragmentsShop"
@@ -1720,6 +1729,7 @@
     },
     "Fries": {
         "desc": "大薯",
+        "enabled": false,
         "next": [
             "FlagInDneiricShop_3",
             "[JumpBack]EnterFragmentsShop"

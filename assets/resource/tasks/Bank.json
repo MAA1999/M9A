@@ -71,274 +71,126 @@
             "cases": [
                 {
                     "name": "Yes",
-                    "pipeline_override": {}
+                    "pipeline_override": {
+                        "FreeWeeklyGift": {
+                            "enabled": true
+                        }
+                    }
                 },
                 {
                     "name": "No",
-                    "pipeline_override": {
-                        "FreeWeeklyGift": {
-                            "enabled": false
-                        }
-                    }
+                    "pipeline_override": {}
                 }
             ],
             "description": "每周免费礼包"
         },
         "低阶柜台": {
-            "type": "switch",
+            "type": "checkbox",
             "label": "低阶柜台",
+            "default_case": ["金兔子(低阶柜台)"],
             "cases": [
                 {
-                    "name": "Yes",
-                    "pipeline_override": {},
-                    "option": [
-                        "金兔子(低阶柜台)",
-                        "紫地球仪(低阶柜台)",
-                        "蓝地球仪(低阶柜台)"
-                    ]
-                },
-                {
-                    "name": "No",
+                    "name": "金兔子(低阶柜台)",
+                    "label": "独一律",
+                    "icon": "./resource/announcement/images/Item-140001.png",
                     "pipeline_override": {
                         "Rabbit": {
-                            "enabled": false
-                        },
-                        "SmallGlobe": {
-                            "enabled": false
-                        },
-                        "TinyGlobe": {
-                            "enabled": false
+                            "enabled": true
                         }
                     }
-                }
-            ]
-        },
-        "金兔子(低阶柜台)": {
-            "type": "switch",
-            "label": "独一律",
-            "icon": "./resource/announcement/images/Item-140001.png",
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {}
                 },
                 {
-                    "name": "No",
-                    "pipeline_override": {
-                        "Rabbit": {
-                            "enabled": false
-                        }
-                    }
-                }
-            ]
-        },
-        "紫地球仪(低阶柜台)": {
-            "type": "switch",
-            "label": "低频偏振",
-            "icon": "./resource/announcement/images/Item-180002.png",
-            "cases": [
-                {
-                    "name": "No",
+                    "name": "紫地球仪(低阶柜台)",
+                    "label": "低频偏振",
+                    "icon": "./resource/announcement/images/Item-180002.png",
                     "pipeline_override": {
                         "SmallGlobe": {
-                            "enabled": false
+                            "enabled": true
                         }
                     }
                 },
                 {
-                    "name": "Yes",
-                    "pipeline_override": {}
-                }
-            ]
-        },
-        "蓝地球仪(低阶柜台)": {
-            "type": "switch",
-            "label": "微频偏振",
-            "icon": "./resource/announcement/images/Item-180001.png",
-            "cases": [
-                {
-                    "name": "No",
+                    "name": "蓝地球仪(低阶柜台)",
+                    "label": "微频偏振",
+                    "icon": "./resource/announcement/images/Item-180001.png",
                     "pipeline_override": {
                         "TinyGlobe": {
-                            "enabled": false
+                            "enabled": true
                         }
                     }
-                },
-                {
-                    "name": "Yes",
-                    "pipeline_override": {}
                 }
             ]
         },
         "心相观测": {
-            "type": "switch",
+            "type": "checkbox",
             "label": "心相观测",
             "cases": [
                 {
-                    "name": "No",
+                    "name": "饕餮",
+                    "label": "饕餮",
+                    "icon": "./resource/announcement/images/Equipment_suit-1000.png",
                     "pipeline_override": {
                         "Gluttony": {
-                            "enabled": false
-                        },
-                        "TinyGlobe(1)": {
-                            "enabled": false
+                            "enabled": true
                         }
                     }
                 },
                 {
-                    "name": "Yes",
-                    "pipeline_override": {},
-                    "option": [
-                        "饕餮",
-                        "蓝地球仪(心相观测)"
-                    ]
-                }
-            ]
-        },
-        "饕餮": {
-            "type": "switch",
-            "label": "饕餮",
-            "icon": "./resource/announcement/images/Equipment_suit-1000.png",
-            "cases": [
-                {
-                    "name": "No",
-                    "pipeline_override": {
-                        "Gluttony": {
-                            "enabled": false
-                        }
-                    }
-                },
-                {
-                    "name": "Yes",
-                    "pipeline_override": {}
-                }
-            ]
-        },
-        "蓝地球仪(心相观测)": {
-            "type": "switch",
-            "label": "微频偏振",
-            "icon": "./resource/announcement/images/Item-180001.png",
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {}
-                },
-                {
-                    "name": "No",
+                    "name": "蓝地球仪(心相观测)",
+                    "label": "微频偏振",
+                    "icon": "./resource/announcement/images/Item-180001.png",
                     "pipeline_override": {
                         "TinyGlobe(1)": {
-                            "enabled": false
+                            "enabled": true
                         }
                     }
                 }
             ]
         },
         "梦境记述": {
-            "type": "switch",
+            "type": "checkbox",
             "label": "梦境记述",
+            "default_case": ["共鸣晶匣"],
             "cases": [
                 {
-                    "name": "No",
+                    "name": "共鸣晶匣",
+                    "label": "共鸣晶匣",
+                    "icon": "./resource/announcement/images/Item-481005.png",
                     "pipeline_override": {
                         "ResonantCassette": {
-                            "enabled": false
-                        },
-                        "GoldenMelonSeeds": {
-                            "enabled": false
-                        },
-                        "OriginalChicken": {
-                            "enabled": false
-                        },
-                        "Fries": {
-                            "enabled": false
+                            "enabled": true
                         }
                     }
                 },
                 {
-                    "name": "Yes",
-                    "pipeline_override": {},
-                    "option": [
-                        "共鸣晶匣",
-                        "金瓜子(梦境记述)",
-                        "原味鸡(梦境记述)",
-                        "大薯(梦境记述)"
-                    ]
-                }
-            ]
-        },
-        "共鸣晶匣": {
-            "type": "switch",
-            "label": "共鸣晶匣",
-            "icon": "./resource/announcement/images/Item-481005.png",
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {}
-                },
-                {
-                    "name": "No",
-                    "pipeline_override": {
-                        "ResonantCassette": {
-                            "enabled": false
-                        }
-                    }
-                }
-            ]
-        },
-        "金瓜子(梦境记述)": {
-            "type": "switch",
-            "label": "一瞬的躁动",
-            "icon": "./resource/announcement/images/Item-120011.png",
-            "cases": [
-                {
-                    "name": "No",
+                    "name": "金瓜子(梦境记述)",
+                    "label": "一瞬的躁动",
+                    "icon": "./resource/announcement/images/Item-120011.png",
                     "pipeline_override": {
                         "GoldenMelonSeeds": {
-                            "enabled": false
+                            "enabled": true
                         }
                     }
                 },
                 {
-                    "name": "Yes",
-                    "pipeline_override": {}
-                }
-            ]
-        },
-        "原味鸡(梦境记述)": {
-            "type": "switch",
-            "label": "片刻的喧嚣",
-            "icon": "./resource/announcement/images/Item-120012.png",
-            "cases": [
-                {
-                    "name": "No",
+                    "name": "原味鸡(梦境记述)",
+                    "label": "片刻的喧嚣",
+                    "icon": "./resource/announcement/images/Item-120012.png",
                     "pipeline_override": {
                         "OriginalChicken": {
-                            "enabled": false
+                            "enabled": true
                         }
                     }
                 },
                 {
-                    "name": "Yes",
-                    "pipeline_override": {}
-                }
-            ]
-        },
-        "大薯(梦境记述)": {
-            "type": "switch",
-            "label": "悠远的振响",
-            "icon": "./resource/announcement/images/Item-120013.png",
-            "cases": [
-                {
-                    "name": "No",
+                    "name": "大薯(梦境记述)",
+                    "label": "悠远的振响",
+                    "icon": "./resource/announcement/images/Item-120013.png",
                     "pipeline_override": {
                         "Fries": {
-                            "enabled": false
+                            "enabled": true
                         }
                     }
-                },
-                {
-                    "name": "Yes",
-                    "pipeline_override": {}
                 }
             ]
         }
