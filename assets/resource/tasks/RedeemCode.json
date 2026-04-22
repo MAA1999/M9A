@@ -1,0 +1,57 @@
+{
+    "task": [
+        {
+            "name": "使用兑换码",
+            "entry": "redeem_code",
+            "option": [
+                "自定义兑换码",
+                "单账号(兑换码)"
+            ],
+            "group": ["daily"]
+        }
+    ],
+    "option": {
+        "自定义兑换码": {
+            "type": "input",
+            "inputs": [
+                {
+                    "name": "兑换码",
+                    "default": "",
+                    "pattern_msg": "多个兑换码间用空格、逗号或分号分开",
+                    "pipeline_type": "string"
+                }
+            ],
+            "pipeline_override": {
+                "redeem_codeStart": {
+                    "attach": {
+                        "codes": "{兑换码}"
+                    }
+                }
+            }
+        },
+        "单账号(兑换码)": {
+            "type": "switch",
+            "description": "开启后会自动跳过使用过的兑换码",
+            "default_case": "Yes",
+            "cases": [
+                {
+                    "name": "Yes"
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "redeem_codeStart": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "check": false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

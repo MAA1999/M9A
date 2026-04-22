@@ -53,7 +53,8 @@
                 "SOSSelectEncounterOption_OCR",
                 "SOSSelectEncounterOption_HSV",
                 "EatCandyStart",
-                "DropRecognition"
+                "DropRecognition",
+                "RedeemCode"
             ]
         }
     },
@@ -210,6 +211,9 @@
         },
         {
             "$ref": "#/$defs/DropRecognition"
+        },
+        {
+            "$ref": "#/$defs/RedeemCode"
         }
     ],
     "$defs": {
@@ -1092,6 +1096,25 @@
                 "custom_action": {
                     "const": "DropRecognition",
                     "description": "掉落识别"
+                }
+            }
+        },
+        "RedeemCode": {
+            "properties": {
+                "custom_action": {
+                    "const": "RedeemCode",
+                    "description": "Submit configured redeem codes."
+                },
+                "custom_action_param": {
+                    "type": "object",
+                    "properties": {
+                        "check": {
+                            "type": "boolean",
+                            "description": "Skip codes that have already been recorded as used.",
+                            "default": true
+                        }
+                    },
+                    "unevaluatedProperties": false
                 }
             }
         }

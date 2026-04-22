@@ -173,6 +173,7 @@
         "resource/tasks/Awards.json",
         "resource/tasks/SwitchAccount.json",
         "resource/tasks/SwitchFramework.json",
+        "resource/tasks/RedeemCode.json",
         "resource/tasks/Close1999.json",
         "resource/tasks/SeriesOfDusks.json",
         "resource/tasks/TheSyndromeOfSilence.json",

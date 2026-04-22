@@ -1,0 +1,256 @@
+{
+    "redeem_code": {
+        "desc": "使用兑换码任务开始",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "SettingEntry": {
+                        "next": [
+                            "redeem_codeFlagInUserSettings",
+                            "SettingEntry",
+                            "[JumpBack]AccountSettingEnter"
+                        ]
+                    }
+                }
+            }
+        },
+        "next": [
+            "MainMenuFlag",
+            "[JumpBack]MainMenuEntry",
+            "[JumpBack]ReturnMain"
+        ]
+    },
+    "redeem_codeFlagInUserSettings": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    266,
+                    259,
+                    190,
+                    153
+                ],
+                "expected": ["兑换码"]
+            }
+        },
+        "next": [
+            "redeem_codeStart"
+        ]
+    },
+    "redeem_codeStart": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "RedeemCode",
+                "custom_action_param": {
+                    "check": true
+                }
+            }
+        },
+        "next": [
+            "HomeFlag",
+            "[JumpBack]HomeButton"
+        ],
+        "attach": {
+            "codes": "",
+            "resource": "cn"
+        }
+    },
+    "redeem_codeSubTask": {
+        "next": [
+            "redeem_codeMain",
+            "[JumpBack]redeem_code2Main",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "redeem_codeMain": {
+        "desc": "兑换码界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    580,
+                    183,
+                    116,
+                    39
+                ],
+                "expected": ["兑换奖励"],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "redeem_codeClickInputBoxCompleted",
+            "[JumpBack]redeem_codeClickInputBox"
+        ]
+    },
+    "redeem_codeClickInputBoxCompleted": {
+        "desc": "兑换码输入框已点击",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    580,
+                    332,
+                    112,
+                    25
+                ],
+                "expected": ["输入兑换码"],
+                "only_rec": true
+            }
+        },
+        "inverse": true,
+        "action": {
+            "type": "InputText",
+            "param": {
+                "input_text": "" // 输入的兑换码
+            }
+        },
+        "post_wait_freezes": {
+            "time": 100,
+            "target": [
+                524,
+                329,
+                222,
+                33
+            ]
+        },
+        "next": [
+            "redeem_codeInputCompleted",
+            "redeem_codeClickInputBoxCompleted"
+        ]
+    },
+    "redeem_codeInputCompleted": {
+        "desc": "检测到输入文本，兑换码输入完成",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    404,
+                    319,
+                    490,
+                    52
+                ],
+                "expected_code": "redeem_codeClickInputBoxCompleted 中输入的兑换码"
+            }
+        },
+        "next": [
+            "redeem_codeFlagBack2Main",
+            "[JumpBack]redeem_codeSubmitError",
+            "[JumpBack]redeem_codeSubmit",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "redeem_codeSubmitError": {
+        "desc": "提交兑换码后出现错误提示",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "RedeemCode/Error.png"
+            }
+        },
+        "next": [
+            "redeem_codeFlagBack2Main",
+            "[JumpBack]redeem_codeQuitInputBox"
+        ]
+    },
+    "redeem_codeQuitInputBox": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    432,
+                    457,
+                    66,
+                    35
+                ],
+                "expected": ["取消"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "redeem_codeFlagBack2Main": {
+        "desc": "已返回账户设置主页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    266,
+                    259,
+                    190,
+                    153
+                ],
+                "expected": ["兑换码"]
+            }
+        }
+    },
+    "redeem_codeSubmit": {
+        "desc": "点击“确定”提交兑换码",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    768,
+                    452,
+                    73,
+                    41
+                ],
+                "expected": ["确定"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 300
+    },
+    "redeem_codeClickInputBox": {
+        "desc": "点击兑换码输入框",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    580,
+                    183,
+                    116,
+                    39
+                ],
+                "expected": ["兑换奖励"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    580,
+                    332,
+                    112,
+                    25
+                ]
+            }
+        }
+    },
+    "redeem_code2Main": {
+        "desc": "账户界面点击“前往”进入兑换码界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    843,
+                    351,
+                    64,
+                    35
+                ],
+                "expected": ["前往"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}
