@@ -12,6 +12,7 @@ from .redeem_code import *
 from .reward import *
 from .record_id import *
 from .switch_account import *
+from .complete_induction import *
 
 __all__ = [
     "DisableNode",
@@ -51,4 +52,8 @@ __all__ = [
     "RewardHandler",
     "RecordID",
     "SwitchAccountSelect",
+    "CIRecordLevel",
+    "CITask",
+    "CIRecordPeopleMaxCount",
+    "CISelectResearchers",
 ]

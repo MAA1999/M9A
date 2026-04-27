@@ -57,7 +57,11 @@
                 "RedeemCode",
                 "RewardHandler",
                 "RecordID",
-                "SwitchAccountSelect"
+                "SwitchAccountSelect",
+                "CIRecordLevel",
+                "CITask",
+                "CIRecordPeopleMaxCount",
+                "CISelectResearchers"
             ]
         }
     },
@@ -226,6 +230,18 @@
         },
         {
             "$ref": "#/$defs/SwitchAccountSelect"
+        },
+        {
+            "$ref": "#/$defs/CIRecordLevel"
+        },
+        {
+            "$ref": "#/$defs/CITask"
+        },
+        {
+            "$ref": "#/$defs/CIRecordPeopleMaxCount"
+        },
+        {
+            "$ref": "#/$defs/CISelectResearchers"
         }
     ],
     "$defs": {
@@ -1150,6 +1166,38 @@
                 "custom_action": {
                     "const": "SwitchAccountSelect",
                     "description": "切换账号界面，选择账号登录"
+                }
+            }
+        },
+        "CIRecordLevel": {
+            "properties": {
+                "custom_action": {
+                    "const": "CIRecordLevel",
+                    "description": "完全归纳法：记录当前研究所等级"
+                }
+            }
+        },
+        "CITask": {
+            "properties": {
+                "custom_action": {
+                    "const": "CITask",
+                    "description": "完全归纳法：执行任务"
+                }
+            }
+        },
+        "CIRecordPeopleMaxCount": {
+            "properties": {
+                "custom_action": {
+                    "const": "CIRecordPeopleMaxCount",
+                    "description": "完全归纳法：记录当前最多可参与研究的人数"
+                }
+            }
+        },
+        "CISelectResearchers": {
+            "properties": {
+                "custom_action": {
+                    "const": "CISelectResearchers",
+                    "description": "完全归纳法：选择参与研究的人员"
                 }
             }
         }

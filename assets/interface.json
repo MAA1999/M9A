@@ -183,6 +183,7 @@
         "resource/tasks/StagePromotion.json",
         "resource/tasks/CritterCrash.json",
         "resource/tasks/PreStormProtocol.json",
-        "resource/tasks/UTTU.json"
+        "resource/tasks/UTTU.json",
+        "resource/tasks/CompleteInduction.json"
     ]
 }

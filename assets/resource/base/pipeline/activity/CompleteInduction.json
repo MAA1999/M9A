@@ -1,0 +1,403 @@
+{
+    "CompleteInduction": {
+        "desc": "活动·完全归纳法",
+        "next": [
+            "CompleteInductionEnd",
+            "CompleteInductionStart",
+            "[JumpBack]CompleteInductionEntry"
+        ]
+    },
+    "CompleteInductionEnd": {
+        "desc": "研究所评级达到10级，任务完成",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1032,
+                    176,
+                    93,
+                    65
+                ],
+                "expected": ["10"]
+            }
+        },
+        "focus": {
+            "Node.Recognition.Succeeded": "研究所评级达到10级，任务完成"
+        }
+    },
+    "CompleteInductionStart": {
+        "desc": "开始研究，进入选择类别界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    987,
+                    577,
+                    161,
+                    42
+                ],
+                "expected": ["开始研究"]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CIRecordLevel" // 记录研究所等级，后续用于判断解锁情况和制作物品
+            }
+        },
+        "next": [
+            "CompleteInductionCategoriesAndMaterials",
+            "[JumpBack]CompleteInductionRevertToCategory",
+            "[JumpBack]CompleteInductionStartResearch"
+        ]
+    },
+    "CompleteInductionRevertToCategory": {
+        "desc": "回退到选择类别界面，重新选择类别和素材",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    831,
+                    592,
+                    67,
+                    60
+                ],
+                "template": ["CompleteInduction/Revert.png"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CompleteInductionStartResearch": {
+        "desc": "点击开始研究",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    987,
+                    577,
+                    161,
+                    42
+                ],
+                "expected": ["开始研究"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CompleteInductionCategoriesAndMaterials": {
+        "desc": "选择类别和素材",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": ["选择类别"]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CITask"
+            }
+        },
+        "next": [
+            "CompleteInductionResearcher",
+            "[JumpBack]CompleteInductionNextStep"
+        ]
+    },
+    "CompleteInductionResearcher": {
+        "desc": "选择研究员界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    59,
+                    114,
+                    144,
+                    31
+                ],
+                "expected": ["选择研究员"],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "CompleteInductionFlagInSelectResearcher",
+            "[JumpBack]CompleteInductionUnlockSite",
+            "[JumpBack]CompleteInductionNoUnlockSite"
+        ]
+    },
+    "CompleteInductionFlagInSelectResearcher": {
+        "desc": "在选择研究员界面，尝试购买并选择研究员",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    227,
+                    598,
+                    73,
+                    36
+                ],
+                "expected": ["取消"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CISelectResearchers"
+            }
+        },
+        "next": [
+            "CompleteInductionFlagInResearchPlan",
+            "[JumpBack]CISelectResearchersConfirm",
+            "[JumpBack]CompleteInductionResearcherNextStep"
+        ]
+    },
+    "CompleteInductionFlagInResearchPlan": {
+        "desc": "在研究计划界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    56,
+                    123,
+                    121,
+                    36
+                ],
+                "expected": ["研究计划"],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "CompleteInductionFlagInProgress",
+            "[JumpBack]CompleteInductionStartPlan"
+        ]
+    },
+    "CompleteInductionFlagInProgress": {
+        "desc": "在研究中界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    596,
+                    615,
+                    83,
+                    22
+                ],
+                "expected": ["开发进度"],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "[JumpBack]CompleteInductionProgressConfirm",
+            "CompleteInductionFlagInProgress",
+            "[JumpBack]CIClickConfirm",
+            "[JumpBack]CIClickExit",
+            "CompleteInductionEnd",
+            "CompleteInductionStart"
+        ]
+    },
+    "CIClickExit": {
+        "desc": "点击退出，回到选择研究员界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    579,
+                    674,
+                    123,
+                    24
+                ],
+                "expected": ["点击空白退出"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -50,
+                    0,
+                    0
+                ]
+            }
+        },
+        "repeat": 6,
+        "repeat_delay": 500
+    },
+    "CIClickConfirm": {
+        "desc": "点击继续",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    596,
+                    678,
+                    88,
+                    24
+                ],
+                "expected": ["点击继续"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CompleteInductionProgressConfirm": {
+        "desc": "学术冲突、灵魂拷问等确认",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    908,
+                    437,
+                    58,
+                    31
+                ],
+                "expected": ["确认"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CompleteInductionStartPlan": {
+        "desc": "滑动开始研究，进入研究中界面",
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    822,
+                    552,
+                    29,
+                    26
+                ],
+                "end": [
+                    1246,
+                    556,
+                    29,
+                    26
+                ]
+            }
+        }
+    },
+    "CompleteInductionResearcherNextStep": {
+        "desc": "选择好研究员后，点击下一步",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1011,
+                    599,
+                    94,
+                    37
+                ],
+                "expected": ["下一步"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CISelectResearchersConfirm": {
+        "desc": "选择研究员后，确认选择",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    567,
+                    596,
+                    64,
+                    34
+                ],
+                "expected": ["确定"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CompleteInductionNoUnlockSite": {
+        "desc": "没有可解锁的研究员空位，统计目标选择人数并进入选择界面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    99,
+                    229,
+                    638,
+                    270
+                ],
+                "template": ["CompleteInduction/AddResearcher.png"],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CIRecordPeopleMaxCount"
+            }
+        }
+    },
+    "CompleteInductionUnlockSite": {
+        "desc": "解锁研究员空位",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    50,
+                    139,
+                    741,
+                    423
+                ],
+                "expected": ["解锁"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CompleteInductionNextStep": {
+        "desc": "选择好类别和素材后，点击下一步",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    961,
+                    588,
+                    120,
+                    42
+                ],
+                "expected": ["下一步"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CompleteInductionEntry": {
+        "desc": "从活动列表进入完全归纳法玩法主界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1061,
+                    588,
+                    149,
+                    55
+                ],
+                "expected": ["进入玩法"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}

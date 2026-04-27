@@ -39,6 +39,10 @@
                 {
                     "name": "UTTU闪烁集会",
                     "enabled": false
+                },
+                {
+                    "name": "完全归纳法",
+                    "enabled": false
                 }
             ]
         }
