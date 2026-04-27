@@ -465,17 +465,6 @@ def _normalize_text(text: str) -> str:
     return re.sub(r'[\s"“”‘’\'`·•,，。!！?？:：;；\[\]【】()（）<>《》/\\-]+', "", text)
 
 
-def _dedupe(items: list[str] | tuple[str, ...]) -> list[str]:
-    seen: set[str] = set()
-    result: list[str] = []
-    for item in items:
-        if not item or item in seen:
-            continue
-        seen.add(item)
-        result.append(item)
-    return result
-
-
 def _available_items(level: int, unlock_map: dict[str, int]) -> list[str]:
     return [name for name, unlock_level in unlock_map.items() if level >= unlock_level]
 
@@ -802,18 +791,10 @@ class CISelectResearchers(CustomAction):
         if cards is None:
             return CustomAction.RunResult(success=False)
 
-        selected_keys = self._choose_target_cards(
-            context, cards, CIRecord.researcher_max_count
-        )
+        selected_keys = self._choose_target_cards(cards, CIRecord.researcher_max_count)
         if not selected_keys:
             logger.error("未找到可用于研究的研究员卡位")
             return CustomAction.RunResult(success=False)
-
-        # if len(selected_keys) < CIRecord.researcher_max_count:
-        #     logger.warning(
-        #         "可用研究员数量不足，将尽量选择: "
-        #         f"{len(selected_keys)}/{CIRecord.researcher_max_count}"
-        #     )
 
         if not self._apply_target_cards(context, cards, selected_keys):
             return CustomAction.RunResult(success=False)
@@ -1027,91 +1008,7 @@ class CISelectResearchers(CustomAction):
             CIRecord.researcher_known_available.add(card.spec.logical_index)
 
     def _choose_target_cards(
-        self, context: Context, cards: list[CIResearcherCardState], target_count: int
-    ) -> set[int]:
-        candidates = self._resolve_candidate_cards(cards)
-        candidates.sort(key=lambda card: card.spec.logical_index, reverse=True)
-        selected_keys: set[int] = set()
-        current_page = 0
-
-        for card in candidates:
-            if len(selected_keys) >= target_count:
-                break
-
-            current_page = self._goto_page(context, current_page, card.spec.page)
-            if current_page != card.spec.page:
-                break
-
-            if self._ensure_card_selected(context, card.spec, True):
-                selected_keys.add(card.spec.logical_index)
-
-        if current_page != 0:
-            self._goto_page(context, current_page, 0)
-
-        return selected_keys
-
-    def _apply_target_cards(
-        self,
-        context: Context,
-        cards: list[CIResearcherCardState],
-        target_keys: set[int],
-    ) -> bool:
-        pages = sorted({card.spec.page for card in cards}, reverse=True)
-        current_page = 0
-
-        for page in pages:
-            current_page = self._goto_page(context, current_page, page)
-            if current_page != page:
-                return False
-
-            page_cards = [card for card in cards if card.spec.page == page]
-            page_cards.sort(key=lambda card: card.spec.index, reverse=True)
-
-            for card in page_cards:
-                desired_selected = card.spec.logical_index in target_keys
-                if not self._ensure_card_selected(context, card.spec, desired_selected):
-                    return False
-
-        if current_page != 0:
-            current_page = self._goto_page(context, current_page, 0)
-            if current_page != 0:
-                return False
-
-        return True
-
-    def _ensure_card_selected(
-        self,
-        context: Context,
-        spec: CIResearcherCardSpec,
-        desired_selected: bool,
-    ) -> bool:
-        for _ in range(3):
-            state = self._detect_card_state(context, spec).state
-            if desired_selected and state == _RESEARCHER_STATE_SELECTED:
-                return True
-            if not desired_selected and state != _RESEARCHER_STATE_SELECTED:
-                return True
-
-            if desired_selected:
-                if state == _RESEARCHER_STATE_BLOCKED:
-                    logger.warning(
-                        f"研究员当前不可用，跳过: page={spec.page + 1}, index={spec.index}"
-                    )
-                    return False
-                if state == _RESEARCHER_STATE_UNLOCKABLE:
-                    return False
-
-            self._click_roi(context, spec.target)
-            time.sleep(_RESEARCHER_POST_DELAY_SEC)
-
-        logger.error(
-            "研究员状态调整失败: "
-            f"page={spec.page + 1}, index={spec.index}, logical={spec.logical_index}, desired={desired_selected}"
-        )
-        return False
-
-    def _choose_target_cards(
-        self, context: Context, cards: list[CIResearcherCardState], target_count: int
+        self, cards: list[CIResearcherCardState], target_count: int
     ) -> set[int]:
         candidates = self._resolve_candidate_cards(cards)
         candidates.sort(key=lambda card: card.spec.logical_index, reverse=True)
@@ -1156,31 +1053,6 @@ class CISelectResearchers(CustomAction):
             if current_page != 0:
                 return False
 
-        return True
-
-    def _unlock_researcher(self, context: Context, spec: CIResearcherCardSpec) -> bool:
-        self._click_roi(context, spec.target)
-        time.sleep(_RESEARCHER_POST_DELAY_SEC)
-
-        money = self._read_number(context, _RESEARCHER_MONEY_ROI)
-        price = self._read_number(context, _RESEARCHER_RECRUIT_PRICE_ROI)
-        if money is None or price is None:
-            logger.warning(
-                "无法识别研究员解锁所需价格或当前货币: "
-                f"page={spec.page + 1}, index={spec.index}, logical={spec.logical_index}"
-            )
-            return False
-
-        if money < price:
-            logger.warning(
-                "研究员资源不足，无法招聘: "
-                f"page={spec.page + 1}, index={spec.index}, logical={spec.logical_index}"
-            )
-            return False
-
-        # 招聘按钮点击后立即生效；若资源不足只会弹右上角警告，不额外处理。
-        self._click_roi(context, _RESEARCHER_RECRUIT_BUTTON_TARGET)
-        time.sleep(_RESEARCHER_POST_DELAY_SEC)
         return True
 
     def _unlock_researcher(self, context: Context, spec: CIResearcherCardSpec) -> bool:
