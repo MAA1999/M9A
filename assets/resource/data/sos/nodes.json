@@ -1179,7 +1179,7 @@
                 ],
                 "interrupts": "@TheOnlyWay"
             },
-                        "清理工作": {
+            "清理工作": {
                 "actions": [
                     {
                         "type": "SelectOption",
