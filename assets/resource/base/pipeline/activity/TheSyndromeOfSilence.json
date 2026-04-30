@@ -547,10 +547,6 @@
             "type": "Click"
         }
     },
-        "action": {
-            "type": "Click"
-        }
-    },
     "SOSConfirm": {
         "recognition": {
             "type": "OCR",
