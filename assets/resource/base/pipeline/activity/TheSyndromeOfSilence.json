@@ -460,7 +460,6 @@
         },
         "next": [
             "FlagInSOSMainMenu",
-            "[JumpBack]SOSSummary",
             "[JumpBack]SOSGiveup",
             "[JumpBack]SOSStart",
             "[JumpBack]SOS_Skip",
@@ -483,25 +482,6 @@
                     "评分结算"
                 ],
                 "only_rec": true
-            }
-        },
-        "action": {
-            "type": "Click"
-        }
-    },
-    "SOSSummary": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    405,
-                    0,
-                    361,
-                    117
-                ],
-                "template": [
-                    "SyndromeOfSilence/SOSSummary.png"
-                ]
             }
         },
         "action": {
@@ -597,8 +577,8 @@
                 "roi": [
                     1060,
                     642,
-                    50,
-                    60
+                    80,
+                    40
                 ],
                 "expected": [
                     "确认"
@@ -780,7 +760,6 @@
             "[JumpBack]SOSResonatorObtained",
             "[JumpBack]SOSLoseArtefact",
             "[JumpBack]SOSStrengthenArtefact",
-            "[JumpBack]SOSSummary",
             "[JumpBack]SOSEnding",
             "[JumpBack]SOSGiveup",
             "[JumpBack]SOSStart",
@@ -2081,7 +2060,7 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    575,
+                    570,
                     40,
                     195,
                     31
@@ -2095,9 +2074,15 @@
                     "乔治的杂志社",
                     "仪式之路",
                     "凯旋门前",
-                    "立斯帕伊大道"
+                    "拉斯帕伊大道",
+                    "地下墓穴",
+                    "巴黎子午线"
                 ],
-                "only_rec": true
+                "only_rec": true,
+                "replace": [
+                    "立",
+                    "拉"
+                ]
             }
         },
         "post_wait_freezes": {
