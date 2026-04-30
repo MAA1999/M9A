@@ -465,7 +465,8 @@
             "[JumpBack]SOSStart",
             "[JumpBack]SOS_Skip",
             "[JumpBack]SOSConfirm",
-            "[JumpBack]SOSInformation"
+            "[JumpBack]SOSInformation",
+            "[JumpBack]SOSAbortConfirm"
         ]
     },
     "SOSInformation": {
@@ -588,6 +589,26 @@
             }
         },
         "inverse": true
+    },
+    "SOSAbortConfirm": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1060,
+                    642,
+                    50,
+                    60
+                ],
+                "expected": [
+                    "确认"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "SOSStart": {
         "recognition": {
@@ -1010,7 +1031,10 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "next": [
+            "SOSConfirm"
+        ]
     },
     "SOSNextStep": {
         "recognition": {
