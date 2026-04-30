@@ -1178,6 +1178,23 @@
                     }
                 ],
                 "interrupts": "@TheOnlyWay"
+            },
+                        "清理工作": {
+                "actions": [
+                    {
+                        "type": "SelectOption",
+                        "method": "HSV"
+                    },
+                    {
+                        "type": "SelectOption",
+                        "method": "HSV"
+                    },
+                    {
+                        "type": "SelectOption",
+                        "method": "HSV"
+                    }
+                ],
+                "interrupts": "@TheOnlyWay"
             }
         }
     },
