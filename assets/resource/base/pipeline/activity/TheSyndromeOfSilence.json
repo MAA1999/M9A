@@ -1,6 +1,6 @@
 {
     "TheSyndromeOfSilence": {
-        // 3.2&3.3 版本局外演绎,
+        // 3.7 版本无声综合征,
         "next": [
             "SOSMainMenu",
             "[JumpBack]SOSStop",
@@ -530,18 +530,17 @@
     },
     "SOSGiveup": {
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    1060,
-                    637,
-                    90,
-                    60
+                    443,
+                    157,
+                    337,
+                    199
                 ],
-                "expected": [
-                    "确认"
-                ],
-                "only_rec": true
+                "template": [
+                    "SyndromeOfSilence/SOSGiveUp.png"
+                ]
             }
         },
         "action": {
@@ -2095,7 +2094,8 @@
                     "斗争之路",
                     "乔治的杂志社",
                     "仪式之路",
-                    "凯旋门前"
+                    "凯旋门前",
+                    "立斯帕伊大道"
                 ],
                 "only_rec": true
             }
