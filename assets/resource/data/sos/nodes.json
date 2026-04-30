@@ -1188,6 +1188,10 @@
                     {
                         "type": "SelectOption",
                         "method": "HSV"
+                    },
+                    {
+                        "type": "SelectOption",
+                        "method": "HSV"
                     }
                 ],
                 "interrupts": "@TheOnlyWay"
@@ -1198,10 +1202,23 @@
                         "type": "SelectOption",
                         "method": "HSV",
                         "index": -1
+                    },
+                    {
+                        "type": "SelectOption",
+                        "method": "HSV"
                     }
                 ],
                 "interrupts": "@TheOnlyWay"
-            }
+            },
+            "局外的野兽": {
+                "actions": [
+                    {
+                        "type": "SelectOption",
+                        "method": "HSV",
+                        "index": -1
+                    }
+                ],
+                "interrupts": "@TheOnlyWay"
         }
     },
     "藏宝地": {
