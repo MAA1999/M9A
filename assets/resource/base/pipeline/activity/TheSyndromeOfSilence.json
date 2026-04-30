@@ -530,17 +530,18 @@
     },
     "SOSGiveup": {
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
                 "roi": [
-                    443,
-                    157,
-                    337,
-                    199
+                    1060,
+                    637,
+                    90,
+                    60
                 ],
-                "template": [
-                    "SyndromeOfSilence/SOSGiveUp.png"
-                ]
+                "expected": [
+                    "确认"
+                ],
+                "only_rec": true
             }
         },
         "action": {
