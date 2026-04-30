@@ -1188,10 +1188,16 @@
                     {
                         "type": "SelectOption",
                         "method": "HSV"
-                    },
+                    }
+                ],
+                "interrupts": "@TheOnlyWay"
+            },
+            "研究课题": {
+                "actions": [
                     {
                         "type": "SelectOption",
-                        "method": "HSV"
+                        "method": "HSV",
+                        "index": -1
                     }
                 ],
                 "interrupts": "@TheOnlyWay"
