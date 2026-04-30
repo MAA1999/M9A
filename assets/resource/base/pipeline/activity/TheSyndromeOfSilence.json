@@ -1831,6 +1831,26 @@
         },
         "inverse": true
     },
+        "SOSDiceGiveUp": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1075,
+                    609,
+                    83,
+                    35
+                ],
+                "expected": [
+                    "放弃"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
     "SOSShopping": {
         "recognition": {
             "type": "OCR",
