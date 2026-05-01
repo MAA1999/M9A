@@ -45,6 +45,8 @@
         ],
         "others": [
             "SOSDice",
+            "SOSDiceSuccess",
+            "SOSDiceGiveUp",
             "SOSContinue",
             "SOSEventEnd",
             "CloseTip"
