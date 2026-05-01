@@ -1,6 +1,6 @@
 {
     "TheSyndromeOfSilence": {
-        // 3.7 版本无声综合征,
+        // 3.7 版本无声综合征
         "next": [
             "SOSMainMenu",
             "[JumpBack]SOSStop",
@@ -488,6 +488,25 @@
             "type": "Click"
         }
     },
+        "SOSSummary": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    405,
+                    0,
+                    361,
+                    117
+                ],
+                "template": [
+                    "SyndromeOfSilence/SOSSummary.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
     "SOSEnding": {
         "recognition": {
             "type": "TemplateMatch",
@@ -760,6 +779,7 @@
             "[JumpBack]SOSResonatorObtained",
             "[JumpBack]SOSLoseArtefact",
             "[JumpBack]SOSStrengthenArtefact",
+            "[JumpBack]SOSSummary",
             "[JumpBack]SOSEnding",
             "[JumpBack]SOSGiveup",
             "[JumpBack]SOSStart",
@@ -2099,11 +2119,11 @@
                     "地下墓穴",
                     "巴黎子午线"
                 ],
-                "only_rec": true,
                 "replace": [
                     "立",
                     "拉"
-                ]
+                ],
+                "only_rec": true
             }
         },
         "post_wait_freezes": {
