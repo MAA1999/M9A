@@ -821,14 +821,19 @@
                 "custom_action": "SOSNodeProcess"
             }
         },
-        "on_error": [
+        "on_error": ["SOSNodeProcessErrorLoop"]
+    },
+    "SOSNodeProcessErrorLoop": {
+        "max_hit": 20,
+        "next": [
             "SOSMain",
             "[JumpBack]SOSGiveup",
             "[JumpBack]SOSStart",
             "[JumpBack]SOS_Skip",
             "[JumpBack]SOSConfirm",
             "[JumpBack]SOSInformation",
-            "[JumpBack]SOSAbortConfirm"
+            "[JumpBack]SOSAbortConfirm",
+            "SOSNodeProcessErrorLoop"
         ]
     },
     // 主页面各种弹窗处理,
