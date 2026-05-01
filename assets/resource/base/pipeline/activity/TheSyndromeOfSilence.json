@@ -759,7 +759,10 @@
                     "斗争之路",
                     "乔治的杂志社",
                     "仪式之路",
-                    "凯旋门前"
+                    "凯旋门前",
+                    "拉斯帕伊大道",
+                    "地下墓穴",
+                    "巴黎子午线"
                 ],
                 "only_rec": true
             }
@@ -818,7 +821,15 @@
                 "custom_action": "SOSNodeProcess"
             }
         },
-        "on_error": ["SOSMain"]
+        "on_error": [
+            "SOSMain",
+            "[JumpBack]SOSGiveup",
+            "[JumpBack]SOSStart",
+            "[JumpBack]SOS_Skip",
+            "[JumpBack]SOSConfirm",
+            "[JumpBack]SOSInformation",
+            "[JumpBack]SOSAbortConfirm"
+        ]
     },
     // 主页面各种弹窗处理,
     "SOSArtefactsObtained": {
