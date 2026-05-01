@@ -44,8 +44,21 @@ class SOSSelectNode(CustomAction):
 
         reco_detail = argv.reco_detail.raw_detail["best"]["detail"]
 
-        with open("resource/data/sos/nodes.json", encoding="utf-8") as f:
-            nodes = json.load(f)
+        try:
+            with open("resource/data/sos/nodes.json", encoding="utf-8") as f:
+                nodes = json.load(f)
+        except FileNotFoundError:
+            print("错误：文件 resource/data/sos/nodes.json 未找到。")
+            return CustomAction.RunResult(success=False)
+        except json.JSONDecodeError as e:
+            print(f"错误：JSON 解析失败 - {e}")
+            return CustomAction.RunResult(success=False)
+        except PermissionError:
+            print("错误：没有权限读取文件 resource/data/sos/nodes.json。")
+            return CustomAction.RunResult(success=False)
+        except Exception as e:
+            print(f"读取 JSON 文件时发生未知错误：{e}")
+            return CustomAction.RunResult(success=False)
 
         # 检查识别结果中在期望列表中的结果，保存截图用于调试
         expected_indices = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12]
