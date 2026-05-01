@@ -1236,7 +1236,18 @@
                     }
                 ],
                 "interrupts": "@TheOnlyWay"
-            }
+            },
+            "连贯性": {
+                "actions": [
+                    {
+                        "type": "SelectOption",
+                        "method": "HSV",
+                        "index": -1
+                    }
+                 ],
+                "interrupts": "@TheOnlyWay"
+
+        }
     },
     "藏宝地": {
         "event_name_roi": [
