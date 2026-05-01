@@ -776,6 +776,7 @@
             "[JumpBack]SOSStatsUp",
             "[JumpBack]SOSStatBreakthrough",
             "[JumpBack]SOSSelectResonator",
+            "[JumpBack]SOSFormBreakthrough",
             "[JumpBack]SOSResonatorObtained",
             "[JumpBack]SOSLoseArtefact",
             "[JumpBack]SOSStrengthenArtefact",
@@ -1009,6 +1010,7 @@
         },
         "next": [
             "SOSSelectResonatorConfirm",
+            "SOSFormBreakthrough",
             "SOSSelectResonator"
         ]
     },
@@ -1034,6 +1036,27 @@
         "next": [
             "SOSConfirm"
         ]
+    },
+    "SOSFormBreakthrough": {
+        // 共鸣器形态突破
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    564,
+                    48,
+                    164,
+                    56
+                ],
+                "expected": [
+                    "形态突破"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "SOSNextStep": {
         "recognition": {
@@ -1809,7 +1832,8 @@
             "[JumpBack]SOSHarmonicObtained",
             "[JumpBack]SOSSelectHarmonic",
             "[JumpBack]SOSResonatorObtained",
-            "[JumpBack]SOSSelectResonator"
+            "[JumpBack]SOSSelectResonator",
+            "[JumpBack]SOSFormBreakthrough"
         ]
     },
     "SOSDice": {

@@ -41,7 +41,8 @@
         ],
         "resonator": [
             "SOSResonatorObtained",
-            "SOSSelectResonator"
+            "SOSSelectResonator",
+            "SOSFormBreakthrough"
         ],
         "others": [
             "SOSDice",

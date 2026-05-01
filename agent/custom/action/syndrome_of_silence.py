@@ -193,6 +193,7 @@ class SOSSelectNode(CustomAction):
                         "SOSSelectHarmonic",
                         "SOSResonatorObtained",
                         "SOSSelectResonator",
+                        "SOSFormBreakthrough",
                         "CloseTip",
                     ]
                     popup_handled = False

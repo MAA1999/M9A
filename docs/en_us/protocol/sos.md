@@ -157,6 +157,7 @@ Interrupt handler nodes that may be triggered during action execution:
 - `SOSLoseArtefact` - Lose Creation
 - `SOSSelectResonator` - Select Resonator
 - `SOSResonatorObtained` - Resonator obtained
+- `SOSFormBreakthrough` - Resonator Form Breakthrough
 - `SOSStatBreakthrough` - Stat Breakthrough
 - `SOSStatsUpButton` - Stats up button
 - `SOSStatsUp` - Stats up
