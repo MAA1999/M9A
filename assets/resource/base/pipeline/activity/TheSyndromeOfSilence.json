@@ -1817,14 +1817,13 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    589,
-                    110,
-                    54,
-                    29
+                    593,
+                    465,
+                    99,
+                    28
                 ],
                 "expected": [
-                    "成功",
-                    "失败"
+                    "点击投掷"
                 ],
                 "only_rec": true
             }
@@ -1835,6 +1834,7 @@
         "next": [
             "SOSFlagInDice",
             "SOSDice",
+            "SOSDiceSuccess",
             "SOSDiceGiveUp"
         ]
     },
@@ -1855,6 +1855,26 @@
             }
         },
         "inverse": true
+    },
+    "SOSDiceSuccess": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    589,
+                    110,
+                    54,
+                    29
+                ],
+                "expected": [
+                    "成功"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "SOSDiceGiveUp": {
         "recognition": {
