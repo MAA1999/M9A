@@ -158,7 +158,7 @@
                         "name": "SOSCombat"
                     }
                 ],
-                "interrupts": "@stats+@artefact+@harmonic+@resonator+CloseTip"
+                "interrupts": "@stats+@artefact+@harmonic+@resonator+@message+CloseTip"
             }
         }
     },
