@@ -1222,8 +1222,21 @@
                     }
                 ],
                 "interrupts": "@TheOnlyWay"
-            }    
-        }
+            },
+            "集体决议": {
+                "actions": [
+                    {
+                        "type": "SelectOption",
+                        "method": "HSV"
+                    },
+                    {
+                        "type": "SelectOption",
+                        "method": "HSV",
+                        "index": -1
+                    }
+                ],
+                "interrupts": "@TheOnlyWay"
+            }
     },
     "藏宝地": {
         "event_name_roi": [
