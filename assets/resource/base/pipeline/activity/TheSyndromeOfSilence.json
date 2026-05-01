@@ -488,7 +488,7 @@
             "type": "Click"
         }
     },
-        "SOSSummary": {
+    "SOSSummary": {
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -1853,7 +1853,7 @@
         },
         "inverse": true
     },
-        "SOSDiceGiveUp": {
+    "SOSDiceGiveUp": {
         "recognition": {
             "type": "OCR",
             "param": {
