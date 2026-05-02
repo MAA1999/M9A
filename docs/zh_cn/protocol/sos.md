@@ -131,7 +131,6 @@ icon: ri:game-fill
 
 常用节点：
 
-- `SOSTeamSelect` - 队伍选择
 - `SOSCombat` - 战斗流程
 - `SOSContinue` - 继续/确认按钮
 - `SOSEventEnd` - 事件结束
@@ -275,10 +274,6 @@ icon: ri:game-fill
 "冲突": {
     "event_name_roi": null,  // 不需要识别事件名
     "actions": [
-        {
-            "type": "RunNode",
-            "name": "SOSTeamSelect"  // 1. 选择队伍
-        },
         {
             "type": "RunNode",
             "name": "SOSCombat"  // 2. 进入战斗

@@ -1302,32 +1302,6 @@
         },
         "post_wait_freezes": 500
     },
-    "SOSTeamSelect": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    1052,
-                    637,
-                    126,
-                    33
-                ],
-                "expected": [
-                    "开始行动"
-                ],
-                "only_rec": true
-            }
-        },
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "TeamSelect",
-                "custom_action_param": {
-                    "team": 1
-                }
-            }
-        }
-    },
     "SOSCombat": {
         "recognition": {
             "type": "OCR",

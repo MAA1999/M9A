@@ -238,9 +238,6 @@ class SOSNodeProcess(CustomAction):
     节点处理
     """
 
-    # 跟踪 SOSTeamSelect 的运行次数
-    _sos_team_select_count = 0
-
     def run(
         self,
         context: Context,
@@ -385,13 +382,6 @@ class SOSNodeProcess(CustomAction):
                 if context.tasker.stopping:
                     logger.debug("任务即将停止，跳过节点处理")
                     return False
-                # 如果是 SOSTeamSelect 且已经运行过，直接跳过
-                if (
-                    name == "SOSTeamSelect"
-                    and SOSNodeProcess._sos_team_select_count > 0
-                ):
-                    logger.debug(f"跳过执行节点: {name}")
-                    return True
 
                 img = context.tasker.controller.post_screencap().wait().get()
                 reco_detail = context.run_recognition(name, img)
@@ -403,9 +393,6 @@ class SOSNodeProcess(CustomAction):
                 ):
                     logger.debug(f"执行节点: {name}")
                     context.run_task(entry=name)
-                    # 如果是 SOSTeamSelect，增加运行计数
-                    if name == "SOSTeamSelect":
-                        SOSNodeProcess._sos_team_select_count += 1
                     return True
             elif action_type == "SelectOption":
                 method = action.get("method")

@@ -60,10 +60,6 @@
         "actions": [
             {
                 "type": "RunNode",
-                "name": "SOSTeamSelect"
-            },
-            {
-                "type": "RunNode",
                 "name": "SOSCombat"
             }
         ],
@@ -85,10 +81,6 @@
                         "expected": [
                             "战斗"
                         ]
-                    },
-                    {
-                        "type": "RunNode",
-                        "name": "SOSTeamSelect"
                     },
                     {
                         "type": "RunNode",
@@ -130,10 +122,6 @@
                     },
                     {
                         "type": "RunNode",
-                        "name": "SOSTeamSelect"
-                    },
-                    {
-                        "type": "RunNode",
                         "name": "SOSCombat"
                     },
                     {
@@ -166,10 +154,6 @@
     "遭遇": {
         "event_name_roi": null,
         "actions": [
-            {
-                "type": "RunNode",
-                "name": "SOSTeamSelect"
-            },
             {
                 "type": "RunNode",
                 "name": "SOSCombat"
@@ -596,10 +580,6 @@
                     },
                     {
                         "type": "RunNode",
-                        "name": "SOSTeamSelect"
-                    },
-                    {
-                        "type": "RunNode",
                         "name": "SOSCombat"
                     }
                 ],
@@ -626,10 +606,6 @@
                         "type": "SelectEncounterOption",
                         "method": "OCR",
                         "expected": "进入战斗"
-                    },
-                    {
-                        "type": "RunNode",
-                        "name": "SOSTeamSelect"
                     },
                     {
                         "type": "RunNode",
@@ -675,10 +651,6 @@
         "actions": [
             {
                 "type": "RunNode",
-                "name": "SOSTeamSelect"
-            },
-            {
-                "type": "RunNode",
                 "name": "SOSCombat"
             }
         ],
@@ -687,10 +659,6 @@
     "恶战": {
         "event_name_roi": null,
         "actions": [
-            {
-                "type": "RunNode",
-                "name": "SOSTeamSelect"
-            },
             {
                 "type": "RunNode",
                 "name": "SOSCombat"
@@ -999,10 +967,6 @@
                         "type": "SelectOption",
                         "method": "HSV",
                         "index": 0
-                    },
-                    {
-                        "type": "RunNode",
-                        "name": "SOSTeamSelect"
                     },
                     {
                         "type": "RunNode",

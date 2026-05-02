@@ -14,69 +14,6 @@
         }
     ],
     "option": {
-        "战斗编队": {
-            "type": "select",
-            "label": "战斗编队",
-            "description": "3.7版本该选项无效，请在第一次战斗时自己编好编队",
-            "cases": [
-                {
-                    "name": "一",
-                    "pipeline_override": {
-                        "SOSTeamSelect": {
-                            "action": {
-                                "param": {
-                                    "custom_action_param": {
-                                        "team": 1
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    "name": "二",
-                    "pipeline_override": {
-                        "SOSTeamSelect": {
-                            "action": {
-                                "param": {
-                                    "custom_action_param": {
-                                        "team": 2
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    "name": "三",
-                    "pipeline_override": {
-                        "SOSTeamSelect": {
-                            "action": {
-                                "param": {
-                                    "custom_action_param": {
-                                        "team": 3
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    "name": "四",
-                    "pipeline_override": {
-                        "SOSTeamSelect": {
-                            "action": {
-                                "param": {
-                                    "custom_action_param": {
-                                        "team": 4
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            ]
-        },
         "携带好旅伴": {
             "type": "switch",
             "label": "携带好旅伴",

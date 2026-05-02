@@ -88,7 +88,6 @@ Run a predefined process node
 
 Common nodes:
 
-- `SOSTeamSelect` - Team selection
 - `SOSCombat` - Battle process
 - `SOSContinue` - Continue/confirm button
 - `SOSEventEnd` - End event
@@ -173,10 +172,6 @@ Interrupt handler nodes that may be triggered during action execution:
 "Conflict": {
     "event_name_roi": null,  // No event name recognition needed
     "actions": [
-        {
-            "type": "RunNode",
-            "name": "SOSTeamSelect"  // 1. Select team
-        },
         {
             "type": "RunNode",
             "name": "SOSCombat"  // 2. Enter battle
