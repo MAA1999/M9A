@@ -10,7 +10,7 @@
                 "掉落统计上报"
             ],
             "group": ["daily"],
-            "description": "12章更新了，加了新材料，大家可以帮忙刷刷新关卡助力一图流更新，谢谢喵Thanks♪(･ω･)ﾉ<br>点击放大图片，仅限刷材料关卡<br>![bydjl](resource/announcement/images/mojing_tjb.png)"
+            "description": "13章更新了，大家可以帮忙刷刷新关卡助力一图流更新，谢谢喵Thanks♪(･ω･)ﾉ<br>点击放大图片，仅限刷材料关卡<br>![bydjl](resource/announcement/images/mojing_tjb.png)"
         }
     ],
     "option": {
@@ -148,13 +148,13 @@
                     }
                 },
                 {
-                    "name": "骨架：10-13 厄险",
+                    "name": "曼德拉：13-3 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
                                 "param": {
                                     "custom_action_param": {
-                                        "stage": "10-13"
+                                        "stage": "13-3"
                                     }
                                 }
                             },
@@ -172,6 +172,40 @@
                                 "param": {
                                     "custom_action_param": {
                                         "stage": "4-20"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "骨架：10-13 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-13"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "骨架：13-5 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "13-5"
                                     }
                                 }
                             },
@@ -233,6 +267,23 @@
                     }
                 },
                 {
+                    "name": "秘银：13-7 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "13-7"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "百灵鸟：2-6 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
@@ -284,6 +335,23 @@
                     }
                 },
                 {
+                    "name": "百灵鸟：13-8 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "13-8"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "钥匙(微光蛾翼灯)：9-15 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
@@ -308,6 +376,23 @@
                                 "param": {
                                     "custom_action_param": {
                                         "stage": "12-18"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "钥匙：13-11 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "13-11"
                                     }
                                 }
                             },
@@ -352,6 +437,23 @@
                     }
                 },
                 {
+                    "name": "鹅颈：13-13 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "13-13"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "焚香：4-4 故事",
                     "pipeline_override": {
                         "SelectCombatStage": {
@@ -376,6 +478,23 @@
                                 "param": {
                                     "custom_action_param": {
                                         "stage": "8-18"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "焚香(金钟灵质瓶)：13-15 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "13-15"
                                     }
                                 }
                             },
@@ -420,6 +539,23 @@
                     }
                 },
                 {
+                    "name": "泥板(翡翠石板)：13-20 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "13-20"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "灵摆：5-14 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
@@ -444,6 +580,23 @@
                                 "param": {
                                     "custom_action_param": {
                                         "stage": "7-20"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "灵摆：13-10 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "13-10"
                                     }
                                 }
                             },
@@ -505,6 +658,23 @@
                     }
                 },
                 {
+                    "name": "甲虫：13-14 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "13-14"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "彩蛋：2-14 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
@@ -529,6 +699,23 @@
                                 "param": {
                                     "custom_action_param": {
                                         "stage": "12-3"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "彩蛋：13-21 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "13-21"
                                     }
                                 }
                             },

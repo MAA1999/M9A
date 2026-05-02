@@ -5,9 +5,6 @@ node_modules/
 # 子模块
 assets/MaaCommonAssets
 
-# 资源数据文件（保持原格式）
-assets/resource/data
-
 # 跳过 schema 目录，避免与 sync_schema_files 冲突
 deps/tools/
 

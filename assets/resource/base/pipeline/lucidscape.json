@@ -353,7 +353,8 @@
                 457,
                 666,
                 263
-            ]
+            ],
+            "timeout": 5000
         },
         "next": [
             "LucidscapeStatusDetect",
