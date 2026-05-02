@@ -827,6 +827,7 @@
         "max_hit": 20,
         "next": [
             "SOSMain",
+            "SOSSelectNoise",
             "[JumpBack]SOSGiveup",
             "[JumpBack]SOSStart",
             "[JumpBack]SOS_Skip",
