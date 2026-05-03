@@ -13,6 +13,7 @@ from .reward import *
 from .record_id import *
 from .switch_account import *
 from .complete_induction import *
+from .EightBit import *
 
 __all__ = [
     "DisableNode",
@@ -56,4 +57,5 @@ __all__ = [
     "CITask",
     "CIRecordPeopleMaxCount",
     "CISelectResearchers",
+    "EightBitCombatMove",
 ]

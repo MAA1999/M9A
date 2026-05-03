@@ -61,7 +61,9 @@
                 "CIRecordLevel",
                 "CITask",
                 "CIRecordPeopleMaxCount",
-                "CISelectResearchers"
+                "CISelectResearchers",
+                "EightBitCombatMove",
+                "EightBitScoreRecord"
             ]
         }
     },
@@ -242,6 +244,12 @@
         },
         {
             "$ref": "#/$defs/CISelectResearchers"
+        },
+        {
+            "$ref": "#/$defs/EightBitCombatMove"
+        },
+        {
+            "$ref": "#/$defs/EightBitScoreRecord"
         }
     ],
     "$defs": {
@@ -1198,6 +1206,22 @@
                 "custom_action": {
                     "const": "CISelectResearchers",
                     "description": "完全归纳法：选择参与研究的人员"
+                }
+            }
+        },
+        "EightBitCombatMove": {
+            "properties": {
+                "custom_action": {
+                    "const": "EightBitCombatMove",
+                    "description": "8-bit 战斗界面移动逻辑"
+                }
+            }
+        },
+        "EightBitScoreRecord": {
+            "properties": {
+                "custom_action": {
+                    "const": "EightBitScoreRecord",
+                    "description": "8-bit 战斗结束后记录获得代币数量并统计效率"
                 }
             }
         }

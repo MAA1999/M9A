@@ -1,0 +1,57 @@
+{
+    "task": [
+        {
+            "name": "8-bit 街机秀",
+            "entry": "8bit",
+            "option": ["8-bit关卡难度"],
+            "group": ["standalone"],
+            "desc": "8-bit 街机秀刷代币"
+        }
+    ],
+    "option": {
+        "8-bit关卡难度": {
+            "type": "select",
+            "label": "关卡难度",
+            "cases": [
+                {
+                    "name": "单向投币Ⅰ",
+                    "pipeline_override": {}
+                },
+                {
+                    "name": "单向投币Ⅱ",
+                    "pipeline_override": {
+                        "8bitLevelSelect": {
+                            "recognition": {
+                                "param": {
+                                    "roi": [
+                                        459,
+                                        169,
+                                        94,
+                                        26
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "单向投币Ⅲ",
+                    "pipeline_override": {
+                        "8bitLevelSelect": {
+                            "recognition": {
+                                "param": {
+                                    "roi": [
+                                        281,
+                                        168,
+                                        94,
+                                        26
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
