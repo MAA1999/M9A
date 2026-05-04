@@ -136,7 +136,35 @@
                             }
                         }
                     }
-                }
+                },
+                {
+                    "name": "崩解 Ⅰ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 7
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "崩解 Ⅱ",
+                    "pipeline_override": {
+                        "SOSSelectNoise": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "level": 8
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }    
             ]
         },
         "配器选择": {

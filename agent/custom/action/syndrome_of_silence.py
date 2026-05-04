@@ -1291,7 +1291,17 @@ class SOSSelectNoise(CustomAction):
 
         level: int = json.loads(argv.custom_action_param)["level"]
 
-        levels = ["当前", "颤动 Ⅰ", "颤动 Ⅱ", "嗡鸣 Ⅰ", "嗡鸣 Ⅱ", "尖啸 Ⅰ", "尖啸 Ⅱ"]
+        levels = [
+            "当前",
+            "颤动 Ⅰ",
+            "颤动 Ⅱ",
+            "嗡鸣 Ⅰ",
+            "嗡鸣 Ⅱ",
+            "尖啸 Ⅰ",
+            "尖啸 Ⅱ",
+            "崩解 Ⅰ",
+            "崩解 Ⅱ",
+        ]
 
         logger.info(f"选择噪音类型: {levels[level]}")
         if level == 0:
@@ -1319,6 +1329,8 @@ class SOSSelectNoise(CustomAction):
                 page = 2
             elif "尖啸" in current_level_text:
                 page = 3
+            elif "崩解" in current_level_text:
+                page = 4
             else:
                 logger.error(f"无法识别当前噪音类型页面: {current_level_text}")
                 return CustomAction.RunResult(success=False)
@@ -1333,6 +1345,8 @@ class SOSSelectNoise(CustomAction):
             target_page = 2
         elif 5 <= level <= 6:
             target_page = 3
+        elif 7 <= level <= 8:
+            target_page = 4
         else:
             logger.error(f"无效的难度级别: {level}")
             return CustomAction.RunResult(success=False)
@@ -1387,6 +1401,8 @@ class SOSSelectNoise(CustomAction):
                     page = 2
                 elif "尖啸" in current_level_text:
                     page = 3
+                elif "崩解" in current_level_text:
+                    page = 4
                 else:
                     logger.error(f"页面切换后无法识别页面: {current_level_text}")
                     return CustomAction.RunResult(success=False)
