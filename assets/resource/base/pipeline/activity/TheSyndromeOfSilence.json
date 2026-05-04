@@ -772,6 +772,7 @@
             "[JumpBack]SOSSelectArtefact",
             "[JumpBack]SOSArtefactsObtained",
             "[JumpBack]SOSSetOff",
+            "[JumpBack]SOSContinue",
             "[JumpBack]SOSSelectNode",
             "[JumpBack]SOSSelectHarmonic",
             "[JumpBack]SOSHarmonicObtained",
@@ -788,7 +789,6 @@
             "[JumpBack]SOSGiveup",
             "[JumpBack]SOSStart",
             "[JumpBack]SOS_Skip",
-            "[JumpBack]SOSContinue",
             "[JumpBack]SOSConfirm",
             "[JumpBack]SOSInformation",
             "[JumpBack]SOSCollectBack",
@@ -829,6 +829,7 @@
         "next": [
             "SOSMain",
             "SOSSelectNoise",
+            "[JumpBack]SOSContinue",
             "[JumpBack]SOSGiveup",
             "[JumpBack]SOSStart",
             "[JumpBack]SOS_Skip",
