@@ -1232,8 +1232,7 @@
                 "actions": [
                     {
                         "type": "SelectOption",
-                        "method": "HSV",
-                        "index": -1
+                        "method": "HSV"
                     }
                 ],
                 "interrupts": "@message+@stats+@artefact+@harmonic+@resonator+@others"
