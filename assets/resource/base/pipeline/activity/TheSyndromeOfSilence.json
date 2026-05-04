@@ -825,11 +825,13 @@
         "on_error": ["SOSNodeProcessErrorLoop"]
     },
     "SOSNodeProcessErrorLoop": {
+        // 处理节点选择或战斗过程中出现的错误
         "max_hit": 20,
         "next": [
             "SOSMain",
             "SOSSelectNoise",
             "[JumpBack]SOSContinue",
+            "[JumpBack]SOSEventEnd",
             "[JumpBack]SOSGiveup",
             "[JumpBack]SOSStart",
             "[JumpBack]SOS_Skip",
