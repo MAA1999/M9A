@@ -788,6 +788,7 @@
             "[JumpBack]SOSGiveup",
             "[JumpBack]SOSStart",
             "[JumpBack]SOS_Skip",
+            "[JumpBack]SOSContinue",
             "[JumpBack]SOSConfirm",
             "[JumpBack]SOSInformation",
             "[JumpBack]SOSCollectBack",
