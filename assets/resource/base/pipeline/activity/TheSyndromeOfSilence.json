@@ -1308,6 +1308,27 @@
         },
         "post_wait_freezes": 500
     },
+    "SOSEventEndMessage": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    791,
+                    132,
+                    175,
+                    27
+                ],
+                "expected": [
+                    "结束事件"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500
+    },
     "SOSCombat": {
         "recognition": {
             "type": "OCR",
