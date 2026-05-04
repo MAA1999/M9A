@@ -1237,6 +1237,15 @@
                     }
                 ],
                 "interrupts": "@TheOnlyWay"
+            },
+            "混合物": {
+                "actions":[
+                    {
+                        "type": "SelectOption",
+                        "method": "HSV"
+                    }
+                ],
+                "interrupts": "@TheOnlyWay"
             }
         }
     },
