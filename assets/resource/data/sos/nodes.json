@@ -1218,8 +1218,18 @@
                     }
                 ],
                 "interrupts": "@TheOnlyWay"
+            },
+            "职业选择": {
+                "actions": [
+                    {
+                        "type": "SelectOption",
+                        "method": "HSV",
+                        "index": -1
+                    }
+                ],
+                "interrupts": "@TheOnlyWay"
             }
-        }
+        }    
     },
     "藏宝地": {
         "event_name_roi": [
