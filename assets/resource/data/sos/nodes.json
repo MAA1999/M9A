@@ -1227,7 +1227,16 @@
                     }
                 ],
                 "interrupts": "@TheOnlyWay"
-            }
+            },
+            "场外和声": {
+                "actions": [
+                    {
+                        "type": "SelectOption",
+                        "method": "HSV"
+                    }
+                ],
+                "interrupts": "@TheOnlyWay"
+            }    
         }    
     },
     "藏宝地": {
