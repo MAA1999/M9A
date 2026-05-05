@@ -827,7 +827,7 @@
     },
     "SOSNodeProcessErrorLoop": {
         // 处理节点选择或战斗过程中出现的错误
-        "max_hit": 20,
+        "max_hit": 10,
         "next": [
             "SOSMain",
             "SOSSelectNoise",
@@ -1308,27 +1308,49 @@
         },
         "post_wait_freezes": 500
     },
-    "SOSEventEndMessage": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    791,
-                    132,
-                    175,
-                    27
+"SOSEventEndMessage": {
+    "recognition": {
+        "type": "OCR",
+        "param": {
+            "roi": [
+                791,
+                132,
+                175,
+                27
                 ],
-                "expected": [
-                    "结束事件"
-                ],
-                "only_rec": true
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "post_wait_freezes": 500
+            "expected": [
+                "结束事件"
+            ],
+            "only_rec": true
+        }
     },
+    "action": {
+        "type": "Click"
+    },
+    "post_wait_freezes": 500,
+    "on_error": "SOSEventEndMessage2"
+},
+"SOSEventEndMessage2": {
+    "recognition": {
+        "type": "OCR",
+        "param": {
+            "roi": [
+                862,
+                197,
+                135,
+                33
+            ],
+            "expected": [
+                "结束事件"
+            ],
+            "only_rec": true
+        }
+    },
+    "action": {
+        "type": "Click"
+    },
+    "post_wait_freezes": 500
+},
     "SOSCombat": {
         "recognition": {
             "type": "OCR",
