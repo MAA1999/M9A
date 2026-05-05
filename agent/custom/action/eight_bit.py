@@ -155,11 +155,11 @@ class EightBitCombatMove(CustomAction):
             if people_pos is not None and not EightBitCombatInit.wall_detection_enabled:
                 if people_pos[0] <= self._left_boundary:
                     logger.debug("[8bit] 人物在最左边，向右移动")
-                    self._move_and_check_wall(context, KEYCODE_DPAD_RIGHT, people_pos)
+                    self._move(context, KEYCODE_DPAD_RIGHT, times=4)
                     return CustomAction.RunResult(success=True)
                 if people_pos[0] >= self._right_boundary:
                     logger.debug("[8bit] 人物在最右边，向左移动")
-                    self._move_and_check_wall(context, KEYCODE_DPAD_LEFT, people_pos)
+                    self._move(context, KEYCODE_DPAD_LEFT, times=4)
                     return CustomAction.RunResult(success=True)
 
             logger.debug("[8bit] 未识别到 TP，随机移动")

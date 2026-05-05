@@ -13,7 +13,7 @@ from .reward import *
 from .record_id import *
 from .switch_account import *
 from .complete_induction import *
-from .EightBit import *
+from .eight_bit import *
 
 __all__ = [
     "DisableNode",
