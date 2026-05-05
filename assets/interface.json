@@ -184,6 +184,7 @@
         "resource/tasks/CritterCrash.json",
         "resource/tasks/PreStormProtocol.json",
         "resource/tasks/UTTU.json",
-        "resource/tasks/CompleteInduction.json"
+        "resource/tasks/CompleteInduction.json",
+        "resource/tasks/8bit.json"
     ]
 }

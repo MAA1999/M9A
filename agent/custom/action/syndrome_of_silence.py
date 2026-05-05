@@ -1,19 +1,19 @@
+import ast
+import copy
+import json
+import os
 import re
 import time
-import json
-import copy
-import os
-import ast
 from typing import cast
-from PIL import Image
+
 import numpy as np
-
 from maa.agent.agent_server import AgentServer
-from maa.custom_action import CustomAction
 from maa.context import Context
+from maa.custom_action import CustomAction
 from maa.define import NeuralNetworkDetectResult, OCRResult
-
+from PIL import Image
 from utils import logger
+from utils.params import parse_params
 
 __all__ = [
     "SOSSelectNode",
@@ -588,7 +588,7 @@ class SOSSelectEncounterOption_OCR(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        expected: str = json.loads(argv.custom_action_param).get("expected")
+        expected: str = parse_params(argv.custom_action_param, "expected")["expected"]
         options: list[dict] = argv.reco_detail.raw_detail["best"]["detail"]["options"]
 
         for option in options:
@@ -621,7 +621,7 @@ class SOSSelectEncounterOption_HSV(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        index: int = json.loads(argv.custom_action_param).get("index", 0)
+        index: int = parse_params(argv.custom_action_param).get("index", 0)
         options: list[dict] = argv.reco_detail.raw_detail["best"]["detail"]["options"]
 
         context.run_task(
@@ -943,9 +943,9 @@ class SOSBuyItems(CustomAction):
         # 加载物品优先级配置（可选）
         try:
             with open("resource/data/sos/items.json", encoding="utf-8") as f:
-                items_data = json.load(f)
+                _items_data = json.load(f)
             # 可以在这里定义优先级逻辑，暂时按价格升序排列（买便宜的，数量更多）
-        except:
+        except Exception:
             pass
 
         # 第一阶段：遍历所有页面，收集所有可购买物品及其位置信息
@@ -1248,7 +1248,7 @@ class SOSBuyItems(CustomAction):
             logger.error(f"购买失败，已重试3次: {item_name}")
             return False
         else:
-            logger.warning(f"未找到购买按钮")
+            logger.warning("未找到购买按钮")
             return False
 
     def _handle_interrupts(self, context: Context, interrupts: list) -> None:
@@ -1289,7 +1289,7 @@ class SOSSelectNoise(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        level: int = json.loads(argv.custom_action_param)["level"]
+        level: int = parse_params(argv.custom_action_param, "level")["level"]
 
         levels = [
             "当前",
@@ -1433,7 +1433,9 @@ class SOSSelectInstrument(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        instrument: str = json.loads(argv.custom_action_param)["instrument"]
+        instrument: str = parse_params(argv.custom_action_param, "instrument")[
+            "instrument"
+        ]
 
         logger.info(f"选择配器类型: {instrument}")
 

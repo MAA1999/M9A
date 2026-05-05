@@ -2,12 +2,18 @@
     "scripts": {
         "format:json": "prettier --write \"**/*.json\"",
         "format:py": "black .",
-        "format:all": "pnpm format:json && pnpm format:py"
+        "format:all": "pnpm format:json && pnpm format:py",
+        "lint:py": "ruff check .",
+        "typecheck": "pnpm exec pyright",
+        "test": "pytest",
+        "check": "pnpm lint:py && pnpm typecheck && pnpm test",
+        "install:py": "pip install -r requirements.txt -r requirements-dev.txt"
     },
     "devDependencies": {
         "@nekosu/maa-tools": "1.0.22",
         "@nekosu/prettier-plugin-maafw-sort": "^1.0.5",
         "prettier": "3.5.3",
-        "prettier-plugin-multiline-arrays": "4.1.4"
+        "prettier-plugin-multiline-arrays": "4.1.4",
+        "pyright": "^1.1.400"
     }
 }

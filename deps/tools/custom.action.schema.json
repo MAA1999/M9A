@@ -61,7 +61,10 @@
                 "CIRecordLevel",
                 "CITask",
                 "CIRecordPeopleMaxCount",
-                "CISelectResearchers"
+                "CISelectResearchers",
+                "EightBitCombatMove",
+                "EightBitScoreRecord",
+                "EightBitCombatInit"
             ]
         }
     },
@@ -242,6 +245,15 @@
         },
         {
             "$ref": "#/$defs/CISelectResearchers"
+        },
+        {
+            "$ref": "#/$defs/EightBitCombatMove"
+        },
+        {
+            "$ref": "#/$defs/EightBitScoreRecord"
+        },
+        {
+            "$ref": "#/$defs/EightBitCombatInit"
         }
     ],
     "$defs": {
@@ -1198,6 +1210,30 @@
                 "custom_action": {
                     "const": "CISelectResearchers",
                     "description": "完全归纳法：选择参与研究的人员"
+                }
+            }
+        },
+        "EightBitCombatMove": {
+            "properties": {
+                "custom_action": {
+                    "const": "EightBitCombatMove",
+                    "description": "8-bit 战斗界面移动逻辑"
+                }
+            }
+        },
+        "EightBitScoreRecord": {
+            "properties": {
+                "custom_action": {
+                    "const": "EightBitScoreRecord",
+                    "description": "8-bit 战斗结束后记录获得代币数量并统计效率"
+                }
+            }
+        },
+        "EightBitCombatInit": {
+            "properties": {
+                "custom_action": {
+                    "const": "EightBitCombatInit",
+                    "description": "8-bit 战斗初始化，检测是否需要开启碰壁检测"
                 }
             }
         }

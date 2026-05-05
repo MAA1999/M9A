@@ -1,4 +1,9 @@
+import sys
+
+sys.modules.setdefault("utils", sys.modules[__name__])
+
 from .logger import *
+from .params import *
 from .pienv import *
 
 try:

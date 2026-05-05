@@ -1,0 +1,101 @@
+{
+    "task": [
+        {
+            "name": "8-bit 街机秀",
+            "entry": "8bit",
+            "option": [
+                "8-bit关卡难度",
+                "8-bit刷取模式"
+            ],
+            "group": ["standalone"],
+            "desc": "8-bit 街机秀刷代币，请到游戏主界面开始任务"
+        }
+    ],
+    "option": {
+        "8-bit关卡难度": {
+            "type": "select",
+            "label": "关卡难度",
+            "cases": [
+                {
+                    "name": "单向投币Ⅰ",
+                    "pipeline_override": {}
+                },
+                {
+                    "name": "单向投币Ⅱ",
+                    "pipeline_override": {
+                        "8bitLevelSelect": {
+                            "recognition": {
+                                "param": {
+                                    "roi": [
+                                        459,
+                                        169,
+                                        94,
+                                        26
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "单向投币Ⅲ",
+                    "pipeline_override": {
+                        "8bitLevelSelect": {
+                            "recognition": {
+                                "param": {
+                                    "roi": [
+                                        281,
+                                        168,
+                                        94,
+                                        26
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "8-bit刷取模式": {
+            "type": "select",
+            "label": "刷取模式",
+            "cases": [
+                {
+                    "name": "通关第一层后直接退出(稳定)",
+                    "pipeline_override": {
+                        "8bitFlagInCombat": {
+                            "action": {
+                                "type": "ClickKey",
+                                "param": {
+                                    "key": 20
+                                }
+                            },
+                            "repeat": 10,
+                            "repeat_delay": 0
+                        }
+                    }
+                },
+                {
+                    "name": "尽力打",
+                    "pipeline_override": {
+                        "8bitCombatEnd": {
+                            "next": [
+                                "8bitFlagInCombat"
+                            ]
+                        },
+                        "8bitFlagInCombat": {
+                            "next": [
+                                "8bitCombatEnd",
+                                "8bitFlagInMain",
+                                "[JumpBack]8bitHome",
+                                "[JumpBack]Confirm",
+                                "[JumpBack]8bitScoreRecord",
+                                "[JumpBack]8bitCombatMove"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

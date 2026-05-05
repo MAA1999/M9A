@@ -1,4 +1,3 @@
-import json
 import re
 import time
 from dataclasses import dataclass
@@ -7,8 +6,8 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JOCR, JRecognitionType
-
 from utils import logger
+from utils.params import parse_params
 
 __all__ = ["SwitchAccountSelect"]
 
@@ -34,7 +33,7 @@ class SwitchAccountSelect(CustomAction):
         context: Context,
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
-        params = json.loads(argv.custom_action_param or "{}")
+        params = parse_params(argv.custom_action_param)
         target_account = str(params.get("account", "") or "").strip()
         normalized_target = self._normalize_text(target_account)
         seen_signatures: set[tuple[str, ...]] = set()

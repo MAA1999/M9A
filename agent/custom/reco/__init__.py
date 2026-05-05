@@ -1,22 +1,18 @@
-from .general import *
-from .bank import *
-from .activity import *
-from .combat import *
-from .syndrome_of_silence import (
-    SOSSelectEncounterOptionFindSelected,
-    SOSSelectEncounterOptionList,
-    SOSSelectNode,
-)
-from .critter_crash import *
+from importlib import import_module
 
-__all__ = [
-    "MultiRecognition",
-    "ColorOCR",
-    "BankShop",
-    "ActivityRe_releaseChapter",
-    "FindFirstUnplayedStageByCheckmark",
-    "StagePromotionComplete",
-    "SOSSelectEncounterOptionFindSelected",
-    "SOSSelectEncounterOptionList",
-    "SOSSelectNode",
-]
+RECO_MODULES = (
+    "general",
+    "bank",
+    "activity",
+    "combat",
+    "syndrome_of_silence",
+    "critter_crash",
+)
+
+
+def register_all() -> None:
+    for module_name in RECO_MODULES:
+        import_module(f"custom.reco.{module_name}")
+
+
+__all__ = ["register_all"]

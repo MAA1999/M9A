@@ -1,13 +1,12 @@
-import json
 import time
 from pathlib import Path
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-
 from utils import logger
 from utils.account_store import get_account_bucket, load_json_object, save_json_object
+from utils.params import parse_params
 from utils.time import is_current_period
 
 from .record_id import RecordID
@@ -23,7 +22,7 @@ class BankPurchaseRecord(CustomAction):
         context: Context,
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
-        item = json.loads(argv.custom_action_param)["item"]
+        item = parse_params(argv.custom_action_param, "item")["item"]
         data = load_json_object(CONFIG_PATH, {"bank": {}})
         bank_store = get_account_bucket(data, "bank", RecordID.current_account_id())
         bank_store[item] = int(time.time() * 1000)
@@ -53,7 +52,7 @@ class ModifyBankTaskList(CustomAction):
             "OriginalChicken": "month",
             "Fries": "month",
         }
-        resource = json.loads(argv.custom_action_param)["resource"]
+        resource = parse_params(argv.custom_action_param, "resource")["resource"]
 
         if resource in {"cn", "tw"}:
             timezone = "Asia/Shanghai"

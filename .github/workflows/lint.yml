@@ -1,0 +1,44 @@
+name: lint
+
+on:
+  push:
+    branches: ["**"]
+    paths: ["**.py", "pyproject.toml", "requirements*.txt", ".github/workflows/lint.yml"]
+  pull_request:
+    branches: ["**"]
+    paths: ["**.py", "pyproject.toml", "requirements*.txt", ".github/workflows/lint.yml"]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Node dependencies
+        run: pnpm install
+
+      - name: Install Python dependencies
+        run: pnpm install:py
+
+      - name: Ruff lint
+        run: pnpm lint:py
+
+      - name: Pyright type check
+        run: pnpm exec pyright --pythonpath $(which python3)
+
+      - name: Pytest
+        run: pnpm test

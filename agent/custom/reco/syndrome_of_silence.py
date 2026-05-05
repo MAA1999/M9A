@@ -1,12 +1,9 @@
-import json
-import time
-from typing import Union, Optional, cast, Any
+from typing import Any, cast
 
 from maa.agent.agent_server import AgentServer
-from maa.custom_recognition import CustomRecognition
 from maa.context import Context
-from maa.define import RectType, OCRResult
-
+from maa.custom_recognition import CustomRecognition
+from maa.define import OCRResult, RectType
 from utils import logger
 
 
@@ -20,7 +17,7 @@ class SOSSelectEncounterOptionFindSelected(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
         reco_detail = context.run_recognition(
             "SOSSelectEncounterOptionRec_Template", argv.image
@@ -62,7 +59,7 @@ class SOSSelectEncounterOptionList(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
         reco_detail = context.run_recognition(
             "SOSSelectEncounterOptionRec_Template", argv.image
@@ -146,7 +143,7 @@ class SOSSelectNode(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
         # 如果目标在禁止区域范围内，向右滑动
         forbidden_roi = [0, 140, 348, 284]

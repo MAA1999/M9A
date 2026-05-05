@@ -1,20 +1,20 @@
-# -*- coding: utf-8 -*-
-
 import json
-import sys
 import platform
-import requests
 from pathlib import Path
+
+import requests
+
 from . import logger
 from .exceptions import (
-    ResourceNotFoundError,
-    InvalidOSError,
-    InvalidArchError,
-    InvalidChannelError,
     APIBusinessError,
     APICriticalError,
+    InvalidArchError,
+    InvalidChannelError,
+    InvalidOSError,
+    ResourceNotFoundError,
     VersionCheckError,
 )
+from .runtime_paths import get_runtime_paths
 
 
 def _infer_channel_from_version(version: str) -> str:
@@ -60,10 +60,14 @@ def check_resource_version(interface_file_path: str = "./interface.json") -> dic
 
     try:
         # 读取本地interface.json
+        paths = get_runtime_paths()
         interface_path = Path(interface_file_path)
+        if not interface_path.is_absolute():
+            interface_path = paths.work_root / interface_path
+
         if not interface_path.exists():
             # 尝试从assets目录读取
-            assets_path = Path("./assets") / "interface.json"
+            assets_path = paths.assets_interface_file
             if assets_path.exists():
                 interface_path = assets_path
             else:
@@ -71,7 +75,7 @@ def check_resource_version(interface_file_path: str = "./interface.json") -> dic
                 logger.warning(result["error"])
                 return result
 
-        with open(interface_path, "r", encoding="utf-8") as f:
+        with open(interface_path, encoding="utf-8") as f:
             interface_data = json.load(f)
 
         current_version = interface_data.get("version", "unknown")
@@ -88,10 +92,10 @@ def check_resource_version(interface_file_path: str = "./interface.json") -> dic
         channel_map = {0: "alpha", 1: "beta", 2: "stable"}
         config_channel = "stable"  # 默认值
 
-        config_path = Path("./config/config.json")
+        config_path = paths.config_dir / "config.json"
         if config_path.exists():
             try:
-                with open(config_path, "r", encoding="utf-8") as f:
+                with open(config_path, encoding="utf-8") as f:
                     config_data = json.load(f)
                     channel_index = config_data.get("ResourceUpdateChannelIndex", 2)
                     config_channel = channel_map.get(channel_index, "stable")

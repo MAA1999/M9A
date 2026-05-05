@@ -1,16 +1,18 @@
 import re
-import json
 import time
 
 from maa.agent.agent_server import AgentServer
-from maa.custom_action import CustomAction
 from maa.context import Context
-
+from maa.custom_action import CustomAction
 from utils import logger
+from utils.params import parse_params
 
 # 尝试导入掉落识别模块（仅官方发布版可用）
 try:
-    from libs.drop_core import DropRecognitionState, run_drop_recognition
+    from libs.drop_core import (  # pyright: ignore[reportMissingImports]
+        DropRecognitionState,
+        run_drop_recognition,
+    )  # pyright: ignore[reportMissingImports]
 
     _DROP_RECOGNITION_AVAILABLE = True
 except ImportError:
@@ -37,7 +39,7 @@ class SwitchCombatTimes(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        times = json.loads(argv.custom_action_param)["times"]
+        times = parse_params(argv.custom_action_param, "times")["times"]
 
         context.run_task("OpenReplaysTimes", {"OpenReplaysTimes": {"next": []}})
         context.run_task(
@@ -132,7 +134,7 @@ class TeamSelect(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        team = json.loads(argv.custom_action_param)["team"]
+        team = parse_params(argv.custom_action_param, "team")["team"]
 
         img = context.tasker.controller.post_screencap().wait().get()
 
@@ -452,7 +454,7 @@ class CombatTargetLevel(CustomAction):
     ) -> CustomAction.RunResult:
 
         valid_levels = {"童话", "故事", "厄险"}
-        level = json.loads(argv.custom_action_param)["level"]
+        level = parse_params(argv.custom_action_param, "level")["level"]
 
         if not level or level not in valid_levels:
             logger.error("目标难度不存在")
@@ -508,7 +510,7 @@ class ActivityTargetLevel(CustomAction):
     ) -> CustomAction.RunResult:
 
         valid_levels = {"故事", "意外", "艰难"}
-        level = json.loads(argv.custom_action_param)["level"]
+        level = parse_params(argv.custom_action_param, "level")["level"]
 
         node = context.get_node_data("ActivityTargetLevel")
         click = None
@@ -634,7 +636,7 @@ class SelectCombatStage(CustomAction):
     ) -> CustomAction.RunResult:
 
         # 获取关卡信息
-        param = json.loads(argv.custom_action_param)
+        param = parse_params(argv.custom_action_param, "stage")
         stage = param["stage"]
 
         node_obj = context.get_node_object("SelectCombatStage")
@@ -785,7 +787,7 @@ class TargetCountInit(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        param = json.loads(argv.custom_action_param or "{}")
+        param = parse_params(argv.custom_action_param)
         target_count = int(param.get("target_count", 114514))
 
         _TargetCountState.target_count = target_count
@@ -998,7 +1000,7 @@ class SSReopenReplay(CustomAction):
                     logger.debug("识别战斗次数失败")
                     available_count = 1
             if available_count <= 0:
-                logger.debug(f"尝试吃糖后体力不够，任务结束。")
+                logger.debug("尝试吃糖后体力不够，任务结束。")
                 context.run_task("HomeButton")
                 context.tasker.post_stop()
                 return CustomAction.RunResult(success=True)
@@ -1015,8 +1017,8 @@ class SSReopenReplay(CustomAction):
                 {
                     "SetReplaysTimes": {
                         "template": [
-                            f"Combat/SetReplaysTimesX1.png",
-                            f"Combat/SetReplaysTimesX1_selected.png",
+                            "Combat/SetReplaysTimesX1.png",
+                            "Combat/SetReplaysTimesX1_selected.png",
                         ]
                     }
                 }
@@ -1044,9 +1046,7 @@ class EatCandyStart(CustomAction):
             logger.error("EatCandyStart 节点不存在")
             return CustomAction.RunResult(success=False)
         # 有效期：24h, 7d, 14d, infinite
-        valid_period = params.get("valid_period", "24h")
         # 最大吃糖次数：0表示无限吃
-        max_times = params.get("max_times", 0)
 
         return CustomAction.RunResult(success=True)
 

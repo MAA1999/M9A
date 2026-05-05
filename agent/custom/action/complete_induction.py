@@ -6,8 +6,7 @@ from difflib import SequenceMatcher
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from maa.pipeline import JTemplateMatch, JColorMatch, JOCR, JRecognitionType
-
+from maa.pipeline import JOCR, JColorMatch, JRecognitionType, JTemplateMatch
 from utils import logger
 
 _CATEGORY_UNLOCK_LEVEL: dict[str, int] = {

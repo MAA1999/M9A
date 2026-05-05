@@ -5,9 +5,8 @@
 """
 
 from maa.agent.agent_server import AgentServer
-from maa.tasker import Tasker, TaskerEventSink
 from maa.event_sink import NotificationType
-
+from maa.tasker import Tasker, TaskerEventSink
 from utils.logger import logger
 
 # 目标宽高比：16:9

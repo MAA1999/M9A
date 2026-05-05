@@ -1,11 +1,10 @@
 import time
-import json
 
 from maa.agent.agent_server import AgentServer
-from maa.custom_action import CustomAction
 from maa.context import Context
-
+from maa.custom_action import CustomAction
 from utils import logger
+from utils.params import parse_params
 
 
 @AgentServer.custom_action("SOD_DifficultySelect")
@@ -25,7 +24,7 @@ class SOD_DifficultySelect(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        level = json.loads(argv.custom_action_param)["level"]
+        level = parse_params(argv.custom_action_param, "level")["level"]
 
         img = context.tasker.controller.post_screencap().wait().get()
         reco_detail = context.run_recognition("SOD_CurrentLevel", img)

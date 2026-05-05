@@ -1,12 +1,12 @@
 import re
-import json
-from typing import Any, Dict, List, Union, Optional
+from typing import Any
 
 from maa.agent.agent_server import AgentServer
-from maa.custom_recognition import CustomRecognition
 from maa.context import Context
+from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
 from utils.logger import logger
+from utils.params import parse_params
 
 
 @AgentServer.custom_recognition("ActivityRe_releaseChapter")
@@ -24,9 +24,11 @@ class ActivityRe_releaseChapter(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
-        expected = json.loads(argv.custom_recognition_param)["Re_release_name"]
+        expected = parse_params(argv.custom_recognition_param, "Re_release_name")[
+            "Re_release_name"
+        ]
         reco_detail = context.run_recognition("ActivityLeftList", argv.image)
 
         if reco_detail is None or not reco_detail.hit:
@@ -74,7 +76,7 @@ class FindFirstUnplayedStageByCheckmark(CustomRecognition):
     # 难度前缀映射
     PREFIX = {"Easy": "日常第", "Normal": "中等第", "Hard": "高难第"}
 
-    def get_stage_list(self, difficulty: str) -> List[Dict[str, Any]]:
+    def get_stage_list(self, difficulty: str) -> list[dict[str, Any]]:
         """
         根据难度返回关卡列表，每个关卡包含id、检测区域和点击区域。
         """
@@ -101,12 +103,12 @@ class FindFirstUnplayedStageByCheckmark(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
         """
         遍历关卡，查找第一个未通关的关卡，返回其点击区域。
         """
 
-        params = json.loads(argv.custom_recognition_param)
+        params = parse_params(argv.custom_recognition_param)
         difficulty = params.get("difficulty")
         mode = params.get("mode")
         # logger.info(f"[Checkmark] 开始检查关卡，难度: {difficulty}, 模式: {mode}")
@@ -155,7 +157,7 @@ class FindFirstUnplayedStageByCheckmark(CustomRecognition):
                     detail={},
                 )
 
-        logger.info(f"[Checkmark] 所有关卡已通关。")
+        logger.info("[Checkmark] 所有关卡已通关。")
         return None
 
 
@@ -174,9 +176,9 @@ class SailingRecordSelectTarget(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
-        level = json.loads(argv.custom_recognition_param)["level"]
+        level = parse_params(argv.custom_recognition_param, "level")["level"]
 
         # level 1
         if level == 1:
@@ -253,7 +255,7 @@ class SailingRecordBoatRecord(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
         roi = [131, 476, 24, 19]
         dices = []

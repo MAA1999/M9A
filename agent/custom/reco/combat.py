@@ -1,11 +1,10 @@
 import re
-from typing import Any, Dict, Union, Optional
+from typing import Any
 
 from maa.agent.agent_server import AgentServer
-from maa.custom_recognition import CustomRecognition
 from maa.context import Context
+from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
-
 from utils import logger
 
 
@@ -65,7 +64,7 @@ class StagePromotionComplete(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
         cur_flag = False
         # 轶事
@@ -156,7 +155,7 @@ class CandyPageRecord(CustomRecognition):
     # 非快速模式下，记录是否已经吃过一次糖
     _has_eaten_once = False
     # 记录上次各糖果数量，用于验证是否真的吃了
-    _last_candy_counts: Dict[str, int] = {}
+    _last_candy_counts: dict[str, int] = {}
 
     @classmethod
     def reset_eaten_flag(cls):
@@ -169,7 +168,7 @@ class CandyPageRecord(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
         # 先确认在吃糖界面
         reco_detail = context.run_recognition("EatCandyPage", argv.image)
@@ -200,7 +199,7 @@ class CandyPageRecord(CustomRecognition):
                 if digits:
                     max_ap = int(digits)
 
-        recorded_candies: Dict[str, Dict[str, Any]] = {
+        recorded_candies: dict[str, dict[str, Any]] = {
             name: {"index": idx} for idx, name in enumerate(self.candy_names)
         }
 

@@ -1,14 +1,12 @@
-import time
 import json
-
-from maa.agent.agent_server import AgentServer
-from maa.custom_action import CustomAction
-from maa.context import Context
-
-from utils import logger
-from utils import ms_timestamp_diff_to_dhm
+import time
 
 from custom.reco.activity import SailingRecordBoatRecord, SailingRecordSelectTarget
+from maa.agent.agent_server import AgentServer
+from maa.context import Context
+from maa.custom_action import CustomAction
+from utils import logger, ms_timestamp_diff_to_dhm
+from utils.params import parse_params
 
 
 @AgentServer.custom_action("DuringAct")
@@ -31,7 +29,7 @@ class DuringAct(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        resource = json.loads(argv.custom_action_param)["resource"]
+        resource = parse_params(argv.custom_action_param, "resource")["resource"]
         DuringAct.resource = resource
 
         with open(f"resource/data/activity/{resource}.json", encoding="utf-8") as f:
@@ -94,7 +92,7 @@ class CombatActivityOverride(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        mode = json.loads(argv.custom_action_param)["mode"]
+        mode = parse_params(argv.custom_action_param, "mode")["mode"]
 
         # 如果主线版本且非复刻模式（mode=0），跳过任务
         if DuringAct.is_main_story and mode == 0:
@@ -148,7 +146,7 @@ class DuringAnecdote(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        resource = json.loads(argv.custom_action_param)["resource"]
+        resource = parse_params(argv.custom_action_param, "resource")["resource"]
 
         with open(f"resource/data/activity/{resource}.json", encoding="utf-8") as f:
             data = json.load(f)
@@ -198,7 +196,7 @@ class DuringRe_release(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        resource = json.loads(argv.custom_action_param)["resource"]
+        resource = parse_params(argv.custom_action_param, "resource")["resource"]
 
         with open(f"resource/data/activity/{resource}.json", encoding="utf-8") as f:
             data = json.load(f)

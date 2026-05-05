@@ -1,59 +1,28 @@
-from .general import *
-from .activity import *
-from .bank import *
-from .combat import *
-from .lucidscape import *
-from .wilderness import *
-from .outside_deduction import *
-from .reveries_in_the_rain import *
-from .syndrome_of_silence import *
-from .critter_crash import *
-from .redeem_code import *
-from .reward import *
-from .record_id import *
-from .switch_account import *
-from .complete_induction import *
+from importlib import import_module
 
-__all__ = [
-    "DisableNode",
-    "NodeOverride",
-    "ResetCount",
-    "SubTask",
-    "DuringAct",
-    "DuringAnecdote",
-    "DuringRe_release",
-    "BankPurchaseRecord",
-    "ModifyBankTaskList",
-    "SwitchCombatTimes",
-    "PsychubeDoubleTimes",
-    "LucidscapeStageSelect",
-    "LucidscapeStatusDetect",
-    "TeamSelect",
-    "CombatTargetLevel",
-    "SummonlngSwipe",
-    "SOD_DifficultySelect",
-    "ActivityTargetLevel",
-    "SelectChapter",
-    "SelectCombatStage",
-    "TargetCountInit",
-    "TargetCountDetermine",
-    "TargetCountSelectTimes",
-    "TargetCountEatCandy",
-    "TargetCountProgress",
-    "TargetCountFinish",
-    "TargetCountAbort",
-    "JudgeDepthsOfMythWeekly",
-    "SOSSelectNode",
-    "SOSNodeProcess",
-    "SOSSelectEncounterOption_OCR",
-    "SOSSelectEncounterOption_HSV",
-    "ResetEatCandyFlag",
-    "RedeemCode",
-    "RewardHandler",
-    "RecordID",
-    "SwitchAccountSelect",
-    "CIRecordLevel",
-    "CITask",
-    "CIRecordPeopleMaxCount",
-    "CISelectResearchers",
-]
+ACTION_MODULES = (
+    "general",
+    "activity",
+    "bank",
+    "combat",
+    "lucidscape",
+    "wilderness",
+    "outside_deduction",
+    "reveries_in_the_rain",
+    "syndrome_of_silence",
+    "critter_crash",
+    "redeem_code",
+    "reward",
+    "record_id",
+    "switch_account",
+    "complete_induction",
+    "eight_bit",
+)
+
+
+def register_all() -> None:
+    for module_name in ACTION_MODULES:
+        import_module(f"custom.action.{module_name}")
+
+
+__all__ = ["register_all"]

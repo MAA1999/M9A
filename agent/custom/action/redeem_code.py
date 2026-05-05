@@ -1,4 +1,3 @@
-import json
 import re
 import time
 from dataclasses import dataclass
@@ -8,11 +7,11 @@ from typing import Any
 
 import pytz
 from maa.agent.agent_server import AgentServer
-from maa.custom_action import CustomAction
 from maa.context import Context
-
+from maa.custom_action import CustomAction
 from utils import logger
 from utils.account_store import get_account_bucket, load_json_object, save_json_object
+from utils.params import parse_params
 
 from .record_id import RecordID
 
@@ -183,9 +182,9 @@ class RedeemCode(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
         try:
-            params = json.loads(argv.custom_action_param or "{}")
-        except json.JSONDecodeError:
-            logger.exception("RedeemCode failed to parse custom_action_param")
+            params = parse_params(argv.custom_action_param)
+        except ValueError as e:
+            logger.error(f"RedeemCode: {e}")
             return CustomAction.RunResult(success=False)
 
         check_used = bool(params.get("check", True))

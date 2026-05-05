@@ -1,13 +1,8 @@
-import os
-import json
-from datetime import datetime
-
-from PIL import Image
 from maa.agent.agent_server import AgentServer
-from maa.custom_action import CustomAction
 from maa.context import Context
-
+from maa.custom_action import CustomAction
 from utils import logger
+from utils.params import parse_params
 
 
 @AgentServer.custom_action("DisableNode")
@@ -27,7 +22,7 @@ class DisableNode(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        node_name = json.loads(argv.custom_action_param)["node_name"]
+        node_name = parse_params(argv.custom_action_param, "node_name")["node_name"]
 
         context.override_pipeline({f"{node_name}": {"enabled": False}})
 
@@ -52,7 +47,7 @@ class NodeOverride(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        ppover = json.loads(argv.custom_action_param)
+        ppover = parse_params(argv.custom_action_param)
 
         if not ppover:
             logger.warning("No ppover")
@@ -82,11 +77,11 @@ class ResetCount(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        if not argv.custom_action_param:
-            logger.error("ResetCount requires non-empty custom_action_param")
+        try:
+            param = parse_params(argv.custom_action_param)
+        except ValueError as e:
+            logger.error(f"ResetCount: {e}")
             return CustomAction.RunResult(success=False)
-
-        param = json.loads(argv.custom_action_param)
         nodes = param.get("nodes", None)
         if not isinstance(nodes, list) or not nodes:
             logger.error("ResetCount requires non-empty custom_action_param.nodes")
@@ -144,14 +139,10 @@ class SubTask(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        if not argv.custom_action_param:
-            logger.error("SubTask requires non-empty custom_action_param")
-            return CustomAction.RunResult(success=False)
-
         try:
-            param = json.loads(argv.custom_action_param)
-        except json.JSONDecodeError:
-            logger.exception("SubTask failed to parse custom_action_param")
+            param = parse_params(argv.custom_action_param)
+        except ValueError as e:
+            logger.error(f"SubTask: {e}")
             return CustomAction.RunResult(success=False)
 
         sub = param.get("sub", None)

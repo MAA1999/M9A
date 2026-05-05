@@ -1,16 +1,13 @@
 import re
-import sys
-import json
-import random
-from typing import Any, Dict, List, Union, Optional
+from typing import Any
 
 import numpy as np
-
 from maa.agent.agent_server import AgentServer
-from maa.custom_recognition import CustomRecognition
 from maa.context import Context
+from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
 from utils.logger import logger
+from utils.params import parse_params
 
 
 @AgentServer.custom_recognition("MultiRecognition")
@@ -52,16 +49,16 @@ class MultiRecognition(CustomRecognition):
 
     def __init__(self):
         super().__init__()
-        self._context: Optional[Context] = None
-        self._argv: Optional[CustomRecognition.AnalyzeArg] = None
-        self._external_node_cache: Optional[Dict[str, bool]] = None
-        self._external_roi_cache: Optional[Dict[str, Optional[RectType]]] = None
+        self._context: Context | None = None
+        self._argv: CustomRecognition.AnalyzeArg | None = None
+        self._external_node_cache: dict[str, bool] | None = None
+        self._external_roi_cache: dict[str, RectType | None] | None = None
 
     def analyze(
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
         try:
             self._context = context
             self._argv = argv
@@ -69,7 +66,7 @@ class MultiRecognition(CustomRecognition):
             self._external_node_cache = {}
             self._external_roi_cache = {}
 
-            params = json.loads(argv.custom_recognition_param)
+            params = parse_params(argv.custom_recognition_param)
             nodes = params.get("nodes", [])
             logic = params.get("logic", {"type": "AND"})
             return_value = params.get("return", None)
@@ -117,7 +114,7 @@ class MultiRecognition(CustomRecognition):
             self._external_node_cache = None
             self._external_roi_cache = None
 
-    def _ensure_external_nodes_cached(self, node_names: List[str]) -> None:
+    def _ensure_external_nodes_cached(self, node_names: list[str]) -> None:
         """
         确保指定的外部节点信息已缓存
         """
@@ -168,8 +165,8 @@ class MultiRecognition(CustomRecognition):
 
     def _check_logic_condition(
         self,
-        logic: Dict[str, Any],
-        node_results: Dict[str, Optional[RectType]],
+        logic: dict[str, Any],
+        node_results: dict[str, RectType | None],
     ) -> bool:
         """检查逻辑条件是否满足"""
         logic_type = logic.get("type", "AND")
@@ -201,7 +198,7 @@ class MultiRecognition(CustomRecognition):
     def _evaluate_logic_expression(
         self,
         expression: str,
-        node_results: Dict[str, Optional[RectType]],
+        node_results: dict[str, RectType | None],
     ) -> bool:
         """计算逻辑表达式"""
         try:
@@ -247,9 +244,9 @@ class MultiRecognition(CustomRecognition):
 
     def _process_return_value(
         self,
-        return_value: Union[str, List[int]],
-        node_results: Dict[str, Optional[RectType]],
-    ) -> Optional[RectType]:
+        return_value: str | list[int],
+        node_results: dict[str, RectType | None],
+    ) -> RectType | None:
         """
         处理return值，支持直接坐标和表达式计算
         """
@@ -278,8 +275,8 @@ class MultiRecognition(CustomRecognition):
     def _calculate_roi_expression(
         self,
         expression: str,
-        node_results: Dict[str, Optional[RectType]],
-    ) -> Optional[RectType]:
+        node_results: dict[str, RectType | None],
+    ) -> RectType | None:
         """
         计算ROI表达式
         """
@@ -328,7 +325,7 @@ class MultiRecognition(CustomRecognition):
             logger.error(f"ROI表达式计算失败: {expression}, 错误: {e}")
             return None
 
-    def _replace_external_node_rois(self, expression: str) -> Optional[str]:
+    def _replace_external_node_rois(self, expression: str) -> str | None:
         """
         替换表达式中的 {NodeName} 为对应的ROI坐标
         """
@@ -350,7 +347,7 @@ class MultiRecognition(CustomRecognition):
 
         return expression
 
-    def _evaluate_roi_functions(self, expression: str) -> Optional[List[int]]:
+    def _evaluate_roi_functions(self, expression: str) -> list[int] | None:
         """
         计算ROI函数表达式
         """
@@ -390,9 +387,7 @@ class MultiRecognition(CustomRecognition):
             logger.error(f"解析最终ROI失败: {expression}, 错误: {e}")
             return None
 
-    def _execute_roi_function(
-        self, func_name: str, func_args: str
-    ) -> Optional[List[int]]:
+    def _execute_roi_function(self, func_name: str, func_args: str) -> list[int] | None:
         """
         执行具体的ROI函数
         """
@@ -436,7 +431,7 @@ class MultiRecognition(CustomRecognition):
             logger.error(f"执行ROI函数失败: {func_name}({func_args}), 错误: {e}")
             return None
 
-    def _parse_roi_arg(self, arg: str) -> Optional[List[int]]:
+    def _parse_roi_arg(self, arg: str) -> list[int] | None:
         """
         解析ROI参数 [x,y,w,h]
         """
@@ -452,7 +447,7 @@ class MultiRecognition(CustomRecognition):
             logger.error(f"解析ROI参数失败: {arg}, 错误: {e}")
             return None
 
-    def _parse_function_args(self, args_str: str) -> List[str]:
+    def _parse_function_args(self, args_str: str) -> list[str]:
         """
         智能解析函数参数，正确处理包含方括号的ROI参数
         """
@@ -480,7 +475,7 @@ class MultiRecognition(CustomRecognition):
 
         return args
 
-    def _calculate_union(self, roi1: List[int], roi2: List[int]) -> List[int]:
+    def _calculate_union(self, roi1: list[int], roi2: list[int]) -> list[int]:
         """
         计算两个ROI的并集
         """
@@ -500,7 +495,7 @@ class MultiRecognition(CustomRecognition):
 
         return [left, top, right - left, bottom - top]
 
-    def _calculate_intersection(self, roi1: List[int], roi2: List[int]) -> List[int]:
+    def _calculate_intersection(self, roi1: list[int], roi2: list[int]) -> list[int]:
         """
         计算两个ROI的交集
         """
@@ -520,8 +515,8 @@ class MultiRecognition(CustomRecognition):
         return [left, top, right - left, bottom - top]
 
     def _calculate_offset(
-        self, roi: List[int], dx: int, dy: int, dw: int, dh: int
-    ) -> List[int]:
+        self, roi: list[int], dx: int, dy: int, dw: int, dh: int
+    ) -> list[int]:
         """
         计算ROI偏移
         """
@@ -533,7 +528,7 @@ class MultiRecognition(CustomRecognition):
 
         return [new_x, new_y, new_w, new_h]
 
-    def _normalize_roi(self, roi: List[int]) -> List[int]:
+    def _normalize_roi(self, roi: list[int]) -> list[int]:
         """
         标准化ROI，将[0,0,0,0]转换为实际的全屏坐标
         图像缩放规则：较短边缩放到720，长边按比例缩放
@@ -567,7 +562,7 @@ class CheckStopping(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
         if context.tasker.stopping:
             return CustomRecognition.AnalyzeResult(
                 box=[0, 0, 0, 0],
@@ -599,9 +594,9 @@ class ColorOCR(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
         try:
-            params = json.loads(argv.custom_recognition_param)
+            params = parse_params(argv.custom_recognition_param)
 
             # 获取参数，默认过滤白色
             target_color = params.get("target_color", [255, 255, 255])
@@ -678,9 +673,9 @@ class ColorOCRWithFallback(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
         try:
-            params = json.loads(argv.custom_recognition_param)
+            params = parse_params(argv.custom_recognition_param)
 
             # 获取参数
             target_color = params.get("target_color", [255, 255, 255])
@@ -714,7 +709,7 @@ class ColorOCRWithFallback(CustomRecognition):
             reco_detail = context.run_recognition(recognition_node, processed_img)
 
             if reco_detail and reco_detail.hit:
-                logger.debug(f"ColorOCRWithFallback: ColorOCR识别成功")
+                logger.debug("ColorOCRWithFallback: ColorOCR识别成功")
                 return CustomRecognition.AnalyzeResult(
                     box=reco_detail.box,
                     detail={
@@ -735,7 +730,7 @@ class ColorOCRWithFallback(CustomRecognition):
             )
 
             if reco_detail and reco_detail.hit:
-                logger.debug(f"ColorOCRWithFallback: 纯OCR识别成功")
+                logger.debug("ColorOCRWithFallback: 纯OCR识别成功")
                 return CustomRecognition.AnalyzeResult(
                     box=reco_detail.box,
                     detail={

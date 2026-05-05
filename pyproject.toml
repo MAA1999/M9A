@@ -1,0 +1,37 @@
+[tool.black]
+exclude = "\\.venv"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [".venv", ".venv-linux", "tools/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = [
+    "E402",   # module level import not at top (sys.path manipulation)
+    "E501",   # line too long (black handles formatting)
+    "SIM102", # nested if (readability preference)
+    "SIM108", # ternary operator (readability preference)
+    "SIM110", # all()/any() (readability preference)
+    "SIM117", # nested with (readability preference)
+    "SIM118", # key in dict (not always applicable)
+    "B007",   # unused loop variable (common pattern)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"agent/utils/__init__.py" = ["F403", "F405", "F401"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+exclude = [".venv", ".venv-linux", "**/node_modules", "**/__pycache__", ".*", "tmp", "tools", "deps"]
+reportAttributeAccessIssue = "none"
+reportOptionalMemberAccess = "none"
+reportOptionalSubscript = "none"
+reportOptionalCall = "none"
+reportArgumentType = "warning"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

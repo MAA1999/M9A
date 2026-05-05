@@ -1,11 +1,9 @@
-import time
 import json
-import numpy as np
+import time
 
 from maa.agent.agent_server import AgentServer
-from maa.custom_action import CustomAction
 from maa.context import Context
-
+from maa.custom_action import CustomAction
 from utils import logger
 
 
@@ -171,7 +169,7 @@ class CCChessboard(CustomAction):
         if chess["level"] >= chess_info.get("max_level", 1):
             return False  # 已达最高等级
 
-        chess["level"] += 1
+        chess["level"] += 1  # pyright: ignore[reportOperatorIssue]
 
         # 更新board_chesses中的记录
         for item in cls.board_chesses:

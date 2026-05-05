@@ -1,0 +1,207 @@
+{
+    "8bit": {
+        "desc": "8-bit 街机秀",
+        "next": [
+            "8bitFlagInMain",
+            "[JumpBack]8bitEntry"
+        ]
+    },
+    "8bitFlagInMain": {
+        "desc": "8-bit 主界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    635,
+                    169,
+                    92,
+                    26
+                ],
+                "expected": ["单向投币"],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "8bitFlagInCombat",
+            "[JumpBack]8bitLevelEntry",
+            "[JumpBack]8bitLevelSelect"
+        ]
+    },
+    "8bitFlagInCombat": {
+        "desc": "8-bit 战斗界面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    104,
+                    5,
+                    133,
+                    136
+                ],
+                "template": ["8-bit/Level.png"]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EightBitCombatInit"
+            }
+        },
+        "next": [
+            "8bitCombatEnd",
+            "[JumpBack]8bitCombatMove"
+        ]
+    },
+    "8bitCombatEnd": {
+        "desc": "8-bit 战斗结束，当前后续处理是传送后直接退出关卡",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1083,
+                    279,
+                    51,
+                    28
+                ],
+                "expected": ["传送"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "8bitFlagInMain",
+            "[JumpBack]8bitHome",
+            "[JumpBack]Confirm",
+            "[JumpBack]8bitScoreRecord",
+            "[JumpBack]8bitExit"
+        ]
+    },
+    "8bitExit": {
+        "desc": "8-bit 退出关卡",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    34,
+                    34,
+                    65,
+                    77
+                ],
+                "template": ["8-bit/Exit.png"],
+                "method": 10001
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "8bitHome": {
+        "desc": "8-bit 返回主界面",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    668,
+                    446,
+                    98,
+                    85
+                ],
+                "template": ["8-bit/Home.png"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "8bitScoreRecord": {
+        "desc": "8-bit 记录代币",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    751,
+                    88,
+                    342,
+                    211
+                ],
+                "template": ["8-bit/GameOver.png"],
+                "method": 10001
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EightBitScoreRecord"
+            }
+        }
+    },
+    "8bitCombatMove": {
+        "desc": "8-bit 战斗界面移动逻辑",
+        "pre_delay": 0,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EightBitCombatMove"
+            }
+        },
+        "post_delay": 0
+    },
+    "8bitLevelSelect": {
+        "desc": "选择关卡",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    635,
+                    169,
+                    92,
+                    26
+                ],
+                "expected": ["单向投币"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "8bitLevelEntry": {
+        "desc": "进入关卡-单向投币",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1048,
+                    302,
+                    53,
+                    27
+                ],
+                "expected": ["进入"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "8bitEntry": {
+        "desc": "进入 8-bit 活动界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1007,
+                    527,
+                    237,
+                    72
+                ],
+                "expected": ["开始游戏"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}

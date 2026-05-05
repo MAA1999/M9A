@@ -1,15 +1,11 @@
-import json
-import time
-from typing import Union, Optional, cast, Any
-
-from maa.agent.agent_server import AgentServer
-from maa.custom_recognition import CustomRecognition
-from maa.context import Context
-from maa.define import RectType, OCRResult
 import numpy as np
-
-from utils import logger
 from custom.action.critter_crash import CCChessboard
+from maa.agent.agent_server import AgentServer
+from maa.context import Context
+from maa.custom_recognition import CustomRecognition
+from maa.define import RectType
+from utils import logger
+from utils.params import parse_params
 
 
 @AgentServer.custom_recognition("CCBuyCard")
@@ -24,7 +20,7 @@ class CCBuyCardRec(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
         # 检查奖励框是否为空
         reco_detail = context.run_recognition("CCBuyCardAwardEmptyRec", argv.image)
@@ -134,9 +130,9 @@ class CCRemainMoney(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
-        type = json.loads(argv.custom_recognition_param)["type"]
+        type = parse_params(argv.custom_recognition_param, "type")["type"]
 
         img = argv.image
         # 定义目标颜色和颜色容差

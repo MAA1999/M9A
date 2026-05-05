@@ -524,5 +524,16 @@
     "resource/base/image/Awards/3.7/Entry": "dc1f6332ab5e3baea037275d0c1681aaeb7ea67598b8c99bb4bcc617eaecb4ad",
     "resource/base/image/Awards/JukeboxBadges/JukeboxBadge3.7": "3ed83a9841a7de3ab8d95c41694ea789e4c2d1944336b0716afbc1f4fc503d8b",
     "resource/base/image/Combat/MainChapter_13Enter": "ec9923703f25d131165179a40034d5744f0cef4be4768b962dd6f4c59e495e1f",
-    "resource/base/image/SyndromeOfSilence/Ending3": "57e681189dbd199b576ebb8d0ea2b06f1cb625481f0e91f79d4c20c2d66982de"
+    "resource/base/image/SyndromeOfSilence/Ending3": "57e681189dbd199b576ebb8d0ea2b06f1cb625481f0e91f79d4c20c2d66982de",
+    "resource/base/image/8-bit/Exit": "2ea5955fed923ec5ac0c2e0bed7890f1d9c8484cc21dda16b26082ec5a9f26ad",
+    "resource/base/image/8-bit/GameOver": "772838ec58425f5ad2bbf4fd5bb73f3a54edb55c80413957fbd757e37ddb84f7",
+    "resource/base/image/8-bit/Boss": "0ad30972a6e1f69753d29dba1f4dc396832019febb9fa87912fc699c8a69d0b3",
+    "resource/base/image/8-bit/Level": "f28e3e40e4c0d5e3ebafe7dcca1b284d54f096e5c2a650d0d084ff4f7130109f",
+    "resource/base/image/8-bit/Bottom": "516d06b294031b0553c771cb9d9949f8d6098390ce9d8060542766c85568a030",
+    "resource/base/image/8-bit/Home": "063901549aa08a2e71dc4a0d8cbaea338632e71495e64c9c02e9216b0748c2b2",
+    "resource/base/image/8-bit/TPEntry/2": "373e5bbf51fad20d50380a00aa3216c371fc93179cabf0408030cd630d9bbdf0",
+    "resource/base/image/8-bit/TPEntry/1": "c7f17eb68618cbf69d70733bf54fbc95e224fabb4517524a441742562a602223",
+    "resource/base/image/8-bit/TPEntry/3": "02c68678ac7e7f88b433895ecb67938fd51165ed008267a694bd67a5bfa08d2b",
+    "resource/base/image/8-bit/People/2": "7edb5dc8f9b351522ffda53e171ec3551f4558240e7138c312beec23794db4d6",
+    "resource/base/image/8-bit/People/1": "238e481995ec4912bd82724c741207864e76ab1e7253218062c7e5e349581e2f"
 }

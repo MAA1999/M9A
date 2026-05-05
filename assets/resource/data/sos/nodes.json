@@ -1239,7 +1239,7 @@
                 "interrupts": "@TheOnlyWay"
             },
             "混合物": {
-                "actions":[
+                "actions": [
                     {
                         "type": "SelectOption",
                         "method": "HSV"

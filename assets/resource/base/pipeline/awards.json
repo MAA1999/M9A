@@ -1460,13 +1460,12 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    764,
-                    645,
-                    111,
-                    36
+                    569,
+                    631,
+                    306,
+                    62
                 ],
-                "expected": "领取",
-                "only_rec": true
+                "expected": "领取"
             }
         },
         "action": {

@@ -180,6 +180,7 @@
     },
     "GoodDreamWellObtain": {
         "desc": "好梦井收获馈赠",
+        "max_hit": 10,
         "recognition": {
             "type": "OCR",
             "param": {

@@ -457,6 +457,7 @@ tools/ImageCropper/**/*.png
 # M9A
 python/
 .venv/
+.venv-linux/
 config/
 tmp/
 agent/libs/*.pyd

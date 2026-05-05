@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Manifest 缓存检查模块
 
@@ -8,25 +6,26 @@ Manifest 缓存检查模块
 """
 
 import json
+
 import requests
-from pathlib import Path
-from typing import Dict, List, Optional, Set
+
 from . import logger
+from .http_session import create_no_proxy_session
+from .runtime_paths import get_runtime_paths
 
 # 配置
 MANIFEST_URL = "https://api.1999.fan/api/manifest.json"
 API_BASE_URL = "https://api.1999.fan/api"
-CACHE_FILE = Path("./resource/data/manifest_cache.json")
 REQUEST_TIMEOUT = 5
 
 # 不使用系统代理（国内服务器直连更快）
-NO_PROXY = {"http": "", "https": ""}
+session = create_no_proxy_session()
 
 # 忽略的目录（不需要热更新）
 IGNORED_DIRS = {"images"}
 
 
-def _load_cache() -> Dict:
+def _load_cache() -> dict:
     """
     加载本地缓存
 
@@ -41,10 +40,11 @@ def _load_cache() -> Dict:
         }
     """
     default = {"root_updated": 0, "manifests": {}}
-    if not CACHE_FILE.exists():
+    cache_file = get_runtime_paths().manifest_cache_file
+    if not cache_file.exists():
         return default
     try:
-        with open(CACHE_FILE, "r", encoding="utf-8") as f:
+        with open(cache_file, encoding="utf-8") as f:
             data = json.load(f)
             # 兼容旧格式
             if "manifests" not in data:
@@ -54,11 +54,12 @@ def _load_cache() -> Dict:
         return default
 
 
-def _save_cache(cache: Dict):
+def _save_cache(cache: dict):
     """保存缓存到本地"""
+    cache_file = get_runtime_paths().manifest_cache_file
     try:
-        CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with open(CACHE_FILE, "w", encoding="utf-8") as f:
+        cache_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(cache_file, "w", encoding="utf-8") as f:
             json.dump(cache, f, indent=2, ensure_ascii=False)
     except Exception as e:
         logger.debug(f"保存 manifest 缓存失败: {e}")
@@ -77,9 +78,9 @@ def _is_ignored_path(manifest_path: str) -> bool:
 
 def _collect_updated_manifests(
     manifest_path: str,
-    local_manifests: Dict[str, int],
-    collected_manifests: Dict[str, int],
-    updated_manifests: List[str],
+    local_manifests: dict[str, int],
+    collected_manifests: dict[str, int],
+    updated_manifests: list[str],
 ) -> bool:
     """
     递归检查 manifest 是否需要更新
@@ -100,7 +101,7 @@ def _collect_updated_manifests(
 
     try:
         url = f"{API_BASE_URL}/{manifest_path}"
-        response = requests.get(url, timeout=REQUEST_TIMEOUT, proxies=NO_PROXY)
+        response = session.get(url, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         manifest = response.json()
 
@@ -149,7 +150,7 @@ def _collect_updated_manifests(
         return False
 
 
-def check_manifest_updates() -> Dict:
+def check_manifest_updates() -> dict:
     """
     检查远程 manifest 更新状态（细粒度，支持子目录）
 
@@ -176,7 +177,7 @@ def check_manifest_updates() -> Dict:
 
     try:
         # 请求远程根 manifest
-        response = requests.get(MANIFEST_URL, timeout=REQUEST_TIMEOUT, proxies=NO_PROXY)
+        response = session.get(MANIFEST_URL, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         root_manifest = response.json()
 
@@ -240,7 +241,7 @@ def check_manifest_updates() -> Dict:
     return result
 
 
-def save_manifest_cache_from_result(check_result: Dict):
+def save_manifest_cache_from_result(check_result: dict):
     """
     根据检查结果保存缓存
 

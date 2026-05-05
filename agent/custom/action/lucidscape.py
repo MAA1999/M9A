@@ -1,12 +1,11 @@
 import re
 import time
-import json
 
 from maa.agent.agent_server import AgentServer
-from maa.custom_action import CustomAction
 from maa.context import Context
-
+from maa.custom_action import CustomAction
 from utils import logger
+from utils.params import parse_params
 
 
 @AgentServer.custom_action("LucidscapeStageSelect")
@@ -90,7 +89,7 @@ class LucidscapeStatusDetect(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        stage = json.loads(argv.custom_action_param)["stage"]
+        stage = parse_params(argv.custom_action_param, "stage")["stage"]
 
         time.sleep(3)
         img = context.tasker.controller.post_screencap().wait().get()

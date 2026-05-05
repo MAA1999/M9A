@@ -43,6 +43,10 @@
                 {
                     "name": "完全归纳法",
                     "enabled": false
+                },
+                {
+                    "name": "8-bit 街机秀",
+                    "enabled": false
                 }
             ]
         }

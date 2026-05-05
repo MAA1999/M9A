@@ -1,12 +1,9 @@
-import json
-from typing import Union, Optional
-
 from maa.agent.agent_server import AgentServer
-from maa.custom_recognition import CustomRecognition
 from maa.context import Context
+from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
-
 from utils import logger
+from utils.params import parse_params
 
 
 @AgentServer.custom_recognition("BankShop")
@@ -28,9 +25,9 @@ class BankShop(CustomRecognition):
         self,
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
-    ) -> Union[CustomRecognition.AnalyzeResult, Optional[RectType]]:
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
-        data = json.loads(argv.custom_recognition_param)
+        data = parse_params(argv.custom_recognition_param)
         expected = data.get("expected")
         inverse = data.get("inverse", False)
 
