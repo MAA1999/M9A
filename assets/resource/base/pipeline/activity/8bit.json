@@ -42,13 +42,11 @@
             }
         },
         "action": {
-            "type": "ClickKey",
+            "type": "Custom",
             "param": {
-                "key": 20 // KEYCODE_DPAD_DOWN
+                "custom_action": "EightBitCombatInit"
             }
         },
-        "repeat": 6,
-        "repeat_delay": 0,
         "next": [
             "8bitCombatEnd",
             "[JumpBack]8bitCombatMove"
@@ -91,7 +89,8 @@
                     65,
                     77
                 ],
-                "template": ["8-bit/Exit.png"]
+                "template": ["8-bit/Exit.png"],
+                "method": 10001
             }
         },
         "action": {

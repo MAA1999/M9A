@@ -63,7 +63,8 @@
                 "CIRecordPeopleMaxCount",
                 "CISelectResearchers",
                 "EightBitCombatMove",
-                "EightBitScoreRecord"
+                "EightBitScoreRecord",
+                "EightBitCombatInit"
             ]
         }
     },
@@ -250,6 +251,9 @@
         },
         {
             "$ref": "#/$defs/EightBitScoreRecord"
+        },
+        {
+            "$ref": "#/$defs/EightBitCombatInit"
         }
     ],
     "$defs": {
@@ -1222,6 +1226,14 @@
                 "custom_action": {
                     "const": "EightBitScoreRecord",
                     "description": "8-bit 战斗结束后记录获得代币数量并统计效率"
+                }
+            }
+        },
+        "EightBitCombatInit": {
+            "properties": {
+                "custom_action": {
+                    "const": "EightBitCombatInit",
+                    "description": "8-bit 战斗初始化，检测是否需要开启碰壁检测"
                 }
             }
         }

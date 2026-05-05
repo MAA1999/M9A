@@ -3,7 +3,10 @@
         {
             "name": "8-bit 街机秀",
             "entry": "8bit",
-            "option": ["8-bit关卡难度"],
+            "option": [
+                "8-bit关卡难度",
+                "8-bit刷取模式"
+            ],
             "group": ["standalone"],
             "desc": "8-bit 街机秀刷代币"
         }
@@ -48,6 +51,47 @@
                                     ]
                                 }
                             }
+                        }
+                    }
+                }
+            ]
+        },
+        "8-bit刷取模式": {
+            "type": "select",
+            "label": "刷取模式",
+            "cases": [
+                {
+                    "name": "通关第一层后直接退出(稳定)",
+                    "pipeline_override": {
+                        "8bitFlagInCombat": {
+                            "action": {
+                                "type": "ClickKey",
+                                "param": {
+                                    "key": 20
+                                }
+                            },
+                            "repeat": 10,
+                            "repeat_delay": 0
+                        }
+                    }
+                },
+                {
+                    "name": "尽力打",
+                    "pipeline_override": {
+                        "8bitCombatEnd": {
+                            "next": [
+                                "8bitFlagInCombat"
+                            ]
+                        },
+                        "8bitFlagInCombat": {
+                            "next": [
+                                "8bitCombatEnd",
+                                "8bitFlagInMain",
+                                "[JumpBack]8bitHome",
+                                "[JumpBack]Confirm",
+                                "[JumpBack]8bitScoreRecord",
+                                "[JumpBack]8bitCombatMove"
+                            ]
                         }
                     }
                 }
