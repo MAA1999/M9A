@@ -1310,27 +1310,54 @@
     },
     "SOSEventEndMessage": {
         "recognition": {
-            "type": "ColorMatch",
+            "type": "And",
             "param": {
-                "roi": [
-                    742,
-                    122,
-                    161,
-                    57
-                ],
-                "method": 40,
-                "lower": [
-                    105,
-                    150,
-                    150
-                ],
-                "upper": [
-                    131,
-                    255,
-                    255
-                ],
-                "connected": true,
-                "count": 500
+                "all_of": [
+                    {
+                        "sub_name": "ColorBox",
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    742,
+                                    122,
+                                    161,
+                                    57
+                                ],
+                                "method": 40,
+                                "lower": [
+                                    105,
+                                    150,
+                                    150
+                                ],
+                                "upper": [
+                                    131,
+                                    255,
+                                    255
+                                ],
+                                "connected": true,
+                                "count": 500
+                            }
+                        }
+                    },
+                    {
+                        "sub_name": "OcrBox",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": "ColorBox",
+                                "roi_offset": [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                ],
+                                "expected": ".*",
+                                "only_rec": true
+                            }
+                        }
+                    }
+                ]
             }
         },
         "action": {
@@ -1550,27 +1577,54 @@
     },
     "SOSSelectOption": {
         "recognition": {
-            "type": "ColorMatch",
+            "type": "And",
             "param": {
-                "roi": [
-                    841,
-                    112,
-                    62,
-                    608
-                ],
-                "method": 40,
-                "lower": [
-                    105,
-                    150,
-                    150
-                ],
-                "upper": [
-                    131,
-                    255,
-                    255
-                ],
-                "connected": true,
-                "count": 500
+                "all_of": [
+                    {
+                        "sub_name": "ColorBox",
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    841,
+                                    112,
+                                    62,
+                                    608
+                                ],
+                                "method": 40,
+                                "lower": [
+                                    105,
+                                    150,
+                                    150
+                                ],
+                                "upper": [
+                                    131,
+                                    255,
+                                    255
+                                ],
+                                "connected": true,
+                                "count": 500
+                            }
+                        }
+                    },
+                    {
+                        "sub_name": "OcrBox",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": "ColorBox",
+                                "roi_offset": [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                ],
+                                "expected": ".*",
+                                "only_rec": true
+                            }
+                        }
+                    }
+                ]
             }
         },
         "next": [
@@ -1603,27 +1657,54 @@
     },
     "SOSSelectOption_HSV": {
         "recognition": {
-            "type": "ColorMatch",
+            "type": "And",
             "param": {
-                "roi": [
-                    841,
-                    112,
-                    62,
-                    608
-                ],
-                "method": 40,
-                "lower": [
-                    105,
-                    150,
-                    150
-                ],
-                "upper": [
-                    131,
-                    255,
-                    255
-                ],
-                "connected": true,
-                "count": 500
+                "all_of": [
+                    {
+                        "sub_name": "ColorBox",
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    841,
+                                    112,
+                                    62,
+                                    608
+                                ],
+                                "method": 40,
+                                "lower": [
+                                    105,
+                                    150,
+                                    150
+                                ],
+                                "upper": [
+                                    131,
+                                    255,
+                                    255
+                                ],
+                                "connected": true,
+                                "count": 500
+                            }
+                        }
+                    },
+                    {
+                        "sub_name": "OcrBox",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": "ColorBox",
+                                "roi_offset": [
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                ],
+                                "expected": ".*",
+                                "only_rec": true
+                            }
+                        }
+                    }
+                ]
             }
         },
         "action": {
