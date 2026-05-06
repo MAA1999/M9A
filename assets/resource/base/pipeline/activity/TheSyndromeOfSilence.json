@@ -1310,41 +1310,27 @@
     },
     "SOSEventEndMessage": {
         "recognition": {
-            "type": "OCR",
+            "type": "ColorMatch",
             "param": {
                 "roi": [
-                    791,
-                    132,
-                    175,
-                    27
+                    742,
+                    122,
+                    161,
+                    57
                 ],
-                "expected": [
-                    "结束事件",
-                    "离开"
+                "method": 40,
+                "lower": [
+                    105,
+                    150,
+                    150
                 ],
-                "only_rec": true
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "post_wait_freezes": 500,
-        "on_error": "SOSEventEndMessage2"
-    },
-    "SOSEventEndMessage2": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    862,
-                    197,
-                    135,
-                    33
+                "upper": [
+                    131,
+                    255,
+                    255
                 ],
-                "expected": [
-                    "结束事件"
-                ],
-                "only_rec": true
+                "connected": true,
+                "count": 500
             }
         },
         "action": {
