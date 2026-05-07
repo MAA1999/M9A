@@ -833,6 +833,7 @@
             "SOSSelectNoise",
             "[JumpBack]SOSContinue",
             "[JumpBack]SOSEventEnd",
+            "[JumpBack]SOSEventEndMessage",
             "[JumpBack]SOSGiveup",
             "[JumpBack]SOSStart",
             "[JumpBack]SOS_Skip",
