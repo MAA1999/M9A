@@ -263,6 +263,38 @@ This task has two scenarios:
 Please select the corresponding option based on your situation
 :::
 
+### Complete Induction
+
+Complete the Complete Induction mini-game.
+
+::: warning
+This task needs to run independently. Please navigate to the mini-game main page before running.
+:::
+
+::: note
+Please complete one full round manually first to finish the tutorial, then start the task on the interface with the "Start Research" button.
+:::
+
+### 8-bit Arcade Show
+
+Complete 8-bit Arcade Show mini-game, including the following options:
+
+- **Stage Difficulty**: Select stage difficulty
+- **Farming Mode**: Select farming mode based on your needs
+
+::: warning
+This task needs to run independently. Please navigate to the difficulty selection page before running.
+:::
+
+::: note
+This task has two scenarios:
+
+1. Clear the first floor then exit directly (stable)
+2. Keep going as far as possible (continue fighting after the first floor without exiting)
+
+Please select the corresponding option based on your situation
+:::
+
 ### Auto Stage Clear (Testing)
 
 Auto stage clear feature, currently in testing phase.
