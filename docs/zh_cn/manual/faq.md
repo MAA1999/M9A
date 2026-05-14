@@ -103,9 +103,11 @@ icon: ph:question-fill
 ## 日志黄字提示
 
 ```启动任务时，日志中可能出现类似以下的黄字提示
+
 获取 resource/manifest.json失败:("Connection aborted.
 ConnectionResetError(10054,'远程主机强迫关闭了一个现有的连接。；None,10054,None))
 未获取到任何可用的资源清单
+
 ```
 
 这通常是因为网络问题无法连接到 GitHub 所致，一般不影响 M9A 正常运行，可以忽略。

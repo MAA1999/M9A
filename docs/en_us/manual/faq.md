@@ -7,7 +7,7 @@ icon: ph:question-fill
 ## Software Fails to Run / Crashes / Reports Errors
 
 Most problems can be solved in this section.
-They are divided into Download/Installation Issues, Runtime Library Issues, Agent Long Time Wait Issues, Resource Loading Issues, and Connection Issues.
+They are divided into Download/Installation Issues, Crashes During Runtime, Runtime Library Issues, Agent Long Time Wait Issues, Resource Loading Issues, and Connection Issues.
 Most issues fall under **Runtime Library Issues** and **Connection Issues**.
 
 ### Download/Installation Issues
@@ -54,7 +54,7 @@ When using a generic UI (such as MFAAvalonia), there is a long period of unrespo
 ### Resource Loading Issues
 
 When this problem occurs, it prompts **Resource loading failed**.
-The solution is to delete the entire folder and then [download](https://github.com/MAA1999/M9A/releases) and install M9A again.
+The solution is to delete the entire M9A folder (back up the `config` directory first if you want to keep your settings), and then [re-download](https://github.com/MAA1999/M9A/releases) and install M9A again.
 
 ### Connection Issues
 
@@ -104,6 +104,20 @@ Generally, MuMu12 or LDPlayer 9 are recommended.
 
 1. Update using [MirrorChyan](MirrorChyan.md).
 2. Ask for help in the community group / search online for related solutions.
+
+## Yellow Warning Messages in Logs
+
+```When starting tasks, you may see yellow warning messages similar to the following in the logs:
+
+Failed to get resource/manifest.json: ("Connection aborted.
+ConnectionResetError(10054, 'The remote host forcibly closed an existing connection.; None,10054,None))
+No available resource manifest was obtained.
+
+```
+
+This is usually caused by network issues preventing connection to GitHub and generally does not affect M9A's normal operation, so it can be ignored.
+
+For other yellow warning logs, they also usually do not affect operation and can be ignored. If they appear frequently and affect functionality, please provide feedback using the methods below.
 
 ## Other Issues
 
