@@ -102,7 +102,9 @@ icon: ph:question-fill
 
 ## 日志黄字提示
 
-```启动任务时，日志中可能出现类似以下的黄字提示
+启动任务时，日志中可能出现类似以下的黄字提示:
+
+```plaintext
 
 获取 resource/manifest.json失败:("Connection aborted.
 ConnectionResetError(10054,'远程主机强迫关闭了一个现有的连接。；None,10054,None))

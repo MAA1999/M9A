@@ -107,7 +107,9 @@ Generally, MuMu12 or LDPlayer 9 are recommended.
 
 ## Yellow Warning Messages in Logs
 
-```When starting tasks, you may see yellow warning messages similar to the following in the logs:
+When starting tasks, you may see yellow warning messages similar to the following in the logs:
+
+```plaintext
 
 Failed to get resource/manifest.json: ("Connection aborted.
 ConnectionResetError(10054, 'The remote host forcibly closed an existing connection.; None,10054,None))
