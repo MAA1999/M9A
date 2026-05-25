@@ -201,7 +201,7 @@
                 "roi": [
                     681,
                     499,
-                    202,
+                    230,
                     133
                 ],
                 "expected": "\\d+"
@@ -270,7 +270,7 @@
                 ]
             }
         },
-        "post_delay": 5000
+        "post_delay": 8000
     },
     "StagePromotionCombatVictory": {
         "recognition": {
