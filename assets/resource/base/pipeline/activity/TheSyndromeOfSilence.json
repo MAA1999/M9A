@@ -789,6 +789,7 @@
             "[JumpBack]SOSResonatorObtained",
             "[JumpBack]SOSLoseArtefact",
             "[JumpBack]SOSStrengthenArtefact",
+            "[JumpBack]SOSAbortConfirm",
             "[JumpBack]SOSSummary",
             "[JumpBack]SOSEnding",
             "[JumpBack]SOSGiveup",
