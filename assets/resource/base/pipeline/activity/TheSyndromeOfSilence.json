@@ -765,6 +765,10 @@
                     "地下墓穴",
                     "巴黎子午线"
                 ],
+                "replace": [
+                    "立",
+                    "拉"
+                ],
                 "only_rec": true
             }
         },
@@ -841,6 +845,7 @@
             "[JumpBack]SOSConfirm",
             "[JumpBack]SOSInformation",
             "[JumpBack]SOSAbortConfirm",
+            "[JumpBack]SOSCombat",
             "SOSNodeProcessErrorLoop"
         ]
     },

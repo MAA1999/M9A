@@ -72,7 +72,10 @@ def _ansi_level_color(level_name: str) -> str:
 
 def _format_mxu_html_message(level_name: str, message: str) -> str:
     color = HTML_LEVEL_COLORS.get(level_name, "inherit")
-    return f'<span style="color:{color};">{html.escape(message)}</span>'
+    escaped = html.escape(message)
+    lines = escaped.split("\n")
+    wrapped = [f'<span style="color:{color};">{line}</span>' for line in lines]
+    return "\n".join(wrapped)
 
 
 def _enrich_record(record) -> bool:

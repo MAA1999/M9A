@@ -510,5 +510,21 @@
                 }
             }
         }
+    },
+    "3.5": {
+        "version_name": "シウコアトル・クラブ",
+        "start_time": 1779930000000,
+        "end_time": 1782935999000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1779930000000,
+                "end_time": 1782676799000
+            },
+            "re-release": {
+                "start_time": 1781812800000,
+                "end_time": 1782676799000
+            }
+        }
     }
 }
