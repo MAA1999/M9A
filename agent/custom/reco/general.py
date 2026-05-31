@@ -7,6 +7,7 @@ from maa.context import Context
 from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
 from utils.logger import logger
+from utils.maa_types import is_hit, ocr_text
 from utils.params import parse_params
 
 
@@ -86,7 +87,7 @@ class MultiRecognition(CustomRecognition):
 
                 reco_detail = context.run_recognition(node_name, argv.image)
 
-                if reco_detail and reco_detail.hit:
+                if is_hit(reco_detail):
                     # 标准化ROI，将[0,0,0,0]转换为实际全屏坐标，其它不变
                     normalized_roi = self._normalize_roi(list(reco_detail.box))
                     node_results[index_key] = normalized_roi
@@ -132,25 +133,27 @@ class MultiRecognition(CustomRecognition):
         if not uncached_nodes:
             return  # 所有节点都已缓存
 
-        task_id = self._argv.task_detail.task_id
-        task_detail = self._context.tasker.get_task_detail(task_id)
+        argv = self._argv
+        context = self._context
+        if argv is None or context is None:
+            return
+
+        task_id = argv.task_detail.task_id
+        task_detail = context.tasker.get_task_detail(task_id)
 
         if task_detail and task_detail.nodes:
             for node_detail in reversed(task_detail.nodes):
                 if node_detail.name in uncached_nodes:
                     # 缓存识别结果
-                    recognition_success = (
-                        node_detail.recognition is not None
-                        and node_detail.recognition.box is not None
-                    )
+                    recognition = node_detail.recognition
+                    box = recognition.box if recognition is not None else None
+                    recognition_success = box is not None
                     self._external_node_cache[node_detail.name] = recognition_success
 
                     # 缓存ROI
-                    if recognition_success:
+                    if box is not None:
                         # 标准化外部节点的ROI
-                        external_roi = self._normalize_roi(
-                            list(node_detail.recognition.box)
-                        )
+                        external_roi = self._normalize_roi(list(box))
                         self._external_roi_cache[node_detail.name] = external_roi
                     else:
                         self._external_roi_cache[node_detail.name] = None
@@ -172,13 +175,13 @@ class MultiRecognition(CustomRecognition):
         logic_type = logic.get("type", "AND")
 
         if logic_type == "AND":
-            for key, result in node_results.items():
+            for _key, result in node_results.items():
                 if result is None:
                     return False
             return True
 
         elif logic_type == "OR":
-            for key, result in node_results.items():
+            for _key, result in node_results.items():
                 if result is not None:
                     return True
             return False
@@ -213,10 +216,13 @@ class MultiRecognition(CustomRecognition):
                 if external_node_names:
                     # 确保外部节点信息已缓存
                     self._ensure_external_nodes_cached(external_node_names)
+                    external_node_cache = self._external_node_cache
+                    if external_node_cache is None:
+                        return False
 
                     # 替换外部节点引用
                     for node_name in external_node_names:
-                        recognition_success = self._external_node_cache.get(
+                        recognition_success = external_node_cache.get(
                             node_name, False
                         )
                         bool_value = "True" if recognition_success else "False"
@@ -334,10 +340,13 @@ class MultiRecognition(CustomRecognition):
         if external_node_names:
             # 确保外部节点信息已缓存
             self._ensure_external_nodes_cached(external_node_names)
+            external_roi_cache = self._external_roi_cache
+            if external_roi_cache is None:
+                return None
 
             # 替换外部节点ROI引用
             for node_name in external_node_names:
-                roi = self._external_roi_cache.get(node_name)
+                roi = external_roi_cache.get(node_name)
 
                 if roi is not None:
                     roi_str = f"[{roi[0]},{roi[1]},{roi[2]},{roi[3]}]"
@@ -534,6 +543,9 @@ class MultiRecognition(CustomRecognition):
         图像缩放规则：较短边缩放到720，长边按比例缩放
         """
         if roi == [0, 0, 0, 0]:
+            if self._argv is None:
+                return roi
+
             original_height, original_width = self._argv.image.shape[:2]
 
             if original_width <= original_height:
@@ -633,8 +645,8 @@ class ColorOCR(CustomRecognition):
             # 在处理后的图像上运行OCR识别
             reco_detail = context.run_recognition(recognition_node, processed_img)
 
-            if reco_detail and reco_detail.hit:
-                logger.debug(f"ColorOCR识别成功: {reco_detail.best_result.text}")
+            if is_hit(reco_detail):
+                logger.debug(f"ColorOCR识别成功: {ocr_text(reco_detail)}")
                 return CustomRecognition.AnalyzeResult(
                     box=reco_detail.box, detail=reco_detail.raw_detail
                 )
@@ -708,7 +720,7 @@ class ColorOCRWithFallback(CustomRecognition):
             # 在处理后的图像上运行OCR识别
             reco_detail = context.run_recognition(recognition_node, processed_img)
 
-            if reco_detail and reco_detail.hit:
+            if is_hit(reco_detail):
                 logger.debug("ColorOCRWithFallback: ColorOCR识别成功")
                 return CustomRecognition.AnalyzeResult(
                     box=reco_detail.box,
@@ -729,7 +741,7 @@ class ColorOCRWithFallback(CustomRecognition):
                 },
             )
 
-            if reco_detail and reco_detail.hit:
+            if is_hit(reco_detail):
                 logger.debug("ColorOCRWithFallback: 纯OCR识别成功")
                 return CustomRecognition.AnalyzeResult(
                     box=reco_detail.box,

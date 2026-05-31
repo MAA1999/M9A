@@ -7,6 +7,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JOCR, JRecognitionType
 from utils import logger
+from utils.maa_types import boxed_results, is_hit, ocr_text
 from utils.params import parse_params
 
 __all__ = ["SwitchAccountSelect"]
@@ -129,14 +130,13 @@ class SwitchAccountSelect(CustomAction):
         return []
 
     def _extract_boxes(self, reco_detail) -> list[tuple[int, int, int, int]]:
-        if reco_detail is None or not reco_detail.hit:
+        if not is_hit(reco_detail):
             return []
 
         boxes: list[tuple[int, int, int, int]] = []
-        for result in getattr(reco_detail, "filtered_results", []) or []:
-            box = getattr(result, "box", None)
-            if box:
-                boxes.append((int(box[0]), int(box[1]), int(box[2]), int(box[3])))
+        for result in boxed_results(reco_detail):
+            box = result.box
+            boxes.append((int(box[0]), int(box[1]), int(box[2]), int(box[3])))
 
         if not boxes:
             best = getattr(reco_detail, "best_result", None)
@@ -165,7 +165,7 @@ class SwitchAccountSelect(CustomAction):
             JOCR(roi=row_roi, order_by="Vertical"),
             img,
         )
-        if reco_detail is None or not reco_detail.hit:
+        if not is_hit(reco_detail):
             return ""
 
         texts: list[str] = []
@@ -175,8 +175,7 @@ class SwitchAccountSelect(CustomAction):
                 texts.append(text)
 
         if not texts:
-            best = getattr(reco_detail, "best_result", None)
-            text = (getattr(best, "text", "") or "").strip() if best is not None else ""
+            text = ocr_text(reco_detail).strip()
             if text:
                 texts.append(text)
 

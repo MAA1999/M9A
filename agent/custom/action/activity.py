@@ -6,6 +6,7 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 from utils import logger, ms_timestamp_diff_to_dhm
+from utils.maa_types import ocr_text
 from utils.params import parse_params
 
 
@@ -391,7 +392,8 @@ class SailingRecordBoatSelect(CustomAction):
                     img,
                     {"SailingRecordBoatPointRecord": {"roi": roi_dices[i]}},
                 )
-                if best_choice.count(i) > int(reco_detail.best_result.text):
+                point = int(ocr_text(reco_detail))
+                if best_choice.count(i) > point:
                     context.run_task(
                         "SailingRecordBoatOp",
                         {
@@ -401,7 +403,7 @@ class SailingRecordBoatSelect(CustomAction):
                             }
                         },
                     )
-                elif best_choice.count(i) < int(reco_detail.best_result.text):
+                elif best_choice.count(i) < point:
                     context.run_task(
                         "SailingRecordBoatOp",
                         {

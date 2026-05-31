@@ -6,6 +6,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JOCR, JRecognitionType, JTemplateMatch
 from utils import logger
+from utils.maa_types import best_box, boxed_results, is_hit, ocr_text
 from utils.params import parse_params
 
 KEYCODE_DPAD_UP = 19
@@ -86,14 +87,14 @@ class EightBitCombatInit(CustomAction):
             img,
         )
 
-        if reco_boss and reco_boss.hit:
+        if is_hit(reco_boss):
             logger.debug("[8bit] 识别到 Boss，退出到主页面")
             context.run_task("8bitExit")
             return CustomAction.RunResult(success=True)
 
-        EightBitCombatInit.wall_detection_enabled = (
-            reco_bottom is not None and reco_bottom.hit
-        ) or (reco_tp is not None and reco_tp.hit)
+        EightBitCombatInit.wall_detection_enabled = is_hit(reco_bottom) or is_hit(
+            reco_tp
+        )
         if EightBitCombatInit.wall_detection_enabled:
             logger.debug("[8bit] 开启碰壁检测")
 
@@ -303,8 +304,8 @@ class EightBitCombatMove(CustomAction):
             img,
         )
 
-        if reco_tp and reco_tp.hit and reco_tp.best_result:
-            box = reco_tp.best_result.box
+        box = best_box(reco_tp)
+        if box is not None:
             return (box[0] + box[2] // 2, box[1] + box[3] // 2)
 
         return None
@@ -322,27 +323,28 @@ class EightBitCombatMove(CustomAction):
             img,
         )
 
-        if reco_people and reco_people.hit and reco_people.filtered_results:
-            if len(reco_people.filtered_results) == 1:
-                box = reco_people.filtered_results[0].box
+        results = boxed_results(reco_people)
+        if results:
+            if len(results) == 1:
+                box = results[0].box
                 return (box[0] + box[2] // 2, box[1] + box[3] // 2)
 
             # 多个结果时，根据上一次移动方向选择
             if EightBitCombatMove._last_move_key == KEYCODE_DPAD_RIGHT:
                 # 上次往右，选最左边的
-                best = min(reco_people.filtered_results, key=lambda r: r.box[0])
+                best = min(results, key=lambda r: r.box[0])
             elif EightBitCombatMove._last_move_key == KEYCODE_DPAD_LEFT:
                 # 上次往左，选最右边的
-                best = max(reco_people.filtered_results, key=lambda r: r.box[0])
+                best = max(results, key=lambda r: r.box[0])
             elif EightBitCombatMove._last_move_key == KEYCODE_DPAD_DOWN:
                 # 上次往下，选最上面的
-                best = min(reco_people.filtered_results, key=lambda r: r.box[1])
+                best = min(results, key=lambda r: r.box[1])
             elif EightBitCombatMove._last_move_key == KEYCODE_DPAD_UP:
                 # 上次往上，选最下面的
-                best = max(reco_people.filtered_results, key=lambda r: r.box[1])
+                best = max(results, key=lambda r: r.box[1])
             else:
                 # 没有上次操作，默认选第一个
-                best = reco_people.filtered_results[0]
+                best = results[0]
 
             box = best.box
             return (box[0] + box[2] // 2, box[1] + box[3] // 2)
@@ -396,14 +398,14 @@ class EightBitScoreRecord(CustomAction):
             img,
         )
 
-        if not (score_detail and score_detail.hit):
+        if not is_hit(score_detail):
             logger.warning("[8bit] 未识别到获得代币")
             context.tasker.controller.post_click(
                 700, 600
             ).wait()  # 点击空白处关闭可能的弹窗
             return CustomAction.RunResult(success=True)
 
-        current_score = int(score_detail.best_result.text)
+        current_score = int(ocr_text(score_detail))
         current_time = time.time()
         self._record_count += 1
 

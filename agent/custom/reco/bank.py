@@ -3,6 +3,7 @@ from maa.context import Context
 from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
 from utils import logger
+from utils.maa_types import is_hit
 from utils.params import parse_params
 
 
@@ -52,7 +53,7 @@ class BankShop(CustomRecognition):
                     {"BankShopTemplate": {"roi": roi, "expected": expected}},
                 )
 
-                if reco_detail and reco_detail.hit:
+                if is_hit(reco_detail):
                     if inverse:
                         return None
                     return reco_detail.box

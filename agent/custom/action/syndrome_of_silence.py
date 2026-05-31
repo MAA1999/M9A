@@ -5,15 +5,15 @@ import json
 import os
 import re
 import time
-from typing import cast
 
 import numpy as np
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from maa.define import NeuralNetworkDetectResult, OCRResult
+from maa.define import NeuralNetworkDetectResult
 from PIL import Image
 from utils import logger
+from utils.maa_types import is_hit, ocr_text
 from utils.params import parse_params
 
 __all__ = [
@@ -167,7 +167,7 @@ class SOSSelectNode(CustomAction):
             )
             img = context.tasker.controller.post_screencap().wait().get()
             rec = context.run_recognition("SOSGOTO", img)
-            if rec and rec.hit:
+            if is_hit(rec):
                 context.run_task("SOSGOTO")
                 break
             times += 1
@@ -184,9 +184,8 @@ class SOSSelectNode(CustomAction):
                     "SOSEventRec", img, {"SOSEventRec": {"roi": event_name_roi}}
                 )
 
-                if reco_detail and reco_detail.hit:
-                    ocr_result = cast(OCRResult, reco_detail.best_result)
-                    event = ocr_result.text
+                if is_hit(reco_detail):
+                    event = ocr_text(reco_detail)
                     SOSSelectNode.event_name = event
                     logger.info(f"当前事件: {event}")
                     break
@@ -212,7 +211,7 @@ class SOSSelectNode(CustomAction):
 
                     for interrupt in interrupts:
                         rec = context.run_recognition(interrupt, img)
-                        if rec and rec.hit:
+                        if is_hit(rec):
                             logger.debug(f"检测到弹窗，执行节点: {interrupt}")
                             context.run_task(interrupt)
                             retry_times = 0
@@ -227,7 +226,7 @@ class SOSSelectNode(CustomAction):
                 # 事件名识别失败，检查是否是购物契机被误识别为其他节点
                 img = context.tasker.controller.post_screencap().wait().get()
                 shopping_rec = context.run_recognition("SOSShopping", img)
-                if shopping_rec and shopping_rec.hit:
+                if is_hit(shopping_rec):
                     logger.warning(
                         f"节点类型 {node_type} 事件名识别失败，"
                         f"但检测到购物契机界面，修正节点类型"
@@ -382,7 +381,7 @@ class SOSNodeProcess(CustomAction):
         if isinstance(action, str):
             img = context.tasker.controller.post_screencap().wait().get()
             rec = context.run_recognition(action, img)
-            if rec and rec.hit:
+            if is_hit(rec):
                 logger.debug(f"执行中断节点: {action}")
                 context.run_task(action)
                 return True
@@ -405,11 +404,8 @@ class SOSNodeProcess(CustomAction):
 
                 img = context.tasker.controller.post_screencap().wait().get()
                 reco_detail = context.run_recognition(name, img)
-                if (
-                    reco_detail
-                    and reco_detail.hit
-                    or reco_detail
-                    and reco_detail.algorithm == "DirectHit"
+                if is_hit(reco_detail) or (
+                    reco_detail is not None and reco_detail.algorithm == "DirectHit"
                 ):
                     logger.debug(f"执行节点: {name}")
                     context.run_task(entry=name)
@@ -420,7 +416,7 @@ class SOSNodeProcess(CustomAction):
 
                 img = context.tasker.controller.post_screencap().wait().get()
                 check_reco = context.run_recognition("SOSSelectOption", img)
-                if not check_reco or not check_reco.hit:
+                if not is_hit(check_reco):
                     return False
 
                 method = action.get("method", "HSV")
@@ -498,7 +494,7 @@ class SOSNodeProcess(CustomAction):
                     check_reco = context.run_recognition(
                         "SOSSelectEncounterOptionRec_Template", img
                     )
-                    if not check_reco or not check_reco.hit:
+                    if not is_hit(check_reco):
                         logger.debug("未识别到途中偶遇选项界面，跳过")
                         return False
 
@@ -532,7 +528,7 @@ class SOSNodeProcess(CustomAction):
                     check_reco = context.run_recognition(
                         "SOSSelectEncounterOptionRec_Template", img
                     )
-                    if not check_reco or not check_reco.hit:
+                    if not is_hit(check_reco):
                         logger.debug("未识别到途中偶遇选项界面，跳过")
                         return False
 
@@ -670,7 +666,7 @@ class SOSShoppingList(CustomAction):
             processed_img[mask] = img[mask]
 
             reco_detail = context.run_recognition("SOSShoppingListOCR", processed_img)
-            if not reco_detail or not reco_detail.hit:
+            if not is_hit(reco_detail):
                 retry_times += 1
                 continue
 
@@ -779,7 +775,7 @@ class SOSShoppingList(CustomAction):
                 },
             )
 
-            if sold_out_reco and sold_out_reco.hit:
+            if is_hit(sold_out_reco):
                 logger.debug(f"跳过已售出物品: {current_text}")
                 skipped.add(current_text)
                 i += 1
@@ -878,12 +874,11 @@ class SOSBuyItems(CustomAction):
             {"OCR": {"recognition": "OCR", "roi": money_roi, "expected": r"\d{1,5}"}},
         )
 
-        if not reco_detail or not reco_detail.hit:
+        if not is_hit(reco_detail):
             logger.error("无法识别当前金雀子儿")
             return CustomAction.RunResult(success=False)
 
-        ocr_result = cast(OCRResult, reco_detail.best_result)
-        money_text = ocr_result.text
+        money_text = ocr_text(reco_detail)
 
         # 提取数字
         money_match = re.search(r"\d+", money_text)
@@ -937,7 +932,7 @@ class SOSBuyItems(CustomAction):
             img = context.tasker.controller.post_screencap().wait().get()
             reco_detail = context.run_recognition("SOSShoppingListOCR", img)
 
-            if not reco_detail or not reco_detail.hit:
+            if not is_hit(reco_detail):
                 page_index += 1
                 context.run_task(
                     "Swipe",
@@ -986,7 +981,7 @@ class SOSBuyItems(CustomAction):
 
             # 获取可见价格的物品名集合（金雀子儿足够的物品）
             affordable_items = set()
-            if price_reco_detail and price_reco_detail.hit:
+            if is_hit(price_reco_detail):
                 price_raw_detail = price_reco_detail.raw_detail
                 price_results = (
                     price_raw_detail.get("filtered", []) if price_raw_detail else []
@@ -1149,7 +1144,7 @@ class SOSBuyItems(CustomAction):
             {"SOSShoppingItemSelected": {"roi": [box[0] - 150, box[1] - 6, 35, 100]}},
         )
 
-        if not selected_reco or not selected_reco.hit:
+        if not is_hit(selected_reco):
             logger.warning(f"左侧未确认选中物品: {item_name}")
             return False
 
@@ -1165,9 +1160,8 @@ class SOSBuyItems(CustomAction):
             {"OCR": {"recognition": "OCR", "roi": bought_roi}},
         )
 
-        if bought_reco and bought_reco.hit:
-            ocr_result = cast(OCRResult, bought_reco.best_result)
-            button_text = ocr_result.text
+        if is_hit(bought_reco):
+            button_text = ocr_text(bought_reco)
 
             if "已购买" in button_text or "已购" in button_text:
                 logger.info(f"物品已购买: {item_name}")
@@ -1175,7 +1169,7 @@ class SOSBuyItems(CustomAction):
 
         # 检查购买按钮并点击
         buy_button_reco = context.run_recognition("SOSBuyButton", img)
-        if buy_button_reco and buy_button_reco.hit:
+        if is_hit(buy_button_reco):
             # 最多重试5次购买
             buy_retry = 0
             while buy_retry < 3:
@@ -1194,9 +1188,8 @@ class SOSBuyItems(CustomAction):
                     {"OCR": {"recognition": "OCR", "roi": bought_roi}},
                 )
 
-                if confirm_reco and confirm_reco.hit:
-                    ocr_result = cast(OCRResult, confirm_reco.best_result)
-                    confirm_text = ocr_result.text
+                if is_hit(confirm_reco):
+                    confirm_text = ocr_text(confirm_reco)
 
                     if "已购买" in confirm_text or "已购" in confirm_text:
                         return True
@@ -1227,7 +1220,7 @@ class SOSBuyItems(CustomAction):
             # 检查每个可能的弹窗
             for interrupt in interrupts:
                 rec = context.run_recognition(interrupt, img)
-                if rec and rec.hit:
+                if is_hit(rec):
                     logger.debug(f"检测到弹窗，执行节点: {interrupt}")
                     context.run_task(interrupt)
                     # 执行后重新开始检测，可能有连续弹窗
@@ -1280,9 +1273,8 @@ class SOSSelectNoise(CustomAction):
                 }
             },
         )
-        if reco_detail and reco_detail.hit:
-            ocr_result = cast(OCRResult, reco_detail.best_result)
-            current_level_text = ocr_result.text
+        if is_hit(reco_detail):
+            current_level_text = ocr_text(reco_detail)
             if "颤动" in current_level_text:
                 page = 1
             elif "嗡鸣" in current_level_text:
@@ -1352,9 +1344,8 @@ class SOSSelectNoise(CustomAction):
                     }
                 },
             )
-            if reco_detail and reco_detail.hit:
-                ocr_result = cast(OCRResult, reco_detail.best_result)
-                current_level_text = ocr_result.text
+            if is_hit(reco_detail):
+                current_level_text = ocr_text(reco_detail)
                 if "颤动" in current_level_text:
                     page = 1
                 elif "嗡鸣" in current_level_text:
@@ -1455,12 +1446,11 @@ class SOSSwitchStat(CustomAction):
                 img,
                 {"OCR": {"recognition": "OCR", "roi": roi, "expected": r"\d"}},
             )
-            if not reco_detail or not reco_detail.hit:
+            if not is_hit(reco_detail):
                 logger.warning(f"无法识别属性数值: {stat_names[i]}")
                 results.append(13)
                 continue
-            ocr_result = cast(OCRResult, reco_detail.best_result)
-            results.append(int(ocr_result.text))
+            results.append(int(ocr_text(reco_detail)))
 
         # 选择数值最小的属性
         target_stat = stat_names[results.index(min(results))]

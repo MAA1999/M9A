@@ -6,6 +6,7 @@ from maa.context import Context
 from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
 from utils.logger import logger
+from utils.maa_types import is_hit, ocr_results, ocr_text
 from utils.params import parse_params
 
 
@@ -31,10 +32,7 @@ class ActivityRe_releaseChapter(CustomRecognition):
         ]
         reco_detail = context.run_recognition("ActivityLeftList", argv.image)
 
-        if reco_detail is None or not reco_detail.hit:
-            return CustomRecognition.AnalyzeResult(box=None, detail={})
-
-        for result in reco_detail.all_results:
+        for result in ocr_results(reco_detail):
             if expected in result.text:
                 return CustomRecognition.AnalyzeResult(box=result.box, detail={})
 
@@ -113,6 +111,10 @@ class FindFirstUnplayedStageByCheckmark(CustomRecognition):
         mode = params.get("mode")
         # logger.info(f"[Checkmark] 开始检查关卡，难度: {difficulty}, 模式: {mode}")
 
+        if not isinstance(difficulty, str):
+            logger.error(f"[Checkmark] 无效难度: '{difficulty}'。")
+            return None
+
         stages = self.get_stage_list(difficulty)
         if not stages:
             logger.error(f"[Checkmark] 无效难度: '{difficulty}'。")
@@ -142,7 +144,7 @@ class FindFirstUnplayedStageByCheckmark(CustomRecognition):
                 pipeline_override={checkmark_node_name: {"roi": roi}},
             )
 
-            if result and result.hit:
+            if is_hit(result):
                 # 找到“√”，说明已通关
                 logger.info(f"[Checkmark] '{sid}' 已通关。")
                 if mode == "Quickly":
@@ -185,7 +187,7 @@ class SailingRecordSelectTarget(CustomRecognition):
             reco_detail = context.run_recognition(
                 "SailingRecordFindDifficult", argv.image
             )
-            if reco_detail and reco_detail.hit:
+            if is_hit(reco_detail):
                 # 扩展 roi 到 click_target
                 box = [
                     reco_detail.box[0] - 317,
@@ -199,7 +201,7 @@ class SailingRecordSelectTarget(CustomRecognition):
                     argv.image,
                     {"SailingRecordFindNormal": {"roi": box, "only_rec": False}},
                 )
-                text = reco_detail.best_result.text
+                text = ocr_text(reco_detail)
                 # 提取数字，支持负数
                 match = re.search(r"(-?\d+)\s*~\s*(-?\d+)", text)
                 if match:
@@ -218,14 +220,14 @@ class SailingRecordSelectTarget(CustomRecognition):
                     argv.image,
                     {"SailingRecordFindNormal": {"roi": roi}},
                 )
-                if reco_detail is None or not reco_detail.hit:
+                if not is_hit(reco_detail):
                     return CustomRecognition.AnalyzeResult(box=None, detail={})
                 reco_details.append(reco_detail)
 
             diffs, nums = [], []
             for detail in reco_details:
                 # text: 所需点数20~25 或 所需点数-3~3 (含负数)
-                text = detail.best_result.text
+                text = ocr_text(detail)
                 # 提取数字，支持负数
                 match = re.search(r"(-?\d+)\s*~\s*(-?\d+)", text)
                 if match:
@@ -259,17 +261,17 @@ class SailingRecordBoatRecord(CustomRecognition):
 
         roi = [131, 476, 24, 19]
         dices = []
-        for i in range(3):
+        for _i in range(3):
             points = []
-            for j in range(6):
+            for _j in range(6):
                 reco_detail = context.run_recognition(
                     "SailingRecordBoatPointRecord",
                     argv.image,
                     {"SailingRecordBoatPointRecord": {"roi": roi}},
                 )
-                if reco_detail is None or not reco_detail.hit:
+                if not is_hit(reco_detail):
                     return CustomRecognition.AnalyzeResult(box=None, detail={})
-                point = reco_detail.best_result.text
+                point = ocr_text(reco_detail)
                 point = 0 if point in ["?", "？"] else point
                 points.append(int(point))
                 roi = [roi[0] + 47, roi[1], roi[2], roi[3]]

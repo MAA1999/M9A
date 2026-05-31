@@ -1,13 +1,17 @@
 import re
 import time
+from typing import Any
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 from utils import logger
+from utils.maa_types import boxed_results, is_hit, ocr_result, ocr_text
 from utils.params import parse_params
 
 # 尝试导入掉落识别模块（仅官方发布版可用）
+DropRecognitionState: Any = None
+run_drop_recognition: Any = None
 try:
     from libs.drop_core import (  # pyright: ignore[reportMissingImports]
         DropRecognitionState,
@@ -17,8 +21,6 @@ try:
     _DROP_RECOGNITION_AVAILABLE = True
 except ImportError:
     _DROP_RECOGNITION_AVAILABLE = False
-    DropRecognitionState = None
-    run_drop_recognition = None
     logger.warning("掉落识别模块不可用，掉落上报功能已禁用")
 
 
@@ -77,9 +79,8 @@ class PsychubeDoubleTimes(CustomAction):
             img,
         )
 
-        if reco_detail and reco_detail.hit:
-            best = getattr(reco_detail, "best_result", None)
-            text = getattr(best, "text", "") if best is not None else ""
+        if is_hit(reco_detail):
+            text = ocr_text(reco_detail)
             pattern = "(\\d)/4"
             m = re.search(pattern, text)
             if not m:
@@ -164,7 +165,7 @@ class TeamSelect(CustomAction):
             },
         )
 
-        if (reco_off_old and reco_off_old.hit) or (reco_open_old and reco_open_old.hit):
+        if is_hit(reco_off_old) or is_hit(reco_open_old):
             # 旧版
             target_list = [
                 [794, 406],
@@ -192,7 +193,7 @@ class TeamSelect(CustomAction):
                         }
                     },
                 )
-                if reco_open_old and reco_open_old.hit:
+                if is_hit(reco_open_old):
                     context.tasker.controller.post_click(target[0], target[1]).wait()
                     time.sleep(1)
                     flag = True
@@ -208,7 +209,7 @@ class TeamSelect(CustomAction):
                             }
                         },
                     )
-                    if reco_off_old and reco_off_old.hit:
+                    if is_hit(reco_off_old):
                         context.tasker.controller.post_click(965, 650).wait()
                         time.sleep(1)
         else:
@@ -224,7 +225,7 @@ class TeamSelect(CustomAction):
                     }
                 },
             )
-            if not (reco_off_new and reco_off_new.hit):
+            if not is_hit(reco_off_new):
                 logger.debug("未识别到队伍选择界面")
                 return CustomAction.RunResult(success=False)
             flag = False
@@ -247,21 +248,20 @@ class TeamSelect(CustomAction):
                         }
                     },
                 )
-                if reco_open_new and reco_open_new.hit:
+                if is_hit(reco_open_new):
                     # 识别到在队伍选择界面
                     time.sleep(2)  # 等待界面稳定
                     img = context.tasker.controller.post_screencap().wait().get()
                     reco_result = context.run_recognition("TeamListEditRoi", img)
                     if (
-                        reco_result is None
-                        or not reco_result.hit
+                        not is_hit(reco_result)
                         or not reco_result.filtered_results
                     ):
                         logger.error("未识别到成员队列")
                         return CustomAction.RunResult(success=False)
                     else:
                         # 识别到每个队伍左上角标志，获取每个队伍的名称和按键位置
-                        team_rois = reco_result.filtered_results
+                        team_rois = boxed_results(reco_result)
                         team_name_rois, team_confirm_rois = [], []
                         for team_roi in team_rois:
                             x, y, w, h = team_roi.box
@@ -284,19 +284,7 @@ class TeamSelect(CustomAction):
                                     }
                                 },
                             )
-                            if (
-                                reco_detail is None
-                                or not reco_detail.hit
-                                or not getattr(reco_detail, "best_result", None)
-                            ):
-                                team_name = ""
-                            else:
-                                best = getattr(reco_detail, "best_result", None)
-                                team_name = (
-                                    getattr(best, "text", "")
-                                    if best is not None
-                                    else ""
-                                )
+                            team_name = ocr_text(reco_detail)
                             if team_name not in team_names:
                                 team_names.append(team_name)
                             # 队伍名称为新增，识别使用&使用中状态
@@ -315,25 +303,13 @@ class TeamSelect(CustomAction):
                                     }
                                 },
                             )
-                            if (
-                                reco_detail is None
-                                or not reco_detail.hit
-                                or not getattr(reco_detail, "best_result", None)
-                            ):
+                            team_use_result = ocr_result(reco_detail)
+                            if not is_hit(reco_detail) or team_use_result is None:
                                 team_use_text = ""
                                 team_use_roi = None
                             else:
-                                best = getattr(reco_detail, "best_result", None)
-                                team_use_text = (
-                                    getattr(best, "text", "")
-                                    if best is not None
-                                    else ""
-                                )
-                                team_use_roi = (
-                                    getattr(best, "box", None)
-                                    if best is not None
-                                    else None
-                                )
+                                team_use_text = team_use_result.text
+                                team_use_roi = team_use_result.box
                             team_use_status = -1
                             if "使用中" in team_use_text:
                                 team_use_status = 1
@@ -384,7 +360,7 @@ class TeamSelect(CustomAction):
                                             }
                                         },
                                     )
-                                    if reco_open_new is None or not reco_open_new.hit:
+                                    if not is_hit(reco_open_new):
                                         # 已退出选择界面
                                         flag = True
                                         break
@@ -412,7 +388,7 @@ class TeamSelect(CustomAction):
                                         "ReadyForAction", img
                                     )
 
-                                    if reco_detail and reco_detail.hit:
+                                    if is_hit(reco_detail):
                                         break
 
                                 flag = True
@@ -429,7 +405,7 @@ class TeamSelect(CustomAction):
                             }
                         },
                     )
-                    if reco_off_new and reco_off_new.hit:
+                    if is_hit(reco_off_new):
                         # 识别到不在队伍选择界面，点击打开
                         context.tasker.controller.post_click(965, 650).wait()
                         time.sleep(1)
@@ -463,12 +439,7 @@ class CombatTargetLevel(CustomAction):
         img = context.tasker.controller.post_screencap().wait().get()
         reco_detail = context.run_recognition("TargetLevelRec", img)
 
-        best = (
-            getattr(reco_detail, "best_result", None)
-            if reco_detail and reco_detail.hit
-            else None
-        )
-        reco_text = getattr(best, "text", "") if best is not None else ""
+        reco_text = ocr_text(reco_detail)
         if not reco_text or not any(
             difficulty in reco_text for difficulty in valid_levels
         ):
@@ -526,12 +497,7 @@ class ActivityTargetLevel(CustomAction):
         img = context.tasker.controller.post_screencap().wait().get()
         reco_detail = context.run_recognition("ActivityTargetLevelRec", img)
 
-        best = (
-            getattr(reco_detail, "best_result", None)
-            if reco_detail and reco_detail.hit
-            else None
-        )
-        reco_text = getattr(best, "text", "") if best is not None else ""
+        reco_text = ocr_text(reco_detail)
         if not reco_text or not any(
             difficulty in reco_text for difficulty in valid_levels
         ):
@@ -568,11 +534,7 @@ class ActivityTargetLevel(CustomAction):
             img = context.tasker.controller.post_screencap().wait().get()
             reco_detail = context.run_recognition("ActivityTargetLevelRec", img)
 
-            if reco_detail and reco_detail.hit:
-                best = getattr(reco_detail, "best_result", None)
-                cur_level = getattr(best, "text", "") if best is not None else None
-            else:
-                cur_level = None
+            cur_level = ocr_text(reco_detail) or None
 
         return CustomAction.RunResult(success=True)
 
@@ -614,7 +576,7 @@ class SelectChapter(CustomAction):
                     }
                 },
             )
-            if rec is None or not getattr(rec, "hit", False) or count >= 5:
+            if not is_hit(rec) or count >= 5:
                 flag = True
 
         return CustomAction.RunResult(success=True)
@@ -748,10 +710,11 @@ def _tc_safe_int(text: str) -> int:
 
 def _tc_get_text_safe(context: Context, img, rec_name: str) -> str:
     rec = context.run_recognition(rec_name, img)
-    if rec is None or getattr(rec, "best_result", None) is None:
+    text = ocr_text(rec)
+    if not text:
         logger.debug(f"{rec_name} 识别失败，返回None")
         return "0"
-    return getattr(rec.best_result, "text", "0") or "0"
+    return text
 
 
 def _tc_get_available_count(context: Context) -> int:
@@ -1008,7 +971,7 @@ class SSReopenReplay(CustomAction):
         # 开始刷图
         img = context.tasker.controller.cached_image
         reco_detail = context.run_recognition("SSCannotReplay", img)
-        if reco_detail and reco_detail.hit:
+        if is_hit(reco_detail):
             # 无法复现，直接开始任务
             context.run_task("SSNoReplay")
         else:

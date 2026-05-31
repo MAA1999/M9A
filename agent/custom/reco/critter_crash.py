@@ -5,6 +5,7 @@ from maa.context import Context
 from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
 from utils import logger
+from utils.maa_types import is_hit, ocr_text
 from utils.params import parse_params
 
 
@@ -24,7 +25,7 @@ class CCBuyCardRec(CustomRecognition):
 
         # 检查奖励框是否为空
         reco_detail = context.run_recognition("CCBuyCardAwardEmptyRec", argv.image)
-        if reco_detail and reco_detail.hit:
+        if is_hit(reco_detail):
             # 识别到奖励框不为空
             for chess_info in CCChessboard.chess_types:
                 card_name = chess_info["name"]
@@ -37,7 +38,7 @@ class CCBuyCardRec(CustomRecognition):
                         }
                     },
                 )
-                if reco_detail1 and reco_detail1.hit:
+                if is_hit(reco_detail1):
                     # 识别到目标卡片，查询是否可部署/能升级的棋子，有则进行
                     if CCChessboard.find_empty_position(card_name):
                         detail = {"type": 1, "action": 0, "name": card_name}
@@ -59,7 +60,7 @@ class CCBuyCardRec(CustomRecognition):
             reco_detail = context.run_recognition(
                 "CCBuyCardAwardTypeRec_Template", context.tasker.controller.cached_image
             )
-            if reco_detail and reco_detail.hit:
+            if is_hit(reco_detail):
                 # 识别到模板，判断不是藏品
                 name = "unknown_2"
             else:
@@ -75,7 +76,7 @@ class CCBuyCardRec(CustomRecognition):
         else:
             # 奖励框为空，检查剩余缪斯币是否足够购买
             reco_detail = context.run_recognition("CCRemainMoney", argv.image)
-            if reco_detail and reco_detail.hit:
+            if is_hit(reco_detail):
                 # 钱够了
                 pass
             else:
@@ -96,7 +97,7 @@ class CCBuyCardRec(CustomRecognition):
                         }
                     },
                 )
-                if reco_detail and reco_detail.hit:
+                if is_hit(reco_detail):
                     # 识别成功，检查是否有空位
                     if CCChessboard.find_empty_position(card_name):
                         # 有空位，直接返回
@@ -159,9 +160,10 @@ class CCRemainMoney(CustomRecognition):
                 "CCRemainMoney_rec_refresh", processed_img
             )
 
-        if reco_detail and reco_detail.hit:
-            logger.debug(f"识别到剩余缪斯币: {reco_detail.best_result.text}")
-            if int(reco_detail.best_result.text) >= 3:
+        if is_hit(reco_detail):
+            money = ocr_text(reco_detail)
+            logger.debug(f"识别到剩余缪斯币: {money}")
+            if int(money) >= 3:
                 return CustomRecognition.AnalyzeResult(
                     box=reco_detail.box, detail=reco_detail.raw_detail
                 )

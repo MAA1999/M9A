@@ -6,6 +6,7 @@ from maa.context import Context
 from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
 from utils import logger
+from utils.maa_types import is_hit, ocr_text
 
 
 def parse_valid_period_to_hours(text: str) -> float:
@@ -79,13 +80,13 @@ class StagePromotionComplete(CustomRecognition):
         reco_detail2 = context.run_recognition(
             "StagePromotionCurStageComplete2", argv.image
         )
-        if reco_detail and reco_detail.hit:
+        if is_hit(reco_detail):
             if reco_detail.best_result:
                 cur_flag = True
-        if reco_detail1 and reco_detail1.hit:
+        if is_hit(reco_detail1):
             if reco_detail1.best_result:
                 cur_flag = True
-        if reco_detail2 and reco_detail2.hit:
+        if is_hit(reco_detail2):
             if reco_detail2.best_result:
                 cur_flag = True
 
@@ -93,7 +94,7 @@ class StagePromotionComplete(CustomRecognition):
             reco_detail = context.run_recognition(
                 "StagePromotionClickNextStage", argv.image
             )
-            if reco_detail and reco_detail.hit:
+            if is_hit(reco_detail):
                 if not reco_detail.best_result:
                     return [0, 0, 0, 0]
             else:
@@ -172,7 +173,7 @@ class CandyPageRecord(CustomRecognition):
 
         # 先确认在吃糖界面
         reco_detail = context.run_recognition("EatCandyPage", argv.image)
-        if not reco_detail or not reco_detail.hit:
+        if not is_hit(reco_detail):
             return None
 
         # 获取当前体力及上限（默认值：体力0，上限240）
@@ -182,22 +183,16 @@ class CandyPageRecord(CustomRecognition):
         reco_remaining = context.run_recognition(
             "CandyRecognizeRemainingAp", argv.image
         )
-        if reco_remaining and reco_remaining.hit:
-            best = getattr(reco_remaining, "best_result", None)
-            if best:
-                text = getattr(best, "text", "")
-                digits = "".join(ch for ch in (text or "") if ch.isdigit())
-                if digits:
-                    remaining_ap = int(digits)
+        if is_hit(reco_remaining):
+            digits = "".join(ch for ch in ocr_text(reco_remaining) if ch.isdigit())
+            if digits:
+                remaining_ap = int(digits)
 
         reco_max = context.run_recognition("CandyRecognizeMaxAp", argv.image)
-        if reco_max and reco_max.hit:
-            best = getattr(reco_max, "best_result", None)
-            if best:
-                text = getattr(best, "text", "")
-                digits = "".join(ch for ch in (text or "") if ch.isdigit())
-                if digits:
-                    max_ap = int(digits)
+        if is_hit(reco_max):
+            digits = "".join(ch for ch in ocr_text(reco_max) if ch.isdigit())
+            if digits:
+                max_ap = int(digits)
 
         recorded_candies: dict[str, dict[str, Any]] = {
             name: {"index": idx} for idx, name in enumerate(self.candy_names)
@@ -214,12 +209,8 @@ class CandyPageRecord(CustomRecognition):
             )
 
             count = 0
-            best_result = (
-                getattr(reco_detail, "best_result", None) if reco_detail else None
-            )
-            if reco_detail and reco_detail.hit and best_result:
-                text_attr = getattr(best_result, "text", "")
-                raw_text = (text_attr or "").strip()
+            if is_hit(reco_detail):
+                raw_text = ocr_text(reco_detail).strip()
                 digits = "".join(ch for ch in raw_text if ch.isdigit())
                 if digits:
                     count = int(digits)
@@ -232,13 +223,9 @@ class CandyPageRecord(CustomRecognition):
                 argv.image,
                 {"EatCandyPageValidPeriodRecord": {"roi": self.valid_period_rois[idx]}},
             )
-            best_result = (
-                getattr(reco_detail1, "best_result", None) if reco_detail1 else None
-            )
             valid_period_text = ""
-            if reco_detail1 and reco_detail1.hit and best_result:
-                text_attr = getattr(best_result, "text", "")
-                valid_period_text = (text_attr or "").strip()
+            if is_hit(reco_detail1):
+                valid_period_text = ocr_text(reco_detail1).strip()
 
             recorded_candies[candy_name]["valid_period_text"] = valid_period_text
             recorded_candies[candy_name]["valid_period_hours"] = (

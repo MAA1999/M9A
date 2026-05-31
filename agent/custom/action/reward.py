@@ -3,6 +3,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JOCR, JActionType, JClick, JRecognitionType
 from utils import logger
+from utils.maa_types import is_hit
 
 
 @AgentServer.custom_action("RewardHandler")
@@ -28,7 +29,7 @@ class RewardHandler(CustomAction):
             img,
         )
 
-        if reco_detail and reco_detail.hit:
+        if is_hit(reco_detail):
             text_items: list[str] = []
             for item in getattr(reco_detail, "filtered_results", []) or []:
                 text = (getattr(item, "text", "") or "").strip()

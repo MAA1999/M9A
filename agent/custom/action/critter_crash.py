@@ -5,6 +5,7 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 from utils import logger
+from utils.maa_types import is_hit, ocr_text
 
 
 @AgentServer.custom_action("CCChessboard")
@@ -165,7 +166,11 @@ class CCChessboard(CustomAction):
         if chess is None:
             return False
 
-        chess_info = cls.get_chess_info(chess["name"])
+        name = chess["name"]
+        if not isinstance(name, str):
+            return False
+
+        chess_info = cls.get_chess_info(name)
         if chess["level"] >= chess_info.get("max_level", 1):
             return False  # 已达最高等级
 
@@ -349,7 +354,7 @@ class CCBuyCard(CustomAction):
                         img,
                         pipeline_override={"CCLevelMax": {"roi": roi_max}},
                     )
-                    if level_max_reco and level_max_reco.hit:
+                    if is_hit(level_max_reco):
                         max_level = CCChessboard.get_chess_info(card_name).get(
                             "max_level", 1
                         )
@@ -455,9 +460,9 @@ class CCLevelUp(CustomAction):
             reco_detail = context.run_recognition(
                 "CCLevelRec", context.tasker.controller.cached_image
             )
-            if reco_detail and reco_detail.hit:
+            if is_hit(reco_detail):
                 # 识别到文字，判断等级
-                current_level = int(reco_detail.best_result.text)
+                current_level = int(ocr_text(reco_detail))
                 if current_level > self.level:
                     logger.debug(
                         f"检测到升级，从 {self.level} 升级到 {current_level}，等待中..."

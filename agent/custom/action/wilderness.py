@@ -4,6 +4,7 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 from utils import logger
+from utils.maa_types import is_hit, ocr_text
 
 
 @AgentServer.custom_action("SummonlngSwipe")
@@ -23,18 +24,13 @@ class SummonlngSwipe(CustomAction):
         reco_first = context.run_recognition("SummonlngCardFirst", img)
         reco_last = context.run_recognition("SummonlngCardLast", img)
 
-        if (
-            reco_first is None
-            or not reco_first.hit
-            or reco_last is None
-            or not reco_last.hit
-        ):
+        if not is_hit(reco_first) or not is_hit(reco_last):
             return CustomAction.RunResult(success=True)
         x1, y1, x2, y2 = (
-            int(reco_first.best_result.box[0] + reco_first.best_result.box[2] / 2),
-            int(reco_first.best_result.box[1] + reco_first.best_result.box[3] / 2),
-            int(reco_last.best_result.box[0] + reco_last.best_result.box[2] / 2),
-            int(reco_last.best_result.box[1] + reco_last.best_result.box[3] / 2),
+            int(reco_first.box[0] + reco_first.box[2] / 2),
+            int(reco_first.box[1] + reco_first.box[3] / 2),
+            int(reco_last.box[0] + reco_last.box[2] / 2),
+            int(reco_last.box[1] + reco_last.box[3] / 2),
         )
         context.tasker.controller.post_swipe(x1, y1, x2, y2, duration=1000).wait()
 
@@ -57,7 +53,7 @@ class GoodDreamWellFishing(CustomAction):
 
         reco_detail = context.run_recognition("GoodDreamWellOCR", img)
 
-        cans = int(reco_detail.best_result.text.split("/")[0])
+        cans = int(ocr_text(reco_detail).split("/")[0])
 
         reco_detail = context.run_recognition(
             "GoodDreamWellOCR",
@@ -71,7 +67,7 @@ class GoodDreamWellFishing(CustomAction):
             },
         )
 
-        hours = int(reco_detail.best_result.text)
+        hours = int(ocr_text(reco_detail))
 
         if hours >= 16 and cans >= 4:
             index = 3

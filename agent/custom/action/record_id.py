@@ -3,6 +3,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JOCR, JRecognitionType
 from utils import logger
+from utils.maa_types import ocr_text
 
 
 @AgentServer.custom_action("RecordID")
@@ -31,9 +32,8 @@ class RecordID(CustomAction):
             JOCR(roi=self._user_name_roi, only_rec=True),
             img,
         )
-        if reco_detail and reco_detail.hit:
-            user_name = reco_detail.best_result.text.strip()
-        else:
+        user_name = ocr_text(reco_detail).strip()
+        if not user_name:
             logger.info("未识别到用户名文本")
 
         reco_detail = context.run_recognition_direct(
@@ -41,9 +41,8 @@ class RecordID(CustomAction):
             JOCR(roi=self._id_roi, only_rec=True),
             img,
         )
-        if reco_detail and reco_detail.hit:
-            account_id = reco_detail.best_result.text.strip()
-        else:
+        account_id = ocr_text(reco_detail).strip()
+        if not account_id:
             logger.info("未识别到ID文本")
 
         if user_name != RecordID.global_user_name or account_id != RecordID.global_id:

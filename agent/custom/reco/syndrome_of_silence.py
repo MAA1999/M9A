@@ -1,10 +1,11 @@
-from typing import Any, cast
+from typing import Any
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_recognition import CustomRecognition
-from maa.define import OCRResult, RectType
+from maa.define import RectType
 from utils import logger
+from utils.maa_types import best_box, boxed_results, is_hit, ocr_text
 
 
 @AgentServer.custom_recognition("SOSSelectEncounterOptionFindSelected")
@@ -22,11 +23,11 @@ class SOSSelectEncounterOptionFindSelected(CustomRecognition):
         reco_detail = context.run_recognition(
             "SOSSelectEncounterOptionRec_Template", argv.image
         )
-        if reco_detail and reco_detail.hit:
+        if is_hit(reco_detail):
             # 放大镜图标的 roi，扩大一点，方便后面颜色匹配
             Magnifier_rois = [
                 [i.box[0] - 10, i.box[1] - 10, i.box[2] + 20, i.box[3] + 12]
-                for i in reco_detail.filtered_results
+                for i in boxed_results(reco_detail)
             ]
         else:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
@@ -43,7 +44,7 @@ class SOSSelectEncounterOptionFindSelected(CustomRecognition):
                 },
             )
 
-            if selected_detail and selected_detail.hit:
+            if is_hit(selected_detail):
                 return CustomRecognition.AnalyzeResult(box=roi, detail={"roi": roi})
 
         return CustomRecognition.AnalyzeResult(box=None, detail={})
@@ -64,11 +65,11 @@ class SOSSelectEncounterOptionList(CustomRecognition):
         reco_detail = context.run_recognition(
             "SOSSelectEncounterOptionRec_Template", argv.image
         )
-        if reco_detail and reco_detail.hit:
+        if is_hit(reco_detail):
             # 放大镜图标的 roi，扩大一点
             Magnifier_rois = [
                 [i.box[0] - 10, i.box[1] - 10, i.box[2] + 20, i.box[3] + 12]
-                for i in reco_detail.filtered_results
+                for i in boxed_results(reco_detail)
             ]
         else:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
@@ -88,7 +89,7 @@ class SOSSelectEncounterOptionList(CustomRecognition):
             )
 
             status = None
-            if unselected_detail and unselected_detail.hit:
+            if is_hit(unselected_detail):
                 status = 0
             else:
                 # 未选中检测失败，再检测是否已选中
@@ -101,7 +102,7 @@ class SOSSelectEncounterOptionList(CustomRecognition):
                         }
                     },
                 )
-                if selected_detail and selected_detail.hit:
+                if is_hit(selected_detail):
                     status = 1
 
             # 匹配到有效状态后,执行 OCR 识别选项内容
@@ -118,9 +119,8 @@ class SOSSelectEncounterOptionList(CustomRecognition):
                 )
 
                 content = ""
-                if ocr_detail and ocr_detail.hit:
-                    ocr_result = cast(OCRResult, ocr_detail.best_result)
-                    content = ocr_result.text
+                if is_hit(ocr_detail):
+                    content = ocr_text(ocr_detail)
 
                     options.append({"roi": roi, "status": status, "content": content})
                     logger.debug(
@@ -149,11 +149,13 @@ class SOSSelectNode(CustomRecognition):
         forbidden_roi = [0, 140, 348, 284]
 
         reco_detail = context.run_recognition("SOSEntrustrRec", argv.image)
-        if reco_detail and reco_detail.hit:
+        if is_hit(reco_detail):
             reco_detail = context.run_recognition("SOSSelectNode_rec", argv.image)
-            if reco_detail and reco_detail.hit:
+            if is_hit(reco_detail):
                 # 获取识别到的节点位置
-                node_box = reco_detail.best_result.box
+                node_box = best_box(reco_detail)
+                if node_box is None:
+                    return CustomRecognition.AnalyzeResult(box=None, detail={})
 
                 # 判断是否在禁止区域内
                 x, y, w, h = node_box
@@ -192,9 +194,11 @@ class SOSSelectNode(CustomRecognition):
                     )
         else:
             reco_detail = context.run_recognition("SOSSelectNode_rec", argv.image)
-            if reco_detail and reco_detail.hit:
+            if is_hit(reco_detail):
                 # 获取识别到的节点位置
-                node_box = reco_detail.best_result.box
+                node_box = best_box(reco_detail)
+                if node_box is None:
+                    return CustomRecognition.AnalyzeResult(box=None, detail={})
                 # 不在禁止区域内，返回节点位置供点击
                 return CustomRecognition.AnalyzeResult(
                     box=node_box, detail=reco_detail.raw_detail

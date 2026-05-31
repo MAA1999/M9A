@@ -8,6 +8,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JOCR, JColorMatch, JRecognitionType, JTemplateMatch
 from utils import logger
+from utils.maa_types import is_hit, ocr_text
 
 _CATEGORY_UNLOCK_LEVEL: dict[str, int] = {
     "理性构成": 0,
@@ -609,8 +610,8 @@ class CIRecordLevel(CustomAction):
             JOCR(roi=self._level_roi, expected=["[1]?[0-9]+"]),
             img,
         )
-        if reco_detail and reco_detail.hit:
-            CIRecord.level = int(reco_detail.best_result.text.strip())
+        if is_hit(reco_detail):
+            CIRecord.level = int(ocr_text(reco_detail).strip())
             logger.info(f"当前研究所等级: {CIRecord.level}")
         else:
             logger.error("未识别出研究所等级")
@@ -636,7 +637,7 @@ class CITask(CustomAction):
             JOCR(roi=self._task_roi, order_by="Vertical"),
             img,
         )
-        if reco_detail and reco_detail.hit:
+        if is_hit(reco_detail):
             text_items: list[str] = []
             for item in getattr(reco_detail, "filtered_results", []) or []:
                 text = (getattr(item, "text", "") or "").strip()
@@ -706,7 +707,7 @@ class CITask(CustomAction):
         roi: tuple[int, int, int, int],
         desired_selected: bool,
     ) -> bool:
-        for attempt in range(3):
+        for _attempt in range(3):
             is_selected = self._is_option_selected(context, roi)
             if is_selected == desired_selected:
                 logger.info(
@@ -737,7 +738,7 @@ class CITask(CustomAction):
             ),
             img,
         )
-        return bool(reco_detail and reco_detail.hit)
+        return is_hit(reco_detail)
 
 
 @AgentServer.custom_action("CIRecordPeopleMaxCount")
@@ -760,7 +761,7 @@ class CIRecordPeopleMaxCount(CustomAction):
             ),
             img,
         )
-        if reco_detail and reco_detail.hit:
+        if is_hit(reco_detail):
             CIRecord.researcher_max_count = len(reco_detail.filtered_results)
             logger.info(f"当前最多可参与研究的人数: {CIRecord.researcher_max_count}")
 
@@ -1144,7 +1145,7 @@ class CISelectResearchers(CustomAction):
                 ),
                 img,
             )
-            return bool(reco_detail and reco_detail.hit)
+            return is_hit(reco_detail)
 
         if spec.kind == "ocr":
             reco_detail = context.run_recognition_direct(
@@ -1155,7 +1156,7 @@ class CISelectResearchers(CustomAction):
                 ),
                 img,
             )
-            return bool(reco_detail and reco_detail.hit)
+            return is_hit(reco_detail)
 
         if spec.kind == "color":
             reco_detail = context.run_recognition_direct(
@@ -1169,7 +1170,7 @@ class CISelectResearchers(CustomAction):
                 ),
                 img,
             )
-            return bool(reco_detail and reco_detail.hit)
+            return is_hit(reco_detail)
 
         logger.error(f"未知研究员识别类型: {spec.kind}")
         return False
@@ -1186,10 +1187,10 @@ class CISelectResearchers(CustomAction):
             ),
             img,
         )
-        if reco_detail is None or not reco_detail.hit:
+        if not is_hit(reco_detail):
             return None
 
-        text = getattr(reco_detail.best_result, "text", "") or ""
+        text = ocr_text(reco_detail)
         digits = re.sub(r"[^\d]", "", text)
         if not digits:
             return None

@@ -5,6 +5,7 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 from utils import logger
+from utils.maa_types import is_hit, ocr_text
 from utils.params import parse_params
 
 
@@ -42,10 +43,10 @@ class LucidscapeStageSelect(CustomAction):
                 img,
                 {"LucidscapeStageLocked": {"expected": f"\\d/{max}", "roi": roi}},
             )
-            if reco_detail is None or not reco_detail.hit:
+            if not is_hit(reco_detail):
                 return CustomAction.RunResult(success=False)
             pattern = f"(\\d{{1,3}})/{max}"
-            text = reco_detail.best_result.text
+            text = ocr_text(reco_detail)
             logger.debug(f"text: {text}")
             match = re.search(pattern, text)
             if match:
@@ -96,7 +97,7 @@ class LucidscapeStatusDetect(CustomAction):
 
         # Finish
         reco_detail = context.run_recognition("LucidscapeFinish", img)
-        if reco_detail and reco_detail.hit:
+        if is_hit(reco_detail):
             logger.info(f"醒梦片段·{self._int2RomanNumeral(stage)}已完成")
             logger.info("领取本层酬劳")
             if stage == 4:
@@ -116,7 +117,7 @@ class LucidscapeStatusDetect(CustomAction):
 
         # StageFlag02
         reco_detail = context.run_recognition("LucidscapeStageFlag02", img)
-        if reco_detail and reco_detail.hit:
+        if is_hit(reco_detail):
             context.tasker.controller.post_click(990, 300).wait()
             context.override_next(
                 "LucidscapeCombatStartFlag", ["LucidscapeTeamSelect_2"]
@@ -126,7 +127,7 @@ class LucidscapeStatusDetect(CustomAction):
 
         # StageFlag01
         reco_detail = context.run_recognition("LucidscapeStageFlag01", img)
-        if reco_detail and reco_detail.hit:
+        if is_hit(reco_detail):
             context.tasker.controller.post_click(320, 445).wait()
             context.override_next(
                 "LucidscapeCombatStartFlag", ["LucidscapeTeamSelect_1"]
