@@ -404,6 +404,7 @@ class SOSNodeProcess(CustomAction):
 
                 img = context.tasker.controller.post_screencap().wait().get()
                 reco_detail = context.run_recognition(name, img)
+                # DirectHit nodes are executable even when Maa does not provide a box.
                 if is_hit(reco_detail) or (
                     reco_detail is not None and reco_detail.algorithm == "DirectHit"
                 ):
