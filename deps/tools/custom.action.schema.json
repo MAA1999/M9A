@@ -31,6 +31,7 @@
                 "TargetCountProgress",
                 "TargetCountFinish",
                 "TargetCountAbort",
+                "BalancedFarmingAnalyze",
                 "JudgeDepthsOfMythWeekly",
                 "ResetEatCandyFlag",
                 "CombatActivityOverride",
@@ -148,6 +149,9 @@
         },
         {
             "$ref": "#/$defs/TargetCountAbort"
+        },
+        {
+            "$ref": "#/$defs/BalancedFarmingAnalyze"
         },
         {
             "$ref": "#/$defs/JudgeDepthsOfMythWeekly"
@@ -872,6 +876,14 @@
                 "custom_action": {
                     "const": "TargetCountAbort",
                     "description": "识别失败等异常情况下终止刷图任务。"
+                }
+            }
+        },
+        "BalancedFarmingAnalyze": {
+            "properties": {
+                "custom_action": {
+                    "const": "BalancedFarmingAnalyze",
+                    "description": "识别仓库紫色主线材料数量，选择最少的一种并覆盖作战关卡参数。"
                 }
             }
         },
