@@ -1,0 +1,135 @@
+{
+    "BalancedFarming": {
+        "next": [
+            "BF_EnterWarehouse",
+            "[JumpBack]ReturnMain"
+        ]
+    },
+    "BF_EnterWarehouse": {
+        "desc": "主界面左侧栏点击仓库入口",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    4,
+                    154,
+                    149,
+                    397
+                ],
+                "expected": "仓库"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 2000,
+        "next": [
+            "BF_WarehouseFlag",
+            "BF_EnterWarehouse"
+        ]
+    },
+    "BF_WarehouseFlag": {
+        "desc": "确认已进入仓库界面（左侧分类页签出现）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    30,
+                    140,
+                    140,
+                    360
+                ],
+                "expected": "消耗品"
+            }
+        },
+        "post_delay": 1000,
+        "next": [
+            "BF_Analyze"
+        ]
+    },
+    "BF_Analyze": {
+        "desc": "识别紫色材料数量并选定刷取关卡",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BalancedFarmingAnalyze"
+            }
+        },
+        "next": [
+            "BF_ExitWarehouse"
+        ]
+    },
+    "BF_ExitWarehouse": {
+        "desc": "点击返回键退出仓库（不占用 ReturnMain 配额）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    134,
+                    138
+                ],
+                "template": "StartUp/BackButton.png",
+                "green_mask": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 2000,
+        "next": [
+            "BF_AtMain",
+            "BF_ExitWarehouse"
+        ]
+    },
+    "BF_AtMain": {
+        "desc": "确认已回到主界面（左侧栏出现仓库入口）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    4,
+                    154,
+                    149,
+                    397
+                ],
+                "expected": "仓库"
+            }
+        },
+        "next": [
+            "DisableUpload"
+        ]
+    },
+    "BF_ItemIcon": {
+        "desc": "供 BalancedFarmingAnalyze 调用：仓库网格中匹配单个材料图标",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    160,
+                    90,
+                    1120,
+                    630
+                ],
+                "threshold": 0.95,
+                "template": "Warehouse/Item-110103.png"
+            }
+        }
+    },
+    "BF_ItemCount": {
+        "desc": "供 BalancedFarmingAnalyze 调用：识别图标下方数量文字",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    100,
+                    40
+                ],
+                "only_rec": true
+            }
+        }
+    }
+}

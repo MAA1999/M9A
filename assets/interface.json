@@ -166,6 +166,7 @@
         "resource/tasks/Wilderness.json",
         "resource/tasks/Psychube.json",
         "resource/tasks/Combat.json",
+        "resource/tasks/BalancedFarming.json",
         "resource/tasks/CombatActivity.json",
         "resource/tasks/Limbo.json",
         "resource/tasks/Lucidscape.json",
