@@ -98,7 +98,7 @@
             }
         },
         "next": [
-            "DisableUpload"
+            "Combat"
         ]
     },
     "BF_ItemIcon": {
@@ -112,8 +112,9 @@
                     1120,
                     630
                 ],
-                "threshold": 0.95,
-                "template": "Warehouse/Item-110103.png"
+                "threshold": 0.9,
+                "green_mask": true,
+                "template": "Items_processed/Item-110103.png"
             }
         }
     },

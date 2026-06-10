@@ -8,21 +8,14 @@ from maa.custom_action import CustomAction
 from utils import logger
 from utils.maa_types import best_box, ocr_text
 
-DATA_PATH = "resource/data/combat/balanced_farming.json"
-
-# 仓库列表最多翻页次数，防止滑动判断异常时死循环
-MAX_SCROLL_PAGES = 5
-# 数量文字相对图标 box 的偏移：(dx, dy, dw, dh)，dy 基于图标底边；
-# 横向收窄到图标内部，避免把格子两侧装饰认成数字
-COUNT_ROI_OFFSET = (8, 0, -16, 36)
-
-
 @AgentServer.custom_action("BalancedFarmingAnalyze")
 class BalancedFarmingAnalyze(CustomAction):
-    """
-    在仓库界面识别各紫色主线材料数量，选出最少的一种，
-    覆盖 SelectCombatStage 的关卡参数后接入常规作战流程。
-    """
+    _DATA_PATH = "resource/data/combat/balanced_farming.json"
+    # 仓库列表最多翻页次数，防止滑动判断异常时死循环
+    _MAX_SCROLL_PAGES = 5
+    # 数量文字相对图标 box 的偏移：(dx, dy, dw, dh)，dy 基于图标底边；
+    # 横向收窄到图标内部，避免把格子两侧装饰认成数字
+    _COUNT_ROI_OFFSET = (8, 0, -16, 36)
 
     def run(
         self,
@@ -31,10 +24,10 @@ class BalancedFarmingAnalyze(CustomAction):
     ) -> CustomAction.RunResult:
 
         try:
-            with open(DATA_PATH, encoding="utf-8") as f:
+            with open(self._DATA_PATH, encoding="utf-8") as f:
                 materials: dict[str, dict] = json.load(f)
         except (OSError, json.JSONDecodeError) as e:
-            logger.error(f"读取材料映射表失败: {DATA_PATH}, {e}")
+            logger.error(f"读取材料映射表失败: {self._DATA_PATH}, {e}")
             return CustomAction.RunResult(success=False)
 
         # 每页都对全部材料做匹配，收集多次读数；
@@ -43,7 +36,7 @@ class BalancedFarmingAnalyze(CustomAction):
         # 图标已找到但数量识别失败的材料，不能按 0 计，需排除出候选
         unreadable: set[str] = set()
 
-        for page in range(MAX_SCROLL_PAGES):
+        for page in range(self._MAX_SCROLL_PAGES):
             img = context.tasker.controller.post_screencap().wait().get()
             for item_id in materials:
                 found, count = self._recognize_item(context, img, item_id)
@@ -127,7 +120,7 @@ class BalancedFarmingAnalyze(CustomAction):
             {
                 "BF_ItemIcon": {
                     "recognition": {
-                        "param": {"template": f"Warehouse/Item-{item_id}.png"}
+                        "param": {"template": f"Items_processed/Item-{item_id}.png"}
                     }
                 }
             },
@@ -137,7 +130,7 @@ class BalancedFarmingAnalyze(CustomAction):
             return False, None
 
         x, y, w, h = box
-        dx, dy, dw, dh = COUNT_ROI_OFFSET
+        dx, dy, dw, dh = self._COUNT_ROI_OFFSET
         if y + h + dy + dh > 718:
             # 数量条被屏幕底部裁切，本屏不读，等滚动后完整出现再读
             return False, None
