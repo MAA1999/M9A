@@ -8,6 +8,7 @@ from maa.custom_action import CustomAction
 from utils import logger
 from utils.maa_types import best_box, ocr_text
 
+
 @AgentServer.custom_action("BalancedFarmingAnalyze")
 class BalancedFarmingAnalyze(CustomAction):
     _DATA_PATH = "resource/data/combat/balanced_farming.json"
