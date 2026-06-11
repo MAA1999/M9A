@@ -256,7 +256,10 @@
                     64,
                     64
                 ],
-                "template": "OutsideDeduction/SOD_Combating.png"
+                "template": [
+                    "OutsideDeduction/SOD_Combating.png",
+                    "OutsideDeduction/SOD_Combating_1.png"
+                ]
             }
         },
         "action": {

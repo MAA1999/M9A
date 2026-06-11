@@ -1,0 +1,31 @@
+{
+    "task": [
+        {
+            "name": "(测试中)活动推图v2",
+            "entry": "AutoPromotion",
+            "option": [
+                "吃糖"
+            ],
+            "pipeline_override": {
+                "WaitReplay": {
+                    "recognition": {
+                        "param": {
+                            "roi": [
+                                1040,
+                                575,
+                                240,
+                                100
+                            ],
+                            "expected": [
+                                "复现",
+                                "开始行动"
+                            ]
+                        }
+                    }
+                }
+            },
+            "group": ["standalone"],
+            "description": "<span style=\"color:tomato;font-size:15px\">本功能处于测试中。使用前请先手动进入活动关卡地图页，再运行本任务。</span><br>自动识别编号旁带灰色星标的未完成关卡并依次推进：剧情自动跳过、战斗使用当前队伍直接开始行动，直到地图上没有未完成关卡。<br>遇到小游戏、特殊教程等无法自动处理的界面时任务会自动停止并保存截图，请手动完成后回到关卡地图页重新运行即可继续。"
+        }
+    ]
+}

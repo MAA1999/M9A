@@ -1,0 +1,192 @@
+{
+    "AutoPromotion": {
+        "desc": "通用活动推图：先手动进入活动关卡地图页再启动，自动推进直到无未完成关卡",
+        "timeout": 60000,
+        "on_error": [
+            "AP_UnknownScreen"
+        ],
+        "next": [
+            "CheckStopping",
+            "AP_BossBalanceMode",
+            "[JumpBack]StagePromotionFlagInCombat",
+            "[JumpBack]StagePromotionCombatVictory",
+            "AP_CombatDefeat",
+            "[JumpBack]AP_InCombatRT",
+            "[JumpBack]EatCandyPage",
+            "[JumpBack]StagePromotionSkipConfirm",
+            "[JumpBack]StagePromotionSkip",
+            "[JumpBack]Confirm",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]ClickBlank",
+            "[JumpBack]StagePromotionStartAction",
+            "[JumpBack]AP_EnterStage",
+            "[JumpBack]AP_SwipeMap",
+            "AP_AllDone"
+        ]
+    },
+    "APStageNumberOCR": {
+        "desc": "辅助节点：地图底部条关卡编号 OCR，仅供 APMapAnalyze 内部调用，请勿加入 next",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    81,
+                    538,
+                    1130,
+                    87
+                ],
+                "expected": "\\d"
+            }
+        }
+    },
+    "AP_EnterStage": {
+        "desc": "地图页：找到编号最小的未完成关卡（编号旁灰色星标）并点击进入",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APMapAnalyze",
+                "custom_recognition_param": {
+                    "query": "stage"
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500
+    },
+    "AP_SwipeMap": {
+        "desc": "地图页当前画面无未完成关卡时向后滑动翻页",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APMapAnalyze",
+                "custom_recognition_param": {
+                    "query": "swipe"
+                }
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    900,
+                    586,
+                    40,
+                    20
+                ],
+                "end": [
+                    340,
+                    586,
+                    40,
+                    20
+                ],
+                "duration": 800
+            }
+        },
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                230,
+                500,
+                1050,
+                145
+            ]
+        },
+        "post_delay": 1000
+    },
+    "AP_AllDone": {
+        "desc": "地图滑到尽头且全部关卡完成，推图正常结束",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APMapAnalyze",
+                "custom_recognition_param": {
+                    "query": "done"
+                }
+            }
+        },
+        "focus": {
+            "Node.Action.Starting": "<span style=\"color:green\">活动推图完成，当前地图无未完成关卡</span>"
+        }
+    },
+    "AP_InCombatRT": {
+        "desc": "实时卡牌战斗中（左上角轮次/回合计数），等待游戏内自动战斗打完",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    300,
+                    70
+                ],
+                "expected": [
+                    "轮次",
+                    "回合"
+                ]
+            }
+        },
+        "post_delay": 5000
+    },
+    "AP_CombatDefeat": {
+        "desc": "战斗失败结算页：点击关闭后结束任务，交给用户调整队伍",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    400,
+                    10,
+                    751,
+                    290
+                ],
+                "expected": "战斗失败"
+            }
+        },
+        "pre_wait_freezes": {
+            "time": 500,
+            "target": [
+                622,
+                522,
+                659,
+                145
+            ]
+        },
+        "action": {
+            "type": "Click"
+        },
+        "focus": {
+            "Node.Action.Starting": "<span style=\"color:crimson\">战斗失败，推图任务已停止。请调整队伍后重新运行本任务继续</span>"
+        }
+    },
+    "AP_BossBalanceMode": {
+        "desc": "BOSS 制衡模式介绍页：不自动挑战，正常结束任务交给用户手动处理。标题是艺术字 OCR 读不出，匹配正文【制衡模式】",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    60,
+                    20,
+                    520,
+                    440
+                ],
+                "expected": "制衡模式"
+            }
+        },
+        "focus": {
+            "Node.Action.Starting": "<span style=\"color:orange\">检测到 BOSS 制衡模式，推图任务到此结束，请手动完成 BOSS 挑战</span>"
+        }
+    },
+    "AP_UnknownScreen": {
+        "desc": "调度超时兜底：保存截图与日志后报错结束",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "APSaveDebug"
+            }
+        },
+        "focus": {
+            "Node.Action.Starting": "<span style=\"color:crimson\">推图遇到无法自动处理的界面（如小游戏、特殊教程等），已保存截图至 debug/auto_promotion。请手动完成当前内容并回到活动关卡地图页，然后重新运行本任务继续推图</span>"
+        }
+    }
+}

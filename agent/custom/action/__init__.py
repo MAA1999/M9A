@@ -3,6 +3,7 @@ from importlib import import_module
 ACTION_MODULES = (
     "general",
     "activity",
+    "auto_promotion",
     "bank",
     "combat",
     "lucidscape",

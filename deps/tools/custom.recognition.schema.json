@@ -20,7 +20,8 @@
                 "LucidscapeStageSelect",
                 "SOSSelectNode",
                 "SOSSelectEncounterOptionList",
-                "SOSSelectEncounterOptionFindSelected"
+                "SOSSelectEncounterOptionFindSelected",
+                "APMapAnalyze"
             ]
         }
     },
@@ -75,6 +76,9 @@
         },
         {
             "$ref": "#/$defs/SOSSelectEncounterOptionFindSelected"
+        },
+        {
+            "$ref": "#/$defs/APMapAnalyze"
         }
     ],
     "$defs": {
@@ -431,6 +435,36 @@
                 "custom_recognition": {
                     "const": "StagePromotionComplete",
                     "description": "推图模式完成判断（当前关为满星且无下一关）"
+                }
+            }
+        },
+        "APMapAnalyze": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_recognition": {
+                    "const": "APMapAnalyze",
+                    "description": "活动自动推图地图分析"
+                },
+                "custom_recognition_param": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "enum": [
+                                "stage",
+                                "swipe",
+                                "done"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "query"
+                    ],
+                    "additionalProperties": false
                 }
             }
         },

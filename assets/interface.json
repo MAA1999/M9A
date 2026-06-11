@@ -181,6 +181,7 @@
         "resource/tasks/Colosseum.json",
         "resource/tasks/TheAlarm.json",
         "resource/tasks/StagePromotion.json",
+        "resource/tasks/AutoPromotion.json",
         "resource/tasks/CritterCrash.json",
         "resource/tasks/PreStormProtocol.json",
         "resource/tasks/UTTU.json",

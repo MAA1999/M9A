@@ -63,7 +63,8 @@
                 "CISelectResearchers",
                 "EightBitCombatMove",
                 "EightBitScoreRecord",
-                "EightBitCombatInit"
+                "EightBitCombatInit",
+                "APSaveDebug"
             ]
         }
     },
@@ -250,6 +251,9 @@
         },
         {
             "$ref": "#/$defs/EightBitCombatInit"
+        },
+        {
+            "$ref": "#/$defs/APSaveDebug"
         }
     ],
     "$defs": {
@@ -1237,6 +1241,14 @@
                 "custom_action": {
                     "const": "EightBitCombatInit",
                     "description": "8-bit 战斗初始化，检测是否需要开启碰壁检测"
+                }
+            }
+        },
+        "APSaveDebug": {
+            "properties": {
+                "custom_action": {
+                    "const": "APSaveDebug",
+                    "description": "活动自动推图未知界面截图保存"
                 }
             }
         }
