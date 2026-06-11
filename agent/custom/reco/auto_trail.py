@@ -114,11 +114,13 @@ class ATTrailAnalyze(ParamOverrideMixin, CustomRecognition):
     # 地图页锚点关键词（同 APMapAnalyze）
     ANCHOR_KEYWORDS = ("探索", "故事")
 
-    # 小径列表（地图页左侧）。列表会随完成进度向上滚动，任务项 y 范围放宽
+    # 小径列表（地图页左侧）。列表会随完成进度向上滚动，任务项 y 范围放宽。
+    # 排除词含「模式」：双按钮布局（1987/唐人街影话等）的故事/探索模式按钮
+    # 落在列表区内，不能被当成任务项点击
     ITEM_Y_MIN = 170
     ITEM_Y_MAX = 440
     ITEM_X_MAX = 190
-    ITEM_EXCLUDES = ("探索模式", "开启")
+    ITEM_EXCLUDES = ("模式", "开启")
     TASK_REPEAT_LIMIT = 4
     TITLE_CLICK_LIMIT = 2
 

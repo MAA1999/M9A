@@ -134,8 +134,10 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
 
     # Keep OCR candidates on the activity stage rail only. This rejects edge
     # UI, route decorations, and partially visible OCR boxes before star checks.
+    # X_MAX 须 >=1240：地图滑到尽头时最后一关可能停在屏幕右缘（唐人街影话
+    # 21 关 cx=1226），过滤掉会被永久跳过
     STAGE_BOX_CENTER_X_MIN = 120
-    STAGE_BOX_CENTER_X_MAX = 1160
+    STAGE_BOX_CENTER_X_MAX = 1240
     STAGE_BOX_CENTER_Y_MIN = 535
     STAGE_BOX_CENTER_Y_MAX = 620
     STAGE_BOX_H_MIN = 10
@@ -215,6 +217,10 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
 
         if query == "stage":
             if not incomplete:
+                return None
+            # 锚点校验：关卡详情页底部也有缩略关卡条（数字 token），
+            # 没有左上模式标签锚点就不是地图页，不能找关点击
+            if not self._is_explore_map(context, argv.image):
                 return None
             text, num, box, detail = min(incomplete, key=lambda item: item[1])
             if self._needs_zero_stage_confirm(detail):

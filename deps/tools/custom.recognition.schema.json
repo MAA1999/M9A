@@ -579,7 +579,7 @@
                         },
                         "stage_box_center_x_max": {
                             "type": "integer",
-                            "default": 1160,
+                            "default": 1240,
                             "description": "关卡编号框中心 x 上限"
                         },
                         "stage_box_center_x_min": {
