@@ -28,7 +28,10 @@ class ATTrailAnalyze(CustomRecognition):
     - done:     地图页且列表区无任务项，或反复点击同一项无响应（剩余全为锁定项）
 
     地图页判定复用推图的 APStageNumberOCR（底部关卡编号条）：
-    小径列表完成数量多了会向上滚动，「小径」标题会滚出屏幕，不能作为锚点。
+    小径列表完成数量多了会向上滚动，「小径」标题会滚出屏幕，不能作为锚点；
+    任务少到一定数量后标题会彻底消失，列表里只剩任务项。
+    标题可点击折叠/展开列表——若启动时列表被收起（无任务项但标题在），
+    先点标题展开，避免误判全部完成。
 
     参数格式 (custom_recognition_param):
     {
@@ -60,8 +63,9 @@ class ATTrailAnalyze(CustomRecognition):
     ITEM_Y_MIN = 170
     ITEM_Y_MAX = 440
     ITEM_X_MAX = 190
-    ITEM_EXCLUDES = ("小径", "探索模式", "开启")
+    ITEM_EXCLUDES = ("探索模式", "开启")
     TASK_REPEAT_LIMIT = 4
+    TITLE_CLICK_LIMIT = 2
 
     CJK_RE = re.compile(r"[一-鿿]")
 
@@ -71,6 +75,7 @@ class ATTrailAnalyze(CustomRecognition):
     _dialog_sig: bytes | None = None
     _dialog_same: int = 0
     _dialog_pending: int = 0
+    _title_clicks: int = 0
 
     @classmethod
     def reset_state(cls) -> None:
@@ -79,6 +84,7 @@ class ATTrailAnalyze(CustomRecognition):
         cls._dialog_sig = None
         cls._dialog_same = 0
         cls._dialog_pending = 0
+        cls._title_clicks = 0
 
     @classmethod
     def _reset_task_counter(cls) -> None:
@@ -163,14 +169,18 @@ class ATTrailAnalyze(CustomRecognition):
             re.search(r"\d", result.text) for result in ocr_results(detail)
         )
 
-    def _scan_list(self, context: Context, image) -> list:
-        """返回小径任务项列表 [(text, box)]，按 y 升序。"""
+    def _scan_list(self, context: Context, image) -> tuple[list | None, list]:
+        """返回 (「小径」标题 box 或 None, 任务项列表[(text, box)])，任务项按 y 升序。"""
         detail = context.run_recognition("ATTrailListOCR", image)
+        title_box = None
         items = []
         for result in ocr_results(detail):
             text = result.text.strip()
             box = list(result.box)
             cy = box[1] + box[3] / 2
+            if "小径" in text:
+                title_box = box
+                continue
             if any(word in text for word in self.ITEM_EXCLUDES):
                 continue
             if (
@@ -180,7 +190,7 @@ class ATTrailAnalyze(CustomRecognition):
             ):
                 items.append((text, box))
         items.sort(key=lambda item: item[1][1])
-        return items
+        return title_box, items
 
     # ---- 各 query ----
 
@@ -236,9 +246,24 @@ class ATTrailAnalyze(CustomRecognition):
     def _analyze_task(self, context: Context, image):
         if not self._is_map_page(context, image):
             return None
-        items = self._scan_list(context, image)
+        title_box, items = self._scan_list(context, image)
+
         if not items:
+            # 无任务项但标题在：列表可能被手动收起，点标题展开确认
+            if (
+                title_box is not None
+                and ATTrailAnalyze._title_clicks < self.TITLE_CLICK_LIMIT
+            ):
+                ATTrailAnalyze._title_clicks += 1
+                logger.info(
+                    f"[AutoTrail] 列表无任务项但「小径」标题在，点标题展开"
+                    f"（第 {ATTrailAnalyze._title_clicks} 次）"
+                )
+                return CustomRecognition.AnalyzeResult(
+                    box=title_box, detail={"expand": True}
+                )
             return None
+        ATTrailAnalyze._title_clicks = 0
         if ATTrailAnalyze._task_repeat >= self.TASK_REPEAT_LIMIT:
             return None  # 反复点击无响应，交给 done
 
@@ -259,14 +284,20 @@ class ATTrailAnalyze(CustomRecognition):
     def _analyze_done(self, context: Context, image):
         if not self._is_map_page(context, image):
             return None
-        items = self._scan_list(context, image)
-        if items and ATTrailAnalyze._task_repeat < self.TASK_REPEAT_LIMIT:
-            return None
-        if items:
+        title_box, items = self._scan_list(context, image)
+        if not items:
+            # 标题在且还没点过展开时，先让 task 试着展开列表
+            if (
+                title_box is not None
+                and ATTrailAnalyze._title_clicks < self.TITLE_CLICK_LIMIT
+            ):
+                return None
+            logger.info("[AutoTrail] 小径列表已空，全部任务完成")
+        elif ATTrailAnalyze._task_repeat >= self.TASK_REPEAT_LIMIT:
             logger.info(
                 "[AutoTrail] 剩余列表项反复点击无响应（应为未解锁任务），小径完成"
             )
         else:
-            logger.info("[AutoTrail] 小径列表已空，全部任务完成")
+            return None
         ATTrailAnalyze.reset_state()
         return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
