@@ -1,6 +1,105 @@
 {
     "AutoPromotion": {
-        "desc": "通用活动推图：先手动进入活动关卡地图页再启动，自动推进直到无未完成关卡",
+        "desc": "活动推图入口：先手动进入活动关卡地图页再启动。按选项依次执行 故事模式推图 -> 小径 -> 探索模式推图，三阶段可独立开关",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APPhaseGate",
+                "custom_recognition_param": {
+                    "query": "entry"
+                }
+            }
+        },
+        "next": [
+            "AP_StoryGate",
+            "AT_TrailGate",
+            "AP_ExploreGate",
+            "AP_AllPhasesDone"
+        ]
+    },
+    "AP_StoryGate": {
+        "desc": "故事模式推图阶段闸门：enabled 由任务选项控制，本次任务已执行过则不再进入",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APPhaseGate",
+                "custom_recognition_param": {
+                    "query": "story"
+                }
+            }
+        },
+        "next": [
+            "AP_PromotionLoop"
+        ]
+    },
+    "AP_ExploreGate": {
+        "desc": "探索模式推图阶段闸门：先检查是否开放（活动后期才解锁），未开放则提示跳过；已开放则切换模式后推图",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APPhaseGate",
+                "custom_recognition_param": {
+                    "query": "explore"
+                }
+            }
+        },
+        "next": [
+            "AP_ExploreLocked",
+            "AP_SwitchToExplore",
+            "AP_PromotionLoop"
+        ]
+    },
+    "AP_ExploreLocked": {
+        "desc": "探索模式未开放：模式按钮下方有「X天X时后开启」倒计时",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    115,
+                    230,
+                    60
+                ],
+                "expected": "后开启"
+            }
+        },
+        "focus": {
+            "Node.Action.Starting": "<span style=\"color:orange\">探索模式尚未开放，跳过该阶段</span>"
+        },
+        "next": [
+            "AP_AllPhasesDone"
+        ]
+    },
+    "AP_SwitchToExplore": {
+        "desc": "点击左上角模式按钮切换到探索模式（按钮在故事模式页显示「探索模式」；若已在探索模式页则不命中，直接落到推图循环）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    30,
+                    70,
+                    190,
+                    80
+                ],
+                "expected": "探索"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000,
+        "next": [
+            "AP_PromotionLoop"
+        ]
+    },
+    "AP_AllPhasesDone": {
+        "desc": "所有已启用的阶段执行完毕，任务正常结束",
+        "focus": {
+            "Node.Action.Starting": "<span style=\"color:green\">活动推图任务完成（已启用的阶段均已执行）</span>"
+        }
+    },
+    "AP_PromotionLoop": {
+        "desc": "推图调度循环：在当前模式地图页自动推进直到无未完成关卡，与具体模式无关",
         "timeout": 60000,
         "on_error": [
             "AP_UnknownScreen"
@@ -8,17 +107,19 @@
         "next": [
             "CheckStopping",
             "AP_BossBalanceMode",
-            "[JumpBack]StagePromotionFlagInCombat",
-            "[JumpBack]StagePromotionCombatVictory",
+            "AP_BossChallengePage",
+            "[JumpBack]AP_BossSettlement",
+            "[JumpBack]AP_FlagInCombat",
+            "[JumpBack]AP_CombatVictory",
             "AP_CombatDefeat",
             "[JumpBack]AP_InCombatRT",
             "[JumpBack]EatCandyPage",
-            "[JumpBack]StagePromotionSkipConfirm",
-            "[JumpBack]StagePromotionSkip",
+            "[JumpBack]AP_SkipConfirm",
+            "[JumpBack]AP_Skip",
             "[JumpBack]Confirm",
             "[JumpBack]ObtainedAwards",
             "[JumpBack]ClickBlank",
-            "[JumpBack]StagePromotionStartAction",
+            "[JumpBack]AP_StartAction",
             "[JumpBack]AP_EnterStage",
             "[JumpBack]AP_SwipeMap",
             "AP_AllDone"
@@ -114,7 +215,7 @@
         "post_delay": 1000
     },
     "AP_AllDone": {
-        "desc": "地图滑到尽头且全部关卡完成，推图结束，继续执行小径任务",
+        "desc": "地图滑到尽头且全部关卡完成，当前模式推图结束，继续后续阶段",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -125,10 +226,12 @@
             }
         },
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:green\">活动推图完成，开始执行小径任务</span>"
+            "Node.Action.Starting": "<span style=\"color:green\">当前地图推图完成，继续后续阶段</span>"
         },
         "next": [
-            "AutoTrail"
+            "AT_TrailGate",
+            "AP_ExploreGate",
+            "AP_AllPhasesDone"
         ]
     },
     "AP_InCombatRT": {
@@ -149,6 +252,134 @@
             }
         },
         "post_delay": 5000
+    },
+    "AP_FlagInCombat": {
+        "desc": "战斗加载/演出中标志（右上角快进图标），点击加速并等待",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1208,
+                    6,
+                    64,
+                    64
+                ],
+                "template": [
+                    "OutsideDeduction/SOD_Combating.png",
+                    "OutsideDeduction/SOD_Combating_1.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    613,
+                    326,
+                    85,
+                    51
+                ]
+            }
+        },
+        "post_delay": 8000
+    },
+    "AP_CombatVictory": {
+        "desc": "战斗胜利结算页，点击翻页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    240
+                ],
+                "expected": [
+                    "战斗",
+                    "胜利"
+                ]
+            }
+        },
+        "pre_wait_freezes": {
+            "time": 500,
+            "target": [
+                622,
+                522,
+                659,
+                145
+            ]
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "AP_Skip": {
+        "desc": "剧情右上角跳过按钮",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    978,
+                    0,
+                    265,
+                    115
+                ],
+                "expected": [
+                    "跳过",
+                    "SKIP"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                343,
+                170,
+                586,
+                277
+            ]
+        }
+    },
+    "AP_SkipConfirm": {
+        "desc": "跳过剧情确认弹窗",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    776,
+                    406,
+                    60,
+                    31
+                ],
+                "expected": "确认",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "AP_StartAction": {
+        "desc": "编队页开始行动按钮",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1054,
+                    638,
+                    156,
+                    32
+                ],
+                "expected": "开始行动",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "AP_CombatDefeat": {
         "desc": "战斗失败结算页：点击关闭后结束任务，交给用户调整队伍",
@@ -180,6 +411,62 @@
             "Node.Action.Starting": "<span style=\"color:crimson\">战斗失败，推图任务已停止。请调整队伍后重新运行本任务继续</span>"
         }
     },
+    "AP_BossChallengePage": {
+        "desc": "BOSS 挑战详情页（带「开始挑战」按钮）：制衡模式介绍页只首次显示，之后点进 BOSS 关直接到此页。不自动挑战，提示用户手动处理后结束任务",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1000,
+                    560,
+                    280,
+                    100
+                ],
+                "expected": "开始挑战"
+            }
+        },
+        "focus": {
+            "Node.Action.Starting": {
+                "content": "检测到 BOSS 挑战页，推图任务到此结束，请手动完成 BOSS 挑战后重新运行本任务继续",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
+        }
+    },
+    "AP_BossSettlement": {
+        "desc": "BOSS 挑战伤害结算页（自救手册/最终方案/暴力艺术/最佳援手评价标签），点击空白翻页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    520,
+                    90,
+                    180,
+                    200
+                ],
+                "expected": [
+                    "自救手册",
+                    "最终方案",
+                    "暴力艺术",
+                    "最佳援手"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    620,
+                    430,
+                    60,
+                    40
+                ]
+            }
+        },
+        "post_delay": 1500
+    },
     "AP_BossBalanceMode": {
         "desc": "BOSS 制衡模式介绍页：不自动挑战，正常结束任务交给用户手动处理。标题是艺术字 OCR 读不出，匹配正文【制衡模式】",
         "recognition": {
@@ -195,13 +482,25 @@
             }
         },
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:orange\">检测到 BOSS 制衡模式，推图任务到此结束，请手动完成 BOSS 挑战</span>"
+            "Node.Action.Starting": {
+                "content": "检测到 BOSS 制衡模式，推图任务到此结束，请手动完成 BOSS 挑战",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
         }
     },
     "AP_UnknownScreen": {
         "desc": "调度超时兜底：报错结束（出错截图由框架 SaveOnError 自动保存到 debug/on_error）",
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson\">推图遇到无法自动处理的界面（如小游戏、特殊教程等），出错截图见 debug/on_error。请手动完成当前内容并回到活动关卡地图页，然后重新运行本任务继续推图</span>"
+            "Node.Action.Starting": {
+                "content": "推图遇到无法自动处理的界面（如小游戏、特殊教程等），出错截图见 debug/on_error。请手动完成当前内容并回到活动关卡地图页，然后重新运行本任务继续推图",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
         }
     }
 }

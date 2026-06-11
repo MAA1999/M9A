@@ -25,11 +25,7 @@
                     "enabled": false
                 },
                 {
-                    "name": "(测试中)推图模式",
-                    "enabled": false
-                },
-                {
-                    "name": "(测试中)活动推图v2",
+                    "name": "活动推图",
                     "enabled": false
                 },
                 {

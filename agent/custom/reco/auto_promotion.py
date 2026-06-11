@@ -10,6 +10,50 @@ from utils.maa_types import ocr_results
 from utils.params import parse_params
 
 
+@AgentServer.custom_recognition("APPhaseGate")
+class APPhaseGate(CustomRecognition):
+    """
+    活动推图三阶段（故事模式/小径/探索模式）闸门。
+
+    参数格式 (custom_recognition_param):
+    {
+        "query": "entry" | "story" | "trail" | "explore"
+    }
+    - entry: 任务入口，总是命中；同时重置阶段访问记录与各识别类状态，
+      保证任务重启后从干净状态开始
+    - story/trail/explore: 本次任务尚未进入过该阶段则命中并标记，
+      已进入过则不命中（调度自然落到后续阶段）。
+      是否启用某阶段由节点 enabled 控制（任务选项 pipeline_override）
+    """
+
+    _visited: set = set()
+
+    def analyze(
+        self,
+        context: Context,
+        argv: CustomRecognition.AnalyzeArg,
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
+
+        query = parse_params(argv.custom_recognition_param).get("query", "entry")
+
+        if query == "entry":
+            APPhaseGate._visited = set()
+            APMapAnalyze.reset_swipe_state()
+            from custom.reco.auto_trail import ATTrailAnalyze
+
+            ATTrailAnalyze.reset_state()
+            logger.info("[AutoPromotion] 任务开始，阶段状态已重置")
+            return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
+
+        if query in APPhaseGate._visited:
+            return None
+        APPhaseGate._visited.add(query)
+        # 进入新的推图阶段前重置滑动到头计数，避免上一阶段的状态串扰
+        APMapAnalyze.reset_swipe_state()
+        logger.info(f"[AutoPromotion] 进入阶段: {query}")
+        return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={"phase": query})
+
+
 @AgentServer.custom_recognition("APMapAnalyze")
 class APMapAnalyze(CustomRecognition):
     """

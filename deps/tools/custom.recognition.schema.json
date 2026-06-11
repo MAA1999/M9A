@@ -16,7 +16,7 @@
                 "FindFirstUnplayedStageByCheckmark",
                 "CCBuyCard",
                 "CCRemainMoney",
-                "StagePromotionComplete",
+                "APPhaseGate",
                 "LucidscapeStageSelect",
                 "SOSSelectNode",
                 "SOSSelectEncounterOptionList",
@@ -64,7 +64,7 @@
             "$ref": "#/$defs/CCRemainMoney"
         },
         {
-            "$ref": "#/$defs/StagePromotionComplete"
+            "$ref": "#/$defs/APPhaseGate"
         },
         {
             "$ref": "#/$defs/LucidscapeStageSelect"
@@ -434,11 +434,34 @@
                 }
             }
         },
-        "StagePromotionComplete": {
+        "APPhaseGate": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
             "properties": {
                 "custom_recognition": {
-                    "const": "StagePromotionComplete",
-                    "description": "推图模式完成判断（当前关为满星且无下一关）"
+                    "const": "APPhaseGate",
+                    "description": "活动推图三阶段（故事模式/小径/探索模式）闸门"
+                },
+                "custom_recognition_param": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "enum": [
+                                "entry",
+                                "story",
+                                "trail",
+                                "explore"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "query"
+                    ],
+                    "additionalProperties": false
                 }
             }
         },

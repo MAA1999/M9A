@@ -107,7 +107,7 @@ print("亮像素数:", int(((v >= VAL_MIN) & (s >= SAT_MIN)).sum()))
 | 阅读面板 | 中央 `[400,250,480,200]` 米白占比 ≥0.5（实测 0.83 vs ≤0.03） | 面板不关闭直到超时 | 调 `READ_*` |
 | 对话场景 | 非地图页 + 全屏暗像素占比 ≥0.75；点击位右下 `[1100,620,80,40]` | 对话不推进 | 确认点击位是空白（气泡会堆满屏幕中部，勿点中部） |
 | BOSS 制衡模式 | OCR 正文「制衡模式」ROI `[60,20,520,440]`（大标题是艺术字读不出） | BOSS 介绍页超时而非优雅结束 | 历期文案一致，几乎不会变 |
-| 战斗中标志 | 复用 `StagePromotionFlagInCombat` 模板 | 战斗中调度超时 | 模板图加变体（参考 SOD_Combating_1.png 先例） |
+| 战斗中标志 | `AP_FlagInCombat` 模板匹配右上角快进图标 | 战斗中调度超时 | 模板图加变体（参考 SOD_Combating_1.png 先例） |
 
 ## 验收清单（全部通过才算适配完成）
 
@@ -128,4 +128,5 @@ print("亮像素数:", int(((v >= VAL_MIN) & (s >= SAT_MIN)).sum()))
   `debug/on_error/`（带任务名+时间戳），无需自写截图逻辑
 - **设计约定**：调度节点 `next` 按优先级排列 + `[JumpBack]` 兜底弹窗；自定义识别用
   `query` 参数多态复用一个类；公共节点（`CheckStopping`/`Confirm`/`ObtainedAwards`/
-  `ClickBlank`/`EatCandyPage`/`StagePromotion` 系列）直接引用，不要复制
+  `ClickBlank`/`EatCandyPage`）直接引用，不要复制。三阶段（故事/小径/探索）由
+  `APPhaseGate` 闸门串联，任务选项通过 `enabled` 开关各阶段
