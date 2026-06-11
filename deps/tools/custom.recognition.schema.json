@@ -21,7 +21,8 @@
                 "SOSSelectNode",
                 "SOSSelectEncounterOptionList",
                 "SOSSelectEncounterOptionFindSelected",
-                "APMapAnalyze"
+                "APMapAnalyze",
+                "ATTrailAnalyze"
             ]
         }
     },
@@ -79,6 +80,9 @@
         },
         {
             "$ref": "#/$defs/APMapAnalyze"
+        },
+        {
+            "$ref": "#/$defs/ATTrailAnalyze"
         }
     ],
     "$defs": {
@@ -457,6 +461,38 @@
                             "enum": [
                                 "stage",
                                 "swipe",
+                                "done"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "query"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        "ATTrailAnalyze": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_recognition": {
+                    "const": "ATTrailAnalyze",
+                    "description": "活动小径任务流程分析"
+                },
+                "custom_recognition_param": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "enum": [
+                                "orange",
+                                "reading",
+                                "dialogue",
+                                "task",
                                 "done"
                             ]
                         }
