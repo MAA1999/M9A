@@ -106,6 +106,7 @@
         ],
         "next": [
             "CheckStopping",
+            "AP_MiniGame",
             "AP_BossBalanceMode",
             "AP_BossChallengePage",
             "[JumpBack]AP_BossSettlement",
@@ -409,6 +410,30 @@
         },
         "focus": {
             "Node.Action.Starting": "<span style=\"color:crimson\">战斗失败，推图任务已停止。请调整队伍后重新运行本任务继续</span>"
+        }
+    },
+    "AP_MiniGame": {
+        "desc": "活动小游戏界面（左上「目标」面板图标模板匹配，实测相似度 1.0）：每期小游戏玩法不同无法自动完成，提示用户手动处理后结束任务",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    46,
+                    68,
+                    151,
+                    108
+                ],
+                "template": "AutoPromotion/AP_MiniGameGoal.png"
+            }
+        },
+        "focus": {
+            "Node.Action.Starting": {
+                "content": "检测到活动小游戏，无法自动完成。请手动完成小游戏后回到关卡地图页，重新运行本任务继续",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
         }
     },
     "AP_BossChallengePage": {
