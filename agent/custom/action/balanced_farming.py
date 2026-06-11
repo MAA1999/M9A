@@ -121,7 +121,7 @@ class BalancedFarmingAnalyze(CustomAction):
             {
                 "BF_ItemIcon": {
                     "recognition": {
-                        "param": {"template": f"Items_processed/Item-{item_id}.png"}
+                        "param": {"template": f"Warehouse/Item-{item_id}.png"}
                     }
                 }
             },

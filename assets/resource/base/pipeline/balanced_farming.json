@@ -113,8 +113,7 @@
                     630
                 ],
                 "threshold": 0.9,
-                "green_mask": true,
-                "template": "Items_processed/Item-110103.png"
+                "template": "Warehouse/Item-110103.png"
             }
         }
     },
