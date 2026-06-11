@@ -63,7 +63,7 @@ class APMapAnalyze(CustomRecognition):
     DIFFICULTY_LIT_PIXELS = 12
 
     # 滑动到头检测状态（类属性，跨调用保留）
-    _last_signature: tuple | None = None
+    _last_signature: bytes | None = None
     _unchanged_swipes: int = 0
     _pending_zero_stage: tuple | None = None
     _pending_zero_count: int = 0
@@ -85,8 +85,6 @@ class APMapAnalyze(CustomRecognition):
 
         query = parse_params(argv.custom_recognition_param).get("query", "stage")
         tokens = self._stage_numbers(context, argv.image)
-        if not tokens:
-            return None  # 当前不在地图页
 
         incomplete = []
         for text, num, box in tokens:
@@ -117,10 +115,17 @@ class APMapAnalyze(CustomRecognition):
         if incomplete:
             return None  # 还有未完成关卡，无需滑动/结束
 
+        # swipe/done 用「探索模式」标签锚定地图页：章节交界处底部没有关卡编号，
+        # 不能拿编号判断是否在地图页
+        if not self._is_explore_map(context, argv.image):
+            return None
+
         if query == "swipe":
             if APMapAnalyze._unchanged_swipes >= self.UNCHANGED_LIMIT:
                 return None  # 已确认到尽头，交给 done
-            signature = tuple((num, box[0] // 20, box[1] // 20) for _, num, box in tokens)
+            # 滑到头的判定用地图中部网格哈希：滑动中画面必变（含章节交界处），
+            # 到头滑不动时画面才静止。编号签名在交界处恒为空，会误判到头
+            signature = self._map_signature(argv.image)
             if signature == APMapAnalyze._last_signature:
                 APMapAnalyze._unchanged_swipes += 1
             else:
@@ -140,6 +145,20 @@ class APMapAnalyze(CustomRecognition):
 
         logger.error(f"[AutoPromotion] 无效 query: {query}")
         return None
+
+    def _is_explore_map(self, context: Context, image) -> bool:
+        """地图页左上角常驻「探索模式」标签，章节交界处也在；对话/主界面没有。"""
+        detail = context.run_recognition("APExploreAnchorOCR", image)
+        return any("探索" in result.text for result in ocr_results(detail))
+
+    @staticmethod
+    def _map_signature(image) -> bytes:
+        """地图中部区域 8x8 网格灰度哈希，避开左侧列表/顶部栏/底部条等常驻 UI。"""
+        crop = image[150:480, 200:1080].astype(np.int32).max(axis=2)
+        h, w = crop.shape
+        grid = crop[: h - h % 8, : w - w % 8]
+        grid = grid.reshape(8, h // 8, 8, w // 8).mean(axis=(1, 3))
+        return (grid // 16).astype(np.uint8).tobytes()
 
     def _stage_numbers(
         self, context: Context, image

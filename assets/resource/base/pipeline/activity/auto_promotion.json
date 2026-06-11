@@ -24,6 +24,21 @@
             "AP_AllDone"
         ]
     },
+    "APExploreAnchorOCR": {
+        "desc": "辅助节点：地图页左上角「探索模式」标签 OCR，作为地图页锚点（章节交界处无关卡编号时仍可识别），仅供 APMapAnalyze 内部调用，请勿加入 next",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    30,
+                    70,
+                    190,
+                    80
+                ],
+                "expected": "探索"
+            }
+        }
+    },
     "APStageNumberOCR": {
         "desc": "辅助节点：地图底部条关卡编号 OCR，仅供 APMapAnalyze 内部调用，请勿加入 next",
         "recognition": {
@@ -96,7 +111,7 @@
         "post_delay": 1000
     },
     "AP_AllDone": {
-        "desc": "地图滑到尽头且全部关卡完成，推图正常结束",
+        "desc": "地图滑到尽头且全部关卡完成，推图结束，继续执行小径任务",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -107,8 +122,11 @@
             }
         },
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:green\">活动推图完成，当前地图无未完成关卡</span>"
-        }
+            "Node.Action.Starting": "<span style=\"color:green\">活动推图完成，开始执行小径任务</span>"
+        },
+        "next": [
+            "AutoTrail"
+        ]
     },
     "AP_InCombatRT": {
         "desc": "实时卡牌战斗中（左上角轮次/回合计数），等待游戏内自动战斗打完",

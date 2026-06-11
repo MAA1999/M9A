@@ -27,7 +27,7 @@ class ATTrailAnalyze(CustomRecognition):
     - task:     地图页且列表区有任务项，返回最上面一项
     - done:     地图页且列表区无任务项，或反复点击同一项无响应（剩余全为锁定项）
 
-    地图页判定复用推图的 APStageNumberOCR（底部关卡编号条）：
+    地图页判定复用推图的 APExploreAnchorOCR（左上「探索模式」标签）：
     小径列表完成数量多了会向上滚动，「小径」标题会滚出屏幕，不能作为锚点；
     任务少到一定数量后标题会彻底消失，列表里只剩任务项。
     标题可点击折叠/展开列表——若启动时列表被收起（无任务项但标题在），
@@ -163,11 +163,11 @@ class ATTrailAnalyze(CustomRecognition):
     # ---- 地图页判定与列表区 OCR ----
 
     def _is_map_page(self, context: Context, image) -> bool:
-        """地图页底部必有关卡编号条（复用推图的 OCR 节点），对话/阅读场景必无。"""
-        detail = context.run_recognition("APStageNumberOCR", image)
-        return any(
-            re.search(r"\d", result.text) for result in ocr_results(detail)
-        )
+        """地图页左上角常驻「探索模式」标签（复用推图的锚点 OCR 节点），
+        对话/阅读场景必无。底部关卡编号条不可靠：未开放章节的编号是
+        灰色锁定样式，OCR 读不出数字。"""
+        detail = context.run_recognition("APExploreAnchorOCR", image)
+        return any("探索" in result.text for result in ocr_results(detail))
 
     def _scan_list(self, context: Context, image) -> tuple[list | None, list]:
         """返回 (「小径」标题 box 或 None, 任务项列表[(text, box)])，任务项按 y 升序。"""
