@@ -486,6 +486,186 @@
                                 "swipe",
                                 "done"
                             ]
+                        },
+                        "difficulty_groups": {
+                            "type": "integer",
+                            "default": 3,
+                            "description": "难度分组数"
+                        },
+                        "difficulty_lit_pixels": {
+                            "type": "integer",
+                            "default": 12,
+                            "description": "单难度判过的亮像素数阈值"
+                        },
+                        "lit_pixels": {
+                            "type": "integer",
+                            "default": 15,
+                            "description": "判定关卡已完成的亮像素数阈值"
+                        },
+                        "marker_b_max": {
+                            "type": "integer",
+                            "default": 95,
+                            "description": "难度标记 B 通道上限"
+                        },
+                        "marker_extra_h": {
+                            "type": "integer",
+                            "default": 65,
+                            "description": "难度标记搜索区相对编号框的下扩"
+                        },
+                        "marker_extra_w": {
+                            "type": "integer",
+                            "default": 25,
+                            "description": "难度标记搜索区相对编号框的右扩"
+                        },
+                        "marker_g_max": {
+                            "type": "integer",
+                            "default": 150,
+                            "description": "难度标记 G 通道上限"
+                        },
+                        "marker_g_min": {
+                            "type": "integer",
+                            "default": 45,
+                            "description": "难度标记 G 通道下限"
+                        },
+                        "marker_pad_left": {
+                            "type": "integer",
+                            "default": 95,
+                            "description": "难度标记搜索区相对编号框的左扩"
+                        },
+                        "marker_pad_top": {
+                            "type": "integer",
+                            "default": 10,
+                            "description": "难度标记搜索区相对编号框的上扩"
+                        },
+                        "marker_rg_diff": {
+                            "type": "integer",
+                            "default": 25,
+                            "description": "难度标记 R-G 差值下限"
+                        },
+                        "marker_r_min": {
+                            "type": "integer",
+                            "default": 120,
+                            "description": "难度标记 R 通道下限"
+                        },
+                        "marker_s_min": {
+                            "type": "integer",
+                            "default": 80,
+                            "description": "难度标记饱和度下限"
+                        },
+                        "multi_marker_pixels": {
+                            "type": "integer",
+                            "default": 30,
+                            "description": "三难度红色标记像素数阈值"
+                        },
+                        "multi_star_width": {
+                            "type": "integer",
+                            "default": 180,
+                            "description": "三难度星标行总宽"
+                        },
+                        "multi_zone_extra_w": {
+                            "type": "integer",
+                            "default": 240,
+                            "description": "三难度星标搜索区右扩"
+                        },
+                        "sat_min": {
+                            "type": "integer",
+                            "default": 100,
+                            "description": "亮星像素饱和度下限（0-255）"
+                        },
+                        "sig_pos_quant": {
+                            "type": "integer",
+                            "default": 50,
+                            "description": "滑到头编号签名的位置量化粒度"
+                        },
+                        "stage_box_center_x_max": {
+                            "type": "integer",
+                            "default": 1160,
+                            "description": "关卡编号框中心 x 上限"
+                        },
+                        "stage_box_center_x_min": {
+                            "type": "integer",
+                            "default": 120,
+                            "description": "关卡编号框中心 x 下限"
+                        },
+                        "stage_box_center_y_max": {
+                            "type": "integer",
+                            "default": 620,
+                            "description": "关卡编号框中心 y 上限"
+                        },
+                        "stage_box_center_y_min": {
+                            "type": "integer",
+                            "default": 535,
+                            "description": "关卡编号框中心 y 下限"
+                        },
+                        "stage_box_h_max": {
+                            "type": "integer",
+                            "default": 55,
+                            "description": "关卡编号框高度上限"
+                        },
+                        "stage_box_h_min": {
+                            "type": "integer",
+                            "default": 10,
+                            "description": "关卡编号框高度下限"
+                        },
+                        "star_num_width_cap": {
+                            "type": "integer",
+                            "default": 62,
+                            "description": "编号宽度参与星标行起点推算的上限"
+                        },
+                        "star_row_down": {
+                            "type": "integer",
+                            "default": 18,
+                            "description": "三难度星标行相对编号框的下扩"
+                        },
+                        "star_row_up": {
+                            "type": "integer",
+                            "default": 35,
+                            "description": "三难度星标行相对编号框的上扩"
+                        },
+                        "star_x0_backoff": {
+                            "type": "integer",
+                            "default": 8,
+                            "description": "星标行起点回退量"
+                        },
+                        "star_x0_min_offset": {
+                            "type": "integer",
+                            "default": 25,
+                            "description": "星标行起点最小偏移"
+                        },
+                        "unchanged_limit": {
+                            "type": "integer",
+                            "default": 3,
+                            "description": "连续多少次滑动画面不变视为到头"
+                        },
+                        "val_min": {
+                            "type": "integer",
+                            "default": 160,
+                            "description": "亮星像素亮度下限（0-255）"
+                        },
+                        "zero_stage_confirm": {
+                            "type": "integer",
+                            "default": 2,
+                            "description": "亮星为 0 的关卡需连续确认帧数"
+                        },
+                        "zone_extra_h": {
+                            "type": "integer",
+                            "default": 20,
+                            "description": "星标搜索区相对编号框的下扩"
+                        },
+                        "zone_extra_w": {
+                            "type": "integer",
+                            "default": 115,
+                            "description": "星标搜索区相对编号框的右扩"
+                        },
+                        "zone_pad_left": {
+                            "type": "integer",
+                            "default": 5,
+                            "description": "星标搜索区相对编号框的左扩"
+                        },
+                        "zone_pad_top": {
+                            "type": "integer",
+                            "default": 30,
+                            "description": "星标搜索区相对编号框的上扩"
                         }
                     },
                     "required": [
@@ -518,6 +698,186 @@
                                 "task",
                                 "done"
                             ]
+                        },
+                        "cream_s_max": {
+                            "type": "integer",
+                            "default": 60,
+                            "description": "米白像素饱和度上限"
+                        },
+                        "cream_v_min": {
+                            "type": "integer",
+                            "default": 180,
+                            "description": "米白像素亮度下限"
+                        },
+                        "dark_v_max": {
+                            "type": "integer",
+                            "default": 60,
+                            "description": "暗像素亮度上限"
+                        },
+                        "dialog_click_box": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "minItems": 4,
+                            "maxItems": 4,
+                            "default": [
+                                1100,
+                                620,
+                                80,
+                                40
+                            ],
+                            "description": "对话推进点击区 [x,y,w,h]（避开气泡的空白处）"
+                        },
+                        "dialog_confirm": {
+                            "type": "integer",
+                            "default": 2,
+                            "description": "对话场景需连续确认帧数"
+                        },
+                        "dialog_dark_ratio": {
+                            "type": "number",
+                            "default": 0.75,
+                            "description": "判定对话场景的暗像素占比阈值"
+                        },
+                        "dialog_stuck_limit": {
+                            "type": "integer",
+                            "default": 12,
+                            "description": "对话画面连续不变多少次后停止点击"
+                        },
+                        "item_x_max": {
+                            "type": "integer",
+                            "default": 190,
+                            "description": "小径任务项中心 x 上限"
+                        },
+                        "item_y_max": {
+                            "type": "integer",
+                            "default": 440,
+                            "description": "小径任务项中心 y 上限"
+                        },
+                        "item_y_min": {
+                            "type": "integer",
+                            "default": 170,
+                            "description": "小径任务项中心 y 下限"
+                        },
+                        "orange_b_max": {
+                            "type": "integer",
+                            "default": 100,
+                            "description": "橙色像素 B 通道上限"
+                        },
+                        "orange_click_box": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "minItems": 4,
+                            "maxItems": 4,
+                            "default": [
+                                760,
+                                318,
+                                114,
+                                49
+                            ],
+                            "description": "橙框点击区 [x,y,w,h]"
+                        },
+                        "orange_g_max": {
+                            "type": "integer",
+                            "default": 170,
+                            "description": "橙色像素 G 通道上限"
+                        },
+                        "orange_g_min": {
+                            "type": "integer",
+                            "default": 80,
+                            "description": "橙色像素 G 通道下限"
+                        },
+                        "orange_min_pixels": {
+                            "type": "integer",
+                            "default": 2000,
+                            "description": "判定橙框存在的橙色像素数阈值"
+                        },
+                        "orange_roi": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "minItems": 4,
+                            "maxItems": 4,
+                            "default": [
+                                730,
+                                295,
+                                180,
+                                100
+                            ],
+                            "description": "橙色交互框检测区 [x,y,w,h]"
+                        },
+                        "orange_r_min": {
+                            "type": "integer",
+                            "default": 180,
+                            "description": "橙色像素 R 通道下限"
+                        },
+                        "orange_s_min": {
+                            "type": "integer",
+                            "default": 120,
+                            "description": "橙色像素饱和度下限"
+                        },
+                        "orange_v_min": {
+                            "type": "integer",
+                            "default": 180,
+                            "description": "橙色像素亮度下限"
+                        },
+                        "read_close_box": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "minItems": 4,
+                            "maxItems": 4,
+                            "default": [
+                                1080,
+                                80,
+                                40,
+                                40
+                            ],
+                            "description": "阅读面板关闭点击区 [x,y,w,h]"
+                        },
+                        "read_ratio": {
+                            "type": "number",
+                            "default": 0.5,
+                            "description": "判定阅读面板的米白占比阈值"
+                        },
+                        "read_roi": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "minItems": 4,
+                            "maxItems": 4,
+                            "default": [
+                                400,
+                                250,
+                                480,
+                                200
+                            ],
+                            "description": "阅读面板米白检测区 [x,y,w,h]"
+                        },
+                        "sig_grid": {
+                            "type": "integer",
+                            "default": 8,
+                            "description": "网格哈希粒度"
+                        },
+                        "sig_quant": {
+                            "type": "integer",
+                            "default": 16,
+                            "description": "网格哈希量化步长"
+                        },
+                        "task_repeat_limit": {
+                            "type": "integer",
+                            "default": 4,
+                            "description": "同一任务项连点多少次无响应视为不可做"
+                        },
+                        "title_click_limit": {
+                            "type": "integer",
+                            "default": 2,
+                            "description": "「小径」标题展开尝试次数上限"
                         }
                     },
                     "required": [

@@ -7,66 +7,122 @@ icon: ri:route-line
 
 > [!TIP]
 >
-> 本文档是「(测试中)活动推图v2」（AutoPromotion + AutoTrail）的换期适配协议：
-> 新活动上线后，按本协议逐项体检识别参数、校准失效项、跑完验收清单，即完成适配。
-> 协议面向 AI 执行设计——把本文档交给具备模拟器控制能力（如 MaaMCP）的 AI，
-> 说"按协议适配新活动"即可开工。
+> 本文档是「活动推图」（AutoPromotion + AutoTrail）的换期适配协议。
+> 功能采用**流程与识别分层**：流程层（调度状态机、阶段闸门）固定不变；
+> 识别层的全部参数可经 pipeline JSON 的 `custom_recognition_param` 覆盖——
+> **换期适配只改 JSON，不动 Python**。本协议面向 AI 执行设计：
+> 把文档交给具备模拟器控制能力（如 MaaMCP）的 AI，说"按协议适配新活动"即可。
 
 ## 功能架构速览
 
-| 文件 | 内容 |
-|---|---|
-| `assets/resource/base/pipeline/activity/auto_promotion.json` | 推图状态机，入口 `AutoPromotion`，完成后衔接 `AutoTrail` |
-| `assets/resource/base/pipeline/activity/auto_trail.json` | 小径状态机，入口 `AutoTrail` |
-| `agent/custom/reco/auto_promotion.py` | `APMapAnalyze`：找关卡 + 星标判定 + 滑动到头（本协议核心） |
-| `agent/custom/reco/auto_trail.py` | `ATTrailAnalyze`：小径五态识别 |
-| `assets/resource/tasks/AutoPromotion.json` | 任务声明 + 吃糖 WaitReplay override |
+| 文件 | 内容 | 层 |
+|---|---|---|
+| `assets/resource/base/pipeline/activity/auto_promotion.json` | 三阶段调度 + 推图循环 + 辅助 OCR 节点 | 流程 + 适配面 |
+| `assets/resource/base/pipeline/activity/auto_trail.json` | 小径调度循环 | 流程 + 适配面 |
+| `agent/custom/reco/auto_promotion.py` | `APPhaseGate`（阶段闸门）、`APMapAnalyze`（找关/星标/滑到头） | 识别算法（默认值事实源） |
+| `agent/custom/reco/auto_trail.py` | `ATTrailAnalyze`（小径五态） | 识别算法（默认值事实源） |
+| `deps/tools/custom.recognition.schema.json` | 全部可覆盖参数的声明（key/type/default） | 适配面清单 |
 
-设计原则：所有识别基于 OCR 文本 + 像素统计（饱和度/亮度/网格哈希），不依赖模板图和精确颜色，
-目标是换活动零配置。当某期活动 UI 变化超出参数容差时，按本协议校准而非重写。
+## 参数覆盖机制（v2 分层核心）
 
-## 核心：关卡发现与星标识别校准
+识别类的全部阈值/偏移/颜色/点击位常量都可在节点的 `custom_recognition_param`
+中以**常量名小写**为 key 覆盖：
 
-> [!IMPORTANT]
->
-> 这是历期适配中**最可能失效、必须每期体检**的部分。其余识别点（对话框、阅读面板、
-> 制衡模式文案、底部条位置）历期稳定，做快速确认即可。
+```jsonc
+"AP_EnterStage": {
+    "recognition": {
+        "type": "Custom",
+        "param": {
+            "custom_recognition": "APMapAnalyze",
+            "custom_recognition_param": {
+                "query": "stage",
+                "lit_pixels": 25        // 仅本期需要的差异项
+            }
+        }
+    }
+}
+```
 
-### 识别原理
+规则：
+- **默认值唯一事实源 = Python 类常量**，pipeline JSON 平时只写 `query`，
+  换期只写差异项（避免 JSON 与代码默认值漂移）
+- 可覆盖参数全集见 schema 中 `APMapAnalyze` / `ATTrailAnalyze` 的
+  `custom_recognition_param` properties（含 type/default/description），
+  schema 与类常量的一致性由 `tests/test_schema_drift.py` 锁定
+- 非法值回落默认并记 error；未知 key 记 warning 后忽略；参数 JSON 整体损坏时
+  使用全部默认值继续（不会中断任务）
+- 国际服等多服差异走资源覆盖层（`global_en/` 等放同名节点覆盖文件），
+  与参数覆盖正交
 
-1. **找关卡**：OCR 地图底部条（`APStageNumberOCR`，ROI `[81,538,1130,87]`）找 1-2 位数字 token，
-   正则容忍 OCR 把右侧星标误读进来（如 `"01/3"`、`"A1333"`）
-2. **星标判定**：取编号框右侧邻域，统计「高饱和且高亮」像素数。亮星不管被调成金/橙/红都高饱和，
-   灰星（未完成）本质是低饱和——这就是不依赖具体颜色的原因
-3. **三难度关卡**：编号左侧有红色难度标记 → 切三段星标区分组判定，任一段有亮星即该难度已过
+## 识别器契约
 
-### 参数表（`agent/custom/reco/auto_promotion.py` 的 `APMapAnalyze` 类常量）
+每个识别器（类 × query）的契约固定；某期 UI 大改导致参数调不动时，
+替换对应实现方法即可，契约不变则流程层无感。
 
-| 参数 | 当前值 | 含义 | 校准依据 |
+### APPhaseGate（阶段闸门，无可调参数）
+
+| query | 语义 | 命中返回 | 副作用 |
 |---|---|---|---|
-| `SAT_MIN` | 100 | 亮星像素饱和度下限（0-255） | 实测灰星邻域高饱和亮像素=0，亮星≈120-220 |
-| `VAL_MIN` | 160 | 亮星像素亮度下限 | 必须 ≥150，否则关卡名底下的墨绿圆盘装饰会误判 |
-| `LIT_PIXELS` | 40 | 判定「已完成」的亮像素数阈值 | 取灰星(0)与亮星(120+)的中间偏下 |
-| `ZONE_PAD_LEFT/TOP` | 5 / 30 | 星标搜索区相对编号框的扩展 | 星标位于编号右侧约 30-90px 同行 |
-| `ZONE_EXTRA_W/H` | 115 / 20 | 同上 | |
-| `STAGE_BOX_*` | 见源码 | 编号 token 的位置/尺寸过滤 | 排除边缘 UI 和装饰误读 |
-| `MULTI_*` / `DIFFICULTY_*` | 见源码 | 三难度关卡的标记检测与分段判定 | |
+| entry | 任务入口，总命中 | box=[0,0,0,0] | 重置全部阶段与识别状态 |
+| story / trail / explore | 本次任务未进入过该阶段则命中 | 同上，detail.phase | 标记已进入 + 重置滑动计数 |
 
-### 体检流程（每期必做）
+阶段启停由任务选项对节点 `enabled` 的 override 控制。
 
-1. **采样**：连接模拟器进入新活动地图页，截取至少 3 类画面——
-   已完成关（亮星）、未完成关（灰星）、三难度关（若有）。注意截图工具的目录会轮换清理，及时另存
-2. **定位**：OCR 全屏确认底部条编号 token 的 box 坐标（验证 `APStageNumberOCR` ROI 仍覆盖、
-   `STAGE_BOX_*` 过滤仍命中）
-3. **统计**：对每个编号框跑下方取样脚本，记录亮/灰关卡的像素计数
-4. **判定**：灰星计数应 ≈0，亮星计数应 ≥80 且与 `LIT_PIXELS=40` 有 2 倍以上余量。
-   余量不足则按「失效模式对照表」调参
-5. **单测**：进程内 harness 跑识别（只识别不点击），确认返回的是第一个未完成关的点击区
+### APMapAnalyze（推图地图分析）
+
+依赖辅助 OCR 节点：`APStageNumberOCR`（底部编号条）、`APExploreAnchorOCR`
+（左上模式标签锚点）——两者 ROI 直接在 pipeline JSON 调。
+
+| query | 语义 | 命中返回 | 不命中含义 |
+|---|---|---|---|
+| stage | 找编号最小的未完成关 | box=关卡点击区, detail.stage | 无未完成关（或亮星为 0 待下帧确认） |
+| swipe | 无未完成关且未确认到头 | box=[0,0,0,0]（供 Swipe 动作） | 有未完成关 / 已到头 / 不在地图页 |
+| done | 已确认滑到头且无未完成关 | box=[0,0,0,0] | 尚未确认到头 |
+
+关键参数（全集见 schema，36 项）：
+
+| json key | 默认 | 含义 / 调参依据 |
+|---|---|---|
+| `sat_min` / `val_min` | 100 / 160 | 亮星像素的饱和度/亮度下限。`val_min` ≥150 才能排除关卡名底下的深色圆盘装饰 |
+| `lit_pixels` | 15 | 判完成的亮像素阈值。当期活动亮星 ≈120+，1987 的细四角星仅 ≈27-62，灰星恒 ≈0，故取 15 跨活动通用 |
+| `zone_pad_left/top`、`zone_extra_w/h` | 5/30/115/20 | 星标搜索区相对编号框的扩展（星标在编号右侧同行） |
+| `stage_box_*` | 见 schema | 编号 token 的位置/尺寸过滤 |
+| `multi_*`、`difficulty_*`、`marker_*` | 见 schema | 三难度关卡的红色标记检测与分段判定 |
+| `sig_pos_quant` | 50 | 滑到头编号签名的位置量化粒度 |
+| `unchanged_limit` | 3 | 连续多少次滑动签名不变视为到头 |
+
+**滑到头判定**（1987 实测教训）：用底部编号签名（编号集合 + 量化位置）连续
+`unchanged_limit` 次不变判到头；编号为空（章节交界处）不计数也不重置。
+**不能用画面哈希**——1987 等活动的星空背景有持续动画，静止画面的哈希也不稳定。
+
+### ATTrailAnalyze（小径五态）
+
+| query | 语义 | 命中返回 |
+|---|---|---|
+| orange | 任务点橙色交互框（文案不定，统一点击） | box=`orange_click_box` |
+| reading | 米白阅读面板（点面板外关闭） | box=`read_close_box` |
+| dialogue | 对话场景（非地图 + 大面积暗，连续两帧确认） | box=`dialog_click_box`（右下空白，避开气泡） |
+| task | 地图页小径列表最上面的任务项 | box=任务项 OCR 框 |
+| done | 列表空（或剩余项反复点击无响应） | box=[0,0,0,0] |
+
+参数全集见 schema（26 项）：橙框颜色掩码 `orange_*`、面板判定 `cream_*`/`read_*`、
+对话判定 `dark_v_max`/`dialog_*`、列表过滤 `item_*` 等。
+小径每期差异较大（用户决策：不强求通用），失效时停在超时兜底即可。
+
+## 换期体检流程
+
+1. **直接跑**：新活动地图页启动任务。大多数情况零修改可用（识别全部基于
+   OCR 文本 + 像素统计，已在「灰与砂的巨木」「1987宇宙组曲」两期验证）
+2. **失效时采样诊断**：MaaMCP 截图 → OCR 拿编号 box → 跑取样脚本统计亮/灰星
+   像素 → 对照失效模式表定位参数
+3. **修复 = 写 JSON**：把差异参数写进对应节点的 `custom_recognition_param`
+   （或调整辅助 OCR 节点 ROI），不改 Python
+4. **回验**：对两期历史截图样本回跑判定（确认不退化）+ 实机全流程
 
 ### 取样脚本
 
 ```python
-# 用法：替换截图路径与编号框 box（来自 OCR 结果），输出该关卡星标区亮像素数
+# 输出指定编号框邻域的亮像素数：灰星应 ≈0，亮星应明显高于 lit_pixels
 import numpy as np
 from PIL import Image
 
@@ -74,7 +130,7 @@ SAT_MIN, VAL_MIN = 100, 160
 PAD_LEFT, PAD_TOP, EXTRA_W, EXTRA_H = 5, 30, 115, 20
 
 img = np.asarray(Image.open(r"截图路径.png").convert("RGB")).astype(np.int32)
-box = [60, 547, 90, 35]  # 编号 token 的 [x, y, w, h]，替换为实际 OCR 结果
+box = [400, 547, 44, 35]  # 编号 token 的 [x, y, w, h]，替换为实际 OCR 结果
 
 h_img, w_img = img.shape[:2]
 x0, y0 = max(box[0] - PAD_LEFT, 0), max(box[1] - PAD_TOP, 0)
@@ -84,49 +140,41 @@ c = img[y0:y1, x0:x1]
 v = c.max(axis=2)
 s = (v - c.min(axis=2)) * 255 // np.maximum(v, 1)
 print("亮像素数:", int(((v >= VAL_MIN) & (s >= SAT_MIN)).sum()))
-# 灰星应 ≈0，亮星应 ≥80；介于两者之间说明阈值需要重新校准
 ```
 
 ### 失效模式对照表
 
-| 现象 | 原因 | 修法 |
+| 现象 | 原因 | 修法（写 JSON） |
 |---|---|---|
-| 日志无任何关卡识别，直接滑动/超时 | 底部条位置变了，OCR 不到编号 | 重踩底部条位置，调 `APStageNumberOCR` ROI 与 `STAGE_BOX_*` |
-| 已完成关被判未完成（反复进已通关卡） | 星标偏移变了 / 新星标饱和度变低 | 重采样：先确认星标相对编号的位置（调 `ZONE_*`），再看亮星计数（调 `SAT_MIN`/`VAL_MIN`） |
-| 未完成关被判完成（跳关） | 邻域混入新的高饱和装饰 | 提高 `VAL_MIN` 或 `LIT_PIXELS`，必要时收窄 `ZONE_*` |
-| 三难度关判定错乱 | 难度标记颜色/布局变了 | 重采样难度标记区，调 `_looks_multi_difficulty` 的颜色条件与 `MULTI_*` |
+| 无任何关卡识别，直接滑动/超时 | 底部条位置变，OCR 不到编号 | 调 `APStageNumberOCR` ROI 与 `stage_box_*` |
+| 已完成关被判未完成（反复进已通关卡） | 星标偏移/饱和度变 | 先调 `zone_*` 对准星标位置，再按取样调 `lit_pixels`/`sat_min`/`val_min` |
+| 未完成关被判完成（跳关） | 邻域混入高饱和装饰 | 提高 `val_min` 或 `lit_pixels`，必要时收窄 `zone_*` |
+| 滑动确认中断超时 | 模式标签位置超出锚点 ROI | 调 `APExploreAnchorOCR` ROI（当前 [20,60,220,260] 已覆盖单按钮与双按钮两种布局） |
+| 滑个不停不判到头 | 编号签名异常（如 OCR 不稳） | 查 `APStageNumberOCR`；勿改回画面哈希（动态背景下不可用） |
+| 三难度判定错乱 | 难度标记颜色/布局变 | 调 `marker_*` 颜色掩码与 `multi_*` |
 
-## 其他识别点快速体检清单
+## 跨活动实测记录
 
-历期稳定，每期只需逐项截图确认，不必重新取样：
+| 活动 | 结果 | 适配动作 |
+|---|---|---|
+| 灰与砂的巨木（当期，2026-06） | 全流程通过（01→19 + 小径 12 项 + BOSS） | 基线 |
+| 1987宇宙组曲（映像/历史） | 全流程通过（故事→小径空过→切探索→探索推完） | ① 锚点/切换 ROI 放宽至 [20,60,220,260] 覆盖双按钮布局；② `lit_pixels` 40→15（细四角星亮像素仅 27-62）；③ 滑到头判定从画面哈希改为编号签名（星空动画致哈希永不稳定） |
 
-| 识别点 | 特征与当前参数 | 失效表现 | 修法 |
-|---|---|---|---|
-| 地图页锚点 | 左上「探索模式/故事模式」标签，ROI `[30,70,190,80]` | 滑动确认中断超时 | 调 ROI 或 expected |
-| 小径橙色交互框 | ROI `[730,295,180,100]` 橙像素 ≥2000（实测有框 6400+/无框 0） | 小径任务点开后不点交互框 | 若官方换框色，改 `_orange_pixels` 颜色条件 |
-| 阅读面板 | 中央 `[400,250,480,200]` 米白占比 ≥0.5（实测 0.83 vs ≤0.03） | 面板不关闭直到超时 | 调 `READ_*` |
-| 对话场景 | 非地图页 + 全屏暗像素占比 ≥0.75；点击位右下 `[1100,620,80,40]` | 对话不推进 | 确认点击位是空白（气泡会堆满屏幕中部，勿点中部） |
-| BOSS 制衡模式 | OCR 正文「制衡模式」ROI `[60,20,520,440]`（大标题是艺术字读不出） | BOSS 介绍页超时而非优雅结束 | 历期文案一致，几乎不会变 |
-| 战斗中标志 | `AP_FlagInCombat` 模板匹配右上角快进图标 | 战斗中调度超时 | 模板图加变体（参考 SOD_Combating_1.png 先例） |
+## 验收清单
 
-## 验收清单（全部通过才算适配完成）
-
-1. **识别单测**：进程内 harness 对地图页跑 `APMapAnalyze` query=stage，返回第一个未完成关且不误判
-2. **首关端到端**：从第 1 关推到第 2 关（进关→战斗/剧情→结算→回地图）
-3. **任意进度重启**：推图中途停止再启动，从当前进度无缝继续
-4. **正常收尾**：全部完成后走 `AP_AllDone`（绿色提示）→ 衔接小径 → `AT_AllDone`，而非超时报错
-5. **兜底验证**：遇到未知界面（如该期新小游戏）时优雅停止，`debug/on_error/` 有框架自动保存的现场截图
+1. 识别单测：harness 对地图页跑 query=stage，未完成关识别正确且已完成关不误报
+2. 首关端到端：进关 → 战斗/剧情 → 结算 → 回地图
+3. 任意进度重启：中途停止再启动无缝继续
+4. 正常收尾：`AP_AllDone` → 小径 → 探索 → `AP_AllPhasesDone`，而非超时报错
+5. 兜底验证：未知界面优雅停止，`debug/on_error/` 有框架自动保存的现场截图
+6. `python -m pytest tests/` 全绿（含 schema 防漂移）
 
 ## 工具资产索引
 
-- **实机踩点**：MaaMCP（ADB 连接模拟器，截图 + OCR + 点击/滑动）。模拟器必须用 ADB 方式连接，
-  Win32 窗口方式截图会黑屏
-- **进程内回归**：stub `maa.agent.agent_server.AgentServer` 后直接 `Resource.post_bundle` +
-  `Tasker.post_task`，无需启动 GUI 即可跑任务与单测识别（harness 写法见
-  `docs/zh_cn/develop/development.md` 或向维护者索取既有脚本）
-- **出错现场**：MaaFramework 全局选项 SaveOnError 在任务出错时自动把当时帧存到
-  `debug/on_error/`（带任务名+时间戳），无需自写截图逻辑
-- **设计约定**：调度节点 `next` 按优先级排列 + `[JumpBack]` 兜底弹窗；自定义识别用
-  `query` 参数多态复用一个类；公共节点（`CheckStopping`/`Confirm`/`ObtainedAwards`/
-  `ClickBlank`/`EatCandyPage`）直接引用，不要复制。三阶段（故事/小径/探索）由
-  `APPhaseGate` 闸门串联，任务选项通过 `enabled` 开关各阶段
+- **实机踩点**：MaaMCP（ADB 连接模拟器；Win32 窗口方式截图会黑屏）
+- **进程内回归**：stub `maa.agent.agent_server.AgentServer` 后 `Resource.post_bundle` +
+  `Tasker.post_task`，无需 GUI
+- **出错现场**：框架 SaveOnError 自动存图到 `debug/on_error/`，无需自写截图
+- **设计约定**：调度节点 `next` 按优先级排列 + `[JumpBack]` 兜底；自定义识别用
+  `query` 多态；公共节点（`CheckStopping`/`Confirm`/`ObtainedAwards`/`ClickBlank`/
+  `EatCandyPage`）直接引用；三阶段由 `APPhaseGate` 串联，任务选项经 `enabled` 开关

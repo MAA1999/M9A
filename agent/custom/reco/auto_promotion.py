@@ -7,7 +7,7 @@ from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
 from utils import logger
 from utils.maa_types import ocr_results
-from utils.params import parse_params
+from utils.params import ParamOverrideMixin, parse_params
 
 
 @AgentServer.custom_recognition("APPhaseGate")
@@ -55,7 +55,7 @@ class APPhaseGate(CustomRecognition):
 
 
 @AgentServer.custom_recognition("APMapAnalyze")
-class APMapAnalyze(CustomRecognition):
+class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
     """
     活动推图地图分析。
 
@@ -65,21 +65,66 @@ class APMapAnalyze(CustomRecognition):
 
     参数格式 (custom_recognition_param):
     {
-        "query": "stage" | "swipe" | "done"
+        "query": "stage" | "swipe" | "done",
+        // 其余 key 为可选的识别参数覆盖（类常量名小写，如 "sat_min": 90），
+        // 见 OVERRIDABLE 白名单与协议文档的契约参数表
     }
     - stage: 命中并返回编号最小的未完成关卡的点击区域
     - swipe: 地图可见、无未完成关卡、且尚未确认滑到尽头时命中（供滑动节点使用）
     - done:  连续多次滑动后画面无变化（已到尽头）且无未完成关卡时命中（推图完成）
     """
 
+    OVERRIDABLE = frozenset(
+        {
+            "SAT_MIN",
+            "VAL_MIN",
+            "LIT_PIXELS",
+            "ZONE_PAD_LEFT",
+            "ZONE_PAD_TOP",
+            "ZONE_EXTRA_W",
+            "ZONE_EXTRA_H",
+            "STAGE_BOX_CENTER_X_MIN",
+            "STAGE_BOX_CENTER_X_MAX",
+            "STAGE_BOX_CENTER_Y_MIN",
+            "STAGE_BOX_CENTER_Y_MAX",
+            "STAGE_BOX_H_MIN",
+            "STAGE_BOX_H_MAX",
+            "MULTI_STAR_WIDTH",
+            "MULTI_ZONE_EXTRA_W",
+            "STAR_ROW_UP",
+            "STAR_ROW_DOWN",
+            "MULTI_MARKER_PIXELS",
+            "DIFFICULTY_GROUPS",
+            "DIFFICULTY_LIT_PIXELS",
+            "SIG_POS_QUANT",
+            "MARKER_R_MIN",
+            "MARKER_G_MIN",
+            "MARKER_G_MAX",
+            "MARKER_B_MAX",
+            "MARKER_S_MIN",
+            "MARKER_RG_DIFF",
+            "MARKER_PAD_LEFT",
+            "MARKER_PAD_TOP",
+            "MARKER_EXTRA_W",
+            "MARKER_EXTRA_H",
+            "STAR_NUM_WIDTH_CAP",
+            "STAR_X0_BACKOFF",
+            "STAR_X0_MIN_OFFSET",
+            "UNCHANGED_LIMIT",
+            "ZERO_STAGE_CONFIRM",
+        }
+    )
+
     # 关卡编号 token：1-2 位数字开头，允许 OCR 把右侧装饰误读进来（如 "01/3"）
     NUM_RE = re.compile(r"^[^\dA-Za-z\u4e00-\u9fff]{0,3}\s*(\d{1,2})([^\d].*)?$")
 
     # 星标判定阈值（HSV，S/V 范围 0-255），由实机灰星/亮星取样数据确定：
-    # 灰星邻域高饱和亮像素 = 0，亮星 ≈ 120+；VAL_MIN 须 >=150 以排除关卡名底下的墨绿圆盘装饰
+    # 灰星邻域高饱和亮像素 = 0；亮星当期活动 ≈ 120+，1987 等历史活动的细四角星
+    # 仅 ≈ 27-62，故阈值取 15 以跨活动通用。VAL_MIN 须 >=150 以排除关卡名底下的
+    # 墨绿圆盘装饰
     SAT_MIN = 100
     VAL_MIN = 160
-    LIT_PIXELS = 40
+    LIT_PIXELS = 15
 
     # 星标搜索区相对编号 OCR 框的扩展（星标位于编号右侧约 30~90px，同行）
     ZONE_PAD_LEFT = 5
@@ -106,8 +151,33 @@ class APMapAnalyze(CustomRecognition):
     DIFFICULTY_GROUPS = 3
     DIFFICULTY_LIT_PIXELS = 12
 
+    # 地图页锚点：左上模式标签包含任一关键词即视为地图页
+    ANCHOR_KEYWORDS = ("探索", "故事")
+
+    # 滑到头签名中编号位置的量化粒度（容忍滑动到头后的像素级回弹）
+    SIG_POS_QUANT = 50
+
+    # 三难度红色标记的颜色掩码（BGR 取样自当期活动难度标记）
+    MARKER_R_MIN = 120
+    MARKER_G_MIN = 45
+    MARKER_G_MAX = 150
+    MARKER_B_MAX = 95
+    MARKER_S_MIN = 80
+    MARKER_RG_DIFF = 25
+
+    # 三难度红色标记搜索区相对编号框的偏移
+    MARKER_PAD_LEFT = 95
+    MARKER_PAD_TOP = 10
+    MARKER_EXTRA_W = 25
+    MARKER_EXTRA_H = 65
+
+    # 三难度星标行起点相对编号框的推算参数
+    STAR_NUM_WIDTH_CAP = 62
+    STAR_X0_BACKOFF = 8
+    STAR_X0_MIN_OFFSET = 25
+
     # 滑动到头检测状态（类属性，跨调用保留）
-    _last_signature: bytes | None = None
+    _last_signature: tuple | None = None
     _unchanged_swipes: int = 0
     _pending_zero_stage: tuple | None = None
     _pending_zero_count: int = 0
@@ -127,7 +197,14 @@ class APMapAnalyze(CustomRecognition):
         argv: CustomRecognition.AnalyzeArg,
     ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
-        query = parse_params(argv.custom_recognition_param).get("query", "stage")
+        try:
+            params = parse_params(argv.custom_recognition_param)
+        except ValueError as e:
+            logger.error(f"[AutoPromotion] 识别参数解析失败（{e}），使用全部默认值")
+            params = {}
+        query = params.get("query", "stage")
+        self.apply_param_overrides(params)
+
         tokens = self._stage_numbers(context, argv.image)
 
         incomplete = []
@@ -167,14 +244,19 @@ class APMapAnalyze(CustomRecognition):
         if query == "swipe":
             if APMapAnalyze._unchanged_swipes >= self.UNCHANGED_LIMIT:
                 return None  # 已确认到尽头，交给 done
-            # 滑到头的判定用地图中部网格哈希：滑动中画面必变（含章节交界处），
-            # 到头滑不动时画面才静止。编号签名在交界处恒为空，会误判到头
-            signature = self._map_signature(argv.image)
-            if signature == APMapAnalyze._last_signature:
-                APMapAnalyze._unchanged_swipes += 1
-            else:
-                APMapAnalyze._unchanged_swipes = 0
-                APMapAnalyze._last_signature = signature
+            # 滑到头判定用底部编号签名：编号集合（含量化位置）连续多次不变
+            # 即到头。不能用画面哈希——1987 等活动的星空背景有持续动画，
+            # 静止画面的哈希也不稳定。章节交界处编号为空：不计数也不重置，
+            # 滑过交界后继续累计
+            if tokens:
+                signature = tuple(
+                    (num, box[0] // self.SIG_POS_QUANT) for _, num, box in tokens
+                )
+                if signature == APMapAnalyze._last_signature:
+                    APMapAnalyze._unchanged_swipes += 1
+                else:
+                    APMapAnalyze._unchanged_swipes = 0
+                    APMapAnalyze._last_signature = signature
             if APMapAnalyze._unchanged_swipes >= self.UNCHANGED_LIMIT:
                 return None
             logger.info("[AutoPromotion] 当前画面无未完成关卡，向后滑动地图")
@@ -195,18 +277,9 @@ class APMapAnalyze(CustomRecognition):
         对话/主界面没有。"""
         detail = context.run_recognition("APExploreAnchorOCR", image)
         return any(
-            "探索" in result.text or "故事" in result.text
+            any(word in result.text for word in self.ANCHOR_KEYWORDS)
             for result in ocr_results(detail)
         )
-
-    @staticmethod
-    def _map_signature(image) -> bytes:
-        """地图中部区域 8x8 网格灰度哈希，避开左侧列表/顶部栏/底部条等常驻 UI。"""
-        crop = image[150:480, 200:1080].astype(np.int32).max(axis=2)
-        h, w = crop.shape
-        grid = crop[: h - h % 8, : w - w % 8]
-        grid = grid.reshape(8, h // 8, 8, w // 8).mean(axis=(1, 3))
-        return (grid // 16).astype(np.uint8).tobytes()
 
     def _stage_numbers(
         self, context: Context, image
@@ -325,12 +398,12 @@ class APMapAnalyze(CustomRecognition):
         v = c.max(axis=2)
         s = (v - c.min(axis=2)) * 255 // np.maximum(v, 1)
         marker = (
-            (r >= 120)
-            & (g >= 45)
-            & (g <= 150)
-            & (b <= 95)
-            & (s >= 80)
-            & (r - g >= 25)
+            (r >= self.MARKER_R_MIN)
+            & (g >= self.MARKER_G_MIN)
+            & (g <= self.MARKER_G_MAX)
+            & (b <= self.MARKER_B_MAX)
+            & (s >= self.MARKER_S_MIN)
+            & (r - g >= self.MARKER_RG_DIFF)
         )
         return int(marker.sum()) >= self.MULTI_MARKER_PIXELS
 
@@ -349,12 +422,18 @@ class APMapAnalyze(CustomRecognition):
 
     def _multi_marker_crop(self, image, box: list[int]):
         h_img, w_img = image.shape[:2]
-        x0 = max(box[0] - 95, 0)
-        y0 = max(box[1] - 10, 0)
-        x1 = min(box[0] + 25, w_img)
-        y1 = min(box[1] + 65, h_img)
+        x0 = max(box[0] - self.MARKER_PAD_LEFT, 0)
+        y0 = max(box[1] - self.MARKER_PAD_TOP, 0)
+        x1 = min(box[0] + self.MARKER_EXTRA_W, w_img)
+        y1 = min(box[1] + self.MARKER_EXTRA_H, h_img)
         return image[y0:y1, x0:x1]
 
     def _star_x0(self, box: list[int], image_width: int) -> int:
-        number_width = min(box[2], 62)
-        return max(min(box[0] + max(number_width - 8, 25), image_width), 0)
+        number_width = min(box[2], self.STAR_NUM_WIDTH_CAP)
+        return max(
+            min(
+                box[0] + max(number_width - self.STAR_X0_BACKOFF, self.STAR_X0_MIN_OFFSET),
+                image_width,
+            ),
+            0,
+        )

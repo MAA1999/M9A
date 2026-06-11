@@ -7,11 +7,11 @@ from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
 from utils import logger
 from utils.maa_types import ocr_results
-from utils.params import parse_params
+from utils.params import ParamOverrideMixin, parse_params
 
 
 @AgentServer.custom_recognition("ATTrailAnalyze")
-class ATTrailAnalyze(CustomRecognition):
+class ATTrailAnalyze(ParamOverrideMixin, CustomRecognition):
     """
     活动小径任务流程分析。
 
@@ -35,9 +35,42 @@ class ATTrailAnalyze(CustomRecognition):
 
     参数格式 (custom_recognition_param):
     {
-        "query": "orange" | "reading" | "dialogue" | "task" | "done"
+        "query": "orange" | "reading" | "dialogue" | "task" | "done",
+        // 其余 key 为可选的识别参数覆盖（类常量名小写，如 "orange_min_pixels": 1500），
+        // 见 OVERRIDABLE 白名单与协议文档的契约参数表
     }
     """
+
+    OVERRIDABLE = frozenset(
+        {
+            "ORANGE_ROI",
+            "ORANGE_MIN_PIXELS",
+            "ORANGE_CLICK_BOX",
+            "ORANGE_R_MIN",
+            "ORANGE_G_MIN",
+            "ORANGE_G_MAX",
+            "ORANGE_B_MAX",
+            "ORANGE_S_MIN",
+            "ORANGE_V_MIN",
+            "READ_ROI",
+            "READ_RATIO",
+            "READ_CLOSE_BOX",
+            "CREAM_V_MIN",
+            "CREAM_S_MAX",
+            "DARK_V_MAX",
+            "DIALOG_DARK_RATIO",
+            "DIALOG_CLICK_BOX",
+            "DIALOG_CONFIRM",
+            "DIALOG_STUCK_LIMIT",
+            "SIG_GRID",
+            "SIG_QUANT",
+            "ITEM_Y_MIN",
+            "ITEM_Y_MAX",
+            "ITEM_X_MAX",
+            "TASK_REPEAT_LIMIT",
+            "TITLE_CLICK_LIMIT",
+        }
+    )
 
     # 橙色交互框（倾听讨论/捡起它/完成等），镜头自动居中后位置固定。
     # 实机取样：有框 orange_px≈6500-7000，无框/对话/阅读面板均为 0
@@ -58,6 +91,28 @@ class ATTrailAnalyze(CustomRecognition):
     DIALOG_CLICK_BOX = [1100, 620, 80, 40]
     DIALOG_CONFIRM = 2
     DIALOG_STUCK_LIMIT = 12
+
+    # 橙色交互框像素的颜色掩码（BGR，实机取样）
+    ORANGE_R_MIN = 180
+    ORANGE_G_MIN = 80
+    ORANGE_G_MAX = 170
+    ORANGE_B_MAX = 100
+    ORANGE_S_MIN = 120
+    ORANGE_V_MIN = 180
+
+    # 阅读面板米白像素判定（亮且低饱和）
+    CREAM_V_MIN = 180
+    CREAM_S_MAX = 60
+
+    # 对话场景暗像素判定
+    DARK_V_MAX = 60
+
+    # 对话卡死检测的全屏网格哈希粒度
+    SIG_GRID = 8
+    SIG_QUANT = 16
+
+    # 地图页锚点关键词（同 APMapAnalyze）
+    ANCHOR_KEYWORDS = ("探索", "故事")
 
     # 小径列表（地图页左侧）。列表会随完成进度向上滚动，任务项 y 范围放宽
     ITEM_Y_MIN = 170
@@ -103,7 +158,13 @@ class ATTrailAnalyze(CustomRecognition):
         argv: CustomRecognition.AnalyzeArg,
     ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
-        query = parse_params(argv.custom_recognition_param).get("query", "task")
+        try:
+            params = parse_params(argv.custom_recognition_param)
+        except ValueError as e:
+            logger.error(f"[AutoTrail] 识别参数解析失败（{e}），使用全部默认值")
+            params = {}
+        query = params.get("query", "task")
+        self.apply_param_overrides(params)
 
         if query == "orange":
             return self._analyze_orange(argv.image)
@@ -132,12 +193,12 @@ class ATTrailAnalyze(CustomRecognition):
         v = c.max(axis=2)
         s = (v - c.min(axis=2)) * 255 // np.maximum(v, 1)
         mask = (
-            (r >= 180)
-            & (g >= 80)
-            & (g <= 170)
-            & (b <= 100)
-            & (s >= 120)
-            & (v >= 180)
+            (r >= self.ORANGE_R_MIN)
+            & (g >= self.ORANGE_G_MIN)
+            & (g <= self.ORANGE_G_MAX)
+            & (b <= self.ORANGE_B_MAX)
+            & (s >= self.ORANGE_S_MIN)
+            & (v >= self.ORANGE_V_MIN)
         )
         return int(mask.sum())
 
@@ -145,20 +206,19 @@ class ATTrailAnalyze(CustomRecognition):
         c = self._crop(image, self.READ_ROI)
         v = c.max(axis=2)
         s = (v - c.min(axis=2)) * 255 // np.maximum(v, 1)
-        return float(((v >= 180) & (s <= 60)).mean())
+        return float(((v >= self.CREAM_V_MIN) & (s <= self.CREAM_S_MAX)).mean())
 
-    @staticmethod
-    def _dark_ratio(image) -> float:
+    def _dark_ratio(self, image) -> float:
         v = image.astype(np.int32).max(axis=2)
-        return float((v < 60).mean())
+        return float((v < self.DARK_V_MAX).mean())
 
-    @staticmethod
-    def _screen_signature(image) -> bytes:
+    def _screen_signature(self, image) -> bytes:
         h, w = image.shape[:2]
         gray = image.astype(np.int32).max(axis=2)
-        grid = gray[: h - h % 8, : w - w % 8]
-        grid = grid.reshape(8, h // 8, 8, w // 8).mean(axis=(1, 3))
-        return (grid // 16).astype(np.uint8).tobytes()
+        n = self.SIG_GRID
+        grid = gray[: h - h % n, : w - w % n]
+        grid = grid.reshape(n, h // n, n, w // n).mean(axis=(1, 3))
+        return (grid // self.SIG_QUANT).astype(np.uint8).tobytes()
 
     # ---- 地图页判定与列表区 OCR ----
 
@@ -168,7 +228,7 @@ class ATTrailAnalyze(CustomRecognition):
         的编号是灰色锁定样式，OCR 读不出数字。"""
         detail = context.run_recognition("APExploreAnchorOCR", image)
         return any(
-            "探索" in result.text or "故事" in result.text
+            any(word in result.text for word in self.ANCHOR_KEYWORDS)
             for result in ocr_results(detail)
         )
 
