@@ -7,7 +7,7 @@
                 "故事模式",
                 "小径",
                 "探索模式",
-                "吃糖"
+                "推图吃糖"
             ],
             "pipeline_override": {
                 "WaitReplay": {
@@ -85,6 +85,41 @@
                 }
             ],
             "description": "推进探索模式的未完成关卡（活动后期开放，未开放时自动跳过）。默认关闭，探索模式开放后请手动开启"
+        },
+        "推图吃糖": {
+            "label": "吃糖",
+            "type": "switch",
+            "default_case": "Yes",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "valid_period": "24h"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EatCandy": {
+                            "enabled": false
+                        },
+                        "EatMiniCandy": {
+                            "enabled": false
+                        },
+                        "EatCandyStart": {
+                            "enabled": false
+                        },
+                        "EatCandyPage": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ],
+            "description": "体力耗尽时自动吃 24 小时内过期的糖（推图任务专用简化版，固定有效期）"
         }
     }
 }
