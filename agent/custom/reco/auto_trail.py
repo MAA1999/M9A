@@ -5,7 +5,7 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
-from utils import logger
+from utils import frame_buffer, logger
 from utils.maa_types import ocr_results
 from utils.params import parse_params
 
@@ -103,6 +103,7 @@ class ATTrailAnalyze(CustomRecognition):
         argv: CustomRecognition.AnalyzeArg,
     ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
+        frame_buffer.remember(argv.image)
         query = parse_params(argv.custom_recognition_param).get("query", "task")
 
         if query == "orange":
