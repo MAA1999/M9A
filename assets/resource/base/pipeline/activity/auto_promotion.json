@@ -196,15 +196,9 @@
         }
     },
     "AP_UnknownScreen": {
-        "desc": "调度超时兜底：保存截图与日志后报错结束",
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "APSaveDebug"
-            }
-        },
+        "desc": "调度超时兜底：报错结束（出错截图由框架 SaveOnError 自动保存到 debug/on_error）",
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson\">推图遇到无法自动处理的界面（如小游戏、特殊教程等），已保存截图至 debug/auto_promotion。请手动完成当前内容并回到活动关卡地图页，然后重新运行本任务继续推图</span>"
+            "Node.Action.Starting": "<span style=\"color:crimson\">推图遇到无法自动处理的界面（如小游戏、特殊教程等），出错截图见 debug/on_error。请手动完成当前内容并回到活动关卡地图页，然后重新运行本任务继续推图</span>"
         }
     }
 }
