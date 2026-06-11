@@ -147,9 +147,13 @@ class APMapAnalyze(CustomRecognition):
         return None
 
     def _is_explore_map(self, context: Context, image) -> bool:
-        """地图页左上角常驻「探索模式」标签，章节交界处也在；对话/主界面没有。"""
+        """地图页左上角常驻模式标签（探索模式/故事模式），章节交界处也在；
+        对话/主界面没有。"""
         detail = context.run_recognition("APExploreAnchorOCR", image)
-        return any("探索" in result.text for result in ocr_results(detail))
+        return any(
+            "探索" in result.text or "故事" in result.text
+            for result in ocr_results(detail)
+        )
 
     @staticmethod
     def _map_signature(image) -> bytes:

@@ -163,11 +163,14 @@ class ATTrailAnalyze(CustomRecognition):
     # ---- 地图页判定与列表区 OCR ----
 
     def _is_map_page(self, context: Context, image) -> bool:
-        """地图页左上角常驻「探索模式」标签（复用推图的锚点 OCR 节点），
-        对话/阅读场景必无。底部关卡编号条不可靠：未开放章节的编号是
-        灰色锁定样式，OCR 读不出数字。"""
+        """地图页左上角常驻模式标签（探索模式/故事模式，复用推图的锚点
+        OCR 节点），对话/阅读场景必无。底部关卡编号条不可靠：未开放章节
+        的编号是灰色锁定样式，OCR 读不出数字。"""
         detail = context.run_recognition("APExploreAnchorOCR", image)
-        return any("探索" in result.text for result in ocr_results(detail))
+        return any(
+            "探索" in result.text or "故事" in result.text
+            for result in ocr_results(detail)
+        )
 
     def _scan_list(self, context: Context, image) -> tuple[list | None, list]:
         """返回 (「小径」标题 box 或 None, 任务项列表[(text, box)])，任务项按 y 升序。"""

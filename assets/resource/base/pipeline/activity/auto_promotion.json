@@ -25,7 +25,7 @@
         ]
     },
     "APExploreAnchorOCR": {
-        "desc": "辅助节点：地图页左上角「探索模式」标签 OCR，作为地图页锚点（章节交界处无关卡编号时仍可识别），仅供 APMapAnalyze 内部调用，请勿加入 next",
+        "desc": "辅助节点：地图页左上角模式标签 OCR，作为地图页锚点（章节交界处无关卡编号时仍可识别），仅供 APMapAnalyze 内部调用，请勿加入 next。标签随模式切换显示「探索模式」或「故事模式」（参考 FlagInSS 的 expected）",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -35,7 +35,10 @@
                     190,
                     80
                 ],
-                "expected": "探索"
+                "expected": [
+                    "探索",
+                    "故事"
+                ]
             }
         }
     },
