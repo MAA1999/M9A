@@ -75,6 +75,7 @@
             "[JumpBack]AP_NavMainEntryHigh",
             "[JumpBack]AP_NavMainEntryLow",
             "[JumpBack]AP_NavUnlockButton",
+            "AP_NavInsufficientCanister",
             "[JumpBack]AP_NavCardClick",
             "[JumpBack]AP_NavRewind",
             "[JumpBack]AP_NavForward",
@@ -409,6 +410,30 @@
             "type": "Click"
         },
         "post_delay": 3000
+    },
+    "AP_NavInsufficientCanister": {
+        "desc": "活动解锁失败：点击解锁按钮后右上角 ROI [1067,105,112,32] 出现「不足」文字，说明显影罐不够，报错结束任务。非 JumpBack，命中即终止 AP_NavLoop",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1067,
+                    105,
+                    112,
+                    32
+                ],
+                "expected": ["不足"]
+            }
+        },
+        "focus": {
+            "Node.Action.Starting": {
+                "content": "显影罐不足，无法解锁活动，任务结束。请补充显影罐后重试",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
+        }
     },
     "AP_NavUnlockButton": {
         "desc": "活动解锁弹窗：当右上角 ROI [1067,105,112,32] 出现「显影罐不足」提示时，OCR 找「解锁」按钮并点击。点击后由 Confirm 节点处理二次确认。放在 AP_NavMainEntryLow 之后、AP_NavCardClick 之前，避免背景卡片被反复误触",
