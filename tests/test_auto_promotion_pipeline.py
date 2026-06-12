@@ -9,7 +9,7 @@ sys.path.insert(0, str(ROOT / "agent"))
 _agent_custom = importlib.import_module("agent.custom")
 assert sys.modules["custom"] is _agent_custom
 
-from custom.reco.auto_promotion import APCardFinder, APMapAnalyze
+from agent.custom.reco.auto_promotion import APCardFinder, APMapAnalyze
 
 
 def _load_json(path: str):
