@@ -6,8 +6,26 @@ from maa.context import Context
 from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
 from utils import logger
-from utils.maa_types import ocr_results
+from utils.maa_types import is_hit, ocr_results
 from utils.params import ParamOverrideMixin, parse_params
+
+
+def is_stage_map(context: Context, image) -> bool:
+    """关卡地图页判定（活动与主线通用）。
+
+    活动地图左上有「探索模式/故事模式」标签；主线地图没有模式按钮，
+    退而验证底部有关卡编号且无「开始行动」按钮（关卡详情页底部也有
+    缩略编号条，但详情页必有开始行动按钮，以此区分）。
+    """
+    detail = context.run_recognition("APExploreAnchorOCR", image)
+    if any(
+        any(word in r.text for word in ("探索", "故事")) for r in ocr_results(detail)
+    ):
+        return True
+    detail = context.run_recognition("APStageNumberOCR", image)
+    if not any(re.search(r"\d", r.text) for r in ocr_results(detail)):
+        return False
+    return not is_hit(context.run_recognition("AP_StartAction", image))
 
 
 @AgentServer.custom_recognition("APPhaseGate")
@@ -437,8 +455,8 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
             if not incomplete:
                 return None
             # 锚点校验：关卡详情页底部也有缩略关卡条（数字 token），
-            # 没有左上模式标签锚点就不是地图页，不能找关点击
-            if not self._is_explore_map(context, argv.image):
+            # 不在地图页（活动模式标签 / 主线编号条判定）不能找关点击
+            if not is_stage_map(context, argv.image):
                 return None
             text, num, box, detail = min(incomplete, key=lambda item: item[1])
             if self._needs_zero_stage_confirm(detail):
@@ -460,9 +478,9 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
         if incomplete:
             return None  # 还有未完成关卡，无需滑动/结束
 
-        # swipe/done 用「探索模式」标签锚定地图页：章节交界处底部没有关卡编号，
-        # 不能拿编号判断是否在地图页
-        if not self._is_explore_map(context, argv.image):
+        # swipe/done 锚定地图页（活动模式标签 / 主线编号条判定）：
+        # 章节交界处底部没有编号，活动图不能只拿编号判断
+        if not is_stage_map(context, argv.image):
             return None
 
         if query == "swipe":
