@@ -1,4 +1,5 @@
 import re
+from difflib import SequenceMatcher
 
 import numpy as np
 from maa.agent.agent_server import AgentServer
@@ -65,6 +66,14 @@ class APPhaseGate(CustomRecognition):
 
         if query in APPhaseGate._visited:
             return None
+
+        # 探索阶段仅活动地图有效：主线地图无模式标签，OCR 找不到「探索」则跳过
+        if query == "explore":
+            detail = context.run_recognition("APExploreAnchorOCR", argv.image)
+            if not any("探索" in r.text for r in ocr_results(detail)):
+                logger.info("[AutoPromotion] 当前地图无探索模式，跳过探索阶段")
+                return None
+
         APPhaseGate._visited.add(query)
         # 进入新的推图阶段前重置滑动到头计数，避免上一阶段的状态串扰
         APMapAnalyze.reset_swipe_state()
@@ -113,6 +122,13 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
     PV_MAX_TOKENS = 3
     PV_TAP_LIMIT = 15
     PV_TAP_BOX = (615, 350, 50, 30)
+
+    # Stable OCR fallbacks observed on real image cards. Keep these explicit so
+    # short fragments like "往事" do not become a global fuzzy-match rule.
+    TITLE_ALIASES = {
+        "朔日手记": ("朔手记", "朔记", "朔日记"),
+        "7号往事": ("往事", "号往事"),
+    }
 
     OVERRIDABLE = frozenset(
         {
@@ -179,6 +195,17 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
             if not is_stage_map(context, argv.image):
                 APCardFinder._seen_non_map = True
                 return None
+            # 活动入口界面（有「步入剧情」按钮）被 APExploreAnchorOCR 误判为地图页时的防御：
+            # 入口界面不是关卡地图，需先点「步入剧情」才进入地图
+            if is_hit(context.run_recognition("AP_NavStoryEnter", argv.image)):
+                APCardFinder._seen_non_map = True
+                return None
+            # 卡片详情页（有「活动正篇/主线正篇」按钮）被 APStageNumberOCR 误判为地图页时的防御：
+            # 详情页标题含活动编号（如「77号往事」），OCR 把「77」误读为关卡号；
+            # 需先点「活动正篇」才进入关卡地图
+            if is_hit(context.run_recognition("AP_NavMainEntry", argv.image)):
+                APCardFinder._seen_non_map = True
+                return None
             if not APCardFinder._seen_non_map:
                 return None
             logger.info("[AutoPromotion] 已到达关卡地图页，导航完成")
@@ -238,7 +265,7 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
 
         if not titles:
             return None  # 不在映像页（卡片标题行无内容）
-        signature = tuple(sorted(text for text, _ in titles))
+        signature = tuple(sorted(self._signature_text(text) for text, _ in titles))
 
         # 目标卡片已进入双帧确认，滑动节点让位等待 card 确认点击
         if APCardFinder._card_pending is not None and query in ("rewind", "swipe"):
@@ -287,11 +314,29 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
     @staticmethod
     def _title_match(target: str, text: str) -> bool:
         """标题匹配：屏幕边缘的卡片标题会被截断（如「87宇宙组曲」），
-        除正向子串外也接受足够长的残缺标题反向匹配。"""
+        除正向子串外也接受足够长的残缺标题反向匹配。
+
+        实机 OCR 偶尔会漏/错单字（如「绿湖噩梦」识别成「绿湖疆梦」、
+        「圣火纪行：东区黎明」漏掉「火」）。在长度接近时使用保守的
+        相似度兜底，避免可见卡片因为单字漂移而永远找不到。
+        """
         t = text.replace(" ", "").strip()
         if not t:
             return False
-        return target in t or (len(t) >= 4 and t in target)
+        if target in t or (len(t) >= 4 and t in target):
+            return True
+        if t in APCardFinder.TITLE_ALIASES.get(target, ()):
+            return True
+        if len(target) < 4 or len(t) < 4:
+            return False
+        if abs(len(target) - len(t)) > max(2, len(target) // 3):
+            return False
+        return SequenceMatcher(None, target, t).ratio() >= 0.74
+
+    @staticmethod
+    def _signature_text(text: str) -> str:
+        """Normalize unstable OCR variants used only for scroll-end signatures."""
+        return text.replace(" ", "").replace("於", "于").strip()
 
     def _is_image_page(self, context: Context, image) -> bool:
         detail = context.run_recognition("APImagePageOCR", image)
@@ -367,6 +412,8 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
             "STAR_X0_BACKOFF",
             "STAR_X0_MIN_OFFSET",
             "ZERO_STAGE_CONFIRM",
+            "STAGE_NUM_MIN",
+            "STAGE_NUM_MAX",
         }
     )
 
@@ -397,6 +444,8 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
     STAGE_BOX_CENTER_Y_MAX = 620
     STAGE_BOX_H_MIN = 10
     STAGE_BOX_H_MAX = 55
+    STAGE_NUM_MIN = 1
+    STAGE_NUM_MAX = 30
 
     # Three-difficulty stages show three star pairs. A difficulty is passed
     # once either star in its pair is lit; full-star cleanup is left manual.
@@ -404,7 +453,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
     MULTI_ZONE_EXTRA_W = 240
     STAR_ROW_UP = 35
     STAR_ROW_DOWN = 18
-    MULTI_MARKER_PIXELS = 30
+    MULTI_MARKER_PIXELS = 60
     DIFFICULTY_GROUPS = 3
     DIFFICULTY_LIT_PIXELS = 12
 
@@ -428,7 +477,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
     MARKER_PAD_LEFT = 95
     MARKER_PAD_TOP = 10
     MARKER_EXTRA_W = 25
-    MARKER_EXTRA_H = 65
+    MARKER_EXTRA_H = 40
 
     # 三难度星标行起点相对编号框的推算参数
     STAR_NUM_WIDTH_CAP = 62
@@ -561,7 +610,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
         text = text.strip()
         m = self.NUM_RE.match(text)
         if m:
-            return int(m.group(1)), box
+            return self._valid_stage_number(int(m.group(1)), box)
 
         # OCR can merge the stage number with nearby stars or marker strokes,
         # e.g. stage 13 becomes "A1333". In that shape, the first two digits
@@ -576,7 +625,14 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
 
         stage, noise = m.groups()
         if len(set(noise)) == 1:
-            return int(stage), box
+            return self._valid_stage_number(int(stage), box)
+        return None
+
+    def _valid_stage_number(
+        self, stage_num: int, box: list[int]
+    ) -> tuple[int, list[int]] | None:
+        if self.STAGE_NUM_MIN <= stage_num <= self.STAGE_NUM_MAX:
+            return stage_num, box
         return None
 
     def _is_stage_box(self, box: list[int]) -> bool:
@@ -607,9 +663,14 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
         self, image, box: list[int], stage_num: int, text: str = ""
     ) -> tuple[bool, str]:
         lit = self._lit_pixel_count(image, box)
+        # 单星判定优先：编号邻域有足够亮像素即视为已通关（含两颗星的普通关卡）。
+        # 三难度分组仅在亮像素不足时介入，避免背景美术误触发多难度检测
+        if lit >= self.LIT_PIXELS:
+            return True, f"亮像素 {lit}"
+
         groups = self._multi_difficulty_groups(image, box, text)
         if groups is None:
-            return lit >= self.LIT_PIXELS, f"亮像素 {lit}"
+            return False, f"亮像素 {lit}"
 
         complete = all(groups)
         progress = "".join("1" if item else "0" for item in groups)

@@ -68,8 +68,8 @@
         ],
         "next": [
             "CheckStopping",
-            "AP_NavArrived",
             "[JumpBack]AP_NavStoryEnter",
+            "AP_NavArrived",
             "[JumpBack]AP_NavCurrentEntry",
             "[JumpBack]AP_NavMainEntry",
             "[JumpBack]AP_NavMainEntryHigh",
@@ -368,18 +368,21 @@
         "post_delay": 3000
     },
     "AP_NavStoryEnter": {
-        "desc": "「当期活动」专用（默认禁用，由选项启用）：活动入口界面点右侧「步入剧情」进入当期活动关卡地图",
+        "desc": "「当期活动」专用（默认禁用，由选项启用）：活动入口界面点右侧「步入剧情」进入当期活动关卡地图。ROI 参考 cn.json FlagInActivityMain [1033,610,168,64]，收窄到右侧按钮区，避免 OCR 包围盒偏左导致点击失效",
         "enabled": false,
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
-                    900,
-                    380,
-                    380,
-                    280
+                    903,
+                    383,
+                    351,
+                    318
                 ],
-                "expected": "步入剧情"
+                "expected": [
+                    "步入",
+                    "剧情"
+                ]
             }
         },
         "action": {

@@ -616,6 +616,16 @@
                             "default": 10,
                             "description": "关卡编号框高度下限"
                         },
+                        "stage_num_max": {
+                            "type": "integer",
+                            "default": 30,
+                            "description": "有效活动关卡编号上限，用于过滤星标/装饰 OCR 成 70/75/76 等不可能编号"
+                        },
+                        "stage_num_min": {
+                            "type": "integer",
+                            "default": 1,
+                            "description": "有效活动关卡编号下限，用于过滤 OCR 装饰噪声 0"
+                        },
                         "star_num_width_cap": {
                             "type": "integer",
                             "default": 62,

@@ -118,9 +118,12 @@
             "[JumpBack]EatCandyPage",
             "[JumpBack]AP_SkipConfirm",
             "[JumpBack]AP_Skip",
+            "AP_UnlockInsufficientCanister",
+            "[JumpBack]AP_UnlockConfirm",
             "[JumpBack]Confirm",
             "[JumpBack]ObtainedAwards",
             "[JumpBack]ClickBlank",
+            "[JumpBack]AP_UnlockStage",
             "[JumpBack]AP_StartAction",
             "[JumpBack]AP_EnterStage",
             "[JumpBack]AP_SwipeMap",
@@ -363,6 +366,72 @@
         "action": {
             "type": "Click"
         }
+    },
+    "AP_UnlockInsufficientCanister": {
+        "desc": "关卡解锁失败提示：点击解锁并确认后，右上角弹出「显影罐不足」时停止任务，避免继续误点或进入超时兜底",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    20,
+                    500,
+                    130
+                ],
+                "expected": [
+                    "显影罐不足",
+                    "显影罐",
+                    "不足"
+                ]
+            }
+        },
+        "focus": {
+            "Node.Recognition.Succeeded": {
+                "content": "关卡解锁失败：显影罐不足。请补足显影罐后重新运行活动推图。",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
+        }
+    },
+    "AP_UnlockConfirm": {
+        "desc": "关卡解锁确认弹窗：点击「解锁」后出现时点确认",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    380,
+                    330,
+                    100
+                ],
+                "expected": "确认"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 800
+    },
+    "AP_UnlockStage": {
+        "desc": "关卡详情页未解锁时点击「解锁」。成功后会回到可开始行动状态；失败会由 AP_UnlockInsufficientCanister 识别右上角「显影罐不足」提示并停止",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1000,
+                    560,
+                    280,
+                    160
+                ],
+                "expected": "解锁"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 800
     },
     "AP_StartAction": {
         "desc": "编队页/关卡详情页的开始行动按钮。ROI 放宽覆盖不同活动的按钮位置（当期 y≈638-670，唐人街影话详情页 y≈612-640），点击跟随 OCR 命中位置",
