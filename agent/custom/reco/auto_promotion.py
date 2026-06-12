@@ -54,6 +54,184 @@ class APPhaseGate(CustomRecognition):
         return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={"phase": query})
 
 
+@AgentServer.custom_recognition("APCardFinder")
+class APCardFinder(ParamOverrideMixin, CustomRecognition):
+    """
+    映像页活动/主线卡片查找，驱动入口导航。
+
+    导航链：主页「入场」-> 世纪末尺度页「映像」-> 卡片横排 -> 目标卡片 ->
+    详情页「活动正篇/主线正篇」-> 关卡地图页。
+
+    参数格式 (custom_recognition_param):
+    {
+        "query": "nav" | "card" | "rewind" | "swipe" | "notfound",
+        "card_name": "唐人街影话"   // 目标卡片名（标题子串匹配）
+    }
+    - nav:      card_name 为空或「当前页面」时不命中（跳过导航直接推图），
+                否则命中进入导航循环
+    - card:     映像页卡片标题含 card_name 则命中，返回卡片点击区
+    - rewind:   先把横排列表回卷到最左（右滑），连续两次标题集合不变即回卷完成
+    - swipe:    回卷完成后向右逐屏查找（左滑），到头停止命中
+    - notfound: 查找到头仍未发现目标卡片，命中后报错结束
+    """
+
+    CARD_NAME = ""
+
+    # 卡片标题行（映像页横排卡片的标题）与卡片体点击区
+    CARD_TITLE_Y_MIN = 170
+    CARD_TITLE_Y_MAX = 230
+    CARD_BODY_Y = 240
+    CARD_BODY_H = 220
+    CARD_BODY_MIN_W = 200
+
+    # 回卷/查找的到头判定（标题集合连续不变次数）
+    REWIND_LIMIT = 2
+    FORWARD_LIMIT = 3
+
+    OVERRIDABLE = frozenset(
+        {
+            "CARD_NAME",
+            "CARD_TITLE_Y_MIN",
+            "CARD_TITLE_Y_MAX",
+            "CARD_BODY_Y",
+            "CARD_BODY_H",
+            "CARD_BODY_MIN_W",
+            "REWIND_LIMIT",
+            "FORWARD_LIMIT",
+        }
+    )
+
+    _rewind_sig: tuple | None = None
+    _rewind_same: int = 0
+    _rewind_done: bool = False
+    _forward_sig: tuple | None = None
+    _forward_same: int = 0
+
+    @classmethod
+    def reset_nav_state(cls) -> None:
+        cls._rewind_sig = None
+        cls._rewind_same = 0
+        cls._rewind_done = False
+        cls._forward_sig = None
+        cls._forward_same = 0
+
+    def analyze(
+        self,
+        context: Context,
+        argv: CustomRecognition.AnalyzeArg,
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
+
+        try:
+            params = parse_params(argv.custom_recognition_param)
+        except ValueError as e:
+            logger.error(f"[AutoPromotion] 导航参数解析失败（{e}），使用默认值")
+            params = {}
+        query = params.get("query", "nav")
+        self.apply_param_overrides(params)
+
+        target = self.CARD_NAME.strip()
+
+        if query == "nav":
+            if not target or target == "当前页面":
+                return None
+            APCardFinder.reset_nav_state()
+            logger.info(f"[AutoPromotion] 开始导航至「{target}」")
+            return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
+
+        # card/rewind/swipe/notfound 仅在映像页生效（顶部「显影罐」横幅锚定），
+        # 防止在地图页/世纪末尺度页误触发滑动
+        if not self._is_image_page(context, argv.image):
+            return None
+        titles = self._card_titles(context, argv.image)
+
+        if query == "card":
+            if not target:
+                return None
+            for text, box in titles:
+                if self._title_match(target, text):
+                    # 不重置导航状态：若点击未生效（卡片在屏边、过渡动画等），
+                    # 下一轮 card 仍会命中并重试点击，而不是被回卷滑走
+                    logger.info(f"[AutoPromotion] 找到卡片「{text}」，点击进入")
+                    body = [
+                        max(box[0], 0),
+                        self.CARD_BODY_Y,
+                        max(box[2], self.CARD_BODY_MIN_W),
+                        self.CARD_BODY_H,
+                    ]
+                    return CustomRecognition.AnalyzeResult(
+                        box=body, detail={"card": text}
+                    )
+            return None
+
+        if not titles:
+            return None  # 不在映像页（卡片标题行无内容）
+        signature = tuple(sorted(text for text, _ in titles))
+
+        if query == "rewind":
+            if APCardFinder._rewind_done:
+                return None
+            if signature == APCardFinder._rewind_sig:
+                APCardFinder._rewind_same += 1
+            else:
+                APCardFinder._rewind_sig = signature
+                APCardFinder._rewind_same = 0
+            if APCardFinder._rewind_same >= self.REWIND_LIMIT:
+                APCardFinder._rewind_done = True
+                logger.info("[AutoPromotion] 卡片列表已回卷到最左，开始向右查找")
+                return None
+            return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
+
+        if query == "swipe":
+            if not APCardFinder._rewind_done:
+                return None
+            if APCardFinder._forward_same >= self.FORWARD_LIMIT:
+                return None  # 已到头，交给 notfound
+            if signature == APCardFinder._forward_sig:
+                APCardFinder._forward_same += 1
+            else:
+                APCardFinder._forward_sig = signature
+                APCardFinder._forward_same = 0
+            if APCardFinder._forward_same >= self.FORWARD_LIMIT:
+                return None
+            return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
+
+        if query == "notfound":
+            if APCardFinder._rewind_done and (
+                APCardFinder._forward_same >= self.FORWARD_LIMIT
+            ):
+                logger.error(f"[AutoPromotion] 卡片列表已扫完，未找到「{target}」")
+                APCardFinder.reset_nav_state()
+                return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
+            return None
+
+        logger.error(f"[AutoPromotion] 无效 query: {query}")
+        return None
+
+    @staticmethod
+    def _title_match(target: str, text: str) -> bool:
+        """标题匹配：屏幕边缘的卡片标题会被截断（如「87宇宙组曲」），
+        除正向子串外也接受足够长的残缺标题反向匹配。"""
+        t = text.replace(" ", "").strip()
+        if not t:
+            return False
+        return target in t or (len(t) >= 4 and t in target)
+
+    def _is_image_page(self, context: Context, image) -> bool:
+        detail = context.run_recognition("APImagePageOCR", image)
+        return any("显影罐" in result.text for result in ocr_results(detail))
+
+    def _card_titles(self, context: Context, image) -> list[tuple[str, list[int]]]:
+        detail = context.run_recognition("APCardTitleOCR", image)
+        titles = []
+        for result in ocr_results(detail):
+            text = result.text.strip()
+            box = list(result.box)
+            cy = box[1] + box[3] / 2
+            if self.CARD_TITLE_Y_MIN <= cy <= self.CARD_TITLE_Y_MAX and len(text) >= 2:
+                titles.append((text, box))
+        return titles
+
+
 @AgentServer.custom_recognition("APMapAnalyze")
 class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
     """

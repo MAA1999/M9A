@@ -22,7 +22,8 @@
                 "SOSSelectEncounterOptionList",
                 "SOSSelectEncounterOptionFindSelected",
                 "APMapAnalyze",
-                "ATTrailAnalyze"
+                "ATTrailAnalyze",
+                "APCardFinder"
             ]
         }
     },
@@ -83,6 +84,9 @@
         },
         {
             "$ref": "#/$defs/ATTrailAnalyze"
+        },
+        {
+            "$ref": "#/$defs/APCardFinder"
         }
     ],
     "$defs": {
@@ -916,6 +920,78 @@
                 "custom_recognition": {
                     "const": "SOSSelectEncounterOptionFindSelected",
                     "description": "局外演绎：无声综合征-途中偶遇选项识别已选中的选项"
+                }
+            }
+        },
+        "APCardFinder": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_recognition": {
+                    "const": "APCardFinder",
+                    "description": "映像页活动/主线卡片查找（入口导航）"
+                },
+                "custom_recognition_param": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "enum": [
+                                "nav",
+                                "card",
+                                "rewind",
+                                "swipe",
+                                "notfound"
+                            ]
+                        },
+                        "card_body_h": {
+                            "type": "integer",
+                            "default": 220,
+                            "description": "卡片体点击区高度"
+                        },
+                        "card_body_min_w": {
+                            "type": "integer",
+                            "default": 200,
+                            "description": "卡片体点击区最小宽度"
+                        },
+                        "card_body_y": {
+                            "type": "integer",
+                            "default": 240,
+                            "description": "卡片体点击区起始 y"
+                        },
+                        "card_name": {
+                            "type": "string",
+                            "default": "",
+                            "description": "目标卡片名（标题子串匹配；空或「当前页面」时跳过导航）"
+                        },
+                        "card_title_y_max": {
+                            "type": "integer",
+                            "default": 230,
+                            "description": "卡片标题行中心 y 上限"
+                        },
+                        "card_title_y_min": {
+                            "type": "integer",
+                            "default": 170,
+                            "description": "卡片标题行中心 y 下限"
+                        },
+                        "forward_limit": {
+                            "type": "integer",
+                            "default": 3,
+                            "description": "查找到头判定的连续不变次数"
+                        },
+                        "rewind_limit": {
+                            "type": "integer",
+                            "default": 2,
+                            "description": "回卷到头判定的连续不变次数"
+                        }
+                    },
+                    "required": [
+                        "query"
+                    ],
+                    "additionalProperties": false
                 }
             }
         }

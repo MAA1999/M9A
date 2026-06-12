@@ -1,0 +1,255 @@
+{
+    "APImagePageOCR": {
+        "desc": "辅助节点：映像页顶部「显影罐」活跃奖励横幅 OCR，作为映像页锚点，仅供 APCardFinder 内部调用，请勿加入 next",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    200,
+                    20,
+                    500,
+                    60
+                ],
+                "expected": "显影罐"
+            }
+        }
+    },
+    "APCardTitleOCR": {
+        "desc": "辅助节点：映像页卡片横排标题行 OCR，仅供 APCardFinder 内部调用，请勿加入 next",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    170,
+                    1280,
+                    60
+                ],
+                "expected": ".+"
+            }
+        }
+    },
+    "AP_Navigate": {
+        "desc": "入口导航闸门：任务选项指定了目标活动时命中（card_name 为空或「当前页面」则跳过导航，沿用手动进入地图页的用法）",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APCardFinder",
+                "custom_recognition_param": {
+                    "query": "nav",
+                    "card_name": ""
+                }
+            }
+        },
+        "next": [
+            "AP_NavLoop"
+        ]
+    },
+    "AP_NavLoop": {
+        "desc": "入口导航调度循环：主页「入场」-> 世纪末尺度页「映像」-> 卡片横排回卷到最左后逐屏查找 -> 点目标卡片 -> 详情页「活动正篇/主线正篇」-> 关卡地图页",
+        "timeout": 60000,
+        "on_error": [
+            "AP_NavFailed"
+        ],
+        "next": [
+            "CheckStopping",
+            "AP_NavMainEntry",
+            "[JumpBack]AP_NavCardClick",
+            "[JumpBack]AP_NavRewind",
+            "[JumpBack]AP_NavForward",
+            "AP_NavNotFound",
+            "[JumpBack]AP_NavVideoTab",
+            "[JumpBack]AP_NavEnterButton",
+            "[JumpBack]ReturnMain"
+        ]
+    },
+    "AP_NavMainEntry": {
+        "desc": "卡片详情页的「活动正篇」或「主线正篇」入口（位置随活动浮动：唐人街影话在中下，1987 在右下），点击后进入关卡地图页并接入推图阶段链",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    300,
+                    400,
+                    980,
+                    320
+                ],
+                "expected": [
+                    "活动正篇",
+                    "主线正篇"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -40,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_delay": 3000,
+        "next": [
+            "AP_StoryGate",
+            "AT_TrailGate",
+            "AP_ExploreGate",
+            "AP_AllPhasesDone"
+        ]
+    },
+    "AP_NavCardClick": {
+        "desc": "映像页找到目标卡片，点击进入详情页",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APCardFinder",
+                "custom_recognition_param": {
+                    "query": "card",
+                    "card_name": ""
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 2500
+    },
+    "AP_NavRewind": {
+        "desc": "映像页卡片横排先回卷到最左（右滑），保证查找从列表头开始",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APCardFinder",
+                "custom_recognition_param": {
+                    "query": "rewind",
+                    "card_name": ""
+                }
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    200,
+                    300,
+                    40,
+                    20
+                ],
+                "end": [
+                    1150,
+                    300,
+                    40,
+                    20
+                ],
+                "duration": 1200
+            }
+        },
+        "post_delay": 1000
+    },
+    "AP_NavForward": {
+        "desc": "映像页向右逐屏翻页查找目标卡片（左滑）。慢速短距滑动：快滑会触发惯性滚动跳过整屏卡片",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APCardFinder",
+                "custom_recognition_param": {
+                    "query": "swipe",
+                    "card_name": ""
+                }
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    1000,
+                    300,
+                    40,
+                    20
+                ],
+                "end": [
+                    300,
+                    300,
+                    40,
+                    20
+                ],
+                "duration": 1500
+            }
+        },
+        "post_delay": 1200
+    },
+    "AP_NavNotFound": {
+        "desc": "卡片列表扫完未找到目标活动，报错结束",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APCardFinder",
+                "custom_recognition_param": {
+                    "query": "notfound",
+                    "card_name": ""
+                }
+            }
+        },
+        "focus": {
+            "Node.Action.Starting": {
+                "content": "在映像页卡片列表中未找到所选活动，请确认活动名称或手动进入活动地图页后改用「当前页面」运行",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
+        }
+    },
+    "AP_NavVideoTab": {
+        "desc": "世纪末尺度页底部菜单的「映像」标签（映像页内的查找/滑动节点优先级更高，不会重复点击）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    100,
+                    640,
+                    300,
+                    60
+                ],
+                "expected": "映像"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 2000
+    },
+    "AP_NavEnterButton": {
+        "desc": "游戏主页活动 banner 的「入场」按钮，进入世纪末尺度页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    150,
+                    380,
+                    400
+                ],
+                "expected": "入场"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000
+    },
+    "AP_NavFailed": {
+        "desc": "导航超时兜底：报错结束（出错截图由框架 SaveOnError 自动保存到 debug/on_error）",
+        "focus": {
+            "Node.Action.Starting": {
+                "content": "导航至所选活动失败（出错截图见 debug/on_error）。请手动进入活动关卡地图页后，将活动选项改为「当前页面」重新运行",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
+        }
+    }
+}
