@@ -99,7 +99,7 @@
                     "pipeline_override": {
                         "EatCandyStart": {
                             "attach": {
-                                "valid_period": "24h"
+                                "valid_period": "infinite"
                             }
                         }
                     }
@@ -122,7 +122,7 @@
                     }
                 }
             ],
-            "description": "体力耗尽时自动吃 24 小时内过期的糖（推图任务专用简化版，固定有效期）"
+            "description": "体力耗尽时自动吃糖（不限有效期，吃所有糖）"
         },
         "选择活动": {
             "type": "select",
