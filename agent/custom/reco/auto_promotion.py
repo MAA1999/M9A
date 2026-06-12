@@ -64,7 +64,7 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
 
     参数格式 (custom_recognition_param):
     {
-        "query": "nav" | "card" | "rewind" | "swipe" | "notfound",
+        "query": "nav" | "card" | "rewind" | "swipe" | "notfound" | "pv",
         "card_name": "唐人街影话"   // 目标卡片名（标题子串匹配）
     }
     - nav:      card_name 为空或「当前页面」时不命中（跳过导航直接推图），
@@ -73,6 +73,8 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
     - rewind:   先把横排列表回卷到最左（右滑），连续两次标题集合不变即回卷完成
     - swipe:    回卷完成后向右逐屏查找（左滑），到头停止命中
     - notfound: 查找到头仍未发现目标卡片，命中后报错结束
+    - pv:       首次进入卡片会播放 PV（全屏几乎无文字），命中后点屏幕中央
+                唤出右上角跳过按钮（交给公共 SkipButton 节点点击）
     """
 
     CARD_NAME = ""
@@ -88,6 +90,12 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
     REWIND_LIMIT = 2
     FORWARD_LIMIT = 3
 
+    # PV 判定：全屏 OCR 文本 token 数上限（PV 播放中几乎无 UI 文字）与
+    # 唤出点击的次数上限（防止在真未知界面无限点击吞掉超时兜底）
+    PV_MAX_TOKENS = 3
+    PV_TAP_LIMIT = 15
+    PV_TAP_BOX = (615, 350, 50, 30)
+
     OVERRIDABLE = frozenset(
         {
             "CARD_NAME",
@@ -98,6 +106,9 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
             "CARD_BODY_MIN_W",
             "REWIND_LIMIT",
             "FORWARD_LIMIT",
+            "PV_MAX_TOKENS",
+            "PV_TAP_LIMIT",
+            "PV_TAP_BOX",
         }
     )
 
@@ -106,6 +117,8 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
     _rewind_done: bool = False
     _forward_sig: tuple | None = None
     _forward_same: int = 0
+    _pv_taps: int = 0
+    _card_pending: tuple | None = None
 
     @classmethod
     def reset_nav_state(cls) -> None:
@@ -114,6 +127,8 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
         cls._rewind_done = False
         cls._forward_sig = None
         cls._forward_same = 0
+        cls._pv_taps = 0
+        cls._card_pending = None
 
     def analyze(
         self,
@@ -138,6 +153,20 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
             logger.info(f"[AutoPromotion] 开始导航至「{target}」")
             return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
 
+        if query == "pv":
+            if APCardFinder._pv_taps >= self.PV_TAP_LIMIT:
+                return None
+            detail = context.run_recognition("APNavFullOCR", argv.image)
+            tokens = [r for r in ocr_results(detail) if len(r.text.strip()) >= 2]
+            if len(tokens) > self.PV_MAX_TOKENS:
+                return None
+            APCardFinder._pv_taps += 1
+            logger.info(
+                f"[AutoPromotion] 疑似 PV 播放中（第 {APCardFinder._pv_taps} 次），"
+                "点击唤出跳过按钮"
+            )
+            return CustomRecognition.AnalyzeResult(box=self.PV_TAP_BOX, detail={})
+
         # card/rewind/swipe/notfound 仅在映像页生效（顶部「显影罐」横幅锚定），
         # 防止在地图页/世纪末尺度页误触发滑动
         if not self._is_image_page(context, argv.image):
@@ -149,6 +178,12 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
                 return None
             for text, box in titles:
                 if self._title_match(target, text):
+                    # 双帧位置确认：滑动动量未停时识别帧与点击时刻画面错位，
+                    # 会点中相邻卡片。位置连续两帧一致（量化 30px）才命中
+                    sig = (text, box[0] // 30)
+                    if sig != APCardFinder._card_pending:
+                        APCardFinder._card_pending = sig
+                        return None
                     # 不重置导航状态：若点击未生效（卡片在屏边、过渡动画等），
                     # 下一轮 card 仍会命中并重试点击，而不是被回卷滑走
                     logger.info(f"[AutoPromotion] 找到卡片「{text}」，点击进入")
@@ -161,11 +196,16 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
                     return CustomRecognition.AnalyzeResult(
                         box=body, detail={"card": text}
                     )
+            APCardFinder._card_pending = None
             return None
 
         if not titles:
             return None  # 不在映像页（卡片标题行无内容）
         signature = tuple(sorted(text for text, _ in titles))
+
+        # 目标卡片已进入双帧确认，滑动节点让位等待 card 确认点击
+        if APCardFinder._card_pending is not None and query in ("rewind", "swipe"):
+            return None
 
         if query == "rewind":
             if APCardFinder._rewind_done:

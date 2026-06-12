@@ -982,6 +982,31 @@
                             "default": 3,
                             "description": "查找到头判定的连续不变次数"
                         },
+                        "pv_max_tokens": {
+                            "type": "integer",
+                            "default": 3,
+                            "description": "PV 判定的全屏 OCR 文本 token 数上限"
+                        },
+                        "pv_tap_box": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "minItems": 4,
+                            "maxItems": 4,
+                            "default": [
+                                615,
+                                350,
+                                50,
+                                30
+                            ],
+                            "description": "PV 唤出点击区 [x,y,w,h]"
+                        },
+                        "pv_tap_limit": {
+                            "type": "integer",
+                            "default": 15,
+                            "description": "PV 唤出点击的次数上限"
+                        },
                         "rewind_limit": {
                             "type": "integer",
                             "default": 2,

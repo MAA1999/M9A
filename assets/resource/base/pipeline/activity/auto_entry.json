@@ -14,6 +14,21 @@
             }
         }
     },
+    "APNavFullOCR": {
+        "desc": "辅助节点：全屏 OCR（PV 播放判定用，PV 中几乎无 UI 文字），仅供 APCardFinder 内部调用，请勿加入 next",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    1280,
+                    720
+                ],
+                "expected": ".+"
+            }
+        }
+    },
     "APCardTitleOCR": {
         "desc": "辅助节点：映像页卡片横排标题行 OCR，仅供 APCardFinder 内部调用，请勿加入 next",
         "recognition": {
@@ -60,8 +75,29 @@
             "AP_NavNotFound",
             "[JumpBack]AP_NavVideoTab",
             "[JumpBack]AP_NavEnterButton",
+            "[JumpBack]AP_SkipConfirm",
+            "[JumpBack]Confirm",
+            "[JumpBack]SkipButton",
+            "[JumpBack]AP_NavPVTap",
             "[JumpBack]ReturnMain"
         ]
+    },
+    "AP_NavPVTap": {
+        "desc": "首次进入卡片会播放 PV：点击屏幕中央唤出右上角跳过按钮（按钮出现后由公共 SkipButton 节点点击跳过）",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APCardFinder",
+                "custom_recognition_param": {
+                    "query": "pv",
+                    "card_name": ""
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1000
     },
     "AP_NavMainEntry": {
         "desc": "卡片详情页的「活动正篇」或「主线正篇」入口（位置随活动浮动：唐人街影话在中下，1987 在右下），点击后进入关卡地图页并接入推图阶段链",
@@ -100,7 +136,7 @@
         ]
     },
     "AP_NavCardClick": {
-        "desc": "映像页找到目标卡片，点击进入详情页",
+        "desc": "映像页找到目标卡片，点击进入详情页。点击前等画面静止：滑动动量未停时识别帧与点击时刻画面错位，会点中相邻卡片",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -111,6 +147,7 @@
                 }
             }
         },
+        "pre_wait_freezes": 500,
         "action": {
             "type": "Click"
         },

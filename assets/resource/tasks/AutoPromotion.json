@@ -184,6 +184,16 @@
                                     }
                                 }
                             }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "雷米特杯失窃案"
+                                    }
+                                }
+                            }
                         }
                     }
                 },
@@ -239,6 +249,81 @@
                                     }
                                 }
                             }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "绿湖噩梦"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "两人的同谋",
+                    "pipeline_override": {
+                        "AP_Navigate": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "nav",
+                                        "card_name": "两人的同谋"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavCardClick": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "card",
+                                        "card_name": "两人的同谋"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavRewind": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "rewind",
+                                        "card_name": "两人的同谋"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavForward": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "swipe",
+                                        "card_name": "两人的同谋"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavNotFound": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "notfound",
+                                        "card_name": "两人的同谋"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "两人的同谋"
+                                    }
+                                }
+                            }
                         }
                     }
                 },
@@ -290,6 +375,16 @@
                                 "param": {
                                     "custom_recognition_param": {
                                         "query": "notfound",
+                                        "card_name": "行至摩卢旁卡"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
                                         "card_name": "行至摩卢旁卡"
                                     }
                                 }
@@ -349,6 +444,16 @@
                                     }
                                 }
                             }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "洞穴的囚徒"
+                                    }
+                                }
+                            }
                         }
                     }
                 },
@@ -400,6 +505,16 @@
                                 "param": {
                                     "custom_recognition_param": {
                                         "query": "notfound",
+                                        "card_name": "复兴！乌卢鲁运动会"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
                                         "card_name": "复兴！乌卢鲁运动会"
                                     }
                                 }
@@ -459,6 +574,16 @@
                                     }
                                 }
                             }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "朔日手记"
+                                    }
+                                }
+                            }
                         }
                     }
                 },
@@ -510,6 +635,16 @@
                                 "param": {
                                     "custom_recognition_param": {
                                         "query": "notfound",
+                                        "card_name": "再见，来亚什基"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
                                         "card_name": "再见，来亚什基"
                                     }
                                 }
@@ -569,6 +704,16 @@
                                     }
                                 }
                             }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "孤独之歌"
+                                    }
+                                }
+                            }
                         }
                     }
                 },
@@ -620,6 +765,16 @@
                                 "param": {
                                     "custom_recognition_param": {
                                         "query": "notfound",
+                                        "card_name": "7号往事"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
                                         "card_name": "7号往事"
                                     }
                                 }
@@ -679,6 +834,16 @@
                                     }
                                 }
                             }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "忧郁的热带"
+                                    }
+                                }
+                            }
                         }
                     }
                 },
@@ -730,6 +895,16 @@
                                 "param": {
                                     "custom_recognition_param": {
                                         "query": "notfound",
+                                        "card_name": "地球上最后的夜晚"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
                                         "card_name": "地球上最后的夜晚"
                                     }
                                 }
@@ -789,6 +964,16 @@
                                     }
                                 }
                             }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "唐人街影话"
+                                    }
+                                }
+                            }
                         }
                     }
                 },
@@ -840,6 +1025,16 @@
                                 "param": {
                                     "custom_recognition_param": {
                                         "query": "notfound",
+                                        "card_name": "疯癫与文明"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
                                         "card_name": "疯癫与文明"
                                     }
                                 }
@@ -899,6 +1094,16 @@
                                     }
                                 }
                             }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "1987宇宙组曲"
+                                    }
+                                }
+                            }
                         }
                     }
                 },
@@ -950,6 +1155,16 @@
                                 "param": {
                                     "custom_recognition_param": {
                                         "query": "notfound",
+                                        "card_name": "复乐园"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
                                         "card_name": "复乐园"
                                     }
                                 }
