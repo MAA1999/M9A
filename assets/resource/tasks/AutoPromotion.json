@@ -1171,6 +1171,266 @@
                             }
                         }
                     }
+                },
+                {
+                    "name": "今夜星光灿烂",
+                    "pipeline_override": {
+                        "AP_Navigate": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "nav",
+                                        "card_name": "今夜星光灿烂"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavCardClick": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "card",
+                                        "card_name": "今夜星光灿烂"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavRewind": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "rewind",
+                                        "card_name": "今夜星光灿烂"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavForward": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "swipe",
+                                        "card_name": "今夜星光灿烂"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavNotFound": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "notfound",
+                                        "card_name": "今夜星光灿烂"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "今夜星光灿烂"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "飞驰！明日之城",
+                    "pipeline_override": {
+                        "AP_Navigate": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "nav",
+                                        "card_name": "飞驰！明日之城"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavCardClick": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "card",
+                                        "card_name": "飞驰！明日之城"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavRewind": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "rewind",
+                                        "card_name": "飞驰！明日之城"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavForward": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "swipe",
+                                        "card_name": "飞驰！明日之城"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavNotFound": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "notfound",
+                                        "card_name": "飞驰！明日之城"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "飞驰！明日之城"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "圣火纪行：东区黎明",
+                    "pipeline_override": {
+                        "AP_Navigate": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "nav",
+                                        "card_name": "圣火纪行：东区黎明"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavCardClick": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "card",
+                                        "card_name": "圣火纪行：东区黎明"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavRewind": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "rewind",
+                                        "card_name": "圣火纪行：东区黎明"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavForward": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "swipe",
+                                        "card_name": "圣火纪行：东区黎明"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavNotFound": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "notfound",
+                                        "card_name": "圣火纪行：东区黎明"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "圣火纪行：东区黎明"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "行于漫漫长路上",
+                    "pipeline_override": {
+                        "AP_Navigate": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "nav",
+                                        "card_name": "行于漫漫长路上"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavCardClick": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "card",
+                                        "card_name": "行于漫漫长路上"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavRewind": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "rewind",
+                                        "card_name": "行于漫漫长路上"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavForward": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "swipe",
+                                        "card_name": "行于漫漫长路上"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavNotFound": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "notfound",
+                                        "card_name": "行于漫漫长路上"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "行于漫漫长路上"
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             ],
             "description": "「当前页面」=先手动进入活动关卡地图页再运行（默认）；选择具体活动则从游戏主页自动导航：入场 → 映像 → 找到对应卡片 → 活动正篇/主线正篇 → 开始推图"
