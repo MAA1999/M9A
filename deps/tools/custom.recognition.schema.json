@@ -571,15 +571,20 @@
                             "default": 240,
                             "description": "三难度星标搜索区右扩"
                         },
+                        "right_empty_confirm": {
+                            "type": "integer",
+                            "default": 2,
+                            "description": "右半屏无编号的连续确认帧数"
+                        },
+                        "right_half_x": {
+                            "type": "integer",
+                            "default": 640,
+                            "description": "滑到头判定的右半屏分界 x"
+                        },
                         "sat_min": {
                             "type": "integer",
                             "default": 100,
                             "description": "亮星像素饱和度下限（0-255）"
-                        },
-                        "sig_pos_quant": {
-                            "type": "integer",
-                            "default": 50,
-                            "description": "滑到头编号签名的位置量化粒度"
                         },
                         "stage_box_center_x_max": {
                             "type": "integer",
@@ -635,11 +640,6 @@
                             "type": "integer",
                             "default": 25,
                             "description": "星标行起点最小偏移"
-                        },
-                        "unchanged_limit": {
-                            "type": "integer",
-                            "default": 3,
-                            "description": "连续多少次滑动画面不变视为到头"
                         },
                         "val_min": {
                             "type": "integer",
@@ -944,7 +944,9 @@
                                 "card",
                                 "rewind",
                                 "swipe",
-                                "notfound"
+                                "notfound",
+                                "pv",
+                                "arrived"
                             ]
                         },
                         "card_body_h": {

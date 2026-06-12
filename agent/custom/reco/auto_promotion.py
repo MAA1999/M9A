@@ -171,6 +171,13 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
             logger.info(f"[AutoPromotion] 开始导航至「{target}」")
             return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
 
+        if query == "arrived":
+            if is_stage_map(context, argv.image):
+                logger.info("[AutoPromotion] 已到达关卡地图页，导航完成")
+                APCardFinder.reset_nav_state()
+                return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
+            return None
+
         if query == "pv":
             if APCardFinder._pv_taps >= self.PV_TAP_LIMIT:
                 return None
@@ -332,7 +339,8 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
             "MULTI_MARKER_PIXELS",
             "DIFFICULTY_GROUPS",
             "DIFFICULTY_LIT_PIXELS",
-            "SIG_POS_QUANT",
+            "RIGHT_HALF_X",
+            "RIGHT_EMPTY_CONFIRM",
             "MARKER_R_MIN",
             "MARKER_G_MIN",
             "MARKER_G_MAX",
@@ -346,7 +354,6 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
             "STAR_NUM_WIDTH_CAP",
             "STAR_X0_BACKOFF",
             "STAR_X0_MIN_OFFSET",
-            "UNCHANGED_LIMIT",
             "ZERO_STAGE_CONFIRM",
         }
     )
@@ -392,8 +399,10 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
     # 地图页锚点：左上模式标签包含任一关键词即视为地图页
     ANCHOR_KEYWORDS = ("探索", "故事")
 
-    # 滑到头签名中编号位置的量化粒度（容忍滑动到头后的像素级回弹）
-    SIG_POS_QUANT = 50
+    # 滑到头判定：屏幕右半（x > RIGHT_HALF_X）无关卡编号即认为最后一关已过，
+    # 连续 RIGHT_EMPTY_CONFIRM 帧确认（章节交界处右半可能短暂无编号）
+    RIGHT_HALF_X = 640
+    RIGHT_EMPTY_CONFIRM = 2
 
     # 三难度红色标记的颜色掩码（BGR 取样自当期活动难度标记）
     MARKER_R_MIN = 120
@@ -415,17 +424,14 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
     STAR_X0_MIN_OFFSET = 25
 
     # 滑动到头检测状态（类属性，跨调用保留）
-    _last_signature: tuple | None = None
-    _unchanged_swipes: int = 0
+    _right_empty_count: int = 0
     _pending_zero_stage: tuple | None = None
     _pending_zero_count: int = 0
-    UNCHANGED_LIMIT = 3
     ZERO_STAGE_CONFIRM = 2
 
     @classmethod
     def reset_swipe_state(cls) -> None:
-        cls._last_signature = None
-        cls._unchanged_swipes = 0
+        cls._right_empty_count = 0
         cls._pending_zero_stage = None
         cls._pending_zero_count = 0
 
@@ -483,29 +489,26 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
         if not is_stage_map(context, argv.image):
             return None
 
+        # 滑到头判定：屏幕右半没有关卡编号 = 最后一关已滑过屏幕中线。
+        # 连续两帧确认（章节交界处右半可能短暂无编号）。
+        # 不能用画面哈希（1987 星空背景持续动画，静止画面哈希也不稳定）
+        right_has_stage = any(
+            box[0] + box[2] / 2 > self.RIGHT_HALF_X for _, _, box in tokens
+        )
+        if right_has_stage:
+            APMapAnalyze._right_empty_count = 0
+        else:
+            APMapAnalyze._right_empty_count += 1
+        map_end = APMapAnalyze._right_empty_count >= self.RIGHT_EMPTY_CONFIRM
+
         if query == "swipe":
-            if APMapAnalyze._unchanged_swipes >= self.UNCHANGED_LIMIT:
+            if map_end:
                 return None  # 已确认到尽头，交给 done
-            # 滑到头判定用底部编号签名：编号集合（含量化位置）连续多次不变
-            # 即到头。不能用画面哈希——1987 等活动的星空背景有持续动画，
-            # 静止画面的哈希也不稳定。章节交界处编号为空：不计数也不重置，
-            # 滑过交界后继续累计
-            if tokens:
-                signature = tuple(
-                    (num, box[0] // self.SIG_POS_QUANT) for _, num, box in tokens
-                )
-                if signature == APMapAnalyze._last_signature:
-                    APMapAnalyze._unchanged_swipes += 1
-                else:
-                    APMapAnalyze._unchanged_swipes = 0
-                    APMapAnalyze._last_signature = signature
-            if APMapAnalyze._unchanged_swipes >= self.UNCHANGED_LIMIT:
-                return None
             logger.info("[AutoPromotion] 当前画面无未完成关卡，向后滑动地图")
             return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
 
         if query == "done":
-            if APMapAnalyze._unchanged_swipes >= self.UNCHANGED_LIMIT:
+            if map_end:
                 logger.info("[AutoPromotion] 地图已到尽头且无未完成关卡，推图完成")
                 APMapAnalyze.reset_swipe_state()
                 return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})

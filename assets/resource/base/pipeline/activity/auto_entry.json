@@ -68,7 +68,10 @@
         ],
         "next": [
             "CheckStopping",
-            "AP_NavMainEntry",
+            "AP_NavArrived",
+            "[JumpBack]AP_NavMainEntry",
+            "[JumpBack]AP_NavMainEntryHigh",
+            "[JumpBack]AP_NavMainEntryLow",
             "[JumpBack]AP_NavCardClick",
             "[JumpBack]AP_NavRewind",
             "[JumpBack]AP_NavForward",
@@ -99,8 +102,28 @@
         },
         "post_delay": 1000
     },
+    "AP_NavArrived": {
+        "desc": "已到达关卡地图页（活动模式标签或主线编号条判定），导航完成，接入推图阶段链",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APCardFinder",
+                "custom_recognition_param": {
+                    "query": "arrived",
+                    "card_name": ""
+                }
+            }
+        },
+        "next": [
+            "AP_StoryGate",
+            "AT_TrailGate",
+            "AP_ExploreGate",
+            "AP_AllPhasesDone"
+        ]
+    },
     "AP_NavMainEntry": {
-        "desc": "卡片详情页的「活动正篇」或「主线正篇」入口（位置随活动浮动：唐人街影话在中下，1987 在右下），点击后进入关卡地图页并接入推图阶段链",
+        "desc": "卡片详情页的「活动正篇/主线正篇」入口，第一档点击：上偏 40px（1987 等布局）。按钮热区高度随活动浮动，三档偏移依次重试（各 max_hit 2），到达地图页由 AP_NavArrived 判定退出导航",
+        "max_hit": 2,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -127,13 +150,69 @@
                 ]
             }
         },
-        "post_delay": 3000,
-        "next": [
-            "AP_StoryGate",
-            "AT_TrailGate",
-            "AP_ExploreGate",
-            "AP_AllPhasesDone"
-        ]
+        "post_delay": 3000
+    },
+    "AP_NavMainEntryHigh": {
+        "desc": "正篇入口第二档点击：上偏 73px（复兴！乌卢鲁运动会等按钮热区更高的布局）",
+        "max_hit": 2,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    300,
+                    400,
+                    980,
+                    320
+                ],
+                "expected": [
+                    "活动正篇",
+                    "主线正篇"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -73,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_delay": 3000
+    },
+    "AP_NavMainEntryLow": {
+        "desc": "正篇入口第三档点击：上偏 13px（唐人街影话等小字上沿即热区的布局）",
+        "max_hit": 2,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    300,
+                    400,
+                    980,
+                    320
+                ],
+                "expected": [
+                    "活动正篇",
+                    "主线正篇"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -13,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_delay": 3000
     },
     "AP_NavCardClick": {
         "desc": "映像页找到目标卡片，点击进入详情页。点击前等画面静止：滑动动量未停时识别帧与点击时刻画面错位，会点中相邻卡片",
