@@ -69,6 +69,8 @@
         "next": [
             "CheckStopping",
             "AP_NavArrived",
+            "[JumpBack]AP_NavStoryEnter",
+            "[JumpBack]AP_NavCurrentEntry",
             "[JumpBack]AP_NavMainEntry",
             "[JumpBack]AP_NavMainEntryHigh",
             "[JumpBack]AP_NavMainEntryLow",
@@ -336,6 +338,54 @@
             "type": "Click"
         },
         "post_delay": 2000
+    },
+    "AP_NavCurrentEntry": {
+        "desc": "「当期活动」专用（默认禁用，由选项启用）：主页点「入场」上方的版本名标题区（固定位置，文字每期变化故不依赖），进入当期活动入口界面",
+        "enabled": false,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    150,
+                    380,
+                    400
+                ],
+                "expected": "入场"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    966,
+                    226,
+                    184,
+                    42
+                ]
+            }
+        },
+        "post_delay": 3000
+    },
+    "AP_NavStoryEnter": {
+        "desc": "「当期活动」专用（默认禁用，由选项启用）：活动入口界面点右侧「步入剧情」进入当期活动关卡地图",
+        "enabled": false,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    380,
+                    380,
+                    280
+                ],
+                "expected": "步入剧情"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000
     },
     "AP_NavEnterButton": {
         "desc": "游戏主页活动 banner 的「入场」按钮，进入世纪末尺度页",

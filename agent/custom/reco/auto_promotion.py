@@ -137,6 +137,7 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
     _forward_same: int = 0
     _pv_taps: int = 0
     _card_pending: tuple | None = None
+    _seen_non_map: bool = False
 
     @classmethod
     def reset_nav_state(cls) -> None:
@@ -147,6 +148,7 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
         cls._forward_same = 0
         cls._pv_taps = 0
         cls._card_pending = None
+        cls._seen_non_map = False
 
     def analyze(
         self,
@@ -172,11 +174,16 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
             return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
 
         if query == "arrived":
-            if is_stage_map(context, argv.image):
-                logger.info("[AutoPromotion] 已到达关卡地图页，导航完成")
-                APCardFinder.reset_nav_state()
-                return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
-            return None
+            # 必须先离开过地图页再回到地图页才算到达：启动时若已在某张
+            # 地图页（可能是别的活动的），直接判到达会在错误的地图上推图
+            if not is_stage_map(context, argv.image):
+                APCardFinder._seen_non_map = True
+                return None
+            if not APCardFinder._seen_non_map:
+                return None
+            logger.info("[AutoPromotion] 已到达关卡地图页，导航完成")
+            APCardFinder.reset_nav_state()
+            return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
 
         if query == "pv":
             if APCardFinder._pv_taps >= self.PV_TAP_LIMIT:
@@ -191,6 +198,11 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
                 "点击唤出跳过按钮"
             )
             return CustomRecognition.AnalyzeResult(box=self.PV_TAP_BOX, detail={})
+
+        # 「当期活动」走主页版本名 -> 步入剧情链（AP_NavCurrentEntry /
+        # AP_NavStoryEnter 节点），不进映像页查找逻辑
+        if target == "当期活动":
+            return None
 
         # card/rewind/swipe/notfound 仅在映像页生效（顶部「显影罐」横幅锚定），
         # 防止在地图页/世纪末尺度页误触发滑动

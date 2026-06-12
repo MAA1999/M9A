@@ -133,6 +133,77 @@
                     "pipeline_override": {}
                 },
                 {
+                    "name": "当期活动",
+                    "pipeline_override": {
+                        "AP_Navigate": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "nav",
+                                        "card_name": "当期活动"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavCardClick": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "card",
+                                        "card_name": "当期活动"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavRewind": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "rewind",
+                                        "card_name": "当期活动"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavForward": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "swipe",
+                                        "card_name": "当期活动"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavNotFound": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "notfound",
+                                        "card_name": "当期活动"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavPVTap": {
+                            "recognition": {
+                                "param": {
+                                    "custom_recognition_param": {
+                                        "query": "pv",
+                                        "card_name": "当期活动"
+                                    }
+                                }
+                            }
+                        },
+                        "AP_NavCurrentEntry": {
+                            "enabled": true
+                        },
+                        "AP_NavStoryEnter": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
                     "name": "雷米特杯失窃案",
                     "pipeline_override": {
                         "AP_Navigate": {
