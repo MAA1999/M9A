@@ -74,6 +74,7 @@
             "[JumpBack]AP_NavMainEntry",
             "[JumpBack]AP_NavMainEntryHigh",
             "[JumpBack]AP_NavMainEntryLow",
+            "[JumpBack]AP_NavUnlockButton",
             "[JumpBack]AP_NavCardClick",
             "[JumpBack]AP_NavRewind",
             "[JumpBack]AP_NavForward",
@@ -408,6 +409,25 @@
             "type": "Click"
         },
         "post_delay": 3000
+    },
+    "AP_NavUnlockButton": {
+        "desc": "活动解锁弹窗：当右上角 ROI [1067,105,112,32] 出现「显影罐不足」提示时，OCR 找「解锁」按钮并点击。点击后由 Confirm 节点处理二次确认。放在 AP_NavMainEntryLow 之后、AP_NavCardClick 之前，避免背景卡片被反复误触",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    100,
+                    380,
+                    530
+                ],
+                "expected": "解锁"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 800
     },
     "AP_NavFailed": {
         "desc": "导航超时兜底：报错结束（出错截图由框架 SaveOnError 自动保存到 debug/on_error）",
