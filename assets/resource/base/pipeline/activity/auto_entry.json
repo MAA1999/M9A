@@ -75,6 +75,7 @@
             "[JumpBack]AP_NavMainEntryHigh",
             "[JumpBack]AP_NavMainEntryLow",
             "[JumpBack]AP_NavUnlockButton",
+            "[JumpBack]Confirm",
             "AP_NavInsufficientCanister",
             "[JumpBack]AP_NavCardClick",
             "[JumpBack]AP_NavRewind",
@@ -83,7 +84,6 @@
             "[JumpBack]AP_NavVideoTab",
             "[JumpBack]AP_NavEnterButton",
             "[JumpBack]AP_SkipConfirm",
-            "[JumpBack]Confirm",
             "[JumpBack]SkipButton",
             "[JumpBack]AP_NavPVTap",
             "[JumpBack]ReturnMain"
@@ -412,7 +412,7 @@
         "post_delay": 3000
     },
     "AP_NavInsufficientCanister": {
-        "desc": "活动解锁失败：点击解锁按钮后右上角 ROI [1067,105,112,32] 出现「不足」文字，说明显影罐不够，报错结束任务。非 JumpBack，命中即终止 AP_NavLoop",
+        "desc": "活动解锁失败：解锁→确认后，右上角 ROI [1067,105,112,32] 立即弹出「显影罐不足」，报错结束任务。非 JumpBack，命中即终止 AP_NavLoop；未弹出此提示则解锁成功，继续后续导航。优先级排在 Confirm 之后、AP_NavCardClick 之前",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -436,7 +436,7 @@
         }
     },
     "AP_NavUnlockButton": {
-        "desc": "活动解锁弹窗：当右上角 ROI [1067,105,112,32] 出现「显影罐不足」提示时，OCR 找「解锁」按钮并点击。点击后由 Confirm 节点处理二次确认。放在 AP_NavMainEntryLow 之后、AP_NavCardClick 之前，避免背景卡片被反复误触",
+        "desc": "活动解锁弹窗第一步：点击卡片后若活动未解锁会弹出含「解锁」按钮的弹窗，OCR 找「解锁」并点击。流程：解锁→Confirm 点确认→AP_NavInsufficientCanister 判断显影罐是否充足。放在 Confirm/AP_NavCardClick 之前，避免背景卡片被反复误触卡死",
         "recognition": {
             "type": "OCR",
             "param": {
