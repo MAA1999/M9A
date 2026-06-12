@@ -340,7 +340,7 @@
         "post_delay": 2000
     },
     "AP_NavCurrentEntry": {
-        "desc": "「当期活动」专用（默认禁用，由选项启用）：主页点「入场」上方的版本名标题区（固定位置，文字每期变化故不依赖），进入当期活动入口界面",
+        "desc": "「当期活动」专用（默认禁用，由选项启用）：主页点「入场」上方的版本名标题区（固定位置，文字每期变化故不依赖），进入当期活动入口界面。与 combat_activity.json 的 EnterTheActivityMain 同构（其点击位 [1103,220]，同一 banner 块），新版本入口若变可对照该节点",
         "enabled": false,
         "recognition": {
             "type": "OCR",
