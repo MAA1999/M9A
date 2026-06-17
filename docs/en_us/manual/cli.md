@@ -80,7 +80,7 @@ Here is where you add tasks, displayed as follows:
         2. 收取荒原
         3. 每日心相（意志解析）
         4. 常规作战
-        5. 活动刷取
+        5. 活动代币刷取
         6. 自动深眠
         7. 自动醒梦
         8. 银行购物

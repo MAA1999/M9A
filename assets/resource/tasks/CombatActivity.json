@@ -1,7 +1,7 @@
 {
     "task": [
         {
-            "name": "活动刷取",
+            "name": "活动代币刷取",
             "entry": "CombatActivity",
             "option": [
                 "复刻模式",
