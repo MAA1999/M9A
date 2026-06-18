@@ -456,6 +456,7 @@ tools/ImageCropper/**/*.png
 
 # M9A
 CLAUDE.md
+AGENTS.md
 tests/test_auto_promotion_pipeline.py
 python/
 .venv/
