@@ -516,6 +516,7 @@
                         "query": {
                             "type": "string",
                             "enum": [
+                                "map",
                                 "stage",
                                 "swipe",
                                 "done"

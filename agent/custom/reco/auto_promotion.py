@@ -15,16 +15,16 @@ def is_stage_map(context: Context, image) -> bool:
     """关卡地图页判定（活动与主线通用）。
 
     活动地图左上有「探索模式/故事模式」标签；主线地图没有模式按钮，
-    退而验证底部有关卡编号且无「开始行动」按钮（关卡详情页底部也有
-    缩略编号条，但详情页必有开始行动按钮，以此区分）。
+    退而验证底部有关卡编号 token 且无「开始行动」按钮（关卡详情页底部
+    也有缩略编号条，但详情页必有开始行动按钮，以此区分）。
     """
     detail = context.run_recognition("APExploreAnchorOCR", image)
     if any(
-        any(word in r.text for word in ("探索", "故事")) for r in ocr_results(detail)
+        any(word in r.text for word in ("探索", "探险", "故事"))
+        for r in ocr_results(detail)
     ):
         return True
-    detail = context.run_recognition("APStageNumberOCR", image)
-    if not any(re.search(r"\d", r.text) for r in ocr_results(detail)):
+    if not APMapAnalyze()._stage_numbers(context, image):
         return False
     return not is_hit(context.run_recognition("AP_StartAction", image))
 
@@ -34,21 +34,25 @@ def _stage_map_mode_detail(context: Context, image):
 
     Activity maps expose story/explore text near the top-left mode switch.
     Main-story maps do not, so they fall back to the generic stage-map check.
-    When both labels are visible (known historical dual-button layout), the
-    current active mode is UI-dependent; callers should click the desired mode
-    explicitly instead of trusting this helper to choose one.
+    Single-button activity layouts show the *target* mode on the switch; a
+    visible story button means the current page is explore, and vice versa.
+    When both labels are visible (known historical dual-button layout), callers
+    should click the desired mode explicitly instead of inferring current mode.
     """
     detail = context.run_recognition("APExploreAnchorOCR", image)
     results = ocr_results(detail)
-    explore_result = next((r for r in results if "探索" in r.text), None)
+    explore_result = next(
+        (r for r in results if any(word in r.text for word in ("探索", "探险"))),
+        None,
+    )
     story_result = next((r for r in results if "故事" in r.text), None)
 
     if story_result and explore_result:
         return "activity", None
     if story_result:
-        return "story", story_result.box
+        return "explore", story_result.box
     if explore_result:
-        return "explore", explore_result.box
+        return "story", explore_result.box
     if is_stage_map(context, image):
         return "plain", None
     return None, None
@@ -69,7 +73,9 @@ class APModeGate(CustomRecognition):
         "query": "main"
     }
     - main: 命中主线地图（无故事/探索模式按钮，但 is_stage_map 成立）。
-    - story/explore: 命中仅显示单个当前模式标签的活动地图，并返回该标签位置。
+    - story/explore: 命中单按钮切换布局的当前模式，并返回该按钮位置。
+      注意单按钮文字表示切换目标：显示「故事」代表当前为 explore，
+      显示「探索/探险」代表当前为 story。
       历史活动若同时显示「故事」「探索」，不由此闸门判定当前模式。
     """
 
@@ -142,10 +148,11 @@ class APPhaseGate(CustomRecognition):
         if query in APPhaseGate._visited:
             return None
 
-        # 探索阶段仅活动地图有效：主线地图无模式标签，OCR 找不到「探索」则跳过
+        # 探索阶段仅活动地图有效：主线地图没有模式切换按钮，直接跳过。
+        # 单按钮活动布局的文字表示切换目标，探索页可能显示「故事」。
         if query == "explore":
-            detail = context.run_recognition("APExploreAnchorOCR", argv.image)
-            if not any("探索" in r.text for r in ocr_results(detail)):
+            mode = stage_map_mode(context, argv.image)
+            if mode in {None, "plain"}:
                 logger.info("[AutoPromotion] 当前地图无探索模式，跳过探索阶段")
                 return None
 
@@ -446,6 +453,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
         // 其余 key 为可选的识别参数覆盖（类常量名小写，如 "sat_min": 90），
         // 见 OVERRIDABLE 白名单与协议文档的契约参数表
     }
+    - map:   命中关卡地图页，用于战斗等待循环回到地图后的出口
     - stage: 命中并返回编号最小的未完成关卡的点击区域
     - swipe: 地图可见、无未完成关卡、且尚未确认滑到尽头时命中（供滑动节点使用）
     - done:  连续多次滑动后画面无变化（已到尽头）且无未完成关卡时命中（推图完成）
@@ -535,7 +543,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
     DIFFICULTY_LIT_PIXELS = 12
 
     # 地图页锚点：左上模式标签包含任一关键词即视为地图页
-    ANCHOR_KEYWORDS = ("探索", "故事")
+    ANCHOR_KEYWORDS = ("探索", "探险", "故事")
 
     # 滑到头判定：屏幕右半（x > RIGHT_HALF_X）无关卡编号即认为最后一关已过，
     # 连续 RIGHT_EMPTY_CONFIRM 帧确认（章节交界处右半可能短暂无编号）
@@ -586,6 +594,11 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
             params = {}
         query = params.get("query", "stage")
         self.apply_param_overrides(params)
+
+        if query == "map":
+            if is_stage_map(context, argv.image):
+                return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
+            return None
 
         tokens = self._stage_numbers(context, argv.image)
 

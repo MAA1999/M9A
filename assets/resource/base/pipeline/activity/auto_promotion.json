@@ -17,7 +17,7 @@
         ]
     },
     "AP_EnsureStoryOrMain": {
-        "desc": "故事/主线模式入口：主线地图或已在故事模式时直接推；若当前在探索模式则点击模式标签切回故事，再开始推图",
+        "desc": "故事/主线模式入口：主线地图或已在故事模式时直接推；单按钮当前为探索时点「故事」，双按钮点「故事模式」后推图",
         "timeout": 10000,
         "next": [
             "AP_MainMapReady",
@@ -31,7 +31,7 @@
         ]
     },
     "AP_EnsureExplore": {
-        "desc": "探索模式入口：已在探索模式时直接推；若当前在故事模式则点击模式标签切到探索；主线地图无探索模式则正常结束",
+        "desc": "探索模式入口：已在探索模式时直接推；单按钮当前为故事时点「探索/探险」，双按钮点「探索/探险模式」后推图；主线地图无探索模式则正常结束",
         "timeout": 10000,
         "next": [
             "AP_ExploreMapReady",
@@ -162,7 +162,7 @@
         }
     },
     "AP_SwitchToStoryFromExplore": {
-        "desc": "单切换按钮布局：当前显示「探索模式」时，点击当前模式标签切回故事模式，随后重新确认当前模式",
+        "desc": "单按钮切换布局：按钮文字为「故事」表示当前在探索页，点击切回故事后需重新确认当前模式",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -187,7 +187,7 @@
         ]
     },
     "AP_SwitchToStory": {
-        "desc": "双按钮布局：点击左上角「故事模式」按钮切回故事模式，随后重新确认当前模式",
+        "desc": "双按钮布局：点击左上角「故事模式」按钮后进入故事推图流程",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -205,11 +205,11 @@
         },
         "post_delay": 3000,
         "next": [
-            "AP_EnsureStoryOrMain"
+            "AP_PromotionLoop"
         ]
     },
     "AP_SwitchToExploreFromStory": {
-        "desc": "单切换按钮布局：当前显示「故事模式」时，点击当前模式标签切到探索模式，随后重新确认当前模式",
+        "desc": "单按钮切换布局：按钮文字为「探索/探险」表示当前在故事页，点击切到探索后需重新确认当前模式",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -234,7 +234,7 @@
         ]
     },
     "AP_SwitchToExplore": {
-        "desc": "双按钮布局：点击左上角「探索模式」按钮切到探索模式，随后重新确认当前模式",
+        "desc": "双按钮布局：点击左上角「探索/探险模式」按钮后进入探索推图流程",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -244,7 +244,10 @@
                     220,
                     260
                 ],
-                "expected": "探索"
+                "expected": [
+                    "探索",
+                    "探险"
+                ]
             }
         },
         "action": {
@@ -252,7 +255,7 @@
         },
         "post_delay": 3000,
         "next": [
-            "AP_EnsureExplore"
+            "AP_PromotionLoop"
         ]
     },
     "AP_AllPhasesDone": {
@@ -329,6 +332,7 @@
                 ],
                 "expected": [
                     "探索",
+                    "探险",
                     "故事"
                 ]
             }
@@ -425,7 +429,7 @@
         }
     },
     "AP_InCombatRT": {
-        "desc": "实时卡牌战斗中（左上角轮次/回合计数），等待游戏内自动战斗打完",
+        "desc": "实时卡牌战斗中（左上角轮次/回合计数），进入战斗等待循环，避免大招遮挡 UI 时回到地图找关",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -441,10 +445,13 @@
                 ]
             }
         },
-        "post_delay": 5000
+        "post_delay": 5000,
+        "next": [
+            "AP_WaitCombat"
+        ]
     },
     "AP_FlagInCombat": {
-        "desc": "战斗加载/演出中标志（右上角快进图标），点击加速并等待",
+        "desc": "战斗加载/演出中标志（右上角快进图标），点击加速并进入战斗等待循环",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -471,7 +478,65 @@
                 ]
             }
         },
-        "post_delay": 8000
+        "post_delay": 8000,
+        "next": [
+            "AP_WaitCombat"
+        ]
+    },
+    "AP_MapReady": {
+        "desc": "关卡地图页已重新出现，战斗等待循环结束，交还推图调度",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APMapAnalyze",
+                "custom_recognition_param": {
+                    "query": "map"
+                }
+            }
+        }
+    },
+    "AP_WaitCombat": {
+        "desc": "开始行动后的战斗等待循环：只处理胜负、跳过和回到地图，不再执行地图找关/滑动，防止大招遮挡战斗 UI 时误判战斗结束",
+        "action": {
+            "type": "DoNothing"
+        },
+        "post_delay": 5000,
+        "timeout": 600000,
+        "next": [
+            "CheckStopping",
+            "AP_MapReady",
+            "[JumpBack]AP_CombatVictory",
+            "AP_CombatDefeat",
+            "[JumpBack]AP_SkipConfirm",
+            "[JumpBack]AP_Skip",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]Confirm",
+            "[JumpBack]ClickBlank",
+            "AP_WaitCombat"
+        ]
+    },
+    "AP_AfterStartAction": {
+        "desc": "点击开始行动后的过渡循环：关卡详情页点完后还要等待编队页第二个开始行动；真正进战斗后再交给 AP_WaitCombat",
+        "action": {
+            "type": "DoNothing"
+        },
+        "post_delay": 1500,
+        "timeout": 600000,
+        "next": [
+            "CheckStopping",
+            "[JumpBack]AP_StartAction",
+            "AP_FlagInCombat",
+            "AP_InCombatRT",
+            "[JumpBack]AP_CombatVictory",
+            "AP_CombatDefeat",
+            "[JumpBack]AP_SkipConfirm",
+            "[JumpBack]AP_Skip",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]Confirm",
+            "[JumpBack]ClickBlank",
+            "AP_MapReady",
+            "AP_AfterStartAction"
+        ]
     },
     "AP_CombatVictory": {
         "desc": "战斗胜利结算页，点击翻页",
@@ -634,7 +699,10 @@
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "next": [
+            "AP_AfterStartAction"
+        ]
     },
     "AP_CombatDefeat": {
         "desc": "战斗失败结算页：点击关闭后结束任务，交给用户调整队伍",
