@@ -29,6 +29,81 @@ def is_stage_map(context: Context, image) -> bool:
     return not is_hit(context.run_recognition("AP_StartAction", image))
 
 
+def _stage_map_mode_detail(context: Context, image):
+    """Best-effort map type for mode dispatch.
+
+    Activity maps expose story/explore text near the top-left mode switch.
+    Main-story maps do not, so they fall back to the generic stage-map check.
+    When both labels are visible (known historical dual-button layout), the
+    current active mode is UI-dependent; callers should click the desired mode
+    explicitly instead of trusting this helper to choose one.
+    """
+    detail = context.run_recognition("APExploreAnchorOCR", image)
+    results = ocr_results(detail)
+    explore_result = next((r for r in results if "探索" in r.text), None)
+    story_result = next((r for r in results if "故事" in r.text), None)
+
+    if story_result and explore_result:
+        return "activity", None
+    if story_result:
+        return "story", story_result.box
+    if explore_result:
+        return "explore", explore_result.box
+    if is_stage_map(context, image):
+        return "plain", None
+    return None, None
+
+
+def stage_map_mode(context: Context, image) -> str | None:
+    mode, _ = _stage_map_mode_detail(context, image)
+    return mode
+
+
+@AgentServer.custom_recognition("APModeGate")
+class APModeGate(CustomRecognition):
+    """
+    活动推图模式调度闸门。
+
+    参数格式 (custom_recognition_param):
+    {
+        "query": "main"
+    }
+    - main: 命中主线地图（无故事/探索模式按钮，但 is_stage_map 成立）。
+    - story/explore: 命中仅显示单个当前模式标签的活动地图，并返回该标签位置。
+      历史活动若同时显示「故事」「探索」，不由此闸门判定当前模式。
+    """
+
+    def analyze(
+        self,
+        context: Context,
+        argv: CustomRecognition.AnalyzeArg,
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
+
+        query = parse_params(argv.custom_recognition_param).get("query", "main")
+        mode, box = _stage_map_mode_detail(context, argv.image)
+
+        if query == "main":
+            if mode == "plain":
+                logger.info("[AutoPromotion] 当前为主线地图，直接推图")
+                APMapAnalyze.reset_swipe_state()
+                return CustomRecognition.AnalyzeResult(
+                    box=[0, 0, 0, 0], detail={"mode": mode}
+                )
+            return None
+
+        if query in {"story", "explore"}:
+            if mode == query:
+                logger.info(f"[AutoPromotion] 当前已在{query}模式")
+                APMapAnalyze.reset_swipe_state()
+                return CustomRecognition.AnalyzeResult(
+                    box=box or [0, 0, 0, 0], detail={"mode": mode}
+                )
+            return None
+
+        logger.error(f"[AutoPromotion] 无效模式闸门 query: {query}")
+        return None
+
+
 @AgentServer.custom_recognition("APPhaseGate")
 class APPhaseGate(CustomRecognition):
     """

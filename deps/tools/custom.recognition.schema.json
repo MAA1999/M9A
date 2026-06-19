@@ -469,6 +469,36 @@
                 }
             }
         },
+        "APModeGate": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_recognition": {
+                    "const": "APModeGate",
+                    "description": "活动推图模式入口闸门"
+                },
+                "custom_recognition_param": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "enum": [
+                                "main",
+                                "story",
+                                "explore"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "query"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
         "APMapAnalyze": {
             "allOf": [
                 {

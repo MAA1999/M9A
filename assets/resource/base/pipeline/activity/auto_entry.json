@@ -107,7 +107,7 @@
         "post_delay": 1000
     },
     "AP_NavArrived": {
-        "desc": "已到达关卡地图页（活动模式标签或主线编号条判定），导航完成，接入推图阶段链",
+        "desc": "已到达关卡地图页（活动模式标签或主线编号条判定），导航完成，接入推图模式入口",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -119,10 +119,7 @@
             }
         },
         "next": [
-            "AP_StoryGate",
-            "AT_TrailGate",
-            "AP_ExploreGate",
-            "AP_AllPhasesDone"
+            "AP_EnsureStoryOrMain"
         ]
     },
     "AP_NavMainEntry": {

@@ -1,6 +1,6 @@
 {
     "AutoPromotion": {
-        "desc": "活动推图入口：先手动进入活动关卡地图页再启动。按选项依次执行 故事模式推图 -> 小径 -> 探索模式推图，三阶段可独立开关",
+        "desc": "活动推图入口：先手动进入活动关卡地图页再启动。由「推图模式」单选决定执行故事/主线（含小径）或探索模式",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -12,11 +12,101 @@
         },
         "next": [
             "AP_Navigate",
-            "AP_StoryGate",
-            "AT_TrailGate",
-            "AP_ExploreGate",
+            "AP_EnsureStoryOrMain",
             "AP_AllPhasesDone"
         ]
+    },
+    "AP_EnsureStoryOrMain": {
+        "desc": "故事/主线模式入口：主线地图或已在故事模式时直接推；若当前在探索模式则点击模式标签切回故事，再开始推图",
+        "timeout": 10000,
+        "next": [
+            "AP_MainMapReady",
+            "AP_StoryMapReady",
+            "AP_SwitchToStoryFromExplore",
+            "AP_SwitchToStory",
+            "AP_StoryModeUnavailable"
+        ],
+        "on_error": [
+            "AP_StoryModeUnavailable"
+        ]
+    },
+    "AP_EnsureExplore": {
+        "desc": "探索模式入口：已在探索模式时直接推；若当前在故事模式则点击模式标签切到探索；主线地图无探索模式则正常结束",
+        "timeout": 10000,
+        "next": [
+            "AP_ExploreMapReady",
+            "AP_ExploreLocked",
+            "AP_SwitchToExploreFromStory",
+            "AP_SwitchToExplore",
+            "AP_NoExploreMode",
+            "AP_ExploreModeUnavailable"
+        ],
+        "on_error": [
+            "AP_ExploreModeUnavailable"
+        ]
+    },
+    "AP_MainMapReady": {
+        "desc": "主线地图无故事/探索模式按钮，命中后直接进入推图循环",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APModeGate",
+                "custom_recognition_param": {
+                    "query": "main"
+                }
+            }
+        },
+        "next": [
+            "AP_PromotionLoop"
+        ]
+    },
+    "AP_StoryMapReady": {
+        "desc": "活动地图已在故事模式，直接进入推图循环，不重复点击模式标签",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APModeGate",
+                "custom_recognition_param": {
+                    "query": "story"
+                }
+            }
+        },
+        "next": [
+            "AP_PromotionLoop"
+        ]
+    },
+    "AP_ExploreMapReady": {
+        "desc": "活动地图已在探索模式，直接进入推图循环，不重复点击模式标签",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APModeGate",
+                "custom_recognition_param": {
+                    "query": "explore"
+                }
+            }
+        },
+        "next": [
+            "AP_PromotionLoop"
+        ]
+    },
+    "AP_NoExploreMode": {
+        "desc": "主线地图没有探索模式，选择探索模式时提示并正常结束",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APModeGate",
+                "custom_recognition_param": {
+                    "query": "main"
+                }
+            }
+        },
+        "next": [
+            "AP_AllPhasesDone"
+        ],
+        "focus": {
+            "Node.Action.Starting": "<span style=\"color:orange\">当前地图无探索模式，跳过探索推图</span>"
+        }
     },
     "AP_StoryGate": {
         "desc": "故事模式推图阶段闸门：enabled 由任务选项控制，本次任务已执行过则不再进入",
@@ -71,8 +161,80 @@
             "Node.Action.Starting": "<span style=\"color:orange\">探索模式尚未开放，跳过该阶段</span>"
         }
     },
+    "AP_SwitchToStoryFromExplore": {
+        "desc": "单切换按钮布局：当前显示「探索模式」时，点击当前模式标签切回故事模式",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APModeGate",
+                "custom_recognition_param": {
+                    "query": "explore"
+                }
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    125,
+                    115
+                ]
+            }
+        },
+        "post_delay": 3000,
+        "next": [
+            "AP_PromotionLoop"
+        ]
+    },
+    "AP_SwitchToStory": {
+        "desc": "双按钮布局：点击左上角「故事模式」按钮切回故事模式",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    20,
+                    60,
+                    220,
+                    260
+                ],
+                "expected": "故事"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000,
+        "next": [
+            "AP_PromotionLoop"
+        ]
+    },
+    "AP_SwitchToExploreFromStory": {
+        "desc": "单切换按钮布局：当前显示「故事模式」时，点击当前模式标签切到探索模式",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "APModeGate",
+                "custom_recognition_param": {
+                    "query": "story"
+                }
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    125,
+                    115
+                ]
+            }
+        },
+        "post_delay": 3000,
+        "next": [
+            "AP_PromotionLoop"
+        ]
+    },
     "AP_SwitchToExplore": {
-        "desc": "点击左上角「探索模式」按钮切换（当期为单切换按钮；1987 等历史活动为故事/探索双按钮竖排，点击跟随 OCR 命中位置自适应）",
+        "desc": "双按钮布局：点击左上角「探索模式」按钮切到探索模式",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -97,6 +259,30 @@
         "desc": "所有已启用的阶段执行完毕，任务正常结束",
         "focus": {
             "Node.Action.Starting": "<span style=\"color:green\">活动推图任务完成（已启用的阶段均已执行）</span>"
+        }
+    },
+    "AP_StoryModeUnavailable": {
+        "desc": "故事/主线模式入口兜底：不在主线地图，也找不到「故事」模式按钮时正常结束并提示",
+        "focus": {
+            "Node.Action.Starting": {
+                "content": "未找到故事/主线地图或故事模式入口。请切到活动故事/主线地图后重新运行。",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
+        }
+    },
+    "AP_ExploreModeUnavailable": {
+        "desc": "探索模式入口兜底：不在探索地图，也找不到「探索」模式按钮时正常结束并提示",
+        "focus": {
+            "Node.Action.Starting": {
+                "content": "未找到探索模式入口。若探索尚未开放，请等待开放后再运行探索模式。",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
         }
     },
     "AP_PromotionLoop": {
@@ -232,7 +418,6 @@
         },
         "next": [
             "AT_TrailGate",
-            "AP_ExploreGate",
             "AP_AllPhasesDone"
         ],
         "focus": {

@@ -5,9 +5,7 @@
             "entry": "AutoPromotion",
             "option": [
                 "选择活动",
-                "故事模式",
-                "小径",
-                "探索模式",
+                "推图模式",
                 "推图吃糖"
             ],
             "pipeline_override": {
@@ -31,63 +29,42 @@
             "group": [
                 "standalone"
             ],
-            "description": "使用前请先手动进入活动关卡地图页，再运行本任务。<br>按选项依次执行三个阶段，可分别开关：<br><b>故事模式</b>——自动识别编号旁带灰色星标的未完成关卡并依次推进（剧情自动跳过、战斗使用当前队伍直接开始行动）；<br><b>小径</b>——自动遍历地图左侧小径任务列表（对话自动连点推进、阅读面板自动关闭）；<br><b>探索模式</b>——活动后期开放，未开放时自动跳过；已开放则切换到探索模式后继续推图。<br>遇到小游戏、特殊教程等无法自动处理的界面时任务会自动停止（出错截图见 debug/on_error），请手动完成后回到关卡地图页重新运行即可继续。"
+            "description": "使用前请先手动进入活动关卡地图页，再运行本任务。<br><b>故事/主线</b>——自动识别编号旁带灰色星标的未完成关卡并依次推进，推完后会自动尝试小径任务；没有小径则正常结束。<br><b>探索模式</b>——活动后期开放，若当前在故事页会先切换到探索模式；主线地图无探索模式时自动跳过。<br>遇到小游戏、特殊教程等无法自动处理的界面时任务会自动停止（出错截图见 debug/on_error），请手动完成后回到关卡地图页重新运行即可继续。"
         }
     ],
     "option": {
-        "故事模式": {
-            "type": "switch",
+        "推图模式": {
+            "type": "select",
+            "default_case": "故事/主线",
             "cases": [
                 {
-                    "name": "Yes",
+                    "name": "故事/主线",
                     "pipeline_override": {}
                 },
                 {
-                    "name": "No",
+                    "name": "探索模式",
                     "pipeline_override": {
-                        "AP_StoryGate": {
-                            "enabled": false
+                        "AutoPromotion": {
+                            "next": [
+                                "AP_Navigate",
+                                "AP_EnsureExplore",
+                                "AP_AllPhasesDone"
+                            ]
+                        },
+                        "AP_NavArrived": {
+                            "next": [
+                                "AP_EnsureExplore"
+                            ]
+                        },
+                        "AP_AllDone": {
+                            "next": [
+                                "AP_AllPhasesDone"
+                            ]
                         }
                     }
                 }
             ],
-            "description": "推进故事模式的未完成关卡"
-        },
-        "小径": {
-            "type": "switch",
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {}
-                },
-                {
-                    "name": "No",
-                    "pipeline_override": {
-                        "AT_TrailGate": {
-                            "enabled": false
-                        }
-                    }
-                }
-            ],
-            "description": "完成地图左侧小径列表中的全部任务"
-        },
-        "探索模式": {
-            "type": "switch",
-            "cases": [
-                {
-                    "name": "No",
-                    "pipeline_override": {
-                        "AP_ExploreGate": {
-                            "enabled": false
-                        }
-                    }
-                },
-                {
-                    "name": "Yes",
-                    "pipeline_override": {}
-                }
-            ],
-            "description": "推进探索模式的未完成关卡（活动后期开放，未开放时自动跳过）。默认关闭，探索模式开放后请手动开启"
+            "description": "选择要推进的地图模式。故事/主线推完后会自动尝试小径；探索模式只推进探索地图"
         },
         "推图吃糖": {
             "label": "吃糖",

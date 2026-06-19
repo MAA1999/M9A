@@ -109,7 +109,7 @@
         "post_delay": 2000
     },
     "AT_AllDone": {
-        "desc": "小径列表已空（或仅剩未解锁任务），小径阶段完成，继续后续阶段",
+        "desc": "小径列表已空（或仅剩未解锁任务），小径阶段完成，任务正常结束",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -120,11 +120,10 @@
             }
         },
         "next": [
-            "AP_ExploreGate",
             "AP_AllPhasesDone"
         ],
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:green\">小径任务全部完成，继续后续阶段</span>"
+            "Node.Action.Starting": "<span style=\"color:green\">小径任务全部完成</span>"
         }
     },
     "AT_UnknownScreen": {

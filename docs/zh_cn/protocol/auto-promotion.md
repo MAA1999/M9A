@@ -17,9 +17,9 @@ icon: ri:route-line
 
 | 文件 | 内容 | 层 |
 |---|---|---|
-| `assets/resource/base/pipeline/activity/auto_promotion.json` | 三阶段调度 + 推图循环 + 辅助 OCR 节点 | 流程 + 适配面 |
+| `assets/resource/base/pipeline/activity/auto_promotion.json` | 推图模式入口调度 + 推图循环 + 辅助 OCR 节点 | 流程 + 适配面 |
 | `assets/resource/base/pipeline/activity/auto_trail.json` | 小径调度循环 | 流程 + 适配面 |
-| `agent/custom/reco/auto_promotion.py` | `APPhaseGate`（阶段闸门）、`APMapAnalyze`（找关/星标/滑到头） | 识别算法（默认值事实源） |
+| `agent/custom/reco/auto_promotion.py` | `APModeGate`（主线地图闸门）、`APPhaseGate`（任务状态重置）、`APMapAnalyze`（找关/星标/滑到头） | 识别算法（默认值事实源） |
 | `agent/custom/reco/auto_trail.py` | `ATTrailAnalyze`（小径五态） | 识别算法（默认值事实源） |
 | `deps/tools/custom.recognition.schema.json` | 全部可覆盖参数的声明（key/type/default） | 适配面清单 |
 
@@ -59,7 +59,24 @@ icon: ri:route-line
 每个识别器（类 × query）的契约固定；某期 UI 大改导致参数调不动时，
 替换对应实现方法即可，契约不变则流程层无感。
 
-### APPhaseGate（阶段闸门，无可调参数）
+### APModeGate / APPhaseGate（入口闸门，无可调参数）
+
+`推图模式` 是单选项：
+
+- `故事/主线`：进入 `AP_EnsureStoryOrMain`。主线地图或已在故事模式时直接推图；若当前在探索模式，则点击左上当前模式标签固定点切回故事。推图完成后自动接小径，小径不存在则正常结束。
+- `探索模式`：进入 `AP_EnsureExplore`。已在探索模式时直接推图；若当前在故事模式，则点击左上当前模式标签固定点切到探索；主线地图由 `APModeGate(query=main)` 识别为无探索模式并正常结束。
+
+小径不再作为独立 UI 开关，而是 `故事/主线` 推图完成后的自动收尾阶段。
+
+`APModeGate`：
+
+| query | 语义 | 命中返回 | 副作用 |
+|---|---|---|---|
+| main | 主线地图：左上无故事/探索模式按钮，且 `is_stage_map()` 成立 | box=[0,0,0,0], detail.mode=plain | 重置滑动计数 |
+| story | 单切换按钮布局下，左上当前模式为「故事模式」 | box=模式标签位置, detail.mode=story | 重置滑动计数 |
+| explore | 单切换按钮布局下，左上当前模式为「探索模式」 | box=模式标签位置, detail.mode=explore | 重置滑动计数 |
+
+`APPhaseGate` 目前保留用于任务入口状态重置，以及兼容旧阶段节点：
 
 | query | 语义 | 命中返回 | 副作用 |
 |---|---|---|---|
@@ -67,8 +84,8 @@ icon: ri:route-line
 | story / trail | 本次任务未进入过该阶段则命中 | 同上，detail.phase | 标记已进入 + 重置滑动计数 |
 | explore | 同上，且地图左上有「探索」标签才命中 | 同上，detail.phase | 同上 |
 
-阶段启停由任务选项对节点 `enabled` 的 override 控制。explore 额外检查
-`APExploreAnchorOCR` 是否含「探索」：主线地图无模式按钮，自动跳过探索阶段。
+新入口调度优先使用 `AP_EnsureStoryOrMain` / `AP_EnsureExplore`，不要再新增
+`故事模式` / `小径` / `探索模式` 三个并列 switch。
 
 ### APMapAnalyze（推图地图分析）
 
@@ -239,7 +256,7 @@ case（注入 card_name），多服卡片名差异经资源覆盖层处理。
 
 | 范围 | 状态 |
 |---|---|
-| 当期活动（灰与砂的巨木）：入口导航 + 故事 + 探索 + 小径 + 关卡/卡片解锁 + 吃糖 | ✅ 全流程实机多轮通过 |
+| 当期活动（灰与砂的巨木）：入口导航 + 故事/主线（含小径）或探索模式 + 关卡/卡片解锁 + 吃糖 | ✅ 旧三阶段流程实机通过；单选模式入口/切换已实机截停通过 |
 | 「当前页面」模式（手动进图后启动） | ✅ 实测通过 |
 | 历史活动/主线 19 张卡：导航进图 + 地图识别 | ✅ 逐卡实测通过 |
 | 历史活动**未完成关卡**的实战推进 | ⏳ 未验证——需未通关账号，待后续；识别层判定已通过，风险集中在进关/战斗/结算链 |
@@ -251,7 +268,7 @@ case（注入 card_name），多服卡片名差异经资源覆盖层处理。
 1. 识别单测：harness 对地图页跑 query=stage，未完成关识别正确且已完成关不误报
 2. 首关端到端：进关 → 战斗/剧情 → 结算 → 回地图
 3. 任意进度重启：中途停止再启动无缝继续
-4. 正常收尾：`AP_AllDone` → 小径 → 探索 → `AP_AllPhasesDone`，而非超时报错
+4. 正常收尾：故事/主线模式为 `AP_AllDone` → 小径 → `AP_AllPhasesDone`；探索模式为 `AP_AllDone` → `AP_AllPhasesDone`，而非超时报错
 5. 兜底验证：未知界面优雅停止，`debug/on_error/` 有框架自动保存的现场截图
 6. `python -m pytest tests/` 全绿，schema 与类常量默认值人工核对一致
 
