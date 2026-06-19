@@ -23,8 +23,7 @@
             "AP_MainMapReady",
             "AP_StoryMapReady",
             "AP_SwitchToStoryFromExplore",
-            "AP_SwitchToStory",
-            "AP_StoryModeUnavailable"
+            "AP_SwitchToStory"
         ],
         "on_error": [
             "AP_StoryModeUnavailable"
@@ -38,8 +37,7 @@
             "AP_ExploreLocked",
             "AP_SwitchToExploreFromStory",
             "AP_SwitchToExplore",
-            "AP_NoExploreMode",
-            "AP_ExploreModeUnavailable"
+            "AP_NoExploreMode"
         ],
         "on_error": [
             "AP_ExploreModeUnavailable"
