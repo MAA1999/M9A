@@ -162,7 +162,7 @@
         }
     },
     "AP_SwitchToStoryFromExplore": {
-        "desc": "单切换按钮布局：当前显示「探索模式」时，点击当前模式标签切回故事模式",
+        "desc": "单切换按钮布局：当前显示「探索模式」时，点击当前模式标签切回故事模式，随后重新确认当前模式",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -183,11 +183,11 @@
         },
         "post_delay": 3000,
         "next": [
-            "AP_PromotionLoop"
+            "AP_EnsureStoryOrMain"
         ]
     },
     "AP_SwitchToStory": {
-        "desc": "双按钮布局：点击左上角「故事模式」按钮切回故事模式",
+        "desc": "双按钮布局：点击左上角「故事模式」按钮切回故事模式，随后重新确认当前模式",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -205,11 +205,11 @@
         },
         "post_delay": 3000,
         "next": [
-            "AP_PromotionLoop"
+            "AP_EnsureStoryOrMain"
         ]
     },
     "AP_SwitchToExploreFromStory": {
-        "desc": "单切换按钮布局：当前显示「故事模式」时，点击当前模式标签切到探索模式",
+        "desc": "单切换按钮布局：当前显示「故事模式」时，点击当前模式标签切到探索模式，随后重新确认当前模式",
         "recognition": {
             "type": "Custom",
             "param": {
@@ -230,11 +230,11 @@
         },
         "post_delay": 3000,
         "next": [
-            "AP_PromotionLoop"
+            "AP_EnsureExplore"
         ]
     },
     "AP_SwitchToExplore": {
-        "desc": "双按钮布局：点击左上角「探索模式」按钮切到探索模式",
+        "desc": "双按钮布局：点击左上角「探索模式」按钮切到探索模式，随后重新确认当前模式",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -252,7 +252,7 @@
         },
         "post_delay": 3000,
         "next": [
-            "AP_PromotionLoop"
+            "AP_EnsureExplore"
         ]
     },
     "AP_AllPhasesDone": {
