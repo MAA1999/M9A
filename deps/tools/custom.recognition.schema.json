@@ -17,6 +17,7 @@
                 "CCBuyCard",
                 "CCRemainMoney",
                 "APPhaseGate",
+                "APModeGate",
                 "LucidscapeStageSelect",
                 "SOSSelectNode",
                 "SOSSelectEncounterOptionList",
@@ -66,6 +67,9 @@
         },
         {
             "$ref": "#/$defs/APPhaseGate"
+        },
+        {
+            "$ref": "#/$defs/APModeGate"
         },
         {
             "$ref": "#/$defs/LucidscapeStageSelect"
