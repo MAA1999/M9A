@@ -378,12 +378,13 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    4,
-                    154,
-                    149,
-                    397
+                    50,
+                    365,
+                    66,
+                    42
                 ],
-                "expected": "仓库"
+                "expected": "仓库",
+                "only_rec": true
             }
         },
         "action": {
