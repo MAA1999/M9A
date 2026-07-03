@@ -1,0 +1,10 @@
+{
+    "task": [
+        {
+            "name": "完全归纳法",
+            "entry": "CompleteInduction",
+            "group": ["standalone"],
+            "description": "请先手动打一轮过教程，然后在小游戏“开始研究”按钮所在界面开始任务"
+        }
+    ]
+}

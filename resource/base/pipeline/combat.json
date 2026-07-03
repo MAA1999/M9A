@@ -1,0 +1,1008 @@
+{
+    "Combat": {
+        "next": [
+            "DisableUpload"
+        ]
+    },
+    "DisableUpload": {
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": [
+            "SelectCombatStage"
+        ]
+    },
+    "SelectCombatStage": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SelectCombatStage",
+                "custom_action_param_code": "stage&level"
+            }
+        },
+        "next": [
+            "EnterTheShowFlag",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ShowClickStory",
+            "[JumpBack]ReturnMain"
+        ]
+    },
+    "ReturnMainStoryChapter": {
+        "next": [
+            "ReturnMainStoryChapterTrue",
+            "[JumpBack]ReturnMainStoryChapterFalse"
+        ]
+    },
+    "ReturnMainStoryChapterTrue": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    57,
+                    122,
+                    1037,
+                    356
+                ],
+                "template": "Combat/MainStoryBigChapter.png"
+            }
+        }
+    },
+    "ReturnMainStoryChapterFalse": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    90,
+                    1257,
+                    49
+                ],
+                "expected": [
+                    "生者",
+                    "余众",
+                    "旅行",
+                    "归来",
+                    "故事",
+                    "根须"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 2000
+    },
+    "SelectMainStoryChapter": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    90,
+                    1280,
+                    460
+                ],
+                "threshold": 0.9,
+                "template_code": "Set in code"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000
+    },
+    "EnterTheShow": {
+        // 请不要为该任务加next，一般应当放于interrupt使用
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    926,
+                    221,
+                    229,
+                    153
+                ],
+                "template": [
+                    "Combat/EnterTheShow.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                187,
+                199,
+                133,
+                26
+            ]
+        },
+        "post_delay": 5000
+    },
+    "EnterTheShowFlag": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    73,
+                                    662,
+                                    62,
+                                    34
+                                ],
+                                "expected": "故事",
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "roi": [
+                                    1154,
+                                    20,
+                                    106,
+                                    95
+                                ],
+                                "template": "Combat/ShowFlag.png"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "next_code": "set in code"
+    },
+    "ShowClickStory": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    73,
+                    662,
+                    62,
+                    34
+                ],
+                "expected": "故事",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "MainChapter_X": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SelectChapter"
+            }
+        },
+        "next": [
+            "MainChapter_XEnter",
+            "[JumpBack]SwipeLeftForChapter"
+        ]
+    },
+    "MainChapter_XEnter": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    90,
+                    1280,
+                    460
+                ],
+                "template_code": "Set in code."
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1000,
+        "next": [
+            "MainChapter_XEnter",
+            "SwipeLeftAndFindStage"
+        ]
+    },
+    "ResourceChapterLabel": {
+        "max_hit": 10,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    22,
+                    613,
+                    1258,
+                    107
+                ],
+                "expected": "资源"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 200,
+            "target": [
+                187,
+                199,
+                133,
+                26
+            ]
+        }
+    },
+    "ResourceChapter_LP": {
+        "desc": "尘埃运动",
+        "next": [
+            "ResourceChapter_LPEnter",
+            "[JumpBack]ResourceChapterLabel"
+        ]
+    },
+    "ResourceChapter_LPEnter": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    153,
+                    1280,
+                    367
+                ],
+                "template": "Combat/ResourceChapter_LPEnter.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "SwipeLeftAndFindStage"
+        ]
+    },
+    "ResourceChapter_MA": {
+        "desc": "铸币美学",
+        "next": [
+            "ResourceChapter_MAEnter",
+            "[JumpBack]ResourceChapterLabel"
+        ]
+    },
+    "ResourceChapter_MAEnter": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    153,
+                    1280,
+                    367
+                ],
+                "expected": [
+                    "铸币",
+                    "铸",
+                    "美学"
+                ],
+                "replace": [
+                    "市",
+                    "币"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "SwipeLeftAndFindStage",
+            "[JumpBack]SwipeRightForChapter"
+        ]
+    },
+    "ResourceChapter_Psychube": {
+        "desc": "意志解析",
+        "next": [
+            "ResourceChapter_Psychube07FreeEnter",
+            "ResourceChapter_NoFreePsychube07",
+            "[JumpBack]ResourceChapterLabel",
+            "[JumpBack]SwipeRightForChapter"
+        ]
+    },
+    "ResourceChapter_Psychube07FreeEnter": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    180,
+                    203,
+                    246,
+                    306
+                ],
+                "template": "Psychube/FreePsychubeStages.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "SwipeLeftAndFindStage"
+        ]
+    },
+    "ResourceChapter_Psychube07Enter": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    841,
+                    230,
+                    265,
+                    290
+                ],
+                "template": "Psychube/FreePsychubeStages.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "SwipeLeftAndFindStage"
+        ]
+    },
+    "ResourceChapter_NoFreePsychube07": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    732,
+                    210,
+                    233,
+                    297
+                ],
+                "template": "Psychube/NoFreePsychubeStagesFlag.png"
+            }
+        },
+        "next": [
+            "SwipeRightForPsychube"
+        ]
+    },
+    "SwipeRightForPsychube": {
+        "next": [
+            "ResourceChapter_Psychube07Enter",
+            "SwipeRightForPsychube07"
+        ]
+    },
+    "SwipeRightForPsychube07": {
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    900,
+                    500,
+                    100,
+                    50
+                ],
+                "end": [
+                    300,
+                    500,
+                    100,
+                    50
+                ]
+            }
+        },
+        "post_wait_freezes": 1,
+        "next": [
+            "SwipeRightForPsychube"
+        ]
+    },
+    "ResourceChapter_ME": {
+        "desc": "群山之声",
+        "next": [
+            "ResourceChapter_MEEnter",
+            "[JumpBack]InsightChapterLabel"
+        ]
+    },
+    "ResourceChapter_MEEnter": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    149,
+                    158,
+                    199,
+                    103
+                ],
+                "template": [
+                    "Combat/Insight/MEEnter.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "ResourceChapter_MEEnter",
+            "SwipeLeftAndFindStage"
+        ]
+    },
+    "ResourceChapter_SL": {
+        "desc": "星陨之所",
+        "next": [
+            "ResourceChapter_SLEnter",
+            "[JumpBack]InsightChapterLabel"
+        ]
+    },
+    "ResourceChapter_SLEnter": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    697,
+                    156,
+                    199,
+                    103
+                ],
+                "template": [
+                    "Combat/Insight/SLEnter.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "ResourceChapter_SLEnter",
+            "SwipeLeftAndFindStage"
+        ]
+    },
+    "ResourceChapter_SS": {
+        "desc": "深林之形",
+        "next": [
+            "ResourceChapter_SSEnterPre",
+            "[JumpBack]InsightChapterLabel"
+        ]
+    },
+    "ResourceChapter_SSEnterPre": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    104,
+                    160,
+                    887,
+                    101
+                ],
+                "template": [
+                    "Combat/Insight/MEEnter.png",
+                    "Combat/Insight/SLEnter.png",
+                    "Combat/Insight/SSEnter.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "next": [
+            "ResourceChapter_SSEnter",
+            "[JumpBack]SwipeRightForChapter"
+        ]
+    },
+    "ResourceChapter_SSEnter": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    104,
+                    160,
+                    887,
+                    101
+                ],
+                "template": [
+                    "Combat/Insight/SSEnter.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "ResourceChapter_SSEnter",
+            "SwipeLeftAndFindStage"
+        ]
+    },
+    "ResourceChapter_BW": {
+        "desc": "荒兽之野",
+        "next": [
+            "ResourceChapter_BWEnterPre",
+            "[JumpBack]InsightChapterLabel"
+        ]
+    },
+    "ResourceChapter_BWEnterPre": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    104,
+                    160,
+                    887,
+                    101
+                ],
+                "template": [
+                    "Combat/Insight/MEEnter.png",
+                    "Combat/Insight/SLEnter.png",
+                    "Combat/Insight/SSEnter.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "next": [
+            "ResourceChapter_BWEnter",
+            "[JumpBack]SwipeRightForChapter"
+        ]
+    },
+    "ResourceChapter_BWEnter": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    104,
+                    160,
+                    887,
+                    101
+                ],
+                "template": [
+                    "Combat/Insight/BWEnter.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "ResourceChapter_BWEnter",
+            "SwipeLeftAndFindStage"
+        ]
+    },
+    "InsightChapterLabel": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    342,
+                    611,
+                    391,
+                    90
+                ],
+                "template": "Combat/Insight/Label.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "SwipeRightForChapter": {
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    500,
+                    300,
+                    100,
+                    100
+                ],
+                "end": [
+                    100,
+                    300,
+                    100,
+                    100
+                ]
+            }
+        },
+        "post_delay": 0,
+        "next": [
+            "SwipeStop"
+        ]
+    },
+    "SwipeLeftForChapter": {
+        "max_hit": 10,
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    100,
+                    300,
+                    100,
+                    100
+                ],
+                "end": [
+                    500,
+                    300,
+                    100,
+                    100
+                ]
+            }
+        },
+        "post_delay": 0,
+        "next": [
+            "SwipeStop"
+        ]
+    },
+    "SwipeStop": {
+        "pre_delay": 1,
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    750,
+                    570,
+                    40,
+                    30
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                0,
+                235,
+                1280,
+                353
+            ]
+        }
+    },
+    "SwipeLeftAndFindStage": {
+        "max_hit": 30,
+        "next": [
+            "TargetStageName",
+            "TheFarLeftOfStageList",
+            "SwipeLeftForStageList"
+        ]
+    },
+    "TargetStageName": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "ColorOCR",
+                "custom_recognition_param": {
+                    "recognition": "TargetStageName_OCR",
+                    "target_color": [
+                        243,
+                        241,
+                        223
+                    ],
+                    "tolerance": 140
+                }
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    0,
+                    40,
+                    30
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                900,
+                500,
+                380,
+                220
+            ]
+        },
+        "next": [
+            "StageDifficulty"
+        ]
+    },
+    "TargetStageName_OCR": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    9,
+                    539,
+                    1210,
+                    46
+                ],
+                "threshold": 0.4,
+                "expected_code": "Set in code."
+            }
+        }
+    },
+    "TheFarLeftOfStageList": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    470,
+                    1280,
+                    160
+                ],
+                "expected": "01"
+            }
+        },
+        "next": [
+            "SwipeRightForStageList"
+        ]
+    },
+    "SwipeLeftForStageList": {
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    300,
+                    600,
+                    100,
+                    50
+                ],
+                "end": [
+                    900,
+                    600,
+                    100,
+                    50
+                ],
+                "duration": 400
+            }
+        },
+        "post_wait_freezes": 1,
+        "post_delay": 0,
+        "next": [
+            "SwipeLeftAndFindStage"
+        ]
+    },
+    "SwipeRightAndFindStage": {
+        "next": [
+            "TargetStageName",
+            "SwipeRightForStageList"
+        ]
+    },
+    "SwipeRightForStageList": {
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    900,
+                    600,
+                    100,
+                    50
+                ],
+                "end": [
+                    300,
+                    600,
+                    100,
+                    50
+                ]
+            }
+        },
+        "post_wait_freezes": 100,
+        "next": [
+            "SwipeRightAndFindStage"
+        ]
+    },
+    "StageDifficulty": {
+        "next_doc": "Set in code."
+    },
+    "StageDifficulty_Story": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    893,
+                    239,
+                    328,
+                    50
+                ],
+                "method": 4,
+                "lower": [
+                    175,
+                    81,
+                    49
+                ],
+                "upper": [
+                    247,
+                    113,
+                    66
+                ],
+                "count": 1,
+                "order_by": "Score",
+                "index": 0
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                900,
+                500,
+                380,
+                220
+            ]
+        },
+        "next": [
+            "ReadyForAction"
+        ]
+    },
+    "StageDifficulty_Hard": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    893,
+                    239,
+                    328,
+                    50
+                ],
+                "method": 4,
+                "lower": [
+                    193,
+                    52,
+                    51
+                ],
+                "upper": [
+                    255,
+                    67,
+                    66
+                ],
+                "count": 1,
+                "order_by": "Score",
+                "index": 0
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                900,
+                500,
+                380,
+                220
+            ]
+        },
+        "next": [
+            "ReadyForAction"
+        ]
+    },
+    "StageDifficulty_None": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    500,
+                    380,
+                    220
+                ],
+                "expected": [
+                    "开始行动"
+                ]
+            }
+        },
+        "next": [
+            "ReadyForAction"
+        ]
+    },
+    "ReadyForAction": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    900,
+                    500,
+                    380,
+                    220
+                ],
+                "expected": [
+                    "开始行动"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 1500,
+            "target": [
+                0,
+                381,
+                238,
+                138
+            ]
+        },
+        "next": [
+            "IsReplay",
+            "[JumpBack]SwitchToReplay",
+            "[JumpBack]ReadyForActionAgain"
+        ]
+    },
+    "ReadyForActionAgain": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "MultiRecognition",
+                "custom_recognition_param": {
+                    "nodes": [
+                        "ReadyForAction",
+                        "SSReopenReplay"
+                    ],
+                    "logic": {
+                        "type": "CUSTOM",
+                        "expression": "$0 AND NOT $1"
+                    },
+                    "return": "$0"
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "IsReplay": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    568,
+                    624,
+                    221,
+                    66
+                ],
+                "template": "Combat/IsReplay.png",
+                "threshold": 0.9
+            }
+        },
+        "next": [
+            "AllIn"
+        ]
+    },
+    "SwitchToReplay": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    559,
+                    619,
+                    98,
+                    76
+                ],
+                "template": "Combat/SwitchToReplay.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "TargetLevelRec": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    999,
+                    247,
+                    215,
+                    38
+                ],
+                "expected": "[\\s\\S]+",
+                "only_rec": true,
+                "threshold": 0.7
+            }
+        }
+    },
+    "DropRecognition": {}
+}

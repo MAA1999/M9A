@@ -1,0 +1,996 @@
+{
+    // 翻斗棋
+    "CritterCrash": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1076,
+                    26,
+                    132,
+                    44
+                ],
+                "template": [
+                    "CritterCrash/History.png"
+                ]
+            }
+        },
+        "next": [
+            "CCResetData"
+        ]
+    },
+    "CCResetData": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CCResetData"
+            }
+        },
+        "next": [
+            "CCFlagInCombatMain",
+            "[JumpBack]CCStop",
+            "CCStart",
+            "[JumpBack]CCConfirm",
+            "[JumpBack]CCClickBlank"
+        ]
+    },
+    "CCStop": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1207,
+                    553,
+                    52,
+                    53
+                ],
+                "template": [
+                    "CritterCrash/Stop.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCConfirm": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    766,
+                    404,
+                    70,
+                    34
+                ],
+                "expected": [
+                    "确认"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCClickBlank": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    552,
+                    655,
+                    177,
+                    63
+                ],
+                "template": [
+                    "CritterCrash/Blank/"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCStart": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1024,
+                    569,
+                    188,
+                    69
+                ],
+                "template": [
+                    "CritterCrash/Start.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "CCFlagInList",
+            "CCStart"
+        ]
+    },
+    "CCFlagInList": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    593,
+                    36,
+                    187,
+                    49
+                ],
+                "expected": [
+                    "守卫名单"
+                ],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "CCFlagInMakePlan",
+            "[JumpBack]CCToDo"
+        ]
+    },
+    "CCToDo": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1043,
+                    610,
+                    147,
+                    50
+                ],
+                "template": [
+                    "CritterCrash/ToDo.png"
+                ],
+                "method": 10001,
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500
+    },
+    "CCFlagInMakePlan": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    593,
+                    36,
+                    187,
+                    49
+                ],
+                "expected": [
+                    "制定计划"
+                ],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "CCFlagInSelectPeople",
+            "[JumpBack]CCToDo",
+            "[JumpBack]CCSelectPlan"
+        ]
+    },
+    "CCSelectPlan": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    8,
+                    137,
+                    1254,
+                    290
+                ],
+                "template": [
+                    // "CritterCrash/NewBabel.png" // 3.2 制定计划 新巴别塔 工具采购
+                    "CritterCrash/JiuNiangzi.png" // 3.5 制定计划 曲娘 勤学苦练
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCFlagInSelectPeople": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    593,
+                    36,
+                    187,
+                    49
+                ],
+                "expected": [
+                    "选择领队"
+                ],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "CritterCrash",
+            "CCFlagInCombatMain",
+            "[JumpBack]CCToDo",
+            // "[JumpBack]CCSelectPeople1",
+            // "[JumpBack]CCSelectPeople2",
+            // "[JumpBack]CCSelectPeople3",
+            "[JumpBack]CCSelectPeople3p5",
+            "[JumpBack]CCRefreshPeople",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "CCRefreshPeople": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1066,
+                    124,
+                    57,
+                    57
+                ],
+                "template": [
+                    "CritterCrash/Peoples/RefreshPeople.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectPeople1": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    184,
+                    194,
+                    936,
+                    325
+                ],
+                "template": [
+                    "CritterCrash/Peoples/People1.png",
+                    "CritterCrash/Peoples/People2.png",
+                    "CritterCrash/Peoples/People3.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectPeople2": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    184,
+                    194,
+                    936,
+                    325
+                ],
+                "template": [
+                    "CritterCrash/Peoples/People4.png",
+                    "CritterCrash/Peoples/People5.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectPeople3": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    184,
+                    194,
+                    936,
+                    325
+                ],
+                "template": [
+                    "CritterCrash/Peoples/People6.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectPeople3p5": {
+        "desc": "3.5版本选择角色",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    184,
+                    194,
+                    936,
+                    325
+                ],
+                "template": [
+                    "CritterCrash/Peoples/People2.png", // 玛尔纱
+                    "CritterCrash/Peoples/People3.png", // 37
+                    "CritterCrash/Peoples/People4.png", // 6
+                    "CritterCrash/Peoples/People5.png", // 诺谛卡
+                    "CritterCrash/Peoples/People7.png", // 梁月
+                    "CritterCrash/Peoples/People8.png" // 小叶尼塞
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCFlagInCombatMain": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    221,
+                    518,
+                    177,
+                    54
+                ],
+                "template": [
+                    "CritterCrash/Paste.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CCChessboard"
+            }
+        },
+        "next": [
+            "CritterCrash",
+            "[JumpBack]CCSkipCombat",
+            "[JumpBack]CCClickBlank",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]CCCombatEnd",
+            "[JumpBack]CCSpirit",
+            "[JumpBack]CCConfirm",
+            "[JumpBack]CCBuyCard",
+            "[JumpBack]CCRefreshCard_pre",
+            "[JumpBack]CCRefreshCard_post",
+            "[JumpBack]CCSelectAwardCard",
+            "[JumpBack]CCStartCombat"
+        ]
+    },
+    "CCCombatEnd": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    537,
+                    121,
+                    203,
+                    59
+                ],
+                "expected": [
+                    "对战结束"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CCLevelUp"
+        ]
+    },
+    "CCLevelUp": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CCLevelUp"
+            }
+        }
+    },
+    "CCLevelRec": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    460,
+                    531,
+                    18,
+                    26
+                ],
+                "expected": [
+                    "^\\d"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "CCStartCombat": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1146,
+                    294,
+                    104,
+                    98
+                ],
+                "template": [
+                    "CritterCrash/StartCombat/"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSkipCombat": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    602,
+                    583,
+                    87,
+                    87
+                ],
+                "template": [
+                    "CritterCrash/SkipCombat.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectAwardCard": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    554,
+                    25,
+                    179,
+                    68
+                ],
+                "template": [
+                    "CritterCrash/ObtainAwards.png"
+                ]
+            }
+        },
+        "next": [
+            "CCFlagInCombatMain",
+            "[JumpBack]CCSelectAwardCard_Template",
+            // "[JumpBack]CCSelectAwardCard_NoMore" // 3.2 版本在无目标的时候会随便选个奖励棋子
+            "[JumpBack]CCSelectAwardCard_NoMore3p5", // 3.5 版本在无目标的时候会选择放弃按钮
+            "[JumpBack]CCSelectAwardCard_NoMore3p5Confirm"
+        ]
+    },
+    "CCSelectAwardCard_Template": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    111,
+                    154,
+                    1063,
+                    257
+                ],
+                "template": [
+                    "CritterCrash/Award/Deer.png",
+                    "CritterCrash/Award/Man.png",
+                    "CritterCrash/Award/Shiva.png"
+                ]
+            }
+        },
+        "next": [
+            "CCSelectAwardCard_Option"
+        ]
+    },
+    "CCSelectAwardCard_NoMore": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    153,
+                    638,
+                    195,
+                    70
+                ],
+                "expected": [
+                    "选择"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectAwardCard_NoMore3p5": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    110,
+                    36,
+                    48,
+                    29
+                ],
+                "expected": "放弃",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectAwardCard_NoMore3p5Confirm": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    765,
+                    404,
+                    62,
+                    35
+                ],
+                "expected": "确认",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCSelectAwardCard_Option": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "CCSelectAwardCard_Template",
+                "roi_offset": [
+                    -150,
+                    361,
+                    272,
+                    146
+                ],
+                "expected": [
+                    "选择"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCBuyCard": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CCBuyCard"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CCBuyCard"
+            }
+        }
+    },
+    "CCBuyCardRec_Template": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    214,
+                    520,
+                    1066,
+                    200
+                ],
+                "template": "CritterCrash/Cards"
+            }
+        }
+    },
+    "CCBuyCardAwardEmptyRec": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "MultiRecognition",
+                "custom_recognition_param": {
+                    "nodes": [
+                        "CCBuyCardAwardEmptyRec_Template",
+                        "CCFlagInCombatMain"
+                    ],
+                    "logic": {
+                        "type": "CUSTOM",
+                        "expression": "NOT $0 AND $1"
+                    },
+                    "return": "$1"
+                }
+            }
+        }
+    },
+    "CCBuyCardAwardEmptyRec_Template": {
+        // 奖励区识别是否为空
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    42,
+                    580,
+                    128,
+                    124
+                ],
+                "template": "CritterCrash/Empty.png"
+            }
+        }
+    },
+    "CCBuyCardAwardRec_Template": {
+        // 奖励区识别是否为目标模板
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    42,
+                    580,
+                    128,
+                    124
+                ],
+                "template": "CritterCrash/Cards"
+            }
+        }
+    },
+    "CCBuyCardAwardTypeRec_Template": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    125,
+                    663,
+                    68,
+                    57
+                ],
+                "template": "CritterCrash/Unknown2.png"
+            }
+        }
+    },
+    "CCRefreshCard_pre": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CCRemainMoney_refresh",
+                    "CCRefreshMoney_pre",
+                    "CCRoundPre"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500
+    },
+    "CCRefreshCard_post": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "CCRemainMoney_refresh",
+                    "CCRefreshMoney_post"
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500
+    },
+    "CCRemainMoney": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CCRemainMoney",
+                "custom_recognition_param": {
+                    "type": 0
+                }
+            }
+        }
+    },
+    "CCRemainMoney_refresh": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CCRemainMoney",
+                "custom_recognition_param": {
+                    "type": 1
+                }
+            }
+        }
+    },
+    "CCRemainMoney_rec": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    669,
+                    29,
+                    36,
+                    25
+                ],
+                "expected": [
+                    "^[3-9]|[12][0-9]$"
+                ],
+                "replace": [
+                    [
+                        "[Oo]",
+                        "0"
+                    ],
+                    [
+                        "//.",
+                        ""
+                    ]
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "CCRemainMoney_rec_refresh": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    669,
+                    29,
+                    36,
+                    25
+                ],
+                "expected": [
+                    "^[4-9]|[12][0-9]$"
+                ],
+                "replace": [
+                    [
+                        "[Oo]",
+                        "0"
+                    ],
+                    [
+                        "//.",
+                        ""
+                    ]
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "CCRefreshMoney_pre": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1200,
+                    513,
+                    28,
+                    40
+                ],
+                "expected": [
+                    "0",
+                    "1"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "CCRefreshMoney_post": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1200,
+                    513,
+                    28,
+                    40
+                ],
+                "expected": [
+                    "0",
+                    "1",
+                    "2",
+                    "3"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "CCDeploy": {
+        "max_hit": 5,
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "end_offset": [
+                    -5,
+                    -10,
+                    -10,
+                    -20
+                ],
+                "duration": 500
+            }
+        },
+        "timeout": 10000,
+        "next": [
+            "CCDeployFinished",
+            "CCDeploy"
+        ]
+    },
+    "CCDeployFinished": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "ccdeploy"
+            }
+        },
+        "inverse": true,
+        "next": [
+            "CCResetCCDeployCount"
+        ]
+    },
+    "CCResetCCDeployCount": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "ResetCount",
+                "custom_action_param": {
+                    "nodes": [
+                        "CCDeploy"
+                    ]
+                }
+            }
+        },
+        "post_delay": 1500
+    },
+    "CCUpdate": {
+        "max_hit": 2,
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "duration": 500
+            }
+        },
+        "timeout": 3000,
+        "next": [
+            "CCUpdateFinished",
+            "CCUpdate"
+        ],
+        "on_error": [
+            "Stop"
+        ]
+    },
+    "CCUpdateFinished": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": "ccupdate"
+            }
+        },
+        "inverse": true,
+        "next": [
+            "CCResetCCUpdateCount"
+        ]
+    },
+    "CCResetCCUpdateCount": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "ResetCount",
+                "custom_action_param": {
+                    "nodes": [
+                        "CCUpdate"
+                    ]
+                }
+            }
+        }
+    },
+    "CCSellCards": {
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "end": [
+                    690,
+                    630,
+                    84,
+                    56
+                ],
+                "duration": 500
+            }
+        },
+        "post_delay": 1000,
+        "next": [
+            "CCSellCardsFinished",
+            "CCSellCards"
+        ]
+    },
+    "CCSellCardsFinished": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "CritterCrash/10.png",
+                    "CritterCrash/20.png"
+                ]
+            }
+        }
+    },
+    "CCSpirit": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1145,
+                    55,
+                    106,
+                    119
+                ],
+                "template": [
+                    "CritterCrash/Spirit.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CCRoundPre": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1172,
+                    419,
+                    77,
+                    30
+                ],
+                "expected": [
+                    "^[1-6]/"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "CCRoundPost": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1172,
+                    419,
+                    77,
+                    30
+                ],
+                "expected": [
+                    "^(1[0-2]|[7-9])/"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "CCLevelMax": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "template": [
+                    "CritterCrash/Lv3.png"
+                ]
+            }
+        }
+    }
+}

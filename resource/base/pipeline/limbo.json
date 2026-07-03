@@ -1,0 +1,1051 @@
+{
+    "Limbo": {
+        "desc": "深眠域",
+        "next": [
+            "LucidscapeUnlocked",
+            "LimboEntryEnd",
+            "LimboEnd",
+            "LimboStageFlag",
+            "LimboStageRightest",
+            "[JumpBack]LimboEntry",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]ArtificialSleepwalkingAwards",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ClickBlank",
+            "[JumpBack]ArtificialSleepwalking",
+            "[JumpBack]ReturnMain"
+        ]
+    },
+    "ArtificialSleepwalking": {
+        "desc": "入场后，进入人工梦游",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    550,
+                    1280,
+                    170
+                ],
+                "expected": "人工梦游"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                569,
+                660,
+                121,
+                27
+            ]
+        },
+        "post_delay": 3000
+    },
+    "ArtificialSleepwalkingAwards": {
+        "desc": "人工梦游主界面，点击全部领取",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    937,
+                    463,
+                    214,
+                    189
+                ],
+                "template": "Limbo/ArtificialSleepwalkingAwards.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "ClickBlank": {
+        "desc": "点击空白关闭",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    569,
+                                    649,
+                                    140,
+                                    38
+                                ],
+                                "expected": [
+                                    "点击",
+                                    "空白",
+                                    "关闭"
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    572,
+                                    607,
+                                    143,
+                                    24
+                                ],
+                                "expected": [
+                                    "点击",
+                                    "空白",
+                                    "关闭"
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    0,
+                    -40,
+                    0,
+                    80
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                99,
+                480,
+                1068,
+                197
+            ]
+        }
+    },
+    "LimboEntry": {
+        "desc": "人工梦游主界面，点击挑战，进入深眠域",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    230,
+                    339,
+                    949,
+                    215
+                ],
+                "template": [
+                    "Limbo/LimboEntry.png",
+                    "Limbo/LimboEntryNew.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                0,
+                526,
+                1280,
+                194
+            ]
+        }
+    },
+    "LimboEntryEnd": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    343,
+                    497,
+                    107,
+                    24
+                ],
+                "expected": "700/700",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "ResetReturnMain"
+        ]
+    },
+    "ResetReturnMain": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "ReturnMain": {
+                        "enabled": true
+                    }
+                }
+            }
+        },
+        "next": [
+            "ReturnMain"
+        ]
+    },
+    "LimboStageRightest": {
+        "desc": "深眠域，点击最右侧的深眠片段",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    112,
+                    1280,
+                    234
+                ],
+                "expected": "深眠片段",
+                "order_by": "Horizontal",
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    80,
+                    80,
+                    -120,
+                    50
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                0,
+                589,
+                369,
+                131
+            ]
+        },
+        "next": [
+            "LimboStageFlag",
+            "LimboStageRightest"
+        ]
+    },
+    "LimboStageFlag": {
+        "desc": "判断当前位于深眠片段",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    146,
+                    676,
+                    67,
+                    21
+                ],
+                "expected": "本层酬劳",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 2000,
+        "next": [
+            "LimboStarsMainFlag",
+            "LimboStageFlag"
+        ]
+    },
+    "LimboStageFlag_AfterFailed": {
+        "desc": "判断当前位于深眠片段(After Failed)",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    146,
+                    676,
+                    67,
+                    21
+                ],
+                "expected": "本层酬劳",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LimboStarsMainFlag_AfterFailed",
+            "LimboStageFlag_AfterFailed"
+        ]
+    },
+    "LimboStarsMainFlag": {
+        "desc": "判断当前位于深眠试验酬劳界面,查看是否有奖励未领取",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    161,
+                    96,
+                    163,
+                    43
+                ],
+                "expected": "深眠试验",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "LimboStarsMainNoAwards",
+            "[JumpBack]LimboStarsMainAwards",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "LimboStarsMainFlag_AfterFailed": {
+        "desc": "判断当前位于深眠试验酬劳界面(After Failed)",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    161,
+                    96,
+                    163,
+                    43
+                ],
+                "expected": "深眠试验",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "LimboStarsMainNoAwards_AfterFailed",
+            "[JumpBack]LimboStarsMainAwards",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "LimboStarsMainNoAwards": {
+        "desc": "深眠试验酬劳界面，没有奖励未领取",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1007,
+                    204,
+                    70,
+                    28
+                ],
+                "expected": [
+                    "已领取",
+                    "未达成"
+                ],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "LimboStageFlag_up",
+            "LimboStageFlag_down",
+            "LimboStageFlag_failed"
+        ]
+    },
+    "LimboStarsMainNoAwards_AfterFailed": {
+        "desc": "深眠试验酬劳界面，没有奖励未领取(After Failed)",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1007,
+                    204,
+                    70,
+                    28
+                ],
+                "expected": [
+                    "已领取",
+                    "未达成"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    681,
+                    707,
+                    85,
+                    43
+                ]
+            }
+        },
+        "next": [
+            "LimboMain",
+            "LimboStarsMainNoAwards_AfterFailed"
+        ]
+    },
+    "LimboStarsMainAwards": {
+        "desc": "深眠试验酬劳界面，点击全部领取/领取",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    941,
+                    132,
+                    205,
+                    176
+                ],
+                "template": [
+                    "Limbo/ObtainedAllAwards.png",
+                    "Limbo/ObtainedAwards.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LimboStarsMainNoAwardsFlag",
+            "LimboStarsMainAwards",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "LimboStarsMainNoAwardsFlag": {
+        "desc": "判断当前位于深眠试验酬劳界面,奖励已领取完毕",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1007,
+                    204,
+                    70,
+                    28
+                ],
+                "expected": [
+                    "已领取",
+                    "未达成"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "LimboStageFlag_up": {
+        "desc": "判断当前位于深眠片段上半部分",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1028,
+                    101,
+                    66,
+                    36
+                ],
+                "expected": "0/6",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    681,
+                    654,
+                    85,
+                    43
+                ]
+            }
+        },
+        "next": [
+            "LimboStageLightest_1",
+            "LimboStarsMainFlag"
+        ]
+    },
+    "LimboStageFlag_down": {
+        "desc": "判断当前位于深眠片段下半部分，未开始战斗/已完成战斗",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1028,
+                    101,
+                    66,
+                    36
+                ],
+                "expected": "[36]/6",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    681,
+                    707,
+                    85,
+                    43
+                ]
+            }
+        },
+        "next": [
+            "LimboStageLightest_2",
+            "LimboFinish",
+            "LimboStarsMainFlag"
+        ],
+        "_doc": "虽有上下半共3星的情况，考虑到一般情况下不会进入上下已通过（且未满星）深眠片段再运行m9a，而在外该深眠片段上下半通过便会解锁新的深眠，执行时不会进入该深眠，故此时识别的3星可视为上半3星，即下半战斗未开始状态"
+    },
+    "LimboStageFlag_failed": {
+        "desc": "判断当前位于深眠片段上半部分未满星，结束任务",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1028,
+                    101,
+                    66,
+                    36
+                ],
+                "expected": "[1245]/6",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    681,
+                    707,
+                    85,
+                    43
+                ]
+            }
+        },
+        "next": [
+            "LimboMain",
+            "LimboStageFlag_failed"
+        ],
+        "_doc": "经测试，上下半各一星时，会解锁下一深眠",
+        "__doc": "参考LimboStageFlag_down _doc，虽已确定不会出现检测到[45]/6的情况，但为了以防万一，还是决定加上该情况的识别",
+        "todo_doc": "后续可在这里添加重打当前深眠片段的操作"
+    },
+    "LimboStageLightest_1": {
+        "desc": "最靓的位置，要多点几次",
+        "recognition": {
+            "type": "NeuralNetworkDetect",
+            "param": {
+                "expected": [
+                    0
+                ],
+                "model": "limbo_stage_lightest.onnx",
+                "labels": [
+                    "lighting"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000,
+        "next": [
+            "LimboActionFlag_1",
+            "LimboStageLightest_1"
+        ]
+    },
+    "LimboActionFlag_1": {
+        "desc": "进入深眠战斗",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    988,
+                    566,
+                    256,
+                    154
+                ],
+                "expected": "开始行动"
+            }
+        },
+        "next": [
+            "LimboTeamSelection_1"
+        ]
+    },
+    "LimboTeamSelection_1": {
+        "desc": "深眠，选择队伍1",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "TeamSelect",
+                "custom_action_param": {
+                    "team": 1
+                }
+            }
+        },
+        "next": [
+            "LimboAction_1"
+        ]
+    },
+    "LimboAction_1": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    988,
+                    566,
+                    256,
+                    154
+                ],
+                "expected": "开始行动"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 2000000,
+        "rate_limit": 5000,
+        "next": [
+            "LimboFailed",
+            "LimboVictory_1",
+            "LimboAction_1"
+        ]
+    },
+    "LimboFailed": {
+        "desc": "深眠战斗失败",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    490,
+                    115,
+                    289,
+                    78
+                ],
+                "expected": [
+                    "战斗失败"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LimboStageFlag_AfterFailed",
+            "LimboFailed"
+        ]
+    },
+    "LimboVictory_1": {
+        "desc": "深眠战斗成功_1",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    240
+                ],
+                "expected": [
+                    "战斗胜利"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LimboVictory_1",
+            "LimboStageLightest_2"
+        ]
+    },
+    "LimboStageLightest_2": {
+        "desc": "最靓的位置，要多点几次",
+        "recognition": {
+            "type": "NeuralNetworkDetect",
+            "param": {
+                "expected": [
+                    0
+                ],
+                "model": "limbo_stage_lightest.onnx",
+                "labels": [
+                    "lighting"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000,
+        "next": [
+            "LimboActionFlag_2",
+            "LimboStageLightest_2"
+        ]
+    },
+    "LimboActionFlag_2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    988,
+                    566,
+                    256,
+                    154
+                ],
+                "expected": "开始行动"
+            }
+        },
+        "next": [
+            "LimboTeamSelection_2"
+        ]
+    },
+    "LimboTeamSelection_2": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "TeamSelect",
+                "custom_action_param": {
+                    "team": 2
+                }
+            }
+        },
+        "next": [
+            "LimboAction_2"
+        ]
+    },
+    "LimboAction_2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    988,
+                    566,
+                    256,
+                    154
+                ],
+                "expected": "开始行动"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 2000000,
+        "rate_limit": 5000,
+        "next": [
+            "LimboFailed",
+            "LimboVictory_2",
+            "LimboAction_2"
+        ]
+    },
+    "LimboVictory_2": {
+        "desc": "深眠下半完成时，先判断是否有finish，有则继续下面的操作，否则直接结束任务",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    240
+                ],
+                "expected": [
+                    "战斗胜利"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LimboMain",
+            "LimboVictory_2"
+        ]
+    },
+    "LimboMain": {
+        "desc": "深眠片段主界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    146,
+                    676,
+                    67,
+                    21
+                ],
+                "expected": "本层酬劳",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "LimboFinish",
+            "Stop"
+        ]
+    },
+    "LimboFinish": {
+        "desc": "当前深眠片段战斗完成",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    400,
+                    199,
+                    569,
+                    354
+                ],
+                "template": "Limbo/LimboFinish.png",
+                "green_mask": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LimboAwards",
+            "LimboNoAwards"
+        ]
+    },
+    "LimboNoAwards": {
+        "desc": "当前深眠片段战斗无未领取奖励",
+        "next": [
+            "LimboEnd",
+            "LimboStageRightest",
+            "[JumpBack]BackButtonForLimbo"
+        ]
+    },
+    "BackButtonForLimbo": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    134,
+                    138
+                ],
+                "template": [
+                    "StartUp/BackButton.png"
+                ],
+                "green_mask": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                0,
+                527,
+                1280,
+                193
+            ]
+        },
+        "post_delay": 2000
+    },
+    "LimboAwards": {
+        "desc": "深眠片段，存在本层酬劳",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    139,
+                    589,
+                    109,
+                    110
+                ],
+                "template": "Limbo/LimboAwards.png",
+                "green_mask": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "LimboObtainedAwards_1",
+            "LimboAwards"
+        ]
+    },
+    "LimboObtainedAwards_1": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    941,
+                    132,
+                    205,
+                    176
+                ],
+                "template": [
+                    "Limbo/ObtainedAllAwards.png",
+                    "Limbo/ObtainedAwards.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LimboObtainedAwards_2",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "LimboObtainedAwards_2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    104,
+                    36,
+                    358,
+                    157
+                ],
+                "expected": "深眠试验酬劳"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    20,
+                    20,
+                    20,
+                    20
+                ]
+            }
+        },
+        "next": [
+            "LimboEnd",
+            "LimboStageRightest",
+            "LimboObtainedAwards_2",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]BackButtonForLimbo"
+        ]
+    },
+    "LimboEnd": {
+        "desc": "深眠片段·Ⅵ进度100%，领取ⅠⅡⅢⅣ的奖励",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    843,
+                    425,
+                    231,
+                    140
+                ],
+                "template": "Limbo/LimboEnd.png",
+                "threshold": 0.9
+            }
+        },
+        "next": [
+            "LimboFirstEnd",
+            "[JumpBack]LimboAwards1~4",
+            "[JumpBack]LimboObtainedAwards_3",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]SwipeLeftForLimboAwards"
+        ]
+    },
+    "SwipeLeftForLimboAwards": {
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    300,
+                    600,
+                    100,
+                    50
+                ],
+                "end": [
+                    500,
+                    600,
+                    100,
+                    50
+                ]
+            }
+        },
+        "post_wait_freezes": 100
+    },
+    "LimboAwards1~4": {
+        "desc": "深眠片段·Ⅰ~Ⅳ领取奖励",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    397,
+                    1280,
+                    144
+                ],
+                "template": "Limbo/LimboAwards1~4.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "LimboObtainedAwards_3": {
+        "desc": "深眠片段·Ⅰ~Ⅳ领取奖励",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    941,
+                    132,
+                    205,
+                    176
+                ],
+                "template": [
+                    "Limbo/ObtainedAllAwards.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "LimboObtainedAwards_4",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "LimboObtainedAwards_4": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    104,
+                    36,
+                    358,
+                    157
+                ],
+                "expected": "深眠试验酬劳"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    20,
+                    20,
+                    20,
+                    20
+                ]
+            }
+        }
+    },
+    "LimboFirstEnd": {
+        "desc": "深眠片段·I奖励领取完毕，任务结束",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    121,
+                    411,
+                    138,
+                    38
+                ],
+                "template": "Limbo/LimboEnd.png"
+            }
+        },
+        "next": [
+            "HomeFlag",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton"
+        ]
+    }
+}

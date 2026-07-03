@@ -1,0 +1,64 @@
+{
+    "SwitchAccountMainFlag": {
+        "recognition": {
+            "param": {
+                "roi": [
+                    513,
+                    91,
+                    254,
+                    142
+                ]
+            }
+        }
+    },
+    "SwitchAccountMainExpandFlag": {
+        "recognition": {
+            "param": {
+                "roi": [
+                    680,
+                    278,
+                    185,
+                    354
+                ]
+            }
+        }
+    },
+    "SwitchAccountMainExpand": {
+        "recognition": {
+            "param": {
+                "roi": [
+                    753,
+                    241,
+                    118,
+                    113
+                ]
+            }
+        }
+    },
+    "SwitchLastAccountComplete": {
+        "recognition": {
+            "param": {
+                "expected": "登录[^次分钟]*$"
+            }
+        }
+    },
+    "LogIn": {
+        "recognition": {
+            "param": {
+                "expected": "登录[^次分钟]*$"
+            }
+        }
+    },
+    "SwitchLastAccount": {
+        "recognition": {
+            "param": {
+                "roi": [
+                    680,
+                    278,
+                    185,
+                    354
+                ]
+            }
+        }
+    }
+}

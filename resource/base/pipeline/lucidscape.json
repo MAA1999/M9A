@@ -1,0 +1,645 @@
+{
+    "Lucidscape": {
+        "desc": "醒梦域",
+        "next": [
+            "LucidscapeEntryEnd",
+            "FlagInLucidscape",
+            "[JumpBack]LucidscapeEntry",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]ArtificialSleepwalkingAwards",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ClickBlank",
+            "[JumpBack]ArtificialSleepwalking",
+            "LucidscapeUnlocked",
+            "[JumpBack]ReturnMain"
+        ]
+    },
+    "LucidscapeEntryEnd": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    861,
+                    499,
+                    103,
+                    21
+                ],
+                "expected": "700/700",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "ResetReturnMain"
+        ]
+    },
+    "FlagInLucidscape": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    275,
+                    635,
+                    167,
+                    32
+                ],
+                "expected": "LUCIDSCAPE",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "LucidscapeStatusDetect",
+            "[JumpBack]LucidscapeStageSelect"
+        ]
+    },
+    "LucidscapeUnlocked": {
+        "desc": "未解锁深眠域/醒梦域",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    863,
+                    531,
+                    133,
+                    35
+                ],
+                "expected": "浅眠域"
+            }
+        },
+        "next": [
+            "ResetReturnMain"
+        ],
+        "focus": {
+            "Node.Recognition.Succeeded": "<span style=\"color:darkorange;\">未解锁深眠域/醒梦域，本功能无法使用</span>"
+        }
+    },
+    "LucidscapeTotalAwards": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    473,
+                    641,
+                    25,
+                    25
+                ]
+            }
+        },
+        "post_delay": 3000,
+        "next": [
+            "LucidscapeFlagInTotalAwards",
+            "HomeFlag",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "LucidscapeFlagInTotalAwards": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    285,
+                    97,
+                    76,
+                    41
+                ],
+                "expected": "首通",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "LucidscapeTotalAwardsCompleted",
+            "[JumpBack]LucidscapeAwardsClick",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "LucidscapeTotalAwardsCompleted": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    988,
+                    200,
+                    102,
+                    30
+                ],
+                "expected": [
+                    "已领取",
+                    "未达成"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    546,
+                    651,
+                    165,
+                    44
+                ]
+            }
+        },
+        "next": [
+            "HomeFlag",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "LucidscapeStageSelect": {
+        "desc": "醒梦片段选择",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "LucidscapeStageSelect"
+            }
+        },
+        "pre_delay": 2000,
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    27,
+                    -64,
+                    -50,
+                    1
+                ]
+            }
+        },
+        "post_delay": 3000
+    },
+    "LucidscapeStatusDetect": {
+        "desc": "进入醒梦片段后的判断",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    712,
+                    107,
+                    91,
+                    51
+                ],
+                "expected": "片段",
+                "only_rec": true
+            }
+        },
+        "pre_wait_freezes": {
+            "time": 1000,
+            "target": [
+                400,
+                199,
+                569,
+                354
+            ]
+        },
+        "pre_delay": 3000,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "LucidscapeStatusDetect",
+                "custom_action_param": {
+                    "stage": 4
+                }
+            }
+        },
+        "post_delay": 1000
+    },
+    "LucidscapeCombatStartFlag": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1054,
+                    637,
+                    126,
+                    32
+                ],
+                "expected": "开始行动",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "LucidscapeTeamSelect_1"
+        ]
+    },
+    "LucidscapeTeamSelect_1": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "TeamSelect",
+                "custom_action_param": {
+                    "team": 1
+                }
+            }
+        },
+        "next": [
+            "LucidscapeCombatStart"
+        ]
+    },
+    "LucidscapeTeamSelect_2": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "TeamSelect",
+                "custom_action_param": {
+                    "team": 2
+                }
+            }
+        },
+        "next": [
+            "LucidscapeCombatStart"
+        ]
+    },
+    "LucidscapeCombatStart": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1054,
+                    637,
+                    126,
+                    32
+                ],
+                "expected": "开始行动",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 300000,
+        "rate_limit": 10000,
+        "next": [
+            "LucidscapeFailed",
+            "LucidscapeVictory",
+            "[JumpBack]Combating",
+            "[JumpBack]LucidscapeSkipWarning"
+        ]
+    },
+    "LucidscapeSkipWarning": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    774,
+                    406,
+                    64,
+                    30
+                ],
+                "expected": "确认",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "Combating": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1208,
+                    6,
+                    64,
+                    64
+                ],
+                "template": "Lucidscape/Combating.png"
+            }
+        }
+    },
+    "LucidscapeFailed": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    490,
+                    115,
+                    289,
+                    78
+                ],
+                "expected": [
+                    "战斗失败"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 2000,
+        "next": [
+            "HomeFlag",
+            "LucidscapeFailed",
+            "[JumpBack]HomeButton"
+        ],
+        "focus": {
+            "Node.Action.Starting": "<span style=\"color:crimson;\">战斗失败，任务结束</span>"
+        }
+    },
+    "LucidscapeVictory": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    240
+                ],
+                "expected": [
+                    "战斗胜利"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                614,
+                457,
+                666,
+                263
+            ],
+            "timeout": 5000
+        },
+        "next": [
+            "LucidscapeStatusDetect",
+            "LucidscapeVictory",
+            "[JumpBack]HomeLoading",
+            "[JumpBack]LucidscapeSkip",
+            "[JumpBack]LucidscapeClickBlank"
+        ]
+    },
+    "LucidscapeSkip": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1142,
+                    42,
+                    48,
+                    27
+                ],
+                "expected": [
+                    "跳过",
+                    "SKIP"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "LucidscapeClickBlank": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    575,
+                    597,
+                    128,
+                    30
+                ],
+                "expected": "空白",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "TeamlistOff": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    940,
+                    631,
+                    48,
+                    48
+                ],
+                "template": "Combat/TeamList_Off.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "TeamlistOpen": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    36,
+                    63,
+                    137,
+                    141
+                ],
+                "template": "Combat/TeamList_Open.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "TeamListEditRoi": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    350,
+                    78,
+                    62,
+                    605
+                ],
+                "template": "Combat/TeamList_Edit.png",
+                "threshold": 0.9
+            }
+        }
+    },
+    "TeamListOCR": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": ".*"
+            }
+        }
+    },
+    "LucidscapeAwards": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    146,
+                    678,
+                    68,
+                    19
+                ],
+                "expected": "本层酬劳",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1000,
+        "next": [
+            "LucidscapeFlagInAwards",
+            "LucidscapeAwards"
+        ]
+    },
+    "LucidscapeFlagInAwards": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    159,
+                    98,
+                    165,
+                    44
+                ],
+                "expected": "醒梦片段",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "LucidscapeNoAwards",
+            "[JumpBack]LucidscapeAwardsClick",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "LucidscapeNoAwards": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    988,
+                    200,
+                    102,
+                    30
+                ],
+                "expected": [
+                    "已领取",
+                    "未达成"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    546,
+                    651,
+                    165,
+                    44
+                ]
+            }
+        },
+        "next": [
+            "FlagInLucidscape",
+            "[JumpBack]BackButtonWithDelay"
+        ]
+    },
+    "LucidscapeAwardsClick": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    988,
+                    200,
+                    102,
+                    30
+                ],
+                "expected": "领取",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 2000
+    },
+    "LucidscapeFinish": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    400,
+                    199,
+                    569,
+                    354
+                ],
+                "template": "Limbo/LimboFinish.png",
+                "green_mask": true
+            }
+        }
+    },
+    "LucidscapeEntry": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    770,
+                    255,
+                    298,
+                    259
+                ],
+                "template": "Lucidscape/LucidscapeEntry.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                47,
+                614,
+                188,
+                66
+            ]
+        }
+    },
+    "LucidscapeStageLocked": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": "\\d/[12][50]0",
+                "only_rec": true
+            }
+        },
+        "roi_code": "Locked所在位置"
+    },
+    "LucidscapeStageFlag01": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    254,
+                    319,
+                    37,
+                    28
+                ],
+                "expected": "0.*1",
+                "only_rec": true
+            }
+        }
+    },
+    "LucidscapeStageFlag02": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    922,
+                    196,
+                    40,
+                    29
+                ],
+                "expected": "0.*2",
+                "only_rec": true
+            }
+        }
+    }
+}

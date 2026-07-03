@@ -1,0 +1,41 @@
+{
+    "Start1999": {
+        "action": {
+            "type": "StartApp",
+            "param": {
+                "package": "com.bluepoch.m.jp.reverse1999.and"
+            }
+        }
+    },
+    "BluePochLogo": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    450,
+                    178,
+                    357,
+                    290
+                ],
+                "template": "StartUp/BluePochLogo.png"
+            }
+        },
+        "post_wait_freezes": 300,
+        "post_delay": 5000
+    },
+    "Disclaimer": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    305,
+                    53,
+                    665,
+                    291
+                ],
+                "template": "StartUp/Disclaimer.png"
+            }
+        },
+        "post_wait_freezes": 5000
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "DisableUpload": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "DropRecognition"
+                }
+            }
+        }
+    }
+}

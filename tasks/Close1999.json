@@ -1,0 +1,12 @@
+{
+    "task": [
+        {
+            "name": "关闭游戏",
+            "entry": "Close1999",
+            "controller": [
+                "ADB"
+            ],
+            "group": ["daily"]
+        }
+    ]
+}

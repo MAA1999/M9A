@@ -1,0 +1,1898 @@
+{
+    "Bank": {
+        "next": [
+            "ModifyBankTaskList"
+        ]
+    },
+    "ModifyBankTaskList": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "ModifyBankTaskList",
+                "custom_action_param": {
+                    "resource": "cn"
+                }
+            }
+        },
+        "next": [
+            "[JumpBack]ReturnMain",
+            "EnterBank"
+        ]
+    },
+    "EnterBank": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    8,
+                    358,
+                    130,
+                    162
+                ],
+                "template": [
+                    "Bank/Bank.png",
+                    "Bank/Bank2.png",
+                    "Bank/Bank3.2.png",
+                    "Bank/Bank3.4.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1000,
+        "next": [
+            "FlagInBank",
+            "EnterBank",
+            "[JumpBack]ClickBlank"
+        ]
+    },
+    "FlagInBank": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    29,
+                    437,
+                    185,
+                    273
+                ],
+                "expected": [
+                    "碎片叙事",
+                    "荒原构想",
+                    "取自雨声"
+                ]
+            }
+        },
+        "pre_delay": 1000,
+        "next": [
+            "HomeFlag",
+            "[JumpBack]FreeWeeklyGift",
+            "[JumpBack]Rabbit",
+            "[JumpBack]SmallGlobe",
+            "[JumpBack]TinyGlobe",
+            "[JumpBack]Gluttony",
+            "[JumpBack]TinyGlobe(1)",
+            "[JumpBack]ResonantCassette",
+            "[JumpBack]GoldenMelonSeeds",
+            "[JumpBack]OriginalChicken",
+            "[JumpBack]Fries",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "FreeWeeklyGift": {
+        "desc": "柜台特奉",
+        "enabled": false,
+        "next": [
+            "FlagInTellerMachine",
+            "[JumpBack]EnterTellerMachine"
+        ]
+    },
+    "FlagInTellerMachine": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    320,
+                    67,
+                    83,
+                    22
+                ],
+                "expected": "吼声推荐",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        },
+        "next": [
+            "NoFree",
+            "[JumpBack]PurchaseFree"
+        ]
+    },
+    "NoFree": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    210,
+                    301,
+                    1058,
+                    405
+                ],
+                "expected": "免费"
+            }
+        },
+        "inverse": true,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "FreeWeeklyGift"
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_FreeWeeklyGift"
+        ]
+    },
+    "PurchaseRecord_FreeWeeklyGift": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "FreeWeeklyGift"
+                }
+            }
+        }
+    },
+    "PurchaseFree": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    210,
+                    301,
+                    1058,
+                    405
+                ],
+                "expected": "免费"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                265,
+                215,
+                682,
+                343
+            ]
+        },
+        "next": [
+            "BankPurchase_FreeWeeklyGift",
+            "PurchaseFree"
+        ]
+    },
+    "BankPurchase_FreeWeeklyGift": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "ObtainedAwards"
+        ]
+    },
+    "EnterTellerMachine": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    32,
+                    135,
+                    181,
+                    129
+                ],
+                "expected": "柜员机"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        }
+    },
+    "Rabbit": {
+        "desc": "独一律",
+        "enabled": false,
+        "next": [
+            "FlagInPawnShop_1",
+            "[JumpBack]EnterPawnShop"
+        ]
+    },
+    "FlagInPawnShop_1": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    306,
+                    56,
+                    786,
+                    51
+                ],
+                "expected": "低阶柜台"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        },
+        "next": [
+            "NoRabbit",
+            "[JumpBack]PurchaseRabbit"
+        ]
+    },
+    "NoRabbit": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    325,
+                    286,
+                    87,
+                    23
+                ],
+                "expected": ".+",
+                "replace": [
+                    "独一律",
+                    ""
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "Rabbit"
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_Rabbit"
+        ]
+    },
+    "PurchaseRecord_Rabbit": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "Rabbit"
+                }
+            }
+        }
+    },
+    "PurchaseRabbit": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    277,
+                    236,
+                    184,
+                    139
+                ],
+                "expected": "独一律"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "PurchaseRabbitMax",
+            "PurchaseRabbit"
+        ]
+    },
+    "PurchaseRabbitMax": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    935,
+                    462,
+                    46,
+                    24
+                ],
+                "expected": "MAX",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_Rabbit"
+        ]
+    },
+    "BankPurchase_Rabbit": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_RabbitFail",
+            "ObtainedAwards"
+        ]
+    },
+    "BankPurchase_RabbitFail": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    83,
+                    278,
+                    182
+                ],
+                "template": "Bank/NoMoney.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "NoRabbit": {
+                        "recognition": "DirectHit",
+                        "action": "DoNothing"
+                    },
+                    "Rabbit": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "Bank_ClickBlank"
+        ]
+    },
+    "Bank_ClickBlank": {
+        "pre_delay": 2000,
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    894,
+                    62,
+                    112,
+                    48
+                ]
+            }
+        }
+    },
+    "EnterPawnShop": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    30,
+                    358,
+                    206,
+                    132
+                ],
+                "expected": "迷途鉴定"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        }
+    },
+    "SmallGlobe": {
+        "desc": "低频偏振",
+        "enabled": false,
+        "next": [
+            "FlagInPawnShop_2",
+            "[JumpBack]EnterPawnShop"
+        ]
+    },
+    "FlagInPawnShop_2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    306,
+                    56,
+                    786,
+                    51
+                ],
+                "expected": "低阶柜台"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        },
+        "next": [
+            "NoSmallGlobe",
+            "[JumpBack]PurchaseSmallGlobe"
+        ]
+    },
+    "NoSmallGlobe": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "低频偏振",
+                    "inverse": true
+                }
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "SmallGlobe"
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_SmallGlobe"
+        ]
+    },
+    "PurchaseRecord_SmallGlobe": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "SmallGlobe"
+                }
+            }
+        }
+    },
+    "BankShopTemplate": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "only_rec": true,
+                "expected_code": "set in code"
+            }
+        }
+    },
+    "PurchaseSmallGlobe": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "低频偏振"
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "PurchaseSmallGlobeMax",
+            "PurchaseSmallGlobe"
+        ]
+    },
+    "PurchaseSmallGlobeMax": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    935,
+                    462,
+                    46,
+                    24
+                ],
+                "expected": "MAX",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_SmallGlobe"
+        ]
+    },
+    "BankPurchase_SmallGlobe": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_SmallGlobeFail",
+            "ObtainedAwards"
+        ]
+    },
+    "BankPurchase_SmallGlobeFail": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    83,
+                    278,
+                    182
+                ],
+                "template": "Bank/NoMoney.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "NoSmallGlobe": {
+                        "recognition": "DirectHit",
+                        "action": "DoNothing"
+                    },
+                    "SmallGlobe": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "Bank_ClickBlank"
+        ]
+    },
+    "TinyGlobe": {
+        "desc": "微频偏振",
+        "enabled": false,
+        "next": [
+            "FlagInPawnShop_3",
+            "[JumpBack]EnterPawnShop"
+        ]
+    },
+    "FlagInPawnShop_3": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    306,
+                    56,
+                    786,
+                    51
+                ],
+                "expected": "低阶柜台"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        },
+        "next": [
+            "NoTinyGlobe",
+            "[JumpBack]PurchaseTinyGlobe"
+        ]
+    },
+    "NoTinyGlobe": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "微频偏振",
+                    "inverse": true
+                }
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "TinyGlobe"
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_TinyGlobe"
+        ]
+    },
+    "PurchaseRecord_TinyGlobe": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "TinyGlobe"
+                }
+            }
+        }
+    },
+    "PurchaseTinyGlobe": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "微频偏振"
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "PurchaseTinyGlobeMax",
+            "PurchaseTinyGlobe"
+        ]
+    },
+    "PurchaseTinyGlobeMax": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    935,
+                    462,
+                    46,
+                    24
+                ],
+                "expected": "MAX",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_TinyGlobe"
+        ]
+    },
+    "BankPurchase_TinyGlobe": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_TinyGlobeFail",
+            "ObtainedAwards"
+        ]
+    },
+    "BankPurchase_TinyGlobeFail": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    83,
+                    278,
+                    182
+                ],
+                "template": "Bank/NoMoney.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "NoTinyGlobe": {
+                        "recognition": "DirectHit",
+                        "action": "DoNothing"
+                    },
+                    "TinyGlobe": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "Bank_ClickBlank"
+        ]
+    },
+    "Gluttony": {
+        "desc": "饕餮",
+        "enabled": false,
+        "next": [
+            "FlagInFragmentsShop",
+            "[JumpBack]EnterFragmentsShop"
+        ]
+    },
+    "FlagInFragmentsShop": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    321,
+                    65,
+                    80,
+                    24
+                ],
+                "expected": "心相观测",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        },
+        "next": [
+            "NoGluttony",
+            "[JumpBack]PurchaseGluttony"
+        ]
+    },
+    "NoGluttony": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    326,
+                    293,
+                    87,
+                    23
+                ],
+                "expected": ".+",
+                "replace": [
+                    "饕餮",
+                    ""
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "Gluttony"
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_Gluttony"
+        ]
+    },
+    "PurchaseRecord_Gluttony": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "Gluttony"
+                }
+            }
+        }
+    },
+    "PurchaseGluttony": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    326,
+                    293,
+                    87,
+                    23
+                ],
+                "expected": "饕餮",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "PurchaseGluttonyMax",
+            "PurchaseGluttony"
+        ]
+    },
+    "PurchaseGluttonyMax": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    935,
+                    462,
+                    46,
+                    24
+                ],
+                "expected": "MAX",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_Gluttony"
+        ]
+    },
+    "BankPurchase_Gluttony": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_GluttonyFail",
+            "ObtainedAwards"
+        ]
+    },
+    "BankPurchase_GluttonyFail": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    83,
+                    278,
+                    182
+                ],
+                "template": "Bank/NoMoney.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "NoGluttony": {
+                        "recognition": "DirectHit",
+                        "action": "DoNothing"
+                    },
+                    "Gluttony": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "Bank_ClickBlank"
+        ]
+    },
+    "EnterFragmentsShop": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    30,
+                    432,
+                    208,
+                    132
+                ],
+                "expected": [
+                    "碎片叙事",
+                    "叙事"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        }
+    },
+    "TinyGlobe(1)": {
+        "desc": "微频偏振(心相观测)",
+        "enabled": false,
+        "next": [
+            "FlagInFragmentsShop_1",
+            "[JumpBack]EnterFragmentsShop"
+        ]
+    },
+    "FlagInFragmentsShop_1": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    321,
+                    65,
+                    80,
+                    24
+                ],
+                "expected": "心相观测",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        },
+        "timeout": 60000,
+        "next": [
+            "FindTinyGlobe(1)",
+            "[JumpBack]SwipeUp"
+        ]
+    },
+    "FindTinyGlobe(1)": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    326,
+                    115,
+                    822,
+                    575
+                ],
+                "expected": "微频偏振"
+            }
+        },
+        "next": [
+            "NoTinyGlobe(1)",
+            "[JumpBack]PurchaseTinyGlobe(1)Max",
+            "[JumpBack]PurchaseTinyGlobe(1)",
+            "SoldOut",
+            "[JumpBack]SwipeUp"
+        ]
+    },
+    "SoldOut": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    248,
+                    128,
+                    969,
+                    557
+                ],
+                "expected": [
+                    "售罄"
+                ],
+                "replace": [
+                    "馨",
+                    "罄"
+                ]
+            }
+        }
+    },
+    "NoTinyGlobe(1)": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1071,
+                    110,
+                    147,
+                    24
+                ],
+                "expected": "商品",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "TinyGlobe(1)"
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_TinyGlobe(1)"
+        ]
+    },
+    "PurchaseRecord_TinyGlobe(1)": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "TinyGlobe(1)"
+                }
+            }
+        }
+    },
+    "PurchaseTinyGlobe(1)": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    326,
+                    115,
+                    822,
+                    575
+                ],
+                "expected": "微频偏振"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "PurchaseTinyGlobe(1)Max": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    935,
+                    462,
+                    46,
+                    24
+                ],
+                "expected": "MAX",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_TinyGlobe(1)"
+        ]
+    },
+    "BankPurchase_TinyGlobe(1)": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_TinyGlobe(1)Fail",
+            "ObtainedAwards"
+        ]
+    },
+    "BankPurchase_TinyGlobe(1)Fail": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    83,
+                    278,
+                    182
+                ],
+                "template": "Bank/NoMoney.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "NoTinyGlobe(1)": {
+                        "recognition": "DirectHit",
+                        "action": "DoNothing"
+                    },
+                    "TinyGlobe(1)": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "Bank_ClickBlank"
+        ]
+    },
+    "SwipeUp": {
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    959,
+                    435,
+                    18,
+                    22
+                ],
+                "end": [
+                    965,
+                    97,
+                    18,
+                    22
+                ],
+                "duration": 1000
+            }
+        }
+    },
+    "ResonantCassette": {
+        "desc": "共鸣晶匣",
+        "enabled": false,
+        "next": [
+            "FlagInDneiricShop",
+            "[JumpBack]EnterFragmentsShop"
+        ]
+    },
+    "FlagInDneiricShop": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    520,
+                    67,
+                    83,
+                    22
+                ],
+                "expected": "梦境记述",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        },
+        "next": [
+            "NoResonantCassette",
+            "[JumpBack]PurchaseResonantCassette"
+        ]
+    },
+    "NoResonantCassette": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    325,
+                    286,
+                    87,
+                    23
+                ],
+                "expected": ".+",
+                "replace": [
+                    "共鸣晶匣",
+                    ""
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "ResonantCassette"
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_ResonantCassette"
+        ]
+    },
+    "PurchaseRecord_ResonantCassette": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "ResonantCassette"
+                }
+            }
+        }
+    },
+    "PurchaseResonantCassette": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    325,
+                    286,
+                    87,
+                    23
+                ],
+                "expected": "共鸣晶匣",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "BankPurchase_ResonantCassette"
+        ]
+    },
+    "BankPurchase_ResonantCassette": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_ResonantCassetteFail",
+            "ObtainedAwards"
+        ]
+    },
+    "BankPurchase_ResonantCassetteFail": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    83,
+                    278,
+                    182
+                ],
+                "template": "Bank/NoMoney.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "NoResonantCassette": {
+                        "recognition": "DirectHit",
+                        "action": "DoNothing"
+                    },
+                    "ResonantCassette": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "Bank_ClickBlank"
+        ]
+    },
+    "GoldenMelonSeeds": {
+        "desc": "金瓜子",
+        "enabled": false,
+        "next": [
+            "FlagInDneiricShop_1",
+            "[JumpBack]EnterFragmentsShop"
+        ]
+    },
+    "FlagInDneiricShop_1": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    520,
+                    67,
+                    83,
+                    22
+                ],
+                "expected": "梦境记述",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        },
+        "next": [
+            "NoGoldenMelonSeeds",
+            "[JumpBack]PurchaseGoldenMelonSeeds"
+        ]
+    },
+    "NoGoldenMelonSeeds": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "一瞬的躁动",
+                    "inverse": true
+                }
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "GoldenMelonSeeds"
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_GoldenMelonSeeds"
+        ]
+    },
+    "PurchaseRecord_GoldenMelonSeeds": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "GoldenMelonSeeds"
+                }
+            }
+        }
+    },
+    "PurchaseGoldenMelonSeeds": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "一瞬的躁动"
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "PurchaseGoldenMelonSeedsMax",
+            "PurchaseGoldenMelonSeeds"
+        ]
+    },
+    "PurchaseGoldenMelonSeedsMax": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    935,
+                    462,
+                    46,
+                    24
+                ],
+                "expected": "MAX",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_GoldenMelonSeeds"
+        ]
+    },
+    "BankPurchase_GoldenMelonSeeds": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_GoldenMelonSeedsFail",
+            "ObtainedAwards"
+        ]
+    },
+    "BankPurchase_GoldenMelonSeedsFail": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    83,
+                    278,
+                    182
+                ],
+                "template": "Bank/NoMoney.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "NoGoldenMelonSeeds": {
+                        "recognition": "DirectHit",
+                        "action": "DoNothing"
+                    },
+                    "GoldenMelonSeeds": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "Bank_ClickBlank"
+        ]
+    },
+    "OriginalChicken": {
+        "desc": "原味鸡",
+        "enabled": false,
+        "next": [
+            "FlagInDneiricShop_2",
+            "[JumpBack]EnterFragmentsShop"
+        ]
+    },
+    "FlagInDneiricShop_2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    520,
+                    67,
+                    83,
+                    22
+                ],
+                "expected": "梦境记述",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        },
+        "next": [
+            "NoOriginalChicken",
+            "[JumpBack]PurchaseOriginalChicken"
+        ]
+    },
+    "NoOriginalChicken": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "片刻的喧嚣",
+                    "inverse": true
+                }
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "OriginalChicken"
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_OriginalChicken"
+        ]
+    },
+    "PurchaseRecord_OriginalChicken": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "OriginalChicken"
+                }
+            }
+        }
+    },
+    "PurchaseOriginalChicken": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "片刻的喧嚣"
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "PurchaseOriginalChickenMax",
+            "PurchaseOriginalChicken"
+        ]
+    },
+    "PurchaseOriginalChickenMax": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    935,
+                    462,
+                    46,
+                    24
+                ],
+                "expected": "MAX",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_OriginalChicken"
+        ]
+    },
+    "BankPurchase_OriginalChicken": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_OriginalChickenFail",
+            "ObtainedAwards"
+        ]
+    },
+    "BankPurchase_OriginalChickenFail": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    83,
+                    278,
+                    182
+                ],
+                "template": "Bank/NoMoney.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "NoOriginalChicken": {
+                        "recognition": "DirectHit",
+                        "action": "DoNothing"
+                    },
+                    "OriginalChicken": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "Bank_ClickBlank"
+        ]
+    },
+    "Fries": {
+        "desc": "大薯",
+        "enabled": false,
+        "next": [
+            "FlagInDneiricShop_3",
+            "[JumpBack]EnterFragmentsShop"
+        ]
+    },
+    "FlagInDneiricShop_3": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    520,
+                    67,
+                    83,
+                    22
+                ],
+                "expected": "梦境记述",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        },
+        "next": [
+            "NoFries",
+            "[JumpBack]PurchaseFries"
+        ]
+    },
+    "NoFries": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "悠远的振响",
+                    "inverse": true
+                }
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "Fries"
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_Fries"
+        ]
+    },
+    "PurchaseRecord_Fries": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "Fries"
+                }
+            }
+        }
+    },
+    "PurchaseFries": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "悠远的振响"
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "PurchaseFriesMax",
+            "PurchaseFries"
+        ]
+    },
+    "PurchaseFriesMax": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    935,
+                    462,
+                    46,
+                    24
+                ],
+                "expected": "MAX",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_Fries"
+        ]
+    },
+    "BankPurchase_Fries": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_FriesFail",
+            "ObtainedAwards"
+        ]
+    },
+    "BankPurchase_FriesFail": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    83,
+                    278,
+                    182
+                ],
+                "template": "Bank/NoMoney.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "NoFries": {
+                        "recognition": "DirectHit",
+                        "action": "DoNothing"
+                    },
+                    "Fries": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "Bank_ClickBlank"
+        ]
+    }
+}

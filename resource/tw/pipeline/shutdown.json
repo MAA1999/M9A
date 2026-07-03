@@ -1,0 +1,10 @@
+{
+    "Close1999": {
+        "action": {
+            "type": "StopApp",
+            "param": {
+                "package": "com.mover.twcfwl1999"
+            }
+        }
+    }
+}

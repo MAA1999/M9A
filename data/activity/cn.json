@@ -1,0 +1,854 @@
+{
+    "2.6": {
+        "version_name": "疯癫与文明",
+        "start_time": 1740621600000,
+        "end_time": 1744232399000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1740621600000,
+                "end_time": 1743973199000
+            },
+            "anecdote": {
+                "start_time": 1741208400000,
+                "end_time": 1742417999000
+            }
+        }
+    },
+    "2.7": {
+        "version_name": "1987宇宙组曲",
+        "start_time": 1744250400000,
+        "end_time": 1747256399000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1744250400000,
+                "end_time": 1746997199000
+            },
+            "anecdote": {
+                "start_time": 1744664400000,
+                "end_time": 1745873999000
+            },
+            "re-release": {
+                "name": "飞驰！明日之城",
+                "alias": "飞驰",
+                "start_time": 1746046800000,
+                "end_time": 1746910799000
+            }
+        }
+    },
+    "2.8": {
+        "version_name": "复乐园",
+        "start_time": 1747274400000,
+        "end_time": 1751144399000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1747274400000,
+                "end_time": 1750885199000
+            },
+            "anecdote": {
+                "start_time": 1747688400000,
+                "end_time": 1748897999000
+            }
+        }
+    },
+    "3.0": {
+        "version_name": "行于漫漫长路上",
+        "start_time": 1750903200000,
+        "end_time": 1754513999000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1750903200000,
+                "end_time": 1754254799000
+            },
+            "anecdote": {
+                "start_time": 1751490000000,
+                "end_time": 1752699599000
+            },
+            "re-release": {
+                "name": "77号往事",
+                "alias": "77号",
+                "start_time": 1753390800000,
+                "end_time": 1754254799000,
+                "override": {
+                    "ActivityLeftList": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    0,
+                                    581,
+                                    882,
+                                    139
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "sp01": {
+        "version_name": "翡冷翠之春",
+        "start_time:": 1754532000000,
+        "end_time": 1758229199000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1754532000000,
+                "end_time": 1757883599000,
+                "override": {
+                    "FlagInActivityMain": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1029,
+                                    33,
+                                    96,
+                                    22
+                                ],
+                                "expected": "成就",
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    "ActivityMainChapter": {
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "roi": [
+                                    17,
+                                    507,
+                                    1263,
+                                    213
+                                ],
+                                "template": [
+                                    "Combat/Activity/ActivityMainChapter_sp01.png",
+                                    "Combat/Activity/ActivityMainChapter_sp01_1.png"
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityClickCurStage": {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    523,
+                                    109,
+                                    84,
+                                    54
+                                ],
+                                "expected": [
+                                    "信条"
+                                ]
+                            }
+                        },
+                        "action": {
+                            "param": {
+                                "target": true
+                            }
+                        }
+                    },
+                    "FlagInActivityStage": {
+                        "next": [
+                            "ReadyForAction"
+                        ]
+                    }
+                }
+            },
+            "re-release": {
+                "name": "圣火纪行：东区黎明",
+                "alias": "圣火",
+                "start_time": 1757106000000,
+                "end_time": 1757969999000,
+                "override": {
+                    "EnterTheActivityMain": {
+                        "action": {
+                            "param": {
+                                "target": [
+                                    881,
+                                    127,
+                                    156,
+                                    55
+                                ]
+                            }
+                        }
+                    },
+                    "FlagInActivityMain": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1033,
+                                    610,
+                                    168,
+                                    64
+                                ],
+                                "expected": "步入剧情"
+                            }
+                        }
+                    },
+                    "JudgeDuringRe_release": {
+                        "next": [
+                            "ActivityMainChapter"
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "3.1": {
+        "version_name": "长夜鸣笛",
+        "start_time": 1758247200000,
+        "end_time": 1761857999000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1758247200000,
+                "end_time": 1761598799000,
+                "override": {
+                    "FlagInActivityMain": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1010,
+                                    30,
+                                    46,
+                                    25
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    "ActivityMainChapter": {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "expected": [
+                                    "欢迎",
+                                    "乘车"
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "expected": "[01][0-9]"
+                            }
+                        }
+                    }
+                }
+            },
+            "anecdote": {
+                "start_time": 1758747600000,
+                "end_time": 1759957199000,
+                "override": {
+                    "ActivityMainFlag": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1186,
+                                    31,
+                                    41,
+                                    22
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityMainSelectAnecdote": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    33,
+                                    392,
+                                    285,
+                                    246
+                                ]
+                            }
+                        }
+                    },
+                    "SwipeRightForAnecdote": {
+                        "recognition": {
+                            "type": "Custom",
+                            "param": {
+                                "custom_recognition": "Count",
+                                "custom_recognition_param": {
+                                    "target": 10
+                                }
+                            }
+                        },
+                        "action": {
+                            "type": "Swipe",
+                            "param": {
+                                "begin": [
+                                    191,
+                                    617,
+                                    10,
+                                    11
+                                ],
+                                "end": [
+                                    102,
+                                    463,
+                                    10,
+                                    11
+                                ],
+                                "duration": 1000
+                            }
+                        }
+                    },
+                    "ActivityMainAnecdoteFlag": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1087,
+                                    526,
+                                    131,
+                                    44
+                                ]
+                            }
+                        }
+                    },
+                    "JudgeDuringAnecdote": {
+                        "next": [
+                            "focus"
+                        ]
+                    },
+                    "focus": {
+                        "focus": {
+                            "Node.Action.Starting": "当前任务只适用旧版轶事派遣，请手动完成当期轶事"
+                        }
+                    }
+                }
+            },
+            "re-release": {
+                "name": "地球上最后的夜晚",
+                "alias": "地球上最后的夜晚",
+                "start_time": 1760648400000,
+                "end_time": 1761512399000,
+                "override": {
+                    "FlagInActivityMain": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1010,
+                                    30,
+                                    46,
+                                    25
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "3.2": {
+        "version_name": "迁流的盛宴",
+        "start_time": 1761789600000,
+        "end_time": 1765659599000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1761789600000,
+                "end_time": 1765400399000,
+                "override": {
+                    "FlagInActivityStage": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1077,
+                                    632,
+                                    131,
+                                    41
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    484,
+                                    29,
+                                    557,
+                                    234
+                                ],
+                                "expected": "0[1-9]|1[0-7]"
+                            }
+                        }
+                    },
+                    "ActivityCombatStageCost": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    900,
+                                    629,
+                                    101,
+                                    54
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityTargetLevel": {
+                        "attach": {
+                            "clicks": [
+                                [
+                                    912,
+                                    584
+                                ],
+                                [
+                                    1211,
+                                    585
+                                ]
+                            ]
+                        }
+                    },
+                    "ActivityTargetLevelRec": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1036,
+                                    573,
+                                    57,
+                                    26
+                                ]
+                            }
+                        },
+                        "ActivityClickPreStage": {
+                            "action": {
+                                "param": {
+                                    "target": [
+                                        25,
+                                        334,
+                                        32,
+                                        53
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "3.3": {
+        "version_name": "远征记",
+        "start_time": 1765418400000,
+        "end_time": 1769029199000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1765418400000,
+                "end_time": 1768769999000
+            }
+        }
+    },
+    "3.4": {
+        "version_name": "不老春",
+        "start_time": 1768874400000,
+        "end_time": 1772657999000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1768874400000,
+                "end_time": 1772398799000,
+                "override": {
+                    "FlagInActivityMain": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1012,
+                                    31,
+                                    42,
+                                    21
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    "ActivityMainChapter": {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    968,
+                                    619,
+                                    121,
+                                    70
+                                ]
+                            }
+                        }
+                    },
+                    "FlagInActivityStage": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1077,
+                                    632,
+                                    131,
+                                    41
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    226,
+                                    29,
+                                    815,
+                                    234
+                                ],
+                                "expected": "[0-1][0-9]|20"
+                            }
+                        }
+                    },
+                    "ActivityCombatStageCost": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    900,
+                                    629,
+                                    101,
+                                    54
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityTargetLevel": {
+                        "attach": {
+                            "clicks": [
+                                [
+                                    912,
+                                    584
+                                ],
+                                [
+                                    1211,
+                                    585
+                                ]
+                            ]
+                        }
+                    },
+                    "ActivityTargetLevelRec": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1036,
+                                    573,
+                                    57,
+                                    26
+                                ]
+                            }
+                        },
+                        "ActivityClickPreStage": {
+                            "action": {
+                                "param": {
+                                    "target": [
+                                        25,
+                                        334,
+                                        32,
+                                        53
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "re-release": {
+                "name": "唐人街影话",
+                "alias": "唐人街",
+                "start_time": 1771534800000,
+                "end_time": 1772398799000,
+                "override": {
+                    "FlagInActivityMain": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1012,
+                                    31,
+                                    42,
+                                    21
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    "ActivityMainChapter": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    512,
+                                    554,
+                                    286,
+                                    98
+                                ],
+                                "expected": "开始"
+                            }
+                        }
+                    },
+                    "ActivityRe_releaseChapter": {
+                        "recognition": {
+                            "type": "DirectHit"
+                        },
+                        "action": {
+                            "type": "Click",
+                            "param": {
+                                "target": [
+                                    107,
+                                    419,
+                                    75,
+                                    48
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "3.5": {
+        "version_name": "《绿松石蛇俱乐部》",
+        "start_time": 1772676000000,
+        "end_time": 1775681999000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1772676000000,
+                "end_time": 1775422799000,
+                "override": {
+                    "FlagInActivityStage": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1077,
+                                    632,
+                                    131,
+                                    41
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    226,
+                                    29,
+                                    815,
+                                    234
+                                ],
+                                "expected": "[0-1][0-9]|20"
+                            }
+                        }
+                    },
+                    "ActivityCombatStageCost": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    900,
+                                    629,
+                                    101,
+                                    54
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityTargetLevel": {
+                        "attach": {
+                            "clicks": [
+                                [
+                                    912,
+                                    584
+                                ],
+                                [
+                                    1211,
+                                    585
+                                ]
+                            ]
+                        }
+                    },
+                    "ActivityTargetLevelRec": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1036,
+                                    573,
+                                    57,
+                                    26
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityClickPreStage": {
+                        "action": {
+                            "param": {
+                                "target": [
+                                    25,
+                                    334,
+                                    32,
+                                    53
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            "re-release": {
+                "name": "1987宇宙组曲",
+                "alias": "1987宇宙",
+                "start_time": 1774558800000,
+                "end_time": 1775422799000,
+                "override": {
+                    "ActivityLeftList": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    299,
+                                    593,
+                                    663,
+                                    125
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    377,
+                                    552,
+                                    34,
+                                    31
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "3.6": {
+        "version_name": "人们向何处去",
+        "start_time": 1775700000000,
+        "end_time": 1777496399000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1775700000000,
+                "end_time": 1777237199000,
+                "override": {
+                    "FlagInActivityStage": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1089,
+                                    635,
+                                    131,
+                                    41
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    226,
+                                    29,
+                                    815,
+                                    234
+                                ],
+                                "expected": "[0-1][0-9]|20"
+                            }
+                        }
+                    },
+                    "ActivityCombatStageCost": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    900,
+                                    629,
+                                    101,
+                                    54
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityTargetLevel": {
+                        "attach": {
+                            "clicks": [
+                                [
+                                    912,
+                                    584
+                                ],
+                                [
+                                    1211,
+                                    585
+                                ]
+                            ]
+                        }
+                    },
+                    "ActivityTargetLevelRec": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1036,
+                                    573,
+                                    57,
+                                    26
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityClickPreStage": {
+                        "action": {
+                            "param": {
+                                "target": [
+                                    25,
+                                    334,
+                                    32,
+                                    53
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "3.7": {
+        "version_name": "他者的悲哀",
+        "start_time": 1777514400000,
+        "end_time": 1781384399000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1777514400000,
+                "end_time": 1781125199000
+            }
+        }
+    },
+    "3.8": {
+        "version_name": "世纪末尺度",
+        "start_time": 1781143200000,
+        "end_time": 1784753999000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1781143200000,
+                "end_time": 1784494799000
+            },
+            "re-release": {
+                "start_time": 1783630800000,
+                "end_time": 1784494799000,
+                "name": "长夜鸣笛",
+                "alias": "长夜鸣笛"
+            }
+        }
+    }
+}

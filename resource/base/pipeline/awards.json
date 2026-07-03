@@ -1,0 +1,1496 @@
+{
+    "Awards": {
+        "next": [
+            "[JumpBack]ReturnMain",
+            "AwardsMainFlag"
+        ]
+    },
+    "AwardsMainFlag": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1022,
+                    419,
+                    194,
+                    166
+                ],
+                "template": [
+                    "StartUp/HomeFlag/HomeFlag.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    576,
+                    298,
+                    68,
+                    64
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]Sub_MailBadge",
+            "[JumpBack]Sub_DailyBadge",
+            "[JumpBack]Sub_JukeboxBadge",
+            "[JumpBack]Sub_JukeboxBadge_3.7",
+            "[JumpBack]AwardBox",
+            "[JumpBack]AwardWarRoom",
+            "[JumpBack]AwardReveriesInTheRain",
+            "[JumpBack]EventLaplace",
+            "HomeFlag",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]ClosePage"
+        ]
+    },
+    "Sub_MailBadge": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    47,
+                    115,
+                    108,
+                    108
+                ],
+                "template": "Awards/MailBadges/",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CollectMailAwards",
+            "[JumpBack]MailBadge"
+        ]
+    },
+    "MailBadge": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    47,
+                    115,
+                    108,
+                    108
+                ],
+                "template": "Awards/MailBadges/",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CollectMailAwards": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    109,
+                    551,
+                    191,
+                    132
+                ],
+                "template": "Awards/CollectMailAwards.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "NoMailAwards",
+            "CollectMailAwards",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "ObtainedAwards": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    524,
+                    62,
+                    232,
+                    158
+                ],
+                "template": "Awards/ObtainedAwards.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "NoMailAwards": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    952,
+                    39,
+                    164,
+                    163
+                ],
+                "template": "Awards/NoMailAwards.png",
+                "threshold": 0.6
+            }
+        },
+        "next": [
+            "EquipmentOverflows",
+            "HomeFlag",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "EquipmentOverflows": {
+        "desc": "心相仓库已满",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    151,
+                    97,
+                    300,
+                    504
+                ],
+                "expected": "仓库已满"
+            }
+        },
+        "next": [
+            "WareHouseFlag",
+            "[JumpBack]EnterWareHouse",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "WareHouseFlag": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    27,
+                    93,
+                    162,
+                    359
+                ],
+                "expected": [
+                    "心相"
+                ]
+            }
+        },
+        "pre_wait_freezes": {
+            "time": 300,
+            "target": [
+                27,
+                93,
+                162,
+                359
+            ]
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "EnterDissociation",
+            "WareHouseFlag"
+        ]
+    },
+    "EnterDissociation": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1008,
+                    582,
+                    214,
+                    138
+                ],
+                "expected": "解离"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "Dissociation4StarFlag",
+            "[JumpBack]Dissociation4StarSelect",
+            "[JumpBack]Dissociation3StarSelect"
+        ]
+    },
+    "Dissociation4StarFlag": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    143,
+                    650,
+                    35,
+                    22
+                ],
+                "expected": "4",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "DissociationFastInsertCompleted",
+            "[JumpBack]DissociationFastInsert"
+        ]
+    },
+    "DissociationFastInsertCompleted": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    978,
+                    629,
+                    215,
+                    47
+                ],
+                "lower": [
+                    173,
+                    72,
+                    24
+                ],
+                "upper": [
+                    223,
+                    122,
+                    74
+                ],
+                "count": 20
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000,
+        "next": [
+            "DissociationCompleted",
+            "DissociationFastInsertCompleted",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "DissociationCompleted": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    978,
+                    629,
+                    215,
+                    47
+                ],
+                "lower": [
+                    91,
+                    91,
+                    91
+                ],
+                "upper": [
+                    141,
+                    141,
+                    141
+                ],
+                "count": 20
+            }
+        },
+        "next": [
+            "HomeFlag",
+            "[JumpBack]HomeButton",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "DissociationFastInsert": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    380,
+                    650,
+                    80,
+                    24
+                ],
+                "expected": "快(.?)放入",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "Dissociation4StarSelect": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    160,
+                    608,
+                    35,
+                    22
+                ],
+                "expected": "4",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                68,
+                504,
+                316,
+                216
+            ]
+        }
+    },
+    "Dissociation3StarSelect": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    143,
+                    650,
+                    35,
+                    22
+                ],
+                "expected": "3",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                68,
+                504,
+                316,
+                216
+            ]
+        }
+    },
+    "EnterWareHouse": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    57,
+                    372,
+                    42,
+                    22
+                ],
+                "expected": "仓库",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "Sub_DailyBadge": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    44,
+                    194,
+                    111,
+                    110
+                ],
+                "template": "Awards/DailyBadges/",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 200,
+        "next": [
+            "[JumpBack]Sub_CollectDailyAwards",
+            "WeeklyAwardsBadge",
+            "HomeFlag",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "Sub_CollectDailyAwards": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1075,
+                    63,
+                    201,
+                    183
+                ],
+                "template": [
+                    "Awards/CollectDailyAwards.png",
+                    "Awards/CollectSingleDailyAwards.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "WeeklyAwardsBadge": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1165,
+                    0,
+                    111,
+                    113
+                ],
+                "template": "Awards/WeeklyAwardsBadge.png",
+                "threshold": 0.97
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]Sub_CollectDailyAwards",
+            "WeeklyAwardsBadge",
+            "WeeklyAwardsCompleted",
+            "HomeFlag",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "WeeklyAwardsCompleted": {
+        "desc": "周任务完成，开始尝试获取显影罐",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    156,
+                    350,
+                    211,
+                    31
+                ],
+                "expected": "已领取全部奖励",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "ShowFlag",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "ShowFlag": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    80,
+                    665,
+                    318,
+                    27
+                ],
+                "expected": [
+                    "故事",
+                    "映像",
+                    "轶事"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "DevelopmentTank": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    30,
+                    615,
+                    418,
+                    105
+                ],
+                "expected": [
+                    "映像",
+                    "轶事"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                203,
+                0,
+                851,
+                154
+            ]
+        },
+        "next": [
+            "FullDevelopmentTank",
+            "ObtainedAwards"
+        ]
+    },
+    "FullDevelopmentTank": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1135,
+                    21,
+                    40,
+                    22
+                ],
+                "expected": "5/5",
+                "only_rec": true
+            }
+        }
+    },
+    "Sub_JukeboxBadge": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    154,
+                    29,
+                    383,
+                    75
+                ],
+                "template": "Awards/JukeboxBadges/",
+                "threshold": 0.85
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000,
+        "next": [
+            "[JumpBack]Sub_CollectJukebox",
+            "[JumpBack]Sub_JukeboxAwardsBadge",
+            "HomeFlag",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]JukeboxExitPurchase",
+            "[JumpBack]BackButton",
+            "[JumpBack]ClickBlank"
+        ]
+    },
+    "JukeboxExitPurchase": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    291,
+                    580,
+                    191,
+                    134
+                ],
+                "expected": "再想想"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1000
+    },
+    "Sub_JukeboxAwardsBadge": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    967,
+                    1,
+                    110,
+                    113
+                ],
+                "template": "Awards/JukeboxAwardsBadge.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]Sub_CollectJukebox",
+            "[JumpBack]Sub_JukeboxAwardsBadge",
+            "NoJukeboxAwards",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]ExitEdition",
+            "[JumpBack]JukeboxExitPurchase",
+            "[JumpBack]ClickBlank"
+        ]
+    },
+    "ExitEdition": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    124,
+                    110,
+                    187,
+                    154
+                ],
+                "expected": "光碟"
+            }
+        },
+        "next": [
+            "BackButtonWithDelay"
+        ]
+    },
+    "Sub_CollectJukebox": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1009,
+                    594,
+                    213,
+                    126
+                ],
+                "template": "Awards/CollectJukebox.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "NoJukeboxAwards": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1012,
+                    46,
+                    23,
+                    20
+                ],
+                "template": "Awards/NoJukeboxAwards.png",
+                "threshold": 0.97
+            }
+        }
+    },
+    "AwardWarRoom": {
+        "desc": "进入前线观察室",
+        "max_hit": 3,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1160,
+                    564,
+                    18,
+                    43
+                ],
+                "template": "Awards/WarRoom/AwardWarRoom.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -10,
+                    10,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "AwardWarRoomTelegram",
+            "AwardWarRoom",
+            "BackButton"
+        ]
+    },
+    "AwardWarRoomTelegram": {
+        "desc": "进入函电汇报",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1006,
+                    320,
+                    29,
+                    29
+                ],
+                "template": "Awards/WarRoom/AwardWarRoomTelegram.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    10,
+                    10,
+                    0,
+                    0
+                ]
+            }
+        },
+        "next": [
+            "AwardWarRoomTelegramScroll",
+            "AwardWarRoomTelegram" // 第一次点击可能失效，此时回滚
+        ]
+    },
+    "AwardWarRoomTelegramScroll": {
+        "desc": "进入寻找卷轴",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    293,
+                    571,
+                    19,
+                    17
+                ],
+                "template": "Awards/WarRoom/AwardWarRoomTelegramScroll.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                499,
+                45,
+                770,
+                635
+            ]
+        },
+        "next": [
+            "[JumpBack]AwardWarRoomTelegramScrollClaim",
+            "[JumpBack]AwardWarRoomTelegramAwardClaim",
+            "AwardWarRoomTelegramScroll",
+            "[JumpBack]AwardWarRoomSelectSection",
+            "[JumpBack]ObtainedAwards",
+            "HomeButton"
+        ]
+    },
+    "AwardWarRoomTelegramScrollClaim": {
+        "desc": "领取卷轴",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1138,
+                    129,
+                    124,
+                    100
+                ],
+                "template": [
+                    "Awards/WarRoom/Claim.png",
+                    "Awards/WarRoom/ClaimAll.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500
+    },
+    "AwardWarRoomTelegramAwardClaim": {
+        "desc": "领取下方奖励",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    656,
+                    564,
+                    595,
+                    75
+                ],
+                "expected": "领取"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500
+    },
+    "AwardWarRoomSelectSection": {
+        "desc": "选择有可领取奖励的部分（解构进程/遗落事项）",
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "roi": [
+                    867,
+                    26,
+                    413,
+                    34
+                ],
+                "lower": [
+                    181,
+                    42,
+                    27
+                ],
+                "upper": [
+                    201,
+                    62,
+                    47
+                ],
+                "connected": true,
+                "count": 50
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        }
+    },
+    "AwardBox": {
+        "desc": "进入吼吼点唱机右边的盒子",
+        "max_hit": 5,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    281,
+                    30,
+                    149,
+                    32
+                ],
+                "template": [
+                    "Awards/AwardBox/"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    -20,
+                    20,
+                    0,
+                    0
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "target": [
+                185,
+                14,
+                421,
+                75
+            ],
+            "time": 500
+        },
+        "next": [
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AwardEuphoriaAndLucidity",
+            "[JumpBack]AwardBreakingSignals",
+            "[JumpBack]AwardRoaringRevelry",
+            "[JumpBack]AwardMoonlightGardening",
+            "BackButton",
+            "AwardBox"
+        ]
+    },
+    "AwardEuphoriaAndLucidity": {
+        "desc": "活动·狂想与解构",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    {
+                        "sub_name": "EventName",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    36,
+                                    139,
+                                    139,
+                                    413
+                                ],
+                                "expected": "狂想与解构"
+                            }
+                        }
+                    },
+                    "AwardRedPoint"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "AwardEuphoriaAndLucidityAward"
+        ]
+    },
+    "AwardEuphoriaAndLucidityAward": {
+        "desc": "狂想与解构-领取签到奖励",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1057,
+                    609,
+                    72,
+                    34
+                ],
+                "expected": "领取"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500
+    },
+    "AwardBreakingSignals": {
+        "desc": "活动·崭新的电波",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    {
+                        "sub_name": "EventName",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    36,
+                                    139,
+                                    139,
+                                    413
+                                ],
+                                "expected": "崭新的电波"
+                            }
+                        }
+                    },
+                    "AwardRedPoint"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "AwardBreakingSignalsAward"
+        ]
+    },
+    "AwardBreakingSignalsAward": {
+        "desc": "崭新的电波-领取签到奖励",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    946,
+                                    12,
+                                    294,
+                                    78
+                                ],
+                                "expected": "领取",
+                                "color_filter": "AwardBreakingSignalsAward_color_filter"
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    792,
+                                    586,
+                                    381,
+                                    67
+                                ],
+                                "expected": "领取"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500
+    },
+    "AwardBreakingSignalsAward_color_filter": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "lower": [
+                    215,
+                    171,
+                    117
+                ],
+                "upper": [
+                    255,
+                    255,
+                    249
+                ]
+            }
+        }
+    },
+    "AwardRoaringRevelry": {
+        "desc": "活动奖励·吼吼狂欢夜",
+        "max_hit": 10,
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    {
+                        "sub_name": "EventName",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    36,
+                                    139,
+                                    139,
+                                    413
+                                ],
+                                "expected": "吼吼狂欢夜"
+                            }
+                        }
+                    },
+                    "AwardRedPoint"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "target": [
+                667,
+                206,
+                573,
+                376
+            ],
+            "timeout": 5000
+        },
+        "post_delay": 1500,
+        "next": [
+            "AwardRoaringRevelryEnd",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AwardRoaringRevelryClaim",
+            "AwardRoaringRevelry"
+        ]
+    },
+    "AwardRoaringRevelryEnd": {
+        "desc": "吼吼狂欢夜-没有奖励可领",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    1174,
+                                    227,
+                                    67,
+                                    56
+                                ],
+                                "expected": [
+                                    "进行中",
+                                    "前往"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    885,
+                                    382,
+                                    151,
+                                    28
+                                ],
+                                "expected": "已完成",
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    873,
+                                    382,
+                                    176,
+                                    26
+                                ],
+                                "expected": [
+                                    "已达",
+                                    "分贝等级",
+                                    "上限"
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "AwardRoaringRevelryClaim": {
+        "desc": "吼吼狂欢夜-领取奖励",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1174,
+                    227,
+                    67,
+                    56
+                ],
+                "expected": "领取"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500
+    },
+    "AwardMoonlightGardening": {
+        "desc": "活动·播种于月光下",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    {
+                        "sub_name": "EventName",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    36,
+                                    139,
+                                    139,
+                                    413
+                                ],
+                                "expected": "播种于月光下"
+                            }
+                        }
+                    },
+                    "AwardRedPoint"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "[JumpBack]AwardMoonlightGardeningClaim",
+            "AwardMoonlightWheat",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "AwardMoonlightGardeningClaim": {
+        "desc": "领取新麦粒儿",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1168,
+                    274,
+                    65,
+                    39
+                ],
+                "expected": "领取"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500
+    },
+    "AwardMoonlightWheat": {
+        "desc": "播种",
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    {
+                        "desc": "判断可播种次数，1-99",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    707,
+                                    87,
+                                    32,
+                                    22
+                                ],
+                                "expected": "[1-9][0-9]?",
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    {
+                        "desc": "进行播种，先随便种",
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "roi": [
+                                    210,
+                                    120,
+                                    538,
+                                    530
+                                ],
+                                "template": "Awards/Other/AwardMoonlightAward.png"
+                            }
+                        }
+                    }
+                ],
+                "box_index": 1
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "AwardMoonlightWheat",
+            "[JumpBack]ObtainedAwards",
+            "AwardMoonlightNoWheat"
+        ]
+    },
+    "AwardMoonlightNoWheat": {
+        "desc": "判断可播种次数，0",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    707,
+                    87,
+                    32,
+                    22
+                ],
+                "expected": "0",
+                "only_rec": true
+            }
+        }
+    },
+    "AwardRedPoint": {
+        "desc": "奖励界面红点，只在EventName判断后使用",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": "EventName",
+                                "roi_offset": [
+                                    123,
+                                    -29,
+                                    -61,
+                                    10
+                                ],
+                                "lower": [
+                                    179,
+                                    41,
+                                    27
+                                ],
+                                "upper": [
+                                    199,
+                                    61,
+                                    47
+                                ],
+                                "connected": true,
+                                "count": 50
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": "EventName",
+                                "roi_offset": [
+                                    123,
+                                    -29,
+                                    -61,
+                                    10
+                                ],
+                                "lower": [
+                                    215,
+                                    77,
+                                    62
+                                ],
+                                "upper": [
+                                    235,
+                                    97,
+                                    82
+                                ],
+                                "connected": true,
+                                "count": 50
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": "EventName",
+                                "roi_offset": [
+                                    123,
+                                    -29,
+                                    -61,
+                                    10
+                                ],
+                                "lower": [
+                                    191,
+                                    48,
+                                    29
+                                ],
+                                "upper": [
+                                    211,
+                                    68,
+                                    49
+                                ],
+                                "connected": true,
+                                "count": 50
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "Sub_JukeboxBadge_3.7": {
+        "max_hit": 3,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    366,
+                    27,
+                    217,
+                    42
+                ],
+                "template": "Awards/3.7/Entry.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "Sub_JukeboxBadge_3.7",
+            "Sub_JukeboxBadge_3.7FlagInActMain"
+        ]
+    },
+    "Sub_JukeboxBadge_3.7FlagInActMain": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    462,
+                    347,
+                    357,
+                    186
+                ],
+                "template": "Awards/3.7/ActMain.png"
+            }
+        },
+        "next": [
+            "Sub_JukeboxBadge_3.7Song",
+            "HomeFlag",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "Sub_JukeboxBadge_3.7Song": {
+        "desc": "为自我的歌儿",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    405,
+                    492,
+                    52,
+                    43
+                ],
+                "template": "Awards/3.7/AwardBox.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "[JumpBack]Sub_JukeboxBadge_3.7SongAward",
+            "[JumpBack]Sub_JukeboxBadge_3.7Switch",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]ClosePage",
+            "BackButton"
+        ]
+    },
+    "Sub_JukeboxBadge_3.7SongAward": {
+        "desc": "为自我的歌儿-领取奖励",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    569,
+                    631,
+                    306,
+                    62
+                ],
+                "expected": "领取"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "Sub_JukeboxBadge_3.7Switch": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    166,
+                    231,
+                    33,
+                    121
+                ],
+                "template": "Awards/3.7/RedPoint.png",
+                "order_by": "Vertical",
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}

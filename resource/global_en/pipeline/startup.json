@@ -1,0 +1,10 @@
+{
+    "Start1999": {
+        "action": {
+            "type": "StartApp",
+            "param": {
+                "package": "com.bluepoch.m.en.reverse1999"
+            }
+        }
+    }
+}

@@ -1,0 +1,386 @@
+{
+    "is_default_theme": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1022,
+                    419,
+                    194,
+                    166
+                ],
+                "template": "StartUp/HomeFlag/HomeFlag.png"
+            }
+        }
+    },
+    "not_default_theme": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1022,
+                    419,
+                    194,
+                    166
+                ],
+                "template": "StartUp/HomeFlag/HomeFlag.png"
+            }
+        },
+        "inverse": true,
+        "next": "switch_menu_start"
+    },
+    "switch_menu": {
+        "next": [
+            "[JumpBack]ReturnMain",
+            "switch_menu_start"
+        ]
+    },
+    "switch_menu_start": {
+        "max_hit": 10,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    35,
+                    202,
+                    91,
+                    366
+                ],
+                "template": "SwitchMenu/menu.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "target": [
+                50,
+                509,
+                56,
+                54
+            ],
+            "time": 100
+        },
+        "next": [
+            "switch_menu_main",
+            "switch_menu_start"
+        ]
+    },
+    "switch_menu_main": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    {
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "roi": [
+                                    1155,
+                                    565,
+                                    60,
+                                    68
+                                ],
+                                "template": "SwitchMenu/switch_menu_buttom1.png"
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    86,
+                                    161,
+                                    31,
+                                    22
+                                ],
+                                "expected": [
+                                    "ID"
+                                ],
+                                "only_rec": true
+                            }
+                        }
+                    }
+                ],
+                "box_index": 0
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "screen_replacement",
+            "switch_menu_main"
+        ]
+    },
+    "screen_replacement": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1124,
+                    89,
+                    70,
+                    29
+                ],
+                "expected": "稀有度"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    693,
+                    33,
+                    32,
+                    15
+                ]
+            }
+        },
+        "next": [
+            "frame_art",
+            "screen_replacement"
+        ]
+    },
+    "frame_art": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    {
+                        "recognition": {
+                            "type": "Or",
+                            "param": {
+                                "any_of": [
+                                    {
+                                        "recognition": {
+                                            "type": "ColorMatch",
+                                            "param": {
+                                                "roi": [
+                                                    69,
+                                                    238,
+                                                    11,
+                                                    11
+                                                ],
+                                                "lower": [
+                                                    191,
+                                                    191,
+                                                    185
+                                                ],
+                                                "upper": [
+                                                    211,
+                                                    211,
+                                                    205
+                                                ],
+                                                "connected": true,
+                                                "count": 15
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "recognition": {
+                                            "type": "ColorMatch",
+                                            "param": {
+                                                "roi": [
+                                                    46,
+                                                    258,
+                                                    10,
+                                                    9
+                                                ],
+                                                "lower": [
+                                                    191,
+                                                    191,
+                                                    185
+                                                ],
+                                                "upper": [
+                                                    211,
+                                                    211,
+                                                    205
+                                                ],
+                                                "connected": true,
+                                                "count": 15
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "roi": [
+                                    645,
+                                    38,
+                                    10,
+                                    13
+                                ],
+                                "lower": [
+                                    255,
+                                    124,
+                                    64
+                                ],
+                                "upper": [
+                                    255,
+                                    124,
+                                    64
+                                ],
+                                "connected": true,
+                                "count": 15
+                            }
+                        }
+                    }
+                ],
+                "box_index": 0
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "frame_art_action",
+            "frame_art"
+        ]
+    },
+    "frame_art_action": {
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    {
+                        "type": "ColorMatch",
+                        "param": {
+                            "method": 4,
+                            "roi": [
+                                71,
+                                241,
+                                6,
+                                5
+                            ],
+                            "lower": [
+                                211,
+                                95,
+                                39
+                            ],
+                            "upper": [
+                                231,
+                                115,
+                                59
+                            ],
+                            "count": 2,
+                            "connected": true
+                        }
+                    },
+                    {
+                        "type": "ColorMatch",
+                        "param": {
+                            "method": 4,
+                            "roi": [
+                                46,
+                                258,
+                                10,
+                                9
+                            ],
+                            "lower": [
+                                211,
+                                95,
+                                39
+                            ],
+                            "upper": [
+                                231,
+                                115,
+                                59
+                            ],
+                            "count": 2,
+                            "connected": true
+                        }
+                    }
+                ]
+            }
+        },
+        "next": [
+            "frame_art_open",
+            "[JumpBack]frame_art_select"
+        ]
+    },
+    "frame_art_open": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1013,
+                    83,
+                    244,
+                    546
+                ],
+                "template": [
+                    "SwitchMenu/frame/frame1open.png"
+                ]
+            }
+        },
+        "next": [
+            "frame_art_complete",
+            "[JumpBack]frame_art_switch_true"
+        ]
+    },
+    "frame_art_select": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1052,
+                    83,
+                    202,
+                    546
+                ],
+                "template": [
+                    "SwitchMenu/frame/frame1close.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "frame_art_complete": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1114,
+                    647,
+                    76,
+                    29
+                ],
+                "expected": [
+                    "装扮中",
+                    "未解锁"
+                ],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "HomeFlag",
+            "[JumpBack]BackButton"
+        ]
+    },
+    "frame_art_switch_true": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1103,
+                    648,
+                    61,
+                    28
+                ],
+                "expected": "更换"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}

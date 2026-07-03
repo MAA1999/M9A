@@ -1,0 +1,338 @@
+{
+    "Psychube": {
+        "next": [
+            "FreePsychube",
+            "NoFreePsychube",
+            "[JumpBack]EnterTheShow",
+            "[JumpBack]ResourceChapterLabel",
+            "[JumpBack]ReturnMain"
+        ]
+    },
+    "FreePsychube": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    180,
+                    203,
+                    246,
+                    306
+                ],
+                "template": "Psychube/FreePsychubeStages.png",
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "PsychubeReadyForAction",
+            "FreePsychube",
+            "[JumpBack]PsychubeStage07"
+        ]
+    },
+    "PsychubeStage07": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    367,
+                    551,
+                    43,
+                    33
+                ],
+                "expected": "7",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "PsychubeReadyForAction": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1040,
+                    537,
+                    235,
+                    136
+                ],
+                "expected": [
+                    "开始行动"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "PsychubeFlagInReplayReady",
+            "[JumpBack]PsychubeSwitchToReplay",
+            "[JumpBack]CombatEntering"
+        ]
+    },
+    "PsychubeFlagInReplayReady": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1031,
+                    633,
+                    141,
+                    36
+                ],
+                "expected": "复现",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "PsychubeFlagInReplayTwoTimes",
+            "[JumpBack]SwitchCombatTimes"
+        ]
+    },
+    "PsychubeFlagInReplayTwoTimes": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1032,
+                    634,
+                    70,
+                    31
+                ],
+                "expected": "二",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 60000,
+        "next": [
+            "PsychubeVictory",
+            "PsychubeFlagInReplayTwoTimes",
+            "[JumpBack]PsychubeEatCandyPage",
+            "[JumpBack]ReplayingNoNext"
+        ]
+    },
+    "PsychubeEatCandyPage": {
+        "max_hit": 3,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    465,
+                    571,
+                    277,
+                    149
+                ],
+                "expected": [
+                    "活性",
+                    "恢复"
+                ]
+            }
+        },
+        "next": [
+            "EatCandyPage"
+        ]
+    },
+    "PsychubeVictory": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    240
+                ],
+                "expected": [
+                    "战斗",
+                    "胜利"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                614,
+                457,
+                666,
+                263
+            ]
+        },
+        "next": [
+            "PsychubeFlagInReadyForAction",
+            "PsychubeVictory",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeLoading"
+        ]
+    },
+    "PsychubeFlagInReadyForAction": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1040,
+                    537,
+                    235,
+                    136
+                ],
+                "expected": [
+                    "开始行动"
+                ]
+            }
+        },
+        "next": [
+            "PsychubeDouble",
+            "HomeFlag",
+            "[JumpBack]HomeButton"
+        ]
+    },
+    "PsychubeDouble": {
+        "desc": "识别加成次数，根据结果覆盖 PsychubeVictoryOverrideTask 中参数",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1121,
+                    565,
+                    43,
+                    21
+                ],
+                "expected": "[1-4]/4",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "PsychubeDoubleTimes"
+            }
+        },
+        "next": [
+            "PsychubeVictoryOverrideTask"
+        ]
+    },
+    "PsychubeVictoryOverrideTask": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "PsychubeFlagInReplayTwoTimes": {
+                        "expected": "四"
+                    },
+                    "SwitchCombatTimes": {
+                        "custom_action_param": {
+                            "times": 4
+                        }
+                    },
+                    "PsychubeVictory": {
+                        "next": [
+                            "HomeFlag",
+                            "PsychubeVictory",
+                            "[JumpBack]HomeButton",
+                            "[JumpBack]CombatEntering",
+                            "[JumpBack]HomeLoading"
+                        ]
+                    },
+                    "PsychubeDouble": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "PsychubeReadyForAction"
+        ]
+    },
+    "ReplayingNoNext": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1078,
+                    77,
+                    202,
+                    143
+                ],
+                "expected": [
+                    "行为",
+                    "复现"
+                ]
+            }
+        },
+        "post_delay": 5000
+    },
+    "SwitchCombatTimes": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "SwitchCombatTimes",
+                "custom_action_param": {
+                    "times": 2
+                }
+            }
+        }
+    },
+    "PsychubeSwitchToReplay": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    538,
+                    572,
+                    161,
+                    148
+                ],
+                "template": "Combat/SwitchToReplay.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CombatEntering": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1106,
+                    0,
+                    174,
+                    311
+                ],
+                "template": "Combat/Entering.png"
+            }
+        },
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                0,
+                375,
+                1091,
+                345
+            ]
+        }
+    },
+    "NoFreePsychube": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    176,
+                    210,
+                    789,
+                    297
+                ],
+                "template": "Psychube/NoFreePsychubeStagesFlag.png"
+            }
+        }
+    }
+}

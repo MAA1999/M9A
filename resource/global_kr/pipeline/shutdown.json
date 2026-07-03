@@ -1,0 +1,10 @@
+{
+    "Close1999": {
+        "action": {
+            "type": "StopApp",
+            "param": {
+                "package": "kr.haoplay.game.and.reverse"
+            }
+        }
+    }
+}

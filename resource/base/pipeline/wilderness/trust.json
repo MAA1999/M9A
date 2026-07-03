@@ -1,0 +1,82 @@
+{
+    "WildernessTrustTask": {
+        "recognition": "DirectHit",
+        "next": [
+            "[JumpBack]TrustMax",
+            "[JumpBack]CollectTrust",
+            "[JumpBack]TrustDialogueNext",
+            "[JumpBack]TrustDialogueInteraction",
+            "FlagInWilderness_rec"
+        ]
+    },
+    "CollectTrust": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    58,
+                    188,
+                    438
+                ],
+                "template": "Wilderness/CollectTrust.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "TrustDialogueNext": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1119,
+                    631,
+                    124,
+                    89
+                ],
+                "template": "Wilderness/TrustDialogueNext.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "TrustDialogueInteraction": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1095,
+                    42,
+                    185,
+                    593
+                ],
+                "template": "Wilderness/TrustDialogueInteraction.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "TrustMax": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    0,
+                    162,
+                    141,
+                    114
+                ],
+                "expected": [
+                    "MAX"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}

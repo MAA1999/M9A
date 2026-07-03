@@ -1,0 +1,10 @@
+{
+    "CheckStopping": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CheckStopping"
+            }
+        }
+    }
+}

@@ -1,0 +1,136 @@
+{
+    "UTTU": {
+        "desc": "UTTU活动入口",
+        "next": [
+            "[JumpBack]UTTU_find_stage",
+            "[JumpBack]UTTU_start_action",
+            "[JumpBack]UTTU_get_card",
+            "[JumpBack]UTTU_Combat",
+            "[JumpBack]UTTU_Victory",
+            "UTTU_End",
+            "UTTU_End2"
+        ]
+    },
+    "UTTU_find_stage": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    949,
+                    0,
+                    294,
+                    718
+                ],
+                "template": "UTTU/UTTU_stage_flag.png"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "UTTU_start_action": {
+        "desc": "点击开始探索",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    893,
+                    614,
+                    286,
+                    65
+                ],
+                "expected": "开始探索"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "UTTU_get_card": {
+        "desc": "点击获得名人卡",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    553,
+                    75,
+                    198,
+                    52
+                ],
+                "expected": "获得名人卡"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "UTTU_Combat": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    22,
+                    28,
+                    205,
+                    46
+                ],
+                "expected": "回合"
+            }
+        },
+        "post_delay": 4000,
+        "timeout": 60000
+    },
+    "UTTU_Victory": {
+        "desc": "最佳回合数页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    124,
+                    192,
+                    194,
+                    66
+                ],
+                "expected": "最佳通关回合数"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "UTTU_End": {
+        "desc": "UTTU结束flag",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    109,
+                    492,
+                    104,
+                    39
+                ],
+                "expected": "市场货架"
+            }
+        }
+    },
+    "UTTU_End2": {
+        "desc": "UTTU结束flag2,战斗失败",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    481,
+                    94,
+                    308,
+                    111
+                ],
+                "expected": "战斗失败"
+            }
+        },
+        "focus": {
+            "Node.Recognition.Succeeded": {
+                "content": "UTTU结束，战斗失败，请调整配队..."
+            }
+        }
+    }
+}

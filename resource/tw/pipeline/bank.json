@@ -1,0 +1,13 @@
+{
+    "ModifyBankTaskList": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "ModifyBankTaskList",
+                "custom_action_param": {
+                    "resource": "tw"
+                }
+            }
+        }
+    }
+}
