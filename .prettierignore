@@ -1,13 +1,11 @@
-# 构建产物
-install/
 node_modules/
-
-# 子模块
-assets/MaaCommonAssets
-
-# 跳过 schema 目录，避免与 sync_schema_files 冲突
-deps/tools/
-
-# 锁文件
+dist/
+.create-maa-project/
+.venv/
+.uv-cache/
 pnpm-lock.yaml
-package-lock.json
+resource/base/model/ocr/*.onnx
+tools/schema/interface.schema.json
+tools/schema/interface_config.schema.json
+tools/schema/interface_import.schema.json
+tools/schema/pipeline.schema.json

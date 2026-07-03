@@ -1,0 +1,25 @@
+{
+    "schemaVersion": 1,
+    "assets": [
+        {
+            "path": "det.onnx",
+            "sha256": null,
+            "pending": true
+        },
+        {
+            "path": "rec.onnx",
+            "sha256": null,
+            "pending": true
+        },
+        {
+            "path": "keys.txt",
+            "sha256": null,
+            "pending": true
+        },
+        {
+            "path": "README.md",
+            "sha256": null,
+            "pending": true
+        }
+    ]
+}

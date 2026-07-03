@@ -1,0 +1,27 @@
+name: 其他问题 / Other Issue
+description: 不属于 Bug 或需求建议的其他问题 / Questions or topics that are not bug reports or feature requests
+labels: ['question']
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述 / Description
+      description: 请详细描述你的问题、背景和已尝试的做法 / Describe the question, context, and what you have already tried.
+    validations:
+      required: true
+
+  - type: input
+    id: project_version
+    attributes:
+      label: 'M9A 版本 / M9A Version'
+      placeholder: '例如 / e.g.: v0.1.0'
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 其他信息 / Additional Information
+      description: 日志、截图、配置、链接等 / Logs, screenshots, config, links, etc.
+    validations:
+      required: false

@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Maa Agent: Debug",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/agent/bootstrap.py",
+            "args": [
+                "{AGENT_ID}"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": "{AGENT_ENV}",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+    ]
+}

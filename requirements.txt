@@ -1,5 +1,1 @@
-maafw==5.11.1
-loguru
-pillow
-pytz
-requests
+maafw>=0.0.0

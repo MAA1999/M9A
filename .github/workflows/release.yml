@@ -1,0 +1,181 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  package:
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_os: win
+            arch: x86_64
+            runtime_os: win
+            runtime_arch: x64
+            ext: zip
+          - os: windows-11-arm
+            artifact_os: win
+            arch: aarch64
+            runtime_os: win
+            runtime_arch: arm64
+            ext: zip
+          - os: ubuntu-latest
+            artifact_os: linux
+            arch: x86_64
+            runtime_os: linux
+            runtime_arch: x64
+            ext: tar.gz
+          - os: ubuntu-latest
+            artifact_os: linux
+            arch: aarch64
+            runtime_os: linux
+            runtime_arch: arm64
+            ext: tar.gz
+          - os: macos-15-intel
+            artifact_os: macos
+            arch: x86_64
+            runtime_os: osx
+            runtime_arch: x64
+            ext: tar.gz
+          - os: macos-latest
+            artifact_os: macos
+            arch: aarch64
+            runtime_os: osx
+            runtime_arch: arm64
+            ext: tar.gz
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        if: hashFiles('pyproject.toml') != ''
+        with:
+          python-version: '3.13'
+      - uses: astral-sh/setup-uv@v8.1.0
+        if: hashFiles('pyproject.toml') != ''
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: node tools/check-project.mjs
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm check:py
+        if: hashFiles('pyproject.toml') != ''
+      - run: pnpm release:dry-run
+        if: github.event_name == 'workflow_dispatch'
+      - run: pnpm sync:runtime
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          CREATE_MAA_PROJECT_RUNTIME_PLATFORM: ${{ matrix.runtime_os }}-${{ matrix.runtime_arch }}
+          GITHUB_TOKEN: ${{ github.token }}
+      - run: node tools/build-release.mjs
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          CREATE_MAA_PROJECT_RUNTIME_PLATFORM: ${{ matrix.runtime_os }}-${{ matrix.runtime_arch }}
+      - name: Apply app icon
+        if: github.event_name != 'workflow_dispatch' && hashFiles('logo.ico') != ''
+        shell: bash
+        run: |
+          cp logo.ico dist/package/logo.ico
+
+          if [[ "${{ matrix.runtime_os }}" == "win" ]]; then
+            curl -fsSL https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe -o rcedit.exe
+            exe="$(find dist/package -maxdepth 1 -type f -name '*.exe' | head -n 1)"
+            if [[ -n "$exe" ]]; then
+              ./rcedit.exe "$exe" --set-icon logo.ico
+              echo "[OK] Applied Windows executable icon: $exe"
+            else
+              echo "[WARN] Windows executable was not found; skipped executable icon update."
+            fi
+          fi
+      - name: Package
+        if: github.event_name != 'workflow_dispatch'
+        shell: bash
+        run: |
+          mkdir -p dist
+          archive="M9A-${{ matrix.artifact_os }}-${{ matrix.arch }}-${GITHUB_REF_NAME}-MFAA.${{ matrix.ext }}"
+          (
+            cd dist/package
+            if [[ "${{ matrix.ext }}" == "zip" ]]; then
+              7z a "../$archive" .
+            else
+              tar -czf "../$archive" .
+              tar -tzvf "../$archive" > "../$archive.manifest"
+              if ! awk '$1 ~ /^-/ && $0 ~ /(^|\/)(m9a|MFAAvalonia|MaaPiCli|MaaAgentServer|maa-cli|python3?)$/ && $1 !~ /^-..x/ { print; bad=1 } END { exit bad }' "../$archive.manifest"; then
+                echo "[ERR] Unix archive is missing executable permission metadata"
+                exit 1
+              fi
+              echo "[OK] Unix archive executable metadata smoke passed"
+            fi
+          )
+          rm -rf dist/package
+      - uses: actions/upload-artifact@v7
+        if: github.event_name != 'workflow_dispatch'
+        with:
+          name: ${{ matrix.artifact_os }}-${{ matrix.arch }}
+          path: dist/*
+
+  git_cliff:
+    name: Generate release notes
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Generate release notes
+        shell: bash
+        env:
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="2.13.1"
+          archive="git-cliff-${version}-x86_64-unknown-linux-gnu.tar.gz"
+          mkdir -p "$RUNNER_TEMP/git-cliff"
+          curl -fsSL "https://github.com/orhun/git-cliff/releases/download/v${version}/$archive" -o "$RUNNER_TEMP/$archive"
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/git-cliff"
+          git_cliff="$(find "$RUNNER_TEMP/git-cliff" -type f -name git-cliff -perm -111 | head -n 1)"
+          if [[ -z "$git_cliff" ]]; then
+            echo "[ERR] git-cliff binary was not found after extraction"
+            exit 1
+          fi
+          "$git_cliff" --config .github/cliff.toml --latest --strip header --output CHANGES.md
+      - name: Upload release notes
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-notes
+          path: CHANGES.md
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [package, git_cliff]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          path: release-assets
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v3
+        with:
+          body_path: release-assets/CHANGES.md
+          files: |
+            release-assets/*.zip
+            release-assets/*.tar.gz
+      - name: Dispatch post-release hooks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/dispatches" \
+            -f event_type=create-maa-project-release \
+            -f client_payload[tag]="$GITHUB_REF_NAME"

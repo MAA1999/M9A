@@ -1,58 +1,40 @@
 {
-    "files.insertFinalNewline": true,
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+    "editor.formatOnSave": true,
+    "files.associations": {
+        "*.json": "jsonc",
+        "*.jsonc": "jsonc"
+    },
     "files.eol": "\n",
     "json.schemas": [
         {
             "fileMatch": [
-                "/assets/resource/**/*.json",
-                "/install/resource/**/*.json",
-                "!/assets/resource/data/**/**.json",
-                "!/install/resource/data/**/**.json",
-                "!/assets/resource/tasks/**/**.json",
-                "!/install/resource/tasks/**/**.json"
+                "/interface.json"
             ],
-            "url": "/deps/tools/pipeline.schema.json"
+            "url": "./tools/schema/interface.schema.json"
         },
         {
             "fileMatch": [
-                "/assets/interface.json",
-                "/install/interface.json"
+                "/tasks/*.json"
             ],
-            "url": "/deps/tools/interface.schema.json"
+            "url": "./tools/schema/interface_import.schema.json"
         },
         {
             "fileMatch": [
-                "/assets/resource/tasks/**/*.json",
-                "/install/resource/tasks/**/*.json"
+                "/resource/*/default_pipeline.json",
+                "/resource/*/pipeline/*.json",
+                "/resource/*/pipeline/**/*.json"
             ],
-            "url": "/deps/tools/interface_import.schema.json"
-        },
-        {
-            "fileMatch": [
-                "/install/config/maa_pi_config.json"
-            ],
-            "url": "/deps/tools/interface_config.schema.json"
+            "url": "./tools/schema/pipeline.schema.json"
         }
     ],
-    "files.exclude": {
-        "__pycache__": true
-    },
-    "files.associations": {
-        "**/assets/**/*.json": "jsonc"
-    },
-    "[json][jsonc]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[python]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "ms-python.black-formatter"
-    },
-    "[markdown]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
-    },
-    "markdownlint.config": {
-        "MD028": false
-    }
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv"
 }

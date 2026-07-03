@@ -1,23 +1,14 @@
-[remote.github]
-owner = "MAA1999"
-repo = "M9A"
-
 [changelog]
-# 标题
 header = """
-# 更新日志
+# 更新日志 | Release Notes
 """
 
 body = """
-{%- macro remote_url() -%}
-  https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
-{%- endmacro -%}
-
 {% macro print_commit(commit) -%}
     - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
         {% if commit.breaking %}[**breaking**] {% endif %}\
         {{ commit.message | split(pat="\n") | first | upper_first }} \
-        {% if commit.github.username %} @{{ commit.github.username }}{% else %} {{ commit.author.name }}{% endif %}
+        {% if commit.github.username %}@{{ commit.github.username }}{% else %}{{ commit.author.name }}{% endif %}
         {%- if commit.footers -%}
             {%- for footer in commit.footers -%}
                 {%- if footer.token == "Co-authored-by" -%}
@@ -30,14 +21,12 @@ body = """
 {% if version %}\
     ## {{ version | trim_start_matches(pat="v") }} ({{ timestamp | date(format="%Y-%m-%d") }})
 {% else %}\
-    ## 未发布
+    ## 未发布 | Unreleased
 {% endif %}\
 
 {% for group, commits in commits | group_by(attribute="group") %}
     ### {{ group | striptags | trim | upper_first }}
-    {% for commit in commits
-    | filter(attribute="scope")
-    | sort(attribute="scope") %}
+    {% for commit in commits | filter(attribute="scope") | sort(attribute="scope") %}
         {{ self::print_commit(commit=commit) }}
     {%- endfor %}
     {% for commit in commits %}
@@ -48,75 +37,37 @@ body = """
 {% endfor -%}
 {%- if github -%}
 {% if github.contributors | filter(attribute="is_first_time", value=true) | length != 0 %}
-  ## 新贡献者 ❤️
+  ## 新贡献者 | New Contributors
 {% endif %}\
 {% for contributor in github.contributors | filter(attribute="is_first_time", value=true) %}
   * @{{ contributor.username }} made their first contribution
-    {%- if contributor.pr_number %} in \
-      [#{{ contributor.pr_number }}]({{ self::remote_url() }}/pull/{{ contributor.pr_number }}) \
-    {%- endif %}
+    {%- if contributor.pr_number %} in #{{ contributor.pr_number }}{% endif %}
 {%- endfor -%}
 {%- endif %}
-"""
-
-# 尾部
-footer = """
-{%- macro remote_url() -%}
-  https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
-{%- endmacro -%}
-
-{%- set latest_version = "" -%}
-{%- for release in releases -%}
-  {%- if release.version and latest_version == "" -%}
-    {%- set_global latest_version = release.version -%}
-  {%- endif -%}
-{%- endfor -%}
-
-{% if latest_version -%}
-**绝大部分用户请下载 [M9A-win-x86_64-{{ latest_version }}-MFAA.zip]({{ self::remote_url() }}/releases/download/{{ latest_version }}/M9A-win-x86_64-{{ latest_version }}-MFAA.zip) 或 [M9A-win-x86_64-{{ latest_version }}-MXU.zip]({{ self::remote_url() }}/releases/download/{{ latest_version }}/M9A-win-x86_64-{{ latest_version }}-MXU.zip)**
-{%- else -%}
-**绝大部分用户请下载 M9A-win-x86_64-vx.x.x-MXU.zip 或 M9A-win-x86_64-vx.x.x-MFAA.zip，没找到的请点 show all x assets**
-{%- endif %}
-
-> MFAA = 图形界面版（使用接近MAA方舟） | MXU = 图形界面版（MaaEnd同款） | PiCLI = 命令行版
-
-[已有 Mirror酱 CDK？点击前往高速下载](https://mirrorchyan.com/zh/projects?rid=M9A&source=m9agh-release)
-
-<!--软件本体完全免费，认准唯一官网 1999.fan，若您有付费购买请立即退款并举报！-->
 """
 
 [git]
-# 过滤提交
-conventional_commits = true # 使用约定式提交格式
-filter_unconventional = false # 不过滤非约定式提交
-# 启用完整的 commit 信息
+conventional_commits = true
+filter_unconventional = false
 split_commits = false
-# 保留完整的 commit body
 protect_breaking_commits = false
 commit_parsers = [
-    # 跳过包含 [skip changelog] 的 commit
     { message = ".*\\[skip changelog\\].*", skip = true },
     { body = ".*\\[skip changelog\\].*", skip = true },
-    { message = "^feat", group = "<!-- 0 -->✨ 新功能" },
-    { message = "^fix", group = "<!-- 1 -->🐛 Bug修复" },
-    { message = "^docs", group = "<!-- 4 -->📚 文档" },
-    { message = "^perf", group = "<!-- 3 -->🚀 性能优化" },
-    { message = "^refactor", group = "<!-- 2 -->🚜 代码重构" },
-    { message = "^style", group = "<!-- 5 -->🎨 样式" },
-    { message = "^test", group = "<!-- 6 -->🧪 测试" },
-    { message = "^chore\\(deps\\)", group = "📦 依赖更新" },
-    { message = "^chore", group = "<!-- 8 -->🔧 日常维护" },
-    { message = "^ci", group = "<!-- 7 -->⚙️ 持续集成" },
-    { body = ".*security", group = "<!-- 9 -->🔒 安全" },
-    { message = "^[Rr]evert", group = "<!-- 10 -->◀️ 撤销" },
+    { message = "^feat", group = "<!-- 0 -->新功能 | Features" },
+    { message = "^fix", group = "<!-- 1 -->问题修复 | Bug Fixes" },
+    { message = "^(refactor|rft)", group = "<!-- 2 -->代码重构 | Refactoring" },
+    { message = "^perf", group = "<!-- 3 -->性能优化 | Performance" },
+    { message = "^docs", group = "<!-- 4 -->文档 | Documentation" },
+    { message = "^(style|styles)", group = "<!-- 5 -->样式 | Style" },
+    { message = "^test", group = "<!-- 6 -->测试 | Tests" },
+    { message = "^ci", group = "<!-- 7 -->持续集成 | Continuous Integration" },
+    { message = "^chore\\(deps\\)", group = "<!-- 8 -->依赖更新 | Dependencies" },
+    { message = "^chore", group = "<!-- 9 -->日常维护 | Maintenance" },
+    { body = ".*security", group = "<!-- 10 -->安全 | Security" },
+    { message = "^[Rr]evert", group = "<!-- 11 -->撤销 | Reverts" },
 ]
-
-# 忽略这些提交
-ignore_tags = "rc"
-
-# 排序规则
 sort_commits = "oldest"
 
-# 启用GitHub集成
 [git.github]
 commits = true

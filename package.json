@@ -1,19 +1,33 @@
 {
-    "scripts": {
-        "format:json": "prettier --write \"**/*.json\"",
-        "format:py": "black .",
-        "format:all": "pnpm format:json && pnpm format:py",
-        "lint:py": "ruff check .",
-        "typecheck": "pnpm exec pyright",
-        "test": "pytest",
-        "check": "pnpm lint:py && pnpm typecheck && pnpm test",
-        "install:py": "pip install -r requirements.txt -r requirements-dev.txt"
-    },
     "devDependencies": {
         "@nekosu/maa-tools": "1.0.24",
-        "@nekosu/prettier-plugin-maafw-sort": "^1.0.5",
-        "prettier": "3.5.3",
-        "prettier-plugin-multiline-arrays": "4.1.4",
-        "pyright": "^1.1.400"
-    }
+        "@nekosu/prettier-plugin-maafw-sort": "1.0.5",
+        "prettier": "3.8.4",
+        "prettier-plugin-multiline-arrays": "4.1.9"
+    },
+    "engines": {
+        "node": ">=24"
+    },
+    "license": "AGPL-3.0-or-later",
+    "name": "m9a",
+    "packageManager": "pnpm@11.5.1",
+    "private": true,
+    "scripts": {
+        "check": "pnpm format:check && pnpm check:schema && pnpm check:maa && pnpm lint",
+        "check:maa": "pnpm exec maa-tools check",
+        "check:py": "pnpm lint:py && pnpm typecheck:py",
+        "check:schema": "node tools/validate-schema.mjs",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "format:py": "uv run --frozen ruff format .",
+        "lint": "node tools/check-project.mjs",
+        "lint:py": "uv run --frozen ruff check .",
+        "optimize:images": "node tools/optimize-images.mjs",
+        "release:dry-run": "node tools/build-release.mjs --dry-run",
+        "sync:runtime": "node tools/sync-runtime.mjs",
+        "sync:schema": "node tools/sync-schema.mjs",
+        "typecheck:py": "uv run --frozen pyright"
+    },
+    "type": "module",
+    "version": "0.1.0"
 }

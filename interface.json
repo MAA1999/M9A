@@ -1,0 +1,39 @@
+{
+    "interface_version": 2,
+    "name": "m9a",
+    "label": "M9A",
+    "version": "v0.1.0",
+    "icon": "logo.ico",
+    "description": "M9A MaaFW project",
+    "controller": [
+        {
+            "name": "Android",
+            "label": "Android / Emulator",
+            "type": "Adb",
+            "display_short_side": 720
+        }
+    ],
+    "resource": [
+        {
+            "name": "base",
+            "label": "Base",
+            "path": [
+                "./resource/base"
+            ]
+        }
+    ],
+    "import": [
+        "./tasks/tutorial.json"
+    ],
+    "agent": [
+        {
+            "child_exec": "uv",
+            "child_args": [
+                "run",
+                "python",
+                "agent/bootstrap.py"
+            ],
+            "identifier": "m9a.agent"
+        }
+    ]
+}

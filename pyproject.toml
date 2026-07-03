@@ -1,39 +1,42 @@
-[tool.black]
-extend-exclude = '''
-/(
-    \.venv
-  | \.venv-linux
-  | \.uv-cache
-  | node_modules
-  | deps
-)/
-'''
-
-[tool.ruff]
-line-length = 100
-target-version = "py312"
-exclude = [".venv", ".venv-linux", "tools/"]
-
-[tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B", "SIM"]
-ignore = [
-    "E402",   # module level import not at top (sys.path manipulation)
-    "E501",   # line too long (black handles formatting)
-    "SIM102", # nested if (readability preference)
-    "SIM108", # ternary operator (readability preference)
-    "SIM110", # all()/any() (readability preference)
-    "SIM117", # nested with (readability preference)
-    "SIM118", # key in dict (not always applicable)
+[project]
+name = "m9a"
+version = "0.1.0"
+description = "M9A MaaFW Agent project"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "maafw>=5.0"
 ]
 
-[tool.ruff.lint.per-file-ignores]
-"agent/utils/__init__.py" = ["F403", "F405", "F401"]
+[dependency-groups]
+dev = [
+    "pyright>=1.1.400",
+    "ruff>=0.11.0"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["agent"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
 
 [tool.pyright]
-pythonVersion = "3.12"
-typeCheckingMode = "basic"
-exclude = [".venv", ".venv-linux", "**/node_modules", "**/__pycache__", ".*", "tmp", "tools", "deps"]
+include = ["agent"]
+extraPaths = ["agent"]
+pythonVersion = "3.13"
+typeCheckingMode = "strict"
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["."]
+# MaaFramework 的 Python 包 (MaaFw) 不发布 PEP 561 类型存根；strict 模式下 Unknown 类型会从 maa 调用向外传播，这里统一抑制。
+reportMissingTypeStubs = "none"
+reportUnknownMemberType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownVariableType = "none"
+reportUnknownParameterType = "none"
+reportUnknownLambdaType = "none"

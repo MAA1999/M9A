@@ -2,12 +2,8 @@ import sys
 
 sys.modules.setdefault("utils", sys.modules[__name__])
 
-from .logger import *
-from .params import *
-from .pienv import *
-
-try:
-    from .time import *
-    from .version_checker import check_resource_version
-except ImportError:
-    logger.warning("utils module import failed")
+from .logger import *  # noqa: E402,F403
+from .maa_types import *  # noqa: E402,F403
+from .params import *  # noqa: E402,F403
+from .pienv import *  # noqa: E402,F403
+from .runtime_paths import *  # noqa: E402,F403

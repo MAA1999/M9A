@@ -1,0 +1,179 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+        "DisableNodeParam": {
+            "type": "object",
+            "properties": {
+                "node_name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Pipeline node name to disable."
+                }
+            },
+            "required": [
+                "node_name"
+            ],
+            "additionalProperties": false
+        },
+        "NodeOverrideParam": {
+            "type": "object",
+            "description": "Object passed directly to context.override_pipeline(). Keys are pipeline node names.",
+            "minProperties": 1,
+            "additionalProperties": {
+                "type": "object",
+                "description": "Partial pipeline node override."
+            }
+        },
+        "ResetCountParam": {
+            "type": "object",
+            "properties": {
+                "nodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "minItems": 1,
+                    "description": "Pipeline node names whose hit counters should be cleared."
+                },
+                "strict": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether the action should fail when any node cannot be cleared."
+                }
+            },
+            "required": [
+                "nodes"
+            ],
+            "additionalProperties": false
+        },
+        "SubTaskParam": {
+            "type": "object",
+            "properties": {
+                "sub": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "minItems": 1,
+                    "description": "Task names to run in order."
+                },
+                "continue": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to continue after a sub task fails."
+                },
+                "strict": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether this action should fail when any sub task fails."
+                }
+            },
+            "required": [
+                "sub"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "type": "object",
+    "properties": {
+        "custom_action": {
+            "type": "string",
+            "description": "Registered custom action name."
+        },
+        "custom_action_param": {
+            "description": "Parameters passed to the registered custom action."
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "custom_action": {
+                        "const": "DisableNode"
+                    }
+                },
+                "required": [
+                    "custom_action"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "custom_action_param": {
+                        "$ref": "#/$defs/DisableNodeParam"
+                    }
+                },
+                "required": [
+                    "custom_action_param"
+                ]
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "custom_action": {
+                        "const": "NodeOverride"
+                    }
+                },
+                "required": [
+                    "custom_action"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "custom_action_param": {
+                        "$ref": "#/$defs/NodeOverrideParam"
+                    }
+                },
+                "required": [
+                    "custom_action_param"
+                ]
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "custom_action": {
+                        "const": "ResetCount"
+                    }
+                },
+                "required": [
+                    "custom_action"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "custom_action_param": {
+                        "$ref": "#/$defs/ResetCountParam"
+                    }
+                },
+                "required": [
+                    "custom_action_param"
+                ]
+            }
+        },
+        {
+            "if": {
+                "properties": {
+                    "custom_action": {
+                        "const": "SubTask"
+                    }
+                },
+                "required": [
+                    "custom_action"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "custom_action_param": {
+                        "$ref": "#/$defs/SubTaskParam"
+                    }
+                },
+                "required": [
+                    "custom_action_param"
+                ]
+            }
+        }
+    ]
+}

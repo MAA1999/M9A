@@ -1,0 +1,87 @@
+{
+    "addons": {
+        "autoFormat": {
+            "enabled": true
+        },
+        "community": {
+            "enabled": true
+        },
+        "dependabot": {
+            "enabled": true
+        },
+        "devTools": {
+            "enabled": true
+        },
+        "gitCliff": {
+            "enabled": true
+        },
+        "github": {
+            "enabled": true
+        },
+        "optimizeImages": {
+            "enabled": true
+        },
+        "schemaSync": {
+            "enabled": true
+        }
+    },
+    "controller": {
+        "kinds": [
+            "Adb"
+        ]
+    },
+    "features": {
+        "ci": {
+            "enabled": true
+        },
+        "quality": {
+            "enabled": true
+        },
+        "release": {
+            "enabled": true
+        },
+        "vscode": {
+            "enabled": true
+        }
+    },
+    "license": {
+        "spdx": "AGPL-3.0-or-later"
+    },
+    "maafw": {
+        "channel": "latest"
+    },
+    "network": {
+        "mode": "auto"
+    },
+    "project": {
+        "displayName": "M9A",
+        "initialTemplate": "agent",
+        "slug": "m9a",
+        "version": "0.1.0"
+    },
+    "python": {
+        "devCommand": [
+            "uv",
+            "run",
+            "python",
+            "agent/bootstrap.py"
+        ],
+        "recommendedPython": "3.13",
+        "requiresPython": ">=3.13,<3.14"
+    },
+    "resources": [
+        {
+            "enabled": true,
+            "label": "Base",
+            "path": "resource/base",
+            "slug": "base"
+        }
+    ],
+    "runtime": {
+        "mfa": {
+            "channel": "latest",
+            "enabled": true
+        }
+    },
+    "schemaVersion": 1
+}

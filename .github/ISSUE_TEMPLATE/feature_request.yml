@@ -1,0 +1,47 @@
+name: 需求建议 / Feature Request
+description: 新功能、改进建议或使用体验优化 / New feature, improvement, or workflow suggestion
+labels: ['enhancement']
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交前确认 / Before Submitting
+      options:
+        - label: 我填写了简短清晰的标题 / I used a short and specific title
+          required: true
+        - label: 我已经搜索过现有和已关闭的 Issue，确认没有重复建议 / I have searched open and closed issues for duplicates
+          required: true
+        - label: 我基本确认这是新功能或改进建议，而不是 Bug；不确定时会附上日志 / I believe this is a feature request rather than a bug; if unsure, I will attach logs
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 使用场景或问题 / Use Case or Problem
+      description: 请描述你遇到的限制，以及为什么需要这个功能 / Describe the limitation and why this feature is needed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望方案 / Proposed Solution
+      description: 请描述希望如何工作，必要时给出任务、资源或界面示例 / Describe how it should work; include task, resource, or UI examples when useful.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 替代方案 / Alternatives
+      description: 已尝试过的做法、临时方案或为什么现有能力不够 / Workarounds tried, temporary solutions, or why existing behavior is insufficient.
+    validations:
+      required: false
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: 相关资料 / Supporting Details
+      description: 日志、截图、资源路径、参考实现、相关 Issue 或 PR / Logs, screenshots, resource paths, reference implementations, related issues or PRs.
+    validations:
+      required: false

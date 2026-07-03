@@ -1,0 +1,68 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+        "Rect": {
+            "type": "array",
+            "items": {
+                "type": "integer"
+            },
+            "minItems": 4,
+            "maxItems": 4,
+            "description": "Recognition result box as [x, y, w, h]."
+        },
+        "ExampleRecognitionParam": {
+            "type": "object",
+            "properties": {
+                "node": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Existing recognition node to reuse through context.run_recognition()."
+                },
+                "template_node": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Alias of node, kept for examples that name reusable recognition nodes this way."
+                },
+                "box": {
+                    "$ref": "#/$defs/Rect"
+                },
+                "detail": {
+                    "type": "object",
+                    "description": "Extra detail object returned with CustomRecognition.AnalyzeResult."
+                }
+            },
+            "additionalProperties": true
+        }
+    },
+    "type": "object",
+    "properties": {
+        "custom_recognition": {
+            "type": "string",
+            "description": "Registered custom recognition name."
+        },
+        "custom_recognition_param": {
+            "description": "Parameters passed to the registered custom recognition."
+        }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": {
+                    "custom_recognition": {
+                        "const": "ExampleRecognition"
+                    }
+                },
+                "required": [
+                    "custom_recognition"
+                ]
+            },
+            "then": {
+                "properties": {
+                    "custom_recognition_param": {
+                        "$ref": "#/$defs/ExampleRecognitionParam"
+                    }
+                }
+            }
+        }
+    ]
+}

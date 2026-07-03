@@ -1,0 +1,69 @@
+name: Optimize Images
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - '**/*.png'
+  workflow_dispatch:
+    inputs:
+      paths:
+        description: 'Files or directories to optimize; defaults to the repository.'
+        type: string
+        required: false
+      commit_message:
+        description: 'Commit message'
+        type: string
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  optimize-images:
+    if: >-
+      github.event.repository.fork == false &&
+      github.actor != 'github-actions[bot]' &&
+      github.triggering_actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Setup oxipng
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: oxipng
+      - name: Optimize PNG images
+        env:
+          OPTIMIZE_IMAGE_PATHS: ${{ github.event.inputs.paths }}
+        run: node tools/optimize-images.mjs
+      - name: Commit optimized images
+        shell: bash
+        env:
+          COMMIT_MESSAGE: ${{ github.event.inputs.commit_message }}
+        run: |
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "No image optimization changes."
+            exit 0
+          fi
+
+          if [[ "$GITHUB_REF_TYPE" != "branch" ]]; then
+            echo "Image optimization changed files, but this run is not on a branch."
+            exit 0
+          fi
+
+          commit_msg="$COMMIT_MESSAGE"
+          if [[ -z "$commit_msg" ]]; then
+            commit_msg="chore: optimize images"
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "$commit_msg" -m "Triggered by ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" -m "[skip changelog]"
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"

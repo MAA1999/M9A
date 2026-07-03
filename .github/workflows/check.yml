@@ -1,41 +1,30 @@
-name: check
+name: Check
 
 on:
-  push:
-    branches:
-      - "**"
-    paths:
-      - ".github/workflows/check.yml"
-      - "assets/**"
-      - "**.py"
   pull_request:
-    branches:
-      - "**"
-    paths:
-      - ".github/workflows/check.yml"
-      - "assets/**"
-      - "**.py"
-  workflow_dispatch:
+  push:
+    branches: [main, master]
 
 jobs:
-  resource:
+  check:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        if: hashFiles('pyproject.toml') != ''
         with:
-          fetch-depth: 0
-
-      - name: Use Node
-        uses: actions/setup-node@v4
+          python-version: '3.13'
+      - uses: astral-sh/setup-uv@v8.1.0
+        if: hashFiles('pyproject.toml') != ''
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
-
-      - name: Run maa-checker
-        run: |
-          npm ci
-          npx @nekosu/maa-tools check
-
-      - name: Validate JSON Schema
-        run: |
-          python -m pip install jsonschema==4.26.0 referencing==0.37.0
-          python tools/validate_schema.py --schema-dir deps/tools --resource-dirs assets/resource --exclude-dirs assets/resource/announcement assets/resource/data assets/resource/tasks --interface-files assets/interface.json --task-dirs assets/resource/tasks
+          node-version: 24
+          cache: pnpm
+      - run: node tools/check-project.mjs
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm check:py
+        if: hashFiles('pyproject.toml') != ''

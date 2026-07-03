@@ -1,55 +1,44 @@
-name: format
+name: Auto Format
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 22 * * *" # UTC+8 06:00
+    - cron: '0 22 * * *'
+
+permissions:
+  contents: write
 
 jobs:
   format:
-    if: ${{ github.repository_owner == 'MAA1999' }}
+    if: github.event.repository.fork == false
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-          submodules: false
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: actions/setup-python@v6
+        if: hashFiles('pyproject.toml') != ''
         with:
-          version: 10
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+          python-version: '3.13'
+      - uses: astral-sh/setup-uv@v8.1.0
+        if: hashFiles('pyproject.toml') != ''
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
-          cache: "pnpm"
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install Node dependencies
-        run: pnpm install
-
-      - name: Install Python dependencies
-        run: pip install black
-
-      - name: Run format
-        run: pnpm format:all
-
-      - name: Commit and push changes
-        uses: actions-js/push@master
-        with:
-          rebase: true
-          branch: ${{ github.ref }}
-          message: "styles: auto format code
-
-            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-            [skip changelog]"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format
+      - run: pnpm format:py
+        if: hashFiles('pyproject.toml') != ''
+      - name: Commit formatted files
+        run: |
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "No formatting changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "style: auto format code [skip changelog]" -m "Triggered by ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          git push

@@ -1,0 +1,118 @@
+name: Bug 反馈 / Bug Report
+description: 识别错误、操作异常、崩溃、连接问题等 / Recognition, operation, crash, or connection problems
+labels: ['bug']
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交前确认 / Before Submitting
+      description: 请确认以下内容后再提交 / Please confirm the following before submitting.
+      options:
+        - label: 我已经更新到当前最新版本，并确认问题仍然存在 / I have updated to the latest version and confirmed the issue still exists
+          required: true
+        - label: 我已经搜索过现有和已关闭的 Issue，确认没有重复报告 / I have searched open and closed issues for duplicates
+          required: true
+        - label: 我填写了简短清晰的标题，而不是“卡住了”“有问题”等模糊描述 / I used a short and specific title
+          required: true
+        - label: 我会上传完整日志文件，而不是只粘贴片段或截图日志 / I will attach complete log files instead of snippets or screenshots of logs
+          required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: 问题类型 / Issue Type
+      options:
+        - 一般 Bug / General Bug
+        - 崩溃 / Crash
+        - 识别问题 / Recognition Issue
+        - 任务流程问题 / Task or Pipeline Issue
+        - 连接或控制器问题 / Connection or Controller Issue
+        - 打包或发布问题 / Packaging or Release Issue
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述与复现步骤 / Description and Reproduction
+      description: 请写清预期行为、实际行为和复现步骤 / Describe expected behavior, actual behavior, and reproduction steps.
+      placeholder: |
+        预期行为 / Expected:
+        实际行为 / Actual:
+        复现步骤 / Steps:
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: input
+    id: project_version
+    attributes:
+      label: 'M9A 版本 / M9A Version'
+      placeholder: '例如 / e.g.: v0.1.0'
+    validations:
+      required: true
+
+  - type: input
+    id: runtime_version
+    attributes:
+      label: MaaFramework 版本 / MaaFramework Version
+      placeholder: '例如 / e.g.: v5.10.5'
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 运行环境 / Environment
+      description: 操作系统、控制器、模拟器或设备、分辨率、DPI、运行方式等 / OS, controller, emulator or device, resolution, DPI, launch method, etc.
+      placeholder: |
+        OS:
+        Controller:
+        Emulator/Device:
+        Resolution/DPI:
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志文件 / Log Files
+      description: |
+        请上传完整日志文件，并说明问题出现的大致时间点。
+        Please attach complete log files and mention the approximate time when the issue occurred.
+
+        常见位置 / Common locations:
+        - debug/
+        - logs/
+        - MaaFW or GUI exported log archive
+    validations:
+      required: true
+
+  - type: textarea
+    id: task_pipeline
+    attributes:
+      label: 相关任务或 Pipeline / Related Task or Pipeline
+      description: 如果问题与任务流程或识别相关，请提供相关 task/pipeline 节点和资源包路径 / If task-flow or recognition related, provide relevant task/pipeline nodes and resource pack paths.
+      render: json
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 截图、录屏或调试图片 / Screenshots, Recordings, or Debug Images
+      description: |
+        识别问题请尽量提供原始截图、debug/vision 图片、模板图片路径和 ROI。
+        For recognition issues, provide original screenshots, debug/vision images, template paths, and ROI when possible.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 其他信息 / Additional Information
+      description: 最小复现项目、Actions 链接、崩溃 dump、配置文件等 / Minimal reproduction, Actions links, crash dumps, config files, etc.
+    validations:
+      required: false

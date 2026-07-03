@@ -1,0 +1,321 @@
+{
+    "createdFiles": {
+        ".github/ISSUE_TEMPLATE/bug_report.yml": {
+            "createdAt": "2026-07-03T18:39:35.616Z",
+            "managed": false
+        },
+        ".github/ISSUE_TEMPLATE/config.yml": {
+            "createdAt": "2026-07-03T18:39:35.616Z",
+            "managed": false
+        },
+        ".github/ISSUE_TEMPLATE/feature_request.yml": {
+            "createdAt": "2026-07-03T18:39:35.616Z",
+            "managed": false
+        },
+        ".github/ISSUE_TEMPLATE/other_issue.yml": {
+            "createdAt": "2026-07-03T18:39:35.616Z",
+            "managed": false
+        },
+        ".github/PULL_REQUEST_TEMPLATE.md": {
+            "createdAt": "2026-07-03T18:39:35.616Z",
+            "managed": false
+        },
+        ".gitignore": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        ".prettierignore": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        ".vscode/extensions.json": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        ".vscode/launch.json": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        ".vscode/settings.json": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "CONTRIBUTING.md": {
+            "createdAt": "2026-07-03T18:39:35.616Z",
+            "managed": false
+        },
+        "LICENSE": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "README.en.md": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "README.md": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "interface.json": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "maa-project.json": {
+            "createdAt": "2026-07-03T18:39:35.616Z",
+            "managed": false
+        },
+        "maatools.config.mts": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "package.json": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "pnpm-workspace.yaml": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "resource/base/default_pipeline.json": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "resource/base/image/empty.png": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "resource/base/model/ocr/README.md": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "resource/base/model/ocr/det.onnx": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "resource/base/model/ocr/keys.txt": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "resource/base/model/ocr/manifest.json": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "resource/base/model/ocr/rec.onnx": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "resource/base/pipeline/tutorial.json": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "tasks/tutorial.json": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "tools/schema/custom.action.schema.json": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        },
+        "tools/schema/custom.recognition.schema.json": {
+            "createdAt": "2026-07-03T18:39:35.615Z",
+            "managed": false
+        }
+    },
+    "managedFiles": {
+        ".editorconfig": {
+            "hash": "fa205e6456c1010c9f57efebdfdb8f8062024a629f06a163fd3508d3153c5782",
+            "templateHash": "fa205e6456c1010c9f57efebdfdb8f8062024a629f06a163fd3508d3153c5782"
+        },
+        ".gitattributes": {
+            "hash": "7a4b8e4c2efa2036473526e0e4de5c09327ff3df189c62b1a1f320a1f23c7692",
+            "templateHash": "7a4b8e4c2efa2036473526e0e4de5c09327ff3df189c62b1a1f320a1f23c7692"
+        },
+        ".github/cliff.toml": {
+            "hash": "1c475f27cd91987b4a8e82a99ee2054f673fe5c344c2c2facc0c4c80778317bc",
+            "templateHash": "1c475f27cd91987b4a8e82a99ee2054f673fe5c344c2c2facc0c4c80778317bc"
+        },
+        ".github/dependabot.yml": {
+            "hash": "146fc4a7e29026507034652f344d0f100f70fd1a61e2a9cfa74bbabe38281b43",
+            "templateHash": "146fc4a7e29026507034652f344d0f100f70fd1a61e2a9cfa74bbabe38281b43"
+        },
+        ".github/workflows/check.yml": {
+            "hash": "29dad0efe4633ea64c1ef2a2e4fdd10655234cf42d2dd1efae5d8e65d121cfe6",
+            "templateHash": "29dad0efe4633ea64c1ef2a2e4fdd10655234cf42d2dd1efae5d8e65d121cfe6"
+        },
+        ".github/workflows/format.yml": {
+            "hash": "8b1f78d72e9a20351e886df7c26de9b34e68101e6486e3d950a844ea8ecc68a5",
+            "templateHash": "8b1f78d72e9a20351e886df7c26de9b34e68101e6486e3d950a844ea8ecc68a5"
+        },
+        ".github/workflows/optimize-images.yml": {
+            "hash": "4570fddefc2136c3934a38bd432befa0430fb8f94983f0f9767827ec86b2860d",
+            "templateHash": "4570fddefc2136c3934a38bd432befa0430fb8f94983f0f9767827ec86b2860d"
+        },
+        ".github/workflows/release.yml": {
+            "hash": "596fb7defb579682cfbf5203f7214ae1dc8adde5cb19e46f62d54e85d81a515e",
+            "templateHash": "596fb7defb579682cfbf5203f7214ae1dc8adde5cb19e46f62d54e85d81a515e"
+        },
+        ".github/workflows/schema-sync.yml": {
+            "hash": "13752e5072378dd74639b9bf75f9605b5a09d8ddb32301ccb4d0dccd1f28f203",
+            "templateHash": "13752e5072378dd74639b9bf75f9605b5a09d8ddb32301ccb4d0dccd1f28f203"
+        },
+        ".node-version": {
+            "hash": "68ca3fba3b7e864770cb61aeb306d4bd4354b68ab4dd38450860c5d823e42a53",
+            "templateHash": "68ca3fba3b7e864770cb61aeb306d4bd4354b68ab4dd38450860c5d823e42a53"
+        },
+        ".prettierrc.mjs": {
+            "hash": "434e82ba99198e35d0c3d2d13125986d4ddd662bf142fd63934d9c6e3133fba6",
+            "templateHash": "434e82ba99198e35d0c3d2d13125986d4ddd662bf142fd63934d9c6e3133fba6"
+        },
+        ".python-version": {
+            "hash": "02e735b3dfe1c32833eb550b7ff8ffa17f5f2bc3fa1e7bae61a8f5a3883ce398",
+            "templateHash": "02e735b3dfe1c32833eb550b7ff8ffa17f5f2bc3fa1e7bae61a8f5a3883ce398"
+        },
+        ".vscode/tasks.json": {
+            "hash": "2cb187d1bc4a6a2ad18145adc161dc58c61545208e2e407087aa2570a4e01646",
+            "templateHash": "2cb187d1bc4a6a2ad18145adc161dc58c61545208e2e407087aa2570a4e01646"
+        },
+        "agent/__init__.py": {
+            "hash": "f712c8bdfc26b1ac2f0014ddeac45dbb477b6816dd76a91f5c8e65890f04c551",
+            "templateHash": "f712c8bdfc26b1ac2f0014ddeac45dbb477b6816dd76a91f5c8e65890f04c551"
+        },
+        "agent/agent_runtime.py": {
+            "hash": "3dd39da6eebb73e8d891ff4cb6d6fb42727bf7c350085eea2693aea542f006c3",
+            "templateHash": "3dd39da6eebb73e8d891ff4cb6d6fb42727bf7c350085eea2693aea542f006c3"
+        },
+        "agent/bootstrap.py": {
+            "hash": "3c1f475dcbb37d9fc59aeef5ec972c232fa94b33cc2d97eebd3a298e0fcbe644",
+            "templateHash": "3c1f475dcbb37d9fc59aeef5ec972c232fa94b33cc2d97eebd3a298e0fcbe644"
+        },
+        "agent/custom/__init__.py": {
+            "hash": "951cbac35bd9a0a869c1e0430be400d187219e5bfe9968aedfd8b96c0e9aff7c",
+            "templateHash": "951cbac35bd9a0a869c1e0430be400d187219e5bfe9968aedfd8b96c0e9aff7c"
+        },
+        "agent/custom/action/__init__.py": {
+            "hash": "1a2524d2ae66e820d8744b8a8dbc36b122c2e9178b8f3e5b54f73cfcc744f46e",
+            "templateHash": "1a2524d2ae66e820d8744b8a8dbc36b122c2e9178b8f3e5b54f73cfcc744f46e"
+        },
+        "agent/custom/action/general.py": {
+            "hash": "72af6abdc171da727ba41bdd8711992b2c93bfd4fd71e71dbcf49700a19786ca",
+            "templateHash": "72af6abdc171da727ba41bdd8711992b2c93bfd4fd71e71dbcf49700a19786ca"
+        },
+        "agent/custom/reco/__init__.py": {
+            "hash": "88a21db2c388c3bd6eb458b2bdc3cde20baaae6f02eba8ecbe26723a191c0bf5",
+            "templateHash": "88a21db2c388c3bd6eb458b2bdc3cde20baaae6f02eba8ecbe26723a191c0bf5"
+        },
+        "agent/custom/reco/general.py": {
+            "hash": "b0a5f40f7241594dee9ab99f1a5f939c54d11e3c51dc51b930afce4312cb4a33",
+            "templateHash": "b0a5f40f7241594dee9ab99f1a5f939c54d11e3c51dc51b930afce4312cb4a33"
+        },
+        "agent/custom/sink/__init__.py": {
+            "hash": "804fa6edb32537d2dc52b793488de032820f06fb177dfb1875f00d43814a6cec",
+            "templateHash": "804fa6edb32537d2dc52b793488de032820f06fb177dfb1875f00d43814a6cec"
+        },
+        "agent/main.py": {
+            "hash": "b560cd3241f840f47541cdff409dd3ddf5b18e36825f342606d812d7c9b1d693",
+            "templateHash": "b560cd3241f840f47541cdff409dd3ddf5b18e36825f342606d812d7c9b1d693"
+        },
+        "agent/utils/__init__.py": {
+            "hash": "43b6c062157edaa67b990d6dff880998916f2aafde83742e4433ee28888e4414",
+            "templateHash": "43b6c062157edaa67b990d6dff880998916f2aafde83742e4433ee28888e4414"
+        },
+        "agent/utils/logger.py": {
+            "hash": "1a1f7863283ce54f532b957ac064eb2f9d102410f1e97368c229c500f798e76f",
+            "templateHash": "1a1f7863283ce54f532b957ac064eb2f9d102410f1e97368c229c500f798e76f"
+        },
+        "agent/utils/maa_types.py": {
+            "hash": "7bf5b4ee7182756f4da25c7488c770d549de95b558b3e31a54670d0df3d8950d",
+            "templateHash": "7bf5b4ee7182756f4da25c7488c770d549de95b558b3e31a54670d0df3d8950d"
+        },
+        "agent/utils/params.py": {
+            "hash": "04b0af9a00d7106f3d71b2a4349e4f597b7b6a1e9c960cf5f565ccb31d7ccb1f",
+            "templateHash": "04b0af9a00d7106f3d71b2a4349e4f597b7b6a1e9c960cf5f565ccb31d7ccb1f"
+        },
+        "agent/utils/pienv.py": {
+            "hash": "b047c90974a7e3399f358c01862cdf1c2c49c2ad99e4bb75d599580e99fb815b",
+            "templateHash": "b047c90974a7e3399f358c01862cdf1c2c49c2ad99e4bb75d599580e99fb815b"
+        },
+        "agent/utils/runtime_paths.py": {
+            "hash": "dd91351a7cdf5a1274f9716b612660af73becb4aedd7c21c5406a5e67ee7cd19",
+            "templateHash": "dd91351a7cdf5a1274f9716b612660af73becb4aedd7c21c5406a5e67ee7cd19"
+        },
+        "pyproject.toml": {
+            "hash": "67918fa6f83a490470e7a01aa0d6ef9f091138179a1b7f849cc280354544df5b",
+            "templateHash": "67918fa6f83a490470e7a01aa0d6ef9f091138179a1b7f849cc280354544df5b"
+        },
+        "requirements.txt": {
+            "hash": "2b307babe4995339d18a37cfe255b56a10ddf9f514ee4928ba024a343ac1f7a2",
+            "templateHash": "2b307babe4995339d18a37cfe255b56a10ddf9f514ee4928ba024a343ac1f7a2"
+        },
+        "tools/build-release.mjs": {
+            "hash": "54240ea51530c7060c15092aa4b1b6f8a1ccd441010f6c280fd25b2a83ac7407",
+            "templateHash": "54240ea51530c7060c15092aa4b1b6f8a1ccd441010f6c280fd25b2a83ac7407"
+        },
+        "tools/check-project.mjs": {
+            "hash": "4e94ec1be9dd9c417f1301326a706dc860bb2ba18fc944cb0f0dbd98c69973d4",
+            "templateHash": "4e94ec1be9dd9c417f1301326a706dc860bb2ba18fc944cb0f0dbd98c69973d4"
+        },
+        "tools/optimize-images.mjs": {
+            "hash": "6adf5e2e641e78edb3781567a1d4be8a163b8f71be4a400a9029a8422c13b19a",
+            "templateHash": "6adf5e2e641e78edb3781567a1d4be8a163b8f71be4a400a9029a8422c13b19a"
+        },
+        "tools/schema/interface.schema.json": {
+            "hash": "c4ec38e19cb2106f1c2dffe744cd64192973db0111ae20dc0f347e02c502ca24",
+            "templateHash": "c4ec38e19cb2106f1c2dffe744cd64192973db0111ae20dc0f347e02c502ca24"
+        },
+        "tools/schema/interface_config.schema.json": {
+            "hash": "af6fcc7d76b5da0292e67b615e52edf98e541be75f9becbd3cbcdc7710b521b6",
+            "templateHash": "af6fcc7d76b5da0292e67b615e52edf98e541be75f9becbd3cbcdc7710b521b6"
+        },
+        "tools/schema/interface_import.schema.json": {
+            "hash": "3fccaa1a4a65832af3a57638bf2be8884e2fc732c7aa8b2c9aa537805bac809f",
+            "templateHash": "3fccaa1a4a65832af3a57638bf2be8884e2fc732c7aa8b2c9aa537805bac809f"
+        },
+        "tools/schema/pipeline.schema.json": {
+            "hash": "8a27882185191e8cd951afccd9a2f88183c492b9c64ce203c70236ade81a947b",
+            "templateHash": "8a27882185191e8cd951afccd9a2f88183c492b9c64ce203c70236ade81a947b"
+        },
+        "tools/schema/schema-manifest.json": {
+            "hash": "9e909e7a84d1f12946d8cbcbe89015f6dfefa5b3f8e7aa9b1d6182be8abffae2",
+            "templateHash": "9e909e7a84d1f12946d8cbcbe89015f6dfefa5b3f8e7aa9b1d6182be8abffae2"
+        },
+        "tools/sync-runtime.mjs": {
+            "hash": "d481656a3f87ccb8999d9f1c4d0c34a82fa658bd13d072d52edd2585ef5a74a4",
+            "templateHash": "d481656a3f87ccb8999d9f1c4d0c34a82fa658bd13d072d52edd2585ef5a74a4"
+        },
+        "tools/sync-schema.mjs": {
+            "hash": "1d1abcd5de90e35627b0161c85ba305f4fba17e45247e38cc0e738e3120a8fbc",
+            "templateHash": "1d1abcd5de90e35627b0161c85ba305f4fba17e45247e38cc0e738e3120a8fbc"
+        },
+        "tools/validate-schema.mjs": {
+            "hash": "eeba6cfd16df2e3b81e821d3428ad3d678395fd61dc3ef4d0ce5512de4dfb879",
+            "templateHash": "eeba6cfd16df2e3b81e821d3428ad3d678395fd61dc3ef4d0ce5512de4dfb879"
+        },
+        "uv.lock": {
+            "hash": "e9c645aa591f1344d397e72e17daa2e20a4ed4b2c503cc7e28b26b518067664f",
+            "templateHash": "e9c645aa591f1344d397e72e17daa2e20a4ed4b2c503cc7e28b26b518067664f"
+        }
+    },
+    "pending": [
+        {
+            "command": "create-maa-project --update node-deps",
+            "kind": "node-deps",
+            "reason": "Generated project dependencies are pinned in package.json but not installed by the scaffold."
+        },
+        {
+            "command": "create-maa-project --update ocr-models",
+            "kind": "ocr-model",
+            "reason": "OCR model download was skipped."
+        },
+        {
+            "command": "create-maa-project --update python-deps",
+            "kind": "python-deps",
+            "reason": "Agent dependencies are managed by uv and need to be synchronized locally."
+        }
+    ],
+    "schemaVersion": 1,
+    "template": {
+        "createdBy": "create-maa-project",
+        "lastUpdatedBy": "create-maa-project",
+        "templateVersion": "0.1.0"
+    }
+}
