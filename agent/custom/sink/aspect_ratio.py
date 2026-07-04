@@ -4,6 +4,8 @@
 在任务开始时检查模拟器分辨率是否为 16:9，如果不是则停止任务并输出警告。
 """
 
+from typing import Any
+
 from maa.agent.agent_server import AgentServer
 from maa.event_sink import NotificationType
 from maa.tasker import Tasker, TaskerEventSink
@@ -13,9 +15,7 @@ from utils.logger import logger
 SWITCH_ACCOUNT_REQUIRED_RESOLUTION = (1280, 720)
 
 
-def get_controller_resolution(
-    controller, ensure_screencap: bool = True
-) -> tuple[int, int]:
+def get_controller_resolution(controller: Any, ensure_screencap: bool = True) -> tuple[int, int]:
     if controller is None:
         return (0, 0)
 
@@ -66,15 +66,10 @@ class AspectRatioChecker(TaskerEventSink):
             return
 
         # 每次任务开始时都检查（不再使用 _checked 标志）
-        logger.debug(
-            f"任务开始前检查分辨率 - task_id: {detail.task_id}, entry: {detail.entry}"
-        )
+        logger.debug(f"任务开始前检查分辨率 - task_id: {detail.task_id}, entry: {detail.entry}")
 
         # 获取控制器
         controller = tasker.controller
-        if controller is None:
-            logger.error("无法获取控制器")
-            return
 
         width, height = get_controller_resolution(controller, ensure_screencap=True)
         if width <= 0 or height <= 0:
@@ -86,14 +81,10 @@ class AspectRatioChecker(TaskerEventSink):
 
         if detail.entry == "SwitchAccount":
             if (width, height) != SWITCH_ACCOUNT_REQUIRED_RESOLUTION:
-                logger.error(
-                    f"切换账号仅支持 1280x720 实际未缩放分辨率，当前: {format_resolution(width, height)}"
-                )
+                logger.error(f"切换账号仅支持 1280x720 实际未缩放分辨率，当前: {format_resolution(width, height)}")
                 tasker.post_stop()
             else:
-                logger.debug(
-                    f"切换账号分辨率检查通过: {format_resolution(width, height)}"
-                )
+                logger.debug(f"切换账号分辨率检查通过: {format_resolution(width, height)}")
             return
 
         # 检查宽高比

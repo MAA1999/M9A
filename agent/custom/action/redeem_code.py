@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import pytz
+import pytz  # pyright: ignore[reportMissingModuleSource]
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
@@ -43,11 +43,7 @@ def _split_custom_codes(codes: Any) -> list[RedeemCodeItem]:
     else:
         raw_codes = re.split(r"[\s,，;；]+", str(codes or ""))
 
-    return [
-        RedeemCodeItem(code=code.strip(), source="custom")
-        for code in raw_codes
-        if code and code.strip()
-    ]
+    return [RedeemCodeItem(code=code.strip(), source="custom") for code in raw_codes if code and code.strip()]
 
 
 def _load_resource_codes(resource: str) -> list[RedeemCodeItem]:
@@ -73,13 +69,9 @@ def _load_resource_codes(resource: str) -> list[RedeemCodeItem]:
 
             code, date_text, time_text = parts
             try:
-                deadline = datetime.strptime(
-                    f"{date_text} {time_text}", "%Y-%m-%d %H:%M"
-                )
+                deadline = datetime.strptime(f"{date_text} {time_text}", "%Y-%m-%d %H:%M")
             except ValueError:
-                logger.warning(
-                    f"Invalid redeem code deadline at {path}:{line_no}: {line}"
-                )
+                logger.warning(f"Invalid redeem code deadline at {path}:{line_no}: {line}")
                 continue
 
             deadline = tz.localize(deadline)
@@ -105,15 +97,11 @@ def _dedupe_codes(items: list[RedeemCodeItem]) -> list[RedeemCodeItem]:
     return result
 
 
-def _get_redeem_code_store(
-    data: dict[str, Any], account_id: str | None
-) -> dict[str, Any]:
+def _get_redeem_code_store(data: dict[str, Any], account_id: str | None) -> dict[str, Any]:
     return get_account_bucket(data, "redeem_code", account_id)
 
 
-def _get_used_codes(
-    data: dict[str, Any], resource: str, account_id: str | None
-) -> set[str]:
+def _get_used_codes(data: dict[str, Any], resource: str, account_id: str | None) -> set[str]:
     store = _get_redeem_code_store(data, account_id)
     resource_store = store.get(resource, {})
 
@@ -126,9 +114,7 @@ def _get_used_codes(
     return set()
 
 
-def _mark_code_used(
-    data: dict[str, Any], resource: str, code: str, account_id: str | None
-) -> None:
+def _mark_code_used(data: dict[str, Any], resource: str, code: str, account_id: str | None) -> None:
     store = _get_redeem_code_store(data, account_id)
     resource_store = store.get(resource)
     if not isinstance(resource_store, dict):
@@ -189,7 +175,7 @@ class RedeemCode(CustomAction):
 
         check_used = bool(params.get("check", True))
         node_data = context.get_node_data(argv.node_name) or {}
-        attach = node_data.get("attach", {}) if isinstance(node_data, dict) else {}
+        attach = node_data.get("attach", {})
         if not isinstance(attach, dict):
             attach = {}
 

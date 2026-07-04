@@ -44,19 +44,13 @@ class DuringAct(CustomAction):
                 if now > item["activity"]["combat"]["start_time"]:
                     # 进行复刻时间判断节点的资源字段覆盖
                     context.override_pipeline(
-                        {
-                            "JudgeDuringRe_release": {
-                                "custom_action_param": {"resource": resource}
-                            }
-                        }
+                        {"JudgeDuringRe_release": {"custom_action_param": {"resource": resource}}}
                     )
                     # 若为主线版本，标记状态，但不直接跳过（让 CombatActivityOverride 根据 mode 决定）
                     if item["activity"]["combat"]["event_type"] == "MainStory":
                         DuringAct.is_main_story = True
                         logger.info(f"当前为主线版本：{key} {item['version_name']}")
-                        logger.info(
-                            f"距离版本结束还剩 {ms_timestamp_diff_to_dhm(now, item['end_time'])}"
-                        )
+                        logger.info(f"距离版本结束还剩 {ms_timestamp_diff_to_dhm(now, item['end_time'])}")
                         logger.info("如果您需要刷取主线关卡，请改用常规作战功能")
                         # 不复刻模式时，禁用 CombatActivityOverride 并跳过
                         # 复刻模式时，继续执行让复刻判断来处理
@@ -102,9 +96,7 @@ class CombatActivityOverride(CustomAction):
             logger.info("主线版本且未开启复刻模式，跳过当前任务")
             return CustomAction.RunResult(success=True)
 
-        with open(
-            f"data/activity/{DuringAct.resource}.json", encoding="utf-8"
-        ) as f:
+        with open(f"data/activity/{DuringAct.resource}.json", encoding="utf-8") as f:
             data = json.load(f)
 
         now = int(time.time() * 1000)
@@ -114,17 +106,13 @@ class CombatActivityOverride(CustomAction):
             if now < item["activity"]["combat"]["end_time"]:
                 if now > item["activity"]["combat"]["start_time"]:
                     if mode == 0 and item["activity"]["combat"].get("override"):
-                        context.override_pipeline(
-                            item["activity"]["combat"].get("override")
-                        )
+                        context.override_pipeline(item["activity"]["combat"].get("override"))
                     elif (
                         mode == 1
                         and item["activity"].get("re-release")
                         and item["activity"]["re-release"].get("override")
                     ):
-                        context.override_pipeline(
-                            item["activity"]["re-release"].get("override")
-                        )
+                        context.override_pipeline(item["activity"]["re-release"].get("override"))
                     return CustomAction.RunResult(success=True)
 
         return CustomAction.RunResult(success=True)
@@ -167,9 +155,7 @@ class DuringAnecdote(CustomAction):
                         f"距离轶事结束还剩 {ms_timestamp_diff_to_dhm(now, item['activity']['anecdote']['end_time'])}"
                     )
                     if item["activity"]["anecdote"].get("override"):
-                        context.override_pipeline(
-                            item["activity"]["anecdote"].get("override")
-                        )
+                        context.override_pipeline(item["activity"]["anecdote"].get("override"))
                     return CustomAction.RunResult(success=True)
                 continue
             break
@@ -209,11 +195,10 @@ class DuringRe_release(CustomAction):
             if item["activity"].get("re-release"):
                 if now < item["activity"]["re-release"]["end_time"]:
                     if now > item["activity"]["re-release"]["start_time"]:
+                        logger.info(f"当前复刻活动：{item['activity']['re-release']['name']}")
                         logger.info(
-                            f"当前复刻活动：{item['activity']['re-release']['name']}"
-                        )
-                        logger.info(
-                            f"距离复刻作战结束还剩 {ms_timestamp_diff_to_dhm(now, item['activity']['re-release']['end_time'])}"
+                            f"距离复刻作战结束还剩"
+                            f" {ms_timestamp_diff_to_dhm(now, item['activity']['re-release']['end_time'])}"
                         )
                         # 当前为合法复刻作战时间，且复刻模式开启，进行相关覆盖
                         context.override_pipeline(
@@ -221,17 +206,13 @@ class DuringRe_release(CustomAction):
                                 "ActivityMainChapter": {"enabled": True},
                                 "ActivityRe_releaseChapter": {
                                     "custom_recognition_param": {
-                                        "Re_release_name": item["activity"][
-                                            "re-release"
-                                        ]["alias"]
+                                        "Re_release_name": item["activity"]["re-release"]["alias"]
                                     }
                                 },
                             }
                         )
                         if item["activity"]["re-release"].get("override"):
-                            context.override_pipeline(
-                                item["activity"]["re-release"].get("override")
-                            )
+                            context.override_pipeline(item["activity"]["re-release"].get("override"))
                         return CustomAction.RunResult(success=True)
                     continue
                 break
@@ -276,7 +257,9 @@ class SailingRecordDiceStrategy(CustomAction):
     """
 
     @staticmethod
-    def calculate_optimal_dice_strategy(dices, target_min, target_max):
+    def calculate_optimal_dice_strategy(
+        dices: list[list[int]], target_min: int, target_max: int
+    ) -> tuple[tuple[int, int, int] | None, float]:
         """
         计算最优骰子选择策略，使得三次骰子点数之和落在目标范围内的概率最大
 
@@ -317,9 +300,7 @@ class SailingRecordDiceStrategy(CustomAction):
                                 sum_probs[total] = sum_probs.get(total, 0) + prob
 
                     # 计算和在目标范围内的总概率
-                    in_range_prob = sum(
-                        sum_probs.get(s, 0) for s in range(target_min, target_max + 1)
-                    )
+                    in_range_prob = sum(sum_probs.get(s, 0) for s in range(target_min, target_max + 1))
 
                     if in_range_prob > best_prob:
                         best_prob = in_range_prob
@@ -346,17 +327,11 @@ class SailingRecordDiceStrategy(CustomAction):
         logger.info(f"[DiceStrategy] 目标范围: {target_min}~{target_max}")
 
         # 计算最优选择策略
-        best_choice, best_prob = self.calculate_optimal_dice_strategy(
-            dices, target_min, target_max
-        )
+        best_choice, best_prob = self.calculate_optimal_dice_strategy(dices, target_min, target_max)
 
-        SailingRecordDiceStrategy.best_choice = (
-            best_choice if best_choice else (0, 0, 0)
-        )
+        SailingRecordDiceStrategy.best_choice = best_choice if best_choice else (0, 0, 0)
 
-        logger.info(
-            f"[DiceStrategy] 最佳选择: {best_choice}, 成功概率: {best_prob:.2%}"
-        )
+        logger.info(f"[DiceStrategy] 最佳选择: {best_choice}, 成功概率: {best_prob:.2%}")
 
         return CustomAction.RunResult(success=True)
 

@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta
+from typing import Any
 
-import pytz
+import pytz  # pyright: ignore[reportMissingModuleSource]
 
 
-def ms_timestamp_diff_to_dhm(timestamp1_ms, timestamp2_ms):
+def ms_timestamp_diff_to_dhm(timestamp1_ms: Any, timestamp2_ms: Any) -> str:
     """
     将两个毫秒级时间戳的差值转换为天-时-分格式
 
@@ -31,7 +32,7 @@ def ms_timestamp_diff_to_dhm(timestamp1_ms, timestamp2_ms):
     return f"{days}天-{hours}时-{minutes}分"
 
 
-def is_current_period(timestamp_ms, timezone="Asia/Shanghai"):
+def is_current_period(timestamp_ms: Any, timezone: Any = "Asia/Shanghai") -> tuple[Any, Any]:
     """
     判断毫秒级时间戳是否在当前周和当前月
 
@@ -52,9 +53,7 @@ def is_current_period(timestamp_ms, timezone="Asia/Shanghai"):
     days_since_monday = now.weekday()  # 距离最近过去的周一的天数
 
     # 计算到本周一的天数
-    week_start = now.replace(hour=5, minute=0, second=0, microsecond=0) - timedelta(
-        days=days_since_monday
-    )
+    week_start = now.replace(hour=5, minute=0, second=0, microsecond=0) - timedelta(days=days_since_monday)
 
     # 如果当前时间早于周一5点，则使用上周一作为周期开始
     if now.weekday() == 0 and now.hour < 5:  # 如果是周一且不到5点
@@ -84,9 +83,7 @@ def is_current_period(timestamp_ms, timezone="Asia/Shanghai"):
     if month_start.month == 12:
         month_end = datetime(month_start.year + 1, 1, 1, 5, 0, 0, 0, tzinfo=tz)
     else:
-        month_end = datetime(
-            month_start.year, month_start.month + 1, 1, 5, 0, 0, 0, tzinfo=tz
-        )
+        month_end = datetime(month_start.year, month_start.month + 1, 1, 5, 0, 0, 0, tzinfo=tz)
 
     # 判断是否在当前周和当前月
     is_current_week = week_start <= timestamp_datetime < week_end

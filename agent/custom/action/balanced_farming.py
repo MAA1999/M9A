@@ -1,6 +1,7 @@
 import json
 import re
 import time
+from typing import Any
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
@@ -26,7 +27,7 @@ class BalancedFarmingAnalyze(CustomAction):
 
         try:
             with open(self._DATA_PATH, encoding="utf-8") as f:
-                materials: dict[str, dict] = json.load(f)
+                materials: dict[str, dict[str, Any]] = json.load(f)
         except (OSError, json.JSONDecodeError) as e:
             logger.error(f"读取材料映射表失败: {self._DATA_PATH}, {e}")
             return CustomAction.RunResult(success=False)
@@ -61,43 +62,31 @@ class BalancedFarmingAnalyze(CustomAction):
                 counts[item_id] = min(values)
                 if len(set(values)) > 1:
                     logger.warning(
-                        f"材料 {materials[item_id]['name']}({item_id}) "
-                        f"多次读数不一致 {values}，取最小值 {min(values)}"
+                        f"材料 {materials[item_id]['name']}({item_id}) 多次读数不一致 {values}，取最小值 {min(values)}"
                     )
             elif item_id in unreadable:
-                logger.warning(
-                    f"材料 {materials[item_id]['name']}({item_id}) "
-                    "数量识别失败，本次不参与均衡"
-                )
+                logger.warning(f"材料 {materials[item_id]['name']}({item_id}) 数量识别失败，本次不参与均衡")
             else:
-                logger.warning(
-                    f"仓库中未找到材料 {materials[item_id]['name']}({item_id})，按 0 计"
-                )
+                logger.warning(f"仓库中未找到材料 {materials[item_id]['name']}({item_id})，按 0 计")
                 counts[item_id] = 0
 
         if not counts:
             logger.error("没有任何材料识别成功，终止任务")
             return CustomAction.RunResult(success=False)
 
-        summary = ", ".join(
-            f"{materials[item_id]['name']}x{counts[item_id]}"
-            for item_id in sorted(counts)
-        )
+        summary = ", ".join(f"{materials[item_id]['name']}x{counts[item_id]}" for item_id in sorted(counts))
         logger.info(f"仓库材料数量: {summary}")
 
         target_id = min(sorted(counts), key=lambda item_id: counts[item_id])
         target = materials[target_id]
         logger.info(
-            f"数量最少的材料: {target['name']}({counts[target_id]})，"
-            f"目标关卡: {target['stage']} {target['level']}"
+            f"数量最少的材料: {target['name']}({counts[target_id]})，目标关卡: {target['stage']} {target['level']}"
         )
 
         context.override_pipeline(
             {
                 "SelectCombatStage": {
-                    "action": {
-                        "param": {"custom_action_param": {"stage": target["stage"]}}
-                    },
+                    "action": {"param": {"custom_action_param": {"stage": target["stage"]}}},
                     "attach": {"level": target["level"]},
                 }
             }
@@ -105,9 +94,7 @@ class BalancedFarmingAnalyze(CustomAction):
 
         return CustomAction.RunResult(success=True)
 
-    def _recognize_item(
-        self, context: Context, img, item_id: str
-    ) -> tuple[bool, int | None]:
+    def _recognize_item(self, context: Context, img: Any, item_id: str) -> tuple[bool, int | None]:
         """匹配单个材料图标并识别其下方数量。
 
         Returns:
@@ -116,13 +103,7 @@ class BalancedFarmingAnalyze(CustomAction):
         reco_detail = context.run_recognition(
             "BF_ItemIcon",
             img,
-            {
-                "BF_ItemIcon": {
-                    "recognition": {
-                        "param": {"template": f"Warehouse/Item-{item_id}.png"}
-                    }
-                }
-            },
+            {"BF_ItemIcon": {"recognition": {"param": {"template": f"Warehouse/Item-{item_id}.png"}}}},
         )
         box = best_box(reco_detail)
         if box is None:

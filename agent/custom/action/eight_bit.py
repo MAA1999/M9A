@@ -1,5 +1,6 @@
 import random
 import time
+from typing import Any
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
@@ -92,9 +93,7 @@ class EightBitCombatInit(CustomAction):
             context.run_task("8bitExit")
             return CustomAction.RunResult(success=True)
 
-        EightBitCombatInit.wall_detection_enabled = is_hit(reco_bottom) or is_hit(
-            reco_tp
-        )
+        EightBitCombatInit.wall_detection_enabled = is_hit(reco_bottom) or is_hit(reco_tp)
         if EightBitCombatInit.wall_detection_enabled:
             logger.debug("[8bit] 开启碰壁检测")
 
@@ -195,9 +194,7 @@ class EightBitCombatMove(CustomAction):
 
         return CustomAction.RunResult(success=True)
 
-    def _move_and_check_wall(
-        self, context: Context, key: int, pos_before: tuple[int, int] | None
-    ):
+    def _move_and_check_wall(self, context: Context, key: int, pos_before: tuple[int, int] | None):
         """移动并检测是否碰壁"""
         if not EightBitCombatInit.wall_detection_enabled:
             self._move(context, key)
@@ -233,7 +230,7 @@ class EightBitCombatMove(CustomAction):
         }
         return opposites.get(key, key)
 
-    def _try_escape(self, context: Context, img) -> bool:
+    def _try_escape(self, context: Context, img: Any) -> bool:
         """尝试脱离碰壁状态，每次调用只尝试一个方向，返回是否继续"""
         for escape_key in self._escape_priority:
             if escape_key in EightBitCombatMove._tried_escape_directions:
@@ -264,11 +261,7 @@ class EightBitCombatMove(CustomAction):
             logger.debug(
                 f"[8bit] 脱离检测: new_pos={new_pos}, stuck_pos={EightBitCombatMove._stuck_pos}, 位移={pos_diff}"
             )
-            if (
-                new_pos is None
-                or EightBitCombatMove._stuck_pos is None
-                or pos_diff >= self._wall_threshold
-            ):
+            if new_pos is None or EightBitCombatMove._stuck_pos is None or pos_diff >= self._wall_threshold:
                 logger.debug("[8bit] 脱离成功")
                 EightBitCombatMove._reset_wall_state()
                 return True
@@ -299,7 +292,7 @@ class EightBitCombatMove(CustomAction):
         }
         return names.get(key, "未知")
 
-    def _detect_tp(self, context: Context, img) -> tuple[int, int] | None:
+    def _detect_tp(self, context: Context, img: Any) -> tuple[int, int] | None:
         """识别 TP 位置，返回中心 (x, y) 坐标，未识别到返回 None"""
         reco_tp = context.run_recognition_direct(
             JRecognitionType.TemplateMatch,
@@ -319,7 +312,7 @@ class EightBitCombatMove(CustomAction):
 
         return None
 
-    def _detect_people(self, context: Context, img) -> tuple[int, int] | None:
+    def _detect_people(self, context: Context, img: Any) -> tuple[int, int] | None:
         """识别人物位置，返回中心 (x, y) 坐标，未识别到返回 None"""
         reco_people = context.run_recognition_direct(
             JRecognitionType.TemplateMatch,
@@ -374,19 +367,15 @@ class EightBitCombatMove(CustomAction):
                     context.tasker.controller.post_click(pos[0], pos[1]).wait()
                     continue
 
-                logger.warning(
-                    f"[8bit] 未配置{self._key_name(key)}方向点击坐标，回退为按键移动"
-                )
+                logger.warning(f"[8bit] 未配置{self._key_name(key)}方向点击坐标，回退为按键移动")
 
             context.tasker.controller.post_click_key(key).wait()
         EightBitCombatMove._last_move_key = key
 
-    def _apply_params(self, raw_params: str | dict | None):
+    def _apply_params(self, raw_params: str | dict[str, Any] | None):
         """应用移动输入配置。"""
         try:
-            params = (
-                raw_params if isinstance(raw_params, dict) else parse_params(raw_params)
-            )
+            params = raw_params if isinstance(raw_params, dict) else parse_params(raw_params)
         except Exception as e:
             logger.warning(f"[8bit] 解析移动参数失败，使用默认按键移动: {e}")
             return
@@ -437,9 +426,7 @@ class EightBitScoreRecord(CustomAction):
 
         if not is_hit(score_detail):
             logger.warning("[8bit] 未识别到获得代币")
-            context.tasker.controller.post_click(
-                700, 600
-            ).wait()  # 点击空白处关闭可能的弹窗
+            context.tasker.controller.post_click(700, 600).wait()  # 点击空白处关闭可能的弹窗
             return CustomAction.RunResult(success=True)
 
         current_score = int(ocr_text(score_detail))
@@ -463,11 +450,7 @@ class EightBitScoreRecord(CustomAction):
                     f"效率：{efficiency:.1f} 代币/分钟"
                 )
             else:
-                logger.info(
-                    f"[8bit] 本次战斗获得代币：{current_score}，累计：{self._total_score}"
-                )
+                logger.info(f"[8bit] 本次战斗获得代币：{current_score}，累计：{self._total_score}")
 
-        context.tasker.controller.post_click(
-            700, 600
-        ).wait()  # 点击空白处关闭可能的弹窗
+        context.tasker.controller.post_click(700, 600).wait()  # 点击空白处关闭可能的弹窗
         return CustomAction.RunResult(success=True)

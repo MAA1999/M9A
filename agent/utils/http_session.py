@@ -2,7 +2,9 @@
 HTTP session helpers for update checks and resource downloads.
 """
 
-import requests
+from typing import Any
+
+import requests  # pyright: ignore[reportMissingModuleSource]
 
 NO_PROXY = {"http": "", "https": "", "all": ""}
 
@@ -12,22 +14,22 @@ class NoProxySession(requests.Session):
 
     def request(
         self,
-        method,
-        url,
-        params=None,
-        data=None,
-        headers=None,
-        cookies=None,
-        files=None,
-        auth=None,
-        timeout=None,
-        allow_redirects=True,
-        proxies=None,
-        hooks=None,
-        stream=None,
-        verify=None,
-        cert=None,
-        json=None,
+        method: Any,
+        url: Any,
+        params: Any = None,
+        data: Any = None,
+        headers: Any = None,
+        cookies: Any = None,
+        files: Any = None,
+        auth: Any = None,
+        timeout: Any = None,
+        allow_redirects: Any = True,
+        proxies: Any = None,
+        hooks: Any = None,
+        stream: Any = None,
+        verify: Any = None,
+        cert: Any = None,
+        json: Any = None,
     ):
         request_proxies = dict(proxies or {})
         request_proxies.update(NO_PROXY)

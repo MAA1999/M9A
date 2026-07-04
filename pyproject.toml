@@ -4,7 +4,8 @@ version = "0.1.0"
 description = "M9A MaaFW Agent project"
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "maafw>=5.0"
+    "maafw>=5.0",
+    "pillow>=10.0",
 ]
 
 [dependency-groups]
@@ -40,3 +41,6 @@ reportUnknownArgumentType = "none"
 reportUnknownVariableType = "none"
 reportUnknownParameterType = "none"
 reportUnknownLambdaType = "none"
+# MaaFW 的 AgentServer.custom_action / custom_recognition 装饰器签名返回 type[CustomAction]/type[CustomRecognition]，
+# 不保留子类类型，导致子类类属性访问被 pyright 误报。整个 codebase 都有此问题，统一抑制。
+reportAttributeAccessIssue = "none"

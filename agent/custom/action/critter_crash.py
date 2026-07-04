@@ -1,5 +1,6 @@
 import json
 import time
+from typing import Any
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
@@ -123,7 +124,7 @@ class CCChessboard(CustomAction):
         return cls.board
 
     @classmethod
-    def get_chess_info(cls, name: str) -> dict:
+    def get_chess_info(cls, name: str) -> dict[str, Any]:
         """获取指定棋子的信息"""
         for chess in cls.chess_types:
             if chess["name"] == name:
@@ -196,11 +197,7 @@ class CCChessboard(CustomAction):
         cls.board[row][col] = None
 
         # 从board_chesses中移除
-        cls.board_chesses = [
-            item
-            for item in cls.board_chesses
-            if not (item["row"] == row and item["col"] == col)
-        ]
+        cls.board_chesses = [item for item in cls.board_chesses if not (item["row"] == row and item["col"] == col)]
 
         return True
 
@@ -318,19 +315,13 @@ class CCBuyCard(CustomAction):
                 logger.debug(f"成功放置 {card_name} 到位置 ({row}, {col})")
                 return CustomAction.RunResult(success=True)
             else:
-                logger.debug(
-                    f"放置 {card_name} 失败（滑动已执行），请检查界面或识别结果"
-                )
+                logger.debug(f"放置 {card_name} 失败（滑动已执行），请检查界面或识别结果")
                 return CustomAction.RunResult(success=False)
 
         elif action == 1:  # 升级
             # 找到一个可以升级的位置
             for chess in CCChessboard.board_chesses:
-                if (
-                    chess["name"] == card_name
-                    and chess["level"]
-                    < CCChessboard.get_chess_info(card_name)["max_level"]
-                ):
+                if chess["name"] == card_name and chess["level"] < CCChessboard.get_chess_info(card_name)["max_level"]:
                     row, col = chess["row"], chess["col"]
                     # 计算拖拽终点（棋盘位置中心）
                     target_roi = CCChessboard.board_rois[row][col]
@@ -355,15 +346,11 @@ class CCBuyCard(CustomAction):
                         pipeline_override={"CCLevelMax": {"roi": roi_max}},
                     )
                     if is_hit(level_max_reco):
-                        max_level = CCChessboard.get_chess_info(card_name).get(
-                            "max_level", 1
-                        )
+                        max_level = CCChessboard.get_chess_info(card_name).get("max_level", 1)
                         chess["level"] = max_level
                         if CCChessboard.board[row][col] is not None:
                             CCChessboard.board[row][col]["level"] = max_level
-                        logger.debug(
-                            f"{card_name} 在位置 ({row}, {col}) 已满级，跳过升级"
-                        )
+                        logger.debug(f"{card_name} 在位置 ({row}, {col}) 已满级，跳过升级")
                         return CustomAction.RunResult(success=True)
                     context.override_image("ccupdate", roi_array)
                     context.run_task(
@@ -427,7 +414,7 @@ class CCBuyCard(CustomAction):
             logger.debug(f"未知action: {action}")
             return CustomAction.RunResult(success=False)
 
-    def _parse_detail(self, detail) -> dict | None:
+    def _parse_detail(self, detail: Any) -> dict[str, Any] | None:
         """从detail中解析type和action"""
         try:
             # 如果是dict，直接使用
@@ -457,16 +444,12 @@ class CCLevelUp(CustomAction):
         max_retries = 5
         times = 0
         while times < max_retries:
-            reco_detail = context.run_recognition(
-                "CCLevelRec", context.tasker.controller.cached_image
-            )
+            reco_detail = context.run_recognition("CCLevelRec", context.tasker.controller.cached_image)
             if is_hit(reco_detail):
                 # 识别到文字，判断等级
                 current_level = int(ocr_text(reco_detail))
                 if current_level > self.level:
-                    logger.debug(
-                        f"检测到升级，从 {self.level} 升级到 {current_level}，等待中..."
-                    )
+                    logger.debug(f"检测到升级，从 {self.level} 升级到 {current_level}，等待中...")
                     self.level = current_level
                     time.sleep(5)  # 等待升级动画
                     break

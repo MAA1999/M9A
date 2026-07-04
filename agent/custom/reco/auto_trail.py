@@ -1,4 +1,5 @@
 import re
+from typing import Any
 
 import numpy as np
 from maa.agent.agent_server import AgentServer
@@ -127,7 +128,7 @@ class ATTrailAnalyze(ParamOverrideMixin, CustomRecognition):
     CJK_RE = re.compile(r"[一-鿿]")
 
     # 跨调用状态（类属性）
-    _task_sig: tuple | None = None
+    _task_sig: tuple[Any, ...] | None = None
     _task_repeat: int = 0
     _dialog_sig: bytes | None = None
     _dialog_same: int = 0
@@ -185,11 +186,11 @@ class ATTrailAnalyze(ParamOverrideMixin, CustomRecognition):
     # ---- 像素统计（image 为 BGR ndarray） ----
 
     @staticmethod
-    def _crop(image, roi: tuple):
+    def _crop(image: Any, roi: tuple[int, int, int, int]) -> Any:
         x, y, w, h = roi
         return image[y : y + h, x : x + w].astype(np.int32)
 
-    def _orange_pixels(self, image) -> int:
+    def _orange_pixels(self, image: Any) -> int:
         c = self._crop(image, self.ORANGE_ROI)
         b, g, r = c[..., 0], c[..., 1], c[..., 2]
         v = c.max(axis=2)
@@ -204,17 +205,17 @@ class ATTrailAnalyze(ParamOverrideMixin, CustomRecognition):
         )
         return int(mask.sum())
 
-    def _cream_ratio(self, image) -> float:
+    def _cream_ratio(self, image: Any) -> float:
         c = self._crop(image, self.READ_ROI)
         v = c.max(axis=2)
         s = (v - c.min(axis=2)) * 255 // np.maximum(v, 1)
         return float(((v >= self.CREAM_V_MIN) & (s <= self.CREAM_S_MAX)).mean())
 
-    def _dark_ratio(self, image) -> float:
+    def _dark_ratio(self, image: Any) -> float:
         v = image.astype(np.int32).max(axis=2)
         return float((v < self.DARK_V_MAX).mean())
 
-    def _screen_signature(self, image) -> bytes:
+    def _screen_signature(self, image: Any) -> bytes:
         h, w = image.shape[:2]
         gray = image.astype(np.int32).max(axis=2)
         n = self.SIG_GRID
@@ -224,13 +225,13 @@ class ATTrailAnalyze(ParamOverrideMixin, CustomRecognition):
 
     # ---- 地图页判定与列表区 OCR ----
 
-    def _is_map_page(self, context: Context, image) -> bool:
+    def _is_map_page(self, context: Context, image: Any) -> bool:
         """地图页判定（活动模式标签 / 主线编号条），复用推图的通用判定。"""
         from custom.reco.auto_promotion import is_stage_map
 
         return is_stage_map(context, image)
 
-    def _scan_list(self, context: Context, image) -> tuple[list | None, list]:
+    def _scan_list(self, context: Context, image: Any) -> tuple[list[Any] | None, list[Any]]:
         """返回 (「小径」标题 box 或 None, 任务项列表[(text, box)])，任务项按 y 升序。"""
         detail = context.run_recognition("ATTrailListOCR", image)
         title_box = None
@@ -255,32 +256,26 @@ class ATTrailAnalyze(ParamOverrideMixin, CustomRecognition):
 
     # ---- 各 query ----
 
-    def _analyze_orange(self, image):
+    def _analyze_orange(self, image: Any) -> CustomRecognition.AnalyzeResult | RectType | None:
         count = self._orange_pixels(image)
         if count < self.ORANGE_MIN_PIXELS:
             return None
         ATTrailAnalyze._reset_task_counter()
         ATTrailAnalyze._reset_dialog_counter()
         logger.info(f"[AutoTrail] 命中橙色交互框（橙像素 {count}），点击")
-        return CustomRecognition.AnalyzeResult(
-            box=self.ORANGE_CLICK_BOX, detail={"orange": count}
-        )
+        return CustomRecognition.AnalyzeResult(box=self.ORANGE_CLICK_BOX, detail={"orange": count})
 
-    def _analyze_reading(self, image):
+    def _analyze_reading(self, image: Any) -> CustomRecognition.AnalyzeResult | RectType | None:
         ratio = self._cream_ratio(image)
         if ratio < self.READ_RATIO:
             return None
         ATTrailAnalyze._reset_task_counter()
         ATTrailAnalyze._reset_dialog_counter()
         logger.info(f"[AutoTrail] 命中阅读面板（米白占比 {ratio:.2f}），点击关闭")
-        return CustomRecognition.AnalyzeResult(
-            box=self.READ_CLOSE_BOX, detail={"cream": round(ratio, 2)}
-        )
+        return CustomRecognition.AnalyzeResult(box=self.READ_CLOSE_BOX, detail={"cream": round(ratio, 2)})
 
-    def _analyze_dialogue(self, context: Context, image):
-        if self._dark_ratio(image) < self.DIALOG_DARK_RATIO or self._is_map_page(
-            context, image
-        ):
+    def _analyze_dialogue(self, context: Context, image: Any) -> CustomRecognition.AnalyzeResult | RectType | None:
+        if self._dark_ratio(image) < self.DIALOG_DARK_RATIO or self._is_map_page(context, image):
             ATTrailAnalyze._dialog_pending = 0
             return None
 
@@ -304,25 +299,19 @@ class ATTrailAnalyze(ParamOverrideMixin, CustomRecognition):
         ATTrailAnalyze._reset_task_counter()
         return CustomRecognition.AnalyzeResult(box=self.DIALOG_CLICK_BOX, detail={})
 
-    def _analyze_task(self, context: Context, image):
+    def _analyze_task(self, context: Context, image: Any) -> CustomRecognition.AnalyzeResult | RectType | None:
         if not self._is_map_page(context, image):
             return None
         title_box, items = self._scan_list(context, image)
 
         if not items:
             # 无任务项但标题在：列表可能被手动收起，点标题展开确认
-            if (
-                title_box is not None
-                and ATTrailAnalyze._title_clicks < self.TITLE_CLICK_LIMIT
-            ):
+            if title_box is not None and ATTrailAnalyze._title_clicks < self.TITLE_CLICK_LIMIT:
                 ATTrailAnalyze._title_clicks += 1
                 logger.info(
-                    f"[AutoTrail] 列表无任务项但「小径」标题在，点标题展开"
-                    f"（第 {ATTrailAnalyze._title_clicks} 次）"
+                    f"[AutoTrail] 列表无任务项但「小径」标题在，点标题展开（第 {ATTrailAnalyze._title_clicks} 次）"
                 )
-                return CustomRecognition.AnalyzeResult(
-                    box=title_box, detail={"expand": True}
-                )
+                return CustomRecognition.AnalyzeResult(box=title_box, detail={"expand": True})
             return None
         ATTrailAnalyze._title_clicks = 0
         if ATTrailAnalyze._task_repeat >= self.TASK_REPEAT_LIMIT:
@@ -336,28 +325,20 @@ class ATTrailAnalyze(ParamOverrideMixin, CustomRecognition):
             ATTrailAnalyze._task_sig = sig
             ATTrailAnalyze._task_repeat = 1
         ATTrailAnalyze._reset_dialog_counter()
-        logger.info(
-            f"[AutoTrail] 小径任务「{text}」"
-            f"（第 {ATTrailAnalyze._task_repeat} 次点击），进入"
-        )
+        logger.info(f"[AutoTrail] 小径任务「{text}」（第 {ATTrailAnalyze._task_repeat} 次点击），进入")
         return CustomRecognition.AnalyzeResult(box=box, detail={"task": text})
 
-    def _analyze_done(self, context: Context, image):
+    def _analyze_done(self, context: Context, image: Any) -> CustomRecognition.AnalyzeResult | RectType | None:
         if not self._is_map_page(context, image):
             return None
         title_box, items = self._scan_list(context, image)
         if not items:
             # 标题在且还没点过展开时，先让 task 试着展开列表
-            if (
-                title_box is not None
-                and ATTrailAnalyze._title_clicks < self.TITLE_CLICK_LIMIT
-            ):
+            if title_box is not None and ATTrailAnalyze._title_clicks < self.TITLE_CLICK_LIMIT:
                 return None
             logger.info("[AutoTrail] 小径列表已空，全部任务完成")
         elif ATTrailAnalyze._task_repeat >= self.TASK_REPEAT_LIMIT:
-            logger.info(
-                "[AutoTrail] 剩余列表项反复点击无响应（应为未解锁任务），小径完成"
-            )
+            logger.info("[AutoTrail] 剩余列表项反复点击无响应（应为未解锁任务），小径完成")
         else:
             return None
         ATTrailAnalyze.reset_state()

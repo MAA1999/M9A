@@ -27,9 +27,7 @@ class ActivityRe_releaseChapter(CustomRecognition):
         argv: CustomRecognition.AnalyzeArg,
     ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
-        expected = parse_params(argv.custom_recognition_param, "Re_release_name")[
-            "Re_release_name"
-        ]
+        expected = parse_params(argv.custom_recognition_param, "Re_release_name")["Re_release_name"]
         reco_detail = context.run_recognition("ActivityLeftList", argv.image)
 
         for result in ocr_results(reco_detail):
@@ -92,9 +90,7 @@ class FindFirstUnplayedStageByCheckmark(CustomRecognition):
                 "checkmark_roi": list(checkmark_coord_tuple),  # 检查“√”的区域
                 "click_target": list(click_target_coord_tuple),  # 未通关时点击的区域
             }
-            for i, (checkmark_coord_tuple, click_target_coord_tuple) in enumerate(
-                coords_data_list
-            )
+            for i, (checkmark_coord_tuple, click_target_coord_tuple) in enumerate(coords_data_list)
         ]
 
     def analyze(
@@ -123,9 +119,7 @@ class FindFirstUnplayedStageByCheckmark(CustomRecognition):
         # 检查用的模板节点名，可自定义
         checkmark_node_name = params.get("template_node_name", "Alarm_FindStageFlag")
         # 根据模式选择遍历目标
-        targets = (
-            [stages[-1]] if mode == "Quickly" else stages if mode == "Normal" else []
-        )
+        targets = [stages[-1]] if mode == "Quickly" else stages if mode == "Normal" else []
 
         if not targets:
             logger.error(f"[Checkmark] 无效模式: '{mode}'。")
@@ -184,10 +178,8 @@ class SailingRecordSelectTarget(CustomRecognition):
 
         # level 1
         if level == 1:
-            reco_detail = context.run_recognition(
-                "SailingRecordFindDifficult", argv.image
-            )
-            if is_hit(reco_detail):
+            reco_detail = context.run_recognition("SailingRecordFindDifficult", argv.image)
+            if is_hit(reco_detail) and reco_detail.box is not None:
                 # 扩展 roi 到 click_target
                 box = [
                     reco_detail.box[0] - 317,
@@ -203,6 +195,7 @@ class SailingRecordSelectTarget(CustomRecognition):
                 )
                 text = ocr_text(reco_detail)
                 # 提取数字，支持负数
+                num1 = num2 = 0
                 match = re.search(r"(-?\d+)\s*~\s*(-?\d+)", text)
                 if match:
                     num1, num2 = int(match.group(1)), int(match.group(2))

@@ -44,9 +44,7 @@ def save_json_object(path: str | Path, data: dict[str, Any]) -> None:
         json.dump(data, file, indent=4, ensure_ascii=False)
 
 
-def get_account_bucket(
-    data: dict[str, Any], key: str, account_id: str | None
-) -> dict[str, Any]:
+def get_account_bucket(data: dict[str, Any], key: str, account_id: str | None) -> dict[str, Any]:
     normalized_account_id = normalize_account_id(account_id)
     store = data.get(key)
 
@@ -79,9 +77,7 @@ def get_account_bucket(
     return store
 
 
-def get_account_scalar(
-    data: dict[str, Any], key: str, account_id: str | None
-) -> Any | None:
+def get_account_scalar(data: dict[str, Any], key: str, account_id: str | None) -> Any | None:
     normalized_account_id = normalize_account_id(account_id)
     value = data.get(key)
 
@@ -95,9 +91,7 @@ def get_account_scalar(
     return value
 
 
-def set_account_scalar(
-    data: dict[str, Any], key: str, account_id: str | None, value: Any
-) -> None:
+def set_account_scalar(data: dict[str, Any], key: str, account_id: str | None, value: Any) -> None:
     normalized_account_id = normalize_account_id(account_id)
     current_value = data.get(key)
 

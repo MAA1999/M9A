@@ -1,8 +1,9 @@
 import json
 import platform
 from pathlib import Path
+from typing import Any
 
-import requests
+import requests  # pyright: ignore[reportMissingModuleSource]
 
 from . import logger
 from .exceptions import (
@@ -36,7 +37,7 @@ def _infer_channel_from_version(version: str) -> str:
         return "stable"
 
 
-def check_resource_version(interface_file_path: str = "./interface.json") -> dict:
+def check_resource_version(interface_file_path: str = "./interface.json") -> dict[str, Any]:
     """
     检查资源版本是否为最新
 
@@ -51,7 +52,7 @@ def check_resource_version(interface_file_path: str = "./interface.json") -> dic
             "error": str  # 错误信息（如果检查失败）
         }
     """
-    result = {
+    result: dict[str, Any] = {
         "is_latest": True,
         "current_version": "unknown",
         "latest_version": "unknown",

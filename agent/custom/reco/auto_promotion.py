@@ -1,5 +1,6 @@
 import re
 from difflib import SequenceMatcher
+from typing import Any
 
 import numpy as np
 from maa.agent.agent_server import AgentServer
@@ -11,7 +12,7 @@ from utils.maa_types import is_hit, ocr_results
 from utils.params import ParamOverrideMixin, parse_params
 
 
-def is_stage_map(context: Context, image) -> bool:
+def is_stage_map(context: Context, image: Any) -> bool:
     """关卡地图页判定（活动与主线通用）。
 
     活动地图左上有「探索模式/故事模式」标签；主线地图没有模式按钮，
@@ -19,17 +20,14 @@ def is_stage_map(context: Context, image) -> bool:
     也有缩略编号条，但详情页必有开始行动按钮，以此区分）。
     """
     detail = context.run_recognition("APExploreAnchorOCR", image)
-    if any(
-        any(word in r.text for word in ("探索", "探险", "故事"))
-        for r in ocr_results(detail)
-    ):
+    if any(any(word in r.text for word in ("探索", "探险", "故事")) for r in ocr_results(detail)):
         return True
     if not APMapAnalyze()._stage_numbers(context, image):
         return False
     return not is_hit(context.run_recognition("AP_StartAction", image))
 
 
-def _stage_map_mode_detail(context: Context, image):
+def _stage_map_mode_detail(context: Context, image: Any) -> tuple[str | None, Any | None]:
     """Best-effort map type for mode dispatch.
 
     Activity maps expose story/explore text near the top-left mode switch.
@@ -58,7 +56,7 @@ def _stage_map_mode_detail(context: Context, image):
     return None, None
 
 
-def stage_map_mode(context: Context, image) -> str | None:
+def stage_map_mode(context: Context, image: Any) -> str | None:
     mode, _ = _stage_map_mode_detail(context, image)
     return mode
 
@@ -92,18 +90,14 @@ class APModeGate(CustomRecognition):
             if mode == "plain":
                 logger.info("[AutoPromotion] 当前为主线地图，直接推图")
                 APMapAnalyze.reset_swipe_state()
-                return CustomRecognition.AnalyzeResult(
-                    box=[0, 0, 0, 0], detail={"mode": mode}
-                )
+                return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={"mode": mode})
             return None
 
         if query in {"story", "explore"}:
             if mode == query:
                 logger.info(f"[AutoPromotion] 当前已在{query}模式")
                 APMapAnalyze.reset_swipe_state()
-                return CustomRecognition.AnalyzeResult(
-                    box=box or [0, 0, 0, 0], detail={"mode": mode}
-                )
+                return CustomRecognition.AnalyzeResult(box=box or [0, 0, 0, 0], detail={"mode": mode})
             return None
 
         logger.error(f"[AutoPromotion] 无效模式闸门 query: {query}")
@@ -126,7 +120,7 @@ class APPhaseGate(CustomRecognition):
       是否启用某阶段由节点 enabled 控制（任务选项 pipeline_override）
     """
 
-    _visited: set = set()
+    _visited: set[str] = set()
 
     def analyze(
         self,
@@ -160,9 +154,7 @@ class APPhaseGate(CustomRecognition):
         # 进入新的推图阶段前重置滑动到头计数，避免上一阶段的状态串扰
         APMapAnalyze.reset_swipe_state()
         logger.info(f"[AutoPromotion] 进入阶段: {query}")
-        return CustomRecognition.AnalyzeResult(
-            box=[0, 0, 0, 0], detail={"phase": query}
-        )
+        return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={"phase": query})
 
 
 @AgentServer.custom_recognition("APCardFinder")
@@ -230,13 +222,13 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
         }
     )
 
-    _rewind_sig: tuple | None = None
+    _rewind_sig: tuple[Any, ...] | None = None
     _rewind_same: int = 0
     _rewind_done: bool = False
-    _forward_sig: tuple | None = None
+    _forward_sig: tuple[Any, ...] | None = None
     _forward_same: int = 0
     _pv_taps: int = 0
-    _card_pending: tuple | None = None
+    _card_pending: tuple[Any, ...] | None = None
     _seen_non_map: bool = False
 
     @classmethod
@@ -304,10 +296,7 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
             if len(tokens) > self.PV_MAX_TOKENS:
                 return None
             APCardFinder._pv_taps += 1
-            logger.info(
-                f"[AutoPromotion] 疑似 PV 播放中（第 {APCardFinder._pv_taps} 次），"
-                "点击唤出跳过按钮"
-            )
+            logger.info(f"[AutoPromotion] 疑似 PV 播放中（第 {APCardFinder._pv_taps} 次），点击唤出跳过按钮")
             return CustomRecognition.AnalyzeResult(box=self.PV_TAP_BOX, detail={})
 
         # 「当期活动」走主页版本名 -> 步入剧情链（AP_NavCurrentEntry /
@@ -341,9 +330,7 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
                         max(box[2], self.CARD_BODY_MIN_W),
                         self.CARD_BODY_H,
                     ]
-                    return CustomRecognition.AnalyzeResult(
-                        box=body, detail={"card": text}
-                    )
+                    return CustomRecognition.AnalyzeResult(box=body, detail={"card": text})
             APCardFinder._card_pending = None
             return None
 
@@ -384,9 +371,7 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
             return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
 
         if query == "notfound":
-            if APCardFinder._rewind_done and (
-                APCardFinder._forward_same >= self.FORWARD_LIMIT
-            ):
+            if APCardFinder._rewind_done and (APCardFinder._forward_same >= self.FORWARD_LIMIT):
                 logger.error(f"[AutoPromotion] 卡片列表已扫完，未找到「{target}」")
                 APCardFinder.reset_nav_state()
                 return CustomRecognition.AnalyzeResult(box=[0, 0, 0, 0], detail={})
@@ -422,11 +407,11 @@ class APCardFinder(ParamOverrideMixin, CustomRecognition):
         """Normalize unstable OCR variants used only for scroll-end signatures."""
         return text.replace(" ", "").replace("於", "于").strip()
 
-    def _is_image_page(self, context: Context, image) -> bool:
+    def _is_image_page(self, context: Context, image: Any) -> bool:
         detail = context.run_recognition("APImagePageOCR", image)
         return any("显影罐" in result.text for result in ocr_results(detail))
 
-    def _card_titles(self, context: Context, image) -> list[tuple[str, list[int]]]:
+    def _card_titles(self, context: Context, image: Any) -> list[tuple[str, list[int]]]:
         detail = context.run_recognition("APCardTitleOCR", image)
         titles = []
         for result in ocr_results(detail):
@@ -571,7 +556,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
 
     # 滑动到头检测状态（类属性，跨调用保留）
     _right_empty_count: int = 0
-    _pending_zero_stage: tuple | None = None
+    _pending_zero_stage: tuple[Any, ...] | None = None
     _pending_zero_count: int = 0
     ZERO_STAGE_CONFIRM = 2
 
@@ -624,9 +609,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
                     APMapAnalyze._pending_zero_stage = signature
                     APMapAnalyze._pending_zero_count = 1
                 if APMapAnalyze._pending_zero_count < self.ZERO_STAGE_CONFIRM:
-                    logger.info(
-                        f"[AutoPromotion] 关卡 {text} 亮星暂为 0，等待下一帧确认"
-                    )
+                    logger.info(f"[AutoPromotion] 关卡 {text} 亮星暂为 0，等待下一帧确认")
                     return None
             logger.info(f"[AutoPromotion] 关卡 {text} 未完成（{detail}），进入")
             APMapAnalyze.reset_swipe_state()
@@ -643,9 +626,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
         # 滑到头判定：屏幕右半没有关卡编号 = 最后一关已滑过屏幕中线。
         # 连续两帧确认（章节交界处右半可能短暂无编号）。
         # 不能用画面哈希（1987 星空背景持续动画，静止画面哈希也不稳定）
-        right_has_stage = any(
-            box[0] + box[2] / 2 > self.RIGHT_HALF_X for _, _, box in tokens
-        )
+        right_has_stage = any(box[0] + box[2] / 2 > self.RIGHT_HALF_X for _, _, box in tokens)
         if right_has_stage:
             APMapAnalyze._right_empty_count = 0
         else:
@@ -668,18 +649,13 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
         logger.error(f"[AutoPromotion] 无效 query: {query}")
         return None
 
-    def _is_explore_map(self, context: Context, image) -> bool:
+    def _is_explore_map(self, context: Context, image: Any) -> bool:
         """地图页左上角常驻模式标签（探索模式/故事模式），章节交界处也在；
         对话/主界面没有。"""
         detail = context.run_recognition("APExploreAnchorOCR", image)
-        return any(
-            any(word in result.text for word in self.ANCHOR_KEYWORDS)
-            for result in ocr_results(detail)
-        )
+        return any(any(word in result.text for word in self.ANCHOR_KEYWORDS) for result in ocr_results(detail))
 
-    def _stage_numbers(
-        self, context: Context, image
-    ) -> list[tuple[str, int, list[int]]]:
+    def _stage_numbers(self, context: Context, image: Any) -> list[tuple[str, int, list[int]]]:
         """OCR 地图底部条，返回 (原文, 编号, box)，按编号升序。"""
         detail = context.run_recognition("APStageNumberOCR", image)
         tokens = []
@@ -694,9 +670,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
         tokens.sort(key=lambda item: item[1])
         return tokens
 
-    def _parse_stage_number(
-        self, text: str, box: list[int]
-    ) -> tuple[int, list[int]] | None:
+    def _parse_stage_number(self, text: str, box: list[int]) -> tuple[int, list[int]] | None:
         text = text.strip()
         m = self.NUM_RE.match(text)
         if m:
@@ -718,9 +692,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
             return self._valid_stage_number(int(stage), box)
         return None
 
-    def _valid_stage_number(
-        self, stage_num: int, box: list[int]
-    ) -> tuple[int, list[int]] | None:
+    def _valid_stage_number(self, stage_num: int, box: list[int]) -> tuple[int, list[int]] | None:
         if self.STAGE_NUM_MIN <= stage_num <= self.STAGE_NUM_MAX:
             return stage_num, box
         return None
@@ -734,7 +706,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
             and self.STAGE_BOX_H_MIN <= box[3] <= self.STAGE_BOX_H_MAX
         )
 
-    def _lit_pixel_count(self, image, box: list[int]) -> int:
+    def _lit_pixel_count(self, image: Any, box: list[int]) -> int:
         """统计编号邻域内高饱和高亮像素数（亮星像素）。image 为 BGR ndarray。"""
         h_img, w_img = image.shape[:2]
         x0 = max(box[0] - self.ZONE_PAD_LEFT, 0)
@@ -749,9 +721,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
         s = (v - c.min(axis=2)) * 255 // np.maximum(v, 1)
         return int(((v >= self.VAL_MIN) & (s >= self.SAT_MIN)).sum())
 
-    def _stage_complete(
-        self, image, box: list[int], stage_num: int, text: str = ""
-    ) -> tuple[bool, str]:
+    def _stage_complete(self, image: Any, box: list[int], stage_num: int, text: str = "") -> tuple[bool, str]:
         lit = self._lit_pixel_count(image, box)
         # 单星判定优先：编号邻域有足够亮像素即视为已通关（含两颗星的普通关卡）。
         # 三难度分组仅在亮像素不足时介入，避免背景美术误触发多难度检测
@@ -769,9 +739,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
     def _needs_zero_stage_confirm(self, detail: str) -> bool:
         return detail == "亮像素 0"
 
-    def _multi_difficulty_groups(
-        self, image, box: list[int], text: str = ""
-    ) -> list[bool] | None:
+    def _multi_difficulty_groups(self, image: Any, box: list[int], text: str = "") -> list[bool] | None:
         if not self._looks_multi_difficulty(image, box, text):
             return None
 
@@ -791,7 +759,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
             result.append(int(lit_mask[:, x0:x1].sum()) >= self.DIFFICULTY_LIT_PIXELS)
         return result
 
-    def _looks_multi_difficulty(self, image, box: list[int], text: str = "") -> bool:
+    def _looks_multi_difficulty(self, image: Any, box: list[int], text: str = "") -> bool:
         if self._has_multi_text_prefix(text):
             return True
 
@@ -818,7 +786,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
     def _has_multi_text_prefix(self, text: str) -> bool:
         return bool(re.match(r"^[^\dA-Za-z\u4e00-\u9fff]{1,3}\s*\d", text.strip()))
 
-    def _star_row_crop(self, image, box: list[int]):
+    def _star_row_crop(self, image: Any, box: list[int]) -> Any:
         h_img, w_img = image.shape[:2]
         x0 = self._star_x0(box, w_img)
         y0 = max(box[1] - self.STAR_ROW_UP, 0)
@@ -826,7 +794,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
         y1 = min(box[1] + self.STAR_ROW_DOWN, h_img)
         return image[y0:y1, x0:x1]
 
-    def _multi_marker_crop(self, image, box: list[int]):
+    def _multi_marker_crop(self, image: Any, box: list[int]) -> Any:
         h_img, w_img = image.shape[:2]
         x0 = max(box[0] - self.MARKER_PAD_LEFT, 0)
         y0 = max(box[1] - self.MARKER_PAD_TOP, 0)
@@ -838,8 +806,7 @@ class APMapAnalyze(ParamOverrideMixin, CustomRecognition):
         number_width = min(box[2], self.STAR_NUM_WIDTH_CAP)
         return max(
             min(
-                box[0]
-                + max(number_width - self.STAR_X0_BACKOFF, self.STAR_X0_MIN_OFFSET),
+                box[0] + max(number_width - self.STAR_X0_BACKOFF, self.STAR_X0_MIN_OFFSET),
                 image_width,
             ),
             0,

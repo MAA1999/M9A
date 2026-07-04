@@ -1,6 +1,7 @@
 import re
 import time
 from dataclasses import dataclass
+from typing import Any
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
@@ -43,9 +44,7 @@ class SwitchAccountSelect(CustomAction):
             img = context.tasker.controller.post_screencap().wait().get()
             accounts = self._get_visible_accounts(context, img)
             if not accounts:
-                logger.error(
-                    "SwitchAccountSelect failed to recognize any visible accounts"
-                )
+                logger.error("SwitchAccountSelect failed to recognize any visible accounts")
                 return CustomAction.RunResult(success=False)
 
             self._log_visible_accounts(accounts, page_index + 1)
@@ -81,7 +80,7 @@ class SwitchAccountSelect(CustomAction):
         logger.error(f"未找到目标账号: {target_account}")
         return CustomAction.RunResult(success=False)
 
-    def _get_visible_accounts(self, context: Context, img) -> list[_VisibleAccount]:
+    def _get_visible_accounts(self, context: Context, img: Any) -> list[_VisibleAccount]:
         anchors = self._get_row_anchors(context, img)
         if not anchors:
             return []
@@ -119,9 +118,7 @@ class SwitchAccountSelect(CustomAction):
 
         return accounts
 
-    def _get_row_anchors(
-        self, context: Context, img
-    ) -> list[tuple[int, int, int, int]]:
+    def _get_row_anchors(self, context: Context, img: Any) -> list[tuple[int, int, int, int]]:
         for node_name in ("SwitchAccountRowAnchor", "SwitchAccountRowAnchor_1440p"):
             reco_detail = context.run_recognition(node_name, img)
             anchors = self._extract_boxes(reco_detail)
@@ -129,7 +126,7 @@ class SwitchAccountSelect(CustomAction):
                 return anchors
         return []
 
-    def _extract_boxes(self, reco_detail) -> list[tuple[int, int, int, int]]:
+    def _extract_boxes(self, reco_detail: Any) -> list[tuple[int, int, int, int]]:
         if not is_hit(reco_detail):
             return []
 
@@ -148,18 +145,12 @@ class SwitchAccountSelect(CustomAction):
 
         deduped: list[tuple[int, int, int, int]] = []
         for box in boxes:
-            if (
-                deduped
-                and abs((deduped[-1][1] + deduped[-1][3] / 2) - (box[1] + box[3] / 2))
-                < 20
-            ):
+            if deduped and abs((deduped[-1][1] + deduped[-1][3] / 2) - (box[1] + box[3] / 2)) < 20:
                 continue
             deduped.append(box)
         return deduped
 
-    def _read_row_text(
-        self, context: Context, img, row_roi: tuple[int, int, int, int]
-    ) -> str:
+    def _read_row_text(self, context: Context, img: Any, row_roi: tuple[int, int, int, int]) -> str:
         reco_detail = context.run_recognition_direct(
             JRecognitionType.OCR,
             JOCR(roi=row_roi, order_by="Vertical"),
@@ -181,9 +172,7 @@ class SwitchAccountSelect(CustomAction):
 
         return " ".join(texts)
 
-    def _click_account_row(
-        self, context: Context, row_roi: tuple[int, int, int, int]
-    ) -> None:
+    def _click_account_row(self, context: Context, row_roi: tuple[int, int, int, int]) -> None:
         x, y, w, h = row_roi
         context.tasker.controller.post_click(x + w // 2, y + h // 2).wait()
         time.sleep(1)
@@ -198,16 +187,12 @@ class SwitchAccountSelect(CustomAction):
         ).wait()
         time.sleep(1)
 
-    def _log_visible_accounts(
-        self, accounts: list[_VisibleAccount], page_index: int
-    ) -> None:
+    def _log_visible_accounts(self, accounts: list[_VisibleAccount], page_index: int) -> None:
         visible = [account.text or "<empty>" for account in accounts]
         logger.info(f"page {page_index}: {' | '.join(visible)}")
 
     def _build_page_signature(self, accounts: list[_VisibleAccount]) -> tuple[str, ...]:
-        return tuple(
-            account.normalized_text for account in accounts if account.normalized_text
-        )
+        return tuple(account.normalized_text for account in accounts if account.normalized_text)
 
     def _match_target(self, target: str, candidate: str) -> bool:
         if not target or not candidate:

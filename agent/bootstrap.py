@@ -198,9 +198,7 @@ def install_from_local_wheels(project_root: Path, requirements: Path) -> bool:
     )
 
 
-def install_from_indexes(
-    project_root: Path, requirements: Path, pip_config: dict[str, Any]
-) -> bool:
+def install_from_indexes(project_root: Path, requirements: Path, pip_config: dict[str, Any]) -> bool:
     command = [
         sys.executable,
         "-m",

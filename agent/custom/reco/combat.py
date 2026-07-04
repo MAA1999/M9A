@@ -133,9 +133,7 @@ class CandyPageRecord(CustomRecognition):
         remaining_ap = 0
         max_ap = 240
 
-        reco_remaining = context.run_recognition(
-            "CandyRecognizeRemainingAp", argv.image
-        )
+        reco_remaining = context.run_recognition("CandyRecognizeRemainingAp", argv.image)
         if is_hit(reco_remaining):
             digits = "".join(ch for ch in ocr_text(reco_remaining) if ch.isdigit())
             if digits:
@@ -181,9 +179,7 @@ class CandyPageRecord(CustomRecognition):
                 valid_period_text = ocr_text(reco_detail1).strip()
 
             recorded_candies[candy_name]["valid_period_text"] = valid_period_text
-            recorded_candies[candy_name]["valid_period_hours"] = (
-                parse_valid_period_to_hours(valid_period_text)
-            )
+            recorded_candies[candy_name]["valid_period_hours"] = parse_valid_period_to_hours(valid_period_text)
 
         # 获取用户设置
         node_obj = context.get_node_object("EatCandyStart")
@@ -195,10 +191,7 @@ class CandyPageRecord(CustomRecognition):
         # 计算可恢复的体力空间
         ap_space = max_ap - remaining_ap
 
-        logger.debug(
-            f"用户设置：有效期={user_period_option}, 阈值={threshold_hours}小时, "
-            f"快速模式={fast_mode}"
-        )
+        logger.debug(f"用户设置：有效期={user_period_option}, 阈值={threshold_hours}小时, 快速模式={fast_mode}")
         logger.debug(f"当前体力：{remaining_ap}/{max_ap}, 可恢复空间：{ap_space}")
 
         # 快速模式：体力已满则不吃糖
@@ -209,10 +202,7 @@ class CandyPageRecord(CustomRecognition):
         # 非快速模式：检查是否已经吃过糖
         if fast_mode == 0 and CandyPageRecord._has_eaten_once:
             # 获取当前各糖果数量
-            current_counts = {
-                name: recorded_candies[name].get("count", 0)
-                for name in self.candy_names
-            }
+            current_counts = {name: recorded_candies[name].get("count", 0) for name in self.candy_names}
             # 比较数量是否有变化（排除 MiniCandy，因为它由单独节点处理）
             counts_changed = False
             for name in ["OverflowCandy", "SmallCandy", "BigCandy"]:
@@ -274,9 +264,7 @@ class CandyPageRecord(CustomRecognition):
 
             if should_eat:
                 candy_info["eat_count"] = 1
-                candy_info["total_restore"] = self.candy_restore_values.get(
-                    candy_name, 60
-                )
+                candy_info["total_restore"] = self.candy_restore_values.get(candy_name, 60)
                 candy_info["counts_as_eat"] = True
                 found_candy = True
                 candies_to_eat.append(candy_name)
@@ -301,17 +289,14 @@ class CandyPageRecord(CustomRecognition):
         # 检查要吃的糖的恢复体力是否超过可恢复空间
         total_restore = current_candy_info["total_restore"]
         if total_restore > ap_space:
-            logger.debug(
-                f"糖果 {current_candy_name} 恢复体力 {total_restore} 超过可恢复空间 {ap_space}，跳过吃糖"
-            )
+            logger.debug(f"糖果 {current_candy_name} 恢复体力 {total_restore} 超过可恢复空间 {ap_space}，跳过吃糖")
             return None
 
         # 非快速模式：标记已吃过一次糖，并记录当前数量
         if fast_mode == 0:
             CandyPageRecord._has_eaten_once = True
             CandyPageRecord._last_candy_counts = {
-                name: recorded_candies[name].get("count", 0)
-                for name in self.candy_names
+                name: recorded_candies[name].get("count", 0) for name in self.candy_names
             }
 
         return CustomRecognition.AnalyzeResult(

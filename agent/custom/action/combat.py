@@ -12,15 +12,15 @@ from utils.params import parse_params
 # 尝试导入掉落识别模块（仅官方发布版可用）
 DropRecognitionState: Any = None
 run_drop_recognition: Any = None
+_drop_recognition_available: bool = False
 try:
     from libs.drop_core import (  # pyright: ignore[reportMissingImports]
         DropRecognitionState,
         run_drop_recognition,
     )  # pyright: ignore[reportMissingImports]
 
-    _DROP_RECOGNITION_AVAILABLE = True
+    _drop_recognition_available = True
 except ImportError:
-    _DROP_RECOGNITION_AVAILABLE = False
     logger.warning("掉落识别模块不可用，掉落上报功能已禁用")
 
 
@@ -93,9 +93,7 @@ class PsychubeDoubleTimes(CustomAction):
                     "PsychubeVictoryOverrideTask": {
                         "custom_action_param": {
                             "PsychubeFlagInReplayTwoTimes": {"expected": f"{expected}"},
-                            "SwitchCombatTimes": {
-                                "custom_action_param": {"times": times}
-                            },
+                            "SwitchCombatTimes": {"custom_action_param": {"times": times}},
                             "PsychubeVictory": {
                                 "next": [
                                     "HomeFlag",
@@ -142,13 +140,7 @@ class TeamSelect(CustomAction):
         reco_off_old = context.run_recognition(
             "TeamlistOff",
             img,
-            {
-                "TeamlistOff": {
-                    "recognition": {
-                        "param": {"template": "Combat/TeamList_Off_old.png"}
-                    }
-                }
-            },
+            {"TeamlistOff": {"recognition": {"param": {"template": "Combat/TeamList_Off_old.png"}}}},
         )
         reco_open_old = context.run_recognition(
             "TeamlistOpen",
@@ -176,7 +168,6 @@ class TeamSelect(CustomAction):
             target = target_list[team - 1]
             flag = False
             while not flag:
-
                 img = context.tasker.controller.post_screencap().wait().get()
 
                 reco_open_old = context.run_recognition(
@@ -201,13 +192,7 @@ class TeamSelect(CustomAction):
                     reco_off_old = context.run_recognition(
                         "TeamlistOff",
                         img,
-                        {
-                            "TeamlistOff": {
-                                "recognition": {
-                                    "param": {"template": "Combat/TeamList_Off_old.png"}
-                                }
-                            }
-                        },
+                        {"TeamlistOff": {"recognition": {"param": {"template": "Combat/TeamList_Off_old.png"}}}},
                     )
                     if is_hit(reco_off_old):
                         context.tasker.controller.post_click(965, 650).wait()
@@ -217,13 +202,7 @@ class TeamSelect(CustomAction):
             reco_off_new = context.run_recognition(
                 "TeamlistOff",
                 img,
-                {
-                    "TeamlistOff": {
-                        "recognition": {
-                            "param": {"template": "Combat/TeamList_Off.png"}
-                        }
-                    }
-                },
+                {"TeamlistOff": {"recognition": {"param": {"template": "Combat/TeamList_Off.png"}}}},
             )
             if not is_hit(reco_off_new):
                 logger.debug("未识别到队伍选择界面")
@@ -231,7 +210,6 @@ class TeamSelect(CustomAction):
             flag = False
             team_names, team_uses = [], {}
             while not flag:
-
                 img = context.tasker.controller.post_screencap().wait().get()
 
                 reco_open_new = context.run_recognition(
@@ -323,9 +301,7 @@ class TeamSelect(CustomAction):
                         # 识别完当页所有队伍信息，判断目标队伍是否存在
                         if team > len(team_names):
                             # 目标队伍不在当页，翻页并进行下一轮识别
-                            context.tasker.controller.post_swipe(
-                                980, 630, 980, 190, 1000
-                            ).wait()
+                            context.tasker.controller.post_swipe(980, 630, 980, 190, 1000).wait()
                             time.sleep(1)
                             continue
                         elif team <= len(team_names):
@@ -338,11 +314,7 @@ class TeamSelect(CustomAction):
                                 while exit_retry < 5:
                                     context.run_task("BackButton")
                                     time.sleep(1)
-                                    img = (
-                                        context.tasker.controller.post_screencap()
-                                        .wait()
-                                        .get()
-                                    )
+                                    img = context.tasker.controller.post_screencap().wait().get()
                                     reco_open_new = context.run_recognition(
                                         "TeamlistOpen",
                                         img,
@@ -372,18 +344,10 @@ class TeamSelect(CustomAction):
                                         logger.warning("队伍选择失败，超过最大重试次数")
                                         return CustomAction.RunResult(success=True)
                                     x, y, w, h = target_team_use["roi"]
-                                    context.tasker.controller.post_click(
-                                        x + w // 2, y + h // 2
-                                    ).wait()
+                                    context.tasker.controller.post_click(x + w // 2, y + h // 2).wait()
                                     time.sleep(1)
-                                    img = (
-                                        context.tasker.controller.post_screencap()
-                                        .wait()
-                                        .get()
-                                    )
-                                    reco_detail = context.run_recognition(
-                                        "ReadyForAction", img
-                                    )
+                                    img = context.tasker.controller.post_screencap().wait().get()
+                                    reco_detail = context.run_recognition("ReadyForAction", img)
 
                                     if is_hit(reco_detail):
                                         break
@@ -394,13 +358,7 @@ class TeamSelect(CustomAction):
                     reco_off_new = context.run_recognition(
                         "TeamlistOff",
                         img,
-                        {
-                            "TeamlistOff": {
-                                "recognition": {
-                                    "param": {"template": "Combat/TeamList_Off.png"}
-                                }
-                            }
-                        },
+                        {"TeamlistOff": {"recognition": {"param": {"template": "Combat/TeamList_Off.png"}}}},
                     )
                     if is_hit(reco_off_new):
                         # 识别到不在队伍选择界面，点击打开
@@ -437,9 +395,7 @@ class CombatTargetLevel(CustomAction):
         reco_detail = context.run_recognition("TargetLevelRec", img)
 
         reco_text = ocr_text(reco_detail)
-        if not reco_text or not any(
-            difficulty in reco_text for difficulty in valid_levels
-        ):
+        if not reco_text or not any(difficulty in reco_text for difficulty in valid_levels):
             logger.warning("未识别到当前难度")
             return CustomAction.RunResult(success=False)
 
@@ -495,9 +451,7 @@ class ActivityTargetLevel(CustomAction):
         reco_detail = context.run_recognition("ActivityTargetLevelRec", img)
 
         reco_text = ocr_text(reco_detail)
-        if not reco_text or not any(
-            difficulty in reco_text for difficulty in valid_levels
-        ):
+        if not reco_text or not any(difficulty in reco_text for difficulty in valid_levels):
             logger.warning("未识别到当前难度")
             return CustomAction.RunResult(success=False)
 
@@ -518,14 +472,10 @@ class ActivityTargetLevel(CustomAction):
                 time.sleep(0.5)
             else:
                 if level == "故事":
-                    context.tasker.controller.post_click(
-                        click[0][0], click[0][1]
-                    ).wait()
+                    context.tasker.controller.post_click(click[0][0], click[0][1]).wait()
                     time.sleep(0.5)
                 else:
-                    context.tasker.controller.post_click(
-                        click[1][0], click[1][1]
-                    ).wait()
+                    context.tasker.controller.post_click(click[1][0], click[1][1]).wait()
                     time.sleep(0.5)
 
             img = context.tasker.controller.post_screencap().wait().get()
@@ -581,7 +531,6 @@ class SelectChapter(CustomAction):
 
 @AgentServer.custom_action("SelectCombatStage")
 class SelectCombatStage(CustomAction):
-
     # 类静态变量，用于跨任务传递关卡信息
     stage = None
     # stageName = None
@@ -620,19 +569,13 @@ class SelectCombatStage(CustomAction):
 
         # 判断是否主线章节（数字），并确定大章节编号
         if mainChapter.isdigit():
-            mainStoryChapter = (
-                1 if int(mainChapter) <= 7 else 2 if int(mainChapter) <= 10 else 3
-            )
+            mainStoryChapter = 1 if int(mainChapter) <= 7 else 2 if int(mainChapter) <= 10 else 3
             # 主线关卡流程
             pipeline = {
                 "EnterTheShowFlag": {"next": ["MainChapter_X"]},
-                "MainChapter_XEnter": {
-                    "template": [f"Combat/MainChapter_{mainChapter}Enter.png"]
-                },
+                "MainChapter_XEnter": {"template": [f"Combat/MainChapter_{mainChapter}Enter.png"]},
                 "TargetStageName_OCR": {"expected": [f"{targetStageName}"]},
-                "StageDifficulty": {
-                    "next": [f"StageDifficulty_{level}", "TargetStageName"]
-                },
+                "StageDifficulty": {"next": [f"StageDifficulty_{level}", "TargetStageName"]},
                 # 掉落识别相关节点
                 "TargetCountVictory": {
                     "action": {"type": "DoNothing"},
@@ -676,9 +619,7 @@ class SelectCombatStage(CustomAction):
             pipeline = {
                 "EnterTheShowFlag": {"next": [f"ResourceChapter_{mainChapter}"]},
                 "TargetStageName_OCR": {"expected": [f"{targetStageName}"]},
-                "StageDifficulty": {
-                    "next": [f"StageDifficulty_{level}", "TargetStageName"]
-                },
+                "StageDifficulty": {"next": [f"StageDifficulty_{level}", "TargetStageName"]},
             }
 
         context.override_pipeline(pipeline)
@@ -705,7 +646,7 @@ def _tc_safe_int(text: str) -> int:
         return 0
 
 
-def _tc_get_text_safe(context: Context, img, rec_name: str) -> str:
+def _tc_get_text_safe(context: Context, img: Any, rec_name: str) -> str:
     rec = context.run_recognition(rec_name, img)
     text = ocr_text(rec)
     if not text:
@@ -756,7 +697,7 @@ class TargetCountInit(CustomAction):
         _TargetCountState.candy_attempts = 0
 
         # 清空之前的掉落统计
-        if _DROP_RECOGNITION_AVAILABLE:
+        if _drop_recognition_available:
             DropRecognitionState.reset_total()
 
         logger.info(f"目标刷图次数：{target_count}")
@@ -793,9 +734,7 @@ class TargetCountDetermine(CustomAction):
         )
         if times > 0:
             _TargetCountState.current_times = times
-            logger.info(
-                f"准备复现 {times} 次，累计已刷 {_TargetCountState.already_count} 次"
-            )
+            logger.info(f"准备复现 {times} 次，累计已刷 {_TargetCountState.already_count} 次")
             context.override_next("TargetCountDetermine", ["TargetCountOpenPanel"])
             return CustomAction.RunResult(success=True)
 
@@ -903,7 +842,7 @@ class TargetCountFinish(CustomAction):
         logger.info(f"任务结束，总共刷了 {_TargetCountState.already_count} 次")
 
         # 输出掉落总结
-        if _DROP_RECOGNITION_AVAILABLE:
+        if _drop_recognition_available:
             DropRecognitionState.print_total_summary(context)
             DropRecognitionState.reset_total()
 
@@ -923,9 +862,7 @@ class TargetCountAbort(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        logger.error(
-            f"无法获取可复现次数，终止刷图任务，已刷 {_TargetCountState.already_count} 次"
-        )
+        logger.error(f"无法获取可复现次数，终止刷图任务，已刷 {_TargetCountState.already_count} 次")
         context.run_task("HomeButton")
         return CustomAction.RunResult(success=False)
 
@@ -1001,7 +938,7 @@ class EatCandyStart(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        params: dict | None = context.get_node_data("EatCandyStart")
+        params: dict[str, Any] | None = context.get_node_data("EatCandyStart")
         if not params:
             logger.error("EatCandyStart 节点不存在")
             return CustomAction.RunResult(success=False)
@@ -1040,7 +977,7 @@ class DropRecognition(CustomAction):
         context: Context,
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
-        if not _DROP_RECOGNITION_AVAILABLE:
+        if not _drop_recognition_available:
             return CustomAction.RunResult(success=True)
 
         success = run_drop_recognition(

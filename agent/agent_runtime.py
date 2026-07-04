@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+from typing import Any
 
 from utils import logger
 from utils.runtime_paths import configure_runtime_paths, get_runtime_paths
@@ -19,7 +20,7 @@ PI_ENV_KEYS = (
 )
 
 
-def _read_hot_update_config() -> dict:
+def _read_hot_update_config() -> dict[str, Any]:
     """读取热更新配置"""
     paths = get_runtime_paths()
     config_path = paths.config_dir / "hot_update.json"

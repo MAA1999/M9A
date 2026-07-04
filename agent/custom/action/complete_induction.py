@@ -134,12 +134,8 @@ _RESEARCHER_PAGE_LAYOUTS: tuple[tuple[CIResearcherCardSpec, ...], ...] = (
                 upper=((35, 180, 255),),
                 count=140,
             ),
-            unlockable=CIRecognitionSpec(
-                kind="ocr", roi=(300, 176, 66, 54), expected=("解锁",)
-            ),
-            blocked=CIRecognitionSpec(
-                kind="ocr", roi=(270, 248, 120, 32), expected=("评级",)
-            ),
+            unlockable=CIRecognitionSpec(kind="ocr", roi=(300, 176, 66, 54), expected=("解锁",)),
+            blocked=CIRecognitionSpec(kind="ocr", roi=(270, 248, 120, 32), expected=("评级",)),
         ),
         CIResearcherCardSpec(
             page=0,
@@ -154,12 +150,8 @@ _RESEARCHER_PAGE_LAYOUTS: tuple[tuple[CIResearcherCardSpec, ...], ...] = (
                 upper=((35, 180, 255),),
                 count=140,
             ),
-            unlockable=CIRecognitionSpec(
-                kind="ocr", roi=(484, 176, 66, 54), expected=("解锁",)
-            ),
-            blocked=CIRecognitionSpec(
-                kind="ocr", roi=(454, 248, 120, 32), expected=("评级",)
-            ),
+            unlockable=CIRecognitionSpec(kind="ocr", roi=(484, 176, 66, 54), expected=("解锁",)),
+            blocked=CIRecognitionSpec(kind="ocr", roi=(454, 248, 120, 32), expected=("评级",)),
         ),
         CIResearcherCardSpec(
             page=0,
@@ -174,12 +166,8 @@ _RESEARCHER_PAGE_LAYOUTS: tuple[tuple[CIResearcherCardSpec, ...], ...] = (
                 upper=((35, 180, 255),),
                 count=140,
             ),
-            unlockable=CIRecognitionSpec(
-                kind="ocr", roi=(668, 176, 66, 54), expected=("解锁",)
-            ),
-            blocked=CIRecognitionSpec(
-                kind="ocr", roi=(638, 248, 120, 32), expected=("评级",)
-            ),
+            unlockable=CIRecognitionSpec(kind="ocr", roi=(668, 176, 66, 54), expected=("解锁",)),
+            blocked=CIRecognitionSpec(kind="ocr", roi=(638, 248, 120, 32), expected=("评级",)),
         ),
         CIResearcherCardSpec(
             page=0,
@@ -194,12 +182,8 @@ _RESEARCHER_PAGE_LAYOUTS: tuple[tuple[CIResearcherCardSpec, ...], ...] = (
                 upper=((35, 180, 255),),
                 count=140,
             ),
-            unlockable=CIRecognitionSpec(
-                kind="ocr", roi=(116, 380, 66, 54), expected=("解锁",)
-            ),
-            blocked=CIRecognitionSpec(
-                kind="ocr", roi=(86, 452, 120, 32), expected=("评级",)
-            ),
+            unlockable=CIRecognitionSpec(kind="ocr", roi=(116, 380, 66, 54), expected=("解锁",)),
+            blocked=CIRecognitionSpec(kind="ocr", roi=(86, 452, 120, 32), expected=("评级",)),
         ),
         CIResearcherCardSpec(
             page=0,
@@ -214,12 +198,8 @@ _RESEARCHER_PAGE_LAYOUTS: tuple[tuple[CIResearcherCardSpec, ...], ...] = (
                 upper=((35, 180, 255),),
                 count=140,
             ),
-            unlockable=CIRecognitionSpec(
-                kind="ocr", roi=(300, 380, 66, 54), expected=("解锁",)
-            ),
-            blocked=CIRecognitionSpec(
-                kind="ocr", roi=(270, 452, 120, 32), expected=("评级",)
-            ),
+            unlockable=CIRecognitionSpec(kind="ocr", roi=(300, 380, 66, 54), expected=("解锁",)),
+            blocked=CIRecognitionSpec(kind="ocr", roi=(270, 452, 120, 32), expected=("评级",)),
         ),
         CIResearcherCardSpec(
             page=0,
@@ -234,12 +214,8 @@ _RESEARCHER_PAGE_LAYOUTS: tuple[tuple[CIResearcherCardSpec, ...], ...] = (
                 upper=((35, 180, 255),),
                 count=140,
             ),
-            unlockable=CIRecognitionSpec(
-                kind="ocr", roi=(484, 380, 66, 54), expected=("解锁",)
-            ),
-            blocked=CIRecognitionSpec(
-                kind="ocr", roi=(454, 452, 120, 32), expected=("评级",)
-            ),
+            unlockable=CIRecognitionSpec(kind="ocr", roi=(484, 380, 66, 54), expected=("解锁",)),
+            blocked=CIRecognitionSpec(kind="ocr", roi=(454, 452, 120, 32), expected=("评级",)),
         ),
         CIResearcherCardSpec(
             page=0,
@@ -254,12 +230,8 @@ _RESEARCHER_PAGE_LAYOUTS: tuple[tuple[CIResearcherCardSpec, ...], ...] = (
                 upper=((35, 180, 255),),
                 count=140,
             ),
-            unlockable=CIRecognitionSpec(
-                kind="ocr", roi=(668, 380, 66, 54), expected=("解锁",)
-            ),
-            blocked=CIRecognitionSpec(
-                kind="ocr", roi=(638, 452, 120, 32), expected=("评级",)
-            ),
+            unlockable=CIRecognitionSpec(kind="ocr", roi=(668, 380, 66, 54), expected=("解锁",)),
+            blocked=CIRecognitionSpec(kind="ocr", roi=(638, 452, 120, 32), expected=("评级",)),
         ),
     ),
     (
@@ -469,9 +441,7 @@ def _available_items(level: int, unlock_map: dict[str, int]) -> list[str]:
     return [name for name, unlock_level in unlock_map.items() if level >= unlock_level]
 
 
-def _offset_roi(
-    roi: tuple[int, int, int, int], offset: tuple[int, int, int, int]
-) -> tuple[int, int, int, int]:
+def _offset_roi(roi: tuple[int, int, int, int], offset: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
     x, y, w, h = roi
     dx, dy, dw, dh = offset
     return (x + dx, y + dy, w + dw, h + dh)
@@ -494,17 +464,12 @@ def _match_task_strategy(task_text: str) -> tuple[CITaskStrategy | None, float]:
 
             if normalized_task == normalized_candidate:
                 score = 1.0
-            elif (
-                normalized_task in normalized_candidate
-                or normalized_candidate in normalized_task
-            ):
+            elif normalized_task in normalized_candidate or normalized_candidate in normalized_task:
                 shorter = min(len(normalized_task), len(normalized_candidate))
                 longer = max(len(normalized_task), len(normalized_candidate))
                 score = 0.9 + 0.09 * (shorter / longer)
             else:
-                score = SequenceMatcher(
-                    None, normalized_task, normalized_candidate
-                ).ratio()
+                score = SequenceMatcher(None, normalized_task, normalized_candidate).ratio()
 
             if score > best_score:
                 best_strategy = strategy
@@ -527,13 +492,10 @@ def _resolve_plan(task_text: str, level: int) -> CIPlan | None:
     matched_strategy, similarity = _match_task_strategy(task_text)
     if matched_strategy is not None:
         if matched_strategy.category not in available_categories:
-            logger.warning(
-                f"任务匹配到预设策略，但类别未解锁: {matched_strategy.category}"
-            )
+            logger.warning(f"任务匹配到预设策略，但类别未解锁: {matched_strategy.category}")
         else:
             if matched_strategy.materials and all(
-                material in available_materials
-                for material in matched_strategy.materials
+                material in available_materials for material in matched_strategy.materials
             ):
                 return CIPlan(
                     category=matched_strategy.category,
@@ -545,14 +507,9 @@ def _resolve_plan(task_text: str, level: int) -> CIPlan | None:
 
             if matched_strategy.materials:
                 missing_materials = [
-                    material
-                    for material in matched_strategy.materials
-                    if material not in available_materials
+                    material for material in matched_strategy.materials if material not in available_materials
                 ]
-                logger.warning(
-                    "任务匹配到预设策略，但部分材料未解锁: "
-                    + "、".join(missing_materials)
-                )
+                logger.warning("任务匹配到预设策略，但部分材料未解锁: " + "、".join(missing_materials))
             else:
                 logger.warning("任务匹配到预设策略，但未配置材料")
 
@@ -569,9 +526,7 @@ def _resolve_plan(task_text: str, level: int) -> CIPlan | None:
         generic_category = _GENERIC_CATEGORY_LV0_1
         generic_material_priority = _GENERIC_MATERIALS_LV0_1
 
-    material_candidates = [
-        name for name in generic_material_priority if name in available_materials
-    ]
+    material_candidates = [name for name in generic_material_priority if name in available_materials]
     if not material_candidates:
         logger.error("CompleteInduction 当前没有可用的材料")
         return None
@@ -581,9 +536,7 @@ def _resolve_plan(task_text: str, level: int) -> CIPlan | None:
         return None
 
     if matched_strategy is None:
-        logger.info(
-            f"当前任务未匹配到预设策略，回退通用策略，最高相似度: {similarity:.2f}"
-        )
+        logger.info(f"当前任务未匹配到预设策略，回退通用策略，最高相似度: {similarity:.2f}")
     else:
         logger.info("预设策略不可直接使用，回退通用策略")
 
@@ -680,9 +633,7 @@ class CITask(CustomAction):
             return False
         return self._set_option_selected(context, category_name, roi, True)
 
-    def _ensure_materials(
-        self, context: Context, target_materials: tuple[str, ...]
-    ) -> bool:
+    def _ensure_materials(self, context: Context, target_materials: tuple[str, ...]) -> bool:
         available_materials = _available_items(CIRecord.level, _MATERIAL_UNLOCK_LEVEL)
         target_material_set = set(target_materials)
 
@@ -693,9 +644,7 @@ class CITask(CustomAction):
                 return False
 
             desired_selected = material_name in target_material_set
-            if not self._set_option_selected(
-                context, material_name, roi, desired_selected
-            ):
+            if not self._set_option_selected(context, material_name, roi, desired_selected):
                 return False
 
         return True
@@ -710,9 +659,7 @@ class CITask(CustomAction):
         for _attempt in range(3):
             is_selected = self._is_option_selected(context, roi)
             if is_selected == desired_selected:
-                logger.info(
-                    f"{'已选中' if desired_selected else '已取消'}: {option_name}"
-                )
+                logger.info(f"{'已选中' if desired_selected else '已取消'}: {option_name}")
                 return True
 
             target = _offset_roi(roi, _SELECTED_TARGET_OFFSET)
@@ -723,9 +670,7 @@ class CITask(CustomAction):
         logger.error(f"未能{'选中' if desired_selected else '取消'}选项: {option_name}")
         return False
 
-    def _is_option_selected(
-        self, context: Context, roi: tuple[int, int, int, int]
-    ) -> bool:
+    def _is_option_selected(self, context: Context, roi: tuple[int, int, int, int]) -> bool:
         img = context.tasker.controller.post_screencap().wait().get()
         reco_detail = context.run_recognition_direct(
             JRecognitionType.ColorMatch,
@@ -807,9 +752,7 @@ class CISelectResearchers(CustomAction):
             logger.error("研究员页卡位布局未配置，无法执行 CISelectResearchers")
             return False
 
-        if len(configured_pages) > 1 and (
-            _RESEARCHER_PAGE_SWIPE_NEXT is None or _RESEARCHER_PAGE_SWIPE_PREV is None
-        ):
+        if len(configured_pages) > 1 and (_RESEARCHER_PAGE_SWIPE_NEXT is None or _RESEARCHER_PAGE_SWIPE_PREV is None):
             logger.error("研究员页存在多页，但未配置翻页滑动坐标")
             return False
 
@@ -834,9 +777,7 @@ class CISelectResearchers(CustomAction):
             page_cards = self._scan_page(context, page_layout)
             all_cards.extend(page_cards)
 
-            if stop_after_first_unlockable and any(
-                card.state == _RESEARCHER_STATE_UNLOCKABLE for card in page_cards
-            ):
+            if stop_after_first_unlockable and any(card.state == _RESEARCHER_STATE_UNLOCKABLE for card in page_cards):
                 break
 
         if current_page != 0:
@@ -865,14 +806,10 @@ class CISelectResearchers(CustomAction):
 
         visible = [f"{card.spec.index}:{card.state}" for card in page_cards]
         if visible:
-            logger.info(
-                f"researcher page {page_layout[0].page + 1}: {' | '.join(visible)}"
-            )
+            logger.info(f"researcher page {page_layout[0].page + 1}: {' | '.join(visible)}")
         return page_cards
 
-    def _detect_card_state(
-        self, context: Context, spec: CIResearcherCardSpec
-    ) -> CIResearcherCardState:
+    def _detect_card_state(self, context: Context, spec: CIResearcherCardSpec) -> CIResearcherCardState:
         if self._hit_recognition(context, spec.selected):
             return CIResearcherCardState(spec, _RESEARCHER_STATE_SELECTED)
 
@@ -888,16 +825,12 @@ class CISelectResearchers(CustomAction):
             return CIResearcherCardState(spec, _RESEARCHER_STATE_UNLOCKABLE)
 
         unlockable_price = self._get_unlockable_price_recognition(spec)
-        if unlockable_price is not None and self._hit_recognition(
-            context, unlockable_price
-        ):
+        if unlockable_price is not None and self._hit_recognition(context, unlockable_price):
             return CIResearcherCardState(spec, _RESEARCHER_STATE_UNLOCKABLE)
 
         return CIResearcherCardState(spec, _RESEARCHER_STATE_AVAILABLE)
 
-    def _get_unlockable_recognition(
-        self, spec: CIResearcherCardSpec
-    ) -> CIRecognitionSpec | None:
+    def _get_unlockable_recognition(self, spec: CIResearcherCardSpec) -> CIRecognitionSpec | None:
         if spec.unlockable is not None:
             return spec.unlockable
 
@@ -909,9 +842,7 @@ class CISelectResearchers(CustomAction):
             expected=("解锁",),
         )
 
-    def _get_unlockable_price_recognition(
-        self, spec: CIResearcherCardSpec
-    ) -> CIRecognitionSpec | None:
+    def _get_unlockable_price_recognition(self, spec: CIResearcherCardSpec) -> CIRecognitionSpec | None:
         x, y, _, _ = spec.target
         dx, dy, w, h = _RESEARCHER_DEFAULT_UNLOCKABLE_PRICE_OFFSET
         return CIRecognitionSpec(
@@ -920,9 +851,7 @@ class CISelectResearchers(CustomAction):
             expected=(r"[1-9]\d{3,}",),
         )
 
-    def _get_blocked_recognition(
-        self, spec: CIResearcherCardSpec
-    ) -> CIRecognitionSpec | None:
+    def _get_blocked_recognition(self, spec: CIResearcherCardSpec) -> CIRecognitionSpec | None:
         if spec.blocked is not None:
             return spec.blocked
 
@@ -934,9 +863,7 @@ class CISelectResearchers(CustomAction):
             expected=("评级",),
         )
 
-    def _resolve_candidate_cards(
-        self, cards: list[CIResearcherCardState]
-    ) -> list[CIResearcherCardState]:
+    def _resolve_candidate_cards(self, cards: list[CIResearcherCardState]) -> list[CIResearcherCardState]:
         deduped_cards = self._dedupe_cards(cards)
         return [
             card
@@ -948,13 +875,9 @@ class CISelectResearchers(CustomAction):
             }
         ]
 
-    def _resolve_unlockable_cards(
-        self, cards: list[CIResearcherCardState]
-    ) -> list[CIResearcherCardState]:
+    def _resolve_unlockable_cards(self, cards: list[CIResearcherCardState]) -> list[CIResearcherCardState]:
         deduped_cards = self._dedupe_cards(cards)
-        unlockable_cards = [
-            card for card in deduped_cards if card.state == _RESEARCHER_STATE_UNLOCKABLE
-        ]
+        unlockable_cards = [card for card in deduped_cards if card.state == _RESEARCHER_STATE_UNLOCKABLE]
         unlockable_cards.sort(key=lambda card: card.spec.logical_index)
         return unlockable_cards
 
@@ -1007,9 +930,7 @@ class CISelectResearchers(CustomAction):
         if card.state in {_RESEARCHER_STATE_SELECTED, _RESEARCHER_STATE_AVAILABLE}:
             CIRecord.researcher_known_available.add(card.spec.logical_index)
 
-    def _choose_target_cards(
-        self, cards: list[CIResearcherCardState], target_count: int
-    ) -> set[int]:
+    def _choose_target_cards(self, cards: list[CIResearcherCardState], target_count: int) -> set[int]:
         candidates = self._resolve_candidate_cards(cards)
         candidates.sort(key=lambda card: card.spec.logical_index, reverse=True)
         return {card.spec.logical_index for card in candidates[:target_count]}
@@ -1021,11 +942,7 @@ class CISelectResearchers(CustomAction):
         target_keys: set[int],
     ) -> bool:
         pages = sorted(
-            {
-                card.spec.page
-                for card in cards
-                if card.spec.logical_index in target_keys
-            },
+            {card.spec.page for card in cards if card.spec.logical_index in target_keys},
             reverse=True,
         )
         current_page = 0
@@ -1063,13 +980,17 @@ class CISelectResearchers(CustomAction):
         price = self._read_number(context, _RESEARCHER_RECRUIT_PRICE_ROI)
         if money is None or price is None:
             logger.warning(
-                f"无法识别研究员解锁价格或当前货币: page={spec.page + 1}, index={spec.index}, logical={spec.logical_index}"
+                f"无法识别研究员解锁价格或当前货币:"
+                f" page={spec.page + 1}, index={spec.index},"
+                f" logical={spec.logical_index}"
             )
             return False
 
         if money < price:
             logger.warning(
-                f"研究员资源不足，无法招聘: money={money}, price={price}, page={spec.page + 1}, index={spec.index}, logical={spec.logical_index}"
+                f"研究员资源不足，无法招聘: money={money}, price={price},"
+                f" page={spec.page + 1}, index={spec.index},"
+                f" logical={spec.logical_index}"
             )
             return False
 
@@ -1078,9 +999,7 @@ class CISelectResearchers(CustomAction):
         time.sleep(_RESEARCHER_POST_DELAY_SEC)
         return True
 
-    def _dedupe_cards(
-        self, cards: list[CIResearcherCardState]
-    ) -> list[CIResearcherCardState]:
+    def _dedupe_cards(self, cards: list[CIResearcherCardState]) -> list[CIResearcherCardState]:
         deduped: dict[int, CIResearcherCardState] = {}
 
         for card in cards:
@@ -1133,9 +1052,7 @@ class CISelectResearchers(CustomAction):
         img = context.tasker.controller.post_screencap().wait().get()
 
         if spec.kind == "template":
-            thresholds = (
-                list(spec.threshold) if spec.threshold else [0.9 for _ in spec.template]
-            )
+            thresholds = list(spec.threshold) if spec.threshold else [0.9 for _ in spec.template]
             reco_detail = context.run_recognition_direct(
                 JRecognitionType.TemplateMatch,
                 JTemplateMatch(
@@ -1175,9 +1092,7 @@ class CISelectResearchers(CustomAction):
         logger.error(f"未知研究员识别类型: {spec.kind}")
         return False
 
-    def _read_number(
-        self, context: Context, roi: tuple[int, int, int, int]
-    ) -> int | None:
+    def _read_number(self, context: Context, roi: tuple[int, int, int, int]) -> int | None:
         img = context.tasker.controller.post_screencap().wait().get()
         reco_detail = context.run_recognition_direct(
             JRecognitionType.OCR,

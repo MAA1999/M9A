@@ -66,9 +66,7 @@ class ModifyBankTaskList(CustomAction):
         save_json_object(CONFIG_PATH, data)
 
         for task, period_type in tasks.items():
-            is_current_week, is_current_month = is_current_period(
-                bank_store.get(task, DEFAULT_TIMESTAMP_MS), timezone
-            )
+            is_current_week, is_current_month = is_current_period(bank_store.get(task, DEFAULT_TIMESTAMP_MS), timezone)
             if period_type == "week" and is_current_week:
                 context.override_pipeline({task: {"enabled": False}})
                 logger.info(f"{task} 本周已完成，跳过")

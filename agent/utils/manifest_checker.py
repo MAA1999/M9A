@@ -6,8 +6,9 @@ Manifest 缓存检查模块
 """
 
 import json
+from typing import Any
 
-import requests
+import requests  # pyright: ignore[reportMissingModuleSource]
 
 from . import logger
 from .http_session import create_no_proxy_session
@@ -25,7 +26,7 @@ session = create_no_proxy_session()
 IGNORED_DIRS = {"images"}
 
 
-def _load_cache() -> dict:
+def _load_cache() -> dict[str, Any]:
     """
     加载本地缓存
 
@@ -54,7 +55,7 @@ def _load_cache() -> dict:
         return default
 
 
-def _save_cache(cache: dict):
+def _save_cache(cache: dict[str, Any]):
     """保存缓存到本地"""
     cache_file = get_runtime_paths().manifest_cache_file
     try:
@@ -68,10 +69,7 @@ def _save_cache(cache: dict):
 def _is_ignored_path(manifest_path: str) -> bool:
     """检查 manifest 路径是否在忽略目录下"""
     for ignored in IGNORED_DIRS:
-        if (
-            manifest_path.startswith(f"{ignored}/")
-            or manifest_path == f"{ignored}/manifest.json"
-        ):
+        if manifest_path.startswith(f"{ignored}/") or manifest_path == f"{ignored}/manifest.json":
             return True
     return False
 
@@ -114,9 +112,7 @@ def _collect_updated_manifests(
             # 如果这个 manifest 包含文件，则需要更新
             if manifest.get("files"):
                 updated_manifests.append(manifest_path)
-                logger.debug(
-                    f"manifest 需要更新: {manifest_path} ({local_updated} → {remote_updated})"
-                )
+                logger.debug(f"manifest 需要更新: {manifest_path} ({local_updated} → {remote_updated})")
 
             # 递归检查子目录
             for dir_info in manifest.get("directories", []):
@@ -136,9 +132,7 @@ def _collect_updated_manifests(
                 if sub_manifest and not _is_ignored_path(sub_manifest):
                     # 使用本地缓存的时间戳
                     if sub_manifest in local_manifests:
-                        collected_manifests[sub_manifest] = local_manifests[
-                            sub_manifest
-                        ]
+                        collected_manifests[sub_manifest] = local_manifests[sub_manifest]
 
         return True
 
@@ -150,7 +144,7 @@ def _collect_updated_manifests(
         return False
 
 
-def check_manifest_updates() -> dict:
+def check_manifest_updates() -> dict[str, Any]:
     """
     检查远程 manifest 更新状态（细粒度，支持子目录）
 
@@ -163,7 +157,7 @@ def check_manifest_updates() -> dict:
             "error": str,
         }
     """
-    result = {
+    result: dict[str, Any] = {
         "success": False,
         "has_any_update": False,
         "updated_manifests": [],
@@ -188,9 +182,7 @@ def check_manifest_updates() -> dict:
 
         # 快速路径：根时间戳相同，所有目录都不需要更新
         if remote_root_updated == local_root_updated and local_root_updated > 0:
-            logger.debug(
-                f"根 manifest 无变化 (updated={remote_root_updated})，跳过所有检查"
-            )
+            logger.debug(f"根 manifest 无变化 (updated={remote_root_updated})，跳过所有检查")
             result["success"] = True
             result["collected_manifests"] = local_manifests.copy()
             result["collected_manifests"]["manifest.json"] = remote_root_updated
@@ -217,9 +209,7 @@ def check_manifest_updates() -> dict:
         result["has_any_update"] = len(result["updated_manifests"]) > 0
 
         if result["has_any_update"]:
-            logger.info(
-                f"检测到 {len(result['updated_manifests'])} 个 manifest 需要更新"
-            )
+            logger.info(f"检测到 {len(result['updated_manifests'])} 个 manifest 需要更新")
             for m in result["updated_manifests"]:
                 logger.debug(f"  - {m}")
         else:
@@ -241,7 +231,7 @@ def check_manifest_updates() -> dict:
     return result
 
 
-def save_manifest_cache_from_result(check_result: dict):
+def save_manifest_cache_from_result(check_result: dict[str, Any]):
     """
     根据检查结果保存缓存
 

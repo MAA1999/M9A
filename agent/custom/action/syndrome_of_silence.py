@@ -5,6 +5,7 @@ import json
 import os
 import re
 import time
+from typing import Any
 
 import numpy as np
 from maa.agent.agent_server import AgentServer
@@ -35,7 +36,8 @@ class SOSSelectNode(CustomAction):
     节点选择
     """
 
-    node_type, event_name = "", ""
+    node_type: str = ""
+    event_name: str = ""
 
     def run(
         self,
@@ -114,9 +116,7 @@ class SOSSelectNode(CustomAction):
         elif hasattr(reco_detail, "cls_index"):
             cls_index = reco_detail.cls_index
         else:
-            logger.error(
-                f"无法获取 cls_index from reco_detail: {type(reco_detail)} {reco_detail}"
-            )
+            logger.error(f"无法获取 cls_index from reco_detail: {type(reco_detail)} {reco_detail}")
             return CustomAction.RunResult(success=False)
 
         if cls_index is None:
@@ -129,9 +129,7 @@ class SOSSelectNode(CustomAction):
         elif hasattr(reco_detail, "box"):
             box = reco_detail.box
         else:
-            logger.error(
-                f"无法获取 box from reco_detail: {type(reco_detail)} {reco_detail}"
-            )
+            logger.error(f"无法获取 box from reco_detail: {type(reco_detail)} {reco_detail}")
             return CustomAction.RunResult(success=False)
 
         if box is None:
@@ -180,9 +178,7 @@ class SOSSelectNode(CustomAction):
 
             while retry_times < 3:
                 img = context.tasker.controller.post_screencap().wait().get()
-                reco_detail = context.run_recognition(
-                    "SOSEventRec", img, {"SOSEventRec": {"roi": event_name_roi}}
-                )
+                reco_detail = context.run_recognition("SOSEventRec", img, {"SOSEventRec": {"roi": event_name_roi}})
 
                 if is_hit(reco_detail):
                     event = ocr_text(reco_detail)
@@ -227,10 +223,7 @@ class SOSSelectNode(CustomAction):
                 img = context.tasker.controller.post_screencap().wait().get()
                 shopping_rec = context.run_recognition("SOSShopping", img)
                 if is_hit(shopping_rec):
-                    logger.warning(
-                        f"节点类型 {node_type} 事件名识别失败，"
-                        f"但检测到购物契机界面，修正节点类型"
-                    )
+                    logger.warning(f"节点类型 {node_type} 事件名识别失败，但检测到购物契机界面，修正节点类型")
                     node_type = "购物契机"
                     SOSSelectNode.node_type = node_type
                     SOSSelectNode.event_name = ""
@@ -279,18 +272,12 @@ class SOSNodeProcess(CustomAction):
 
         # 无 event 的处理
         if node_type in ["购物契机", "遭遇", "途中余兴", "冲突", "恶战", "巧匠之手"]:
-            actions = nodes[node_type]["actions"] + [
-                {"type": "RunNode", "name": "FlagInSOSMain"}
-            ]
-            interrupts = self._resolve_interrupts(
-                nodes[node_type].get("interrupts", []), nodes
-            )
+            actions = nodes[node_type]["actions"] + [{"type": "RunNode", "name": "FlagInSOSMain"}]
+            interrupts = self._resolve_interrupts(nodes[node_type].get("interrupts", []), nodes)
         else:
             # 有 event 的处理
             if event_name not in nodes[node_type]["events"]:
-                matches = difflib.get_close_matches(
-                    event_name, nodes[node_type]["events"].keys(), n=1, cutoff=0.6
-                )
+                matches = difflib.get_close_matches(event_name, nodes[node_type]["events"].keys(), n=1, cutoff=0.6)
                 if matches:
                     logger.debug(f"近似匹配事件: {event_name} -> {matches[0]}")
                     event_name = matches[0]
@@ -299,17 +286,13 @@ class SOSNodeProcess(CustomAction):
                     context.tasker.post_stop()
                     return CustomAction.RunResult(success=False)
 
-            info: dict = nodes[node_type]["events"][event_name]
+            info: dict[str, Any] = nodes[node_type]["events"][event_name]
             # 如果是最终难题，不添加 FlagInSOSMain
             if event_name == "最终难题":
                 actions = info["actions"]
             else:
-                actions = info["actions"] + [
-                    {"type": "RunNode", "name": "FlagInSOSMain"}
-                ]
-            interrupts: list = self._resolve_interrupts(
-                info.get("interrupts", []), nodes
-            )
+                actions = info["actions"] + [{"type": "RunNode", "name": "FlagInSOSMain"}]
+            interrupts: list[Any] = self._resolve_interrupts(info.get("interrupts", []), nodes)
 
         if context.tasker.stopping:
             logger.debug("任务即将停止，跳过节点处理")
@@ -322,7 +305,7 @@ class SOSNodeProcess(CustomAction):
                 return CustomAction.RunResult(success=False)
         return CustomAction.RunResult(success=True)
 
-    def _resolve_interrupts(self, interrupts: str | list, nodes: dict) -> list:
+    def _resolve_interrupts(self, interrupts: str | list[Any], nodes: dict[str, Any]) -> list[Any]:
         """
         解析 interrupts 配置，支持 @ 引用和 + 组合
         @common_name: 引用 common_interrupts 中的配置
@@ -330,9 +313,6 @@ class SOSNodeProcess(CustomAction):
         """
         if isinstance(interrupts, list):
             return interrupts
-
-        if not isinstance(interrupts, str):
-            return []
 
         result = []
         common = nodes.get("common_interrupts", {})
@@ -356,7 +336,7 @@ class SOSNodeProcess(CustomAction):
 
         return result
 
-    def exec_main(self, context: Context, action: dict | list, interrupts: list):
+    def exec_main(self, context: Context, action: dict[str, Any] | list[Any], interrupts: list[Any]):
         retry_times = 0
         while retry_times < 5:
             if context.tasker.stopping:
@@ -377,7 +357,7 @@ class SOSNodeProcess(CustomAction):
             retry_times += 1
         return False
 
-    def exec_action(self, context: Context, action: dict | list | str) -> bool:
+    def exec_action(self, context: Context, action: dict[str, Any] | list[Any] | str) -> bool:
         if isinstance(action, str):
             img = context.tasker.controller.post_screencap().wait().get()
             rec = context.run_recognition(action, img)
@@ -393,7 +373,7 @@ class SOSNodeProcess(CustomAction):
                     return False
                 if self.exec_action(context, act):
                     return True
-        elif isinstance(action, dict):
+        else:
             # 对于单个动作，执行并检查结果
             action_type = action.get("type")
             if action_type == "RunNode":
@@ -405,9 +385,7 @@ class SOSNodeProcess(CustomAction):
                 img = context.tasker.controller.post_screencap().wait().get()
                 reco_detail = context.run_recognition(name, img)
                 # DirectHit nodes are executable even when Maa does not provide a box.
-                if is_hit(reco_detail) or (
-                    reco_detail is not None and reco_detail.algorithm == "DirectHit"
-                ):
+                if is_hit(reco_detail) or (reco_detail is not None and reco_detail.algorithm == "DirectHit"):
                     logger.debug(f"执行节点: {name}")
                     context.run_task(entry=name)
                     return True
@@ -426,23 +404,15 @@ class SOSNodeProcess(CustomAction):
                     order_by: str = action.get("order_by", "Vertical")
                     index: int = action.get("index", 0)
 
-                    expected_list = (
-                        expected_all
-                        if isinstance(expected_all, list)
-                        else [expected_all]
-                    )
-                    logger.debug(
-                        f"执行选项选择: SelectOption (OCR), expected={expected_list}"
-                    )
+                    expected_list = expected_all if isinstance(expected_all, list) else [expected_all]
+                    logger.debug(f"执行选项选择: SelectOption (OCR), expected={expected_list}")
 
                     origin_node = context.get_node_data("SOSSelectOption_OCR")
                     if not origin_node:
                         logger.error("未找到原始节点 SOSSelectOption_OCR")
                         return False
 
-                    pp_override = {
-                        "SOSSelectOption": {"next": ["SOSSelectOptionConfirm"]}
-                    }
+                    pp_override = {"SOSSelectOption": {"next": ["SOSSelectOptionConfirm"]}}
                     for i, expected in enumerate(expected_list):
                         node_name = f"SOSSelectOption_OCR_{i}"
                         new_node = copy.deepcopy(origin_node)
@@ -454,9 +424,7 @@ class SOSNodeProcess(CustomAction):
                         new_node["recognition"]["param"]["order_by"] = order_by
                         new_node["recognition"]["param"]["index"] = index
                         pp_override[node_name] = new_node
-                        pp_override["SOSSelectOption"]["next"].append(
-                            "[JumpBack]" + node_name
-                        )
+                        pp_override["SOSSelectOption"]["next"].append("[JumpBack]" + node_name)
 
                     if context.tasker.stopping:
                         return False
@@ -464,9 +432,7 @@ class SOSNodeProcess(CustomAction):
                 else:
                     order_by = action.get("order_by", "Vertical")
                     index = action.get("index", 0)
-                    logger.debug(
-                        f"执行选项选择: SelectOption (HSV), order_by={order_by}, index={index}"
-                    )
+                    logger.debug(f"执行选项选择: SelectOption (HSV), order_by={order_by}, index={index}")
                     if context.tasker.stopping:
                         return False
                     context.run_task(
@@ -492,28 +458,20 @@ class SOSNodeProcess(CustomAction):
                     # 先识别一下是否有途中偶遇选项界面
                     time.sleep(1)
                     img = context.tasker.controller.post_screencap().wait().get()
-                    check_reco = context.run_recognition(
-                        "SOSSelectEncounterOptionRec_Template", img
-                    )
+                    check_reco = context.run_recognition("SOSSelectEncounterOptionRec_Template", img)
                     if not is_hit(check_reco):
                         logger.debug("未识别到途中偶遇选项界面，跳过")
                         return False
 
-                    logger.debug(
-                        f"执行途中偶遇选项选择: SelectEncounterOption (OCR), expected={expected}"
-                    )
+                    logger.debug(f"执行途中偶遇选项选择: SelectEncounterOption (OCR), expected={expected}")
                     if context.tasker.stopping:
                         logger.debug("任务即将停止，跳过节点处理")
                         return False
                     context.run_task(
                         "SOSSelectEncounterOption_OCR",
                         pipeline_override={
-                            "SOSSelectEncounterOption_OCR": {
-                                "custom_action_param": {"expected": expected}
-                            },
-                            "SOSSelectEncounterOptionRec_Template": {
-                                "order_by": order_by
-                            },
+                            "SOSSelectEncounterOption_OCR": {"custom_action_param": {"expected": expected}},
+                            "SOSSelectEncounterOptionRec_Template": {"order_by": order_by},
                         },
                     )
                 elif method == "HSV":
@@ -526,9 +484,7 @@ class SOSNodeProcess(CustomAction):
                         return False
                     time.sleep(1)
                     img = context.tasker.controller.post_screencap().wait().get()
-                    check_reco = context.run_recognition(
-                        "SOSSelectEncounterOptionRec_Template", img
-                    )
+                    check_reco = context.run_recognition("SOSSelectEncounterOptionRec_Template", img)
                     if not is_hit(check_reco):
                         logger.debug("未识别到途中偶遇选项界面，跳过")
                         return False
@@ -542,9 +498,7 @@ class SOSNodeProcess(CustomAction):
                     context.run_task(
                         "SOSSelectEncounterOption_HSV",
                         pipeline_override={
-                            "SOSSelectEncounterOption_HSV": {
-                                "custom_action_param": {"index": index}
-                            },
+                            "SOSSelectEncounterOption_HSV": {"custom_action_param": {"index": index}},
                             "SOSSelectEncounterOptionRec_Template": {
                                 "recognition": {
                                     "param": {
@@ -575,7 +529,7 @@ class SOSSelectEncounterOption_OCR(CustomAction):
     ) -> CustomAction.RunResult:
 
         expected: str = parse_params(argv.custom_action_param, "expected")["expected"]
-        options: list[dict] = argv.reco_detail.raw_detail["best"]["detail"]["options"]
+        options: list[dict[str, Any]] = argv.reco_detail.raw_detail["best"]["detail"]["options"]
 
         for option in options:
             if expected in option["content"]:
@@ -608,7 +562,7 @@ class SOSSelectEncounterOption_HSV(CustomAction):
     ) -> CustomAction.RunResult:
 
         index: int = parse_params(argv.custom_action_param).get("index", 0)
-        options: list[dict] = argv.reco_detail.raw_detail["best"]["detail"]["options"]
+        options: list[dict[str, Any]] = argv.reco_detail.raw_detail["best"]["detail"]["options"]
 
         context.run_task(
             "Click",
@@ -687,9 +641,7 @@ class SOSShoppingList(CustomAction):
                 if corrected_name:
                     # 检查纠正后的名称是否在跳过列表中
                     if corrected_name in skipped_items:
-                        logger.debug(
-                            f"跳过已售出物品（纠错后匹配）: {name} -> {corrected_name}"
-                        )
+                        logger.debug(f"跳过已售出物品（纠错后匹配）: {name} -> {corrected_name}")
                         continue
 
                     # 如果纠正后的物品名已经在结果中，说明之前已经识别过
@@ -698,9 +650,7 @@ class SOSShoppingList(CustomAction):
                         # 保留价格更小的
                         if price < all_items[corrected_name]:
                             all_items[corrected_name] = price
-                            logger.debug(
-                                f"更新物品价格: {corrected_name} {all_items[corrected_name]} -> {price}"
-                            )
+                            logger.debug(f"更新物品价格: {corrected_name} {all_items[corrected_name]} -> {price}")
                     else:
                         all_items[corrected_name] = price
 
@@ -736,7 +686,7 @@ class SOSShoppingList(CustomAction):
         return CustomAction.RunResult(success=True)
 
     def _pair_items_and_prices(
-        self, results: list, img: np.ndarray, context: Context
+        self, results: list[Any], img: np.ndarray, context: Context
     ) -> tuple[dict[str, int], set[str]]:
         """
         配对物品名和价格
@@ -805,7 +755,7 @@ class SOSShoppingList(CustomAction):
 
         return items, skipped
 
-    def _correct_item_name(self, name: str, valid_names: set) -> str:
+    def _correct_item_name(self, name: str, valid_names: set[Any]) -> str:
         """
         纠正识别错误的物品名
         使用 difflib 找到最相似的有效名称
@@ -823,7 +773,7 @@ class SOSShoppingList(CustomAction):
         logger.warning(f"未找到匹配的物品名: {name}")
         return name  # 返回原名称
 
-    def _is_same_results(self, current: list, last: list) -> bool:
+    def _is_same_results(self, current: list[Any], last: list[Any]) -> bool:
         """
         判断两次识别结果是否相同（通过文本内容比较）
         """
@@ -921,9 +871,7 @@ class SOSBuyItems(CustomAction):
                 },
             )
 
-        all_buyable_items = (
-            []
-        )  # 存储所有可购买的物品: [(item_name, item_price, page_index, result), ...]
+        all_buyable_items = []  # 存储所有可购买的物品: [(item_name, item_price, page_index, result), ...]
         last_screen_texts = set()
         page_index = 0
         max_scroll_times = 3
@@ -954,18 +902,13 @@ class SOSBuyItems(CustomAction):
 
             # 获取当前屏幕的物品文本集合
             current_screen_texts = {
-                item.get("text", "")
-                for item in current_results
-                if not item.get("text", "").isdigit()
+                item.get("text", "") for item in current_results if not item.get("text", "").isdigit()
             }
 
             # 判断是否到达底部（与上一屏内容80%相同）
             if last_screen_texts:
                 intersection = current_screen_texts & last_screen_texts
-                if (
-                    current_screen_texts
-                    and len(intersection) / len(current_screen_texts) >= 0.8
-                ):
+                if current_screen_texts and len(intersection) / len(current_screen_texts) >= 0.8:
                     break
 
             last_screen_texts = current_screen_texts
@@ -976,17 +919,13 @@ class SOSBuyItems(CustomAction):
             processed_img = np.full_like(img, 255, dtype=np.uint8)
             # 保留暗色像素
             processed_img[mask] = img[mask]
-            price_reco_detail = context.run_recognition(
-                "SOSShoppingListOCR", processed_img
-            )
+            price_reco_detail = context.run_recognition("SOSShoppingListOCR", processed_img)
 
             # 获取可见价格的物品名集合（金雀子儿足够的物品）
             affordable_items = set()
             if is_hit(price_reco_detail):
                 price_raw_detail = price_reco_detail.raw_detail
-                price_results = (
-                    price_raw_detail.get("filtered", []) if price_raw_detail else []
-                )
+                price_results = price_raw_detail.get("filtered", []) if price_raw_detail else []
 
                 # 配对物品名和价格，只有能配对成功的说明价格可见
                 i = 0
@@ -1017,9 +956,7 @@ class SOSBuyItems(CustomAction):
                         and item_price <= current_money
                         and text in affordable_items
                     ):
-                        all_buyable_items.append(
-                            (item_name, item_price, page_index, result)
-                        )
+                        all_buyable_items.append((item_name, item_price, page_index, result))
                         break
 
             # 向下滑动到下一页
@@ -1115,7 +1052,7 @@ class SOSBuyItems(CustomAction):
         return CustomAction.RunResult(success=True)
 
     def _buy_item_on_screen(
-        self, context: Context, item_name: str, result: dict, interrupts: list
+        self, context: Context, item_name: str, result: dict[str, Any], interrupts: list[Any]
     ) -> bool:
         """
         购买当前屏幕上的指定物品
@@ -1205,7 +1142,7 @@ class SOSBuyItems(CustomAction):
             logger.warning("未找到购买按钮")
             return False
 
-    def _handle_interrupts(self, context: Context, interrupts: list) -> None:
+    def _handle_interrupts(self, context: Context, interrupts: list[Any]) -> None:
         """
         处理购买后可能出现的弹窗
         interrupts: 弹窗节点名称列表
@@ -1385,9 +1322,7 @@ class SOSSelectInstrument(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        instrument: str = parse_params(argv.custom_action_param, "instrument")[
-            "instrument"
-        ]
+        instrument: str = parse_params(argv.custom_action_param, "instrument")["instrument"]
 
         logger.info(f"选择配器类型: {instrument}")
 
@@ -1397,9 +1332,7 @@ class SOSSelectInstrument(CustomAction):
             "SOSInstrumentSelect",
             {
                 "SOSInstrumentSelect": {"expected": instrument},
-                "SOSInstrumentSelectFinished": {
-                    "template": f"SyndromeOfSilence/{instrument_map[instrument]}.png"
-                },
+                "SOSInstrumentSelectFinished": {"template": f"SyndromeOfSilence/{instrument_map[instrument]}.png"},
             },
         )
 

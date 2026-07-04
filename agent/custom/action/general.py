@@ -97,17 +97,13 @@ class ResetCount(CustomAction):
         for index, node_name in enumerate(nodes):
             if not isinstance(node_name, str) or not node_name:
                 log = logger.error if strict else logger.warning
-                log(
-                    f"ResetCount received invalid node name in custom_action_param.nodes[{index}]: {node_name!r}"
-                )
+                log(f"ResetCount received invalid node name in custom_action_param.nodes[{index}]: {node_name!r}")
                 has_failure = True
                 continue
 
             if not context.clear_hit_count(node_name):
                 log = logger.error if strict else logger.warning
-                log(
-                    f"ResetCount failed to clear hit count: index={index}, node={node_name}"
-                )
+                log(f"ResetCount failed to clear hit count: index={index}, node={node_name}")
                 has_failure = True
                 continue
 
@@ -156,9 +152,7 @@ class SubTask(CustomAction):
 
         for index, task_name in enumerate(sub):
             if not isinstance(task_name, str) or not task_name:
-                logger.error(
-                    f"SubTask received invalid task name in custom_action_param.sub[{index}]: {task_name!r}"
-                )
+                logger.error(f"SubTask received invalid task name in custom_action_param.sub[{index}]: {task_name!r}")
                 has_sub_failure = True
                 if not continue_on_failure:
                     break

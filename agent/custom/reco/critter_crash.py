@@ -14,7 +14,8 @@ class CCBuyCardRec(CustomRecognition):
     """
     翻斗棋：识别可购买卡牌
 
-    如果判断需要后续进行购买，则识别成功，此时 box 返回卡牌位置， detail 返回 1.购买类型：奖励区/粘贴处 2.附带卡牌后续操作（部署/升级/卖出）
+    如果判断需要后续进行购买，则识别成功，此时 box 返回卡牌位置，
+    detail 返回 1.购买类型：奖励区/粘贴处 2.附带卡牌后续操作（部署/升级/卖出）
     """
 
     def analyze(
@@ -32,24 +33,16 @@ class CCBuyCardRec(CustomRecognition):
                 reco_detail1 = context.run_recognition(
                     "CCBuyCardAwardRec_Template",
                     argv.image,
-                    {
-                        "CCBuyCardAwardRec_Template": {
-                            "template": f"CritterCrash/Cards/{card_name}.png"
-                        }
-                    },
+                    {"CCBuyCardAwardRec_Template": {"template": f"CritterCrash/Cards/{card_name}.png"}},
                 )
                 if is_hit(reco_detail1):
                     # 识别到目标卡片，查询是否可部署/能升级的棋子，有则进行
                     if CCChessboard.find_empty_position(card_name):
                         detail = {"type": 1, "action": 0, "name": card_name}
-                        return CustomRecognition.AnalyzeResult(
-                            box=reco_detail1.box, detail=detail
-                        )
+                        return CustomRecognition.AnalyzeResult(box=reco_detail1.box, detail=detail)
                     elif CCChessboard.can_upgrade_existing(card_name):
                         detail = {"type": 1, "action": 1, "name": card_name}
-                        return CustomRecognition.AnalyzeResult(
-                            box=reco_detail1.box, detail=detail
-                        )
+                        return CustomRecognition.AnalyzeResult(box=reco_detail1.box, detail=detail)
                     else:
                         # 无法部署或升级，卖掉
                         detail = {"type": 1, "action": 2, "name": card_name}
@@ -69,9 +62,7 @@ class CCBuyCardRec(CustomRecognition):
             # 查询是否有空位，有则购买后卖掉
             if CCChessboard.find_empty_position(name):
                 detail = {"type": 1, "action": 2, "name": name}
-                return CustomRecognition.AnalyzeResult(
-                    box=[81, 618, 52, 55], detail=detail
-                )
+                return CustomRecognition.AnalyzeResult(box=[81, 618, 52, 55], detail=detail)
             return CustomRecognition.AnalyzeResult(box=None, detail={})
         else:
             # 奖励框为空，检查剩余缪斯币是否足够购买
@@ -91,11 +82,7 @@ class CCBuyCardRec(CustomRecognition):
                 reco_detail = context.run_recognition(
                     "CCBuyCardRec_Template",
                     argv.image,
-                    {
-                        "CCBuyCardRec_Template": {
-                            "template": f"CritterCrash/Cards/{card_name}.png"
-                        }
-                    },
+                    {"CCBuyCardRec_Template": {"template": f"CritterCrash/Cards/{card_name}.png"}},
                 )
                 if is_hit(reco_detail):
                     # 识别成功，检查是否有空位
@@ -103,9 +90,7 @@ class CCBuyCardRec(CustomRecognition):
                         # 有空位，直接返回
                         logger.debug(f"找到有空位的卡牌: {card_name}")
                         detail = {"type": 0, "action": 0, "name": card_name}
-                        return CustomRecognition.AnalyzeResult(
-                            box=reco_detail.box, detail=detail
-                        )
+                        return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=detail)
                     # 没有空位，检查是否能升级
                     elif CCChessboard.can_upgrade_existing(card_name):
                         # 能升级，记录为候选
@@ -116,9 +101,7 @@ class CCBuyCardRec(CustomRecognition):
                 reco_detail, card_name = upgrade_candidates[0]
                 logger.debug(f"选择能升级的卡牌: {card_name}")
                 detail = {"type": 0, "action": 1, "name": card_name}
-                return CustomRecognition.AnalyzeResult(
-                    box=reco_detail.box, detail=detail
-                )
+                return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=detail)
 
             # 没有找到合适的卡牌
             logger.debug("没有找到合适的卡牌")
@@ -153,18 +136,15 @@ class CCRemainMoney(CustomRecognition):
         # 保留匹配目标颜色的像素
         processed_img[color_mask] = img[color_mask]
 
+        reco_detail = None
         if type == 0:
             reco_detail = context.run_recognition("CCRemainMoney_rec", processed_img)
         elif type == 1:
-            reco_detail = context.run_recognition(
-                "CCRemainMoney_rec_refresh", processed_img
-            )
+            reco_detail = context.run_recognition("CCRemainMoney_rec_refresh", processed_img)
 
         if is_hit(reco_detail):
             money = ocr_text(reco_detail)
             logger.debug(f"识别到剩余缪斯币: {money}")
             if int(money) >= 3:
-                return CustomRecognition.AnalyzeResult(
-                    box=reco_detail.box, detail=reco_detail.raw_detail
-                )
+                return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=reco_detail.raw_detail)
         return CustomRecognition.AnalyzeResult(box=None, detail={})

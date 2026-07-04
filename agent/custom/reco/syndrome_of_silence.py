@@ -20,14 +20,11 @@ class SOSSelectEncounterOptionFindSelected(CustomRecognition):
         argv: CustomRecognition.AnalyzeArg,
     ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
-        reco_detail = context.run_recognition(
-            "SOSSelectEncounterOptionRec_Template", argv.image
-        )
+        reco_detail = context.run_recognition("SOSSelectEncounterOptionRec_Template", argv.image)
         if is_hit(reco_detail):
             # 放大镜图标的 roi，扩大一点，方便后面颜色匹配
             Magnifier_rois = [
-                [i.box[0] - 10, i.box[1] - 10, i.box[2] + 20, i.box[3] + 12]
-                for i in boxed_results(reco_detail)
+                [i.box[0] - 10, i.box[1] - 10, i.box[2] + 20, i.box[3] + 12] for i in boxed_results(reco_detail)
             ]
         else:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
@@ -37,11 +34,7 @@ class SOSSelectEncounterOptionFindSelected(CustomRecognition):
             selected_detail = context.run_recognition(
                 "SOSSelectEncounterOption_HSV_Selected",
                 argv.image,
-                {
-                    "SOSSelectEncounterOption_HSV_Selected": {
-                        "recognition": {"param": {"roi": roi}}
-                    }
-                },
+                {"SOSSelectEncounterOption_HSV_Selected": {"recognition": {"param": {"roi": roi}}}},
             )
 
             if is_hit(selected_detail):
@@ -62,14 +55,11 @@ class SOSSelectEncounterOptionList(CustomRecognition):
         argv: CustomRecognition.AnalyzeArg,
     ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
-        reco_detail = context.run_recognition(
-            "SOSSelectEncounterOptionRec_Template", argv.image
-        )
+        reco_detail = context.run_recognition("SOSSelectEncounterOptionRec_Template", argv.image)
         if is_hit(reco_detail):
             # 放大镜图标的 roi，扩大一点
             Magnifier_rois = [
-                [i.box[0] - 10, i.box[1] - 10, i.box[2] + 20, i.box[3] + 12]
-                for i in boxed_results(reco_detail)
+                [i.box[0] - 10, i.box[1] - 10, i.box[2] + 20, i.box[3] + 12] for i in boxed_results(reco_detail)
             ]
         else:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
@@ -81,11 +71,7 @@ class SOSSelectEncounterOptionList(CustomRecognition):
             unselected_detail = context.run_recognition(
                 "SOSSelectEncounterOption_HSV_Unselected",
                 argv.image,
-                {
-                    "SOSSelectEncounterOption_HSV_Unselected": {
-                        "recognition": {"param": {"roi": roi}}
-                    }
-                },
+                {"SOSSelectEncounterOption_HSV_Unselected": {"recognition": {"param": {"roi": roi}}}},
             )
 
             status = None
@@ -96,11 +82,7 @@ class SOSSelectEncounterOptionList(CustomRecognition):
                 selected_detail = context.run_recognition(
                     "SOSSelectEncounterOption_HSV_Selected",
                     argv.image,
-                    {
-                        "SOSSelectEncounterOption_HSV_Selected": {
-                            "recognition": {"param": {"roi": roi}}
-                        }
-                    },
+                    {"SOSSelectEncounterOption_HSV_Selected": {"recognition": {"param": {"roi": roi}}}},
                 )
                 if is_hit(selected_detail):
                     status = 1
@@ -111,11 +93,7 @@ class SOSSelectEncounterOptionList(CustomRecognition):
                 ocr_detail = context.run_recognition(
                     "SOSSelectEncounterOptionRec_OCR",
                     argv.image,
-                    {
-                        "SOSSelectEncounterOptionRec_OCR": {
-                            "recognition": {"param": {"roi": roi}}
-                        }
-                    },
+                    {"SOSSelectEncounterOptionRec_OCR": {"recognition": {"param": {"roi": roi}}}},
                 )
 
                 content = ""
@@ -123,9 +101,7 @@ class SOSSelectEncounterOptionList(CustomRecognition):
                     content = ocr_text(ocr_detail)
 
                     options.append({"roi": roi, "status": status, "content": content})
-                    logger.debug(
-                        f"识别到选项 - 状态: {status}, 内容: {content}, ROI: {roi}"
-                    )
+                    logger.debug(f"识别到选项 - 状态: {status}, 内容: {content}, ROI: {roi}")
 
         return CustomRecognition.AnalyzeResult(
             box=options[0]["roi"] if options else [0, 0, 0, 0],
@@ -189,9 +165,7 @@ class SOSSelectNode(CustomRecognition):
                     )
                 else:
                     # 不在禁止区域内，返回节点位置供点击
-                    return CustomRecognition.AnalyzeResult(
-                        box=node_box, detail=reco_detail.raw_detail
-                    )
+                    return CustomRecognition.AnalyzeResult(box=node_box, detail=reco_detail.raw_detail)
         else:
             reco_detail = context.run_recognition("SOSSelectNode_rec", argv.image)
             if is_hit(reco_detail):
@@ -200,9 +174,7 @@ class SOSSelectNode(CustomRecognition):
                 if node_box is None:
                     return CustomRecognition.AnalyzeResult(box=None, detail={})
                 # 不在禁止区域内，返回节点位置供点击
-                return CustomRecognition.AnalyzeResult(
-                    box=node_box, detail=reco_detail.raw_detail
-                )
+                return CustomRecognition.AnalyzeResult(box=node_box, detail=reco_detail.raw_detail)
             # 如果未识别到节点，则向右滑动一次
             context.run_task(
                 "Swipe",

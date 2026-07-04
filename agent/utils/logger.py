@@ -11,9 +11,7 @@ def _console_formatter() -> logging.Formatter:
 
 
 def _file_formatter() -> logging.Formatter:
-    return logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)d | %(message)s"
-    )
+    return logging.Formatter("%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)d | %(message)s")
 
 
 def setup_logger(log_dir: str = "debug/custom", console_level: str = "INFO") -> logging.Logger:

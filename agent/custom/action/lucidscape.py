@@ -54,9 +54,7 @@ class LucidscapeStatusDetect(CustomAction):
         reco_detail = context.run_recognition("LucidscapeStageFlag02", img)
         if is_hit(reco_detail):
             context.tasker.controller.post_click(990, 300).wait()
-            context.override_next(
-                "LucidscapeCombatStartFlag", ["LucidscapeTeamSelect_2"]
-            )
+            context.override_next("LucidscapeCombatStartFlag", ["LucidscapeTeamSelect_2"])
             logger.info("进入当前片段下半")
             return CustomAction.RunResult(success=True)
 
@@ -64,9 +62,7 @@ class LucidscapeStatusDetect(CustomAction):
         reco_detail = context.run_recognition("LucidscapeStageFlag01", img)
         if is_hit(reco_detail):
             context.tasker.controller.post_click(320, 445).wait()
-            context.override_next(
-                "LucidscapeCombatStartFlag", ["LucidscapeTeamSelect_1"]
-            )
+            context.override_next("LucidscapeCombatStartFlag", ["LucidscapeTeamSelect_1"])
             logger.info("进入当前片段上半")
             return CustomAction.RunResult(success=True)
 

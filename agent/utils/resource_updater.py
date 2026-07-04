@@ -7,8 +7,9 @@
 import hashlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from typing import Any
 
-import requests
+import requests  # pyright: ignore[reportMissingModuleSource]
 
 from . import logger
 from .http_session import create_no_proxy_session
@@ -67,10 +68,7 @@ def get_all_manifests(api_base_url: str, manifest_path: str, timeout: int) -> li
             # 使用线程池并行请求
             with ThreadPoolExecutor(max_workers=5) as executor:
                 futures = {
-                    executor.submit(
-                        get_all_manifests, api_base_url, path, timeout
-                    ): path
-                    for path in sub_manifest_paths
+                    executor.submit(get_all_manifests, api_base_url, path, timeout): path for path in sub_manifest_paths
                 }
 
                 for future in as_completed(futures):
@@ -97,7 +95,7 @@ def check_and_update_resources(
     api_base_url: str = DEFAULT_API_BASE_URL,
     resource_manifests: list[str] | None = None,
     timeout: int = DEFAULT_TIMEOUT,
-) -> dict:
+) -> dict[str, Any]:
     """
     检查并更新资源文件
 
@@ -114,7 +112,7 @@ def check_and_update_resources(
             "error": str  # 错误信息
         }
     """
-    result = {
+    result: dict[str, Any] = {
         "success": True,
         "updated_files": [],
         "failed_files": [],
@@ -128,9 +126,7 @@ def check_and_update_resources(
         if resource_manifests is None:
             try:
                 logger.debug("开始递归获取资源清单列表")
-                resource_manifests = get_all_manifests(
-                    api_base_url, "resource/manifest.json", timeout
-                )
+                resource_manifests = get_all_manifests(api_base_url, "resource/manifest.json", timeout)
                 logger.debug(f"自动获取到 {len(resource_manifests)} 个资源清单")
 
                 if not resource_manifests:
@@ -176,9 +172,7 @@ def check_and_update_resources(
                             logger.debug(f"文件哈希不匹配: {file_path_str}")
                             logger.debug(f"  本地 hash: {local_hash}")
                             logger.debug(f"  远程 hash: {remote_hash}")
-                            logger.debug(
-                                f"  文件大小: {file_path.stat().st_size} bytes"
-                            )
+                            logger.debug(f"  文件大小: {file_path.stat().st_size} bytes")
                             need_update = True
 
                     if need_update:
@@ -190,9 +184,7 @@ def check_and_update_resources(
                         file_response.raise_for_status()
 
                         # 验证下载的文件哈希
-                        downloaded_hash = hashlib.sha256(
-                            file_response.content
-                        ).hexdigest()
+                        downloaded_hash = hashlib.sha256(file_response.content).hexdigest()
                         if downloaded_hash != remote_hash:
                             logger.warning(f"文件哈希验证失败: {file_path_str}")
                             result["failed_files"].append(file_path_str)

@@ -61,8 +61,6 @@ class LucidscapeStageSelect(CustomRecognition):
             stage = 4
 
         logger.info(f"当前解锁片段{stage}，准备进入")
-        context.override_pipeline(
-            {"LucidscapeStatusDetect": {"custom_action_param": {"stage": stage}}}
-        )
+        context.override_pipeline({"LucidscapeStatusDetect": {"custom_action_param": {"stage": stage}}})
 
         return CustomRecognition.AnalyzeResult(box=target_roi, detail={"stage": stage})

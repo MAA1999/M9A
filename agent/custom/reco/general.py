@@ -87,12 +87,12 @@ class MultiRecognition(CustomRecognition):
 
                 reco_detail = context.run_recognition(node_name, argv.image)
 
-                if is_hit(reco_detail):
+                if is_hit(reco_detail) and reco_detail.box is not None:
                     # 标准化ROI，将[0,0,0,0]转换为实际全屏坐标，其它不变
                     normalized_roi = self._normalize_roi(list(reco_detail.box))
                     node_results[index_key] = normalized_roi
-                else:
-                    node_results[index_key] = None
+                    continue
+                node_results[index_key] = None
 
             # 逻辑判断
             if not self._check_logic_condition(logic, node_results):
@@ -126,9 +126,7 @@ class MultiRecognition(CustomRecognition):
             self._external_roi_cache = {}
 
         # 找出还未缓存的节点
-        uncached_nodes = [
-            name for name in node_names if name not in self._external_node_cache
-        ]
+        uncached_nodes = [name for name in node_names if name not in self._external_node_cache]
 
         if not uncached_nodes:
             return  # 所有节点都已缓存
@@ -209,9 +207,7 @@ class MultiRecognition(CustomRecognition):
 
             # 处理 {NodeName} 引用其他已执行节点
             if "{" in eval_expression:
-                external_node_names = list(
-                    set(re.findall(r"\{([^}]+)\}", eval_expression))
-                )
+                external_node_names = list(set(re.findall(r"\{([^}]+)\}", eval_expression)))
 
                 if external_node_names:
                     # 确保外部节点信息已缓存
@@ -224,9 +220,7 @@ class MultiRecognition(CustomRecognition):
                     for node_name in external_node_names:
                         recognition_success = external_node_cache.get(node_name, False)
                         bool_value = "True" if recognition_success else "False"
-                        eval_expression = eval_expression.replace(
-                            f"{{{node_name}}}", bool_value
-                        )
+                        eval_expression = eval_expression.replace(f"{{{node_name}}}", bool_value)
 
             # 替换 $0、$1、$2... 为对应的识别结果
             for key, result in node_results.items():
@@ -376,9 +370,7 @@ class MultiRecognition(CustomRecognition):
                 return None
 
             # 替换函数调用为结果
-            result_str = (
-                f"[{func_result[0]},{func_result[1]},{func_result[2]},{func_result[3]}]"
-            )
+            result_str = f"[{func_result[0]},{func_result[1]},{func_result[2]},{func_result[3]}]"
             expression = expression.replace(full_match, result_str, 1)
 
         # 最终表达式应该是一个ROI数组
@@ -412,9 +404,7 @@ class MultiRecognition(CustomRecognition):
 
             elif func_name == "INTERSECTION":
                 if len(args) != 2:
-                    logger.error(
-                        f"INTERSECTION函数需要2个参数，得到{len(args)}个: {args}"
-                    )
+                    logger.error(f"INTERSECTION函数需要2个参数，得到{len(args)}个: {args}")
                     return None
                 roi1 = self._parse_roi_arg(args[0])
                 roi2 = self._parse_roi_arg(args[1])
@@ -521,9 +511,7 @@ class MultiRecognition(CustomRecognition):
 
         return [left, top, right - left, bottom - top]
 
-    def _calculate_offset(
-        self, roi: list[int], dx: int, dy: int, dw: int, dh: int
-    ) -> list[int]:
+    def _calculate_offset(self, roi: list[int], dx: int, dy: int, dw: int, dh: int) -> list[int]:
         """
         计算ROI偏移
         """
@@ -555,7 +543,8 @@ class MultiRecognition(CustomRecognition):
 
             normalized_roi = [0, 0, scaled_width, scaled_height]
             # logger.debug(
-            #     f"全屏ROI标准化: 原始尺寸({original_width}x{original_height}) -> 缩放尺寸({scaled_width}x{scaled_height})"
+            #     f"全屏ROI标准化: 原始尺寸({original_width}x{original_height})"
+            #     f" -> 缩放尺寸({scaled_width}x{scaled_height})"
             # )
             return normalized_roi
 
@@ -645,9 +634,7 @@ class ColorOCR(CustomRecognition):
 
             if is_hit(reco_detail):
                 logger.debug(f"ColorOCR识别成功: {ocr_text(reco_detail)}")
-                return CustomRecognition.AnalyzeResult(
-                    box=reco_detail.box, detail=reco_detail.raw_detail
-                )
+                return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=reco_detail.raw_detail)
             else:
                 return None
 
@@ -732,11 +719,7 @@ class ColorOCRWithFallback(CustomRecognition):
             reco_detail = context.run_recognition(
                 recognition_node,
                 img,
-                {
-                    "TargetStageName_OCR": {
-                        "recognition": {"param": {"roi": [63, 533, 1156, 62]}}
-                    }
-                },
+                {"TargetStageName_OCR": {"recognition": {"param": {"roi": [63, 533, 1156, 62]}}}},
             )
 
             if is_hit(reco_detail):

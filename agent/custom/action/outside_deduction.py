@@ -35,9 +35,7 @@ class SOD_DifficultySelect(CustomAction):
 
         if level == "cur":
             logger.info(f"选定当前难度 {cur}")
-            context.override_pipeline(
-                {"ODR_FlagInDifficultySelect": {"enabled": False}}
-            )
+            context.override_pipeline({"ODR_FlagInDifficultySelect": {"enabled": False}})
             return CustomAction.RunResult(success=True)
         elif level in {"5", "10", "11"}:
             level = int(level)
@@ -56,9 +54,7 @@ class SOD_DifficultySelect(CustomAction):
             # level 20
             if cur == 20:
                 logger.info(f"选定当前难度 {cur}")
-                context.override_pipeline(
-                    {"ODR_FlagInDifficultySelect": {"enabled": False}}
-                )
+                context.override_pipeline({"ODR_FlagInDifficultySelect": {"enabled": False}})
                 return CustomAction.RunResult(success=True)
 
             # To Locked Level
