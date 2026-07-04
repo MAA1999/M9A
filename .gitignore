@@ -8,3 +8,6 @@ dist/
 debug/
 .create-maa-project/
 # END create-maa-project
+
+# 编译的二进制模块
+agent/libs/*.pyd
