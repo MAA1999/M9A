@@ -16,6 +16,7 @@ class RuntimePaths:
     debug_dir: Path
     requirements_file: Path
     interface_file: Path
+    manifest_cache_file: Path
 
 
 def build_runtime_paths(
@@ -33,6 +34,7 @@ def build_runtime_paths(
         debug_dir=resolved_work_root / "debug",
         requirements_file=resolved_project_root / "requirements.txt",
         interface_file=resolved_project_root / "interface.json",
+        manifest_cache_file=resolved_work_root / "data" / "manifest_cache.json",
     )
 
 
