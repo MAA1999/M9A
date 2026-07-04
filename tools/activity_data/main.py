@@ -1,7 +1,6 @@
-from typing import Any
-
 import json
 import os
+from typing import Any
 
 from analyzeContent import analyzeContent
 from getContent import getContent

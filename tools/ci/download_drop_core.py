@@ -4,8 +4,6 @@
 从私有仓库的 release 下载对应平台的 drop_core 模块
 """
 
-from typing import Any
-
 import argparse
 import os
 import platform
@@ -13,6 +11,7 @@ import shutil
 import sys
 import urllib.request
 import zipfile
+from typing import Any
 
 # 私有仓库信息
 PRIVATE_REPO = "MAA1999/drop-upload-sign"  # 修改为你的私有仓库

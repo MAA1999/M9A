@@ -7,12 +7,11 @@
 注意：使用 urllib 而不是 requests，因为 CI 环境中的 embed Python 可能没有 requests。
 """
 
-from typing import Any
-
 import json
 import urllib.error
 import urllib.request
 from pathlib import Path
+from typing import Any
 
 API_BASE_URL = "https://api.1999.fan/api"
 MANIFEST_URL = f"{API_BASE_URL}/manifest.json"

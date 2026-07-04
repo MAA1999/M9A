@@ -1,7 +1,6 @@
-from typing import Any
-
 import json
 import re
+from typing import Any
 from urllib.parse import urljoin
 
 import requests
