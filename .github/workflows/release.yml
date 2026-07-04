@@ -84,39 +84,49 @@ jobs:
         if: github.event_name != 'workflow_dispatch' && hashFiles('logo.ico') != ''
         shell: bash
         run: |
-          cp logo.ico dist/package/logo.ico
+          for gui in mfaa mxu; do
+            pkg_dir="dist/package-${gui}"
+            [ -d "$pkg_dir" ] || continue
+            cp logo.ico "$pkg_dir/logo.ico"
 
-          if [[ "${{ matrix.runtime_os }}" == "win" ]]; then
-            curl -fsSL https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe -o rcedit.exe
-            exe="$(find dist/package -maxdepth 1 -type f -name '*.exe' | head -n 1)"
-            if [[ -n "$exe" ]]; then
-              ./rcedit.exe "$exe" --set-icon logo.ico
-              echo "[OK] Applied Windows executable icon: $exe"
-            else
-              echo "[WARN] Windows executable was not found; skipped executable icon update."
+            if [[ "${{ matrix.runtime_os }}" == "win" ]]; then
+              if [ ! -f rcedit.exe ]; then
+                curl -fsSL https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe -o rcedit.exe
+              fi
+              exe="$(find "$pkg_dir" -maxdepth 1 -type f -name '*.exe' | head -n 1)"
+              if [[ -n "$exe" ]]; then
+                ./rcedit.exe "$exe" --set-icon logo.ico
+                echo "[OK] Applied Windows executable icon: $exe ($gui)"
+              else
+                echo "[WARN] Windows executable was not found in $pkg_dir; skipped."
+              fi
             fi
-          fi
+          done
       - name: Package
         if: github.event_name != 'workflow_dispatch'
         shell: bash
         run: |
           mkdir -p dist
-          archive="M9A-${{ matrix.artifact_os }}-${{ matrix.arch }}-${GITHUB_REF_NAME}-MFAA.${{ matrix.ext }}"
-          (
-            cd dist/package
-            if [[ "${{ matrix.ext }}" == "zip" ]]; then
-              7z a "../$archive" .
-            else
-              tar -czf "../$archive" .
-              tar -tzvf "../$archive" > "../$archive.manifest"
-              if ! awk '$1 ~ /^-/ && $0 ~ /(^|\/)(m9a|MFAAvalonia|MaaPiCli|MaaAgentServer|maa-cli|python3?)$/ && $1 !~ /^-..x/ { print; bad=1 } END { exit bad }' "../$archive.manifest"; then
-                echo "[ERR] Unix archive is missing executable permission metadata"
-                exit 1
+          for gui in mfaa mxu; do
+            pkg_dir="dist/package-${gui}"
+            [ -d "$pkg_dir" ] || continue
+            archive="M9A-${{ matrix.artifact_os }}-${{ matrix.arch }}-${GITHUB_REF_NAME}-${gui^^}.${{ matrix.ext }}"
+            (
+              cd "$pkg_dir"
+              if [[ "${{ matrix.ext }}" == "zip" ]]; then
+                7z a "../$archive" .
+              else
+                tar -czf "../$archive" .
+                tar -tzvf "../$archive" > "../$archive.manifest"
+                if ! awk '$1 ~ /^-/ && $0 ~ /(^|\/)(m9a|MFAAvalonia|MaaPiCli|MaaAgentServer|maa-cli|python3?)$/ && $1 !~ /^-..x/ { print; bad=1 } END { exit bad }' "../$archive.manifest"; then
+                  echo "[ERR] Unix archive is missing executable permission metadata"
+                  exit 1
+                fi
+                echo "[OK] Unix archive executable metadata smoke passed"
               fi
-              echo "[OK] Unix archive executable metadata smoke passed"
-            fi
-          )
-          rm -rf dist/package
+            )
+            rm -rf "$pkg_dir"
+          done
       - uses: actions/upload-artifact@v7
         if: github.event_name != 'workflow_dispatch'
         with:
