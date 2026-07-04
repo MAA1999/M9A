@@ -4,7 +4,9 @@ dist/
 .venv/
 .uv-cache/
 pnpm-lock.yaml
-resource/base/model/ocr/*.onnx
+uv.lock
+MaaCommonAssets/
+resource/base/model/ocr/
 tools/schema/interface.schema.json
 tools/schema/interface_config.schema.json
 tools/schema/interface_import.schema.json
