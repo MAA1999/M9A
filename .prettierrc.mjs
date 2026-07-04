@@ -1,34 +1,60 @@
-import * as maafwSort from '@nekosu/prettier-plugin-maafw-sort'
-import * as multilineArrays from 'prettier-plugin-multiline-arrays'
+import * as multilineArrays from "prettier-plugin-multiline-arrays";
+import * as maafwSort from "@nekosu/prettier-plugin-maafw-sort";
 
 export default {
-  semi: false,
-  singleQuote: true,
-  trailingComma: 'none',
-  tabWidth: 2,
-  printWidth: 100,
-  multilineArraysWrapThreshold: 0,
-  plugins: [
-    maafwSort.patchPlugin(multilineArrays)
-  ],
-  overrides: [
-    {
-      files: [
-        '*.json'
-      ],
-      options: {
-        parser: 'json',
-        tabWidth: 4
-      }
-    },
-    {
-      files: [
-        '*.jsonc'
-      ],
-      options: {
-        parser: 'jsonc',
-        tabWidth: 4
-      }
-    }
-  ]
-}
+    plugins: [
+        maafwSort.patchPlugin(multilineArrays),
+    ],
+    multilineArraysWrapThreshold: 1,
+    maafwPipelinePatterns: [
+        "/pipeline/.*\\.jsonc?",
+    ],
+    maafwInterfacePatterns: [
+        "/interface\\.jsonc?",
+        "/tasks/.*\\.jsonc?",
+    ],
+    tabWidth: 4,
+    printWidth: 120,
+    useTabs: false,
+    bracketSameLine: true,
+    bracketSpacing: false,
+    endOfLine: "auto",
+    overrides: [
+        {
+            files: [
+                "**/*.yml",
+                "**/*.yaml",
+            ],
+            options: {
+                parser: "yaml",
+                tabWidth: 2,
+            },
+        },
+        {
+            files: [
+                "*.json",
+                "*.jsonc",
+            ],
+            options: {
+                parser: "json",
+                useTabs: false,
+                bracketSameLine: false,
+                trailingComma: "none",
+            },
+        },
+        {
+            files: [
+                "*.mts",
+                "**/*.ts",
+            ],
+            options: {
+                tabWidth: 2,
+                semi: false,
+                trailingComma: "all",
+                bracketSpacing: true,
+                singleQuote: true,
+                multilineArraysWrapThreshold: -1,
+            },
+        },
+    ],
+};
