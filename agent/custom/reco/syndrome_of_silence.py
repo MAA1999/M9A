@@ -1,0 +1,222 @@
+from typing import Any
+
+from maa.agent.agent_server import AgentServer
+from maa.context import Context
+from maa.custom_recognition import CustomRecognition
+from maa.define import RectType
+from utils import logger
+from utils.maa_types import best_box, boxed_results, is_hit, ocr_text
+
+
+@AgentServer.custom_recognition("SOSSelectEncounterOptionFindSelected")
+class SOSSelectEncounterOptionFindSelected(CustomRecognition):
+    """
+    局外演绎：无声综合征-途中偶遇选项识别已选中的选项
+    """
+
+    def analyze(
+        self,
+        context: Context,
+        argv: CustomRecognition.AnalyzeArg,
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
+
+        reco_detail = context.run_recognition(
+            "SOSSelectEncounterOptionRec_Template", argv.image
+        )
+        if is_hit(reco_detail):
+            # 放大镜图标的 roi，扩大一点，方便后面颜色匹配
+            Magnifier_rois = [
+                [i.box[0] - 10, i.box[1] - 10, i.box[2] + 20, i.box[3] + 12]
+                for i in boxed_results(reco_detail)
+            ]
+        else:
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+        for roi in Magnifier_rois:
+            # 对每个roi进行颜色匹配，查看选中状态
+            selected_detail = context.run_recognition(
+                "SOSSelectEncounterOption_HSV_Selected",
+                argv.image,
+                {
+                    "SOSSelectEncounterOption_HSV_Selected": {
+                        "recognition": {"param": {"roi": roi}}
+                    }
+                },
+            )
+
+            if is_hit(selected_detail):
+                return CustomRecognition.AnalyzeResult(box=roi, detail={"roi": roi})
+
+        return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+
+@AgentServer.custom_recognition("SOSSelectEncounterOptionList")
+class SOSSelectEncounterOptionList(CustomRecognition):
+    """
+    局外演绎：无声综合征-途中偶遇选项内容识别
+    """
+
+    def analyze(
+        self,
+        context: Context,
+        argv: CustomRecognition.AnalyzeArg,
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
+
+        reco_detail = context.run_recognition(
+            "SOSSelectEncounterOptionRec_Template", argv.image
+        )
+        if is_hit(reco_detail):
+            # 放大镜图标的 roi，扩大一点
+            Magnifier_rois = [
+                [i.box[0] - 10, i.box[1] - 10, i.box[2] + 20, i.box[3] + 12]
+                for i in boxed_results(reco_detail)
+            ]
+        else:
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+        options: list[dict[str, Any]] = []
+
+        for roi in Magnifier_rois:
+            # 先进行颜色匹配，判断选项状态
+            unselected_detail = context.run_recognition(
+                "SOSSelectEncounterOption_HSV_Unselected",
+                argv.image,
+                {
+                    "SOSSelectEncounterOption_HSV_Unselected": {
+                        "recognition": {"param": {"roi": roi}}
+                    }
+                },
+            )
+
+            status = None
+            if is_hit(unselected_detail):
+                status = 0
+            else:
+                # 未选中检测失败，再检测是否已选中
+                selected_detail = context.run_recognition(
+                    "SOSSelectEncounterOption_HSV_Selected",
+                    argv.image,
+                    {
+                        "SOSSelectEncounterOption_HSV_Selected": {
+                            "recognition": {"param": {"roi": roi}}
+                        }
+                    },
+                )
+                if is_hit(selected_detail):
+                    status = 1
+
+            # 匹配到有效状态后,执行 OCR 识别选项内容
+            if status is not None:
+                roi = [roi[0] + 40, roi[1], roi[2] + 150, roi[3]]
+                ocr_detail = context.run_recognition(
+                    "SOSSelectEncounterOptionRec_OCR",
+                    argv.image,
+                    {
+                        "SOSSelectEncounterOptionRec_OCR": {
+                            "recognition": {"param": {"roi": roi}}
+                        }
+                    },
+                )
+
+                content = ""
+                if is_hit(ocr_detail):
+                    content = ocr_text(ocr_detail)
+
+                    options.append({"roi": roi, "status": status, "content": content})
+                    logger.debug(
+                        f"识别到选项 - 状态: {status}, 内容: {content}, ROI: {roi}"
+                    )
+
+        return CustomRecognition.AnalyzeResult(
+            box=options[0]["roi"] if options else [0, 0, 0, 0],
+            detail={"options": options},
+        )
+
+
+@AgentServer.custom_recognition("SOSSelectNode")
+class SOSSelectNode(CustomRecognition):
+    """
+    局外演绎：无声综合征-节点选择
+    """
+
+    def analyze(
+        self,
+        context: Context,
+        argv: CustomRecognition.AnalyzeArg,
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
+
+        # 如果目标在禁止区域范围内，向右滑动
+        forbidden_roi = [0, 140, 348, 284]
+
+        reco_detail = context.run_recognition("SOSEntrustrRec", argv.image)
+        if is_hit(reco_detail):
+            reco_detail = context.run_recognition("SOSSelectNode_rec", argv.image)
+            if is_hit(reco_detail):
+                # 获取识别到的节点位置
+                node_box = best_box(reco_detail)
+                if node_box is None:
+                    return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+                # 判断是否在禁止区域内
+                x, y, w, h = node_box
+                fx, fy, fw, fh = forbidden_roi
+
+                # 检查节点是否与禁止区域相交（只要相交就算）
+                if x < fx + fw and x + w > fx and y < fy + fh and y + h > fy:
+                    # 在禁止区域内，返回滑动指令
+                    context.run_task(
+                        "Swipe",
+                        {
+                            "Swipe": {
+                                "action": {
+                                    "type": "Swipe",
+                                    "param": {
+                                        "begin": [402, 564, 34, 36],
+                                        "end": [902, 569, 34, 36],
+                                        "duration": 500,
+                                    },
+                                }
+                            }
+                        },
+                    )
+                    return CustomRecognition.AnalyzeResult(
+                        box=None,
+                        detail={
+                            "action": "swipe_right",
+                            "reason": "node_in_forbidden_area",
+                            "node_box": node_box,
+                        },
+                    )
+                else:
+                    # 不在禁止区域内，返回节点位置供点击
+                    return CustomRecognition.AnalyzeResult(
+                        box=node_box, detail=reco_detail.raw_detail
+                    )
+        else:
+            reco_detail = context.run_recognition("SOSSelectNode_rec", argv.image)
+            if is_hit(reco_detail):
+                # 获取识别到的节点位置
+                node_box = best_box(reco_detail)
+                if node_box is None:
+                    return CustomRecognition.AnalyzeResult(box=None, detail={})
+                # 不在禁止区域内，返回节点位置供点击
+                return CustomRecognition.AnalyzeResult(
+                    box=node_box, detail=reco_detail.raw_detail
+                )
+            # 如果未识别到节点，则向右滑动一次
+            context.run_task(
+                "Swipe",
+                {
+                    "Swipe": {
+                        "action": {
+                            "type": "Swipe",
+                            "param": {
+                                "begin": [402, 564, 34, 36],
+                                "end": [552, 569, 34, 36],
+                                "duration": 500,
+                            },
+                        }
+                    }
+                },
+            )
+            return CustomRecognition.AnalyzeResult(box=None, detail={})

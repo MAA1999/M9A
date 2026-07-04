@@ -1,6 +1,16 @@
 from importlib import import_module
 
-RECO_MODULES = ("general",)
+RECO_MODULES = (
+    "general",
+    "bank",
+    "activity",
+    "auto_promotion",
+    "auto_trail",
+    "combat",
+    "lucidscape",
+    "syndrome_of_silence",
+    "critter_crash",
+)
 
 
 def register_all() -> None:

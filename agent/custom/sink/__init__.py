@@ -1,6 +1,6 @@
 from importlib import import_module
 
-SINK_MODULES: tuple[str, ...] = ()
+SINK_MODULES = ("aspect_ratio",)
 
 
 def register_all() -> None:
