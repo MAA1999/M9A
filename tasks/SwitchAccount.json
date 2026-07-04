@@ -6,8 +6,12 @@
             "option": [
                 "目标账号(可选)"
             ],
-            "resource": ["官服"],
-            "group": ["daily"],
+            "resource": [
+                "官服"
+            ],
+            "group": [
+                "daily"
+            ],
             "description": "<span style=\"color:tomato;font-size:15px\">留空时会下滑到账号列表底部并切换至最后一个账号；填写目标账号时会在账号列表中逐页下滑查找并切换，找不到则任务失败</span><br><span style=\"color:tomato;font-size:15px\">切换后可继续添加任务，以便多账号多配置运行任务</span><br><span style=\"color:tomato;font-size:15px\">目前该功能仅支持官服，且仅支持 1280×720 实际未缩放分辨率</span>"
         }
     ],

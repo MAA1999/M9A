@@ -9,7 +9,9 @@
                 "心相观测",
                 "梦境记述"
             ],
-            "group": ["daily"],
+            "group": [
+                "daily"
+            ],
             "description": "<span style=\"color:tomato;font-size:15px\">会根据当前账号自动跳过当前周期执行过的任务</span>"
         }
     ],
@@ -36,7 +38,9 @@
         "低阶柜台": {
             "type": "checkbox",
             "label": "低阶柜台",
-            "default_case": ["金兔子(低阶柜台)"],
+            "default_case": [
+                "金兔子(低阶柜台)"
+            ],
             "cases": [
                 {
                     "name": "金兔子(低阶柜台)",
@@ -99,7 +103,9 @@
         "梦境记述": {
             "type": "checkbox",
             "label": "梦境记述",
-            "default_case": ["共鸣晶匣"],
+            "default_case": [
+                "共鸣晶匣"
+            ],
             "cases": [
                 {
                     "name": "共鸣晶匣",

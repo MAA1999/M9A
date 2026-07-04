@@ -32,7 +32,9 @@
                     190,
                     153
                 ],
-                "expected": ["兑换码"]
+                "expected": [
+                    "兑换码"
+                ]
             }
         },
         "next": [
@@ -76,7 +78,9 @@
                     116,
                     39
                 ],
-                "expected": ["兑换奖励"],
+                "expected": [
+                    "兑换奖励"
+                ],
                 "only_rec": true
             }
         },
@@ -96,7 +100,9 @@
                     112,
                     25
                 ],
-                "expected": ["输入兑换码"],
+                "expected": [
+                    "输入兑换码"
+                ],
                 "only_rec": true
             }
         },
@@ -165,7 +171,9 @@
                     66,
                     35
                 ],
-                "expected": ["取消"],
+                "expected": [
+                    "取消"
+                ],
                 "only_rec": true
             }
         },
@@ -184,7 +192,9 @@
                     190,
                     153
                 ],
-                "expected": ["兑换码"]
+                "expected": [
+                    "兑换码"
+                ]
             }
         }
     },
@@ -199,7 +209,9 @@
                     73,
                     41
                 ],
-                "expected": ["确定"],
+                "expected": [
+                    "确定"
+                ],
                 "only_rec": true
             }
         },
@@ -227,7 +239,9 @@
                     116,
                     39
                 ],
-                "expected": ["兑换奖励"],
+                "expected": [
+                    "兑换奖励"
+                ],
                 "only_rec": true
             }
         },
@@ -254,7 +268,9 @@
                     64,
                     35
                 ],
-                "expected": ["前往"]
+                "expected": [
+                    "前往"
+                ]
             }
         },
         "action": {

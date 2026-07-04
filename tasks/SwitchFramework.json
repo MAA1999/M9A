@@ -14,7 +14,9 @@
                     "next": []
                 }
             },
-            "group": ["daily"]
+            "group": [
+                "daily"
+            ]
         }
     ],
     "option": {

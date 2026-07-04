@@ -16,7 +16,9 @@
                     90,
                     26
                 ],
-                "expected": ["魔精公司"],
+                "expected": [
+                    "魔精公司"
+                ],
                 "only_rec": true
             }
         },

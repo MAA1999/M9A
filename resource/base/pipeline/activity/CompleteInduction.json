@@ -18,7 +18,9 @@
                     93,
                     65
                 ],
-                "expected": ["10"]
+                "expected": [
+                    "10"
+                ]
             }
         },
         "focus": {
@@ -36,7 +38,9 @@
                     161,
                     42
                 ],
-                "expected": ["开始研究"]
+                "expected": [
+                    "开始研究"
+                ]
             }
         },
         "action": {
@@ -62,7 +66,9 @@
                     67,
                     60
                 ],
-                "template": ["CompleteInduction/Revert.png"]
+                "template": [
+                    "CompleteInduction/Revert.png"
+                ]
             }
         },
         "action": {
@@ -80,7 +86,9 @@
                     161,
                     42
                 ],
-                "expected": ["开始研究"]
+                "expected": [
+                    "开始研究"
+                ]
             }
         },
         "action": {
@@ -92,7 +100,9 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "expected": ["选择类别"]
+                "expected": [
+                    "选择类别"
+                ]
             }
         },
         "action": {
@@ -117,7 +127,9 @@
                     144,
                     31
                 ],
-                "expected": ["选择研究员"],
+                "expected": [
+                    "选择研究员"
+                ],
                 "only_rec": true
             }
         },
@@ -138,7 +150,9 @@
                     73,
                     36
                 ],
-                "expected": ["取消"],
+                "expected": [
+                    "取消"
+                ],
                 "only_rec": true
             }
         },
@@ -165,7 +179,9 @@
                     121,
                     36
                 ],
-                "expected": ["研究计划"],
+                "expected": [
+                    "研究计划"
+                ],
                 "only_rec": true
             }
         },
@@ -185,7 +201,9 @@
                     83,
                     22
                 ],
-                "expected": ["开发进度"],
+                "expected": [
+                    "开发进度"
+                ],
                 "only_rec": true
             }
         },
@@ -209,7 +227,9 @@
                     123,
                     24
                 ],
-                "expected": ["点击空白退出"],
+                "expected": [
+                    "点击空白退出"
+                ],
                 "only_rec": true
             }
         },
@@ -238,7 +258,9 @@
                     88,
                     24
                 ],
-                "expected": ["点击继续"],
+                "expected": [
+                    "点击继续"
+                ],
                 "only_rec": true
             }
         },
@@ -257,7 +279,9 @@
                     58,
                     31
                 ],
-                "expected": ["确认"],
+                "expected": [
+                    "确认"
+                ],
                 "only_rec": true
             }
         },
@@ -296,7 +320,9 @@
                     94,
                     37
                 ],
-                "expected": ["下一步"],
+                "expected": [
+                    "下一步"
+                ],
                 "only_rec": true
             }
         },
@@ -315,7 +341,9 @@
                     64,
                     34
                 ],
-                "expected": ["确定"],
+                "expected": [
+                    "确定"
+                ],
                 "only_rec": true
             }
         },
@@ -334,7 +362,9 @@
                     638,
                     270
                 ],
-                "template": ["CompleteInduction/AddResearcher.png"],
+                "template": [
+                    "CompleteInduction/AddResearcher.png"
+                ],
                 "threshold": 0.9
             }
         },
@@ -356,7 +386,9 @@
                     741,
                     423
                 ],
-                "expected": ["解锁"]
+                "expected": [
+                    "解锁"
+                ]
             }
         },
         "action": {
@@ -374,7 +406,9 @@
                     120,
                     42
                 ],
-                "expected": ["下一步"],
+                "expected": [
+                    "下一步"
+                ],
                 "only_rec": true
             }
         },
@@ -393,7 +427,9 @@
                     149,
                     55
                 ],
-                "expected": ["进入玩法"]
+                "expected": [
+                    "进入玩法"
+                ]
             }
         },
         "action": {

@@ -190,7 +190,9 @@
                     129,
                     40
                 ],
-                "expected": ["收获馈赠"],
+                "expected": [
+                    "收获馈赠"
+                ],
                 "only_rec": true
             }
         },

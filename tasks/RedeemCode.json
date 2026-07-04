@@ -6,7 +6,9 @@
             "option": [
                 "自定义兑换码"
             ],
-            "group": ["daily"],
+            "group": [
+                "daily"
+            ],
             "description": "<span style=\"color:tomato;font-size:15px\">会根据当前账号自动跳过已使用过的兑换码</span>"
         }
     ],

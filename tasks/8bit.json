@@ -8,7 +8,9 @@
                 "8-bit刷取模式",
                 "8-bit移动方式"
             ],
-            "group": ["standalone"],
+            "group": [
+                "standalone"
+            ],
             "desc": "8-bit 街机秀刷代币，请到游戏主界面开始任务"
         }
     ],

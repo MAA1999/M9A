@@ -24,7 +24,9 @@
                     135,
                     239
                 ],
-                "expected": ["无声综合征"]
+                "expected": [
+                    "无声综合征"
+                ]
             }
         },
         "action": {
@@ -776,7 +778,9 @@
         "next": [
             "SOSNodeProcess"
         ],
-        "on_error": ["SOSMain"]
+        "on_error": [
+            "SOSMain"
+        ]
     },
     "SOSNodeProcess": {
         "action": {
@@ -785,7 +789,9 @@
                 "custom_action": "SOSNodeProcess"
             }
         },
-        "on_error": ["SOSNodeProcessErrorLoop"]
+        "on_error": [
+            "SOSNodeProcessErrorLoop"
+        ]
     },
     "SOSNodeProcessErrorLoop": {
         // 处理节点选择或战斗过程中出现的错误

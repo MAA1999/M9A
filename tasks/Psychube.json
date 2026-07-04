@@ -7,7 +7,9 @@
                 "双重解析加成作战",
                 "吃糖"
             ],
-            "group": ["daily"]
+            "group": [
+                "daily"
+            ]
         }
     ],
     "option": {

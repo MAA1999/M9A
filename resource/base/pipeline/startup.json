@@ -129,7 +129,9 @@
                                     158,
                                     33
                                 ],
-                                "expected": ["Mover帐號登入"],
+                                "expected": [
+                                    "Mover帐號登入"
+                                ],
                                 "only_rec": true
                             }
                         }
@@ -445,7 +447,9 @@
                 ]
             }
         },
-        "next": ["RecordId"]
+        "next": [
+            "RecordId"
+        ]
     },
     "RecordId": {
         "desc": "记录ID",

@@ -129,7 +129,9 @@
         "action": {
             "type": "Click"
         },
-        "next": ["Alarm_Action1"]
+        "next": [
+            "Alarm_Action1"
+        ]
     },
     "Alarm_FindStageFlag": {
         "recognition": {

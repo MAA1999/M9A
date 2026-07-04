@@ -136,7 +136,9 @@
                     127,
                     29
                 ],
-                "expected": ["赛后补给间"],
+                "expected": [
+                    "赛后补给间"
+                ],
                 "only_rec": true
             }
         },
@@ -435,7 +437,9 @@
             }
         },
         "inverse": true,
-        "next": ["BackButton"]
+        "next": [
+            "BackButton"
+        ]
     },
     "Colosseum_PVPAddPeopleStart": {
         "recognition": {
@@ -481,7 +485,9 @@
                     122,
                     157
                 ],
-                "template": ["PVP/Empty.png"]
+                "template": [
+                    "PVP/Empty.png"
+                ]
             }
         },
         "inverse": true,
@@ -496,7 +502,9 @@
                 ]
             }
         },
-        "next": ["Colosseum_StartMatching3"]
+        "next": [
+            "Colosseum_StartMatching3"
+        ]
     },
     "Colosseum_StartMatching3": {
         "recognition": {

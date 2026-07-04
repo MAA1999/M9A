@@ -18,7 +18,9 @@
                     284,
                     160
                 ],
-                "template": ["OutsideDeduction/SeriesOfDusksEntry.png"]
+                "template": [
+                    "OutsideDeduction/SeriesOfDusksEntry.png"
+                ]
             }
         },
         "action": {

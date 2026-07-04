@@ -1164,7 +1164,7 @@
                     "const": "RewardHandler"
                 }
             }
-        },       
+        },
         "RecordID": {
             "properties": {
                 "custom_action": {

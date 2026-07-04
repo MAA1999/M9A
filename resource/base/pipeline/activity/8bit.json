@@ -17,7 +17,9 @@
                     92,
                     26
                 ],
-                "expected": ["单向投币"],
+                "expected": [
+                    "单向投币"
+                ],
                 "only_rec": true
             }
         },
@@ -38,7 +40,9 @@
                     133,
                     136
                 ],
-                "template": ["8-bit/Level.png"]
+                "template": [
+                    "8-bit/Level.png"
+                ]
             }
         },
         "action": {
@@ -63,7 +67,9 @@
                     51,
                     28
                 ],
-                "expected": ["传送"],
+                "expected": [
+                    "传送"
+                ],
                 "only_rec": true
             }
         },
@@ -89,7 +95,9 @@
                     65,
                     77
                 ],
-                "template": ["8-bit/Exit.png"],
+                "template": [
+                    "8-bit/Exit.png"
+                ],
                 "method": 10001
             }
         },
@@ -108,7 +116,9 @@
                     98,
                     85
                 ],
-                "template": ["8-bit/Home.png"]
+                "template": [
+                    "8-bit/Home.png"
+                ]
             }
         },
         "action": {
@@ -126,7 +136,9 @@
                     342,
                     211
                 ],
-                "template": ["8-bit/GameOver.png"],
+                "template": [
+                    "8-bit/GameOver.png"
+                ],
                 "method": 10001
             }
         },
@@ -162,7 +174,9 @@
                     92,
                     26
                 ],
-                "expected": ["单向投币"],
+                "expected": [
+                    "单向投币"
+                ],
                 "only_rec": true
             }
         },
@@ -181,7 +195,9 @@
                     53,
                     27
                 ],
-                "expected": ["进入"],
+                "expected": [
+                    "进入"
+                ],
                 "only_rec": true
             }
         },
@@ -200,7 +216,9 @@
                     237,
                     72
                 ],
-                "expected": ["开始游戏"]
+                "expected": [
+                    "开始游戏"
+                ]
             }
         },
         "action": {

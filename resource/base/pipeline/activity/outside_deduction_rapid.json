@@ -1078,7 +1078,9 @@
             "ODR_Exit",
             "ODR_QueryChessLocation"
         ],
-        "on_error": ["ODRInterrupts"]
+        "on_error": [
+            "ODRInterrupts"
+        ]
     },
     "ODR_Levelup": {
         "recognition": {
@@ -1669,7 +1671,9 @@
             "ODR_ItemLose",
             "[JumpBack]ODR_Event_Confirm"
         ],
-        "on_error": ["ODR_Event_Select_SkipText_Windows&Doors"]
+        "on_error": [
+            "ODR_Event_Select_SkipText_Windows&Doors"
+        ]
     },
     "ODR_Event_Select": {
         "desc": "选择选项（最后）",

@@ -6,7 +6,9 @@
             "controller": [
                 "ADB"
             ],
-            "group": ["daily"]
+            "group": [
+                "daily"
+            ]
         }
     ]
 }

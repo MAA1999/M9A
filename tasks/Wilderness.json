@@ -8,7 +8,9 @@
                 "魔精收菜",
                 "交付订单"
             ],
-            "group": ["daily"]
+            "group": [
+                "daily"
+            ]
         }
     ],
     "option": {
