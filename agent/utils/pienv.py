@@ -235,7 +235,9 @@ def _build_env() -> Env:
     )
 
     _module_logger.info(
-        "PI environment initialized: interface_version=%s client_name=%s client_version=%s client_language=%s client_maafw_version=%s pi_version=%s controller_ok=%s resource_ok=%s",
+        "PI environment initialized: interface_version=%s client_name=%s client_version=%s"
+        " client_language=%s client_maafw_version=%s pi_version=%s"
+        " controller_ok=%s resource_ok=%s",
         env.interface_version,
         env.client_name,
         env.client_version,

@@ -1,8 +1,8 @@
-import os
 import json
+import os
 
-from getContent import getContent
 from analyzeContent import analyzeContent
+from getContent import getContent
 
 
 def save_activity_data(resource, data):
@@ -23,7 +23,7 @@ def save_activity_data(resource, data):
     # 提取当前要保存的版本号 (只取第一个，假设每次只处理一个版本)
     version_id = next(iter(data.keys()), None)
     if not version_id:
-        print(f"Error: No version ID found in data")
+        print("Error: No version ID found in data")
         return False
 
     print(f"Processing {resource} data for version: {version_id}")
@@ -32,7 +32,7 @@ def save_activity_data(resource, data):
     if os.path.exists(file_path):
         try:
             # 读取现有文件
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 try:
                     existing_data = json.load(f)
                     print(f"Successfully loaded existing data from {file_path}")
@@ -49,7 +49,7 @@ def save_activity_data(resource, data):
 
             # 合并数据
             merged_data = {**existing_data, **data}
-            print(f"Merging new version data with existing data")
+            print("Merging new version data with existing data")
 
         except Exception as e:
             print(f"Error reading {file_path}: {e}")

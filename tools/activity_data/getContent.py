@@ -1,5 +1,5 @@
-import re
 import json
+import re
 from urllib.parse import urljoin
 
 import requests

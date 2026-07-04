@@ -1,7 +1,6 @@
-import re
 import json
+import re
 from datetime import datetime
-from typing import Optional
 
 import pytz
 from bs4 import BeautifulSoup
@@ -339,7 +338,11 @@ def convert_to_timestamps(time_range_str):
     将时间范围字符串转换为毫秒时间戳，正确处理夏令时
     """
     # 提取时间和时区
-    pattern = r"(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\s*-\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\s*(?:\d{2}:\d{2})?\s*\(UTC([+-]?\d+)\)"
+    pattern = (
+        r"(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\s*-\s*"
+        r"(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\s*"
+        r"(?:\d{2}:\d{2})?\s*\(UTC([+-]?\d+)\)"
+    )
     match = re.search(pattern, time_range_str)
 
     if not match:
@@ -432,7 +435,11 @@ def process_combat_duration_cn(duration: str):
             end_datetime = end_datetime.replace(second=59)
 
         # 格式化为目标格式
-        formatted_result = f"{start_datetime.strftime('%Y-%m-%d %H:%M')} - {end_datetime.strftime('%Y-%m-%d %H:%M')} (UTC+8)"
+        formatted_result = (
+            f"{start_datetime.strftime('%Y-%m-%d %H:%M')}"
+            f" - {end_datetime.strftime('%Y-%m-%d %H:%M')}"
+            " (UTC+8)"
+        )
 
         return formatted_result
 
@@ -534,7 +541,7 @@ def extract_tw_duration_segment(text: str):
 
 
 def process_combat_duration_tw(
-    duration: str, base_year: int, base_month: Optional[int]
+    duration: str, base_year: int, base_month: int | None
 ):
 
     taipei_tz = pytz.timezone("Asia/Taipei")

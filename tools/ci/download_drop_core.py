@@ -4,13 +4,13 @@
 从私有仓库的 release 下载对应平台的 drop_core 模块
 """
 
+import argparse
 import os
-import sys
 import platform
+import shutil
+import sys
 import urllib.request
 import zipfile
-import shutil
-import argparse
 
 # 私有仓库信息
 PRIVATE_REPO = "MAA1999/drop-upload-sign"  # 修改为你的私有仓库
@@ -115,17 +115,13 @@ def download_file(url, dest_path, token=None):
 def main():
     parser = argparse.ArgumentParser(description="Download drop_core module")
     parser.add_argument("--os", help="Target OS (windows, linux, darwin)")
-    parser.add_argument(
-        "--arch", help="Target architecture (x64, arm64, aarch64, x86_64)"
-    )
+    parser.add_argument("--arch", help="Target architecture (x64, arm64, aarch64, x86_64)")
     args = parser.parse_args()
 
     # 获取 token（从环境变量）
     token = os.environ.get("PRIVATE_REPO_TOKEN")
     if not token:
-        print(
-            "Warning: PRIVATE_REPO_TOKEN not set, may not be able to access private repo"
-        )
+        print("Warning: PRIVATE_REPO_TOKEN not set, may not be able to access private repo")
 
     # 获取平台信息
     if args.os and args.arch:
@@ -166,9 +162,7 @@ def main():
     elif os_type == "linux":
         # Linux 下载所有支持的 Python 版本
         linux_py_versions = ["3.11", "3.12", "3.13"]
-        artifacts = [
-            f"drop_core-{platform_tag}-py{v}-{RELEASE_TAG}" for v in linux_py_versions
-        ]
+        artifacts = [f"drop_core-{platform_tag}-py{v}-{RELEASE_TAG}" for v in linux_py_versions]
     else:
         artifacts = [f"drop_core-{platform_tag}-py{py_version}-{RELEASE_TAG}"]
 
@@ -176,9 +170,7 @@ def main():
     success_count = 0
     for artifact_name in artifacts:
         asset_name = f"{artifact_name}.zip"
-        download_url = get_asset_download_url(
-            PRIVATE_REPO, RELEASE_TAG, asset_name, token
-        )
+        download_url = get_asset_download_url(PRIVATE_REPO, RELEASE_TAG, asset_name, token)
 
         if not download_url:
             print(f"Cannot get download URL for: {artifact_name}")

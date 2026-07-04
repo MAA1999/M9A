@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 生成初始 manifest 缓存
 
@@ -10,8 +8,8 @@
 """
 
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 from pathlib import Path
 
 API_BASE_URL = "https://api.1999.fan/api"
