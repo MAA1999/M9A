@@ -1,6 +1,6 @@
 name: 需求建议 / Feature Request
 description: 新功能、改进建议或使用体验优化 / New feature, improvement, or workflow suggestion
-labels: ['enhancement']
+labels: ["enhancement"]
 body:
   - type: checkboxes
     id: checks

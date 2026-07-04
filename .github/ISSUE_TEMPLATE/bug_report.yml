@@ -1,6 +1,6 @@
 name: Bug 反馈 / Bug Report
 description: 识别错误、操作异常、崩溃、连接问题等 / Recognition, operation, crash, or connection problems
-labels: ['bug']
+labels: ["bug"]
 body:
   - type: checkboxes
     id: checks
@@ -49,8 +49,8 @@ body:
   - type: input
     id: project_version
     attributes:
-      label: 'M9A 版本 / M9A Version'
-      placeholder: '例如 / e.g.: v0.1.0'
+      label: "M9A 版本 / M9A Version"
+      placeholder: "例如 / e.g.: v0.1.0"
     validations:
       required: true
 
@@ -58,7 +58,7 @@ body:
     id: runtime_version
     attributes:
       label: MaaFramework 版本 / MaaFramework Version
-      placeholder: '例如 / e.g.: v5.10.5'
+      placeholder: "例如 / e.g.: v5.10.5"
     validations:
       required: false
 

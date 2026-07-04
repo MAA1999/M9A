@@ -4,15 +4,15 @@ on:
   push:
     branches: [main, master]
     paths:
-      - '**/*.png'
+      - "**/*.png"
   workflow_dispatch:
     inputs:
       paths:
-        description: 'Files or directories to optimize; defaults to the repository.'
+        description: "Files or directories to optimize; defaults to the repository."
         type: string
         required: false
       commit_message:
-        description: 'Commit message'
+        description: "Commit message"
         type: string
         required: false
 

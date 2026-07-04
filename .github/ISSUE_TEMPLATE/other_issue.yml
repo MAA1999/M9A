@@ -1,6 +1,6 @@
 name: 其他问题 / Other Issue
 description: 不属于 Bug 或需求建议的其他问题 / Questions or topics that are not bug reports or feature requests
-labels: ['question']
+labels: ["question"]
 body:
   - type: textarea
     id: description
@@ -13,8 +13,8 @@ body:
   - type: input
     id: project_version
     attributes:
-      label: 'M9A 版本 / M9A Version'
-      placeholder: '例如 / e.g.: v0.1.0'
+      label: "M9A 版本 / M9A Version"
+      placeholder: "例如 / e.g.: v0.1.0"
     validations:
       required: false
 

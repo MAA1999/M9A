@@ -13,7 +13,7 @@ const config: FullConfig = {
   maaVersion: 'latest',
   interfacePath: 'interface.json',
   resource: [
-    './resource/base'
+    './resource/base',
   ],
   parser: {
     customReco: (name, param, utils) => {
@@ -21,7 +21,7 @@ const config: FullConfig = {
       if (name === 'MultiRecognition') {
         for (const [
           key,
-          obj
+          obj,
         ] of utils.parseObject(param)) {
           if (key === 'nodes') {
             for (const task of utils.parseArray(obj)) {
@@ -29,7 +29,7 @@ const config: FullConfig = {
                 result.push({
                   node: task,
                   type: 'taskRef',
-                  missingPolicy: 'error'
+                  missingPolicy: 'error',
                 })
               }
             }
@@ -38,14 +38,14 @@ const config: FullConfig = {
       } else if (name === 'ColorOCR') {
         for (const [
           key,
-          obj
+          obj,
         ] of utils.parseObject(param)) {
           if (key === 'TargetStageName_OCR') {
             if (utils.isString(obj)) {
               result.push({
                 node: obj,
                 type: 'taskRef',
-                missingPolicy: 'error'
+                missingPolicy: 'error',
               })
             }
           }
@@ -59,14 +59,14 @@ const config: FullConfig = {
         result.push({
           node,
           type: 'taskRef',
-          missingPolicy: 'error'
+          missingPolicy: 'error',
         })
       }
 
       if (name === 'DisableNode') {
         for (const [
           key,
-          obj
+          obj,
         ] of utils.parseObject(param)) {
           if (key === 'node_name') {
             if (utils.isString(obj)) {
@@ -75,11 +75,7 @@ const config: FullConfig = {
           }
         }
       } else if (name === 'NodeOverride') {
-        for (const [
-          ,
-          overrideNode,
-          propNode
-        ] of utils.parseObject(param)) {
+        for (const [, overrideNode, propNode] of utils.parseObject(param)) {
           pushTaskRef(propNode)
 
           if (overrideNode.type === 'object') {
@@ -95,7 +91,7 @@ const config: FullConfig = {
               } else {
                 pushTaskRef({
                   ...ref.location,
-                  value: target
+                  value: target,
                 })
               }
             }
@@ -104,7 +100,7 @@ const config: FullConfig = {
       } else if (name === 'ResetCount') {
         for (const [
           key,
-          obj
+          obj,
         ] of utils.parseObject(param)) {
           if (key === 'nodes') {
             for (const task of utils.parseArray(obj)) {
@@ -117,7 +113,7 @@ const config: FullConfig = {
       } else if (name === 'SubTask') {
         for (const [
           key,
-          obj
+          obj,
         ] of utils.parseObject(param)) {
           if (key === 'sub') {
             for (const task of utils.parseArray(obj)) {
@@ -129,21 +125,21 @@ const config: FullConfig = {
         }
       }
       return result
-    }
+    },
   },
 
   check: {
     override: {
       'dynamic-image': 'ignore',
-      'unknown-task': 'warning'
-    }
+      'unknown-task': 'warning',
+    },
   },
 
   vscode: {
     agents: {
-      uv: 'Maa Agent: Debug'
-    }
-  }
+      uv: 'Maa Agent: Debug',
+    },
+  },
 }
 
 export default config
