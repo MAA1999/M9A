@@ -68,6 +68,7 @@ commit_parsers = [
     { message = "^[Rr]evert", group = "<!-- 11 -->撤销 | Reverts" },
 ]
 sort_commits = "oldest"
+ignore_tags = "rc"
 
 [git.github]
 commits = true
