@@ -1,9 +1,11 @@
+from typing import Any
+
 import json
 import re
 from datetime import datetime
 
 import pytz
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup  # pyright: ignore[reportMissingImports]
 
 
 def _extract_html_text_lines(content: str):
@@ -16,7 +18,7 @@ def _extract_html_text_lines(content: str):
     return lines
 
 
-def _find_following_line_with(lines, start_idx: int, must_contain, window: int = 8):
+def _find_following_line_with(lines: Any, start_idx: int, must_contain: Any, window: int = 8):
     end_idx = min(len(lines), start_idx + window)
     for i in range(start_idx, end_idx):
         candidate = lines[i]
@@ -25,7 +27,7 @@ def _find_following_line_with(lines, start_idx: int, must_contain, window: int =
     return None
 
 
-def analyzeContent(resource: str, content):
+def analyzeContent(resource: str, content: Any):
     activity = {}
 
     if resource == "cn":
@@ -333,7 +335,7 @@ def analyzeContent(resource: str, content):
     return activity
 
 
-def convert_to_timestamps(time_range_str):
+def convert_to_timestamps(time_range_str: Any):
     """
     将时间范围字符串转换为毫秒时间戳，正确处理夏令时
     """
@@ -478,7 +480,7 @@ def process_combat_duration_jp(duration: str):
     update_match = re.search(update_pattern, original_duration)
 
     if update_match:
-        year, month, day, update_text = update_match.groups()
+        year, month, day, _update_text = update_match.groups()
         year, month, day = map(int, [year, month, day])
 
         # 替换为明确的时间格式

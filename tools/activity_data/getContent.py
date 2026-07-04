@@ -1,9 +1,11 @@
+from typing import Any
+
 import json
 import re
 from urllib.parse import urljoin
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup  # pyright: ignore[reportMissingImports]
 
 CN_CONTENT_URL = "https://notice.sl916.com/noticecp/client/query"
 OTHER_URL = "https://re1999.bluepoch.com/activity/official/websites/information/query"
@@ -29,7 +31,7 @@ REQUEST_HEADERS = {
 GAME_IDS = {"cn": 50001, "en": 60001, "jp": 70001}
 
 
-def _request_json(method: str, url: str, **kwargs):
+def _request_json(method: str, url: str, **kwargs: Any) -> tuple[bool, Any]:
     try:
         response = requests.request(
             method=method,
@@ -106,7 +108,7 @@ def _parse_version_key(version_id: str):
     return int(match.group(1)), int(match.group(2))
 
 
-def _infer_version_from_content(content: str, known_version_name_pairs):
+def _infer_version_from_content(content: str, known_version_name_pairs: Any):
     if not known_version_name_pairs:
         return None, None
 

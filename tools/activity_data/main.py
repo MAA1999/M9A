@@ -1,3 +1,5 @@
+from typing import Any
+
 import json
 import os
 
@@ -5,7 +7,7 @@ from analyzeContent import analyzeContent
 from getContent import getContent
 
 
-def save_activity_data(resource, data):
+def save_activity_data(resource: Any, data: Any):
     """
     将活动数据保存到对应语言的JSON文件中
 

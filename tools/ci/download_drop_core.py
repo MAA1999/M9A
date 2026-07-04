@@ -4,6 +4,8 @@
 从私有仓库的 release 下载对应平台的 drop_core 模块
 """
 
+from typing import Any
+
 import argparse
 import os
 import platform
@@ -59,7 +61,7 @@ def get_python_version():
     return f"{sys.version_info.major}.{sys.version_info.minor}"
 
 
-def get_asset_download_url(repo, tag, asset_name, token=None):
+def get_asset_download_url(repo: Any, tag: Any, asset_name: Any, token: Any = None):
     """Get asset download URL from GitHub API"""
     api_url = f"https://api.github.com/repos/{repo}/releases/tags/{tag}"
 
@@ -86,7 +88,7 @@ def get_asset_download_url(repo, tag, asset_name, token=None):
         return None
 
 
-def download_file(url, dest_path, token=None):
+def download_file(url: Any, dest_path: Any, token: Any = None):
     """Download file"""
     print(f"Downloading: {url}")
     print(f"To: {dest_path}")

@@ -32,7 +32,7 @@ line-length = 120
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.pyright]
-include = ["agent"]
+include = ["agent", "tools"]
 extraPaths = ["agent"]
 pythonVersion = "3.13"
 typeCheckingMode = "strict"

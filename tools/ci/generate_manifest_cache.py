@@ -7,6 +7,8 @@
 注意：使用 urllib 而不是 requests，因为 CI 环境中的 embed Python 可能没有 requests。
 """
 
+from typing import Any
+
 import json
 import urllib.error
 import urllib.request
@@ -20,13 +22,13 @@ REQUEST_TIMEOUT = 10
 IGNORED_DIRS = {"images"}
 
 
-def _fetch_json(opener, url: str) -> dict:
+def _fetch_json(opener: Any, url: str) -> dict[str, Any]:
     """获取 JSON 数据"""
     with opener.open(url, timeout=REQUEST_TIMEOUT) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
-def _collect_all_manifests(opener, manifest_path: str, collected: dict):
+def _collect_all_manifests(opener: Any, manifest_path: str, collected: dict[str, Any]):
     """
     递归收集所有 manifest 的 updated 时间戳
 
