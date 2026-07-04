@@ -107,12 +107,12 @@ icon: ri:calendar-event-line
 {
     "override": {
         "节点名称": {
-            "recognition": {},  // 识别配置
-            "action": {},       // 动作配置
-            "next": [],         // 下一个节点列表
-            "focus": {}         // 焦点配置（用于提示信息）
-        }
-    }
+            "recognition": {}, // 识别配置
+            "action": {}, // 动作配置
+            "next": [], // 下一个节点列表
+            "focus": {}, // 焦点配置（用于提示信息）
+        },
+    },
 }
 ```
 
@@ -137,11 +137,11 @@ icon: ri:calendar-event-line
                 "param": {
                     "roi": [1029, 33, 96, 22],
                     "expected": "成就",
-                    "only_rec": true
-                }
-            }
-        }
-    }
+                    "only_rec": true,
+                },
+            },
+        },
+    },
 }
 ```
 
@@ -153,11 +153,11 @@ icon: ri:calendar-event-line
         "EnterTheActivityMain": {
             "action": {
                 "param": {
-                    "target": [881, 127, 156, 55]
-                }
-            }
-        }
-    }
+                    "target": [881, 127, 156, 55],
+                },
+            },
+        },
+    },
 }
 ```
 
@@ -167,9 +167,9 @@ icon: ri:calendar-event-line
 {
     "override": {
         "JudgeDuringRe_release": {
-            "next": ["ActivityMainChapter"]
-        }
-    }
+            "next": ["ActivityMainChapter"],
+        },
+    },
 }
 ```
 
@@ -180,10 +180,10 @@ icon: ri:calendar-event-line
     "override": {
         "focus": {
             "focus": {
-                "Node.Action.Starting": "当前任务只适用旧版轶事派遣，请手动完成当期轶事"
-            }
-        }
-    }
+                "Node.Action.Starting": "当前任务只适用旧版轶事派遣，请手动完成当期轶事",
+            },
+        },
+    },
 }
 ```
 

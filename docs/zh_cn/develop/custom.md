@@ -2,6 +2,7 @@
 order: 5
 icon: material-symbols:inbox-customize-outline-rounded
 ---
+
 # Custom 编写指南
 
 ## 开发方式
@@ -34,7 +35,7 @@ class YourAction(CustomAction):
     ) -> CustomAction.RunResult:
         # 读取传递的参数（可选）
         # param = json.loads(argv.custom_action_param)
-        
+
         # 实现你的逻辑
         return CustomAction.RunResult(success=True)
 ```
@@ -43,17 +44,17 @@ class YourAction(CustomAction):
 
 ```jsonc
 {
-    "YourNodeName":{
-        "action":"Custom",
-        "custom_action":"YourActionName",
+    "YourNodeName": {
+        "action": "Custom",
+        "custom_action": "YourActionName",
         "custom_action_param": {
             // 传递参数（可选）
             // object
-        }
+        },
         // ...
     },
     // 或者
-    "YourNodeName":{
+    "YourNodeName": {
         "action": {
             "type": "Custom",
             "param": {
@@ -61,8 +62,8 @@ class YourAction(CustomAction):
                 "custom_action_param": {
                     // 传递参数（可选）
                     // object
-                }
-            }
+                },
+            },
         },
         // ...
     },
@@ -109,26 +110,26 @@ class YourRecognition(CustomRecognition):
 
 ```jsonc
 {
-    "YourNodeName":{
+    "YourNodeName": {
         "recognition": "Custom",
         "custom_recognition": "YourRecognitionName",
         "custom_recognition_param": {
             // 传递参数（可选）
             // object
-        }
+        },
         // ...
     },
     // 或者
-    "YourNodeName":{
+    "YourNodeName": {
         "recognition": {
             "type": "Custom",
             "param": {
                 "custom_recognition": "YourRecognitionName",
-                    "custom_recognition_param": {
+                "custom_recognition_param": {
                     // 传递参数（可选）
                     // object
-                }
-            }
+                },
+            },
         },
         // ...
     },
@@ -207,7 +208,7 @@ if reco_detail and reco_detail.hit:
     ocr_result = reco_detail.best_result
     text = ocr_result.text
     box = reco_detail.box  # [x, y, w, h]
-    
+
     # 所有识别结果
     all_results = reco_detail.all_results
 ```

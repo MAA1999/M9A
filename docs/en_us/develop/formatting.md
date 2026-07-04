@@ -2,6 +2,7 @@
 order: 11
 icon: mdi:format-align-left
 ---
+
 # Code Formatting
 
 M9A uses a series of formatting tools to ensure that the code and resource files in the repository are clean and consistent, making them easier to maintain and read.
@@ -10,11 +11,11 @@ The repository automatically runs formatting daily, and you can also run formatt
 
 ## Formatting Tools
 
-| File Type | Formatting Tool |
-| --- | --- |
-| JSON/Yaml | [prettier](https://prettier.io/) |
-| Markdown | [MarkdownLint](https://github.com/DavidAnson/markdownlint-cli2) |
-| Python | [black](https://black.readthedocs.io/) |
+| File Type | Formatting Tool                                                 |
+| --------- | --------------------------------------------------------------- |
+| JSON/Yaml | [prettier](https://prettier.io/)                                |
+| Markdown  | [MarkdownLint](https://github.com/DavidAnson/markdownlint-cli2) |
+| Python    | [black](https://black.readthedocs.io/)                          |
 
 ## Install Dependencies
 

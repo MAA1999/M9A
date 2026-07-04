@@ -77,9 +77,9 @@ def ensure_venv_and_relaunch_if_needed():
 
 1. Check if currently running in a virtual environment (determined by `sys.prefix != sys.base_prefix`)
 2. If not in a virtual environment:
-   - Check if `.venv` directory exists, create it if not
-   - Relaunch the script using Python from the virtual environment
-   - Exit the current process, returning the subprocess exit code
+    - Check if `.venv` directory exists, create it if not
+    - Relaunch the script using Python from the virtual environment
+    - Exit the current process, returning the subprocess exit code
 3. If already in the virtual environment, continue execution
 
 **Platform Differences:**
@@ -102,18 +102,18 @@ def install_requirements(req_file="requirements.txt", pip_config=None) -> bool:
 **Installation Strategy (by priority):**
 
 1. **Local whl File Installation** (highest priority)
-   - Check if `.whl` files exist in the `deps/` directory
-   - Install from local using `pip install --find-links deps/ --no-index`
-   - Advantages: Offline availability, fast, version control
+    - Check if `.whl` files exist in the `deps/` directory
+    - Install from local using `pip install --find-links deps/ --no-index`
+    - Advantages: Offline availability, fast, version control
 
 2. **Online Mirror Source Installation** (fallback when local fails)
-   - Use configured primary mirror source (default: Tsinghua mirror)
-   - Add backup mirror source (default: USTC mirror)
-   - Command example: `pip install -i <primary> --extra-index-url <backup>`
+    - Use configured primary mirror source (default: Tsinghua mirror)
+    - Add backup mirror source (default: USTC mirror)
+    - Command example: `pip install -i <primary> --extra-index-url <backup>`
 
 3. **pip Global Configuration Installation** (when no mirror configured)
-   - Use user's local pip configuration
-   - Suitable for environments with custom pip configuration
+    - Use user's local pip configuration
+    - Suitable for environments with custom pip configuration
 
 **Important Parameters:**
 
@@ -128,9 +128,9 @@ The project uses JSON configuration files to manage various settings, located in
 
 ```json
 {
-  "enable_pip_install": true,
-  "mirror": "https://pypi.tuna.tsinghua.edu.cn/simple",
-  "backup_mirror": "https://mirrors.ustc.edu.cn/pypi/simple"
+    "enable_pip_install": true,
+    "mirror": "https://pypi.tuna.tsinghua.edu.cn/simple",
+    "backup_mirror": "https://mirrors.ustc.edu.cn/pypi/simple"
 }
 ```
 
@@ -138,7 +138,7 @@ The project uses JSON configuration files to manage various settings, located in
 
 ```json
 {
-  "enable_hot_update": true
+    "enable_hot_update": true
 }
 ```
 
@@ -176,12 +176,12 @@ The GitHub Actions workflow (`.github/workflows/install.yml`) defines the comple
 
 ```yaml
 jobs:
-  meta:      # Version number and release type determination
-  windows:   # Windows platform packaging
-  linux:     # Linux platform packaging
-  macos:     # macOS platform packaging
-  changelog: # Generate changelog
-  release:   # Release to GitHub Releases
+    meta: # Version number and release type determination
+    windows: # Windows platform packaging
+    linux: # Linux platform packaging
+    macos: # macOS platform packaging
+    changelog: # Generate changelog
+    release: # Release to GitHub Releases
 ```
 
 ### Platform-Specific Packaging Steps
@@ -190,31 +190,31 @@ jobs:
 
 ```yaml
 steps:
-  # 1. Download MaaFramework
-  - name: Download MaaFramework
-    uses: robinraju/release-downloader@v1
-    with:
-      repository: MaaXYZ/MaaFramework
-      fileName: "MAA-win-${{ matrix.arch }}*"
-      tag: ${{ env.MAA_FRAMEWORK_VERSION }}
-      out-file-path: "deps"
-      extract: true
+    # 1. Download MaaFramework
+    - name: Download MaaFramework
+      uses: robinraju/release-downloader@v1
+      with:
+          repository: MaaXYZ/MaaFramework
+          fileName: "MAA-win-${{ matrix.arch }}*"
+          tag: ${{ env.MAA_FRAMEWORK_VERSION }}
+          out-file-path: "deps"
+          extract: true
 
-  # 2. Setup Embedded Python
-  - name: Setup Embed Python on Windows
-    run: python tools/ci/setup_embed_python.py
+    # 2. Setup Embedded Python
+    - name: Setup Embed Python on Windows
+      run: python tools/ci/setup_embed_python.py
 
-  # 3. Download Python dependencies
-  - name: Download Python dependencies
-    run: ./install/python/python.exe tools/ci/download_deps.py --deps-dir install/deps
+    # 3. Download Python dependencies
+    - name: Download Python dependencies
+      run: ./install/python/python.exe tools/ci/download_deps.py --deps-dir install/deps
 
-  # 4. Execute packaging
-  - name: Install
-    run: ./install/python/python.exe ./tools/ci/install.py ${{ needs.meta.outputs.tag }} $PLATFORM_TAG
+    # 4. Execute packaging
+    - name: Install
+      run: ./install/python/python.exe ./tools/ci/install.py ${{ needs.meta.outputs.tag }} $PLATFORM_TAG
 
-  # 5. Create CLI version
-  - name: Create CLI version
-    run: ./install/python/python.exe ./tools/ci/install_cli.py ${{ needs.meta.outputs.tag }}
+    # 5. Create CLI version
+    - name: Create CLI version
+      run: ./install/python/python.exe ./tools/ci/install_cli.py ${{ needs.meta.outputs.tag }}
 ```
 
 **Key Points:**
@@ -227,21 +227,21 @@ steps:
 
 ```yaml
 steps:
-  # 1. Download MaaFramework
-  - name: Download MaaFramework for Linux
-    uses: robinraju/release-downloader@v1
+    # 1. Download MaaFramework
+    - name: Download MaaFramework for Linux
+      uses: robinraju/release-downloader@v1
 
-  # 2. Download Python dependencies
-  - name: Download Python dependencies
-    run: python tools/ci/download_deps.py --deps-dir install/deps
+    # 2. Download Python dependencies
+    - name: Download Python dependencies
+      run: python tools/ci/download_deps.py --deps-dir install/deps
 
-  # 3. Execute packaging
-  - name: Install on Linux
-    run: python ./tools/ci/install.py ${{ needs.meta.outputs.tag }} $PLATFORM_TAG
+    # 3. Execute packaging
+    - name: Install on Linux
+      run: python ./tools/ci/install.py ${{ needs.meta.outputs.tag }} $PLATFORM_TAG
 
-  # 4. Create CLI version
-  - name: Create CLI version
-    run: python ./tools/ci/install_cli.py ${{ needs.meta.outputs.tag }}
+    # 4. Create CLI version
+    - name: Create CLI version
+      run: python ./tools/ci/install_cli.py ${{ needs.meta.outputs.tag }}
 ```
 
 **Key Points:**
@@ -254,21 +254,21 @@ steps:
 
 ```yaml
 steps:
-  # 1. Download MaaFramework
-  - name: Download MaaFramework for macOS
-    uses: robinraju/release-downloader@v1
+    # 1. Download MaaFramework
+    - name: Download MaaFramework for macOS
+      uses: robinraju/release-downloader@v1
 
-  # 2. Setup Embedded Python
-  - name: Setup Embed Python on macOS
-    run: python3 tools/ci/setup_embed_python.py
+    # 2. Setup Embedded Python
+    - name: Setup Embed Python on macOS
+      run: python3 tools/ci/setup_embed_python.py
 
-  # 3. Download Python dependencies
-  - name: Download Python dependencies
-    run: ./install/python/bin/python3 tools/ci/download_deps.py --deps-dir install/deps
+    # 3. Download Python dependencies
+    - name: Download Python dependencies
+      run: ./install/python/bin/python3 tools/ci/download_deps.py --deps-dir install/deps
 
-  # 4. Execute packaging
-  - name: Install on macOS
-    run: ./install/python/bin/python3 ./tools/ci/install.py ${{ needs.meta.outputs.tag }} $PLATFORM_TAG
+    # 4. Execute packaging
+    - name: Install on macOS
+      run: ./install/python/bin/python3 ./tools/ci/install.py ${{ needs.meta.outputs.tag }} $PLATFORM_TAG
 ```
 
 **Key Points:**
@@ -282,16 +282,16 @@ steps:
 Each platform generates two versions:
 
 1. **Full Version** (`M9A-{platform}-{arch}-{version}-Full`)
-   - Contains complete GUI interface (MFAAvalonia)
-   - Includes Python Agent and all dependencies
-   - Includes MaaFramework runtime
-   - Suitable for regular users
+    - Contains complete GUI interface (MFAAvalonia)
+    - Includes Python Agent and all dependencies
+    - Includes MaaFramework runtime
+    - Suitable for regular users
 
 2. **Lite Version** (`M9A-{platform}-{arch}-{version}-Lite`)
-   - Contains only command-line interface (MaaPiCli)
-   - Includes Python Agent and all dependencies
-   - Does not include GUI-related files
-   - Suitable for server deployment or automation scripts
+    - Contains only command-line interface (MaaPiCli)
+    - Includes Python Agent and all dependencies
+    - Does not include GUI-related files
+    - Suitable for server deployment or automation scripts
 
 ## Agent Usage
 
@@ -375,30 +375,30 @@ Parts that need modification:
 
 1. **Project Root Directory Setup**
 
-   ```python
-   # Adjust according to your project structure
-   current_script_dir = os.path.dirname(current_file_path)
-   project_root_dir = os.path.dirname(current_script_dir)
-   ```
+    ```python
+    # Adjust according to your project structure
+    current_script_dir = os.path.dirname(current_file_path)
+    project_root_dir = os.path.dirname(current_script_dir)
+    ```
 
 2. **Business Logic Section**
 
-   ```python
-   def agent(is_dev_mode=False):
-       # Keep common logic like virtual environment, dependency installation, config management
-       # Modify the business logic section:
+    ```python
+    def agent(is_dev_mode=False):
+        # Keep common logic like virtual environment, dependency installation, config management
+        # Modify the business logic section:
 
-       # Replace with your business module
-       from your_module import YourAgent
+        # Replace with your business module
+        from your_module import YourAgent
 
-       # Replace with your initialization logic
-       YourAgent.init()
-       YourAgent.start()
-   ```
+        # Replace with your initialization logic
+        YourAgent.init()
+        YourAgent.start()
+    ```
 
 3. **Hot Update Logic** (Optional)
-   - If hot update is not needed, delete related code
-   - If needed, implement `utils.manifest_checker` and `utils.resource_updater` modules
+    - If hot update is not needed, delete related code
+    - If needed, implement `utils.manifest_checker` and `utils.resource_updater` modules
 
 #### .github/workflows/install.yml
 
@@ -406,75 +406,75 @@ Parts that need modification:
 
 1. **Environment Variables**
 
-   ```yaml
-   env:
-     MAA_FRAMEWORK_VERSION: "v5.4.2"  # Change to your required version
-     # Add your other dependency versions
-   ```
+    ```yaml
+    env:
+        MAA_FRAMEWORK_VERSION: "v5.4.2" # Change to your required version
+        # Add your other dependency versions
+    ```
 
 2. **Dependency Download Steps**
 
-   ```yaml
-   # Modify according to your project dependencies
-   - name: Download MaaFramework
-     uses: robinraju/release-downloader@v1
-     with:
-       repository: MaaXYZ/MaaFramework  # Change to your dependency repository
-       fileName: "MAA-win-${{ matrix.arch }}*"
-       tag: ${{ env.MAA_FRAMEWORK_VERSION }}
-   ```
+    ```yaml
+    # Modify according to your project dependencies
+    - name: Download MaaFramework
+      uses: robinraju/release-downloader@v1
+      with:
+          repository: MaaXYZ/MaaFramework # Change to your dependency repository
+          fileName: "MAA-win-${{ matrix.arch }}*"
+          tag: ${{ env.MAA_FRAMEWORK_VERSION }}
+    ```
 
 3. **Packaging Steps**
-   - Keep Python environment setup and dependency download steps
-   - Modify call parameters for `install.py` and `install_cli.py`
-   - Add or remove other steps as needed (e.g., icon conversion, file copying)
+    - Keep Python environment setup and dependency download steps
+    - Modify call parameters for `install.py` and `install_cli.py`
+    - Add or remove other steps as needed (e.g., icon conversion, file copying)
 
 ### 3. Important Notes
 
 #### Platform Differences
 
 1. **Python Environment**
-   - Windows/macOS: Use embedded Python, requires `setup_embed_python.py`
-   - Linux: Use system Python + virtual environment
+    - Windows/macOS: Use embedded Python, requires `setup_embed_python.py`
+    - Linux: Use system Python + virtual environment
 
 2. **Path Separators**
-   - Use `pathlib.Path` to handle paths, automatically adapts to different platforms
-   - Avoid hardcoding `/` or `\`
+    - Use `pathlib.Path` to handle paths, automatically adapts to different platforms
+    - Avoid hardcoding `/` or `\`
 
 3. **Executable Permissions**
-   - Linux/macOS require setting executable permissions: `chmod +x`
-   - Handle in CI/CD release steps
+    - Linux/macOS require setting executable permissions: `chmod +x`
+    - Handle in CI/CD release steps
 
 #### Dependency Management
 
 1. **Local whl Files Priority**
-   - Download all dependencies to `deps/` directory during packaging
-   - Users prioritize local whl on first run, no internet required
-   - Automatically fallback to online installation if local installation fails
+    - Download all dependencies to `deps/` directory during packaging
+    - Users prioritize local whl on first run, no internet required
+    - Automatically fallback to online installation if local installation fails
 
 2. **Mirror Source Configuration**
-   - Provide default mirror sources (Tsinghua, USTC, etc.)
-   - Allow users to customize mirror sources through configuration files
-   - Support dual-source strategy with primary + backup sources
+    - Provide default mirror sources (Tsinghua, USTC, etc.)
+    - Allow users to customize mirror sources through configuration files
+    - Support dual-source strategy with primary + backup sources
 
 3. **Version Locking**
-   - Lock dependency versions in `requirements.txt`
-   - Avoid compatibility issues due to dependency updates
+    - Lock dependency versions in `requirements.txt`
+    - Avoid compatibility issues due to dependency updates
 
 #### Error Handling
 
 1. **Configuration File Read Failure**
-   - Use default configuration, do not interrupt the program
-   - Log warnings for troubleshooting
+    - Use default configuration, do not interrupt the program
+    - Log warnings for troubleshooting
 
 2. **Dependency Installation Failure**
-   - Provide multiple installation strategies (local → online primary → online backup)
-   - Log detailed error information
-   - Provide user-friendly prompts
+    - Provide multiple installation strategies (local → online primary → online backup)
+    - Log detailed error information
+    - Provide user-friendly prompts
 
 3. **Virtual Environment Creation Failure**
-   - Check Python version and venv module availability
-   - Provide clear error messages and solutions
+    - Check Python version and venv module availability
+    - Provide clear error messages and solutions
 
 ## Summary
 

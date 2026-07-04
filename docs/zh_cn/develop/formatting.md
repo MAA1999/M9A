@@ -2,6 +2,7 @@
 order: 11
 icon: mdi:format-align-left
 ---
+
 # 代码格式化
 
 M9A 使用一系列的格式化工具来保证仓库中的代码和资源文件美观统一，以便于维护和阅读
@@ -10,11 +11,11 @@ M9A 使用一系列的格式化工具来保证仓库中的代码和资源文件�
 
 ## 格式化工具
 
-| 文件类型 | 格式化工具 |
-| --- | --- |
-| JSON/Yaml | [prettier](https://prettier.io/) |
-| Markdown | [MarkdownLint](https://github.com/DavidAnson/markdownlint-cli2) |
-| Python | [black](https://black.readthedocs.io/) |
+| 文件类型  | 格式化工具                                                      |
+| --------- | --------------------------------------------------------------- |
+| JSON/Yaml | [prettier](https://prettier.io/)                                |
+| Markdown  | [MarkdownLint](https://github.com/DavidAnson/markdownlint-cli2) |
+| Python    | [black](https://black.readthedocs.io/)                          |
 
 ## 安装依赖
 

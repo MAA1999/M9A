@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        default: ''
+        default: ""
         required: false
   release:
     types: [released]

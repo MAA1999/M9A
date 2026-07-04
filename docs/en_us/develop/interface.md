@@ -2,6 +2,7 @@
 order: 3
 icon: tdesign:system-interface
 ---
+
 # Writing interface.json
 
 ::: tip
@@ -88,7 +89,7 @@ For example, for bilibili Server, the resource configuration is as follows:
 
 ```json
 {
-  "resources": [
+    "resources": [
         {
             "name": "bilibili Server",
             "path": [
@@ -195,9 +196,9 @@ After executing the "Anecdote Dispatch (Please read character stories yourself)"
 Option definition object, key is option identifier, value is option configuration. Each option contains:
 
 - `type`: Option type (optional, default `"select"`)
-  - `"select"`: Dropdown selection box
-  - `"input"`: User input box
-  - `"switch"`: Switch selection (Yes/No)
+    - `"select"`: Dropdown selection box
+    - `"input"`: User input box
+    - `"switch"`: Switch selection (Yes/No)
 - `label`: Display label (optional, supports internationalization)
 - `description`: Option description (optional)
 - `icon`: Option icon (optional)
@@ -339,9 +340,9 @@ Configure multi-language:
         "zh_cn": "interface_zh.json",
         "en_us": "interface_en.json"
     },
-    "label": "$project_name",        // Use translation key
-    "contact": "CONTACT",             // Direct file path
-    "description": "Direct text"     // Direct text
+    "label": "$project_name", // Use translation key
+    "contact": "CONTACT", // Direct file path
+    "description": "Direct text" // Direct text
 }
 ```
 

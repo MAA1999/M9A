@@ -2,6 +2,7 @@
 order: 6
 icon: qlementine-icons:debug-16
 ---
+
 # Bug Troubleshooting
 
 Fixing bugs is also an important part of development.  
@@ -50,14 +51,14 @@ If MaaLogAnalyzer is not available, you can manually analyze:
 
 1. **Confirm Version Information**
 
-   Search in `maa.log` for:
-   - `Interface Version: [data.version=` - Check resource version
-   - `MFAA Version` or `MaaPiCli` - Confirm runtime mode
+    Search in `maa.log` for:
+    - `Interface Version: [data.version=` - Check resource version
+    - `MFAA Version` or `MaaPiCli` - Confirm runtime mode
 
 2. **Locate Issues**
 
-   - **Task ends prematurely**: Search for `[ERR]` to check error messages
-   - **Task loops**: Search for `reco hit` to find abnormal matching patterns
+    - **Task ends prematurely**: Search for `[ERR]` to check error messages
+    - **Task loops**: Search for `reco hit` to find abnormal matching patterns
 
 ## Analyzing the Issue
 
@@ -68,7 +69,7 @@ Here, issues are roughly categorized into three types: resource loading issues, 
 Resource loading failure caused by overwriting installation when renaming resources:
 
 ```log
-[2024-11-17 22:29:04.185][ERR][Px10564][Tx9380][PipelineResMgr.cpp][L211][MaaNS::ResourceNS::PipelineResMgr::parse_config] key already exists [key=OutsideDeduction] 
+[2024-11-17 22:29:04.185][ERR][Px10564][Tx9380][PipelineResMgr.cpp][L211][MaaNS::ResourceNS::PipelineResMgr::parse_config] key already exists [key=OutsideDeduction]
 ```
 
 ### Connection Issues
@@ -85,21 +86,21 @@ These are the main issues M9A needs to focus on. Understanding the original pipe
 
 1. Non-pipeline process-related issues
 
-   These issues are not caused by logical problems in the pipeline process itself.
+    These issues are not caused by logical problems in the pipeline process itself.
 
-   Based on the problematic node, there are two types:
+    Based on the problematic node, there are two types:
 
-   The first type is non-unconditional matching/inverse nodes.  
-   A common cause is that screenshots are taken too quickly, matching the `next` node, but the current screen has not stabilized yet.  
-   The solution is to add appropriate `post_wait_freezes` to the current node to wait for the screen to stabilize before making a judgment.
+    The first type is non-unconditional matching/inverse nodes.  
+    A common cause is that screenshots are taken too quickly, matching the `next` node, but the current screen has not stabilized yet.  
+    The solution is to add appropriate `post_wait_freezes` to the current node to wait for the screen to stabilize before making a judgment.
 
-   The second type is unconditional matching/inverse nodes.  
-   This may occur when entering an unexpected interface, leading to incorrect judgments.  
-   The solution is to modify as needed.
+    The second type is unconditional matching/inverse nodes.  
+    This may occur when entering an unexpected interface, leading to incorrect judgments.  
+    The solution is to modify as needed.
 
 2. Pipeline process-related issues
 
-   These issues are due to the incompleteness of the task process itself and require modifications after analysis.
+    These issues are due to the incompleteness of the task process itself and require modifications after analysis.
 
 ## Resolving the Issue
 

@@ -3,9 +3,9 @@ name: mirrorchyan_release_note
 on:
   workflow_dispatch:
     inputs:
-        tag:
-            default: ''
-            required: false
+      tag:
+        default: ""
+        required: false
   release:
     types: [edited]
 

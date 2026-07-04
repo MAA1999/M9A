@@ -107,12 +107,12 @@ The `override` field is used to override default node recognition and action con
 {
     "override": {
         "node_name": {
-            "recognition": {},  // Recognition configuration
-            "action": {},       // Action configuration
-            "next": [],         // Next node list
-            "focus": {}         // Focus configuration (for hint messages)
-        }
-    }
+            "recognition": {}, // Recognition configuration
+            "action": {}, // Action configuration
+            "next": [], // Next node list
+            "focus": {}, // Focus configuration (for hint messages)
+        },
+    },
 }
 ```
 
@@ -137,11 +137,11 @@ The `override` field is used to override default node recognition and action con
                 "param": {
                     "roi": [1029, 33, 96, 22],
                     "expected": "Achievement",
-                    "only_rec": true
-                }
-            }
-        }
-    }
+                    "only_rec": true,
+                },
+            },
+        },
+    },
 }
 ```
 
@@ -153,11 +153,11 @@ The `override` field is used to override default node recognition and action con
         "EnterTheActivityMain": {
             "action": {
                 "param": {
-                    "target": [881, 127, 156, 55]
-                }
-            }
-        }
-    }
+                    "target": [881, 127, 156, 55],
+                },
+            },
+        },
+    },
 }
 ```
 
@@ -167,9 +167,9 @@ The `override` field is used to override default node recognition and action con
 {
     "override": {
         "JudgeDuringRe_release": {
-            "next": ["ActivityMainChapter"]
-        }
-    }
+            "next": ["ActivityMainChapter"],
+        },
+    },
 }
 ```
 
@@ -180,10 +180,10 @@ The `override` field is used to override default node recognition and action con
     "override": {
         "focus": {
             "focus": {
-                "Node.Action.Starting": "This task only applies to old version anecdotes, please complete manually"
-            }
-        }
-    }
+                "Node.Action.Starting": "This task only applies to old version anecdotes, please complete manually",
+            },
+        },
+    },
 }
 ```
 

@@ -2,6 +2,7 @@
 order: 6
 icon: qlementine-icons:debug-16
 ---
+
 # Bug 排查
 
 修 bug 也是开发中重要的一环。  
@@ -50,14 +51,14 @@ M9A 的日志一般在以下位置：
 
 1. **确认版本信息**
 
-   在 `maa.log` 中搜索：
-   - `Interface Version: [data.version=` - 查看资源版本
-   - `MFAA Version` 或 `MaaPiCli` - 确认运行方式
+    在 `maa.log` 中搜索：
+    - `Interface Version: [data.version=` - 查看资源版本
+    - `MFAA Version` 或 `MaaPiCli` - 确认运行方式
 
 2. **定位问题**
 
-   - **任务提前结束**：搜索 `[ERR]` 查看错误信息
-   - **任务循环**：搜索 `reco hit` 查找异常匹配模式
+    - **任务提前结束**：搜索 `[ERR]` 查看错误信息
+    - **任务循环**：搜索 `reco hit` 查找异常匹配模式
 
 ## 分析问题
 
@@ -68,7 +69,7 @@ M9A 的日志一般在以下位置：
 资源改名时覆盖安装导致的资源加载失败：
 
 ```log
-[2024-11-17 22:29:04.185][ERR][Px10564][Tx9380][PipelineResMgr.cpp][L211][MaaNS::ResourceNS::PipelineResMgr::parse_config] key already exists [key=OutsideDeduction] 
+[2024-11-17 22:29:04.185][ERR][Px10564][Tx9380][PipelineResMgr.cpp][L211][MaaNS::ResourceNS::PipelineResMgr::parse_config] key already exists [key=OutsideDeduction]
 ```
 
 ### 连接问题
@@ -85,21 +86,21 @@ M9A 的日志一般在以下位置：
 
 1. 非 pipeline 流程类问题
 
-   这种问题本身 pipeline 流程逻辑上没有问题。
+    这种问题本身 pipeline 流程逻辑上没有问题。
 
-   根据出问题的 node 分为两种：
+    根据出问题的 node 分为两种：
 
-   第一种是 非 无条件匹配/inverse node。  
-   常见原因是截图截太快了，匹配到 `next` 中 node，但当前画面尚未未稳定。  
-   解决方案是为当前 node 添加合适的 `post_wait_freezes`，等待画面稳定再做判断。
+    第一种是 非 无条件匹配/inverse node。  
+    常见原因是截图截太快了，匹配到 `next` 中 node，但当前画面尚未未稳定。  
+    解决方案是为当前 node 添加合适的 `post_wait_freezes`，等待画面稳定再做判断。
 
-   第二种是 无条件匹配/inverse node。  
-   这种可能是进到非预期界面，导致判断失误。  
-   解决方案是按需修改。
+    第二种是 无条件匹配/inverse node。  
+    这种可能是进到非预期界面，导致判断失误。  
+    解决方案是按需修改。
 
 2. pipeline 流程类问题
 
-   这种是任务流程本身完备性不足，需在分析后修改。
+    这种是任务流程本身完备性不足，需在分析后修改。
 
 ## 解决问题
 

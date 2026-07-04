@@ -2,6 +2,7 @@
 order: 4
 icon: eos-icons:pipeline
 ---
+
 # Pipeline Writing Guide
 
 ## What is Pipeline?
@@ -22,7 +23,12 @@ M9A is based on **MaaFramework v5.1+** and uses the **Pipeline v2** protocol:
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi": [100, 100, 200, 50],
+                "roi": [
+                    100,
+                    100,
+                    200,
+                    50
+                ],
                 "expected": ["Confirm"]
             }
         },
@@ -59,8 +65,8 @@ Nodes are connected through the `next` field, supporting node attribute syntax:
 {
     "StartTask": {
         "next": [
-            "CheckStatus",           // Regular node
-            "[JumpBack]HandleError"  // Node with JumpBack attribute
+            "CheckStatus", // Regular node
+            "[JumpBack]HandleError" // Node with JumpBack attribute
         ]
     }
 }
@@ -126,7 +132,7 @@ Review existing files and maintain consistent style.
     "ActivityMain": {
         "recognition": {
             "type": "TemplateMatch",
-            "param": { "template": "ActivityMainPage.png" }
+            "param": {"template": "ActivityMainPage.png"}
         },
         "next": [
             "StartBattle",
@@ -138,7 +144,7 @@ Review existing files and maintain consistent style.
         "doc": "Close possible popups",
         "recognition": {
             "type": "TemplateMatch",
-            "param": { "template": "CloseButton.png" }
+            "param": {"template": "CloseButton.png"}
         },
         "action": {
             "type": "Click"
@@ -186,7 +192,12 @@ In `pipeline.json` files, there are two types of comment attribute fields:
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi": [885, 123, 340, 183]
+                "roi": [
+                    885,
+                    123,
+                    340,
+                    183
+                ]
             }
         },
         "action": {
@@ -194,7 +205,12 @@ In `pipeline.json` files, there are two types of comment attribute fields:
         },
         "post_wait_freezes": {
             "time": 500,
-            "target": [0, 179, 190, 541]
+            "target": [
+                0,
+                179,
+                190,
+                541
+            ]
         }
     }
 }
@@ -205,7 +221,7 @@ In `pipeline.json` files, there are two types of comment attribute fields:
 - `doc`: Functional description of current node
 - `template_code`: Required field placeholder, prompts to configure `template` in `interface.json`
 
-:::tip Why do we need _code fields?
+:::tip Why do we need \_code fields?
 
 When `recognition.type` is `TemplateMatch`, the `template` field is required. However, in actual projects, we typically configure `template` uniformly in `interface.json` rather than hardcoding it in each pipeline JSON. Therefore, `template_code` is used as a placeholder to remind developers to configure it in the correct location.
 
@@ -223,7 +239,12 @@ The following are real examples extracted from M9A project's `all_in.json`, demo
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi": [0, 5, 90, 70]
+                "roi": [
+                    0,
+                    5,
+                    90,
+                    70
+                ]
             }
         },
         "action": {
@@ -238,7 +259,12 @@ The following are real examples extracted from M9A project's `all_in.json`, demo
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi": [1118, 34, 140, 37]
+                "roi": [
+                    1118,
+                    34,
+                    140,
+                    37
+                ]
             }
         },
         "action": {
@@ -263,7 +289,12 @@ The following are real examples extracted from M9A project's `all_in.json`, demo
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi": [855, 615, 80, 45]
+                "roi": [
+                    855,
+                    615,
+                    80,
+                    45
+                ]
             }
         },
         "action": {
@@ -271,7 +302,12 @@ The following are real examples extracted from M9A project's `all_in.json`, demo
         },
         "post_wait_freezes": {
             "time": 800,
-            "target": [563, 307, 155, 92]
+            "target": [
+                563,
+                307,
+                155,
+                92
+            ]
         },
         "next": ["ChangeReplaysTimes"]
     }
@@ -292,7 +328,12 @@ The following are real examples extracted from M9A project's `all_in.json`, demo
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi": [0, 59, 1280, 661]
+                "roi": [
+                    0,
+                    59,
+                    1280,
+                    661
+                ]
             }
         },
         "action": {
@@ -311,7 +352,12 @@ The following are real examples extracted from M9A project's `all_in.json`, demo
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi": [23, 14, 60, 50]
+                "roi": [
+                    23,
+                    14,
+                    60,
+                    50
+                ]
             }
         },
         "action": {

@@ -20,12 +20,14 @@ icon: ri:treasure-map-line
 
 ```jsonc
 {
-    "artefacts": {      // Creation data
-        "attribute_type": []  // Creations grouped by attribute
+    "artefacts": {
+        // Creation data
+        "attribute_type": [], // Creations grouped by attribute
     },
-    "harmonics": {      // Harmonic resonance data
-        "attribute_type": []  // Harmonic resonances grouped by attribute
-    }
+    "harmonics": {
+        // Harmonic resonance data
+        "attribute_type": [], // Harmonic resonances grouped by attribute
+    },
 }
 ```
 
@@ -57,9 +59,9 @@ Creations are grouped by attribute, each containing all creation names related t
             "Devouring Horn I",
             "Dividing Copper Fish",
             // ... more creations
-        ]
+        ],
         // ... other attributes
-    }
+    },
 }
 ```
 
@@ -80,9 +82,9 @@ Harmonic resonances are similarly grouped by attribute, each containing all harm
             "Preparation",
             "Unexpected Awareness",
             // ... more harmonic resonances
-        ]
+        ],
         // ... other attributes
-    }
+    },
 }
 ```
 

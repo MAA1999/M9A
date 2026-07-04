@@ -2,6 +2,7 @@
 order: 5
 icon: material-symbols:inbox-customize-outline-rounded
 ---
+
 # Custom Module Writing Guide
 
 ## Development Approach
@@ -34,7 +35,7 @@ class YourAction(CustomAction):
     ) -> CustomAction.RunResult:
         # Read passed parameters (optional)
         # param = json.loads(argv.custom_action_param)
-        
+
         # Implement your logic
         return CustomAction.RunResult(success=True)
 ```
@@ -43,17 +44,17 @@ The method to call the above action in the pipeline is as follows. The passed pa
 
 ```jsonc
 {
-    "YourNodeName":{
-        "action":"Custom",
-        "custom_action":"YourActionName",
+    "YourNodeName": {
+        "action": "Custom",
+        "custom_action": "YourActionName",
         "custom_action_param": {
             // Pass parameters (optional)
             // object
-        }
+        },
         // ...
     },
     // or
-    "YourNodeName":{
+    "YourNodeName": {
         "action": {
             "type": "Custom",
             "param": {
@@ -61,8 +62,8 @@ The method to call the above action in the pipeline is as follows. The passed pa
                 "custom_action_param": {
                     // Pass parameters (optional)
                     // object
-                }
-            }
+                },
+            },
         },
         // ...
     },
@@ -109,26 +110,26 @@ The method to call the above recognition process in the pipeline is as follows. 
 
 ```jsonc
 {
-    "YourNodeName":{
+    "YourNodeName": {
         "recognition": "Custom",
         "custom_recognition": "YourRecognitionName",
         "custom_recognition_param": {
             // Pass parameters (optional)
             // object
-        }
+        },
         // ...
     },
     // or
-    "YourNodeName":{
+    "YourNodeName": {
         "recognition": {
             "type": "Custom",
             "param": {
                 "custom_recognition": "YourRecognitionName",
-                    "custom_recognition_param": {
+                "custom_recognition_param": {
                     // Pass parameters (optional)
                     // object
-                }
-            }
+                },
+            },
         },
         // ...
     },
@@ -207,7 +208,7 @@ if reco_detail and reco_detail.hit:
     ocr_result = reco_detail.best_result
     text = ocr_result.text
     box = reco_detail.box  # [x, y, w, h]
-    
+
     # All recognition results
     all_results = reco_detail.all_results
 ```

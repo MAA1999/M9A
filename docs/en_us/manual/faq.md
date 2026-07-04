@@ -2,6 +2,7 @@
 order: 2
 icon: ph:question-fill
 ---
+
 # Frequently Asked Questions (FAQ)
 
 ## Software Fails to Run / Crashes / Reports Errors

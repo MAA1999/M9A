@@ -2,6 +2,7 @@
 order: 8
 icon: jam:write-f
 ---
+
 # 文档编写
 
 ::: important
@@ -61,12 +62,12 @@ M9A 文档使用 [VuePress Theme Plume](https://theme-plume.vuejs.press) 构建�
 为了向文档中添加图片，我们采取以下步骤：
 
 1. 上传图片到公共仓库 [M9A-WEB](https://github.com/MAA1999/M9A-WEB/tree/main/docs/.vuepress/public/images)
-   - 将图片放置在对应的子目录中（如 `docs/.vuepress/public/images/develop/`）
-   - 图片命名应清晰描述内容，使用小写字母和连字符（如 `pipeline-flow.png`）
+    - 将图片放置在对应的子目录中（如 `docs/.vuepress/public/images/develop/`）
+    - 图片命名应清晰描述内容，使用小写字母和连字符（如 `pipeline-flow.png`）
 
 2. 构建图片的 URL 路径
-   - 公式：`/images/[子目录]/[文件名]`
-   - 示例：上传到 `public/images/zh-cn/newbie-init-script-step2.webp`，URL 为 `/images/zh-cn/newbie-init-script-step2.webp`
+    - 公式：`/images/[子目录]/[文件名]`
+    - 示例：上传到 `public/images/zh-cn/newbie-init-script-step2.webp`，URL 为 `/images/zh-cn/newbie-init-script-step2.webp`
 
 3. 在文档中使用 Markdown 语法插入图片
 
@@ -143,18 +144,19 @@ print("示例代码")
 
 ```markdown
 ::: file-tree
+
 - docs/
-  - zh_cn/
-    - develop/
-      - pipeline.md
-      - custom.md
-  - en_us/
-    - develop/
-      - pipeline.md
-      - custom.md
+    - zh_cn/
+        - develop/
+            - pipeline.md
+            - custom.md
+    - en_us/
+        - develop/
+            - pipeline.md
+            - custom.md
 - assets/
-  - resource/
-:::
+    - resource/
+      :::
 ```
 
 ## 更多功能

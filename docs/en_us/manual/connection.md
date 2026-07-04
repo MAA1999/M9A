@@ -2,6 +2,7 @@
 order: 3
 icon: mdi:plug
 ---
+
 # Connection Settings
 
 ## Auto Detect
@@ -76,34 +77,34 @@ For other emulators, you can refer to [Zhao Qingqing's blog post](https://www.cn
 >
 > - Method 1: Use ADB command to view emulator ports
 >
->   1. Start **one** emulator and ensure no other Android devices are connected to the computer.
->   2. Open a terminal in the folder containing the ADB executable.
->   3. Execute the following command.
+>     1. Start **one** emulator and ensure no other Android devices are connected to the computer.
+>     2. Open a terminal in the folder containing the ADB executable.
+>     3. Execute the following command.
 >
->   ```sh
->   # Windows Command Prompt
->   adb devices
->   # Windows PowerShell
->   .\adb devices
->   ```
+>     ```sh
+>     # Windows Command Prompt
+>     adb devices
+>     # Windows PowerShell
+>     .\adb devices
+>     ```
 >
->   Example output:
+>     Example output:
 >
->   ```text
->   List of devices attached
->   127.0.0.1:<PortNumber>   device
->   emulator-<FourDigitNumber>  device
->   ```
+>     ```text
+>     List of devices attached
+>     127.0.0.1:<PortNumber>   device
+>     emulator-<FourDigitNumber>  device
+>     ```
 >
->   Use `127.0.0.1:<PortNumber>` or `emulator-<FourDigitNumber>` as the connection address.
+>     Use `127.0.0.1:<PortNumber>` or `emulator-<FourDigitNumber>` as the connection address.
 >
 > - Method 2: Find established ADB connections (Windows)
 >
->   1. Perform Method 1.
->   2. Press `Win+S`, type `Resource Monitor`, and open it.
->   3. Switch to the `Network` tab. In the `Listening Ports` section, find the emulator process name (e.g., `HD-Player.exe`) in the Image column.
->   4. Note down all listening ports for the emulator process.
->   5. In the `TCP Connections` section, find `adb.exe` in the Image column. The port listed in the `Remote Port` column that matches one of the emulator's listening ports is the emulator's debug port.
+>     1. Perform Method 1.
+>     2. Press `Win+S`, type `Resource Monitor`, and open it.
+>     3. Switch to the `Network` tab. In the `Listening Ports` section, find the emulator process name (e.g., `HD-Player.exe`) in the Image column.
+>     4. Note down all listening ports for the emulator process.
+>     5. In the `TCP Connections` section, find `adb.exe` in the Image column. The port listed in the `Remote Port` column that matches one of the emulator's listening ports is the emulator's debug port.
 
 ### Touch Control Mode
 

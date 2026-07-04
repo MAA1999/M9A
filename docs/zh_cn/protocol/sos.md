@@ -19,9 +19,9 @@ icon: ri:game-fill
 
 ```jsonc
 {
-    "types": [],              // 节点类型数组，包含所有可能的节点类型
-    "common_interrupts": {},  // 公共中断配置（可选）
-    "节点类型名称": {}        // 每个节点类型的具体配置
+    "types": [], // 节点类型数组，包含所有可能的节点类型
+    "common_interrupts": {}, // 公共中断配置（可选）
+    "节点类型名称": {}, // 每个节点类型的具体配置
 }
 ```
 
@@ -32,38 +32,43 @@ icon: ri:game-fill
 ```jsonc
 {
     "common_interrupts": {
-        "message": ["SOSNextMessage"],                    // 消息中断组
-        "message_left": ["SOSNextMessage_left"],          // 左侧消息中断组
-        "stats": [                                        // 属性提升中断组
+        "message": ["SOSNextMessage"], // 消息中断组
+        "message_left": ["SOSNextMessage_left"], // 左侧消息中断组
+        "stats": [
+            // 属性提升中断组
             "SOSWarning",
             "SOSStatsUpButton",
-            "SOSStatsUp"
+            "SOSStatsUp",
         ],
-        "artefact": [                                     // 造物相关中断组
+        "artefact": [
+            // 造物相关中断组
             "SOSArtefactsObtained",
             "SOSSelectArtefact",
             "SOSLoseArtefact",
-            "SOSStrengthenArtefact"
+            "SOSStrengthenArtefact",
         ],
-        "harmonic": [                                     // 谐波相关中断组
+        "harmonic": [
+            // 谐波相关中断组
             "SOSHarmonicObtained",
-            "SOSSelectHarmonic"
+            "SOSSelectHarmonic",
         ],
-        "resonator": [                                    // 共鸣器相关中断组
+        "resonator": [
+            // 共鸣器相关中断组
             "SOSResonatorObtained",
             "SOSSelectResonator",
-            "SOSFormBreakthrough"
+            "SOSFormBreakthrough",
         ],
-        "others": [                                       // 其他常用中断
+        "others": [
+            // 其他常用中断
             "SOSDice",
             "SOSContinue",
             "SOSEventEnd",
-            "CloseTip"
+            "CloseTip",
         ],
         // 可以组合多个中断组创建新的组合
         "EncounterAlongTheWay": "@message_left+@stats+@artefact+@harmonic+@resonator+@others+SOSClickEventRec",
-        "TheOnlyWay": "@message+@stats+@artefact+@harmonic+@resonator+@others"
-    }
+        "TheOnlyWay": "@message+@stats+@artefact+@harmonic+@resonator+@others",
+    },
 }
 ```
 
@@ -125,7 +130,7 @@ icon: ri:game-fill
 ```jsonc
 {
     "type": "RunNode",
-    "name": "节点名称"
+    "name": "节点名称",
 }
 ```
 
@@ -221,11 +226,7 @@ icon: ri:game-fill
 
 ```jsonc
 {
-    "interrupts": [
-        "SOSArtefactsObtained",
-        "SOSStatsUpButton",
-        "SOSStatsUp"
-    ]
+    "interrupts": ["SOSArtefactsObtained", "SOSStatsUpButton", "SOSStatsUp"],
 }
 ```
 
@@ -235,7 +236,7 @@ icon: ri:game-fill
 
 ```jsonc
 {
-    "interrupts": "@stats+@artefact+@harmonic+@resonator+CloseTip"
+    "interrupts": "@stats+@artefact+@harmonic+@resonator+CloseTip",
 }
 ```
 
@@ -362,7 +363,7 @@ icon: ri:game-fill
 `event_name_roi` 定义了事件名称的识别区域，格式为 `[x, y, width, height]`：
 
 - `x`: 左上角 X 坐标
-- `y`: 左上角 Y 坐标  
+- `y`: 左上角 Y 坐标
 - `width`: 宽度
 - `height`: 高度
 - `null`: 表示该节点不需要识别具体事件名称
@@ -379,8 +380,8 @@ icon: ri:game-fill
 #### 2. 节点处理阶段（SOSNodeProcess）
 
 1. 根据节点类型判断是否需要识别事件名：
-   - **无事件名节点**：直接使用 `actions` 中的动作序列
-   - **有事件名节点**：从 `events` 中查找对应事件的配置
+    - **无事件名节点**：直接使用 `actions` 中的动作序列
+    - **有事件名节点**：从 `events` 中查找对应事件的配置
 2. 按顺序执行 `actions` 中的每个动作
 3. 每个动作执行前后都会进行中断检测
 

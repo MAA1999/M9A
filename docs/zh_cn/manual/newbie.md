@@ -2,7 +2,9 @@
 order: 1
 icon: ri:guide-fill
 ---
+
 <!-- markdownlint-disable MD033 -->
+
 # 新手上路
 
 ## 前置准备
@@ -11,26 +13,26 @@ icon: ri:guide-fill
 
 <div align="center">
 
-| | Windows | macOS | Linux | Android |
-| :---: | :---: | :---: | :---: | :---: |
-| 系统要求 | Windows 10 及以上 | 自行尝试 | 自行尝试 | 不推荐 |
-| 需要配置环境 | 是 | 是 | 是 | 是 |
-| 需要模拟器 | 是 | 是 | 模拟器或容器化安卓 | 否 |
-| 使用方式 | 图形界面或命令行 | 图形界面或命令行 | 图形界面或命令行 | 命令行 |
+|              |      Windows      |      macOS       |       Linux        | Android |
+| :----------: | :---------------: | :--------------: | :----------------: | :-----: |
+|   系统要求   | Windows 10 及以上 |     自行尝试     |      自行尝试      | 不推荐  |
+| 需要配置环境 |        是         |        是        |         是         |   是    |
+|  需要模拟器  |        是         |        是        | 模拟器或容器化安卓 |   否    |
+|   使用方式   | 图形界面或命令行  | 图形界面或命令行 |  图形界面或命令行  | 命令行  |
 
-| | 备注 |
-| --- | --- |
-| Windows 用户 | 绝大部分情况请下载 x86_64 架构 |
-| Mac 用户 | M9A 同时支持搭载 Apple Silicon 和 Intel 芯片的 Mac 电脑<br>但更推荐搭载 Intel 芯片的 Mac 电脑使用 Mac 自带的多系统安装 Windows<br>并使用 Windows 版 M9A 和模拟器 |
+|              | 备注                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Windows 用户 | 绝大部分情况请下载 x86_64 架构                                                                                                                                                                                                                                                                                                                                            |
+| Mac 用户     | M9A 同时支持搭载 Apple Silicon 和 Intel 芯片的 Mac 电脑<br>但更推荐搭载 Intel 芯片的 Mac 电脑使用 Mac 自带的多系统安装 Windows<br>并使用 Windows 版 M9A 和模拟器                                                                                                                                                                                                          |
 | Android 用户 | M9A 已不再提供 Android 版本发行包<br>如您非常了解手机操作并希望使用 Android 实体设备，请前往 [MaaFramework](https://github.com/MaaXYZ/MaaFramework/) 自行安装<br>可参考 [使用方法](https://github.com/MaaXYZ/MaaFramework/issues/475) ，以及 [MAA文档](https://maa.plus/docs/zh-cn/manual/device/android.html) <br>此方法较为复杂且具有一定风险，不推荐入门玩家使用此方法 |
 
 </div>
 
-***
+---
 
 ### 2. 安装运行环境
 
->[!NOTE]
+> [!NOTE]
 >
 > 用户可跳过这节，在第3步下载解压后运行依赖库安装脚本，脚本自动安装失败后再看这节
 
@@ -173,18 +175,18 @@ Linux 用户需要单独安装 Python 。
 
  </details>
 
-***
+---
 
 ### 3. 下载正确的版本
 
-M9A 下载（更新）地址： [GitHub 发布页](https://github.com/MAA1999/M9A/releases)  。点击链接后，在 `Assets` 处选择适配您系统的最新版压缩包下载。
+M9A 下载（更新）地址： [GitHub 发布页](https://github.com/MAA1999/M9A/releases) 。点击链接后，在 `Assets` 处选择适配您系统的最新版压缩包下载。
 
 国内用户也可通过 [Mirror 酱](https://mirrorchyan.com/zh/download?rid=M9A&source=m9agh-md3) 高速下载。
 
 <div align="center">
 
-| | Windows | macOS | Linux |
-| :---: | :---: | :---: | :---: |
+|            |          Windows          |                                        macOS                                        |                                        Linux                                        |
+| :--------: | :-----------------------: | :---------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------: |
 | 您需要下载 | `M9A-win-x86_64-vXXX.zip` | `M9A-macos-x86_64-vXXX.tar.gz` 或 `M9A-macos-aarch64-vXXX.tar.gz`<br>取决于您的架构 | `M9A-linux-x86_64-vXXX.tar.gz` 或 `M9A-linux-aarch64-vXXX.tar.gz`<br>取决于您的架构 |
 
 </div>
@@ -205,16 +207,16 @@ M9A 下载（更新）地址： [GitHub 发布页](https://github.com/MAA1999/M9
   </blockquote>
 </details>
 
-***
+---
 
 ### 4. 确认模拟器和设备支持
 
 <div align="center">
 
-| | Windows | macOS | Linux | Android |
-| :---: | :---: | :---: | :---: | :---: |
-| 模拟器支持 | 支持主流模拟器 | 支持主流模拟器 | 自行尝试 | / |
-| 需要adb功能 | 是 | 是 | 是 | 是 |
+|             |    Windows     |     macOS      |  Linux   | Android |
+| :---------: | :------------: | :------------: | :------: | :-----: |
+| 模拟器支持  | 支持主流模拟器 | 支持主流模拟器 | 自行尝试 |    /    |
+| 需要adb功能 |       是       |       是       |    是    |   是    |
 
 </div>
 
@@ -230,9 +232,9 @@ M9A 下载（更新）地址： [GitHub 发布页](https://github.com/MAA1999/M9
 
   <div align="center">
 
-  | | Windows | macOS | Linux | Android |
-  | -------- | -------- | ------- | ------- | ------- |
-  | 参考文档 | [Windows 模拟器](https://maa.plus/docs/zh-cn/manual/device/windows.html) | 如果你的设备搭载 Apple Silicon 请参阅：<br>[在 Apple Silicon 平台上运行的Mac模拟器](https://maa.plus/docs/zh-cn/manual/device/macos.html#apple-silicon-%E8%8A%AF%E7%89%87)<br>如果你的设备搭载 Intel 芯片：<br>1. 推荐使用 Mac 自带的多系统安装 Windows <br>并参考 Windows 部分文档<br>2. 参阅[在 Intel 平台上运行的 Mac 模拟器](https://maa.plus/docs/zh-cn/manual/device/macos.html#intel-%E8%8A%AF%E7%89%87) | [Linux 模拟器与容器](https://maa.plus/docs/zh-cn/manual/device/linux.html) | [Android 实体设备](<https://maa.plus/docs/zh-cn/manual/device/android.html>) |
+|          | Windows                                                                  | macOS                                                                                                                                                                                                                                                                                                                                                                                                           | Linux                                                                      | Android                                                                    |
+| -------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 参考文档 | [Windows 模拟器](https://maa.plus/docs/zh-cn/manual/device/windows.html) | 如果你的设备搭载 Apple Silicon 请参阅：<br>[在 Apple Silicon 平台上运行的Mac模拟器](https://maa.plus/docs/zh-cn/manual/device/macos.html#apple-silicon-%E8%8A%AF%E7%89%87)<br>如果你的设备搭载 Intel 芯片：<br>1. 推荐使用 Mac 自带的多系统安装 Windows <br>并参考 Windows 部分文档<br>2. 参阅[在 Intel 平台上运行的 Mac 模拟器](https://maa.plus/docs/zh-cn/manual/device/macos.html#intel-%E8%8A%AF%E7%89%87) | [Linux 模拟器与容器](https://maa.plus/docs/zh-cn/manual/device/linux.html) | [Android 实体设备](https://maa.plus/docs/zh-cn/manual/device/android.html) |
 
   </div>
 
@@ -240,7 +242,7 @@ M9A 下载（更新）地址： [GitHub 发布页](https://github.com/MAA1999/M9
 
  </details>
 
-***
+---
 
 ### 5. 正确设置分辨率
 
@@ -289,11 +291,11 @@ M9A 支持主流模拟器与PC端，但您需要设置模拟器与PC端分辨率
   </blockquote>
 </details>
 
->[!WARNING]
+> [!WARNING]
 >
 > 注意修改分辨率后模拟器主页应该是横屏（平板版），不要选成竖屏（手机版）了！
 
-***
+---
 
 ### 6. 开始使用
 
@@ -368,7 +370,7 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
 
 同macOS，下载对应版本的压缩包，解压后运行 `M9A` 即可。
 
-***
+---
 
 ### 7. 配置 M9A
 
@@ -404,7 +406,7 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
 
 M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块。此时，可先进入全局设置界面配置。
 
-***
+---
 
 #### M9A 设置界面
 
@@ -450,7 +452,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
     </blockquote>
   </details>
 
-***
+---
 
 **`启动设置`**
 
@@ -527,7 +529,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
   </blockquote>
 </details>
 
-***
+---
 
 #### M9A 主界面
 
@@ -546,11 +548,11 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
       </blockquote>
     </details>
 
-***
+---
 
 **`连接`**
 
-  M9A 需正确的 ADB 连接才能在**目标**模拟器执行任务。绝大多数情况下，您只需保持有且仅有目标模拟器启动，点击“刷新”即可完成连接。如需手动配置 ADB 参数，请参考 [连接设置](./connection.md)。
+M9A 需正确的 ADB 连接才能在**目标**模拟器执行任务。绝大多数情况下，您只需保持有且仅有目标模拟器启动，点击“刷新”即可完成连接。如需手动配置 ADB 参数，请参考 [连接设置](./connection.md)。
 
   <details>
     <summary>示意图</summary>
@@ -584,7 +586,7 @@ M9A 运行任务时，无法修改主界面的部分设置，如 `连接` 板块
     </blockquote>
   </details>
   
-当您使用国际服 PC 端时，在连接区域的**控制器类型**中选择 PC 即可自动检测并连接已打开的 PC 端窗口。  
+当您使用国际服 PC 端时，在连接区域的**控制器类型**中选择 PC 即可自动检测并连接已打开的 PC 端窗口。
 
   <details>
     <summary>示意图</summary>
@@ -616,7 +618,7 @@ Mac 用户使用 PlayCover 时，在连接区域的**控制器类型**中选择 
     </blockquote>
   </details>
 
-***
+---
 
 **`任务列表`**
 
@@ -660,50 +662,50 @@ Mac 用户使用 PlayCover 时，在连接区域的**控制器类型**中选择 
     </blockquote>
   </details>
 
->[!IMPORTANT]
+> [!IMPORTANT]
 >
 > 大部分任务需在使用前正确配置，少部分任务还需根据任务说明在特定场景执行。启用任务前，请确保您已阅读并理解了该任务的**任务说明**，并结合实际情况对**任务设置**进行配置。更多关于任务的说明请参阅 [功能介绍](./introduction.md) 。
 
-***
+---
 
 #### 配置文件
 
 ##### pip 配置
 
-  M9A 支持通过 `config/pip_config.json` 文件配置 pip 安装相关设置。一般情况下，您无需修改此文件，除非您有特殊需求。
+M9A 支持通过 `config/pip_config.json` 文件配置 pip 安装相关设置。一般情况下，您无需修改此文件，除非您有特殊需求。
 
   <details>
     <summary>config/pip_config.json 示例</summary>
     <p></p>
     <blockquote>
 
-  ```jsonc
-  {
-      "enable_pip_install": true,  // 是否启用 pip 安装，默认 true
-      "mirror": "https://pypi.tuna.tsinghua.edu.cn/simple", // 镜像源
-      "backup_mirror": "https://mirrors.ustc.edu.cn/pypi/simple"  // 备用镜像源
-  }
-  ```
+```jsonc
+{
+    "enable_pip_install": true, // 是否启用 pip 安装，默认 true
+    "mirror": "https://pypi.tuna.tsinghua.edu.cn/simple", // 镜像源
+    "backup_mirror": "https://mirrors.ustc.edu.cn/pypi/simple", // 备用镜像源
+}
+```
 
   </blockquote>
   </details>
 
 ##### 资源热更配置
 
-  M9A 支持通过 `config/hot_update.json` 文件配置部分资源（例如活动开放时间）热更相关设置。
+M9A 支持通过 `config/hot_update.json` 文件配置部分资源（例如活动开放时间）热更相关设置。
 
   <details>
     <summary>config/hot_update.json 示例</summary>
     <p></p>
     <blockquote>
 
-  ```jsonc
-  {
-      "enable_hot_update": true  // 是否启用部分资源热更，默认 true
-  }
-  ```
+```jsonc
+{
+    "enable_hot_update": true, // 是否启用部分资源热更，默认 true
+}
+```
 
   </blockquote>
   </details>
 
-***
+---

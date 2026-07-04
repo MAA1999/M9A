@@ -2,6 +2,7 @@
 order: 2
 icon: ph:question-fill
 ---
+
 # 常见问题
 
 ## 软件无法运行/闪退/报错
@@ -97,7 +98,7 @@ icon: ph:question-fill
 
 ## 文件下载速度慢
 
-1. 使用[Mirror酱](./MirrorChyan.md)更新  
+1. 使用[Mirror酱](./MirrorChyan.md)更新
 2. 求助群友/到网上查询相关办法。
 
 ## 日志黄字提示

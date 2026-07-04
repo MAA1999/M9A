@@ -19,8 +19,8 @@ Related resources are stored under `assets/resource/data/sos`.
 
 ```jsonc
 {
-    "types": [],           // Array of node types, listing all possible node types
-    "<NodeTypeName>": {}   // Configuration for each node type
+    "types": [], // Array of node types, listing all possible node types
+    "<NodeTypeName>": {}, // Configuration for each node type
 }
 ```
 
@@ -82,7 +82,7 @@ Run a predefined process node
 ```jsonc
 {
     "type": "RunNode",
-    "name": "NodeName"
+    "name": "NodeName",
 }
 ```
 
@@ -276,8 +276,8 @@ Interrupt handler nodes that may be triggered during action execution:
 #### 2. Node Processing Phase (SOSNodeProcess)
 
 1. Determine whether event name recognition is needed based on node type:
-   - **Nodes without event name**: Directly use the action sequence in `actions`
-   - **Nodes with event name**: Find the corresponding event configuration in `events`
+    - **Nodes without event name**: Directly use the action sequence in `actions`
+    - **Nodes with event name**: Find the corresponding event configuration in `events`
 2. Execute each action in `actions` in order
 3. Interrupt detection is performed before and after each action
 

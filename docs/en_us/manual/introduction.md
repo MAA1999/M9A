@@ -2,6 +2,7 @@
 order: 6
 icon: mdi:information-outline
 ---
+
 # Feature Introduction
 
 ## Start Game
@@ -32,8 +33,8 @@ Farm daily free Will Analysis attempts, including the following options:
 Execute regular stage combat, including the following options:
 
 - **Custom Combat Stage**: Manually specify combat stage
-  - When disabled, you can select stage type (Main Story/Resource/Insight)
-  - When enabled, you can input specific main story stage number
+    - When disabled, you can select stage type (Main Story/Resource/Insight)
+    - When enabled, you can input specific main story stage number
 - **Consume Candy**: Automatically use candy
 - **Custom Combat Count**: Specify combat count. It will consume all stamina when disabled.
 - **Drop Statistics Report**: Report stage drop data
@@ -69,7 +70,7 @@ Automatically complete Deep Sleep battles, including the following options:
 - Supports both old and new formation systems
 - Supports custom formation naming
 - Future support for formations beyond the first four
-:::
+  :::
 
 ## Auto Awakening Dream
 
@@ -84,7 +85,7 @@ Automatically complete Awakening Dream battles, including the following options:
 - Supports both old and new formation systems
 - Supports custom formation naming
 - Future support for formations beyond the first four
-:::
+  :::
 
 ## Bank Shopping
 
@@ -120,7 +121,7 @@ Leave the field empty to scroll to the bottom of the account list and switch to 
 - After switching, you can continue adding tasks for multi-account multi-configuration task execution
 - Currently only supports Official server
 - Only supports emulator environments with an actual unscaled resolution of 1280×720
-:::
+  :::
 
 ## Close Game
 
@@ -144,7 +145,7 @@ Roguelike mode for farming credits, including the following options:
 
 1. Before using fast mode, please fully level up `Engrave Growth - Song of Guidance` and `Engrave Growth - Building Code`
 2. Please increase difficulty level as much as possible (difficulty 11 achieves maximum credit efficiency of 200%) and max out credit efficiency bonuses in the tech tree to prevent insufficient score of 2,500 leading to farming failure
-:::
+   :::
 
 ### Non-Fast Mode
 
@@ -153,7 +154,7 @@ Roguelike mode for farming credits, including the following options:
 1. Before use, you can pin (mark) four characters in your box as deployment characters
 2. Team composition should include a healer
 3. Please ensure the last battle was in auto-battle mode before use, M9A cannot check if it's in auto-battle
-:::
+   :::
 
 ::: warning
 M9A does not handle story content, tutorials, and other elements that only appear when playing roguelike for the first time. You need to complete these once manually before using this feature.
@@ -184,7 +185,7 @@ Syndrome of Silence roguelike mode, including the following options:
 
 1. M9A does not process the gameplay instructions page that only appears when playing roguelike for the first time. Please manually progress to at least the second floor before using
 2. M9A cannot check if it's in auto-battle mode. Please ensure your most recent battle was in auto-battle mode before using
-:::
+   :::
 
 ::: tip
 Based on testing, it's best to choose difficulty 2 or 3 for the mission. Difficulty 4 makes it easy to die in battle
@@ -231,7 +232,7 @@ This feature does not change characters and takes all debuffs, so it's only suit
 - **Fast option**: Directly fight boss stage without 5th position buff, suitable for fully-built Big Three + double healer team
 - Non-fast mode will max out 5th position buff before fighting boss, improving clear stability
 - Test team: 37 + Eternity + Melmoth + Semmelweis + Tutu (note: place main DPS in 5th position)
-:::
+  :::
 
 ### Critter Crash
 
@@ -242,7 +243,7 @@ Quick farming in Critter Crash interface.
 - Start in Critter Crash interface
 - Supports CN server version 3.2
 - Please play two rounds manually first to raise alert level to 3 before using
-:::
+  :::
 
 ### Pre-Storm Protocol
 
@@ -304,4 +305,4 @@ Auto stage clear feature, currently in testing phase.
 - This feature is in testing and is not guaranteed to work properly
 - Currently not available for the main story
 - Please manually open the page you need to clear (such as current event, anecdote, etc.) before running this task
-:::
+  :::

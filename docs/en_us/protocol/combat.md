@@ -22,11 +22,11 @@ Combat data is stored in the `assets/resource/data/combat/` directory:
 
 ```jsonc
 {
-    "gold": {},    // Gold rarity items
-    "yellow": {},  // Yellow rarity items
-    "purple": {},  // Purple rarity items
-    "blue": {},    // Blue rarity items
-    "green": {}    // Green rarity items
+    "gold": {}, // Gold rarity items
+    "yellow": {}, // Yellow rarity items
+    "purple": {}, // Purple rarity items
+    "blue": {}, // Blue rarity items
+    "green": {}, // Green rarity items
 }
 ```
 
@@ -49,8 +49,8 @@ Each item uses item ID as key, containing item name:
     "gold": {
         "111004": {"name": "Fruit of Discernment"},
         "111005": {"name": "Evergreen Sword"},
-        "111006": {"name": "Golden Fleece"}
-    }
+        "111006": {"name": "Golden Fleece"},
+    },
 }
 ```
 
@@ -71,8 +71,8 @@ Stage code format: `"chapter-stage_difficulty"`
 - Chapter: Number (e.g., `1`, `2`, `12`)
 - Stage: Number (e.g., `1`, `14`, `21`)
 - Difficulty:
-  - `G` - Story difficulty
-  - `E` - Perilous difficulty
+    - `G` - Story difficulty
+    - `E` - Perilous difficulty
 
 Examples:
 

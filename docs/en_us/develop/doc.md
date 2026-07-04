@@ -2,6 +2,7 @@
 order: 8
 icon: jam:write-f
 ---
+
 # Documentation Writing
 
 ::: important
@@ -61,12 +62,12 @@ Nested containers may not render correctly. It's recommended to avoid using mult
 To add images to the documentation, follow these steps:
 
 1. Upload the image to the public repository [M9A-WEB](https://github.com/MAA1999/M9A-WEB/tree/main/docs/.vuepress/public/images)
-   - Place the image in the corresponding subdirectory (e.g., `docs/.vuepress/public/images/develop/`)
-   - Use clear, descriptive names with lowercase letters and hyphens (e.g., `pipeline-flow.png`)
+    - Place the image in the corresponding subdirectory (e.g., `docs/.vuepress/public/images/develop/`)
+    - Use clear, descriptive names with lowercase letters and hyphens (e.g., `pipeline-flow.png`)
 
 2. Construct the image URL path
-   - Formula: `/images/[subdirectory]/[filename]`
-   - Example: Upload to `public/images/zh-cn/newbie-init-script-step2.webp`, URL is `/images/zh-cn/newbie-init-script-step2.webp`
+    - Formula: `/images/[subdirectory]/[filename]`
+    - Example: Upload to `public/images/zh-cn/newbie-init-script-step2.webp`, URL is `/images/zh-cn/newbie-init-script-step2.webp`
 
 3. Insert the image using Markdown syntax in the documentation
 
@@ -143,18 +144,19 @@ Display project directory structure:
 
 ```markdown
 ::: file-tree
+
 - docs/
-  - zh_cn/
-    - develop/
-      - pipeline.md
-      - custom.md
-  - en_us/
-    - develop/
-      - pipeline.md
-      - custom.md
+    - zh_cn/
+        - develop/
+            - pipeline.md
+            - custom.md
+    - en_us/
+        - develop/
+            - pipeline.md
+            - custom.md
 - assets/
-  - resource/
-:::
+    - resource/
+      :::
 ```
 
 ## More Features

@@ -2,6 +2,7 @@
 order: 3
 icon: tdesign:system-interface
 ---
+
 # interface.json 编写
 
 ::: tip
@@ -88,7 +89,7 @@ icon: tdesign:system-interface
 
 ```json
 {
-  "resources": [
+    "resources": [
         {
             "name": "B 服",
             "path": [
@@ -195,9 +196,9 @@ icon: tdesign:system-interface
 选项定义对象，键为选项标识符，值为选项配置。每个选项包含：
 
 - `type`: 选项类型（可选，默认 `"select"`）
-  - `"select"`: 下拉选项框
-  - `"input"`: 用户输入框
-  - `"switch"`: 开关选择（Yes/No）
+    - `"select"`: 下拉选项框
+    - `"input"`: 用户输入框
+    - `"switch"`: 开关选择（Yes/No）
 - `label`: 显示标签（可选，支持国际化）
 - `description`: 选项描述（可选）
 - `icon`: 选项图标（可选）
@@ -224,7 +225,7 @@ icon: tdesign:system-interface
             ]
         }
     ],
-    "option":{
+    "option": {
         "刷完全部体力": {
             "cases": [
                 {
@@ -327,9 +328,7 @@ input 字段说明：
 
 支持国际化的字段可以直接使用具体值（如路径、URL、文本），也可以使用 `$` 前缀进行国际化。
 
-**国际化机制：**
-    - 如果字段值**以 `$` 开头**，表示这是一个翻译键，需要从 `languages` 配置的翻译文件中读取实际值
-    - 如果字段值**不以 `$` 开头**，则直接使用该值（路径、URL 或文本）
+**国际化机制：** - 如果字段值**以 `$` 开头**，表示这是一个翻译键，需要从 `languages` 配置的翻译文件中读取实际值 - 如果字段值**不以 `$` 开头**，则直接使用该值（路径、URL 或文本）
 
 配置多语言：
 
@@ -339,9 +338,9 @@ input 字段说明：
         "zh_cn": "interface_zh.json",
         "en_us": "interface_en.json"
     },
-    "label": "$project_name",        // 使用翻译键
-    "contact": "CONTACT",             // 直接使用文件路径
-    "description": "这是直接文本"     // 直接使用文本
+    "label": "$project_name", // 使用翻译键
+    "contact": "CONTACT", // 直接使用文件路径
+    "description": "这是直接文本" // 直接使用文本
 }
 ```
 

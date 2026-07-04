@@ -2,6 +2,7 @@
 order: 4
 icon: eos-icons:pipeline
 ---
+
 # Pipeline 编写指南
 
 ## 什么是 Pipeline？
@@ -22,7 +23,12 @@ M9A 基于 **MaaFramework v5.1+**，使用 **Pipeline v2** 协议：
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi": [100, 100, 200, 50],
+                "roi": [
+                    100,
+                    100,
+                    200,
+                    50
+                ],
                 "expected": ["确认"]
             }
         },
@@ -59,8 +65,8 @@ Pipeline 按以下流程执行：
 {
     "StartTask": {
         "next": [
-            "CheckStatus",           // 普通节点
-            "[JumpBack]HandleError"  // 带 JumpBack 属性的节点
+            "CheckStatus", // 普通节点
+            "[JumpBack]HandleError" // 带 JumpBack 属性的节点
         ]
     }
 }
@@ -190,7 +196,12 @@ graph LR
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi": [885, 123, 340, 183]
+                "roi": [
+                    885,
+                    123,
+                    340,
+                    183
+                ]
             }
         },
         "action": {
@@ -198,7 +209,12 @@ graph LR
         },
         "post_wait_freezes": {
             "time": 500,
-            "target": [0, 179, 190, 541]
+            "target": [
+                0,
+                179,
+                190,
+                541
+            ]
         }
     }
 }
@@ -209,7 +225,7 @@ graph LR
 - `doc`：当前节点的功能说明
 - `template_code`：必填字段占位符，提示在 `interface.json` 中配置 `template`
 
-:::tip 为什么需要 _code 字段？
+:::tip 为什么需要 \_code 字段？
 
 当 `recognition.type` 为 `TemplateMatch` 时，`template` 字段为必填项。但在实际项目中，我们通常在 `interface.json` 中统一配置 `template`，而不是在每个 pipeline JSON 中硬编码。因此使用 `template_code` 占位，提示开发者在正确位置配置。
 
@@ -227,7 +243,12 @@ graph LR
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi": [0, 5, 90, 70]
+                "roi": [
+                    0,
+                    5,
+                    90,
+                    70
+                ]
             }
         },
         "action": {
@@ -242,7 +263,12 @@ graph LR
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi": [1118, 34, 140, 37]
+                "roi": [
+                    1118,
+                    34,
+                    140,
+                    37
+                ]
             }
         },
         "action": {
@@ -267,7 +293,12 @@ graph LR
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi": [855, 615, 80, 45]
+                "roi": [
+                    855,
+                    615,
+                    80,
+                    45
+                ]
             }
         },
         "action": {
@@ -275,7 +306,12 @@ graph LR
         },
         "post_wait_freezes": {
             "time": 800,
-            "target": [563, 307, 155, 92]
+            "target": [
+                563,
+                307,
+                155,
+                92
+            ]
         },
         "next": ["ChangeReplaysTimes"]
     }
@@ -296,7 +332,12 @@ graph LR
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi": [0, 59, 1280, 661]
+                "roi": [
+                    0,
+                    59,
+                    1280,
+                    661
+                ]
             }
         },
         "action": {
@@ -315,7 +356,12 @@ graph LR
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi": [23, 14, 60, 50]
+                "roi": [
+                    23,
+                    14,
+                    60,
+                    50
+                ]
             }
         },
         "action": {

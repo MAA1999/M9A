@@ -2,7 +2,9 @@
 order: 1
 icon: ri:guide-fill
 ---
+
 <!-- markdownlint-disable MD033 -->
+
 # Getting Started
 
 ## Prerequisites
@@ -11,26 +13,26 @@ icon: ri:guide-fill
 
 <div align="center">
 
-| | Windows | macOS | Linux | Android |
-| :---: | :---: | :---: | :---: | :---: |
-| System Requirements | Windows 10 and above | Self-test | Self-test | Not recommended |
-| Environment Setup Required | Yes | Yes | Yes | Yes |
-| Emulator Required | Yes | Yes | Emulator or containerized Android | No |
-| Usage | GUI or CLI | GUI or CLI | GUI or CLI | CLI |
+|                            |       Windows        |   macOS    |               Linux               |     Android     |
+| :------------------------: | :------------------: | :--------: | :-------------------------------: | :-------------: |
+|    System Requirements     | Windows 10 and above | Self-test  |             Self-test             | Not recommended |
+| Environment Setup Required |         Yes          |    Yes     |                Yes                |       Yes       |
+|     Emulator Required      |         Yes          |    Yes     | Emulator or containerized Android |       No        |
+|           Usage            |      GUI or CLI      | GUI or CLI |            GUI or CLI             |       CLI       |
 
-| | Notes |
-| --- | --- |
-| Windows Users | In most cases, please download the x86_64 architecture |
-| Mac Users | M9A supports both Apple Silicon and Intel chip Mac computers<br>But it's more recommended for Intel chip Mac computers to use Mac's built-in multi-system installation of Windows<br>And use Windows version M9A and emulator |
+|               | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Windows Users | In most cases, please download the x86_64 architecture                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Mac Users     | M9A supports both Apple Silicon and Intel chip Mac computers<br>But it's more recommended for Intel chip Mac computers to use Mac's built-in multi-system installation of Windows<br>And use Windows version M9A and emulator                                                                                                                                                                                                                                                                                       |
 | Android Users | M9A no longer provides Android version release packages<br>If you are very familiar with mobile phone operations and wish to use Android physical devices, please go to [MaaFramework](https://github.com/MaaXYZ/MaaFramework/) to install it yourself<br>You can refer to [Usage Method](https://github.com/MaaXYZ/MaaFramework/issues/475), and [MAA Documentation](https://maa.plus/docs/en-us/manual/device/android.html)<br>This method is complex and has certain risks, not recommended for beginner players |
 
 </div>
 
-***
+---
 
 ### 2. Install Runtime Environment
 
->[!NOTE]
+> [!NOTE]
 >
 > Users can skip this section and proceed to step 3, after downloading and extracting the file, to run the dependency installation script. If the script fails to install automatically, then refer to this section.
 
@@ -173,7 +175,7 @@ Linux users need to install Python separately.
 
 </details>
 
-***
+---
 
 ### 3. Download the Correct Version
 
@@ -183,8 +185,8 @@ Chinese users can also download at high speed through [MirrorChyan](https://mirr
 
 <div align="center">
 
-| | Windows | macOS | Linux |
-| :---: | :---: | :---: | :---: |
+|                      |          Windows          |                                                macOS                                                |                                                Linux                                                |
+| :------------------: | :-----------------------: | :-------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------: |
 | You need to download | `M9A-win-x86_64-vXXX.zip` | `M9A-macos-x86_64-vXXX.tar.gz` or `M9A-macos-aarch64-vXXX.tar.gz`<br>depending on your architecture | `M9A-linux-x86_64-vXXX.tar.gz` or `M9A-linux-aarch64-vXXX.tar.gz`<br>depending on your architecture |
 
 </div>
@@ -205,16 +207,16 @@ Chinese users can also download at high speed through [MirrorChyan](https://mirr
   </blockquote>
 </details>
 
-***
+---
 
 ### 4. Confirm Emulator and Device Support
 
 <div align="center">
 
-| | Windows | macOS | Linux | Android |
-| :---: | :---: | :---: | :---: | :---: |
-| Emulator Support | Supports mainstream emulators | Supports mainstream emulators | Self-test | / |
-| ADB Function Required | Yes | Yes | Yes | Yes |
+|                       |            Windows            |             macOS             |   Linux   | Android |
+| :-------------------: | :---------------------------: | :---------------------------: | :-------: | :-----: |
+|   Emulator Support    | Supports mainstream emulators | Supports mainstream emulators | Self-test |    /    |
+| ADB Function Required |              Yes              |              Yes              |    Yes    |   Yes   |
 
 </div>
 
@@ -230,9 +232,9 @@ For emulator support details, please refer to MAA documentation. **For reference
 
   <div align="center">
 
-  | | Windows | macOS | Linux | Android |
-  | -------- | -------- | ------- | ------- | ------- |
-  | Reference Documentation | [Windows Emulators](https://maa.plus/docs/en-us/manual/device/windows.html) | If your device has Apple Silicon, please refer to:<br>[Mac emulators running on Apple Silicon platform](https://maa.plus/docs/en-us/manual/device/macos.html#apple-silicon-%E8%8A%AF%E7%89%87)<br>If your device has Intel chip:<br>1. Recommended to use Mac's built-in multi-system to install Windows<br>and refer to Windows section documentation<br>2. Refer to [Mac emulators running on Intel platform](https://maa.plus/docs/en-us/manual/device/macos.html#intel-%E8%8A%AF%E7%89%87) | [Linux Emulators and Containers](https://maa.plus/docs/en-us/manual/device/linux.html) | [Android Physical Devices](<https://maa.plus/docs/en-us/manual/device/android.html>) |
+|                         | Windows                                                                     | macOS                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Linux                                                                                  | Android                                                                            |
+| ----------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Reference Documentation | [Windows Emulators](https://maa.plus/docs/en-us/manual/device/windows.html) | If your device has Apple Silicon, please refer to:<br>[Mac emulators running on Apple Silicon platform](https://maa.plus/docs/en-us/manual/device/macos.html#apple-silicon-%E8%8A%AF%E7%89%87)<br>If your device has Intel chip:<br>1. Recommended to use Mac's built-in multi-system to install Windows<br>and refer to Windows section documentation<br>2. Refer to [Mac emulators running on Intel platform](https://maa.plus/docs/en-us/manual/device/macos.html#intel-%E8%8A%AF%E7%89%87) | [Linux Emulators and Containers](https://maa.plus/docs/en-us/manual/device/linux.html) | [Android Physical Devices](https://maa.plus/docs/en-us/manual/device/android.html) |
 
   </div>
 
@@ -240,7 +242,7 @@ For emulator support details, please refer to MAA documentation. **For reference
 
 </details>
 
-***
+---
 
 ### 5. Correctly Set the Resolution
 
@@ -288,11 +290,11 @@ Can't change to `16:9` ratio when using the International Version PC client? Use
   </blockquote>
 </details>
 
->[!WARNING]
+> [!WARNING]
 >
 > Note that after changing the resolution, the emulator homepage should be horizontal (tablet version), don't select vertical (mobile version)!
 
-***
+---
 
 ### 6. Getting Started
 
@@ -367,7 +369,7 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
 
 Same as macOS, download the corresponding version of the archive, extract it, and then run `M9A`.
 
-***
+---
 
 ### 7. Configure M9A
 
@@ -403,7 +405,7 @@ In the MXU main interface, you can see five main sections: **`Task List`** **`Ta
 
 When M9A is running tasks, some settings in the main interface cannot be modified, such as the `Connection` section. At this time, you can first enter the global settings interface to configure.
 
-***
+---
 
 #### M9A Settings Interface
 
@@ -449,7 +451,7 @@ Users using MFA update-related functions should configure `Update Settings`. Use
     </blockquote>
   </details>
 
-***
+---
 
 **`Startup Settings`**
 
@@ -526,7 +528,7 @@ Users using MFA update-related functions should configure `Update Settings`. Use
   </blockquote>
 </details>
 
-***
+---
 
 #### M9A Main Interface
 
@@ -545,11 +547,11 @@ At least configure **`Resource Type`** and **`Connection`**. When configured inc
       </blockquote>
     </details>
 
-***
+---
 
 **`Connection`**
 
-  M9A requires correct ADB connection to execute tasks on the **target** emulator. In most cases, you only need to keep only the target emulator running and click "Refresh" to complete the connection. If you need to manually configure ADB parameters, please refer to [Connection Settings](./connection.md).
+M9A requires correct ADB connection to execute tasks on the **target** emulator. In most cases, you only need to keep only the target emulator running and click "Refresh" to complete the connection. If you need to manually configure ADB parameters, please refer to [Connection Settings](./connection.md).
 
   <details>
     <summary>Schematic Diagram</summary>
@@ -615,7 +617,7 @@ For Mac users using PlayCover, select PlayCover in the **Controller Type** secti
     </blockquote>
   </details>
 
-***
+---
 
 **`Task List`**
 
@@ -659,50 +661,50 @@ For Mac users using PlayCover, select PlayCover in the **Controller Type** secti
     </blockquote>
   </details>
 
->[!IMPORTANT]
+> [!IMPORTANT]
 >
 > Most tasks need to be configured correctly before use, and some tasks also need to be executed in specific scenarios according to task descriptions. Before enabling tasks, please ensure you have read and understood the **Task Description** for that task, and configure **Task Settings** according to actual situations. For more information about tasks, please refer to [Feature Introduction](./introduction.md).
 
-***
+---
 
 #### Settings
 
 ##### pip Settings
 
-  M9A supports configuring pip installation related settings through the `config/pip_config.json` file. Generally, you don't need to modify this file unless you have special requirements.
+M9A supports configuring pip installation related settings through the `config/pip_config.json` file. Generally, you don't need to modify this file unless you have special requirements.
 
   <details>
     <summary>config/pip_config.json Example</summary>
     <p></p>
     <blockquote>
 
-  ```jsonc
-  {
-    "enable_pip_install": true,  // Whether to enable pip installation, default true
-    "mirror": "https://pypi.tuna.tsinghua.edu.cn/simple",  // Mirror source
-    "backup_mirror": "https://mirrors.ustc.edu.cn/pypi/simple"  // Backup mirror sources
-  }
-  ```
+```jsonc
+{
+    "enable_pip_install": true, // Whether to enable pip installation, default true
+    "mirror": "https://pypi.tuna.tsinghua.edu.cn/simple", // Mirror source
+    "backup_mirror": "https://mirrors.ustc.edu.cn/pypi/simple", // Backup mirror sources
+}
+```
 
   </blockquote>
   </details>
 
 ##### Resource Hot Update Configuration
 
-  M9A supports configuring hot update settings for certain resources (such as activity opening times) via the `config/hot_update.json` file.
+M9A supports configuring hot update settings for certain resources (such as activity opening times) via the `config/hot_update.json` file.
 
   <details>
     <summary>config/hot_update.json Example</summary>
     <p></p>
     <blockquote>
 
-  ```jsonc
-  {
-    "enable_hot_update": true  // Whether to enable hot update for certain resources, default is true
-  }
-  ```
+```jsonc
+{
+    "enable_hot_update": true, // Whether to enable hot update for certain resources, default is true
+}
+```
 
   </blockquote>
   </details>
 
-***
+---
