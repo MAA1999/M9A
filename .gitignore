@@ -11,3 +11,6 @@ debug/
 
 # 编译的二进制模块
 agent/libs/*.pyd
+
+# 运行时生成的缓存
+data/manifest_cache.json

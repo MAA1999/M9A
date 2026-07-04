@@ -1,4 +1,4 @@
-import {
+﻿import {
     chmodSync,
     cpSync,
     existsSync,
@@ -13,8 +13,8 @@ import {
 import {dirname, join} from "node:path";
 
 const dryRun = process.argv.includes("--dry-run");
-const projectSlug = "m9a";
-const releaseArtifactName = "M9A";
+const projectSlug = {{projectSlug}};
+const releaseArtifactName = {{releaseArtifactName}};
 mkdirSync("dist", {recursive: true});
 
 const lock = readJson("maa-project.lock.json");
@@ -26,6 +26,7 @@ if ((lock.pending ?? []).length > 0) {
     throw new Error("release cannot run while project has pending actions");
 }
 
+const project = readJson("maa-project.json");
 const interfaceJson = readJson("interface.json");
 if (interfaceJson.name !== projectSlug) {
     throw new Error("interface.json name must match release artifact slug");
@@ -47,8 +48,67 @@ if (!isReleaseVersion(version)) {
 }
 
 const runtimePlatform = detectRuntimePlatform();
-const packageInterfaceJson = prepareReleaseInterface(interfaceJson, version, runtimePlatform);
-const packagePaths = mfaaReleasePackagePaths(interfaceJson, runtimePlatform);
+
+// --- GUI type registry (extensible for future GUIs) ---
+
+const GUI_TYPES = {
+    mfaa: {
+        suffix: "MFAA",
+        runtimeDir: "mfaa",
+        entrypointCandidates: (platform) =>
+            platform.startsWith("win-")
+                ? ["MFAAvalonia.exe", "MFAAvalonia"]
+                : ["MFAAvalonia", "MFAAvalonia.exe"],
+        flatLayout: true,
+        modifyInterface(iface) {
+            return iface;
+        },
+    },
+    mxu: {
+        suffix: "MXU",
+        runtimeDir: "mxu",
+        entrypointCandidates: (platform) =>
+            platform.startsWith("win-")
+                ? ["mxu.exe", "mxu"]
+                : ["mxu", "mxu.exe"],
+        flatLayout: false,
+        modifyInterface(iface, slug, ver, platform) {
+            const modified = {...iface};
+            modified.title = `${slug} ${ver} | MXU`;
+            if (Array.isArray(modified.agent) && modified.agent[0]) {
+                modified.agent = modified.agent.map((agent) =>
+                    isRecord(agent)
+                        ? {
+                              ...agent,
+                              child_exec:
+                                  platform.startsWith("win-")
+                                      ? "./python/python.exe"
+                                      : platform.startsWith("osx-")
+                                        ? "./python/bin/python3"
+                                        : "python3",
+                              child_args: ["-u", "./agent/main.py"],
+                          }
+                        : agent,
+                );
+            }
+            return modified;
+        },
+    },
+};
+
+const enabledGuis = [];
+if (project.runtime?.mfa?.enabled !== false) {
+    enabledGuis.push("mfaa");
+}
+if (project.runtime?.mxu?.enabled) {
+    enabledGuis.push("mxu");
+}
+
+if (enabledGuis.length === 0) {
+    throw new Error("no GUI runtime enabled in maa-project.json");
+}
+
+const packagePaths = releasePackagePaths(interfaceJson, runtimePlatform);
 
 for (const path of [
     ...strings(interfaceJson.resource),
@@ -63,71 +123,52 @@ for (const path of [
     }
 }
 
-if (!dryRun) {
-    const guiPath = mfaaGuiPath(runtimePlatform);
-    if (!existsSync(guiPath)) {
-        throw new Error(`release package path is missing: ${guiPath}`);
-    }
-    for (const path of packagePaths) {
-        if (!existsSync(path)) {
-            throw new Error(`release package path is missing: ${path}`);
+const artifacts = [];
+
+for (const guiKey of enabledGuis) {
+    const gui = GUI_TYPES[guiKey];
+    console.log(`\n--- Building ${gui.suffix} package ---`);
+
+    const guiInterface = gui.modifyInterface(
+        prepareReleaseInterface(interfaceJson, version, runtimePlatform),
+        projectSlug,
+        version,
+        runtimePlatform,
+    );
+
+    if (!dryRun) {
+        const guiPath = guiRuntimePath(gui.runtimeDir, runtimePlatform);
+        if (!existsSync(guiPath)) {
+            throw new Error(`release package path is missing: ${guiPath}`);
         }
-    }
-    if (packageHasAgent(interfaceJson)) {
-        if (hasEmbeddedPythonRuntime(runtimePlatform)) {
+        for (const path of packagePaths) {
+            if (!existsSync(path)) {
+                throw new Error(`release package path is missing: ${path}`);
+            }
+        }
+        if (packageHasAgent(interfaceJson) && hasEmbeddedPythonRuntime(runtimePlatform)) {
             const pythonPath = pythonRuntimePath(runtimePlatform);
             if (!existsSync(pythonPath)) {
                 throw new Error(`release package path is missing: ${pythonPath}`);
             }
         }
+        prepareReleasePackage(guiKey, gui, packagePaths, guiInterface, runtimePlatform);
+        smokeReleasePackage(gui, `dist/package-${guiKey}`, packagePaths, runtimePlatform);
     }
-    prepareReleasePackage(packagePaths, packageInterfaceJson, runtimePlatform);
-    smokeReleasePackage("dist/package", packagePaths, runtimePlatform);
+
+    const releaseTargets = [
+{{releaseTargetArtifactTuples}}
+    ];
+    for (const [os, arch, ext] of releaseTargets) {
+        artifacts.push(`${releaseArtifactName}-${os}-${arch}-${version}-${gui.suffix}.${ext}`);
+    }
 }
 
-const artifacts = [
-    [
-        "win",
-        "x86_64",
-        "zip",
-    ],
-    [
-        "win",
-        "aarch64",
-        "zip",
-    ],
-    [
-        "linux",
-        "x86_64",
-        "tar.gz",
-    ],
-    [
-        "linux",
-        "aarch64",
-        "tar.gz",
-    ],
-    [
-        "macos",
-        "x86_64",
-        "tar.gz",
-    ],
-    [
-        "macos",
-        "aarch64",
-        "tar.gz",
-    ],
-].map(
-    ([
-        os,
-        arch,
-        ext,
-    ]) => `${releaseArtifactName}-${os}-${arch}-${version}-MFAA.${ext}`,
-);
-
+const suffixPattern = enabledGuis.map((g) => GUI_TYPES[g].suffix).join("|");
 for (const artifact of artifacts) {
     if (
         !new RegExp(
-            "^" + escapeRegExp(releaseArtifactName) + "-(win|linux|macos)-(x86_64|aarch64)-v.+-MFAA\\.(zip|tar\\.gz)$",
+            "^" + escapeRegExp(releaseArtifactName) + "-(win|linux|macos)-(x86_64|aarch64)-v.+-(" + suffixPattern + ")\\.(zip|tar\\.gz)$",
         ).test(artifact)
     ) {
         throw new Error(`invalid artifact name: ${artifact}`);
@@ -161,9 +202,7 @@ function interfaceResourcePaths(value) {
     return Array.isArray(value) ? value.flatMap((item) => (isRecord(item) ? strings(item.path) : [])) : [];
 }
 
-function mfaaReleasePackagePaths(interfaceJson, runtimePlatform) {
-    // Current generated release layout is the MFAAvalonia profile.
-    // Other runners should add their own package profile instead of sharing these paths.
+function releasePackagePaths(interfaceJson, runtimePlatform) {
     const paths = [
         "tasks",
         "resource",
@@ -201,34 +240,50 @@ function prepareReleaseInterface(interfaceJson, version, runtimePlatform) {
     return releaseInterface;
 }
 
-function prepareReleasePackage(packagePaths, interfaceJson, runtimePlatform) {
-    rmSync("dist/package", {recursive: true, force: true});
-    mkdirSync("dist/package", {recursive: true});
-    copyDirectoryContents(mfaaGuiPath(runtimePlatform), "dist/package");
-    renameMfaaEntrypoint("dist/package", runtimePlatform);
-    writeJson("dist/package/interface.json", interfaceJson);
+function prepareReleasePackage(guiKey, gui, packagePaths, interfaceJson, runtimePlatform) {
+    const pkgDir = `dist/package-${guiKey}`;
+    rmSync(pkgDir, {recursive: true, force: true});
+    mkdirSync(pkgDir, {recursive: true});
+    copyDirectoryContents(guiRuntimePath(gui.runtimeDir, runtimePlatform), pkgDir);
+    renameGuiEntrypoint(gui, pkgDir, runtimePlatform);
+    writeJson(join(pkgDir, "interface.json"), interfaceJson);
     if (existsSync("logo.ico")) {
-        copyPath("logo.ico", join("dist/package", "logo.ico"));
+        copyPath("logo.ico", join(pkgDir, "logo.ico"));
     }
     for (const path of packagePaths) {
-        copyPath(path, join("dist/package", releasePackagePath(path)));
+        copyPath(path, join(pkgDir, releasePackagePath(path)));
     }
     if (packageHasAgent(interfaceJson) && hasEmbeddedPythonRuntime(runtimePlatform)) {
-        copyPath(pythonRuntimePath(runtimePlatform), join("dist/package", "python"));
+        copyPath(pythonRuntimePath(runtimePlatform), join(pkgDir, "python"));
     }
-    ensureUnixExecutablePermissions("dist/package", runtimePlatform);
+    // MXU: copy MaaFramework runtime into maafw/ subdirectory
+    if (!gui.flatLayout) {
+        const maafwDest = join(pkgDir, "maafw");
+        if (!existsSync(maafwDest)) {
+            mkdirSync(maafwDest, {recursive: true});
+            if (existsSync("runtimes")) {
+                copyDirectoryContents("runtimes", maafwDest);
+            }
+            if (existsSync("libs/MaaAgentBinary")) {
+                copyDirectoryContents("libs/MaaAgentBinary", join(maafwDest, "MaaAgentBinary"));
+            }
+        }
+    }
+    ensureUnixExecutablePermissions(pkgDir, runtimePlatform);
 }
 
-function smokeReleasePackage(root, packagePaths, runtimePlatform) {
+function smokeReleasePackage(gui, root, packagePaths, runtimePlatform) {
     if (!existsSync(join(root, "interface.json"))) {
         throw new Error("release package smoke failed: interface.json is missing at package root");
     }
-    const entrypoint = mfaaEntrypointName(runtimePlatform);
+    const entrypoint = guiEntrypointName(runtimePlatform);
     if (!existsSync(join(root, entrypoint))) {
         throw new Error(`release package smoke failed: GUI entrypoint is missing: ${entrypoint}`);
     }
-    if (existsSync(join(root, "MFAAvalonia")) || existsSync(join(root, "MFAAvalonia.exe"))) {
-        throw new Error("release package smoke failed: MFAAvalonia entrypoint must be renamed");
+    for (const candidate of gui.entrypointCandidates(runtimePlatform)) {
+        if (existsSync(join(root, candidate))) {
+            throw new Error(`release package smoke failed: entrypoint must be renamed: ${candidate}`);
+        }
     }
     if (existsSync(join(root, projectSlug, "interface.json"))) {
         throw new Error("release package smoke failed: package must not contain a top-level wrapper directory");
@@ -256,7 +311,7 @@ function smokeReleasePackage(root, packagePaths, runtimePlatform) {
         throw new Error("release package smoke failed: package interface.json version must be a release tag");
     }
     if (packageHasAgent(packagedInterface)) {
-        const childExec = releaseAgentChildExec(runtimePlatform);
+        const childExec = packagedInterface.agent[0]?.child_exec ?? releaseAgentChildExec(runtimePlatform);
         if (hasEmbeddedPythonRuntime(runtimePlatform) && !existsSync(join(root, ...childExec.split("/")))) {
             throw new Error(`release package smoke failed: Agent Python entrypoint is missing: ${childExec}`);
         }
@@ -329,6 +384,7 @@ function findUnixExecutableFiles(root) {
     const names = new Set([
         projectSlug,
         "MFAAvalonia",
+        "mxu",
         "MaaPiCli",
         "MaaAgentServer",
         "maa-cli",
@@ -357,8 +413,8 @@ function releasePackagePath(path) {
     return path.startsWith(".create-maa-project/runtime/python-deps/") ? "deps" : path;
 }
 
-function mfaaGuiPath(runtimePlatform) {
-    return join(".create-maa-project", "runtime", "mfaa", runtimePlatform);
+function guiRuntimePath(runtimeDir, runtimePlatform) {
+    return join(".create-maa-project", "runtime", runtimeDir, runtimePlatform);
 }
 
 function pythonRuntimePath(runtimePlatform) {
@@ -373,22 +429,13 @@ function hasEmbeddedPythonRuntime(runtimePlatform) {
     return runtimePlatform.startsWith("win-") || runtimePlatform.startsWith("osx-");
 }
 
-function mfaaEntrypointName(runtimePlatform) {
+function guiEntrypointName(runtimePlatform) {
     return runtimePlatform.startsWith("win-") ? `${projectSlug}.exe` : projectSlug;
 }
 
-function renameMfaaEntrypoint(root, runtimePlatform) {
-    const target = join(root, mfaaEntrypointName(runtimePlatform));
-    const candidates = runtimePlatform.startsWith("win-")
-        ? [
-              "MFAAvalonia.exe",
-              "MFAAvalonia",
-          ]
-        : [
-              "MFAAvalonia",
-              "MFAAvalonia.exe",
-          ];
-    for (const candidate of candidates) {
+function renameGuiEntrypoint(gui, root, runtimePlatform) {
+    const target = join(root, guiEntrypointName(runtimePlatform));
+    for (const candidate of gui.entrypointCandidates(runtimePlatform)) {
         const source = join(root, candidate);
         if (existsSync(source)) {
             renameSync(source, target);

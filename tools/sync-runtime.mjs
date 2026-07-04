@@ -15,12 +15,18 @@ import {dirname, join} from "node:path";
 const PYTHON_EMBED_VERSION = "3.13.14";
 const PYTHON_STANDALONE_MINOR = "3.13";
 
+const project = JSON.parse(readFileSync("maa-project.json", "utf8"));
+
 const updateArgs = [
     "--update",
     "maafw",
-    "--update",
-    "runtime:mfa",
 ];
+if (project.runtime?.mfa?.enabled !== false) {
+    updateArgs.push("--update", "runtime:mfa");
+}
+if (project.runtime?.mxu?.enabled) {
+    updateArgs.push("--update", "runtime:mxu");
+}
 const invocation = resolveCreateMaaProject();
 
 const result = spawnSync(
