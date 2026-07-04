@@ -36,9 +36,12 @@ if (!existsSync(schemaDir)) {
 // (uint32, int32, etc.) — they are informational, not validation errors.
 const ajv7 = new Ajv({ allErrors: true, strict: false, logger: false })
 addFormats(ajv7)
+// MaaFW 用 PCRE 正则语法（如 \x{4e00}），JavaScript RegExp 不兼容，跳过 regex 格式校验
+ajv7.addFormat('regex', { type: 'string', validate: () => true })
 
 const ajv2020 = new Ajv2020({ allErrors: true, strict: false, logger: false })
 addFormats(ajv2020)
+ajv2020.addFormat('regex', { type: 'string', validate: () => true })
 
 const schemaUris = {}
 
