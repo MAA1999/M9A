@@ -146,8 +146,7 @@
                 "run",
                 "python",
                 "agent/bootstrap.py"
-            ],
-            "identifier": "m9a.agent"
+            ]
         }
     ],
     "group": [
