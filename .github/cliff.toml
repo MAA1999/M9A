@@ -1,3 +1,7 @@
+[remote.github]
+owner = "MAA1999"
+repo = "M9A"
+
 [changelog]
 header = """
 # 更新日志 | Release Notes
@@ -46,6 +50,31 @@ body = """
 {%- endif %}
 """
 
+footer = """
+{%- macro remote_url() -%}
+  https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
+{%- endmacro -%}
+
+{%- set latest_version = "" -%}
+{%- for release in releases -%}
+  {%- if release.version and latest_version == "" -%}
+    {%- set_global latest_version = release.version -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{% if latest_version -%}
+**绝大部分用户请下载 [M9A-win-x86_64-{{ latest_version }}-MFAA.zip]({{ self::remote_url() }}/releases/download/{{ latest_version }}/M9A-win-x86_64-{{ latest_version }}-MFAA.zip) 或 [M9A-win-x86_64-{{ latest_version }}-MXU.zip]({{ self::remote_url() }}/releases/download/{{ latest_version }}/M9A-win-x86_64-{{ latest_version }}-MXU.zip)**
+{%- else -%}
+**绝大部分用户请下载 M9A-win-x86_64-vx.x.x-MFAA.zip 或 M9A-win-x86_64-vx.x.x-MXU.zip，没找到的请点 show all x assets**
+{%- endif %}
+
+> MFAA = 图形界面版（使用接近MAA方舟） | MXU = 图形界面版（MaaEnd同款）
+
+[已有 Mirror酱 CDK？点击前往高速下载](https://mirrorchyan.com/zh/projects?rid=M9A&source=m9agh-release)
+
+<!--软件本体完全免费，认准唯一官网 1999.fan，若您有付费购买请立即退款并举报！-->
+"""
+
 [git]
 conventional_commits = true
 filter_unconventional = false
@@ -68,7 +97,6 @@ commit_parsers = [
     { message = "^[Rr]evert", group = "<!-- 11 -->撤销 | Reverts" },
 ]
 sort_commits = "oldest"
-ignore_tags = "rc"
 
 [git.github]
 commits = true
