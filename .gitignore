@@ -14,3 +14,4 @@ agent/libs/*.pyd
 
 # 运行时生成的缓存
 data/manifest_cache.json
+maafw.log

@@ -1,4 +1,4 @@
-﻿import {
+import {
     chmodSync,
     cpSync,
     existsSync,
@@ -13,8 +13,8 @@
 import {dirname, join} from "node:path";
 
 const dryRun = process.argv.includes("--dry-run");
-const projectSlug = {{projectSlug}};
-const releaseArtifactName = {{releaseArtifactName}};
+const projectSlug = "m9a";
+const releaseArtifactName = "M9A";
 mkdirSync("dist", {recursive: true});
 
 const lock = readJson("maa-project.lock.json");
@@ -57,8 +57,14 @@ const GUI_TYPES = {
         runtimeDir: "mfaa",
         entrypointCandidates: (platform) =>
             platform.startsWith("win-")
-                ? ["MFAAvalonia.exe", "MFAAvalonia"]
-                : ["MFAAvalonia", "MFAAvalonia.exe"],
+                ? [
+                      "MFAAvalonia.exe",
+                      "MFAAvalonia",
+                  ]
+                : [
+                      "MFAAvalonia",
+                      "MFAAvalonia.exe",
+                  ],
         flatLayout: true,
         modifyInterface(iface) {
             return iface;
@@ -69,8 +75,14 @@ const GUI_TYPES = {
         runtimeDir: "mxu",
         entrypointCandidates: (platform) =>
             platform.startsWith("win-")
-                ? ["mxu.exe", "mxu"]
-                : ["mxu", "mxu.exe"],
+                ? [
+                      "mxu.exe",
+                      "mxu",
+                  ]
+                : [
+                      "mxu",
+                      "mxu.exe",
+                  ],
         flatLayout: false,
         modifyInterface(iface, slug, ver, platform) {
             const modified = {...iface};
@@ -80,13 +92,15 @@ const GUI_TYPES = {
                     isRecord(agent)
                         ? {
                               ...agent,
-                              child_exec:
-                                  platform.startsWith("win-")
-                                      ? "./python/python.exe"
-                                      : platform.startsWith("osx-")
-                                        ? "./python/bin/python3"
-                                        : "python3",
-                              child_args: ["-u", "./agent/main.py"],
+                              child_exec: platform.startsWith("win-")
+                                  ? "./python/python.exe"
+                                  : platform.startsWith("osx-")
+                                    ? "./python/bin/python3"
+                                    : "python3",
+                              child_args: [
+                                  "-u",
+                                  "./agent/main.py",
+                              ],
                           }
                         : agent,
                 );
@@ -158,9 +172,42 @@ for (const guiKey of enabledGuis) {
     }
 
     const releaseTargets = [
-{{releaseTargetArtifactTuples}}
+        [
+            "win",
+            "x86_64",
+            "zip",
+        ],
+        [
+            "win",
+            "aarch64",
+            "zip",
+        ],
+        [
+            "linux",
+            "x86_64",
+            "tar.gz",
+        ],
+        [
+            "linux",
+            "aarch64",
+            "tar.gz",
+        ],
+        [
+            "macos",
+            "x86_64",
+            "tar.gz",
+        ],
+        [
+            "macos",
+            "aarch64",
+            "tar.gz",
+        ],
     ];
-    for (const [os, arch, ext] of releaseTargets) {
+    for (const [
+        os,
+        arch,
+        ext,
+    ] of releaseTargets) {
         artifacts.push(`${releaseArtifactName}-${os}-${arch}-${version}-${gui.suffix}.${ext}`);
     }
 }
@@ -169,7 +216,11 @@ const suffixPattern = enabledGuis.map((g) => GUI_TYPES[g].suffix).join("|");
 for (const artifact of artifacts) {
     if (
         !new RegExp(
-            "^" + escapeRegExp(releaseArtifactName) + "-(win|linux|macos)-(x86_64|aarch64)-v.+-(" + suffixPattern + ")\\.(zip|tar\\.gz)$",
+            "^" +
+                escapeRegExp(releaseArtifactName) +
+                "-(win|linux|macos)-(x86_64|aarch64)-v.+-(" +
+                suffixPattern +
+                ")\\.(zip|tar\\.gz)$",
         ).test(artifact)
     ) {
         throw new Error(`invalid artifact name: ${artifact}`);
