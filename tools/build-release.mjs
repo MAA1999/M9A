@@ -139,7 +139,8 @@ for (const guiKey of enabledGuis) {
     if (!dryRun) {
         const guiPath = guiRuntimePath(gui.runtimeDir, runtimePlatform);
         if (!existsSync(guiPath)) {
-            throw new Error(`release package path is missing: ${guiPath}`);
+            console.warn(`[WARN] ${gui.suffix} runtime not found at ${guiPath}, skipping.`);
+            continue;
         }
         for (const path of packagePaths) {
             if (!existsSync(path)) {
