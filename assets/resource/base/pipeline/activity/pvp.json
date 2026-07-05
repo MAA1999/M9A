@@ -25,22 +25,76 @@
         },
         "post_delay": 1500,
         "next": [
-            "Colosseum_SelectFormation",
+            "Colosseum_SelectFormation_1",
+            "[JumpBack]Colosseum_SelectFormation_1_Swipe",
             "Colosseum_StartColosseum"
         ]
     },
-    "Colosseum_SelectFormation": {
+    "Colosseum_SelectFormation_1_Swipe": {
+        "doc": "滑动阵容列表",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
-                    977,
-                    606,
-                    55,
-                    28
+                    541,
+                    23,
+                    197,
+                    75
                 ],
-                "expected": "选择",
-                "only_rec": true
+                "expected": "入场阶段"
+            }
+        },
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    802,
+                    143,
+                    32,
+                    37
+                ],
+                "end": [
+                    422,
+                    146,
+                    26,
+                    33
+                ],
+                "duration": 2000
+            }
+        }
+    },
+    "Colosseum_SelectFormation_1": {
+        "doc": "找到指定阵容",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    13,
+                    112,
+                    1268,
+                    82
+                ],
+                "expected": "反制"
+            }
+        },
+        "next": [
+            "Colosseum_SelectFormation_2",
+            "Colosseum_SelectFormation_1"
+        ]
+    },
+    "Colosseum_SelectFormation_2": {
+        "doc": "选择指定阵容",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "Colosseum_SelectFormation_1",
+                "roi_offset": [
+                    -13,
+                    454,
+                    29,
+                    13
+                ],
+                "expected": "选择"
             }
         },
         "action": {
@@ -54,7 +108,7 @@
             "[JumpBack]Colosseum_Battle1-3",
             "[JumpBack]Colosseum_Settlement1-5",
             "[JumpBack]Colosseum_ClaimRewards",
-            "Colosseum_SelectFormation"
+            "Colosseum_SelectFormation_2"
         ]
     },
     "Colosseum_Enter2-1": {
@@ -136,7 +190,9 @@
                     127,
                     29
                 ],
-                "expected": ["赛后补给间"],
+                "expected": [
+                    "赛后补给间"
+                ],
                 "only_rec": true
             }
         },
@@ -435,7 +491,9 @@
             }
         },
         "inverse": true,
-        "next": ["BackButton"]
+        "next": [
+            "BackButton"
+        ]
     },
     "Colosseum_PVPAddPeopleStart": {
         "recognition": {
@@ -481,7 +539,9 @@
                     122,
                     157
                 ],
-                "template": ["PVP/Empty.png"]
+                "template": [
+                    "PVP/Empty.png"
+                ]
             }
         },
         "inverse": true,
@@ -496,7 +556,9 @@
                 ]
             }
         },
-        "next": ["Colosseum_StartMatching3"]
+        "next": [
+            "Colosseum_StartMatching3"
+        ]
     },
     "Colosseum_StartMatching3": {
         "recognition": {
