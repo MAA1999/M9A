@@ -110,7 +110,8 @@ jobs:
           for pkg_dir in dist/package-*; do
             [ -d "$pkg_dir" ] || continue
             gui=$(basename "$pkg_dir" | sed 's/^package-//')
-            archive="M9A-${{ matrix.artifact_os }}-${{ matrix.arch }}-${GITHUB_REF_NAME}-${gui^^}.${{ matrix.ext }}"
+            gui_upper=$(echo "$gui" | tr '[:lower:]' '[:upper:]')
+            archive="M9A-${{ matrix.artifact_os }}-${{ matrix.arch }}-${GITHUB_REF_NAME}-${gui_upper}.${{ matrix.ext }}"
             (
               cd "$pkg_dir"
               if [[ "${{ matrix.ext }}" == "zip" ]]; then
