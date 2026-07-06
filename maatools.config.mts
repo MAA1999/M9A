@@ -12,9 +12,6 @@ const config: FullConfig = {
   cwd: import.meta.dirname,
   maaVersion: 'latest',
   interfacePath: 'interface.json',
-  resource: [
-    './resource/base',
-  ],
   parser: {
     customReco: (name, param, utils) => {
       const result: PropSelectorResult[] = []

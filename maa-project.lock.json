@@ -1,0 +1,33 @@
+{
+    "createdFiles": {
+        "interface.json": {
+            "createdAt": "2026-07-05T04:46:22.637Z",
+            "managed": false
+        },
+        "maa-project.json": {
+            "createdAt": "2026-07-05T04:46:22.637Z",
+            "managed": false
+        },
+        "maatools.config.mts": {
+            "createdAt": "2026-07-05T04:46:22.637Z",
+            "managed": false
+        },
+        "package.json": {
+            "createdAt": "2026-07-05T04:46:22.637Z",
+            "managed": false
+        }
+    },
+    "managedFiles": {
+        "pyproject.toml": {
+            "hash": "03df42c9b5e62c5d7c0b05cb3620754264bf123faf422c80bcf6434b691e1f02",
+            "templateHash": "03df42c9b5e62c5d7c0b05cb3620754264bf123faf422c80bcf6434b691e1f02"
+        }
+    },
+    "pending": [],
+    "schemaVersion": 1,
+    "template": {
+        "createdBy": "create-maa-project",
+        "lastUpdatedBy": "create-maa-project",
+        "templateVersion": "0.1.0"
+    }
+}

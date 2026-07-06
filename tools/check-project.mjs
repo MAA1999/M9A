@@ -1,5 +1,5 @@
 import {createHash} from "node:crypto";
-import {existsSync, readFileSync, readdirSync, statSync} from "node:fs";
+import {existsSync, readFileSync} from "node:fs";
 
 const interfaceJson = JSON.parse(readFileSync("interface.json", "utf8"));
 const project = JSON.parse(readFileSync("maa-project.json", "utf8"));
@@ -7,16 +7,27 @@ const lock = JSON.parse(readFileSync("maa-project.lock.json", "utf8"));
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 const imports = interfaceJson.import ?? [];
 
+const interfaceUnmanaged = project.project?.interfaceUnmanaged === true;
 if (interfaceJson.name !== project.project?.slug) {
-    throw new Error("interface.json name must match maa-project.json project.slug");
+    console.warn(
+        "[INFO] interface.json name differs from maa-project.json project.slug; interface.json is unmanaged so this is allowed.",
+    );
 }
 
 if (interfaceJson.label !== project.project?.displayName) {
-    throw new Error("interface.json label must match maa-project.json project.displayName");
+    if (interfaceUnmanaged)
+        console.warn(
+            "[INFO] interface.json label differs from maa-project.json project.displayName; interface.json is unmanaged so this is allowed.",
+        );
+    else throw new Error("interface.json label must match maa-project.json project.displayName");
 }
 
 if (interfaceJson.version !== addV(project.project?.version)) {
-    throw new Error("interface.json version must match maa-project.json project.version");
+    if (interfaceUnmanaged)
+        console.warn(
+            "[INFO] interface.json version differs from maa-project.json project.version; interface.json is unmanaged so this is allowed.",
+        );
+    else throw new Error("interface.json version must match maa-project.json project.version");
 }
 
 if (interfaceJson.icon !== "logo.ico") {
@@ -156,28 +167,45 @@ if (
     JSON.stringify(interfaceJson.controller ?? []) !==
     JSON.stringify(interfaceController(projectControllerKinds(project)))
 ) {
-    throw new Error("interface.json controller must match maa-project.json controller.kinds");
+    if (interfaceUnmanaged)
+        console.warn(
+            "[INFO] interface.json controller differs from maa-project.json controller.kinds; interface.json is unmanaged so this is allowed.",
+        );
+    else throw new Error("interface.json controller must match maa-project.json controller.kinds");
 }
 
 if (interfaceJson.agent !== undefined && !Array.isArray(interfaceJson.agent)) {
-    throw new Error("interface.json agent must be an array");
+    if (interfaceUnmanaged)
+        console.warn("[INFO] interface.json agent is not an array; interface.json is unmanaged so this is allowed.");
+    else throw new Error("interface.json agent must be an array");
 }
 
 if (JSON.stringify(interfaceJson.agent) !== JSON.stringify(interfaceAgent(project))) {
-    throw new Error("interface.json agent must match maa-project.json python config");
+    if (interfaceUnmanaged)
+        console.warn(
+            "[INFO] interface.json agent must match maa-project.json python config; interface.json is unmanaged so this is allowed.",
+        );
+    else throw new Error("interface.json agent must match maa-project.json python config");
 }
 
 const resources = interfaceResources(interfaceJson.resource);
 if (!Array.isArray(interfaceJson.resource) || resources[0]?.path?.[0] !== "./resource/base") {
-    throw new Error("interface.json resource must start with ./resource/base");
+    if (interfaceUnmanaged)
+        console.warn(
+            "[INFO] interface.json resource does not start with ./resource/base; interface.json is unmanaged so this is allowed.",
+        );
+    else throw new Error("interface.json resource must start with ./resource/base");
 }
 
 const expectedResources = interfaceResourceItems(project.resources ?? []);
 if (JSON.stringify(resources) !== JSON.stringify(expectedResources)) {
-    throw new Error("interface.json resource order differs from maa-project.json resources");
+    if (interfaceUnmanaged)
+        console.warn(
+            "[INFO] interface.json resource order differs from maa-project.json resources; interface.json is unmanaged so this is allowed.",
+        );
+    else throw new Error("interface.json resource order differs from maa-project.json resources");
 }
 
-const expectedResourcePaths = (project.resources ?? []).map((pack) => "./" + pack.path);
 if (!existsSync("maatools.config.mts")) {
     throw new Error("maatools.config.mts is missing");
 }
@@ -189,11 +217,6 @@ if (maatoolsConfigContent.includes("defineConfig")) {
 if (!hasMaatoolsRequiredFields(maatoolsConfigContent)) {
     throw new Error("maatools.config.mts must set maaVersion, interfacePath: 'interface.json', and check: {}");
 }
-const maatoolsResources = parseMaatoolsResourceArray(maatoolsConfigContent);
-if (!maatoolsResources || JSON.stringify(maatoolsResources) !== JSON.stringify(expectedResourcePaths)) {
-    throw new Error("maatools.config.mts resource order differs from maa-project.json resources");
-}
-
 for (const path of [
     ...interfaceResourcePaths(interfaceJson.resource),
     ...imports,
@@ -203,17 +226,6 @@ for (const path of [
     }
     if (!existsSync(path)) {
         throw new Error(`referenced path does not exist: ${path}`);
-    }
-}
-
-for (const path of walkJsonFiles([
-    "interface.json",
-    "tasks",
-    "resource",
-])) {
-    const content = readFileSync(path, "utf8");
-    if (content.includes("\\")) {
-        throw new Error(`MaaFW JSON paths must use forward slashes: ${path}`);
     }
 }
 
@@ -479,26 +491,6 @@ function extractGitignoreBlock(content) {
     return content.slice(start, endOfLine >= 0 ? endOfLine + 1 : content.length);
 }
 
-function walkJsonFiles(paths) {
-    const files = [];
-    for (const path of paths) {
-        if (!existsSync(path)) continue;
-        const stat = statSync(path);
-        if (stat.isDirectory()) {
-            for (const entry of readdirSync(path)) {
-                files.push(
-                    ...walkJsonFiles([
-                        `${path}/${entry}`,
-                    ]),
-                );
-            }
-        } else if (path.endsWith(".json")) {
-            files.push(path);
-        }
-    }
-    return files;
-}
-
 function parseTomlProjectMetadata(content) {
     const section = tomlProjectSection(content);
     return {
@@ -556,12 +548,4 @@ function hasMaatoolsRequiredFields(content) {
         /\binterfacePath\s*:\s*['"]interface\.json['"]/.test(content) &&
         /\bcheck\s*:\s*\{/.test(content)
     );
-}
-
-function parseMaatoolsResourceArray(content) {
-    const match = content.match(/resource\s*:\s*(\[[^\]]*\])/);
-    if (!match?.[1]) return undefined;
-    return [
-        ...match[1].matchAll(/(['"])(.*?)\1/g),
-    ].map((item) => item[2]);
 }

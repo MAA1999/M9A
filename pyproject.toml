@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "M9A MaaFW Agent project"
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "maafw>=5.0",
+    "maafw==5.11.1",
     "loguru",
     "pillow>=10.0",
     "pytz",

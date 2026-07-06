@@ -98,7 +98,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "loguru" },
-    { name = "maafw", specifier = ">=5.0" },
+    { name = "maafw", specifier = "==5.11.1" },
     { name = "pillow", specifier = ">=10.0" },
     { name = "pytz" },
     { name = "requests" },
