@@ -155,15 +155,9 @@ def main():
     print(f"Platform: {os_type}, Arch: {arch}, Python: {py_version}")
 
     # 构造下载列表
-    # macOS 不带 Python 版本
-    # Linux 需要下载所有 Python 版本（用户可能用不同版本）
-    # Windows 只下载当前版本
+    # All platforms use Python 3.13 only; macOS artifact name omits py version
     if os_type == "darwin":
         artifacts = [f"drop_core-{platform_tag}-{RELEASE_TAG}"]
-    elif os_type == "linux":
-        # Linux 下载所有支持的 Python 版本
-        linux_py_versions = ["3.11", "3.12", "3.13"]
-        artifacts = [f"drop_core-{platform_tag}-py{v}-{RELEASE_TAG}" for v in linux_py_versions]
     else:
         artifacts = [f"drop_core-{platform_tag}-py{py_version}-{RELEASE_TAG}"]
 
