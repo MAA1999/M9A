@@ -95,6 +95,16 @@ jobs:
         if: github.event_name != 'workflow_dispatch'
         env:
           CREATE_MAA_PROJECT_RUNTIME_PLATFORM: ${{ matrix.runtime_os }}-${{ matrix.runtime_arch }}
+      - name: Generate manifest cache
+        if: github.event_name != 'workflow_dispatch'
+        shell: bash
+        run: |
+          for pkg_dir in dist/package-*; do
+            [ -d "$pkg_dir" ] || continue
+            if [ -d "$pkg_dir/data" ]; then
+              python tools/ci/generate_manifest_cache.py "$pkg_dir/data" || echo "[WARN] manifest cache generation failed for $pkg_dir"
+            fi
+          done
       - name: Apply app icon
         if: github.event_name != 'workflow_dispatch' && hashFiles('logo.ico') != ''
         shell: bash
