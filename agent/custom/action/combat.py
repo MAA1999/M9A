@@ -84,7 +84,7 @@ class PsychubeDoubleTimes(CustomAction):
             pattern = "(\\d)/4"
             m = re.search(pattern, text)
             if not m:
-                logger.error("未能解析 Psychube 加成次数: %s", text)
+                logger.error("未能解析 Psychube 加成次数: {}", text)
                 return CustomAction.RunResult(success=True)
             times = int(m.group(1))
             expected = self._int2Chinese(times)

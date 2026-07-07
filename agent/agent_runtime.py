@@ -99,7 +99,7 @@ def run_agent(project_root_dir: str) -> int:
         from maa.agent.agent_server import AgentServer
         from maa.tasker import Tasker
     except ImportError as error:
-        logger.error("Failed to import MaaFW Agent runtime: %s", error)
+        logger.error("Failed to import MaaFW Agent runtime: {}", error)
         logger.error("Run `uv sync` for development or sync runtime before release.")
         return 1
 
@@ -115,7 +115,7 @@ def run_agent(project_root_dir: str) -> int:
     Tasker.set_log_dir("./debug")
 
     socket_id = sys.argv[-1]
-    logger.debug("socket_id: %s", socket_id)
+    logger.debug("socket_id: {}", socket_id)
     log_pi_environment()
 
     AgentServer.start_up(socket_id)
@@ -129,7 +129,7 @@ def run_agent(project_root_dir: str) -> int:
 def log_pi_environment() -> None:
     logger.debug("PI environment snapshot:")
     for key in PI_ENV_KEYS:
-        logger.debug("%s=%s", key, format_env_value(os.getenv(key, "")))
+        logger.debug("{}={}", key, format_env_value(os.getenv(key, "")))
 
 
 def format_env_value(value: str, limit: int = 300) -> str:
