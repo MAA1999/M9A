@@ -57,9 +57,10 @@
     },
     "ocr": {
         "files": {
-            "ppocr_v4/zh_cn/det.onnx": "det.onnx",
-            "ppocr_v4/zh_cn/keys.txt": "keys.txt",
-            "ppocr_v4/zh_cn/rec.onnx": "rec.onnx"
+            "README.md": "ppocr_v4/zh_cn/README.md",
+            "det.onnx": "ppocr_v4/zh_cn/det.onnx",
+            "keys.txt": "ppocr_v4/zh_cn/keys.txt",
+            "rec.onnx": "ppocr_v4/zh_cn/rec.onnx"
         },
         "source": "submodule",
         "submodulePath": "MaaCommonAssets/OCR"

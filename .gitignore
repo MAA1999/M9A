@@ -7,6 +7,9 @@ config/
 dist/
 debug/
 .create-maa-project/
+runtimes/
+libs/
+plugins/
 # END create-maa-project
 
 # 编译的二进制模块

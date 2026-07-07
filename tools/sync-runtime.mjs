@@ -21,6 +21,9 @@ const updateArgs = [
     "--update",
     "maafw",
 ];
+if (project.ocr?.source) {
+    updateArgs.push("--update", "ocr-models");
+}
 if (project.runtime?.mfa?.enabled !== false) {
     updateArgs.push("--update", "runtime:mfa");
 }

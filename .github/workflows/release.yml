@@ -19,40 +19,48 @@ jobs:
             arch: x86_64
             runtime_os: win
             runtime_arch: x64
+            drop_os: windows
             ext: zip
           - os: windows-11-arm
             artifact_os: win
             arch: aarch64
             runtime_os: win
             runtime_arch: arm64
+            drop_os: windows
             ext: zip
           - os: ubuntu-latest
             artifact_os: linux
             arch: x86_64
             runtime_os: linux
             runtime_arch: x64
+            drop_os: linux
             ext: tar.gz
           - os: ubuntu-latest
             artifact_os: linux
             arch: aarch64
             runtime_os: linux
             runtime_arch: arm64
+            drop_os: linux
             ext: tar.gz
           - os: macos-15-intel
             artifact_os: macos
             arch: x86_64
             runtime_os: osx
             runtime_arch: x64
+            drop_os: darwin
             ext: tar.gz
           - os: macos-latest
             artifact_os: macos
             arch: aarch64
             runtime_os: osx
             runtime_arch: arm64
+            drop_os: darwin
             ext: tar.gz
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: true
       - uses: actions/setup-python@v6
         if: hashFiles('pyproject.toml') != ''
         with:
@@ -76,6 +84,13 @@ jobs:
         env:
           CREATE_MAA_PROJECT_RUNTIME_PLATFORM: ${{ matrix.runtime_os }}-${{ matrix.runtime_arch }}
           GITHUB_TOKEN: ${{ github.token }}
+      - name: Download drop_core
+        if: github.event_name != 'workflow_dispatch'
+        shell: bash
+        env:
+          PRIVATE_REPO_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
+        run: |
+          python tools/ci/download_drop_core.py --os "${{ matrix.drop_os }}" --arch "${{ matrix.runtime_arch }}" || echo "[WARN] drop_core download skipped"
       - run: node tools/build-release.mjs
         if: github.event_name != 'workflow_dispatch'
         env:
@@ -93,8 +108,8 @@ jobs:
               if [ ! -f rcedit.exe ]; then
                 curl -fsSL https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe -o rcedit.exe
               fi
-              exe="$(find "$pkg_dir" -maxdepth 1 -type f -name '*.exe' | head -n 1)"
-              if [[ -n "$exe" ]]; then
+              exe="$pkg_dir/m9a.exe"
+              if [[ -f "$exe" ]]; then
                 ./rcedit.exe "$exe" --set-icon logo.ico
                 echo "[OK] Applied Windows executable icon: $exe ($gui)"
               else
