@@ -279,6 +279,7 @@ function optionalPackagePaths() {
         "README.md",
         "LICENSE",
         "CONTACT",
+        "tools/registry",
     ];
 }
 
