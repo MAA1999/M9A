@@ -22,9 +22,7 @@ def test_rejects_invalid_sizes() -> None:
 
 
 def test_calculate_aspect_ratio_uses_larger_side_first() -> None:
-    assert aspect_ratio.calculate_aspect_ratio(
-        1600, 900
-    ) == aspect_ratio.calculate_aspect_ratio(900, 1600)
+    assert aspect_ratio.calculate_aspect_ratio(1600, 900) == aspect_ratio.calculate_aspect_ratio(900, 1600)
 
 
 def test_calculate_aspect_ratio_distinguishes_1600x910_from_16x9() -> None:

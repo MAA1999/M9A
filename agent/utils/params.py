@@ -74,9 +74,7 @@ def coerce_like(value: Any, default: Any, key: str) -> Any:
             raise ValueError(f"{key} 应为字符串，得到 {type(value).__name__}")
         return value
     if type(value) is not type(default):
-        raise ValueError(
-            f"{key} 应为 {type(default).__name__}，得到 {type(value).__name__}"
-        )
+        raise ValueError(f"{key} 应为 {type(default).__name__}，得到 {type(value).__name__}")
     return value
 
 
@@ -106,10 +104,6 @@ class ParamOverrideMixin:
                 logger.warning(f"[{type(self).__name__}] 未知参数 {key}，已忽略")
                 continue
             try:
-                setattr(
-                    self, const, coerce_like(value, getattr(type(self), const), key)
-                )
+                setattr(self, const, coerce_like(value, getattr(type(self), const), key))
             except ValueError as e:
-                logger.error(
-                    f"[{type(self).__name__}] 参数 {key} 非法（{e}），回落默认值"
-                )
+                logger.error(f"[{type(self).__name__}] 参数 {key} 非法（{e}），回落默认值")

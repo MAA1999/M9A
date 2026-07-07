@@ -38,9 +38,7 @@ def save_activity_data(resource: Any, data: Any):
                     existing_data = json.load(f)
                     print(f"Successfully loaded existing data from {file_path}")
                 except json.JSONDecodeError:
-                    print(
-                        f"Warning: {file_path} exists but contains invalid JSON, treating as empty"
-                    )
+                    print(f"Warning: {file_path} exists but contains invalid JSON, treating as empty")
                     existing_data = {}
 
             # 检查版本号是否已存在
@@ -95,10 +93,7 @@ if __name__ == "__main__":
             combat_end_time = combat.get("end_time")
 
             if start_time is None or combat_end_time is None:
-                print(
-                    f"[{resource}] Parsed notice but combat time is incomplete, "
-                    f"skipping version {result[1]}"
-                )
+                print(f"[{resource}] Parsed notice but combat time is incomplete, skipping version {result[1]}")
                 failed_resources.append(resource)
                 continue
 

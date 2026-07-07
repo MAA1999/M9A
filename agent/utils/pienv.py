@@ -228,9 +228,7 @@ def _build_env() -> Env:
         version=os.getenv(ENV_VERSION, ""),
         controller_raw=controller_raw,
         resource_raw=resource_raw,
-        controller=_parse_json_env(
-            ENV_CONTROLLER, controller_raw, Controller.from_dict
-        ),
+        controller=_parse_json_env(ENV_CONTROLLER, controller_raw, Controller.from_dict),
         resource=_parse_json_env(ENV_RESOURCE, resource_raw, Resource.from_dict),
     )
 

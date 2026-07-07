@@ -26,24 +26,18 @@ def test_action_register_all_imports_declared_modules() -> None:
     with patch.object(action, "import_module") as import_module:
         action.register_all()
 
-    assert import_module.call_args_list == [
-        call(f"custom.action.{module}") for module in action.ACTION_MODULES
-    ]
+    assert import_module.call_args_list == [call(f"custom.action.{module}") for module in action.ACTION_MODULES]
 
 
 def test_reco_register_all_imports_declared_modules() -> None:
     with patch.object(reco, "import_module") as import_module:
         reco.register_all()
 
-    assert import_module.call_args_list == [
-        call(f"custom.reco.{module}") for module in reco.RECO_MODULES
-    ]
+    assert import_module.call_args_list == [call(f"custom.reco.{module}") for module in reco.RECO_MODULES]
 
 
 def test_sink_register_all_imports_declared_modules() -> None:
     with patch.object(sink, "import_module") as import_module:
         sink.register_all()
 
-    assert import_module.call_args_list == [
-        call(f"custom.sink.{module}") for module in sink.SINK_MODULES
-    ]
+    assert import_module.call_args_list == [call(f"custom.sink.{module}") for module in sink.SINK_MODULES]

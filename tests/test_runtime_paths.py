@@ -13,7 +13,4 @@ def test_builds_project_and_work_root_paths_separately() -> None:
     assert paths.work_root == Path("/tmp/m9a-project").resolve()
     assert paths.config_dir == Path("/tmp/m9a-project/config").resolve()
     assert paths.resource_dir == Path("/tmp/m9a-project/resource").resolve()
-    assert (
-        paths.manifest_cache_file
-        == Path("/tmp/m9a-project/data/manifest_cache.json").resolve()
-    )
+    assert paths.manifest_cache_file == Path("/tmp/m9a-project/data/manifest_cache.json").resolve()

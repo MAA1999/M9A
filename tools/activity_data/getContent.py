@@ -154,19 +154,11 @@ def _get_content_for_en_or_jp(resource: str):
                     continue
 
                 if resource == "en":
-                    explicit_version_id, explicit_version_name = (
-                        _extract_en_version_and_name(title)
-                    )
+                    explicit_version_id, explicit_version_name = _extract_en_version_and_name(title)
                 else:
-                    explicit_version_id, explicit_version_name = (
-                        _extract_jp_version_and_name(title)
-                    )
+                    explicit_version_id, explicit_version_name = _extract_jp_version_and_name(title)
 
-                if (
-                    explicit_version_id
-                    and explicit_version_name
-                    and explicit_version_name != explicit_version_id
-                ):
+                if explicit_version_id and explicit_version_name and explicit_version_name != explicit_version_id:
                     pair = (explicit_version_id, explicit_version_name)
                     if pair not in known_version_name_pairs:
                         known_version_name_pairs.append(pair)
@@ -192,16 +184,12 @@ def _get_content_for_en_or_jp(resource: str):
         version_name = item["version_name"]
         if version_id:
             if not version_name or version_name == version_id:
-                inferred_id, inferred_name = _infer_version_from_content(
-                    item["content"], known_version_name_pairs
-                )
+                inferred_id, inferred_name = _infer_version_from_content(item["content"], known_version_name_pairs)
                 if inferred_id:
                     version_id, version_name = inferred_id, inferred_name
             return True, (resource, version_id, version_name, item["content"])
 
-        inferred_id, inferred_name = _infer_version_from_content(
-            item["content"], known_version_name_pairs
-        )
+        inferred_id, inferred_name = _infer_version_from_content(item["content"], known_version_name_pairs)
         if inferred_id:
             return True, (resource, inferred_id, inferred_name, item["content"])
 
@@ -232,9 +220,7 @@ def getContent(resource: str):
                     continue
 
                 try:
-                    title = re.sub(
-                        r"\r|<b>|</b>", "", json.loads(content)[0]["content"]
-                    )
+                    title = re.sub(r"\r|<b>|</b>", "", json.loads(content)[0]["content"])
                 except Exception:
                     continue
 
