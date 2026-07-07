@@ -1,4 +1,4 @@
-import {
+﻿import {
     chmodSync,
     cpSync,
     existsSync,
@@ -279,7 +279,6 @@ function optionalPackagePaths() {
         "README.md",
         "LICENSE",
         "CONTACT",
-        "tools/registry",
     ];
 }
 
@@ -329,6 +328,18 @@ function prepareReleasePackage(guiKey, gui, packagePaths, interfaceJson, runtime
         prepareMxuMaafwRuntime(pkgDir, runtimePlatform);
         removeFiles(pkgDir, (name) => name.toLowerCase().endsWith(".pdb"));
     }
+    if (runtimePlatform.startsWith("win-")) {
+        for (const file of [
+            "ModifyPCRegistry.ps1",
+            "游戏PC端注册表修改_ModifyPCRegistry.bat",
+        ]) {
+            const source = join("tools/registry", file);
+            if (existsSync(source)) {
+                copyPath(source, join(pkgDir, file));
+            }
+        }
+    }
+
     ensureUnixExecutablePermissions(pkgDir, runtimePlatform);
 }
 
