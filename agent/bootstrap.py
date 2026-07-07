@@ -3,7 +3,9 @@ from __future__ import annotations
 import hashlib
 import importlib.metadata
 import json
+import re
 import runpy
+import shutil
 import subprocess
 import sys
 from datetime import UTC, datetime
@@ -24,13 +26,13 @@ DEFAULT_PIP_CONFIG = {
 def main() -> None:
     project_root = find_project_root()
     log(project_root, "bootstrap started")
+    ensure_runtime_config(project_root)
+    if should_use_linux_project_venv():
+        ensure_venv_and_relaunch(project_root)
     if sys.version_info < PYTHON_MIN or sys.version_info >= PYTHON_MAX:
         log(project_root, "unsupported Python version: " + sys.version.split()[0])
         raise SystemExit("Python >=3.13,<3.14 is required")
     log(project_root, "Python " + sys.version.split()[0])
-    ensure_runtime_config(project_root)
-    if should_use_linux_project_venv():
-        ensure_venv_and_relaunch(project_root)
     requirements = check_requirements(project_root)
     if requirements is not None:
         ensure_requirements_installed(project_root, requirements[0], requirements[1])
@@ -67,12 +69,20 @@ def venv_dir(project_root: Path) -> Path:
 
 
 def ensure_venv_and_relaunch(project_root: Path) -> None:
+    if sys.version_info >= PYTHON_MIN and sys.version_info < PYTHON_MAX:
+        python_exe = Path(sys.executable)
+    else:
+        python_exe = find_compatible_python()
+        if python_exe is None:
+            warn(project_root, "Python >=3.13,<3.14 is required but no compatible version was found")
+            raise SystemExit(1)
+
     target_venv = venv_dir(project_root)
     if not target_venv.exists():
         log(project_root, "creating virtual environment: " + str(target_venv))
         try:
             subprocess.run(
-                [sys.executable, "-m", "venv", str(target_venv)],
+                [str(python_exe), "-m", "venv", str(target_venv)],
                 check=True,
                 capture_output=True,
                 text=True,
@@ -310,6 +320,41 @@ def log(project_root: Path, message: str) -> None:
     timestamp = datetime.now(UTC).isoformat()
     with (debug_dir / "agent-bootstrap.log").open("a", encoding="utf8") as handle:
         handle.write(f"{timestamp} {message}\n")
+
+
+def find_compatible_python() -> Path | None:
+    candidates = (
+        "python3.13",
+        "python313",
+        "python3.12",
+        "python312",
+        "python3.11",
+        "python311",
+        "python3",
+        "python",
+    )
+    for name in candidates:
+        path = shutil.which(name)
+        if path is None:
+            continue
+        try:
+            result = subprocess.run(
+                [path, "--version"],
+                capture_output=True,
+                text=True,
+                encoding="utf8",
+                errors="replace",
+                timeout=10,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        version_str = (result.stdout or result.stderr).strip()
+        m = re.search(r"(\d+)\.(\d+)", version_str)
+        if m:
+            major, minor = int(m.group(1)), int(m.group(2))
+            if (major, minor) >= PYTHON_MIN and (major, minor) < PYTHON_MAX:
+                return Path(path)
+    return None
 
 
 if __name__ == "__main__":
