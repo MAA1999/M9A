@@ -260,10 +260,6 @@ function releasePackagePaths(interfaceJson, runtimePlatform, guiKey) {
     const paths = [
         "tasks",
         "resource",
-        "data",
-        "README.md",
-        "LICENSE",
-        "CONTACT",
     ];
     if (guiKey === "mfaa") {
         paths.push("runtimes", "libs/MaaAgentBinary", "plugins");
@@ -275,6 +271,15 @@ function releasePackagePaths(interfaceJson, runtimePlatform, guiKey) {
         }
     }
     return paths;
+}
+
+function optionalPackagePaths() {
+    return [
+        "data",
+        "README.md",
+        "LICENSE",
+        "CONTACT",
+    ];
 }
 
 function packageHasAgent(interfaceJson) {
@@ -310,6 +315,11 @@ function prepareReleasePackage(guiKey, gui, packagePaths, interfaceJson, runtime
     }
     for (const path of packagePaths) {
         copyPath(path, join(pkgDir, releasePackagePath(path)));
+    }
+    for (const path of optionalPackagePaths()) {
+        if (existsSync(path)) {
+            copyPath(path, join(pkgDir, releasePackagePath(path)));
+        }
     }
     if (packageHasAgent(interfaceJson) && hasEmbeddedPythonRuntime(runtimePlatform)) {
         copyPath(pythonRuntimePath(runtimePlatform), join(pkgDir, "python"));
