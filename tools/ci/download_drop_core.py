@@ -15,7 +15,7 @@ from typing import Any
 
 # 私有仓库信息
 PRIVATE_REPO = "MAA1999/drop-upload-sign"  # 修改为你的私有仓库
-RELEASE_TAG = "v1.3.0"  # 修改为要下载的版本
+RELEASE_TAG = "v1.3.1"  # 修改为要下载的版本
 
 # 目标目录
 DEST_DIR = os.path.join("agent", "libs")
@@ -53,11 +53,6 @@ def get_platform_info():
         platform_tag = f"{os_type}-{arch}"
 
     return os_type, arch, platform_tag
-
-
-def get_python_version():
-    """获取 Python 版本"""
-    return f"{sys.version_info.major}.{sys.version_info.minor}"
 
 
 def get_asset_download_url(repo: Any, tag: Any, asset_name: Any, token: Any = None):
@@ -150,16 +145,10 @@ def main():
         # Fallback to auto-detection
         os_type, arch, platform_tag = get_platform_info()
 
-    py_version = get_python_version()
-
-    print(f"Platform: {os_type}, Arch: {arch}, Python: {py_version}")
+    print(f"Platform: {os_type}, Arch: {arch}")
 
     # 构造下载列表
-    # All platforms use Python 3.13 only; macOS artifact name omits py version
-    if os_type == "darwin":
-        artifacts = [f"drop_core-{platform_tag}-{RELEASE_TAG}"]
-    else:
-        artifacts = [f"drop_core-{platform_tag}-py{py_version}-{RELEASE_TAG}"]
+    artifacts = [f"drop_core-{platform_tag}-py3.13-{RELEASE_TAG}"]
 
     # 下载所有需要的文件
     success_count = 0
