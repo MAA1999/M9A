@@ -40,15 +40,17 @@ Check out the [GitHub Pull Request Guide for Beginners](https://maa.plus/docs/en
     git submodule update --init --recursive
     ```
 
-4. Download the [Release Package](https://github.com/MaaXYZ/MaaFramework/releases) of MaaFramework and extract it into the `deps` folder.
+    Copy the OCR model from the submodule:
 
-    ::: tip
-    This step can now be skipped and only needs to be performed when local testing of the command-line version is required.
-    :::
+    ```bash
+    python tools/configure.py
+    ```
 
-5. Set up the development environment:
+4. Set up the development environment:
 
-    - Install python(≥3.11)
+    - Install Python 3.13
+    - Install Node.js (≥24) and pnpm
+    - Install [uv](https://docs.astral.sh/uv/) (Python Package and Project Management Tool)
     - Download and install VSCode.
     - Optionally install debugging/development tools:
 
@@ -64,71 +66,21 @@ Check out the [GitHub Pull Request Guide for Beginners](https://maa.plus/docs/en
     It is recommended to use the VSCode plugin for development and debugging, and MaaLogAnalyzer for user log analysis.
     :::
 
+5. Install project dependencies
+
+    Run the following commands in the project root to install dependencies:
+
+    ```bash
+    pnpm install
+    uv sync
+    ```
+
 6. Start developing:
 
-    Run `python ./tools/ci/configure.py` in the root directory of the project to configure the OCR model.
+    Develop M9A with the debugging tools installed in the previous step.
 
-    Develop the M9A with the debugging/development tools installed in the previous step. The virtual environment will be automatically created in the `.venv` directory.
+    Enjoy coding!
 
-    Enjoy coding! Before starting, check out other parts.
+7. Submit a Pull Request
 
-7. Git operations:
-
-    The most commonly used basic commands are:
-    - `git add <file>`: Add files to the staging area. Use `*` to represent all files.
-    - `git commit -m "message"`: Commit the staged files to the local repository. Please follow the [Conventional Commits Specification](https://www.conventionalcommits.org/en/v1.0.0/) for clear commit messages.
-    - `git pull origin <branch>`: Pull updates from the remote repository to the local repository.
-    - `git push origin <branch>`: Push local changes to the remote repository.
-
-    ::: warning
-    During development, remember to commit changes regularly with a message.
-    If you're not familiar with Git, you may need to create and switch to a new branch instead of committing directly to `main`.
-    This way, your commits will grow on the new branch without being affected by updates to `main`.
-    :::
-
-    ```bash
-    git checkout -b <branch-name> # Create and switch to a new branch
-    ```
-
-    After development, push your modified local branch to the remote repository (your fork):
-
-    ```bash
-    git push origin <branch-name>
-    ```
-
-    If there are changes in the M9A repository (e.g., commits from others), you may need to sync these changes to your branch:
-
-    1. Link the original M9A repository:
-
-        ```bash
-        git remote add upstream https://github.com/MAA1999/M9A.git
-        ```
-
-    2. Fetch updates from the remote repository:
-
-        ```bash
-        git fetch upstream
-        ```
-
-    3. Rebase (recommended) or merge the changes:
-
-        ```bash
-        git rebase upstream/main # Rebase for a cleaner commit history. Rebase is recommended over merge when completing your personal PR.
-        ```
-
-        Or:
-
-        ```bash
-        git merge upstream/main
-        ```
-
-    Git reference materials:
-    - [Git Official Documentation](https://git-scm.com/docs)
-    - [Git Simplified Guide](https://www.runoob.com/manual/git-guide/)
-    - [Git Tutorial | Runoob](https://www.runoob.com/git/git-tutorial.html)
-
-8. Submit a Pull Request:
-
-    Your modified code has been committed to your repository. Now, you need to submit a Pull Request to the M9A repository and wait for the maintainers to review it.
-
-    [GitHub Pull Request Reference](https://maa.plus/docs/en-us/develop/pr-tutorial.html)
+    Submit a Pull Request to the M9A repository.
