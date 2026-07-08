@@ -1,4 +1,4 @@
----
+﻿---
 order: 8
 icon: mdi:format-align-left
 ---
@@ -7,34 +7,35 @@ icon: mdi:format-align-left
 
 M9A 使用一系列的格式化工具来保证仓库中的代码和资源文件美观统一，以便于维护和阅读
 
-仓库会每天自动运行格式化，也可以在本地手动执行格式化
+仓库 CI 会自动检查代码格式，也可以在本地手动格式化
 
 ## 格式化工具
 
-| 文件类型  | 格式化工具                                                      |
-| --------- | --------------------------------------------------------------- |
-| JSON/Yaml | [prettier](https://prettier.io/)                                |
-| Markdown  | [MarkdownLint](https://github.com/DavidAnson/markdownlint-cli2) |
-| Python    | [black](https://black.readthedocs.io/)                          |
+| 文件类型               | 格式化工具                                     |
+| ---------------------- | ---------------------------------------------- |
+| JSON / YAML / Markdown | [prettier](https://prettier.io/)               |
+| Python                 | [ruff](https://docs.astral.sh/ruff/formatter/) |
 
 ## 安装依赖
 
 ```bash
 pnpm install          # 安装 Node.js 依赖（prettier 等）
-pip install black     # 安装 Python 格式化工具
 ```
+
+ruff 已包含在项目的 Python 开发依赖中，运行 `uv sync` 后即可使用。
 
 ## 手动格式化
 
 在项目根目录下执行以下命令：
 
 ```bash
-pnpm format:all
+pnpm format          # prettier 格式化所有文件
+pnpm format:py       # ruff 格式化 Python 代码
 ```
 
-或分别格式化：
+或直接用 ruff：
 
 ```bash
-pnpm format:json  # 格式化 JSON/Yaml
-pnpm format:py    # 格式化 Python
+ruff check --fix .  # 检查并自动修复 Python 问题
+ruff format .       # 格式化 Python 代码
 ```
