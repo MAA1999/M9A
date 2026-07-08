@@ -9,7 +9,7 @@ icon: ri:earth-fill
 
 ## 资源适配
 
-参考[interface.json 编写](./interface.md#resource)
+参考 [MaaFramework ProjectInterfaceV2 协议](https://maafw.com/docs/3.3-ProjectInterfaceV2)
 
 主要适配 `startup.json` 以及 `shutdown.json`。
 

@@ -9,7 +9,7 @@ Currently, the foreign servers of 1999 can all switch to Chinese in the game set
 
 ## Resource Adaptation
 
-Refer to [interface.json Writing](./interface.md#resource)
+Refer to [MaaFramework ProjectInterfaceV2 Protocol](https://maafw.com/docs/3.3-ProjectInterfaceV2)
 
 The main adaptations are for `startup.json` and `shutdown.json`.
 
