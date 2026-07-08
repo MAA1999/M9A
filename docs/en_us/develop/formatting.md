@@ -1,5 +1,5 @@
 ---
-order: 11
+order: 9
 icon: mdi:format-align-left
 ---
 

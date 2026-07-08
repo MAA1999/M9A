@@ -1,5 +1,5 @@
 ---
-order: 6
+order: 5
 icon: qlementine-icons:debug-16
 ---
 
