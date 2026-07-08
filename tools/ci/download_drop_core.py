@@ -15,7 +15,7 @@ from typing import Any
 
 # 私有仓库信息
 PRIVATE_REPO = "MAA1999/drop-upload-sign"  # 修改为你的私有仓库
-RELEASE_TAG = "v1.2.8"  # 修改为要下载的版本
+RELEASE_TAG = "v1.3.0"  # 修改为要下载的版本
 
 # 目标目录
 DEST_DIR = os.path.join("agent", "libs")
