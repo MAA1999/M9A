@@ -31,7 +31,7 @@
         ]
     },
     "Colosseum_SelectFormation_1_Swipe": {
-        "doc": "滑动阵容列表",
+        "desc": "滑动阵容列表",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -64,7 +64,7 @@
         }
     },
     "Colosseum_SelectFormation_1": {
-        "doc": "找到指定阵容",
+        "desc": "找到指定阵容",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -83,7 +83,7 @@
         ]
     },
     "Colosseum_SelectFormation_2": {
-        "doc": "选择指定阵容",
+        "desc": "选择指定阵容",
         "recognition": {
             "type": "OCR",
             "param": {
