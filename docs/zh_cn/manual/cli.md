@@ -5,6 +5,10 @@ icon: material-symbols:terminal
 
 # MaaPiCli 使用
 
+::: warning
+M9A 仓库不再提供 CLI 安装包。请前往 [M9A CLI Releases](https://github.com/MAA1999/m9a-cli/releases) 下载。
+:::
+
 本节将介绍 MaaPiCli 的使用方法（翻译）
 
 ## 选择ADB

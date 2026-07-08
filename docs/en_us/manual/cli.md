@@ -5,6 +5,10 @@ icon: material-symbols:terminal
 
 # MaaPiCli Usage Instructions
 
+::: warning
+M9A no longer provides CLI packages in this repository. Please download from [M9A CLI Releases](https://github.com/MAA1999/m9a-cli/releases).
+:::
+
 ## Select ADB
 
 When you download for the first time and there is no configuration, the following interface will appear:
