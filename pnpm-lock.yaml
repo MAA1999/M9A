@@ -27,8 +27,8 @@ importers:
         specifier: 3.8.4
         version: 3.8.4
       prettier-plugin-multiline-arrays:
-        specifier: 4.1.9
-        version: 4.1.9(prettier@3.8.4)
+        specifier: 4.1.10
+        version: 4.1.10(prettier@3.8.4)
 
 packages:
 
@@ -476,8 +476,8 @@ packages:
     resolution: {integrity: sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==}
     engines: {node: '>=12'}
 
-  prettier-plugin-multiline-arrays@4.1.9:
-    resolution: {integrity: sha512-rI4HdfJAFkXkvmh0LSE0ItPrRwJrR6TBaNWamrwOOnHzRLGoVuuuBhljU1pnsf9K/oU/ZsZpjQcuAle471yZ8A==}
+  prettier-plugin-multiline-arrays@4.1.10:
+    resolution: {integrity: sha512-mXvbjilHpU9sTWuAOmH4XcS6bWh0KDUZ5CIuhhTc6pOAxdwwilDYk3Vn9VTNdT/LIsSxUyaNuZyuPotCSqJLcw==}
     engines: {node: '>=20'}
     peerDependencies:
       prettier: '>=3.0.0 <4.0.0'
@@ -570,8 +570,8 @@ packages:
     resolution: {integrity: sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==}
     engines: {node: '>=0.6.11 <=0.7.0 || >=0.7.3'}
 
-  type-fest@5.7.0:
-    resolution: {integrity: sha512-1URUxUqfHFM1c+zfSPsa3gnkO7Aq21qyH75SIduNYz4SzY964rn1X2vCMQaHSHhktiw+0kPa2iyb6PUpXqB6Vg==}
+  type-fest@5.8.0:
+    resolution: {integrity: sha512-YGYEVz3Fm5iy/AybuA0oyNFq7H4CgQNfRp/qfe8nurE1kuCeNm3/vfm9X4Mtl+qLyaKJUh5xrFZwogr41SMjYA==}
     engines: {node: '>=20'}
 
   typed-event-target@4.3.2:
@@ -625,7 +625,7 @@ snapshots:
       '@date-vir/duration': 8.6.2
       deep-eql: 5.0.2
       expect-type: 1.4.0
-      type-fest: 5.7.0
+      type-fest: 5.8.0
 
   '@augment-vir/assert@32.0.0':
     dependencies:
@@ -633,7 +633,7 @@ snapshots:
       '@date-vir/duration': 8.6.2
       deep-eql: 5.0.2
       expect-type: 1.4.0
-      type-fest: 5.7.0
+      type-fest: 5.8.0
 
   '@augment-vir/common@31.73.5':
     dependencies:
@@ -644,7 +644,7 @@ snapshots:
       ansi-styles: 6.2.3
       deepcopy-esm: 2.1.2
       json5: 2.2.3
-      type-fest: 5.7.0
+      type-fest: 5.8.0
       typed-event-target: 4.3.2
 
   '@augment-vir/common@32.0.0':
@@ -656,7 +656,7 @@ snapshots:
       ansi-styles: 6.2.3
       deepcopy-esm: 2.1.2
       json5: 2.2.3
-      type-fest: 5.7.0
+      type-fest: 5.8.0
       typed-event-target: 4.3.2
 
   '@augment-vir/core@31.73.5':
@@ -665,7 +665,7 @@ snapshots:
       browser-or-node: 3.0.0
       diff: 9.0.0
       json5: 2.2.3
-      type-fest: 5.7.0
+      type-fest: 5.8.0
 
   '@augment-vir/core@32.0.0':
     dependencies:
@@ -673,7 +673,7 @@ snapshots:
       browser-or-node: 3.0.0
       diff: 9.0.0
       json5: 2.2.3
-      type-fest: 5.7.0
+      type-fest: 5.8.0
 
   '@babel/helper-string-parser@7.29.7': {}
 
@@ -689,7 +689,7 @@ snapshots:
       '@augment-vir/assert': 32.0.0
       '@types/luxon': 3.7.2
       luxon: 3.7.2
-      type-fest: 5.7.0
+      type-fest: 5.8.0
 
   '@gar/promise-retry@1.0.3': {}
 
@@ -1128,7 +1128,7 @@ snapshots:
 
   picomatch@4.0.5: {}
 
-  prettier-plugin-multiline-arrays@4.1.9(prettier@3.8.4):
+  prettier-plugin-multiline-arrays@4.1.10(prettier@3.8.4):
     dependencies:
       '@augment-vir/assert': 31.73.5
       '@augment-vir/common': 31.73.5
@@ -1227,7 +1227,7 @@ snapshots:
 
   tunnel@0.0.6: {}
 
-  type-fest@5.7.0:
+  type-fest@5.8.0:
     dependencies:
       tagged-tag: 1.0.0
 
