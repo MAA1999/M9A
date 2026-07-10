@@ -20,6 +20,8 @@ jobs:
             runtime_os: win
             runtime_arch: x64
             drop_os: windows
+            drop_core_supported: true
+            drop_core_smoke_import: true
             ext: zip
           - os: windows-11-arm
             artifact_os: win
@@ -27,6 +29,9 @@ jobs:
             runtime_os: win
             runtime_arch: arm64
             drop_os: windows
+            # drop_core v1.3.1 has no Windows ARM64 asset; combat falls back to the non-native path.
+            drop_core_supported: false
+            drop_core_smoke_import: false
             ext: zip
           - os: ubuntu-latest
             artifact_os: linux
@@ -34,6 +39,8 @@ jobs:
             runtime_os: linux
             runtime_arch: x64
             drop_os: linux
+            drop_core_supported: true
+            drop_core_smoke_import: true
             ext: tar.gz
           - os: ubuntu-latest
             artifact_os: linux
@@ -41,6 +48,8 @@ jobs:
             runtime_os: linux
             runtime_arch: arm64
             drop_os: linux
+            drop_core_supported: true
+            drop_core_smoke_import: false
             ext: tar.gz
           - os: macos-15-intel
             artifact_os: macos
@@ -48,6 +57,8 @@ jobs:
             runtime_os: osx
             runtime_arch: x64
             drop_os: darwin
+            drop_core_supported: true
+            drop_core_smoke_import: true
             ext: tar.gz
           - os: macos-latest
             artifact_os: macos
@@ -55,6 +66,8 @@ jobs:
             runtime_os: osx
             runtime_arch: arm64
             drop_os: darwin
+            drop_core_supported: true
+            drop_core_smoke_import: true
             ext: tar.gz
     runs-on: ${{ matrix.os }}
     steps:
@@ -85,16 +98,42 @@ jobs:
           CREATE_MAA_PROJECT_RUNTIME_PLATFORM: ${{ matrix.runtime_os }}-${{ matrix.runtime_arch }}
           GITHUB_TOKEN: ${{ github.token }}
       - name: Download drop_core
-        if: github.event_name != 'workflow_dispatch'
+        if: github.event_name != 'workflow_dispatch' && matrix.drop_core_supported
         shell: bash
         env:
           PRIVATE_REPO_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
         run: |
-          python tools/ci/download_drop_core.py --os "${{ matrix.drop_os }}" --arch "${{ matrix.runtime_arch }}" || echo "[WARN] drop_core download skipped"
+          args=(--os "${{ matrix.drop_os }}" --arch "${{ matrix.runtime_arch }}")
+          if [[ "${{ matrix.drop_core_smoke_import }}" == "true" ]]; then
+            args+=(--smoke-import)
+          fi
+          python tools/ci/download_drop_core.py "${args[@]}"
+      - name: Note unsupported drop_core target
+        if: github.event_name != 'workflow_dispatch' && matrix.drop_core_supported == false
+        shell: bash
+        run: echo "[INFO] drop_core is not published for ${{ matrix.drop_os }}-${{ matrix.runtime_arch }}"
       - run: node tools/build-release.mjs
         if: github.event_name != 'workflow_dispatch'
         env:
           CREATE_MAA_PROJECT_RUNTIME_PLATFORM: ${{ matrix.runtime_os }}-${{ matrix.runtime_arch }}
+      - name: Verify packaged drop_core
+        if: github.event_name != 'workflow_dispatch' && matrix.drop_core_supported
+        shell: bash
+        run: |
+          shopt -s nullglob
+          package_dirs=(dist/package-*)
+          if (( ${#package_dirs[@]} == 0 )); then
+            echo "[ERR] no release packages were generated for a supported drop_core target"
+            exit 1
+          fi
+          for pkg_dir in "${package_dirs[@]}"; do
+            modules=("$pkg_dir"/agent/libs/drop_core*.pyd "$pkg_dir"/agent/libs/drop_core*.so)
+            if (( ${#modules[@]} != 1 )); then
+              echo "[ERR] expected exactly one drop_core module in $pkg_dir, found ${#modules[@]}"
+              exit 1
+            fi
+            echo "[OK] packaged drop_core: ${modules[0]}"
+          done
       - name: Generate manifest cache
         if: github.event_name != 'workflow_dispatch'
         shell: bash
