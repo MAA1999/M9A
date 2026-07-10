@@ -114,12 +114,10 @@ function* walkJsonFiles(dir) {
 // interface.json
 validateFile("interface.json", interfaceValidator);
 
-// tasks/*.json
+// tasks/**/*.json
 if (existsSync("tasks")) {
-    for (const file of readdirSync("tasks")) {
-        if (file.endsWith(".json") || file.endsWith(".jsonc")) {
-            validateFile(join("tasks", file), taskValidator);
-        }
+    for (const file of walkJsonFiles("tasks")) {
+        validateFile(file, taskValidator);
     }
 }
 
