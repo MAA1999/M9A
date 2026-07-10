@@ -157,10 +157,6 @@ def ensure_requirements_installed(project_root: Path, requirements: Path, digest
 
 
 def needs_requirement_install(project_root: Path, digest: str) -> bool:
-    if is_package_installed("maafw") and not is_running_in_project_venv(project_root):
-        log(project_root, "maafw is already installed in current Python")
-        return False
-
     marker = requirements_marker(project_root)
     if marker.exists() and marker.read_text(encoding="utf8").strip() == digest:
         if is_package_installed("maafw"):
