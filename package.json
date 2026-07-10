@@ -18,7 +18,7 @@
     "scripts": {
         "check": "pnpm format:check && pnpm check:schema && pnpm check:maa && pnpm lint",
         "check:maa": "pnpm exec maa-tools check",
-        "check:py": "pnpm lint:py && pnpm typecheck:py",
+        "check:py": "pnpm lint:py && pnpm typecheck:py && pnpm test:py",
         "check:schema": "node tools/validate-schema.mjs",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
@@ -29,6 +29,7 @@
         "release:dry-run": "node tools/build-release.mjs --dry-run",
         "sync:runtime": "node tools/sync-runtime.mjs",
         "sync:schema": "node tools/sync-schema.mjs",
+        "test:py": "uv run --frozen pytest",
         "typecheck:py": "uv run --frozen pyright"
     },
     "type": "module",

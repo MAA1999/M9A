@@ -433,7 +433,8 @@ function expectedPackageScripts(project) {
         scripts["format:py"] = "uv run --frozen ruff format .";
         scripts["lint:py"] = "uv run --frozen ruff check .";
         scripts["typecheck:py"] = "uv run --frozen pyright";
-        scripts["check:py"] = "pnpm lint:py && pnpm typecheck:py";
+        scripts["test:py"] = "uv run --frozen pytest";
+        scripts["check:py"] = "pnpm lint:py && pnpm typecheck:py && pnpm test:py";
     }
     return scripts;
 }
