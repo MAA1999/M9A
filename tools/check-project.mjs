@@ -415,7 +415,13 @@ function stripDotSlash(path) {
 
 function isProjectRelativePath(path) {
     const stripped = stripDotSlash(path);
-    return !stripped.startsWith("/") && !/^[A-Za-z]:/.test(stripped) && !stripped.split("/").includes("..");
+    return (
+        stripped !== "" &&
+        stripped !== "." &&
+        !stripped.startsWith("/") &&
+        !/^[A-Za-z]:/.test(stripped) &&
+        !stripped.split("/").includes("..")
+    );
 }
 
 function expectedPackageScripts(project) {

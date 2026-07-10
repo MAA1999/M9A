@@ -80,7 +80,7 @@ def test_release_builder_rejects_paths_outside_project_root(tmp_path: Path) -> N
     outside_path = tmp_path / "outside.json"
     outside_path.write_text("{}\n", encoding="utf-8")
 
-    for index, unsafe_path in enumerate(("../outside.json", outside_path.resolve().as_posix())):
+    for index, unsafe_path in enumerate(("", ".", "../outside.json", outside_path.resolve().as_posix())):
         project_root = tmp_path / f"project-{index}"
         prepare_release_project(project_root, [unsafe_path])
 
