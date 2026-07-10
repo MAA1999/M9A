@@ -6,6 +6,9 @@ Manifest 缓存检查模块
 """
 
 import json
+import os
+import tempfile
+from pathlib import Path
 from typing import Any
 
 import requests  # pyright: ignore[reportMissingModuleSource]
@@ -24,6 +27,7 @@ session = create_no_proxy_session()
 
 # 忽略的目录（不需要热更新）
 IGNORED_DIRS = {"images"}
+IGNORED_MANIFEST_PREFIXES = ("images/", "resource/data/")
 
 
 def _load_cache() -> dict[str, Any]:
@@ -55,23 +59,38 @@ def _load_cache() -> dict[str, Any]:
         return default
 
 
-def _save_cache(cache: dict[str, Any]):
-    """保存缓存到本地"""
+def _save_cache(cache: dict[str, Any]) -> None:
+    """将缓存原子写入本地，避免中断时留下半截 JSON。"""
     cache_file = get_runtime_paths().manifest_cache_file
+    temp_path: Path | None = None
     try:
         cache_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(cache_file, "w", encoding="utf-8") as f:
-            json.dump(cache, f, indent=2, ensure_ascii=False)
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=cache_file.parent,
+            prefix=f".{cache_file.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as temp_file:
+            temp_path = Path(temp_file.name)
+            json.dump(cache, temp_file, indent=2, ensure_ascii=False)
+            temp_file.flush()
+            os.fsync(temp_file.fileno())
+        os.replace(temp_path, cache_file)
     except Exception as e:
         logger.debug(f"保存 manifest 缓存失败: {e}")
+    finally:
+        if temp_path is not None:
+            try:
+                temp_path.unlink(missing_ok=True)
+            except OSError as e:
+                logger.debug(f"清理 manifest 缓存临时文件失败: {temp_path}: {e}")
 
 
 def _is_ignored_path(manifest_path: str) -> bool:
     """检查 manifest 路径是否在忽略目录下"""
-    for ignored in IGNORED_DIRS:
-        if manifest_path.startswith(f"{ignored}/") or manifest_path == f"{ignored}/manifest.json":
-            return True
-    return False
+    return manifest_path.startswith(IGNORED_MANIFEST_PREFIXES)
 
 
 def _collect_updated_manifests(
@@ -115,15 +134,18 @@ def _collect_updated_manifests(
                 logger.debug(f"manifest 需要更新: {manifest_path} ({local_updated} → {remote_updated})")
 
             # 递归检查子目录
+            children_succeeded = True
             for dir_info in manifest.get("directories", []):
                 sub_manifest = dir_info.get("manifest", "")
                 if sub_manifest:
-                    _collect_updated_manifests(
+                    child_succeeded = _collect_updated_manifests(
                         sub_manifest,
                         local_manifests,
                         collected_manifests,
                         updated_manifests,
                     )
+                    children_succeeded = child_succeeded and children_succeeded
+            return children_succeeded
         else:
             logger.debug(f"manifest 无更新: {manifest_path} (updated={remote_updated})")
             # 即使没更新，也要收集子 manifest 的时间戳（用于保存缓存）
@@ -189,6 +211,7 @@ def check_manifest_updates() -> dict[str, Any]:
             return result
 
         # 递归检查各子目录
+        manifests_succeeded = True
         for dir_info in root_manifest.get("directories", []):
             dir_name = dir_info["name"]
             sub_manifest = dir_info.get("manifest", "")
@@ -198,12 +221,19 @@ def check_manifest_updates() -> dict[str, Any]:
                 continue
 
             if sub_manifest:
-                _collect_updated_manifests(
+                manifest_succeeded = _collect_updated_manifests(
                     sub_manifest,
                     local_manifests,
                     result["collected_manifests"],
                     result["updated_manifests"],
                 )
+                manifests_succeeded = manifest_succeeded and manifests_succeeded
+
+        if not manifests_succeeded:
+            result["error"] = "部分 manifest 获取失败"
+            result["has_any_update"] = True
+            logger.debug(result["error"])
+            return result
 
         result["success"] = True
         result["has_any_update"] = len(result["updated_manifests"]) > 0

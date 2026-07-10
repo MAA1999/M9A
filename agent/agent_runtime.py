@@ -60,6 +60,7 @@ def _hot_update() -> None:
     )
 
     manifest_result = check_manifest_updates()
+    should_save_manifest_cache = manifest_result["success"] and not manifest_result["has_any_update"]
 
     if manifest_result["success"] and not manifest_result["has_any_update"]:
         logger.debug("资源无更新，跳过热更新")
@@ -76,16 +77,19 @@ def _hot_update() -> None:
                 logger.debug("开始检查所有资源...")
 
             update_result = check_and_update_resources(resource_manifests=manifests)
-            if update_result and update_result.get("updated_files"):
-                pass
+            if update_result and update_result.get("success"):
+                should_save_manifest_cache = manifest_result["success"]
             elif update_result and update_result.get("error"):
                 logger.debug(f"热更部分资源更新遇到问题: {update_result['error']}")
             else:
-                logger.debug("热更部分资源已是最新")
+                logger.debug("热更部分资源更新未成功")
         else:
             logger.debug("所有 manifest 无更新，跳过热更新")
 
-    save_manifest_cache_from_result(manifest_result)
+    if should_save_manifest_cache:
+        save_manifest_cache_from_result(manifest_result)
+    else:
+        logger.debug("热更新未完整成功，保留原 manifest 缓存")
 
 
 def run_agent(project_root_dir: str) -> int:
