@@ -215,7 +215,7 @@ if (-not $hasResolutionParams) {
                 Start-Sleep -Seconds 2
             }
             '3' {
-                # Switch server (cycle: EN -> CN -> JP -> EN)
+                # Switch server (cycle: EN -> JP -> EN)
                 $Server = if ($Server -eq 'EN') { 'JP' } else { 'EN' }
                 if (-not $keyPathExplicit) {
                     $KeyPath = if ($Server -eq 'JP') {
