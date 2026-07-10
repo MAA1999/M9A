@@ -268,6 +268,16 @@ Can't change to `16:9` ratio when using the International Version PC client? Use
     </li>
     <li>
       <details>
+        <summary>Step 0</summary>
+          <ol>
+            <li>After opening, select option 3 to switch between EN (International) and JP (Japan) servers</li>
+            <li>The current server is displayed at the top of the menu</li>
+          </ol>
+          <img src="/images/en-us/newbie-init-script-step1.webp" alt="Step 0">
+      </details>
+    </li>
+    <li>
+      <details>
         <summary>Step 1</summary>
           <ol>
             <li>After opening, enter 1 in the command line</li>

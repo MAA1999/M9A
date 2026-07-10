@@ -269,6 +269,16 @@ M9A 支持主流模拟器与PC端，但您需要设置模拟器与PC端分辨率
     </li>
     <li>
       <details>
+        <summary>步骤0</summary>
+          <ol>
+            <li>打开后，选择选项3切换服务器：EN（国际服）或 JP（日服）</li>
+            <li>当前服务器显示在菜单顶部</li>
+          </ol>
+          <img src="/images/zh-cn/newbie-init-script-step1.webp" alt="步骤0">
+      </details>
+    </li>
+    <li>
+      <details>
         <summary>步骤1</summary>
           <ol>
             <li>打开后在命令行输入1</li>
