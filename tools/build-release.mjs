@@ -315,7 +315,8 @@ function prepareReleasePackage(guiKey, gui, packagePaths, interfaceJson, runtime
         copyPath("logo.ico", join(pkgDir, "logo.ico"));
     }
     for (const path of packagePaths) {
-        copyPath(path, join(pkgDir, releasePackagePath(path)));
+        const options = path === "agent" ? {filter: shouldCopyAgentPath} : {};
+        copyPath(path, join(pkgDir, releasePackagePath(path)), options);
     }
     for (const path of optionalPackagePaths()) {
         if (existsSync(path)) {
@@ -478,6 +479,11 @@ function copyDirectoryContents(source, target, options = {}) {
     for (const entry of readdirSync(source)) {
         copyPath(join(source, entry), join(target, entry), options);
     }
+}
+
+function shouldCopyAgentPath(source) {
+    const name = basename(source).toLowerCase();
+    return name !== "__pycache__" && !name.endsWith(".pyc") && !name.endsWith(".pyo");
 }
 
 function shouldCopyMxuMaafwPath(source) {
