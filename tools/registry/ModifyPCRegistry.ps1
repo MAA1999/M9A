@@ -1,4 +1,4 @@
-<#
+﻿<#
 modify_resolution.ps1
 Safe helper to backup a registry key and update a Resolution-like value to "WIDTH * HEIGHT" or a custom string.
 - Preserves the original registry value kind when possible (REG_BINARY/REG_SZ/REG_DWORD/etc).
@@ -21,10 +21,12 @@ pwsh .\modify_resolution.ps1 -KeyPath 'HKCU:\Software\bluepoch' -BackupFile '.\b
 #>
 
 param(
-    [string]$KeyPath = 'HKCU:\Software\bluepoch\Reverse: 1999',
+    [string]$KeyPath,
     [string]$ValueName = 'ResolutionRatio_h997442698',
     [ValidateSet('1','2','3','4','5','6')]
     [string]$Preset,
+    [ValidateSet('EN','JP')]
+    [string]$Server = 'EN',
     [int]$Width,
     [int]$Height,
     [string]$NewValue,
@@ -33,6 +35,16 @@ param(
     [switch]$Force,
     [switch]$NoGameDefaults
 )
+
+# Set default KeyPath based on server if not explicitly provided
+$keyPathExplicit = $PSBoundParameters.ContainsKey('KeyPath')
+if (-not $keyPathExplicit) {
+    $KeyPath = if ($Server -eq 'JP') {
+        'HKCU:\Software\bluepoch\リバース：1999'
+    } else {
+        'HKCU:\Software\bluepoch\Reverse: 1999'
+    }
+}
 
 # Centralized resolution presets
 $resolutionPresets = @(
@@ -90,8 +102,8 @@ function Set-RegistryValueSafe($regKey, $valueName, $newValue, $preferredKind) {
 }
 
 # Function to set game default values
-function Set-GameDefaults($regKey) {
-    Write-Host "Setting game default values..."
+function Set-GameDefaults($regKey, $server) {
+    Write-Host "Setting game default values ($server)..."
     
     # Screenmanager Fullscreen mode = 3 (windowed mode)
     try {
@@ -101,11 +113,12 @@ function Set-GameDefaults($regKey) {
         Write-Warning "  Failed to set Screenmanager Fullscreen mode: $_"
     }
     
-    # SdkLanguage = "zh_CN" (Binary, ASCII encoded with null terminator)
+    # SdkLanguage based on server
+    $sdkLang = if ($server -eq 'JP') { 'ja' } else { 'en' }
     try {
-        $sdkBytes = [System.Text.Encoding]::ASCII.GetBytes('zh_CN' + "`0")
+        $sdkBytes = [System.Text.Encoding]::ASCII.GetBytes($sdkLang + "`0")
         $regKey.SetValue('SdkLanguage_h2445173579', $sdkBytes, [Microsoft.Win32.RegistryValueKind]::Binary)
-        Write-Host "  Set SdkLanguage_h2445173579 = zh_CN (Binary, ASCII)"
+        Write-Host "  Set SdkLanguage_h2445173579 = $sdkLang (Binary, ASCII)"
     } catch {
         Write-Warning "  Failed to set SdkLanguage: $_"
     }
@@ -141,23 +154,29 @@ if ($Restore) {
 }
 
 # Determine desired value string
-# If no parameters provided, run an interactive main menu
-if ($PSBoundParameters.Count -eq 0 -and -not $Restore) {
+# If no resolution parameters provided, run an interactive main menu
+$hasResolutionParams = $PSBoundParameters.ContainsKey('Width') -or $PSBoundParameters.ContainsKey('Height') -or $PSBoundParameters.ContainsKey('NewValue') -or $PSBoundParameters.ContainsKey('Preset') -or $Restore
+if (-not $hasResolutionParams) {
     while ($true) {
         Clear-Host
         Write-Host "================ Main Menu ================"
+        Write-Host "Current server: $Server"
+        Write-Host "KeyPath: $KeyPath"
+        Write-Host ""
         Write-Host "Select an action:"
         Write-Host "1) Set resolution from preset"
         Write-Host "2) Restore from backup (import .reg)"
-        Write-Host "3) Exit"
+        Write-Host "3) Switch server (currently: $Server)"
+        Write-Host "4) Exit"
         Write-Host "=========================================="
-        $action = Read-Host "Enter choice (1-3)"
+        $action = Read-Host "Enter choice (1-4)"
 
         switch ($action) {
             '1' {
                 while ($true) {
                     Clear-Host
-                    Write-Host "Presets (will also set game defaults: windowed mode, zh_CN language):"
+                    $langLabel = if ($Server -eq 'JP') { 'ja' } else { 'en' }
+                    Write-Host "Presets (will also set game defaults: windowed mode, $langLabel language):"
                     foreach ($res in $resolutionPresets) {
                         Write-Host "  $($res.Label): $($res.Description)"
                     }
@@ -195,7 +214,20 @@ if ($PSBoundParameters.Count -eq 0 -and -not $Restore) {
                 if ($confirmExit.ToLower() -eq 'y') { Write-Host "Exiting."; exit 0 }
                 Start-Sleep -Seconds 2
             }
-            '3' { Write-Host "Exiting."; exit 0 }
+            '3' {
+                # Switch server (cycle: EN -> CN -> JP -> EN)
+                $Server = if ($Server -eq 'EN') { 'JP' } else { 'EN' }
+                if (-not $keyPathExplicit) {
+                    $KeyPath = if ($Server -eq 'JP') {
+                        'HKCU:\Software\bluepoch\リバース：1999'
+                    } else {
+                        'HKCU:\Software\bluepoch\Reverse: 1999'
+                    }
+                }
+                Write-Host "Switched to server: $Server"
+                Start-Sleep -Seconds 1
+            }
+            '4' { Write-Host "Exiting."; exit 0 }
             default { Write-Host "Invalid choice."; Start-Sleep -Seconds 1 }
         }
         # If a resolution was selected, exit the main loop to proceed with modification
@@ -223,9 +255,10 @@ if ($PSBoundParameters.Count -eq 0 -and -not $Restore) {
 # Confirm
 if (-not $Force) {
     Write-Host "About to modify registry key: $KeyPath, value: $ValueName"
+    Write-Host "Server: $Server"
     Write-Host "New value: $valueToSet"
     if (-not $NoGameDefaults) {
-        Write-Host "Note: This will also set game defaults (windowed mode, zh_CN language, etc.)"
+        Write-Host "Note: This will also set game defaults (windowed mode, language, etc.)"
     }
     $ok = Read-Host "Proceed? (y/N)"
     if ($ok.ToLower() -ne 'y') { Write-Host "Aborted."; exit 0 }
@@ -358,7 +391,7 @@ try {
     # If not disabled, set game defaults for all resolutions
     if (-not $NoGameDefaults) {
         Write-Host ""
-        Set-GameDefaults -regKey $key
+        Set-GameDefaults -regKey $key -server $Server
     }
 
 } catch {
