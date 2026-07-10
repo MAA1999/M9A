@@ -13,6 +13,7 @@
 import {basename, dirname, join} from "node:path";
 
 const dryRun = process.argv.includes("--dry-run");
+const releaseTagOverride = commandLineValue("--release-tag");
 const projectSlug = "m9a";
 const releaseArtifactName = "M9A";
 mkdirSync("dist", {recursive: true});
@@ -37,7 +38,7 @@ if (!isReleaseVersion(sourceVersion)) {
     throw new Error("interface.json version must be a release tag such as v0.1.0");
 }
 
-const releaseTag = detectReleaseTag();
+const releaseTag = releaseTagOverride ?? detectReleaseTag();
 if (!dryRun && !releaseTag) {
     throw new Error("release build requires a SemVer Git tag such as v0.1.0");
 }
@@ -645,6 +646,16 @@ function detectReleaseTag() {
     if (typeof refName === "string" && refName.startsWith("v")) return refName;
     const ref = process.env.GITHUB_REF;
     return typeof ref === "string" && ref.startsWith("refs/tags/") ? ref.slice("refs/tags/".length) : undefined;
+}
+
+function commandLineValue(name) {
+    const index = process.argv.indexOf(name);
+    if (index < 0) return undefined;
+    const value = process.argv[index + 1];
+    if (typeof value !== "string" || value.startsWith("--")) {
+        throw new Error(`${name} requires a value`);
+    }
+    return value;
 }
 
 function isReleaseVersion(value) {

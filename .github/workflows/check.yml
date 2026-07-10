@@ -28,3 +28,4 @@ jobs:
       - run: pnpm check
       - run: pnpm check:py
         if: hashFiles('pyproject.toml') != ''
+      - run: pnpm release:dry-run

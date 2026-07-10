@@ -1,0 +1,99 @@
+name: Package Smoke
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/package-smoke.yml"
+      - ".github/workflows/release.yml"
+      - ".python-version"
+      - "agent/**"
+      - "data/**"
+      - "resource/**"
+      - "tasks/**"
+      - "tools/build-release.mjs"
+      - "tools/sync-runtime.mjs"
+      - "tools/ci/**"
+      - "interface.json"
+      - "maa-project.json"
+      - "requirements.txt"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "MaaCommonAssets"
+      - "logo.ico"
+      - "CONTACT"
+      - "LICENSE"
+      - "README.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: package-smoke-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-x64:
+    name: Windows x64 package smoke
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v8.3.1
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: node tools/check-project.mjs
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm sync:runtime
+        env:
+          CREATE_MAA_PROJECT_RUNTIME_PLATFORM: win-x64
+          GITHUB_TOKEN: ${{ github.token }}
+      - run: node tools/build-release.mjs --release-tag v0.0.0-package-smoke
+        env:
+          CREATE_MAA_PROJECT_RUNTIME_PLATFORM: win-x64
+      - name: Verify package layout and embedded Python
+        shell: pwsh
+        run: |
+          $expected = @("package-mfaa", "package-mxu")
+          $actual = @(
+            Get-ChildItem -LiteralPath dist -Directory |
+              Where-Object Name -Like "package-*" |
+              ForEach-Object Name |
+              Sort-Object
+          )
+          $difference = Compare-Object -ReferenceObject $expected -DifferenceObject $actual
+          if ($difference) {
+            throw "Expected package directories $($expected -join ', '), got $($actual -join ', ')"
+          }
+
+          foreach ($packageName in $expected) {
+            $packageRoot = (Resolve-Path -LiteralPath (Join-Path dist $packageName)).Path
+            $python = Join-Path $packageRoot "python\python.exe"
+            if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
+              throw "Embedded Python is missing: $python"
+            }
+
+            Push-Location $packageRoot
+            try {
+              & $python -I -c 'import sys; sys.path.insert(0, "agent"); import loguru, maa, PIL, pytz, requests; import agent_runtime, custom; print("embedded Python imports passed")'
+              if ($LASTEXITCODE -ne 0) {
+                throw "Embedded Python import smoke failed in $packageName"
+              }
+              & $python -I -m compileall -q agent
+              if ($LASTEXITCODE -ne 0) {
+                throw "Agent compile smoke failed in $packageName"
+              }
+            } finally {
+              Pop-Location
+            }
+            Write-Host "[OK] $packageName"
+          }
