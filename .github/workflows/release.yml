@@ -171,8 +171,13 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          for pkg_dir in dist/package-*; do
-            [ -d "$pkg_dir" ] || continue
+          shopt -s nullglob
+          package_dirs=(dist/package-*)
+          if (( ${#package_dirs[@]} == 0 )); then
+            echo "[ERR] no release packages were generated"
+            exit 1
+          fi
+          for pkg_dir in "${package_dirs[@]}"; do
             gui=$(basename "$pkg_dir" | sed 's/^package-//')
             gui_upper=$(echo "$gui" | tr '[:lower:]' '[:upper:]')
             archive="M9A-${{ matrix.artifact_os }}-${{ matrix.arch }}-${GITHUB_REF_NAME}-${gui_upper}.${{ matrix.ext }}"
@@ -197,6 +202,7 @@ jobs:
         with:
           name: ${{ matrix.artifact_os }}-${{ matrix.arch }}
           path: dist/*
+          if-no-files-found: error
 
   git_cliff:
     name: Generate release notes
