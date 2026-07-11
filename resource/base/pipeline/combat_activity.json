@@ -363,5 +363,19 @@
                 "expected": "[\\s\\S]"
             }
         }
+    },
+    "ActivityDownList": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    7,
+                    473,
+                    1243,
+                    236
+                ],
+                "expected": "[\\s\\S]"
+            }
+        }
     }
 }

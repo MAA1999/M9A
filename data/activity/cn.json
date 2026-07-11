@@ -833,7 +833,7 @@
             }
         }
     },
-    "3.8": {
+     "3.8": {
         "version_name": "世纪末尺度",
         "start_time": 1781143200000,
         "end_time": 1784753999000,
@@ -847,7 +847,106 @@
                 "start_time": 1783630800000,
                 "end_time": 1784494799000,
                 "name": "长夜鸣笛",
-                "alias": "长夜鸣笛"
+                "alias": "长夜鸣笛",
+                "override": {
+                    "ActivityMainChapter": {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "expected": [
+                                    "欢迎",
+                                    "乘车"
+                                ]
+                            }
+                        }
+                    },
+                    "FlagInActivityStage": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1073,
+                                    582,
+                                    167,
+                                    64
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityClickCurStage": {
+                        "action": {
+                            "param": {
+                                "target": [
+                                    56,
+                                    560,
+                                    36,
+                                    27
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityClickPreStage": {
+                        "action": {
+                            "param": {
+                                "target": [
+                                    63,
+                                    570,
+                                    47,
+                                    36
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    957,
+                                    59,
+                                    136,
+                                    69
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageCost": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    900,
+                                    588,
+                                    103,
+                                    55
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityTargetLevel": {
+                        "attach": {
+                            "clicks": [
+                                [
+                                    937,
+                                    235
+                                ],
+                                [
+                                    1181,
+                                    238
+                                ]
+                            ]
+                        }
+                    },
+                    "ActivityTargetLevelRec": {
+                        "recognition": {
+                            "param": {
+                                "roi": [
+                                    1024,
+                                    224,
+                                    78,
+                                    38
+                                ]
+                            }
+                        }
+                    }
+                }
             }
         }
     }

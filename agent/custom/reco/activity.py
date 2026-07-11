@@ -28,9 +28,14 @@ class ActivityRe_releaseChapter(CustomRecognition):
     ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
         expected = parse_params(argv.custom_recognition_param, "Re_release_name")["Re_release_name"]
-        reco_detail = context.run_recognition("ActivityLeftList", argv.image)
+        reco_detail_1 = context.run_recognition("ActivityLeftList", argv.image)
+        reco_detail_2 = context.run_recognition("ActivityDownList", argv.image)
 
-        for result in ocr_results(reco_detail):
+        for result in ocr_results(reco_detail_1):
+            if expected in result.text:
+                return CustomRecognition.AnalyzeResult(box=result.box, detail={})
+            
+        for result in ocr_results(reco_detail_2):
             if expected in result.text:
                 return CustomRecognition.AnalyzeResult(box=result.box, detail={})
 
