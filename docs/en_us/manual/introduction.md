@@ -28,6 +28,14 @@ Farm daily free Will Analysis attempts, including the following options:
 - **Double Analysis Bonus Battle**: Use stamina for combat when double analysis bonus is available
 - **Consume Candy**: Automatically use psychube candy
 
+## Smart Balanced Material Farming
+
+Detect the counts of 12 purple main-story materials in the warehouse, then automatically farm the optimal stage for the material with the lowest count. Options include:
+
+- **Consume Candy**: Automatically use candy
+- **Custom Combat Count**: Specify combat count. It will consume all stamina when disabled.
+- **Drop Statistics Report**: Report stage drop data
+
 ## Regular Combat
 
 Execute regular stage combat, including the following options:
@@ -40,10 +48,10 @@ Execute regular stage combat, including the following options:
 - **Drop Statistics Report**: Report stage drop data
 
 ::: tip
-Chapter 12 has added new materials, welcome to farm new stages to help update the one-image guide!
+Chapter 13 has been updated. Welcome to farm new stages to help update the one-image guide!
 :::
 
-## Event Farming
+## Event Token Farming
 
 Farm event stages, including the following options:
 
@@ -103,13 +111,19 @@ Claim various rewards, including the following options:
 - **Claim Mail Rewards**: Collect rewards from mail
 - **Claim Task Rewards**: Claim daily and weekly task rewards
 - **Claim Roar Roar Jukebox**: Claim Roar Roar Jukebox rewards
+- **Claim Frontline Observation Room Rewards**: Claim Frontline Observation Room rewards
+- **Event Box Rewards**: Claim event box rewards
+- **Mystery Sea Weekly Sweep Rewards**: Complete the Suspended in the Rain: Mystery Sea "Think" weekly sweep and claim rewards
+- **Claim Laplace Forum Rewards**: Claim Laplace Forum rewards
 
-## Suspended in the Rain: Mystery Sea
+## Redeem Codes
 
-Complete "Think" weekly sweep task.
+Automatically enter and redeem codes, including the following options:
+
+- **Custom Redeem Codes**: Enter one or more codes (separated by spaces, commas, or semicolons)
 
 ::: note
-This feature only completes "Think" weekly sweep
+Already-used codes for the current account are skipped automatically
 :::
 
 ## Switch Account
@@ -122,6 +136,15 @@ Leave the field empty to scroll to the bottom of the account list and switch to 
 - Currently only supports Official server
 - Only supports emulator environments with an actual unscaled resolution of 1280×720
   :::
+
+## Switch Art Framework
+
+Switch the main interface art framework. Available options:
+
+- **Suitcase Standard (Default)**
+- **What Icarus Saw**
+- **Diminuendo Heartstring**
+- **Paper-Cut Plum Adornment**
 
 ## Close Game
 
@@ -234,14 +257,31 @@ This feature does not change characters and takes all debuffs, so it's only suit
 - Test team: 37 + Eternity + Melmoth + Semmelweis + Tutu (note: place main DPS in 5th position)
   :::
 
-### Critter Crash
+### Event Stage Clear (Main Story and Events)
+
+Automatically clear main-story / event stage maps, including the following options:
+
+- **Select Event**: Choose current page, current event, or a specified past event
+- **Clear Mode**:
+    - **Story/Main**: Automatically detect unfinished stages marked with a gray star next to the stage number and clear them in order; after finishing, it will try Path stages
+    - **Exploration Mode**: Unlocked in later event phases; if currently on the Story page it will switch to Exploration first. Main-story maps without Exploration mode are skipped automatically
+- **Consume Candy**: Automatically use candy when stamina is depleted
+
+::: warning
+
+- Please manually open the main-story / event stage map page before running this task
+- If the task hits mini-games, special tutorials, or other screens it cannot handle, it will stop automatically (error screenshots are saved under `debug/on_error`). Finish those manually, return to the stage map page, and rerun to continue
+
+:::
+
+### Critter Crash Fast Farm
 
 Quick farming in Critter Crash interface.
 
 ::: warning
 
 - Start in Critter Crash interface
-- Supports CN server version 3.2
+- Supports CN server version 3.5
 - Please play two rounds manually first to raise alert level to 3 before using
   :::
 
@@ -262,6 +302,17 @@ This task has two scenarios:
 2. Have defeated the boss on the third day of the tutorial (i.e., clicking "Start Simulation" leads to difficulty selection interface)
 
 Please select the corresponding option based on your situation
+:::
+
+### UTTU Flicker Assembly
+
+Automatically clear UTTU Flicker Assembly stages.
+
+::: warning
+
+- Start after configuring your team on the first floor of each UTTU phase
+- Clears four floors automatically; trial characters are removed on the next floor, so please use your own characters
+
 :::
 
 ### Complete Induction
@@ -295,14 +346,3 @@ This task has two scenarios:
 
 Please select the corresponding option based on your situation
 :::
-
-### Auto Stage Clear (Testing)
-
-Auto stage clear feature, currently in testing phase.
-
-::: warning
-
-- This feature is in testing and is not guaranteed to work properly
-- Currently not available for the main story
-- Please manually open the page you need to clear (such as current event, anecdote, etc.) before running this task
-  :::

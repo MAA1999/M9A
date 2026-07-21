@@ -35,21 +35,27 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 - Start/Close Game
 - Collect Wasteland
 - Daily Psychube (Will Analysis)
+- Smart Balanced Material Farming
 - Regular Combat
-- Event Farming
+- Event Token Farming
 - Auto Deep Sleep
 - Auto Awakening Dream
 - Bank Shopping
 - Claim Rewards
+- Redeem Codes
 - Switch Account
+- Switch Art Framework
 - Outside Deduction: The Series of Dusks
 - Outside Deduction: The Syndrome of Silence
 - Rerun Event Stage Clear
 - Artefact Masters (Rubbing Acrobatics)
 - When the Alarm Sounds
-- Critter Crash
+- Event Stage Clear (main story and events)
+- Critter Crash Fast Farm
 - Pre-Storm Protocol
-- Auto Stage Clear (Testing)
+- UTTU Flicker Assembly
+- Complete Induction
+- 8-bit Arcade Show
 
 ## User Guide
 
