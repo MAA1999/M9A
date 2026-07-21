@@ -276,7 +276,7 @@ Automatically clear main-story / event stage maps, including the following optio
 
 ### Critter Crash Fast Farm
 
-Quick farming in Critter Crash interface.
+Quick farming in the Critter Crash interface.
 
 ::: warning
 
