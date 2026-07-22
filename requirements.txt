@@ -7,7 +7,7 @@ colorama==0.4.6 ; sys_platform == 'win32'
 idna==3.18
 loguru==0.7.3
 maaagentbinary==1.0.1
-maafw==5.12.1
+maafw==5.12.2
 numpy==2.5.1
 pillow==12.3.0
 pytz==2026.2
