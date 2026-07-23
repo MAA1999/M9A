@@ -73,6 +73,8 @@
             "[JumpBack]TinyGlobe",
             "[JumpBack]Gluttony",
             "[JumpBack]TinyGlobe(1)",
+            "[JumpBack]EnlightenmentI",
+            "[JumpBack]EnlightenmentII",
             "[JumpBack]ResonantCassette",
             "[JumpBack]GoldenMelonSeeds",
             "[JumpBack]OriginalChicken",
@@ -1205,6 +1207,386 @@
                         "action": "DoNothing"
                     },
                     "TinyGlobe(1)": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "Bank_ClickBlank"
+        ]
+    },
+    "EnlightenmentI": {
+        "desc": "启寤Ⅰ",
+        "enabled": false,
+        "next": [
+            "FlagInFragmentsShop_2",
+            "[JumpBack]EnterFragmentsShop"
+        ]
+    },
+    "FlagInFragmentsShop_2": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    321,
+                    65,
+                    80,
+                    24
+                ],
+                "expected": "心相观测",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        },
+        "timeout": 60000,
+        "next": [
+            "FindEnlightenmentI",
+            "[JumpBack]SwipeUp"
+        ]
+    },
+    "FindEnlightenmentI": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "启寤Ⅰ"
+                }
+            }
+        },
+        "next": [
+            "NoEnlightenmentI",
+            "[JumpBack]PurchaseEnlightenmentIMax",
+            "[JumpBack]PurchaseEnlightenmentI",
+            "SoldOut",
+            "[JumpBack]SwipeUp"
+        ]
+    },
+    "NoEnlightenmentI": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1071,
+                    110,
+                    147,
+                    24
+                ],
+                "expected": "商品",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "EnlightenmentI"
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_EnlightenmentI"
+        ]
+    },
+    "PurchaseRecord_EnlightenmentI": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "EnlightenmentI"
+                }
+            }
+        }
+    },
+    "PurchaseEnlightenmentI": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "启寤Ⅰ"
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "PurchaseEnlightenmentIMax",
+            "PurchaseEnlightenmentI"
+        ]
+    },
+    "PurchaseEnlightenmentIMax": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    935,
+                    462,
+                    46,
+                    24
+                ],
+                "expected": "MAX",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_EnlightenmentI"
+        ]
+    },
+    "BankPurchase_EnlightenmentI": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_EnlightenmentIFail",
+            "ObtainedAwards"
+        ]
+    },
+    "BankPurchase_EnlightenmentIFail": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    83,
+                    278,
+                    182
+                ],
+                "template": "Bank/NoMoney.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "NoEnlightenmentI": {
+                        "recognition": "DirectHit",
+                        "action": "DoNothing"
+                    },
+                    "EnlightenmentI": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "Bank_ClickBlank"
+        ]
+    },
+    "EnlightenmentII": {
+        "desc": "启寤Ⅱ",
+        "enabled": false,
+        "next": [
+            "FlagInFragmentsShop_3",
+            "[JumpBack]EnterFragmentsShop"
+        ]
+    },
+    "FlagInFragmentsShop_3": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    321,
+                    65,
+                    80,
+                    24
+                ],
+                "expected": "心相观测",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                244,
+                138,
+                994,
+                464
+            ]
+        },
+        "timeout": 60000,
+        "next": [
+            "FindEnlightenmentII",
+            "[JumpBack]SwipeUp"
+        ]
+    },
+    "FindEnlightenmentII": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "启寤Ⅱ"
+                }
+            }
+        },
+        "next": [
+            "NoEnlightenmentII",
+            "[JumpBack]PurchaseEnlightenmentIIMax",
+            "[JumpBack]PurchaseEnlightenmentII",
+            "SoldOut",
+            "[JumpBack]SwipeUp"
+        ]
+    },
+    "NoEnlightenmentII": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1071,
+                    110,
+                    147,
+                    24
+                ],
+                "expected": "商品",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DisableNode",
+                "custom_action_param": {
+                    "node_name": "EnlightenmentII"
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_EnlightenmentII"
+        ]
+    },
+    "PurchaseRecord_EnlightenmentII": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "EnlightenmentII"
+                }
+            }
+        }
+    },
+    "PurchaseEnlightenmentII": {
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "BankShop",
+                "custom_recognition_param": {
+                    "expected": "启寤Ⅱ"
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 500,
+        "next": [
+            "PurchaseEnlightenmentIIMax",
+            "PurchaseEnlightenmentII"
+        ]
+    },
+    "PurchaseEnlightenmentIIMax": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    935,
+                    462,
+                    46,
+                    24
+                ],
+                "expected": "MAX",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_EnlightenmentII"
+        ]
+    },
+    "BankPurchase_EnlightenmentII": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_EnlightenmentIIFail",
+            "ObtainedAwards"
+        ]
+    },
+    "BankPurchase_EnlightenmentIIFail": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    83,
+                    278,
+                    182
+                ],
+                "template": "Bank/NoMoney.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "NoEnlightenmentII": {
+                        "recognition": "DirectHit",
+                        "action": "DoNothing"
+                    },
+                    "EnlightenmentII": {
                         "enabled": false
                     }
                 }
