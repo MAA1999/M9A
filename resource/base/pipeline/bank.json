@@ -73,6 +73,9 @@
             "[JumpBack]TinyGlobe",
             "[JumpBack]Gluttony",
             "[JumpBack]TinyGlobe(1)",
+            "[JumpBack]EnlightenmentII",
+            "[JumpBack]EnlightenmentI",
+            "[JumpBack]HeartObservation",
             "[JumpBack]ResonantCassette",
             "[JumpBack]GoldenMelonSeeds",
             "[JumpBack]OriginalChicken",
@@ -1003,15 +1006,18 @@
             ]
         }
     },
-    "TinyGlobe(1)": {
-        "desc": "微频偏振(心相观测)",
+    "HeartObservation": {
+        "desc": "心相观测商品调度器",
         "enabled": false,
         "next": [
-            "FlagInFragmentsShop_1",
+            "[JumpBack]FindTinyGlobe(1)",
+            "[JumpBack]FindEnlightenmentII",
+            "[JumpBack]FindEnlightenmentI",
+            "FlagInHeartObservationShop",
             "[JumpBack]EnterFragmentsShop"
         ]
     },
-    "FlagInFragmentsShop_1": {
+    "FlagInHeartObservationShop": {
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1039,11 +1045,73 @@
         },
         "timeout": 60000,
         "next": [
-            "FindTinyGlobe(1)",
-            "[JumpBack]SwipeUp"
+            "[JumpBack]FindTinyGlobe(1)",
+            "[JumpBack]FindEnlightenmentII",
+            "[JumpBack]FindEnlightenmentI",
+            "[JumpBack]HeartObservationPendingTinyGlobe(1)",
+            "[JumpBack]HeartObservationPendingEnlightenmentII",
+            "[JumpBack]HeartObservationPendingEnlightenmentI",
+            "HeartObservationComplete"
         ]
     },
+    "HeartObservationPendingTinyGlobe(1)": {
+        "enabled": false,
+        "next": [
+            "SwipeUp"
+        ]
+    },
+    "HeartObservationPendingEnlightenmentII": {
+        "enabled": false,
+        "next": [
+            "SwipeUp"
+        ]
+    },
+    "HeartObservationPendingEnlightenmentI": {
+        "enabled": false,
+        "next": [
+            "SwipeUp"
+        ]
+    },
+    "HeartObservationComplete": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "HeartObservation": {
+                        "enabled": false
+                    }
+                }
+            }
+        }
+    },
+    "TinyGlobe(1)": {
+        "desc": "微频偏振(心相观测)",
+        "enabled": false,
+        "max_hit": 1,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "TinyGlobe(1)": {
+                        "enabled": false
+                    },
+                    "FindTinyGlobe(1)": {
+                        "enabled": true
+                    },
+                    "HeartObservationPendingTinyGlobe(1)": {
+                        "enabled": true
+                    },
+                    "HeartObservation": {
+                        "enabled": true
+                    }
+                }
+            }
+        }
+    },
     "FindTinyGlobe(1)": {
+        "enabled": false,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -1058,31 +1126,53 @@
         },
         "next": [
             "NoTinyGlobe(1)",
-            "[JumpBack]PurchaseTinyGlobe(1)Max",
+            "SoldOutTinyGlobe(1)",
+            "PurchaseTinyGlobe(1)Max",
             "[JumpBack]PurchaseTinyGlobe(1)",
-            "SoldOut",
             "[JumpBack]SwipeUp"
         ]
     },
-    "SoldOut": {
+    "SoldOutTinyGlobe(1)": {
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi": [
-                    248,
-                    128,
-                    969,
-                    557
+                "roi": "FindTinyGlobe(1)",
+                "roi_offset": [
+                    -10,
+                    -100,
+                    20,
+                    85
                 ],
                 "expected": [
-                    "售罄"
+                    "售罄",
+                    "SOLD OUT"
                 ],
                 "replace": [
-                    "馨",
-                    "罄"
+                    "售馨",
+                    "售罄"
                 ]
             }
-        }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "TinyGlobe(1)": {
+                        "enabled": false
+                    },
+                    "FindTinyGlobe(1)": {
+                        "enabled": false
+                    },
+                    "HeartObservationPendingTinyGlobe(1)": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_TinyGlobe(1)"
+        ]
     },
     "NoTinyGlobe(1)": {
         "recognition": {
@@ -1101,9 +1191,17 @@
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "DisableNode",
+                "custom_action": "NodeOverride",
                 "custom_action_param": {
-                    "node_name": "TinyGlobe(1)"
+                    "TinyGlobe(1)": {
+                        "enabled": false
+                    },
+                    "FindTinyGlobe(1)": {
+                        "enabled": false
+                    },
+                    "HeartObservationPendingTinyGlobe(1)": {
+                        "enabled": false
+                    }
                 }
             }
         },
@@ -1179,7 +1277,42 @@
         },
         "next": [
             "BankPurchase_TinyGlobe(1)Fail",
-            "ObtainedAwards"
+            "CompleteTinyGlobe(1)"
+        ]
+    },
+    "CompleteTinyGlobe(1)": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    524,
+                    62,
+                    232,
+                    158
+                ],
+                "template": "Awards/ObtainedAwards.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "TinyGlobe(1)": {
+                        "enabled": false
+                    },
+                    "FindTinyGlobe(1)": {
+                        "enabled": false
+                    },
+                    "HeartObservationPendingTinyGlobe(1)": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "[JumpBack]ObtainedAwards",
+            "PurchaseRecord_TinyGlobe(1)"
         ]
     },
     "BankPurchase_TinyGlobe(1)Fail": {
@@ -1205,6 +1338,564 @@
                         "action": "DoNothing"
                     },
                     "TinyGlobe(1)": {
+                        "enabled": false
+                    },
+                    "FindTinyGlobe(1)": {
+                        "enabled": false
+                    },
+                    "HeartObservationPendingTinyGlobe(1)": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "Bank_ClickBlank"
+        ]
+    },
+    "EnlightenmentI": {
+        "desc": "启寤Ⅰ",
+        "enabled": false,
+        "max_hit": 1,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "EnlightenmentI": {
+                        "enabled": false
+                    },
+                    "FindEnlightenmentI": {
+                        "enabled": true
+                    },
+                    "HeartObservationPendingEnlightenmentI": {
+                        "enabled": true
+                    },
+                    "HeartObservation": {
+                        "enabled": true
+                    }
+                }
+            }
+        }
+    },
+    "FindEnlightenmentI": {
+        "enabled": false,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    326,
+                    115,
+                    822,
+                    575
+                ],
+                "expected": "启寤Ⅰ",
+                "replace": [
+                    "启[IⅠ]",
+                    "启寤Ⅰ"
+                ]
+            }
+        },
+        "next": [
+            "NoEnlightenmentI",
+            "SoldOutEnlightenmentI",
+            "PurchaseEnlightenmentIMax",
+            "[JumpBack]PurchaseEnlightenmentI",
+            "[JumpBack]SwipeUp"
+        ]
+    },
+    "SoldOutEnlightenmentI": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "FindEnlightenmentI",
+                "roi_offset": [
+                    -10,
+                    -100,
+                    20,
+                    85
+                ],
+                "expected": [
+                    "售罄",
+                    "SOLD OUT"
+                ],
+                "replace": [
+                    "售馨",
+                    "售罄"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "EnlightenmentI": {
+                        "enabled": false
+                    },
+                    "FindEnlightenmentI": {
+                        "enabled": false
+                    },
+                    "HeartObservationPendingEnlightenmentI": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_EnlightenmentI"
+        ]
+    },
+    "NoEnlightenmentI": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1071,
+                    110,
+                    147,
+                    24
+                ],
+                "expected": "商品",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "EnlightenmentI": {
+                        "enabled": false
+                    },
+                    "FindEnlightenmentI": {
+                        "enabled": false
+                    },
+                    "HeartObservationPendingEnlightenmentI": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_EnlightenmentI"
+        ]
+    },
+    "PurchaseRecord_EnlightenmentI": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "EnlightenmentI"
+                }
+            }
+        }
+    },
+    "PurchaseEnlightenmentI": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    326,
+                    115,
+                    822,
+                    575
+                ],
+                "expected": "启寤Ⅰ",
+                "replace": [
+                    "启[IⅠ]",
+                    "启寤Ⅰ"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "PurchaseEnlightenmentIMax": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    935,
+                    462,
+                    46,
+                    24
+                ],
+                "expected": "MAX",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_EnlightenmentI"
+        ]
+    },
+    "BankPurchase_EnlightenmentI": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_EnlightenmentIFail",
+            "CompleteEnlightenmentI"
+        ]
+    },
+    "CompleteEnlightenmentI": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    524,
+                    62,
+                    232,
+                    158
+                ],
+                "template": "Awards/ObtainedAwards.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "EnlightenmentI": {
+                        "enabled": false
+                    },
+                    "FindEnlightenmentI": {
+                        "enabled": false
+                    },
+                    "HeartObservationPendingEnlightenmentI": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "[JumpBack]ObtainedAwards",
+            "PurchaseRecord_EnlightenmentI"
+        ]
+    },
+    "BankPurchase_EnlightenmentIFail": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    83,
+                    278,
+                    182
+                ],
+                "template": "Bank/NoMoney.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "NoEnlightenmentI": {
+                        "recognition": "DirectHit",
+                        "action": "DoNothing"
+                    },
+                    "EnlightenmentI": {
+                        "enabled": false
+                    },
+                    "FindEnlightenmentI": {
+                        "enabled": false
+                    },
+                    "HeartObservationPendingEnlightenmentI": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "Bank_ClickBlank"
+        ]
+    },
+    "EnlightenmentII": {
+        "desc": "启寤Ⅱ",
+        "enabled": false,
+        "max_hit": 1,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "EnlightenmentII": {
+                        "enabled": false
+                    },
+                    "FindEnlightenmentII": {
+                        "enabled": true
+                    },
+                    "HeartObservationPendingEnlightenmentII": {
+                        "enabled": true
+                    },
+                    "HeartObservation": {
+                        "enabled": true
+                    }
+                }
+            }
+        }
+    },
+    "FindEnlightenmentII": {
+        "enabled": false,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    326,
+                    115,
+                    822,
+                    575
+                ],
+                "expected": "启寤Ⅱ",
+                "replace": [
+                    "启Ⅱ",
+                    "启寤Ⅱ"
+                ]
+            }
+        },
+        "next": [
+            "NoEnlightenmentII",
+            "SoldOutEnlightenmentII",
+            "PurchaseEnlightenmentIIMax",
+            "[JumpBack]PurchaseEnlightenmentII",
+            "[JumpBack]SwipeUp"
+        ]
+    },
+    "SoldOutEnlightenmentII": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "FindEnlightenmentII",
+                "roi_offset": [
+                    -10,
+                    -100,
+                    20,
+                    85
+                ],
+                "expected": [
+                    "售罄",
+                    "SOLD OUT"
+                ],
+                "replace": [
+                    "售馨",
+                    "售罄"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "EnlightenmentII": {
+                        "enabled": false
+                    },
+                    "FindEnlightenmentII": {
+                        "enabled": false
+                    },
+                    "HeartObservationPendingEnlightenmentII": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_EnlightenmentII"
+        ]
+    },
+    "NoEnlightenmentII": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1071,
+                    110,
+                    147,
+                    24
+                ],
+                "expected": "商品",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "EnlightenmentII": {
+                        "enabled": false
+                    },
+                    "FindEnlightenmentII": {
+                        "enabled": false
+                    },
+                    "HeartObservationPendingEnlightenmentII": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "PurchaseRecord_EnlightenmentII"
+        ]
+    },
+    "PurchaseRecord_EnlightenmentII": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BankPurchaseRecord",
+                "custom_action_param": {
+                    "item": "EnlightenmentII"
+                }
+            }
+        }
+    },
+    "PurchaseEnlightenmentII": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    326,
+                    115,
+                    822,
+                    575
+                ],
+                "expected": "启寤Ⅱ",
+                "replace": [
+                    "启Ⅱ",
+                    "启寤Ⅱ"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "PurchaseEnlightenmentIIMax": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    935,
+                    462,
+                    46,
+                    24
+                ],
+                "expected": "MAX",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_EnlightenmentII"
+        ]
+    },
+    "BankPurchase_EnlightenmentII": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    760,
+                    509,
+                    60,
+                    27
+                ],
+                "expected": "购买",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "BankPurchase_EnlightenmentIIFail",
+            "CompleteEnlightenmentII"
+        ]
+    },
+    "CompleteEnlightenmentII": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    524,
+                    62,
+                    232,
+                    158
+                ],
+                "template": "Awards/ObtainedAwards.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "EnlightenmentII": {
+                        "enabled": false
+                    },
+                    "FindEnlightenmentII": {
+                        "enabled": false
+                    },
+                    "HeartObservationPendingEnlightenmentII": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "[JumpBack]ObtainedAwards",
+            "PurchaseRecord_EnlightenmentII"
+        ]
+    },
+    "BankPurchase_EnlightenmentIIFail": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    83,
+                    278,
+                    182
+                ],
+                "template": "Bank/NoMoney.png"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "NoEnlightenmentII": {
+                        "recognition": "DirectHit",
+                        "action": "DoNothing"
+                    },
+                    "EnlightenmentII": {
+                        "enabled": false
+                    },
+                    "FindEnlightenmentII": {
+                        "enabled": false
+                    },
+                    "HeartObservationPendingEnlightenmentII": {
                         "enabled": false
                     }
                 }

@@ -47,6 +47,8 @@ class ModifyBankTaskList(CustomAction):
             "TinyGlobe": "month",
             "Gluttony": "month",
             "TinyGlobe(1)": "month",
+            "EnlightenmentI": "month",
+            "EnlightenmentII": "month",
             "ResonantCassette": "month",
             "GoldenMelonSeeds": "week",
             "OriginalChicken": "month",
