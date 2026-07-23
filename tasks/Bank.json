@@ -99,21 +99,21 @@
                     }
                 },
                 {
-                    "name": "启寤Ⅰ",
-                    "label": "启寤Ⅰ",
-                    "icon": "./resource/announcement/images/Equipment_suit-1002.png",
-                    "pipeline_override": {
-                        "EnlightenmentI": {
-                            "enabled": true
-                        }
-                    }
-                },
-                {
                     "name": "启寤Ⅱ",
                     "label": "启寤Ⅱ",
                     "icon": "./resource/announcement/images/Equipment_suit-1003.png",
                     "pipeline_override": {
                         "EnlightenmentII": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "启寤Ⅰ",
+                    "label": "启寤Ⅰ",
+                    "icon": "./resource/announcement/images/Equipment_suit-1002.png",
+                    "pipeline_override": {
+                        "EnlightenmentI": {
                             "enabled": true
                         }
                     }
