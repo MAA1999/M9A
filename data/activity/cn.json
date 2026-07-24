@@ -1113,10 +1113,15 @@
                             ]
                         }
                     },
-                    "SwitchToReplay":{
+                    "SwitchToReplay": {
                         "recognition": {
-                        "param": {
-                                "roi":[841,624,56,64]
+                            "param": {
+                                "roi": [
+                                    841,
+                                    624,
+                                    56,
+                                    64
+                                ]
                             }
                         }
                     }
