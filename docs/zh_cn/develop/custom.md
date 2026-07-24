@@ -26,6 +26,7 @@ from maa.agent.agent_server import AgentServer
 from maa.custom_action import CustomAction
 from maa.context import Context
 
+
 @AgentServer.custom_action("YourActionName")
 class YourAction(CustomAction):
     def run(
@@ -92,6 +93,7 @@ from maa.context import Context
 from typing import Union, Optional
 from maa.define import RectType
 
+
 @AgentServer.custom_recognition("YourRecognitionName")
 class YourRecognition(CustomRecognition):
     def analyze(
@@ -154,6 +156,7 @@ class YourRecognition(CustomRecognition):
 from maa.agent.agent_server import AgentServer
 from maa.tasker import Tasker, TaskerEventSink
 from maa.event_sink import NotificationType
+
 
 @AgentServer.tasker_sink()
 class MyTaskerSink(TaskerEventSink):
