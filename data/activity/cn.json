@@ -1112,6 +1112,13 @@
                                 535
                             ]
                         }
+                    },
+                    "SwitchToReplay":{
+                        "recognition": {
+                        "param": {
+                                "roi":[841,624,56,64]
+                            }
+                        }
                     }
                 }
             }
