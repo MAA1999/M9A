@@ -98,6 +98,25 @@
                             }
                         }
                     }
+                },
+                {
+                    "name": "鸮式特快",
+                    "pipeline_override": {
+                        "frame_art_open": {
+                            "recognition": {
+                                "param": {
+                                    "template": "SwitchMenu/frame/frame5open.png"
+                                }
+                            }
+                        },
+                        "frame_art_select": {
+                            "recognition": {
+                                "param": {
+                                    "template": "SwitchMenu/frame/frame5close.png"
+                                }
+                            }
+                        }
+                    }
                 }
             ]
         }
