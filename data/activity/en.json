@@ -678,12 +678,12 @@
                             "type": "OCR",
                             "param": {
                                 "roi": [
-                                    958,
+                                    922,
                                     559,
-                                    101,
+                                    137,
                                     33
                                 ],
-                                "expected": "开始行动",
+                                "expected": "始行动",
                                 "only_rec": true
                             }
                         }
@@ -697,6 +697,7 @@
                                     44,
                                     31
                                 ],
+                                "expected": "[012][0-9]|日谈",
                                 "only_rec": true
                             }
                         }
