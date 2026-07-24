@@ -8,6 +8,7 @@
                 "领取任务奖励",
                 "领取吼吼点唱机",
                 "领取前线观察室奖励",
+                "综合体日常",
                 "活动盒子奖励",
                 "迷思海周扫荡奖励",
                 "领取拉普拉斯论坛奖励"
@@ -156,6 +157,76 @@
                     "name": "No",
                     "pipeline_override": {
                         "AwardWarRoom": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "综合体日常": {
+            "type": "switch",
+            "label": "综合体日常",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "AwardComplexDaily": {
+                            "enabled": true
+                        }
+                    },
+                    "option": [
+                        "有终的劳作",
+                        "婆婆的秩序"
+                    ]
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AwardComplexDaily": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "有终的劳作": {
+            "type": "switch",
+            "label": "有终的劳作",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "AwardComplexLabor": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AwardComplexLabor": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "婆婆的秩序": {
+            "type": "switch",
+            "label": "婆婆的秩序",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "AwardGrannyOrder": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AwardGrannyOrder": {
                             "enabled": false
                         }
                     }

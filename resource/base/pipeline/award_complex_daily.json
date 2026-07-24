@@ -1,0 +1,378 @@
+{
+    "AwardComplexDaily": {
+        "desc": "进入综合体日常",
+        "enabled": false,
+        "max_hit": 3,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    399,
+                    29,
+                    180,
+                    37
+                ],
+                "template": "Awards/ComplexDaily.png",
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AwardComplexDailyFlag"
+        ]
+    },
+    "AwardComplexDailyFlag": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    929,
+                    303,
+                    201,
+                    41
+                ],
+                "expected": "有终的劳作",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "[JumpBack]AwardGrannyOrder",
+            "[JumpBack]AwardComplexLabor",
+            "[JumpBack]AwardComplexDailyObtainedAwards",
+            "AwardComplexDailyDone",
+            "HomeFlag",
+            "[JumpBack]BackButton",
+            "[JumpBack]BackButton_sp02",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "AwardComplexDailyObtainedAwards": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    91,
+                    502,
+                    537,
+                    209
+                ],
+                "expected": ["领取"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "AwardComplexDailyDone": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    800,
+                    250,
+                    400,
+                    330
+                ],
+                "expected": "有终的劳作"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "AwardComplexDaily": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "BackButton"
+        ]
+    },
+    "AwardComplexLabor": {
+        "desc": "领取有终的劳作奖励",
+        "enabled": false,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    850,
+                    280,
+                    330,
+                    130
+                ],
+                "expected": "有终的劳作"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AwardComplexLaborFlag"
+        ]
+    },
+    "AwardComplexLaborFlag": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    30,
+                    90,
+                    1220,
+                    200
+                ],
+                "expected": [
+                    "每日任务",
+                    "每周任务",
+                    "活动任务"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AwardComplexLaborClaim",
+            "AwardComplexLaborDone"
+        ]
+    },
+    "AwardComplexLaborClaim": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    40,
+                    420,
+                    1200,
+                    270
+                ],
+                "expected": "领取"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 3000
+    },
+    "AwardComplexLaborDone": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    30,
+                    90,
+                    1220,
+                    200
+                ],
+                "expected": [
+                    "每日任务",
+                    "每周任务",
+                    "活动任务"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "AwardComplexLabor": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "BackButton_sp02"
+        ]
+    },
+    "BackButton_sp02": {
+        "desc": "返回按钮（综合体日常-有终的劳作）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    134,
+                    138
+                ],
+                "template": [
+                    "Sp02/BackButton_sp02.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "AwardGrannyOrder": {
+        "desc": "领取婆婆的秩序每日奖励",
+        "enabled": false,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    800,
+                    430,
+                    330,
+                    150
+                ],
+                "expected": "婆婆的秩序"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AwardGrannyOrderFlag",
+            "[JumpBack]AwardGrannyOrderNewbie"
+        ]
+    },
+    "AwardGrannyOrderNewbie": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    652,
+                    194,
+                    111,
+                    33
+                ],
+                "expected": ["玩法说明"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "AwardGrannyOrderFlag": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    80,
+                    650,
+                    540
+                ],
+                "expected": "婆婆的秩序"
+            }
+        },
+        "next": [
+            "AwardGrannyOrderCompleted",
+            "[JumpBack]AwardGrannyOrderStart",
+            "AwardGrannyOrderRunning"
+        ]
+    },
+    "AwardGrannyOrderCompleted": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    930,
+                    500,
+                    260,
+                    80
+                ],
+                "expected": "奖励次数.*上限"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "NodeOverride",
+                "custom_action_param": {
+                    "AwardGrannyOrder": {
+                        "enabled": false
+                    }
+                }
+            }
+        },
+        "next": [
+            "BackButton"
+        ]
+    },
+    "AwardGrannyOrderStart": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    980,
+                    540,
+                    150,
+                    90
+                ],
+                "expected": "开始"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "AwardGrannyOrderRunning": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    930,
+                    25,
+                    140,
+                    80
+                ],
+                "template": "Awards/GrannyOrderRunning.png",
+                "threshold": 0.7
+            }
+        },
+        "timeout": 40000,
+        "rate_limit": 0,
+        "next": [
+            "AwardGrannyOrderResult",
+            "[JumpBack]AwardGrannyOrder_whack_a_mole",
+            "[JumpBack]ObtainedAwards"
+        ]
+    },
+    "AwardGrannyOrderResult": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    400,
+                    470,
+                    180,
+                    120
+                ],
+                "expected": "返回"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AwardGrannyOrderCompleted",
+            "AwardGrannyOrderResult"
+        ]
+    },
+    "AwardGrannyOrder_whack_a_mole": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    145,
+                    149,
+                    996,
+                    462
+                ],
+                "template": ["Sp02/whack_a_mole"]
+            }
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 0
+    }
+}
