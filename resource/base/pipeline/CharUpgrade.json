@@ -387,7 +387,10 @@
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "CUB_StartAllIn"
+                "custom_action": "CUB_StartAllIn",
+                "custom_action_param": {
+                    "drop_per_run": 2
+                }
             }
         }
     },
