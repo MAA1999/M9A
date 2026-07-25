@@ -1,5 +1,6 @@
 import json
 import time
+from typing import Any
 
 from custom.reco.activity import SailingRecordBoatRecord, SailingRecordSelectTarget
 from maa.agent.agent_server import AgentServer
@@ -8,6 +9,15 @@ from maa.custom_action import CustomAction
 from utils import logger, ms_timestamp_diff_to_dhm
 from utils.maa_types import ocr_text
 from utils.params import parse_params
+
+
+def _find_active_re_release(data: dict[str, Any], now: int) -> dict[str, Any] | None:
+    for item in reversed(data.values()):
+        re_release = item["activity"].get("re-release")
+        if re_release and re_release["start_time"] < now < re_release["end_time"]:
+            return re_release
+
+    return None
 
 
 @AgentServer.custom_action("DuringAct")
@@ -101,18 +111,23 @@ class CombatActivityOverride(CustomAction):
 
         now = int(time.time() * 1000)
 
+        if mode == 1:
+            re_release = _find_active_re_release(data, now)
+            if re_release:
+                if re_release.get("override"):
+                    context.override_pipeline(re_release["override"])
+                return CustomAction.RunResult(success=True)
+
+            context.override_next("CombatActivityOverride", ["CombatActivityNoReRelease"])
+            logger.info("当前未开放复刻活动，跳过活动代币刷取")
+            return CustomAction.RunResult(success=True)
+
         for key in reversed(list(data.keys())):
             item = data[key]
             if now < item["activity"]["combat"]["end_time"]:
                 if now > item["activity"]["combat"]["start_time"]:
-                    if mode == 0 and item["activity"]["combat"].get("override"):
+                    if item["activity"]["combat"].get("override"):
                         context.override_pipeline(item["activity"]["combat"].get("override"))
-                    elif (
-                        mode == 1
-                        and item["activity"].get("re-release")
-                        and item["activity"]["re-release"].get("override")
-                    ):
-                        context.override_pipeline(item["activity"]["re-release"].get("override"))
                     return CustomAction.RunResult(success=True)
 
         return CustomAction.RunResult(success=True)

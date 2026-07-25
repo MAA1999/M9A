@@ -40,6 +40,11 @@
             "Node.Action.Starting": "<span style=\"color:crimson;\">未能进入活动界面，请检查资源类型是否正确</span>"
         }
     },
+    "CombatActivityNoReRelease": {
+        "focus": {
+            "Node.Action.Starting": "当前未开放复刻活动，已跳过活动代币刷取"
+        }
+    },
     "FlagInActivityMain": {
         "recognition": {
             "type": "OCR",
