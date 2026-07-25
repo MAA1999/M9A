@@ -5,7 +5,6 @@ from typing import Any
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from maa.define import Status
 from maa.pipeline import JActionType, JClick
 
 
