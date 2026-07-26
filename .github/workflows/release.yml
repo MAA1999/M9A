@@ -221,15 +221,27 @@ jobs:
         run: |
           version="2.13.1"
           archive="git-cliff-${version}-x86_64-unknown-linux-gnu.tar.gz"
+          checksum="$archive.sha512"
+          download_url="https://github.com/orhun/git-cliff/releases/download/v${version}"
           mkdir -p "$RUNNER_TEMP/git-cliff"
-          curl -fsSL "https://github.com/orhun/git-cliff/releases/download/v${version}/$archive" -o "$RUNNER_TEMP/$archive"
+          curl -fsSL "$download_url/$archive" -o "$RUNNER_TEMP/$archive"
+          curl -fsSL "$download_url/$checksum" -o "$RUNNER_TEMP/$checksum"
+          (
+            cd "$RUNNER_TEMP"
+            sha512sum --check "$checksum"
+          )
           tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/git-cliff"
           git_cliff="$(find "$RUNNER_TEMP/git-cliff" -type f -name git-cliff -perm -111 | head -n 1)"
           if [[ -z "$git_cliff" ]]; then
             echo "[ERR] git-cliff binary was not found after extraction"
             exit 1
           fi
-          "$git_cliff" --config .github/cliff.toml --latest --strip header --output CHANGES.md
+          if ! previous_stable_tag="$(git describe --tags --abbrev=0 --match 'v[0-9]*' --exclude '*-*' HEAD^)"; then
+            echo "[ERR] no previous stable release tag was found"
+            exit 1
+          fi
+          echo "[INFO] Generating release notes for $previous_stable_tag..$GITHUB_REF_NAME"
+          "$git_cliff" --config .github/cliff.toml "$previous_stable_tag..HEAD" --strip header --output CHANGES.md
       - name: Upload release notes
         uses: actions/upload-artifact@v7
         with:
