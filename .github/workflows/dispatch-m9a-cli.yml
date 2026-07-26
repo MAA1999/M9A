@@ -35,6 +35,7 @@ jobs:
             const tag = context.payload.client_payload?.tag ?? context.ref ?? 'main'
             const channel = '${{ steps.maafw.outputs.channel }}'
             const version = '${{ steps.maafw.outputs.version }}'
+            const isPrerelease = tag.includes('-')
             await github.rest.repos.createDispatchEvent({
               owner: 'MAA1999',
               repo: 'm9a-cli',
@@ -46,6 +47,14 @@ jobs:
                 source_repo: 'MAA1999/M9A',
                 source_ref: tag,
                 source_sha: context.sha,
+                is_prerelease: isPrerelease,
               }
             });
-            console.log('Dispatched m9a-release to MAA1999/m9a-cli with tag:', tag, 'maafw:', version || channel);
+            console.log(
+              'Dispatched m9a-release to MAA1999/m9a-cli with tag:',
+              tag,
+              'prerelease:',
+              isPrerelease,
+              'maafw:',
+              version || channel,
+            );
