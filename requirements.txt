@@ -10,7 +10,7 @@ maaagentbinary==1.0.1
 maafw==5.12.2
 numpy==2.5.1
 pillow==12.3.0
-pytz==2026.2
+pytz==2026.3.post1
 requests==2.34.2
 strenum==0.4.15
 urllib3==2.7.0
