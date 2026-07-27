@@ -42,7 +42,6 @@ icon: hugeicons:structure-01
     - registry/ # PC registry tools
     - schema/ # Interface & pipeline schemas
     - build-release.mjs # Release package builder
-    - check-project.mjs # Project validation
     - configure.py # OCR model configuration
     - optimize-images.mjs # Image optimization
     - sync-runtime.mjs # Runtime synchronisation

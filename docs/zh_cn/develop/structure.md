@@ -42,7 +42,6 @@ icon: hugeicons:structure-01
     - registry/ # PC端注册表工具
     - schema/ # 接口与管线 Schema
     - build-release.mjs # 发布包构建脚本
-    - check-project.mjs # 项目验证脚本
     - configure.py # OCR 模型配置
     - optimize-images.mjs # 图片优化脚本
     - sync-runtime.mjs # 运行时同步脚本

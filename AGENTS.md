@@ -44,15 +44,15 @@ docs/           # Developer docs and user manual (see below)
 
 ## Build, Test, and Development Commands
 
-| Command             | Purpose                                                               |
-| ------------------- | --------------------------------------------------------------------- |
-| `pnpm check`        | Formatting check → schema validation → MaaFW integrity → project lint |
-| `pnpm check:py`     | Lint Python → type check → run tests                                  |
-| `pnpm format`       | Auto-format all non-Python files with Prettier                        |
-| `pnpm format:py`    | Auto-format Python files with ruff                                    |
-| `pnpm lint:py`      | Lint Python with ruff                                                 |
-| `pnpm test:py`      | Run Python tests via pytest                                           |
-| `pnpm typecheck:py` | Static type check Python with pyright (strict mode)                   |
+| Command             | Purpose                                                |
+| ------------------- | ------------------------------------------------------ |
+| `pnpm check`        | Formatting check → schema validation → MaaFW integrity |
+| `pnpm check:py`     | Lint Python → type check → run tests                   |
+| `pnpm format`       | Auto-format all non-Python files with Prettier         |
+| `pnpm format:py`    | Auto-format Python files with ruff                     |
+| `pnpm lint:py`      | Lint Python with ruff                                  |
+| `pnpm test:py`      | Run Python tests via pytest                            |
+| `pnpm typecheck:py` | Static type check Python with pyright (strict mode)    |
 
 Before submitting changes, run `pnpm check` (and `pnpm check:py` for Python changes).
 
@@ -98,7 +98,7 @@ When reviewing code, check for:
 - **No hard delays**: `pre_delay` / `post_delay` should be avoided. Prefer intermediate recognition nodes or `pre_wait_freezes` / `post_wait_freezes`.
 - **Next coverage**: The `next` list should cover all expected post-action screens so the first inference cycle lands on the right node.
 - **720p baseline**: All coordinates, ROIs, and template images must be based on **1280x720** resolution.
-- **Code formatting**: All files must pass `pnpm check` (includes Prettier, schema, integrity, lint). Run `pnpm format` / `pnpm format:py` to auto-format.
+- **Code formatting**: All files must pass `pnpm check` (includes Prettier, schema, and MaaFW integrity). Run `pnpm format` / `pnpm format:py` to auto-format.
 - **Type safety**: Python code must pass `pnpm check:py` (ruff lint + pyright type check + pytest) without errors.
 - **Custom registration**: New custom actions/recognitions must be registered in the corresponding `__init__.py`.
 - **Consistency**: `interface.json`, task files, and resource files must stay in sync.

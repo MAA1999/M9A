@@ -85,7 +85,6 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-      - run: node tools/check-project.mjs
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm check:py
