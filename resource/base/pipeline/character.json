@@ -11,7 +11,7 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi" : [
+                "roi": [
                     1078,
                     353,
                     132,
@@ -39,7 +39,7 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi" : [
+                "roi": [
                     606,
                     21,
                     464,
@@ -69,7 +69,7 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi" : [
+                "roi": [
                     606,
                     21,
                     464,
@@ -94,7 +94,7 @@
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi" : [
+                "roi": [
                     606,
                     21,
                     464,
@@ -118,7 +118,7 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi" : [
+                "roi": [
                     606,
                     21,
                     464,
@@ -149,7 +149,7 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi" : [
+                "roi": [
                     0,
                     425,
                     242,
@@ -170,10 +170,13 @@
     },
     "NextCharacter": {
         "desc": "滑动到下一个角色",
+        "max_hit": 200,
+        // 如果有一天深蓝出了超过"max_hit"个角色，请增大这个值；建议：角色总数+50≤max_hit≤角色总数+100; https://res1999.huijiwiki.com/wiki/%E8%A7%92%E8%89%B2%E5%88%97%E8%A1%A8 默认的“符合条件的角色数”即为“角色总数”
+        // 采用滑动的傻瓜方式而非在列表识别+点击包含标记角色的原因是：无法区分角色塑造的标记（根本原因是本人水平太次www
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi" : [
+                "roi": [
                     0,
                     425,
                     242,
@@ -198,17 +201,14 @@
                 "duration": 200
             }
         },
-        "post_delay": 1500,
-        "max_hit": 200
-        // 如果有一天深蓝出了超过"max_hit"个角色，请增大这个值；建议：角色总数+50≤max_hit≤角色总数+100; https://res1999.huijiwiki.com/wiki/%E8%A7%92%E8%89%B2%E5%88%97%E8%A1%A8 默认的“符合条件的角色数”即为“角色总数”
-        // 采用滑动的傻瓜方式而非在列表识别+点击包含标记角色的原因是：无法区分角色塑造的标记（根本原因是本人水平太次www
+        "post_delay": 1500
     },
     "HasProvidence": {
         "desc": "进入有标记的信任奖励界面",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi" : [
+                "roi": [
                     202,
                     0,
                     121,
@@ -233,7 +233,7 @@
         "recognition": {
             "type": "OCR",
             "param": {
-                "roi" : [
+                "roi": [
                     0,
                     265,
                     267,
@@ -259,7 +259,7 @@
         "recognition": {
             "type": "TemplateMatch",
             "param": {
-                "roi" : [
+                "roi": [
                     13,
                     302,
                     205,
