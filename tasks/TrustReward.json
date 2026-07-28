@@ -1,0 +1,12 @@
+{
+    "task": [
+        {
+            "name": "信任奖励",
+            "entry": "Character",
+            "group": [
+                "standalone"
+            ],
+            "description": "请在主界面开始任务，将会领取角色的信任奖励"
+        }
+    ]
+}
