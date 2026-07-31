@@ -27,8 +27,8 @@ importers:
         specifier: 3.9.5
         version: 3.9.5
       prettier-plugin-multiline-arrays:
-        specifier: 4.1.10
-        version: 4.1.10(prettier@3.9.5)
+        specifier: 4.1.11
+        version: 4.1.11(prettier@3.9.5)
 
 packages:
 
@@ -44,28 +44,16 @@ packages:
   '@actions/io@3.0.2':
     resolution: {integrity: sha512-nRBchcMM+QK1pdjO7/idu86rbJI5YHUKCvKs0KxnSYbVe3F51UfGxuZX4Qy/fWlp6l7gWFwIkrOzN+oUK03kfw==}
 
-  '@augment-vir/assert@31.73.5':
-    resolution: {integrity: sha512-tLb+giWd0rM1hUHCITVEnHEeYltMC0E0y0jngbzxk/wLSz8choUvFCRiA6o1dxucPkD/zqJhR4m2PqJPp7kM6Q==}
+  '@augment-vir/assert@32.2.1':
+    resolution: {integrity: sha512-8a5Uk8exIhqhJKbz8DZWs9k41woIjkSoDKZ11QYjX5g40yA3mAEQloG3l2INBHbj9Kks+sruAwJhmcvIXK362g==}
     engines: {node: '>=22'}
 
-  '@augment-vir/assert@32.0.0':
-    resolution: {integrity: sha512-BXd0O9R9D6Jj89RGUhYulOmxivvcsMo7vM3oCL3ZQyXQWhp0t61ggm+izKBmwYYAVkKGOUOw3peRtR/ZWLHqDA==}
+  '@augment-vir/common@32.2.1':
+    resolution: {integrity: sha512-416j6ABUeK/12R66Z9yfJsVMtEF6c/9AhjBNDUjqrcQT7X17amBWIC5MSNIs15koxwCC9liDOTFv5RVaxkYsiA==}
     engines: {node: '>=22'}
 
-  '@augment-vir/common@31.73.5':
-    resolution: {integrity: sha512-qvc8H4h0ZGhOgyEjBmqeEu7/cxr28ByKsrwRHZiBEFFX1n1cNCGQKEzW0OcrfT0Bg5gYyEkblpgcN/vlvg8Xmg==}
-    engines: {node: '>=22'}
-
-  '@augment-vir/common@32.0.0':
-    resolution: {integrity: sha512-41XN89K1d3uCwyfaK/A5Dh0yHCi7cCwmDwwPSoQZ2pS81E1fOxiJJ4V/TLlmRbLzDR4n3lR26SRMt8YC2JZWIA==}
-    engines: {node: '>=22'}
-
-  '@augment-vir/core@31.73.5':
-    resolution: {integrity: sha512-AV3MkEXDBwHscRYQD2dPGE9CMa+eMvxpy0e/Cwr1WAl2xeXlfadbqfgyFHm4C4l5/YWBuaFwwadsbSfOsvAmEg==}
-    engines: {node: '>=22'}
-
-  '@augment-vir/core@32.0.0':
-    resolution: {integrity: sha512-iepaSksYsnEprtF7ISytwpjbwYwNIy7eRQrRkjRu/+BIKpAllZ095tpTvRjM0j7VOcLJL0i7ozlKPjh8Y7wntw==}
+  '@augment-vir/core@32.2.1':
+    resolution: {integrity: sha512-bnCSKzKBLDX0g0YylSAYdrmVPT88gI10RJ8JwtsNQwjJ5qDX+7pg7a+gRCktcqSpaj2DeSmVs4XgAlChU9Vvkg==}
     engines: {node: '>=22'}
 
   '@babel/helper-string-parser@7.29.7':
@@ -476,8 +464,8 @@ packages:
     resolution: {integrity: sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==}
     engines: {node: '>=12'}
 
-  prettier-plugin-multiline-arrays@4.1.10:
-    resolution: {integrity: sha512-mXvbjilHpU9sTWuAOmH4XcS6bWh0KDUZ5CIuhhTc6pOAxdwwilDYk3Vn9VTNdT/LIsSxUyaNuZyuPotCSqJLcw==}
+  prettier-plugin-multiline-arrays@4.1.11:
+    resolution: {integrity: sha512-HZU/1PfNrS1BruYbNGIiIyEcZ9TKAl+88vAmpqWj8d8ywW1jkxttSy4e2+5oTG4/0J+MQajydA0/MUJnivHeIw==}
     engines: {node: '>=20'}
     peerDependencies:
       prettier: '>=3.0.0 <4.0.0'
@@ -494,8 +482,8 @@ packages:
   proper-lockfile@4.1.2:
     resolution: {integrity: sha512-TjNPblN4BwAWMXU8s9AEz4JmQxnD1NNL7bNOY/AKUzyamc379FWASUhc/K1pL2noVb+XmZKLL68cjzLsiOAMaA==}
 
-  proxy-vir@2.0.3:
-    resolution: {integrity: sha512-T5u7sc6QcCUSdpUeh6BeW8QkjQ9XqNWwCCID76ry9A1OzsXVnEA4FEVr1q638KDoGSBj3veML9avb/7Qer2RkQ==}
+  proxy-vir@2.0.4:
+    resolution: {integrity: sha512-ss7IuTHbS6SeuEKcFfkVtp8kInS8HfMOb1dc/1x1aIyXp97sdQRDH781j1j3PeU5ieLR3FLUrIqF1+UjQ2oIZQ==}
     engines: {node: '>=22'}
 
   readdirp@5.0.0:
@@ -619,61 +607,30 @@ snapshots:
 
   '@actions/io@3.0.2': {}
 
-  '@augment-vir/assert@31.73.5':
+  '@augment-vir/assert@32.2.1':
     dependencies:
-      '@augment-vir/core': 31.73.5
+      '@augment-vir/core': 32.2.1
       '@date-vir/duration': 8.6.2
       deep-eql: 5.0.2
       expect-type: 1.4.0
-      type-fest: 5.8.0
 
-  '@augment-vir/assert@32.0.0':
+  '@augment-vir/common@32.2.1':
     dependencies:
-      '@augment-vir/core': 32.0.0
-      '@date-vir/duration': 8.6.2
-      deep-eql: 5.0.2
-      expect-type: 1.4.0
-      type-fest: 5.8.0
-
-  '@augment-vir/common@31.73.5':
-    dependencies:
-      '@augment-vir/assert': 31.73.5
-      '@augment-vir/core': 31.73.5
+      '@augment-vir/assert': 32.2.1
+      '@augment-vir/core': 32.2.1
       '@date-vir/duration': 8.6.2
       '@paralleldrive/cuid2': 3.3.0
       ansi-styles: 6.2.3
       deepcopy-esm: 2.1.2
       json5: 2.2.3
-      type-fest: 5.8.0
       typed-event-target: 4.3.2
 
-  '@augment-vir/common@32.0.0':
-    dependencies:
-      '@augment-vir/assert': 32.0.0
-      '@augment-vir/core': 32.0.0
-      '@date-vir/duration': 8.6.2
-      '@paralleldrive/cuid2': 3.3.0
-      ansi-styles: 6.2.3
-      deepcopy-esm: 2.1.2
-      json5: 2.2.3
-      type-fest: 5.8.0
-      typed-event-target: 4.3.2
-
-  '@augment-vir/core@31.73.5':
+  '@augment-vir/core@32.2.1':
     dependencies:
       '@date-vir/duration': 8.6.2
       browser-or-node: 3.0.0
       diff: 9.0.0
       json5: 2.2.3
-      type-fest: 5.8.0
-
-  '@augment-vir/core@32.0.0':
-    dependencies:
-      '@date-vir/duration': 8.6.2
-      browser-or-node: 3.0.0
-      diff: 9.0.0
-      json5: 2.2.3
-      type-fest: 5.8.0
 
   '@babel/helper-string-parser@7.29.7': {}
 
@@ -686,7 +643,7 @@ snapshots:
 
   '@date-vir/duration@8.6.2':
     dependencies:
-      '@augment-vir/assert': 32.0.0
+      '@augment-vir/assert': 32.2.1
       '@types/luxon': 3.7.2
       luxon: 3.7.2
       type-fest: 5.8.0
@@ -1128,12 +1085,12 @@ snapshots:
 
   picomatch@4.0.5: {}
 
-  prettier-plugin-multiline-arrays@4.1.10(prettier@3.9.5):
+  prettier-plugin-multiline-arrays@4.1.11(prettier@3.9.5):
     dependencies:
-      '@augment-vir/assert': 31.73.5
-      '@augment-vir/common': 31.73.5
+      '@augment-vir/assert': 32.2.1
+      '@augment-vir/common': 32.2.1
       prettier: 3.9.5
-      proxy-vir: 2.0.3
+      proxy-vir: 2.0.4
 
   prettier@3.9.5: {}
 
@@ -1145,10 +1102,10 @@ snapshots:
       retry: 0.12.0
       signal-exit: 3.0.7
 
-  proxy-vir@2.0.3:
+  proxy-vir@2.0.4:
     dependencies:
-      '@augment-vir/assert': 31.73.5
-      '@augment-vir/common': 31.73.5
+      '@augment-vir/assert': 32.2.1
+      '@augment-vir/common': 32.2.1
 
   readdirp@5.0.0: {}
 
@@ -1233,9 +1190,9 @@ snapshots:
 
   typed-event-target@4.3.2:
     dependencies:
-      '@augment-vir/assert': 32.0.0
-      '@augment-vir/common': 32.0.0
-      '@augment-vir/core': 32.0.0
+      '@augment-vir/assert': 32.2.1
+      '@augment-vir/common': 32.2.1
+      '@augment-vir/core': 32.2.1
 
   undici@6.28.0: {}
 
