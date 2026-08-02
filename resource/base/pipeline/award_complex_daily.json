@@ -7,13 +7,13 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    523,
+                    399,
                     29,
-                    56,
+                    255,
                     37
                 ],
                 "template": "Awards/ComplexDaily.png",
-                "threshold": 0.8
+                "threshold": 0.85
             }
         },
         "action": {
