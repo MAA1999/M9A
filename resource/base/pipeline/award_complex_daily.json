@@ -9,11 +9,11 @@
                 "roi": [
                     399,
                     29,
-                    180,
+                    255,
                     37
                 ],
                 "template": "Awards/ComplexDaily.png",
-                "threshold": 0.8
+                "threshold": 0.9
             }
         },
         "action": {

@@ -1,0 +1,658 @@
+{
+    "CharUpgrade": {
+        "desc": "角色升级入口：进入角色详情页后启动，自动升级→进阶循环直到最终上限",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    34,
+                    489,
+                    104,
+                    35
+                ],
+                "expected": "个人属性"
+            }
+        },
+        "next": [
+            "CU_UpgradeLoop"
+        ]
+    },
+    "CU_UpgradeLoop": {
+        "desc": "升级主循环：先检查是否完成，未完成则依次尝试升级",
+        "timeout": 60000,
+        "next": [
+            "CU_LevelDone",
+            "[JumpBack]CU_LevelUp"
+        ]
+    },
+    "CU_LevelDone": {
+        "desc": "检查角色是否已达当前上限",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    861,
+                    169,
+                    37,
+                    14
+                ],
+                "expected": "60"
+            }
+        },
+        "next": [
+            "[JumpBack]CU_ResonanceUp",
+            "CU_ResonanceDone"
+        ]
+    },
+    "CU_ResonanceDone": {
+        "desc": "检查共鸣是否已达上限",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1209,
+                    626,
+                    54,
+                    39
+                ],
+                "expected": "Lv.(?:9|10)"
+            }
+        }
+    },
+    "CU_LevelUp": {
+        "desc": "点击升级按钮",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    861,
+                    169,
+                    37,
+                    14
+                ],
+                "expected": [
+                    "30",
+                    "40",
+                    "50"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    968,
+                    129,
+                    31,
+                    34
+                ]
+            }
+        },
+        "next": [
+            "CU_Upgrade2Breakthrough",
+            "CU_Level2Max",
+            "CU_LevelUp"
+        ]
+    },
+    "CU_Level2Max": {
+        "desc": "升级到满级",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1125,
+                    428,
+                    134,
+                    41
+                ],
+                "expected": [
+                    "Max Lv.30",
+                    "Max Lv.40",
+                    "Max Lv.50"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CU_ConfirmUpgrade",
+            "CU_LevelUp"
+        ]
+    },
+    "CU_ConfirmUpgrade": {
+        "desc": "确认升级",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    998,
+                    568,
+                    97,
+                    49
+                ],
+                "expected": "提升"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CU_Upgrade2Breakthrough"
+        ]
+    },
+    "CU_Upgrade2Breakthrough": {
+        "desc": "升级页面跳转洞悉页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    998,
+                    568,
+                    97,
+                    49
+                ],
+                "expected": "洞悉"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CU_Breakthrough",
+            "CU_Upgrade2Breakthrough"
+        ]
+    },
+    "CU_Breakthrough": {
+        "desc": "处理洞悉逻辑",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    923,
+                    620,
+                    76,
+                    32
+                ],
+                "expected": "洞悉",
+                "only_rec": true
+            }
+        },
+        "next": [
+            "CU_Breakthrough2",
+            "CUB_ItemCheck_1",
+            "CUB_ItemCheck_2",
+            "CU_Breakthrough1"
+        ]
+    },
+    "CUB_LackOfMaterial": {
+        "desc": "洞悉材料不足",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1060,
+                    62,
+                    159,
+                    253
+                ],
+                "expected": "不足"
+            }
+        },
+        "focus": {
+            "Node.Recognition.True": {
+                "content": "洞悉材料不足，请手动刷取",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
+        }
+    },
+    "CU_Breakthrough2": {
+        "desc": "可一键合成",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    868,
+                    580,
+                    190,
+                    32
+                ],
+                "expected": "可一键合成"
+            }
+        },
+        "next": [
+            "CU_Breakthrough1"
+        ]
+    },
+    "CU_Breakthrough1": {
+        "desc": "尝试洞悉",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    923,
+                    620,
+                    76,
+                    32
+                ],
+                "expected": "洞悉",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CUB_LackOfMaterial",
+            "CUB_Confirm",
+            "CUB_ConfirmSynthesize",
+            "CU_Breakthrough1"
+        ]
+    },
+    "CUB_ConfirmSynthesize": {
+        "desc": "确认洞悉合成",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    722,
+                    509,
+                    171,
+                    39
+                ],
+                "expected": "合成"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CU_IsCharUpgrade",
+            "[JumpBack]CUB_Back2CharUpgrade",
+            "[JumpBack]CUB_ConfirmClick"
+        ]
+    },
+    "CUB_Confirm": {
+        "desc": "确认洞悉",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    754,
+                    398,
+                    101,
+                    46
+                ],
+                "expected": "确认"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CU_IsCharUpgrade",
+            "[JumpBack]CUB_Back2CharUpgrade",
+            "[JumpBack]CUB_ConfirmClick"
+        ]
+    },
+    "CUB_Back2CharUpgrade": {
+        "desc": "确认洞悉1",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    811,
+                    268,
+                    304,
+                    40
+                ],
+                "expected": "等级上限"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    45,
+                    37,
+                    12,
+                    20
+                ]
+            }
+        }
+    },
+    "CUB_ConfirmClick": {
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    291,
+                    250,
+                    33,
+                    33
+                ]
+            }
+        },
+        "post_delay": 1500
+    },
+    "CUB_ItemCheck_1": {
+        "desc": "检查是否有足够的洞悉材料1",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CompareNumbers",
+                "custom_recognition_param": {
+                    "roi": [
+                        386,
+                        648,
+                        53,
+                        17
+                    ],
+                    "operator": "<"
+                }
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CUB_StartAllIn",
+                "custom_action_param": {
+                    "drop_per_run": 2
+                }
+            }
+        }
+    },
+    "CUB_ItemCheck_2": {
+        "desc": "检查是否有足够的洞悉材料2",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CompareNumbers",
+                "custom_recognition_param": {
+                    "roi": [
+                        465,
+                        648,
+                        53,
+                        17
+                    ],
+                    "operator": "<"
+                }
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CUB_StartAllIn",
+                "custom_action_param": {
+                    "drop_per_run": 2
+                }
+            }
+        }
+    },
+    "CUB_IsAttributeMaterial": {
+        "desc": "是否为属性材料",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    607,
+                    344,
+                    120,
+                    192
+                ],
+                "expected": [
+                    "群山之声",
+                    "星陨之所",
+                    "深林之形",
+                    "荒兽之野"
+                ],
+                "order_by": "Vertical",
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    332,
+                    -5,
+                    -24,
+                    9
+                ]
+            }
+        },
+        "focus": {
+            "Node.Recognition.Failed": {
+                "content": "识别失败：当前版本暂不支持刷取非属性突破材料，请手动刷取",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
+        }
+    },
+    "CUB_IsEnoughMaterial": {
+        "desc": "检查是否有足够的材料",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CompareNumbers",
+                "custom_recognition_param": {
+                    "roi": [
+                        954,
+                        665,
+                        75,
+                        27
+                    ],
+                    "operator": ">="
+                }
+            }
+        },
+        "next": "CUB_Back2BreakThrough"
+    },
+    "CUB_Back2BreakThrough": {
+        "desc": "返回洞悉界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1085,
+                    655,
+                    131,
+                    43
+                ],
+                "expected": "返回来源"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CU_IsBreakThrough",
+            "CUB_Back2BreakThrough"
+        ]
+    },
+    "CU_IsBreakThrough": {
+        "desc": "是否在洞悉页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    923,
+                    620,
+                    76,
+                    32
+                ],
+                "expected": "洞悉",
+                "only_rec": true
+            }
+        },
+        "next": "CU_Breakthrough"
+    },
+    "CU_IsCharUpgrade": {
+        "desc": "是否在角色升级页面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    34,
+                    489,
+                    104,
+                    35
+                ],
+                "expected": "个人属性"
+            }
+        }
+    },
+    "CU_ResonanceUp": {
+        "desc": "点击共鸣升级按钮",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1209,
+                    626,
+                    54,
+                    39
+                ],
+                "expected": "Lv.[1-8]"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CUR_UpTo9"
+        ]
+    },
+    "CUR_UpTo9": {
+        "desc": "共鸣提升",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1051,
+                    608,
+                    125,
+                    40
+                ],
+                "expected": [
+                    "共鸣提升",
+                    "察提"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "CUR_Lv9",
+            "[JumpBack]CUR_Button",
+            "[JumpBack]CUR_Back2Resonance",
+            "[JumpBack]CUR_ConfirmSynthesize"
+        ]
+    },
+    "CUR_ConfirmSynthesize": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    722,
+                    509,
+                    171,
+                    39
+                ],
+                "expected": "合成"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CUR_Lv9": {
+        "desc": "共鸣提升到9级",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    765,
+                    189,
+                    110,
+                    43
+                ],
+                "expected": "共鸣Lv.9"
+            }
+        },
+        "next": [
+            "CU_IsCharUpgrade",
+            "[JumpBack]CUR_Back2CharUpgrade"
+        ]
+    },
+    "CUR_Back2CharUpgrade": {
+        "desc": "返回角色升级界面",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "CUR_Button",
+                    "CUR_UpTo9"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    45,
+                    37,
+                    12,
+                    20
+                ]
+            }
+        }
+    },
+    "CUR_Button": {
+        "desc": "共鸣提升按钮1",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    822,
+                    605,
+                    153,
+                    43
+                ],
+                "expected": [
+                    "提升共鸣",
+                    "提升觉察"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CUR_Back2Resonance": {
+        "desc": "返回共鸣界面",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    812,
+                    96,
+                    113,
+                    54
+                ],
+                "expected": "提升至"
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}

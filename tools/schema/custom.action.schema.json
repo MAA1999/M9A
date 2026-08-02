@@ -64,7 +64,8 @@
                 "CISelectResearchers",
                 "EightBitCombatMove",
                 "EightBitScoreRecord",
-                "EightBitCombatInit"
+                "EightBitCombatInit",
+                "CUB_StartAllIn"
             ]
         }
     },
@@ -254,6 +255,9 @@
         },
         {
             "$ref": "#/$defs/EightBitCombatInit"
+        },
+        {
+            "$ref": "#/$defs/CUB_StartAllIn"
         }
     ],
     "$defs": {
@@ -1249,6 +1253,14 @@
                 "custom_action": {
                     "const": "EightBitCombatInit",
                     "description": "8-bit 战斗初始化，检测是否需要开启碰壁检测"
+                }
+            }
+        },
+        "CUB_StartAllIn": {
+            "properties": {
+                "custom_action": {
+                    "const": "CUB_StartAllIn",
+                    "description": "角色升级：计算材料缺口后启动复现战斗"
                 }
             }
         }

@@ -1,0 +1,16 @@
+{
+    "task": [
+        {
+            "name": "角色升级(beta)",
+            "entry": "CharUpgrade",
+            "option": [
+                "吃糖"
+            ],
+            "pipeline_override": {},
+            "group": [
+                "standalone"
+            ],
+            "description": "老登专用，进入角色详情页后自动升级（共鸣+角色），直至材料不足或升满（洞3/共9），仅支持刷取属性突破材料，直接吃糖。"
+        }
+    ]
+}

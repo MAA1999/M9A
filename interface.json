@@ -190,6 +190,7 @@
         "tasks/UTTU.json",
         "tasks/CompleteInduction.json",
         "tasks/8bit.json",
+        "tasks/CharUpgrade.json",
         "tasks/TrustReward.json"
     ]
 }
