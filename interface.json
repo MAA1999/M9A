@@ -189,6 +189,7 @@
         "tasks/PreStormProtocol.json",
         "tasks/UTTU.json",
         "tasks/CompleteInduction.json",
-        "tasks/8bit.json"
+        "tasks/8bit.json",
+        "tasks/CharUpgrade.json"
     ]
 }

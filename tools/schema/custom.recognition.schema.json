@@ -24,7 +24,8 @@
                 "SOSSelectEncounterOptionFindSelected",
                 "APMapAnalyze",
                 "ATTrailAnalyze",
-                "APCardFinder"
+                "APCardFinder",
+                "CompareNumbers"
             ]
         }
     },
@@ -91,6 +92,9 @@
         },
         {
             "$ref": "#/$defs/APCardFinder"
+        },
+        {
+            "$ref": "#/$defs/CompareNumbers"
         }
     ],
     "$defs": {
@@ -1062,6 +1066,67 @@
                     },
                     "required": [
                         "query"
+                    ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        "CompareNumbers": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/RequiredParam"
+                }
+            ],
+            "properties": {
+                "custom_recognition": {
+                    "const": "CompareNumbers",
+                    "description": "通用数字比较：从 OCR 文本中提取数字，按指定运算符比较"
+                },
+                "custom_recognition_param": {
+                    "type": "object",
+                    "properties": {
+                        "roi": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "minItems": 4,
+                            "maxItems": 4,
+                            "description": "OCR 区域 [x, y, w, h]"
+                        },
+                        "operator": {
+                            "type": "string",
+                            "enum": [
+                                "<",
+                                "<=",
+                                ">",
+                                ">=",
+                                "==",
+                                "!="
+                            ],
+                            "description": "比较运算符"
+                        },
+                        "value": {
+                            "type": "integer",
+                            "description": "固定值（可选）：传此值则与它比，否则两数互比"
+                        },
+                        "pattern": {
+                            "type": "string",
+                            "description": "自定义正则（可选）：两个捕获组提取数字"
+                        },
+                        "separator": {
+                            "type": "string",
+                            "description": "分隔符（可选）：自动构建正则 (\\d+)\\s*X\\s*(\\d+)"
+                        },
+                        "split_at": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "description": "分割位数（可选）：只找到一个数时按此位数切开"
+                        }
+                    },
+                    "required": [
+                        "roi",
+                        "operator"
                     ],
                     "additionalProperties": false
                 }

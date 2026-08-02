@@ -7,6 +7,7 @@ RECO_MODULES = (
     "auto_promotion",
     "auto_trail",
     "combat",
+    "compare_numbers",
     "lucidscape",
     "syndrome_of_silence",
     "critter_crash",

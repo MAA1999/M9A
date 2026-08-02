@@ -5,6 +5,7 @@ ACTION_MODULES = (
     "activity",
     "balanced_farming",
     "bank",
+    "char_upgrade",
     "combat",
     "lucidscape",
     "wilderness",
