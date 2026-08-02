@@ -13,7 +13,7 @@
                     37
                 ],
                 "template": "Awards/ComplexDaily.png",
-                "threshold": 0.85
+                "threshold": 0.9
             }
         },
         "action": {
