@@ -3,6 +3,9 @@
         {
             "name": "角色升级(beta)",
             "entry": "CharUpgrade",
+            "option": [
+                "吃糖"
+            ],
             "pipeline_override": {},
             "group": [
                 "standalone"

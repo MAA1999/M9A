@@ -94,7 +94,6 @@ class CUBStartAllIn(CustomAction):
                         "TargetCountVictoryClick",
                     ],
                 },
-                "EatCandyStart": {"attach": {"valid_period": "infinite"}},
             },
         )
         return True
