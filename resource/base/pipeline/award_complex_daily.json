@@ -7,9 +7,9 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    399,
+                    523,
                     29,
-                    180,
+                    56,
                     37
                 ],
                 "template": "Awards/ComplexDaily.png",
