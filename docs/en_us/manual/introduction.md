@@ -350,7 +350,7 @@ Please select the corresponding option based on your situation
 
 ### Character Upgrade (beta)
 
-Automatically upgrade the character (resonance + level) when entering the character detail page, until materials are insufficient or reaching the cap (Insight 3 / Resonance 9), including the following options:
+Automatically upgrade the character (resonance + level) when entering the character detail page, until materials are insufficient or the cap (Insight 3 / Resonance 9) is reached, including the following options:
 
 - **Consume Candy**: Automatically use candy when stamina is insufficient
 
