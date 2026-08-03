@@ -79,7 +79,17 @@ Automatically complete Deep Sleep battles, including the following options:
 - Supports custom formation naming
 - Future support for formations beyond the first four
 
-<!-- prettier-ignore -->
+<!--
+  prettier-ignore: this file uses 0-indent ::: to close ::: containers
+  because the upstream @mdit/plugin-container (used by
+  @vuepress/plugin-markdown-hint on 1999.fan docs site) fails to
+  recognize a 2-space-indented ::: that follows a list item,
+  treating the marker as literal text and swallowing subsequent
+  headings into the container. See PR #867 for context.
+  Do not "simplify" this back to 2-space indent or remove the
+  prettier-ignore comment.
+-->
+
 :::
 
 ## Auto Awakening Dream
@@ -96,7 +106,17 @@ Automatically complete Awakening Dream battles, including the following options:
 - Supports custom formation naming
 - Future support for formations beyond the first four
 
-<!-- prettier-ignore -->
+<!--
+  prettier-ignore: this file uses 0-indent ::: to close ::: containers
+  because the upstream @mdit/plugin-container (used by
+  @vuepress/plugin-markdown-hint on 1999.fan docs site) fails to
+  recognize a 2-space-indented ::: that follows a list item,
+  treating the marker as literal text and swallowing subsequent
+  headings into the container. See PR #867 for context.
+  Do not "simplify" this back to 2-space indent or remove the
+  prettier-ignore comment.
+-->
+
 :::
 
 ## Bank Shopping
@@ -141,7 +161,17 @@ Leave the field empty to scroll to the bottom of the account list and switch to 
 - Currently only supports Official server
 - Only supports emulator environments with an actual unscaled resolution of 1280×720
 
-<!-- prettier-ignore -->
+<!--
+  prettier-ignore: this file uses 0-indent ::: to close ::: containers
+  because the upstream @mdit/plugin-container (used by
+  @vuepress/plugin-markdown-hint on 1999.fan docs site) fails to
+  recognize a 2-space-indented ::: that follows a list item,
+  treating the marker as literal text and swallowing subsequent
+  headings into the container. See PR #867 for context.
+  Do not "simplify" this back to 2-space indent or remove the
+  prettier-ignore comment.
+-->
+
 :::
 
 ## Switch Art Framework
@@ -175,7 +205,19 @@ Roguelike mode for farming credits, including the following options:
 
 1. Before using fast mode, please fully level up `Engrave Growth - Song of Guidance` and `Engrave Growth - Building Code`
 2. Please increase difficulty level as much as possible (difficulty 11 achieves maximum credit efficiency of 200%) and max out credit efficiency bonuses in the tech tree to prevent insufficient score of 2,500 leading to farming failure
-   :::
+
+<!--
+  prettier-ignore: this file uses 0-indent ::: to close ::: containers
+  because the upstream @mdit/plugin-container (used by
+  @vuepress/plugin-markdown-hint on 1999.fan docs site) fails to
+  recognize a 2-space-indented ::: that follows a list item,
+  treating the marker as literal text and swallowing subsequent
+  headings into the container. See PR #867 for context.
+  Do not "simplify" this back to 2-space indent or remove the
+  prettier-ignore comment.
+-->
+
+:::
 
 ### Non-Fast Mode
 
@@ -184,7 +226,19 @@ Roguelike mode for farming credits, including the following options:
 1. Before use, you can pin (mark) four characters in your box as deployment characters
 2. Team composition should include a healer
 3. Please ensure the last battle was in auto-battle mode before use, M9A cannot check if it's in auto-battle
-   :::
+
+<!--
+  prettier-ignore: this file uses 0-indent ::: to close ::: containers
+  because the upstream @mdit/plugin-container (used by
+  @vuepress/plugin-markdown-hint on 1999.fan docs site) fails to
+  recognize a 2-space-indented ::: that follows a list item,
+  treating the marker as literal text and swallowing subsequent
+  headings into the container. See PR #867 for context.
+  Do not "simplify" this back to 2-space indent or remove the
+  prettier-ignore comment.
+-->
+
+:::
 
 ::: warning
 M9A does not handle story content, tutorials, and other elements that only appear when playing roguelike for the first time. You need to complete these once manually before using this feature.
@@ -215,7 +269,19 @@ Syndrome of Silence roguelike mode, including the following options:
 
 1. M9A does not process the gameplay instructions page that only appears when playing roguelike for the first time. Please manually progress to at least the second floor before using
 2. M9A cannot check if it's in auto-battle mode. Please ensure your most recent battle was in auto-battle mode before using
-   :::
+
+<!--
+  prettier-ignore: this file uses 0-indent ::: to close ::: containers
+  because the upstream @mdit/plugin-container (used by
+  @vuepress/plugin-markdown-hint on 1999.fan docs site) fails to
+  recognize a 2-space-indented ::: that follows a list item,
+  treating the marker as literal text and swallowing subsequent
+  headings into the container. See PR #867 for context.
+  Do not "simplify" this back to 2-space indent or remove the
+  prettier-ignore comment.
+-->
+
+:::
 
 ::: tip
 Based on testing, it's best to choose difficulty 2 or 3 for the mission. Difficulty 4 makes it easy to die in battle
@@ -263,7 +329,17 @@ This feature does not change characters and takes all debuffs, so it's only suit
 - Non-fast mode will max out 5th position buff before fighting boss, improving clear stability
 - Test team: 37 + Eternity + Melmoth + Semmelweis + Tutu (note: place main DPS in 5th position)
 
-<!-- prettier-ignore -->
+<!--
+  prettier-ignore: this file uses 0-indent ::: to close ::: containers
+  because the upstream @mdit/plugin-container (used by
+  @vuepress/plugin-markdown-hint on 1999.fan docs site) fails to
+  recognize a 2-space-indented ::: that follows a list item,
+  treating the marker as literal text and swallowing subsequent
+  headings into the container. See PR #867 for context.
+  Do not "simplify" this back to 2-space indent or remove the
+  prettier-ignore comment.
+-->
+
 :::
 
 ### Event Stage Clear (Main Story and Events)
@@ -293,7 +369,17 @@ Quick farming in the Critter Crash interface.
 - Supports CN server version 3.5
 - Please play two rounds manually first to raise alert level to 3 before using
 
-<!-- prettier-ignore -->
+<!--
+  prettier-ignore: this file uses 0-indent ::: to close ::: containers
+  because the upstream @mdit/plugin-container (used by
+  @vuepress/plugin-markdown-hint on 1999.fan docs site) fails to
+  recognize a 2-space-indented ::: that follows a list item,
+  treating the marker as literal text and swallowing subsequent
+  headings into the container. See PR #867 for context.
+  Do not "simplify" this back to 2-space indent or remove the
+  prettier-ignore comment.
+-->
+
 :::
 
 ### Pre-Storm Protocol
