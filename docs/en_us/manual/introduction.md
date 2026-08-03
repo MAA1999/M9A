@@ -359,3 +359,14 @@ Please manually enter the character detail page (showing "Personal Attributes") 
 Only supports farming attribute breakthrough materials; non-attribute breakthrough materials need to be farmed manually.
 This is a beta feature; please report any issues encountered.
 :::
+
+### Trust Rewards
+
+Start from the main interface to automatically enter the character list, sort by trust in descending order, and collect trust rewards (Single/Culture) for all max-trust characters.
+
+::: note
+
+- Start the task from the main interface
+- The task will automatically sort by trust in descending order and traverse all characters
+- Characters with unlocked trust rewards will have their Single/Culture rewards collected automatically
+  :::

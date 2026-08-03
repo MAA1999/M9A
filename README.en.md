@@ -56,6 +56,7 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 - UTTU Flicker Assembly
 - Complete Induction
 - Character Upgrade (beta)
+- Trust Rewards
 - 8-bit Arcade Show
 
 ## User Guide
