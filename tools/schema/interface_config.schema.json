@@ -17,7 +17,7 @@
                         "Adb",
                         "Win32",
                         "PlayCover",
-                        "WlRoots"
+                        "Linux"
                     ]
                 }
             }
@@ -58,13 +58,21 @@
                 }
             }
         },
-        "wlroots": {
-            "title": "WlRoots配置",
+        "linux": {
+            "title": "Linux配置",
             "type": "object",
             "properties": {
                 "wlr_socket_path": {
-                    "title": "Wayland Socket路径",
+                    "title": "Wayland Socket 路径",
                     "type": "string"
+                },
+                "pw_screen_width": {
+                    "title": "PipeWire 屏幕宽度（像素）",
+                    "type": "integer"
+                },
+                "pw_screen_height": {
+                    "title": "PipeWire 屏幕高度（像素）",
+                    "type": "integer"
                 }
             }
         },
