@@ -148,7 +148,7 @@ if ($Restore) {
     Write-Host "正在从以下路径导入备份 / Importing backup from: $BackupFile"
     $imp = Start-Process -FilePath reg -ArgumentList "import `"$BackupFile`"" -NoNewWindow -Wait -PassThru
     if ($imp.ExitCode -ne 0) {
-        Write-ErrAndExit "reg import 失败 (退出码 $imp.ExitCode) / reg import failed (exit code $imp.ExitCode)"
+        Write-ErrAndExit "reg import 失败 (退出码 $($imp.ExitCode)) / reg import failed (exit code $($imp.ExitCode))"
     }
     Write-Host "恢复完成 / Restore completed."
     exit 0
