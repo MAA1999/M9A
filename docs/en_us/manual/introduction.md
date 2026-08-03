@@ -78,7 +78,9 @@ Automatically complete Deep Sleep battles, including the following options:
 - Supports both old and new formation systems
 - Supports custom formation naming
 - Future support for formations beyond the first four
-  :::
+
+<!-- prettier-ignore -->
+:::
 
 ## Auto Awakening Dream
 
@@ -93,7 +95,9 @@ Automatically complete Awakening Dream battles, including the following options:
 - Supports both old and new formation systems
 - Supports custom formation naming
 - Future support for formations beyond the first four
-  :::
+
+<!-- prettier-ignore -->
+:::
 
 ## Bank Shopping
 
@@ -136,7 +140,9 @@ Leave the field empty to scroll to the bottom of the account list and switch to 
 - After switching, you can continue adding tasks for multi-account multi-configuration task execution
 - Currently only supports Official server
 - Only supports emulator environments with an actual unscaled resolution of 1280×720
-  :::
+
+<!-- prettier-ignore -->
+:::
 
 ## Switch Art Framework
 
@@ -256,7 +262,9 @@ This feature does not change characters and takes all debuffs, so it's only suit
 - **Fast option**: Directly fight boss stage without 5th position buff, suitable for fully-built Big Three + double healer team
 - Non-fast mode will max out 5th position buff before fighting boss, improving clear stability
 - Test team: 37 + Eternity + Melmoth + Semmelweis + Tutu (note: place main DPS in 5th position)
-  :::
+
+<!-- prettier-ignore -->
+:::
 
 ### Event Stage Clear (Main Story and Events)
 
@@ -284,7 +292,9 @@ Quick farming in the Critter Crash interface.
 - Start in Critter Crash interface
 - Supports CN server version 3.5
 - Please play two rounds manually first to raise alert level to 3 before using
-  :::
+
+<!-- prettier-ignore -->
+:::
 
 ### Pre-Storm Protocol
 
