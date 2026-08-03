@@ -115,6 +115,7 @@ Claim various rewards, including the following options:
 - **Event Box Rewards**: Claim event box rewards
 - **Mystery Sea Weekly Sweep Rewards**: Complete the Suspended in the Rain: Mystery Sea "Think" weekly sweep and claim rewards
 - **Claim Laplace Forum Rewards**: Claim Laplace Forum rewards
+- **Complex Daily**: Collect Complex (Eternal Labor) daily rewards
 
 ## Redeem Codes
 
@@ -346,3 +347,16 @@ This task has two scenarios:
 
 Please select the corresponding option based on your situation
 :::
+
+### Character Upgrade (beta)
+
+Automatically upgrade the character (resonance + level) when entering the character detail page, until materials are insufficient or reaching the cap (Insight 3 / Resonance 9), including the following options:
+
+- **Consume Candy**: Automatically use candy when stamina is insufficient
+
+::: warning
+
+- Please manually enter the character detail page (showing "Personal Attributes") before running
+- Only supports farming attribute breakthrough materials; non-attribute breakthrough materials need to be farmed manually
+- This is a beta feature; please report any issues encountered
+  :::

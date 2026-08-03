@@ -55,6 +55,7 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 - Pre-Storm Protocol
 - UTTU Flicker Assembly
 - Complete Induction
+- Character Upgrade (beta)
 - 8-bit Arcade Show
 
 ## User Guide
