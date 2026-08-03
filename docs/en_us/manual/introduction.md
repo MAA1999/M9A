@@ -355,8 +355,7 @@ Automatically upgrade the character (resonance + level) when entering the charac
 - **Consume Candy**: Automatically use candy when stamina is insufficient
 
 ::: warning
-
-- Please manually enter the character detail page (showing "Personal Attributes") before running
-- Only supports farming attribute breakthrough materials; non-attribute breakthrough materials need to be farmed manually
-- This is a beta feature; please report any issues encountered
-  :::
+Please manually enter the character detail page (showing "Personal Attributes") before running.
+Only supports farming attribute breakthrough materials; non-attribute breakthrough materials need to be farmed manually.
+This is a beta feature; please report any issues encountered.
+:::
