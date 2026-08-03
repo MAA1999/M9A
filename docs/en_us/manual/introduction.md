@@ -367,6 +367,6 @@ Start from the main interface to automatically enter the character list, sort by
 ::: note
 
 - Start the task from the main interface
-- The task will automatically sort by trust in descending order and traverse all characters
-- Characters with unlocked trust rewards will have their Single/Culture rewards collected automatically
+- Characters are sorted by trust descending; the task scrolls through the full list automatically
+- Only characters with trust rewards unlocked are collected
   :::
