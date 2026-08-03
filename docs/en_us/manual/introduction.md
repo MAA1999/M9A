@@ -115,7 +115,7 @@ Claim various rewards, including the following options:
 - **Event Box Rewards**: Claim event box rewards
 - **Mystery Sea Weekly Sweep Rewards**: Complete the Suspended in the Rain: Mystery Sea "Think" weekly sweep and claim rewards
 - **Claim Laplace Forum Rewards**: Claim Laplace Forum rewards
-- **Complex Daily**: Collect Complex (Eternal Labor) daily rewards
+- **Complex Daily**: Collect Complex daily rewards
 
 ## Redeem Codes
 
