@@ -79,7 +79,7 @@ icon: mdi:information-outline
 - 支持编队自定义命名
 - 未来可支持编队超出前四个
 
-<!-- prettier-ignore: @mdit/plugin-container fails to recognize a ::: closer that follows a list item unless the closer is flush-left, so do not re-indent. -->
+<!-- prettier-ignore: keep ::: flush-left (see docs/develop/doc.md) -->
 
 :::
 
@@ -97,7 +97,7 @@ icon: mdi:information-outline
 - 支持编队自定义命名
 - 未来可支持编队超出前四个
 
-<!-- prettier-ignore: @mdit/plugin-container fails to recognize a ::: closer that follows a list item unless the closer is flush-left, so do not re-indent. -->
+<!-- prettier-ignore: keep ::: flush-left (see docs/develop/doc.md) -->
 
 :::
 
@@ -267,7 +267,7 @@ M9A不对仅在初次玩肉鸽出现的剧情、引导等做额外处理，使�
 - 非速刷则会选择拉满五号位buff后再打boss，提高通关稳定性
 - 测试用队伍：诺谛卡 + 圈 + 蘑菇 + 塞梅 + 图图（注意五号位放主C）
 
-<!-- prettier-ignore: @mdit/plugin-container fails to recognize a ::: closer that follows a list item unless the closer is flush-left, so do not re-indent. -->
+<!-- prettier-ignore: keep ::: flush-left (see docs/develop/doc.md) -->
 
 :::
 
@@ -298,7 +298,7 @@ M9A不对仅在初次玩肉鸽出现的剧情、引导等做额外处理，使�
 - 已支持国服 3.5 版本
 - 使用前请先自行打两把使警戒值升到 3 级
 
-<!-- prettier-ignore: @mdit/plugin-container fails to recognize a ::: closer that follows a list item unless the closer is flush-left, so do not re-indent. -->
+<!-- prettier-ignore: keep ::: flush-left (see docs/develop/doc.md) -->
 
 :::
 

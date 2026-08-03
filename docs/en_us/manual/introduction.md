@@ -79,7 +79,7 @@ Automatically complete Deep Sleep battles, including the following options:
 - Supports custom formation naming
 - Future support for formations beyond the first four
 
-<!-- prettier-ignore: @mdit/plugin-container fails to recognize a ::: closer that follows a list item unless the closer is flush-left, so do not re-indent. -->
+<!-- prettier-ignore: keep ::: flush-left (see docs/develop/doc.md) -->
 
 :::
 
@@ -97,7 +97,7 @@ Automatically complete Awakening Dream battles, including the following options:
 - Supports custom formation naming
 - Future support for formations beyond the first four
 
-<!-- prettier-ignore: @mdit/plugin-container fails to recognize a ::: closer that follows a list item unless the closer is flush-left, so do not re-indent. -->
+<!-- prettier-ignore: keep ::: flush-left (see docs/develop/doc.md) -->
 
 :::
 
@@ -143,7 +143,7 @@ Leave the field empty to scroll to the bottom of the account list and switch to 
 - Currently only supports Official server
 - Only supports emulator environments with an actual unscaled resolution of 1280×720
 
-<!-- prettier-ignore: @mdit/plugin-container fails to recognize a ::: closer that follows a list item unless the closer is flush-left, so do not re-indent. -->
+<!-- prettier-ignore: keep ::: flush-left (see docs/develop/doc.md) -->
 
 :::
 
@@ -179,7 +179,7 @@ Roguelike mode for farming credits, including the following options:
 1. Before using fast mode, please fully level up `Engrave Growth - Song of Guidance` and `Engrave Growth - Building Code`
 2. Please increase difficulty level as much as possible (difficulty 11 achieves maximum credit efficiency of 200%) and max out credit efficiency bonuses in the tech tree to prevent insufficient score of 2,500 leading to farming failure
 
-<!-- prettier-ignore: @mdit/plugin-container fails to recognize a ::: closer that follows a list item unless the closer is flush-left, so do not re-indent. -->
+<!-- prettier-ignore: keep ::: flush-left (see docs/develop/doc.md) -->
 
 :::
 
@@ -191,7 +191,7 @@ Roguelike mode for farming credits, including the following options:
 2. Team composition should include a healer
 3. Please ensure the last battle was in auto-battle mode before use, M9A cannot check if it's in auto-battle
 
-<!-- prettier-ignore: @mdit/plugin-container fails to recognize a ::: closer that follows a list item unless the closer is flush-left, so do not re-indent. -->
+<!-- prettier-ignore: keep ::: flush-left (see docs/develop/doc.md) -->
 
 :::
 
@@ -225,7 +225,7 @@ Syndrome of Silence roguelike mode, including the following options:
 1. M9A does not process the gameplay instructions page that only appears when playing roguelike for the first time. Please manually progress to at least the second floor before using
 2. M9A cannot check if it's in auto-battle mode. Please ensure your most recent battle was in auto-battle mode before using
 
-<!-- prettier-ignore: @mdit/plugin-container fails to recognize a ::: closer that follows a list item unless the closer is flush-left, so do not re-indent. -->
+<!-- prettier-ignore: keep ::: flush-left (see docs/develop/doc.md) -->
 
 :::
 
@@ -275,7 +275,7 @@ This feature does not change characters and takes all debuffs, so it's only suit
 - Non-fast mode will max out 5th position buff before fighting boss, improving clear stability
 - Test team: 37 + Eternity + Melmoth + Semmelweis + Tutu (note: place main DPS in 5th position)
 
-<!-- prettier-ignore: @mdit/plugin-container fails to recognize a ::: closer that follows a list item unless the closer is flush-left, so do not re-indent. -->
+<!-- prettier-ignore: keep ::: flush-left (see docs/develop/doc.md) -->
 
 :::
 
@@ -306,7 +306,7 @@ Quick farming in the Critter Crash interface.
 - Supports CN server version 3.5
 - Please play two rounds manually first to raise alert level to 3 before using
 
-<!-- prettier-ignore: @mdit/plugin-container fails to recognize a ::: closer that follows a list item unless the closer is flush-left, so do not re-indent. -->
+<!-- prettier-ignore: keep ::: flush-left (see docs/develop/doc.md) -->
 
 :::
 

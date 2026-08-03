@@ -50,12 +50,49 @@ This is the tip content
 
 ::: warning Important Notice
 Please pay attention to this important warning
-:::
 ```
 
+````
+
 ::: tip
-Nested containers may not render correctly. It's recommended to avoid using multiple levels of nesting.
+Nested containers may not render correctly. It is recommended to avoid using multiple levels of nesting.
 :::
+
+### Container Closing Convention: Use Flush-Left `:::`
+
+`@mdit/plugin-container` (used internally by `@vuepress/plugin-markdown-hint` on our docs site) checks whether the closing `:::` line has the same column offset as the opening tag. When the closer follows a list item (`- xxx` or `1. xxx`), prettier writes the closer with 2 or 3 space indent, but the markdown-it parser does not recognize that indented closer - it treats the marker as literal list-item text, which causes:
+
+- The container never closes
+- Subsequent headings (e.g. `## Next Section`) get swallowed into the container
+- A `:::` string literal leaks into the rendered output
+
+**Convention**: The container closer `:::` **must** be flush-left (0 indent), regardless of whether the container body contains list items. If prettier tries to re-indent the closer, use `<!-- prettier-ignore -->` to block the reformat.
+
+Correct:
+
+```markdown
+::: warning
+
+- Be careful with the first/second half formations
+- Old and new formation systems are both supported
+
+<!-- prettier-ignore -->
+:::
+
+## Next Section
+````
+
+Incorrect (breaks rendering on the 1999.fan docs site):
+
+```markdown
+::: warning
+
+- Be careful with the first/second half formations
+- Old and new formation systems are both supported
+  ::: <!-- 2-space indent, not recognized by markdown-it -->
+
+## Next Section <!-- gets swallowed into the warning container -->
+```
 
 ## Images
 
