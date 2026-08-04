@@ -626,5 +626,17 @@
                 }
             }
         }
+    },
+    "3.7": {
+        "version_name": "他者的悲哀",
+        "start_time": 1786586400000,
+        "end_time": 1790197199000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1786586400000,
+                "end_time": 1789937999000
+            }
+        }
     }
 }
