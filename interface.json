@@ -9,6 +9,11 @@
     "github": "https://github.com/MAA1999/M9A",
     "mirrorchyan_rid": "M9A",
     "mirrorchyan_multiplatform": true,
+    "telemetry": {
+        "sentry": {
+            "dsn": "https://1d1036e30562df13fb24ee19ff261ac3@o4511817821323264.ingest.us.sentry.io/4511856184459264"
+        }
+    },
     "controller": [
         {
             "name": "ADB",
