@@ -2,6 +2,8 @@ import json
 import re
 from pathlib import Path
 
+import pytest
+
 from agent.custom.action.warehouse_inventory import WarehouseInventoryScan
 
 
@@ -77,3 +79,33 @@ def test_action_registered_in_action_modules() -> None:
     from agent.custom.action import ACTION_MODULES
 
     assert "warehouse_inventory" in ACTION_MODULES
+
+
+def test_write_snapshot_atomic(tmp_path: Path) -> None:
+    """快照原子写入：正式文件内容正确且无 .tmp 残留。"""
+    scan = WarehouseInventoryScan.__new__(WarehouseInventoryScan)
+    scan._OUTPUT_PATH = str(tmp_path / "out" / "snapshot.json")
+    output = {"updated_at": "2026-08-06 16:00:00", "counts": {"110101": 81}}
+
+    scan._write_snapshot(output)
+
+    target = tmp_path / "out" / "snapshot.json"
+    assert json.loads(target.read_text(encoding="utf-8")) == output
+    assert list((tmp_path / "out").glob("*.tmp")) == []
+
+
+def test_write_snapshot_failure_cleans_tmp(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """原子写入失败时：清理临时文件、不留下损坏的正式文件、异常原样抛出。"""
+    scan = WarehouseInventoryScan.__new__(WarehouseInventoryScan)
+    scan._OUTPUT_PATH = str(tmp_path / "out" / "snapshot.json")
+
+    def boom(src: str, dst: str) -> None:
+        raise OSError("disk full")
+
+    monkeypatch.setattr("agent.custom.action.warehouse_inventory.os.replace", boom)
+
+    with pytest.raises(OSError):
+        scan._write_snapshot({"counts": {}})
+
+    assert not (tmp_path / "out" / "snapshot.json").exists()
+    assert list((tmp_path / "out").glob("*.tmp")) == []

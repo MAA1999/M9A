@@ -1,5 +1,7 @@
 import json
+import os
 import re
+import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -131,9 +133,7 @@ class WarehouseInventoryScan(CustomAction):
             },
         }
         try:
-            Path(self._OUTPUT_PATH).parent.mkdir(parents=True, exist_ok=True)
-            with open(self._OUTPUT_PATH, "w", encoding="utf-8") as f:
-                json.dump(output, f, indent=4, ensure_ascii=False)
+            self._write_snapshot(output)
         except OSError as e:
             logger.error(f"写入仓库数量快照失败: {self._OUTPUT_PATH}, {e}")
             return CustomAction.RunResult(success=False)
@@ -146,6 +146,26 @@ class WarehouseInventoryScan(CustomAction):
             logger.warning(f"本次跳过（数量识别失败）: {skipped}")
 
         return CustomAction.RunResult(success=True)
+
+    def _write_snapshot(self, output: dict[str, Any]) -> None:
+        """原子写入快照：先写同目录临时文件，成功后 os.replace 替换正式路径。
+
+        避免中途失败（磁盘满/中断）在 _OUTPUT_PATH 留下损坏的部分 JSON；
+        失败时清理临时文件并原样抛出。
+        """
+        out_path = Path(self._OUTPUT_PATH)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp_path = tempfile.mkstemp(dir=str(out_path.parent), suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(output, f, indent=4, ensure_ascii=False)
+            os.replace(tmp_path, out_path)
+        except BaseException:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+            raise
 
     def _has_template(self, item_id: str) -> bool:
         """模板文件是否存在（image/Warehouse/Item-<id>.png）。"""
