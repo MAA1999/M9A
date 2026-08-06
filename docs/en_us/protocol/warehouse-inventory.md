@@ -46,8 +46,8 @@ WarehouseInventory (entry)
 
 ### Scroll-to-Top & Round-Trip Scan
 
-The warehouse remembers the last scroll position; entering may land anywhere in the list.
-Before scanning, swipe up 6 screens to reach the top, then run a 3-segment round-trip scan
+Before scanning, swipe up 6 screens to reach the top of the list, ensuring full coverage
+from the top, then run a 3-segment round-trip scan
 (down 6 → up 6 → down 6 screens, 12 screens total) so every material passes the screen 2-3
 times. The scan stops early once every material has at least 3 valid readings.
 

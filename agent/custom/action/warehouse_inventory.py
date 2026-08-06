@@ -63,8 +63,7 @@ class WarehouseInventoryScan(CustomAction):
 
         # 三段往返扫描：向下滚 → 向上滚 → 再向下滚，每个材料经过屏幕 2-3 次，
         # 收集多次读数后用众数消除单次误读。
-        # 注意：仓库会记住上次滚动位置，进入时可能停在列表任意位置；
-        # 先向上滚动 6 屏确保回到顶部，否则顶部金色材料永远扫不到。
+        # 注意：先回到列表顶部再开始扫描，确保顶部材料被完整覆盖；
         logger.debug("扫描前回滚到列表顶部")
         for _ in range(6):
             context.tasker.controller.post_swipe(640, 230, 640, 560, 1000).wait()
