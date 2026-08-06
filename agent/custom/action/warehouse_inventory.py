@@ -13,6 +13,21 @@ from utils import logger
 from utils.maa_types import best_box, ocr_text
 
 
+def parse_count_from_text(text: str) -> int | None:
+    """从 OCR 文本中提取数量候选：取最长数字组（真实数量位数多于边缘噪声）。
+
+    Args:
+        text: OCR 识别文本（可能含逗号分隔符及噪声字符）。
+
+    Returns:
+        解析出的数量；文本中无数字时返回 None。
+    """
+    groups = re.findall(r"\d+", text.replace(",", ""))
+    if not groups:
+        return None
+    return int(max(groups, key=len))
+
+
 @AgentServer.custom_action("WarehouseInventoryScan")
 class WarehouseInventoryScan(CustomAction):
     """仓库材料数量识别：扫描仓库素材页所有已配模板的材料，记录数量并落盘 JSON。
@@ -31,6 +46,24 @@ class WarehouseInventoryScan(CustomAction):
     # 仓库列表最多翻页次数（往返扫描：向下 6 屏 + 向上 6 屏，
     # 保证每个材料至少被读到 2-3 次，便于用众数纠正单次误读）
     _MAX_SCROLL_PAGES = 12
+
+    # ---- 滑动参数（1280x720 基准） ----
+    _SCROLL_X = 640  # 滑动固定横坐标（列表中心）
+    _SCROLL_Y_TOP = 230  # 滑动起始/结束的屏幕上方 y
+    _SCROLL_Y_BOTTOM = 560  # 滑动起始/结束的屏幕下方 y
+    _SCROLL_DURATION_MS = 1000  # 每次滑动耗时
+    _SCROLL_SETTLE_SLEEP = 1.5  # 每屏滚动后等待列表稳定
+    _SCROLL_TO_TOP_PAGES = 6  # 扫描前回顶的滑动次数
+    _SCROLL_TO_TOP_SLEEP = 0.8  # 回顶每次滑动后的等待
+
+    # ---- 数量识别 ROI 参数 ----
+    _SCREEN_HEIGHT = 720  # 屏幕高度（1280x720 基准）
+    _COUNT_ROI_HEIGHT = 30  # 数量 ROI 高度
+    _COUNT_ROI_DX_RATIO = 0.25  # 横向 ROI 起点 = 图标 x + w * 0.25
+    _COUNT_ROI_DW_RATIO = -0.5  # 横向 ROI 宽度增量 = -w * 0.5（只取中部一半）
+    _TALL_ICON_MIN_HEIGHT = 80  # 高/矮图标分组阈值
+    _TALL_ICON_TOP_OFFSETS = (82, 85, 90, 95)  # 高图标：数字在图标顶 +N px
+    _SHORT_ICON_BOTTOM_OFFSETS = (2, 6, 10)  # 矮图标：数字在图标底 +N px
 
     def run(
         self,
@@ -70,9 +103,11 @@ class WarehouseInventoryScan(CustomAction):
         # 无法凑满 3 次，因此"全部材料 ≥3 次读数"的提前退出条件永不成立，
         # 故不做提前退出，跑满 12 屏保证覆盖与多次读数。
         logger.info("回滚到列表顶部")
-        for _ in range(6):
-            context.tasker.controller.post_swipe(640, 230, 640, 560, 1000).wait()
-            time.sleep(0.8)
+        for _ in range(self._SCROLL_TO_TOP_PAGES):
+            context.tasker.controller.post_swipe(
+                self._SCROLL_X, self._SCROLL_Y_TOP, self._SCROLL_X, self._SCROLL_Y_BOTTOM, self._SCROLL_DURATION_MS
+            ).wait()
+            time.sleep(self._SCROLL_TO_TOP_SLEEP)
         segment = max(self._MAX_SCROLL_PAGES // 3, 2)
         for page in range(self._MAX_SCROLL_PAGES):
             logger.info(f"仓库扫描第 {page + 1}/{self._MAX_SCROLL_PAGES} 屏")
@@ -87,14 +122,16 @@ class WarehouseInventoryScan(CustomAction):
                     readings[item_id].append(count)
             # 按方向滚动（三段：下 → 上 → 下）
             if page < segment:
-                start_y, end_y = 560, 230  # 第一段向下
+                start_y, end_y = self._SCROLL_Y_BOTTOM, self._SCROLL_Y_TOP  # 第一段向下
             elif page < segment * 2:
-                start_y, end_y = 230, 560  # 第二段向上
+                start_y, end_y = self._SCROLL_Y_TOP, self._SCROLL_Y_BOTTOM  # 第二段向上
             else:
-                start_y, end_y = 560, 230  # 第三段向下
+                start_y, end_y = self._SCROLL_Y_BOTTOM, self._SCROLL_Y_TOP  # 第三段向下
             logger.debug(f"第 {page + 1} 屏后滚动 ({start_y}->{end_y})")
-            context.tasker.controller.post_swipe(640, start_y, 640, end_y, 1000).wait()
-            time.sleep(1.5)
+            context.tasker.controller.post_swipe(
+                self._SCROLL_X, start_y, self._SCROLL_X, end_y, self._SCROLL_DURATION_MS
+            ).wait()
+            time.sleep(self._SCROLL_SETTLE_SLEEP)
 
         counts: dict[str, int] = {}
         skipped: list[str] = []
@@ -181,9 +218,10 @@ class WarehouseInventoryScan(CustomAction):
         误读模式：稀有度装饰条可能被 OCR 并入数字（3→31、1→11），
         或数字被截断（231→21）。因此：
         1. 众数（出现最多的值）优先——真实读数通常重复出现；
-        2. 无众数时取最长位数——截断误读（231→21）比真值短，
-           而装饰条误读（3→31）虽然更长，但配合往返多轮扫描，
-           真值更可能重复出现。
+        2. 无众数时取最小值——装饰条并入（读大）是实测中最常见的
+           误读方向（金羊毛 1→11、双蛇权杖 3→31），取最小可消除；
+           截断误读（231→21）相对少见，且配合往返多轮扫描时
+           真值更可能重复出现形成众数。
         """
         from collections import Counter
 
@@ -191,8 +229,8 @@ class WarehouseInventoryScan(CustomAction):
         most_common = counter.most_common()
         if len(most_common) > 1 and most_common[0][1] > most_common[1][1]:
             return most_common[0][0]
-        # 无众数：取最长位数（避免截断误读）
-        return max(values, key=lambda v: (len(str(v)), v))
+        # 无众数：取最小值（装饰条误读把数字读大，取最小消除此类误读）
+        return min(values)
 
     def _recognize_item(self, context: Context, img: Any, item_id: str) -> tuple[bool, int | None]:
         """匹配单个材料图标并识别其下方数量。
@@ -218,17 +256,17 @@ class WarehouseInventoryScan(CustomAction):
         # 避免把两侧装饰竖线卷入（金羊毛数字 1 + 装饰线会被 OCR 读成 11）。
         # 实测（2026-08-06）：50% 宽已覆盖 1~5 位数（如 test 材料 20023/1919）；
         # 放宽到 70% 会把金色装饰条卷入（金羊毛 1 读成 7、长青剑全空），不可取。
-        dx = int(w * 0.25)
-        dw = -int(w * 0.5)
-        dh = 30
-        if h >= 80:
-            offsets = (82, 85, 90, 95)
+        dx = int(w * self._COUNT_ROI_DX_RATIO)
+        dw = int(w * self._COUNT_ROI_DW_RATIO)
+        dh = self._COUNT_ROI_HEIGHT
+        if h >= self._TALL_ICON_MIN_HEIGHT:
+            offsets = self._TALL_ICON_TOP_OFFSETS
         else:
             # 矮图标（h<80）：数字在图标底 +2~10px（实测 h=78 时 top+82 命中）
-            offsets = (h + 2, h + 6, h + 10)
+            offsets = tuple(h + off for off in self._SHORT_ICON_BOTTOM_OFFSETS)
         candidates: list[int] = []
         for dy_top in offsets:
-            if y + dy_top + dh > 718:
+            if y + dy_top + dh > self._SCREEN_HEIGHT:
                 continue
             count_roi = [x + dx, y + dy_top, w + dw, dh]
             count_detail = context.run_recognition(
@@ -238,18 +276,13 @@ class WarehouseInventoryScan(CustomAction):
             )
             text = ocr_text(count_detail)
             # 取最长数字组：真实数量位数多于边缘噪声误认的零散数字
-            groups = re.findall(r"\d+", text.replace(",", ""))
+            count = parse_count_from_text(text)
             logger.debug(f"{item_id} box={list(box)} top={dy_top} text='{text}'")
-            if groups:
-                candidates.append(int(max(groups, key=len)))
+            if count is not None:
+                candidates.append(count)
         if not candidates:
             logger.warning(f"材料 {item_id} 图标已找到但数量识别失败")
             return True, None
-        # 多个偏移读数取众数（出现最多的），无众数时取第一位
-        from collections import Counter
-
-        counter = Counter(candidates)
-        most_common = counter.most_common()
-        if len(most_common) > 1 and most_common[0][1] > most_common[1][1]:
-            return True, most_common[0][0]
-        return True, candidates[0]
+        # 多个偏移读数用 _best_count 聚合（众数优先，无众数取最长位数），
+        # 与跨屏聚合策略一致，避免平局时依赖偏移顺序。
+        return True, self._best_count(candidates)

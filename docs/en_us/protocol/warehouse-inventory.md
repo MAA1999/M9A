@@ -77,8 +77,8 @@ correction:
 
 1. **Multi-offset per screen**: 4/3 offsets OCR the same icon, take the majority
 2. **Multi-screen round trip**: readings accumulate across passes; final answer is the
-   majority value, or the longest-digit value when there is no majority (truncation errors
-   are shorter than the true value)
+   majority value, or the minimum value when there is no majority (decoration-bar
+   merging is the most common misread direction, producing inflated values)
 
 ## Output Format
 
