@@ -117,19 +117,21 @@ class WarehouseInventoryScan(CustomAction):
             logger.error("没有任何材料识别成功，终止任务")
             return CustomAction.RunResult(success=False)
 
-        # 落盘 JSON：包含数量快照 + 元信息，供未来功能读取
+        # 落盘 JSON：包含数量快照 + 元信息，供未来功能读取。
+        # 顺序与 data/combat/items.json 一致：按品质等级（金→黄→紫→蓝→绿）排列，
+        # 同品级内按 items.json 中的条目顺序（with_template 保留了该插入顺序）。
         output = {
             "updated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             "counts": {
-                item_id: counts[item_id] for item_id in sorted(counts)
+                item_id: counts[item_id] for item_id in with_template if item_id in counts
             },
-            "skipped": sorted(skipped),
+            "skipped": [item_id for item_id in with_template if item_id in skipped],
             "materials": {
                 item_id: {
                     "name": with_template[item_id]["name"],
                     "rarity": with_template[item_id]["rarity"],
                 }
-                for item_id in sorted(with_template)
+                for item_id in with_template
             },
         }
         try:
@@ -139,7 +141,9 @@ class WarehouseInventoryScan(CustomAction):
             return CustomAction.RunResult(success=False)
 
         summary = ", ".join(
-            f"{with_template[item_id]['name']}x{counts[item_id]}" for item_id in sorted(counts)
+            f"{with_template[item_id]['name']}x{counts[item_id]}"
+            for item_id in with_template
+            if item_id in counts
         )
         logger.info(f"仓库材料数量已保存到 {self._OUTPUT_PATH}: {summary}")
         if skipped:
