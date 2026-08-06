@@ -67,12 +67,13 @@ class WarehouseInventoryScan(CustomAction):
         # 固定扫描 12 屏：实测顶部材料（金/黄，列表最前）只经过 2 次屏幕，
         # 无法凑满 3 次，因此"全部材料 ≥3 次读数"的提前退出条件永不成立，
         # 故不做提前退出，跑满 12 屏保证覆盖与多次读数。
-        logger.debug("扫描前回滚到列表顶部")
+        logger.info("回滚到列表顶部")
         for _ in range(6):
             context.tasker.controller.post_swipe(640, 230, 640, 560, 1000).wait()
             time.sleep(0.8)
         segment = max(self._MAX_SCROLL_PAGES // 3, 2)
         for page in range(self._MAX_SCROLL_PAGES):
+            logger.info(f"仓库扫描第 {page + 1}/{self._MAX_SCROLL_PAGES} 屏")
             img = context.tasker.controller.post_screencap().wait().get()
             for item_id in with_template:
                 found, count = self._recognize_item(context, img, item_id)
