@@ -25,7 +25,7 @@ icon: ri:archive-line
 
 ## Pipeline Flow
 
-```
+```text
 WarehouseInventory (entry)
   └─ WI_EnterWarehouse    OCR「仓库」→ click to enter warehouse (retry if not found)
        └─ WI_WarehouseFlag  OCR「素材」tab → confirm material page
@@ -40,16 +40,17 @@ WarehouseInventory (entry)
 ### Data Source & Template Filtering
 
 - Data source: `data/combat/items.json` (gold/yellow/purple/blue/green, 46 farmable materials)
-- **Only materials with templates are scanned**: a material is included only if
-  `resource/base/image/Warehouse/Item-<id>.png` exists. Missing templates are skipped and
-  recorded — **adding a new material only requires adding a template image, no code change**.
+- Material IDs are enumerated from `data/combat/items.json` first, then filtered by template
+  availability: a material is scanned only if `resource/base/image/Warehouse/Item-<id>.png`
+  exists. Missing templates are skipped and recorded — **adding a new material requires
+  BOTH an entry in `data/combat/items.json` and the template image**.
 
 ### Scroll-to-Top & Round-Trip Scan
 
 Before scanning, swipe up 6 screens to reach the top of the list, ensuring full coverage
-from the top, then run a 3-segment round-trip scan
-(down 6 → up 6 → down 6 screens, 12 screens total) so every material passes the screen 2-3
-times. The scan stops early once every material has at least 3 valid readings.
+from the top, then run a fixed 12-page scan in 3 segments (4 pages down → 4 pages up →
+4 pages down) so every material passes the screen 2-3 times. The scan always runs all 12
+pages; there is no early-exit condition.
 
 ### Count Recognition (BF_ItemCount OCR)
 
@@ -98,8 +99,9 @@ correction:
 }
 ```
 
-- Materials absent from `counts` were not found in the warehouse (counted as 0, not written)
-- `skipped` materials must NOT be treated as 0 (icon visible but count unreadable);
+- Materials missing from the warehouse (icon never matched) are recorded as `counts[id] = 0`
+- Materials whose icons are found but whose count was never read successfully are
+  **omitted** from `counts` and listed in `skipped`; they must NOT be treated as 0 —
   manual confirmation required
 - This file is a runtime artifact and is gitignored
 

@@ -24,7 +24,7 @@ icon: ri:archive-line
 
 ## Pipeline 流程
 
-```
+```text
 WarehouseInventory（入口）
   └─ WI_EnterWarehouse    OCR「仓库」→ 点击进入仓库（未找到则重试）
        └─ WI_WarehouseFlag  OCR「素材」页签 → 确认已进入素材页
@@ -39,14 +39,16 @@ WarehouseInventory（入口）
 ### 数据源与模板过滤
 
 - 数据源：`data/combat/items.json`（金/黄/紫/蓝/绿 五档，共 46 种可刷取材料）
-- **只扫描有模板的材料**：`resource/base/image/Warehouse/Item-<id>.png` 存在才纳入扫描，
-  模板缺失的材料自动跳过并记录状态——**未来新增材料只需补模板图，无需改代码**
+- **材料 ID 先从 `data/combat/items.json` 枚举，再按模板可用性过滤**：
+  只有 `resource/base/image/Warehouse/Item-<id>.png` 存在才纳入扫描，
+  模板缺失的材料自动跳过并记录状态——**未来新增材料需要同时满足：
+  `items.json` 中有条目 + 模板图存在**
 
 ### 回顶与往返扫描
 
 扫描前先向上滚动 6 屏回到列表顶部，确保从顶部开始完整覆盖，
-再执行三段往返扫描（向下 6 屏 → 向上 6 屏 → 向下 6 屏，共 12 屏），
-保证每个材料经过屏幕 2-3 次；每个材料至少读到 3 次有效读数后提前结束。
+再固定扫描 12 屏（三段：向下 4 屏 → 向上 4 屏 → 向下 4 屏），
+保证每个材料经过屏幕 2-3 次；扫描固定跑满 12 屏，无提前退出条件。
 
 ### 数量识别（BF_ItemCount OCR）
 
@@ -89,8 +91,9 @@ WarehouseInventory（入口）
 }
 ```
 
-- `counts` 缺省的材料 = 仓库中未找到（按 0 计，不写入）
-- `skipped` 中的材料不能按 0 计（图标在但数量没读到），需人工确认
+- 仓库中未找到（图标从未匹配到）的材料记录为 `counts[id] = 0`
+- 图标找到但数量从未成功读到的材料**不写入 `counts`**，列入 `skipped`；
+  `skipped` 中的材料不能按 0 计，需人工确认
 - 该文件是运行产物，已加入 `.gitignore`
 
 ## 维护指南
