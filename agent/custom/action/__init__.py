@@ -19,6 +19,7 @@ ACTION_MODULES = (
     "switch_account",
     "complete_induction",
     "eight_bit",
+    "warehouse_inventory",
 )
 
 

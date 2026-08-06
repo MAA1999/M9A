@@ -65,7 +65,8 @@
                 "EightBitCombatMove",
                 "EightBitScoreRecord",
                 "EightBitCombatInit",
-                "CUB_StartAllIn"
+                "CUB_StartAllIn",
+                "WarehouseInventoryScan"
             ]
         }
     },
@@ -258,6 +259,9 @@
         },
         {
             "$ref": "#/$defs/CUB_StartAllIn"
+        },
+        {
+            "$ref": "#/$defs/WarehouseInventoryScan"
         }
     ],
     "$defs": {
@@ -1261,6 +1265,14 @@
                 "custom_action": {
                     "const": "CUB_StartAllIn",
                     "description": "角色升级：计算材料缺口后启动复现战斗"
+                }
+            }
+        },
+        "WarehouseInventoryScan": {
+            "properties": {
+                "custom_action": {
+                    "const": "WarehouseInventoryScan",
+                    "description": "扫描仓库素材页全部已配模板材料数量并保存到 data/combat/warehouse_inventory.json"
                 }
             }
         }

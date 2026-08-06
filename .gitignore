@@ -17,6 +17,7 @@ agent/libs/*.pyd
 
 # 运行时生成的缓存
 data/manifest_cache.json
+data/combat/warehouse_inventory.json
 maafw.log
 
 # node 相关
