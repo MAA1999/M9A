@@ -1272,7 +1272,7 @@
             "properties": {
                 "custom_action": {
                     "const": "WarehouseInventoryScan",
-                    "description": "扫描仓库素材页全部已配模板材料数量并保存到 data/combat/warehouse_inventory.json"
+                    "description": "扫描仓库素材页全部已配模板材料数量并保存到 config/warehouse_inventory.json"
                 }
             }
         }

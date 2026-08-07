@@ -121,6 +121,11 @@ def test_action_registered_in_action_modules() -> None:
     assert "warehouse_inventory" in ACTION_MODULES
 
 
+def test_default_output_path_is_outside_hot_update_data() -> None:
+    """仓库快照默认写入 config，避免与可热更新的 data 资源混放。"""
+    assert WarehouseInventoryScan._OUTPUT_PATH == "config/warehouse_inventory.json"
+
+
 def test_write_snapshot_atomic(tmp_path: Path) -> None:
     """快照原子写入：正式文件内容正确且无 .tmp 残留。"""
     scan = WarehouseInventoryScan.__new__(WarehouseInventoryScan)
@@ -194,9 +199,7 @@ def test_run_fails_when_no_counts_produced(tmp_path: Path, monkeypatch: pytest.M
     assert result.success is False
 
 
-def test_run_separates_counts_skipped_and_writes_output(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_run_separates_counts_skipped_and_writes_output(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """run() 正确划分 counts（读数/未找到=0）与 skipped（读到图标但数量失败），并写出快照。"""
     items = {
         "gold": {"111004": {"name": "分别善恶之果"}},

@@ -9,7 +9,7 @@ icon: ri:archive-line
 >
 > 本文档说明「仓库材料识别」（WarehouseInventory）任务的功能与数据协议。
 > 该任务扫描仓库素材页全部已配模板的材料数量，落盘到
-> `data/combat/warehouse_inventory.json`，供未来功能（如自动补货、材料缺口提示）读取。
+> `config/warehouse_inventory.json`，供未来功能（如自动补货、材料缺口提示）读取。
 
 ## 功能架构速览
 
@@ -20,7 +20,7 @@ icon: ri:archive-line
 | `agent/custom/action/warehouse_inventory.py`      | `WarehouseInventoryScan`：三段往返扫描 + 数量 OCR + 众数纠错 + 落盘 JSON |
 | `data/combat/items.json`                          | 材料数据源（按稀有度分组），决定扫描哪些材料                             |
 | `resource/base/image/Warehouse/Item-<id>.png`     | 材料图标模板（TemplateMatch 用）                                         |
-| `data/combat/warehouse_inventory.json`            | 运行产物：数量快照（已加入 `.gitignore`，不入库）                        |
+| `config/warehouse_inventory.json`                 | 运行产物：数量快照（`config/` 已加入 `.gitignore`，不入库）              |
 
 ## Pipeline 流程
 
@@ -74,7 +74,7 @@ WarehouseInventory（入口）
 
 ## 输出格式
 
-`data/combat/warehouse_inventory.json`：
+`config/warehouse_inventory.json`：
 
 ```jsonc
 {

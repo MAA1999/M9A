@@ -9,7 +9,7 @@ icon: ri:archive-line
 >
 > This document describes the 「Warehouse Inventory」(WarehouseInventory) task and its data
 > protocol. The task scans the warehouse material page for all materials with templates,
-> writes their quantities to `data/combat/warehouse_inventory.json`, which future features
+> writes their quantities to `config/warehouse_inventory.json`, which future features
 > (e.g. auto-replenish, material shortage hints) can read.
 
 ## Architecture Overview
@@ -21,7 +21,7 @@ icon: ri:archive-line
 | `agent/custom/action/warehouse_inventory.py`      | `WarehouseInventoryScan`: 3-segment round-trip scan + count OCR + majority voting + JSON dump |
 | `data/combat/items.json`                          | Material data source (grouped by rarity); decides which materials are scanned                 |
 | `resource/base/image/Warehouse/Item-<id>.png`     | Material icon templates (used by TemplateMatch)                                               |
-| `data/combat/warehouse_inventory.json`            | Runtime output: quantity snapshot (gitignored, not committed)                                 |
+| `config/warehouse_inventory.json`                 | Runtime output: quantity snapshot (`config/` is gitignored, not committed)                    |
 
 ## Pipeline Flow
 
@@ -82,7 +82,7 @@ correction:
 
 ## Output Format
 
-`data/combat/warehouse_inventory.json`:
+`config/warehouse_inventory.json`:
 
 ```jsonc
 {

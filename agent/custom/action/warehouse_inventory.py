@@ -35,14 +35,14 @@ class WarehouseInventoryScan(CustomAction):
     与 BalancedFarmingAnalyze 的差异：
     - 不选关卡，只做"识别 + 保存"
     - 数据源为 data/combat/items.json 的完整材料表（按稀有度分组）
-    - 输出到 data/combat/warehouse_inventory.json（可被未来功能复用）
+    - 输出到 config/warehouse_inventory.json（可被未来功能复用）
     - 模板缺失的材料跳过并记录状态，预留未来扩展
     """
 
     # 材料表：全部可刷取材料（items.json，按稀有度分组）
     _ITEMS_PATH = "data/combat/items.json"
     # 输出文件：仓库数量快照（未来功能读取此文件）
-    _OUTPUT_PATH = "data/combat/warehouse_inventory.json"
+    _OUTPUT_PATH = "config/warehouse_inventory.json"
     # 仓库列表最多翻页次数（往返扫描：向下 6 屏 + 向上 6 屏，
     # 保证每个材料至少被读到 2-3 次，便于用众数纠正单次误读）
     _MAX_SCROLL_PAGES = 12
@@ -159,9 +159,7 @@ class WarehouseInventoryScan(CustomAction):
         # 同品级内按 items.json 中的条目顺序（with_template 保留了该插入顺序）。
         output = {
             "updated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "counts": {
-                item_id: counts[item_id] for item_id in with_template if item_id in counts
-            },
+            "counts": {item_id: counts[item_id] for item_id in with_template if item_id in counts},
             "skipped": [item_id for item_id in with_template if item_id in skipped],
             "materials": {
                 item_id: {
@@ -178,9 +176,7 @@ class WarehouseInventoryScan(CustomAction):
             return CustomAction.RunResult(success=False)
 
         summary = ", ".join(
-            f"{with_template[item_id]['name']}x{counts[item_id]}"
-            for item_id in with_template
-            if item_id in counts
+            f"{with_template[item_id]['name']}x{counts[item_id]}" for item_id in with_template if item_id in counts
         )
         logger.info(f"仓库材料数量已保存到 {self._OUTPUT_PATH}: {summary}")
         if skipped:
