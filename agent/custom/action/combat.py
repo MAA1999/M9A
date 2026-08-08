@@ -1,5 +1,7 @@
 import re
 import time
+from dataclasses import dataclass
+from enum import Enum, auto
 from typing import Any
 
 from maa.agent.agent_server import AgentServer
@@ -639,36 +641,79 @@ class _TargetCountState:
     candy_attempts: int = 0
 
 
-def _tc_safe_int(text: str) -> int:
+class _TargetCountPage(Enum):
+    STAGE = auto()
+    RECOVERY = auto()
+    UNKNOWN = auto()
+
+
+@dataclass(frozen=True)
+class _TargetCountAvailability:
+    page: _TargetCountPage
+    available_count: int | None = None
+
+
+def _tc_parse_int(text: str) -> int | None:
     try:
         return int(text)
-    except Exception:
-        return 0
+    except ValueError:
+        return None
 
 
-def _tc_get_text_safe(context: Context, img: Any, rec_name: str) -> str:
+def _tc_get_int(context: Context, img: Any, rec_name: str) -> int | None:
     rec = context.run_recognition(rec_name, img)
     text = ocr_text(rec)
     if not text:
-        logger.debug(f"{rec_name} 识别失败，返回None")
-        return "0"
-    return text
+        logger.debug(f"{rec_name} 识别失败")
+        return None
+
+    value = _tc_parse_int(text)
+    if value is None:
+        logger.debug(f"{rec_name} 识别结果不是有效整数: {text}")
+    return value
 
 
-def _tc_get_available_count(context: Context) -> int:
+def _tc_calculate_available_count(remaining_ap: int, stage_ap: int, combat_times: int) -> int | None:
+    if remaining_ap < 0 or stage_ap <= 0 or combat_times <= 0:
+        return None
+
+    stage_ap_per_combat, remainder = divmod(stage_ap, combat_times)
+    if stage_ap_per_combat <= 0 or remainder != 0:
+        return None
+
+    return remaining_ap // stage_ap_per_combat
+
+
+def _tc_get_availability(context: Context) -> _TargetCountAvailability:
     img = context.tasker.controller.post_screencap().wait().get()
-    remaining_ap = _tc_safe_int(_tc_get_text_safe(context, img, "RecognizeRemainingAp"))
-    stage_ap = _tc_safe_int(_tc_get_text_safe(context, img, "RecognizeStageAp"))
-    combat_times = _tc_safe_int(_tc_get_text_safe(context, img, "RecognizeCombatTimes"))
-    if stage_ap == 0:
-        logger.debug("stage_ap 为0")
-        return 999
-    if combat_times == 0:
-        logger.debug("识别失败，combat_times 为0")
-        return -1
-    stage_ap = stage_ap // combat_times
-    logger.debug(f"剩余体力: {remaining_ap}, 关卡体力: {stage_ap}")
-    return remaining_ap // stage_ap if stage_ap else 0
+    if is_hit(context.run_recognition("EatCandyPage", img)):
+        logger.debug("检测到活性恢复页，当前无可复现次数")
+        return _TargetCountAvailability(page=_TargetCountPage.RECOVERY, available_count=0)
+
+    remaining_ap = _tc_get_int(context, img, "RecognizeRemainingAp")
+    stage_ap = _tc_get_int(context, img, "RecognizeStageAp")
+    combat_times = _tc_get_int(context, img, "RecognizeCombatTimes")
+    if remaining_ap is None or stage_ap is None or combat_times is None:
+        logger.error(
+            "无法识别关卡体力信息: remaining_ap={}, stage_ap={}, combat_times={}",
+            remaining_ap,
+            stage_ap,
+            combat_times,
+        )
+        return _TargetCountAvailability(page=_TargetCountPage.UNKNOWN)
+
+    available_count = _tc_calculate_available_count(remaining_ap, stage_ap, combat_times)
+    if available_count is None:
+        logger.error(
+            "关卡体力信息无效: remaining_ap={}, stage_ap={}, combat_times={}",
+            remaining_ap,
+            stage_ap,
+            combat_times,
+        )
+        return _TargetCountAvailability(page=_TargetCountPage.UNKNOWN)
+
+    logger.debug(f"剩余体力: {remaining_ap}, 关卡体力: {stage_ap // combat_times}")
+    return _TargetCountAvailability(page=_TargetCountPage.STAGE, available_count=available_count)
 
 
 def _tc_pick_times(available_count: int, target_count: int, already_count: int) -> int:
@@ -722,10 +767,11 @@ class TargetCountDetermine(CustomAction):
             context.override_next("TargetCountDetermine", ["TargetCountFinish"])
             return CustomAction.RunResult(success=True)
 
-        available_count = _tc_get_available_count(context)
-        if available_count == -1:
+        availability = _tc_get_availability(context)
+        if availability.page is _TargetCountPage.UNKNOWN or availability.available_count is None:
             context.override_next("TargetCountDetermine", ["TargetCountAbort"])
             return CustomAction.RunResult(success=True)
+        available_count = availability.available_count
 
         times = _tc_pick_times(
             available_count,
@@ -768,7 +814,7 @@ class TargetCountSelectTimes(CustomAction):
             return CustomAction.RunResult(success=True)
 
         logger.info(f"选择复现 {times} 次")
-        context.run_task(
+        task_detail = context.run_task(
             "SetReplaysTimes",
             {
                 "SetReplaysTimes": {
@@ -780,6 +826,9 @@ class TargetCountSelectTimes(CustomAction):
                 }
             },
         )
+        if task_detail is None or task_detail.status.failed:
+            logger.error(f"选择复现 {times} 次失败，终止任务")
+            context.override_next("TargetCountSelectTimes", ["TargetCountAbort"])
         return CustomAction.RunResult(success=True)
 
 
@@ -795,8 +844,12 @@ class TargetCountEatCandy(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        context.run_task("EatCandy")
-        context.override_next("TargetCountEatCandy", ["TargetCountDetermine"])
+        task_detail = context.run_task("EatCandy")
+        if task_detail is None or task_detail.status.failed:
+            logger.error("补充体力任务执行失败，终止任务")
+            context.override_next("TargetCountEatCandy", ["TargetCountAbort"])
+        else:
+            context.override_next("TargetCountEatCandy", ["TargetCountDetermine"])
         return CustomAction.RunResult(success=True)
 
 
@@ -883,8 +936,9 @@ class SSReopenReplay(CustomAction):
         context.run_task("SSToReplayIfCan")
 
         # 看看要不要吃不吃糖
-        available_count = _tc_get_available_count(context)
-        if available_count == -1:
+        availability = _tc_get_availability(context)
+        available_count = availability.available_count
+        if available_count is None:
             logger.debug("识别战斗次数失败")
             available_count = 1
         elif available_count <= 0:
@@ -892,8 +946,9 @@ class SSReopenReplay(CustomAction):
             for _ in range(2):  # 最多吃两次糖，防止吃mini糖体力不够
                 context.run_task("EatCandy")
 
-                available_count = _tc_get_available_count(context)
-                if available_count == -1:
+                availability = _tc_get_availability(context)
+                available_count = availability.available_count
+                if available_count is None:
                     logger.debug("识别战斗次数失败")
                     available_count = 1
             if available_count <= 0:

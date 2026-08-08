@@ -1,6 +1,7 @@
 {
     "EatCandy": {
         "next": [
+            "EatCandyPage",
             "EatCandyEnter"
         ]
     },
