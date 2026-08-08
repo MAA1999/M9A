@@ -70,16 +70,28 @@ class _ActionContext:
 
 
 class _SSActionContext:
-    def __init__(self) -> None:
+    def __init__(self, eat_candy_failed: bool | None = False) -> None:
         self.tasks: list[str] = []
         self.stopped = False
+        self.eat_candy_failed = eat_candy_failed
+        self.pipeline_overridden = False
         self.tasker = SimpleNamespace(
             controller=SimpleNamespace(cached_image=object()),
             post_stop=self._post_stop,
         )
 
-    def run_task(self, name: str, *_args: object, **_kwargs: object) -> None:
+    def run_task(self, name: str, *_args: object, **_kwargs: object) -> object | None:
         self.tasks.append(name)
+        if name == "EatCandy" and self.eat_candy_failed is None:
+            return None
+        failed = self.eat_candy_failed if name == "EatCandy" else False
+        return SimpleNamespace(status=SimpleNamespace(failed=failed))
+
+    def run_recognition(self, _name: str, _image: object) -> None:
+        return None
+
+    def override_pipeline(self, _pipeline: object) -> None:
+        self.pipeline_overridden = True
 
     def _post_stop(self) -> None:
         self.stopped = True
@@ -179,6 +191,40 @@ def test_ss_reopen_stops_when_availability_is_unknown_after_eating_candy(monkeyp
         ]
     )
     monkeypatch.setattr(combat_module, "_tc_get_availability", lambda _context: next(availabilities))
+
+    result = SSReopenReplay().run(context, None)  # type: ignore[arg-type]
+
+    assert not result.success
+    assert context.tasks == ["SSToReplayIfCan", "EatCandy", "HomeButton"]
+    assert context.stopped
+
+
+def test_ss_reopen_stops_eating_after_first_successful_restoration(monkeypatch: pytest.MonkeyPatch) -> None:
+    context = _SSActionContext()
+    availabilities = iter(
+        [
+            combat_module._TargetCountAvailability(page=_TargetCountPage.RECOVERY, available_count=0),
+            combat_module._TargetCountAvailability(page=_TargetCountPage.STAGE, available_count=1),
+        ]
+    )
+    monkeypatch.setattr(combat_module, "_tc_get_availability", lambda _context: next(availabilities))
+
+    result = SSReopenReplay().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.tasks == ["SSToReplayIfCan", "EatCandy", "OpenReplaysTimes", "SSReopenBackToMain"]
+    assert context.pipeline_overridden
+    assert not context.stopped
+
+
+@pytest.mark.parametrize("eat_candy_failed", [None, True])
+def test_ss_reopen_stops_when_eat_candy_subtask_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    eat_candy_failed: bool | None,
+) -> None:
+    context = _SSActionContext(eat_candy_failed=eat_candy_failed)
+    recovery = combat_module._TargetCountAvailability(page=_TargetCountPage.RECOVERY, available_count=0)
+    monkeypatch.setattr(combat_module, "_tc_get_availability", lambda _context: recovery)
 
     result = SSReopenReplay().run(context, None)  # type: ignore[arg-type]
 

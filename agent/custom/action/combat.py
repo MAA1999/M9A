@@ -947,7 +947,12 @@ class SSReopenReplay(CustomAction):
         if available_count <= 0:
             logger.debug("没体力咯，吃个糖")
             for _ in range(2):  # 最多吃两次糖，防止吃mini糖体力不够
-                context.run_task("EatCandy")
+                task_detail = context.run_task("EatCandy")
+                if task_detail is None or task_detail.status.failed:
+                    logger.error("补充体力任务执行失败，停止重开关卡")
+                    context.run_task("HomeButton")
+                    context.tasker.post_stop()
+                    return CustomAction.RunResult(success=False)
 
                 availability = _tc_get_availability(context)
                 available_count = availability.available_count
@@ -956,6 +961,9 @@ class SSReopenReplay(CustomAction):
                     context.run_task("HomeButton")
                     context.tasker.post_stop()
                     return CustomAction.RunResult(success=False)
+
+                if available_count > 0:
+                    break
             if available_count <= 0:
                 logger.debug("尝试吃糖后体力不够，任务结束。")
                 context.run_task("HomeButton")
