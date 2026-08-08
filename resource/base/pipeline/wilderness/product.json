@@ -3,7 +3,8 @@
         "recognition": "DirectHit",
         "next": [
             "EnterProduct",
-            "[JumpBack]ExpandProduct"
+            "[JumpBack]ExpandProduct",
+            "WildernessCompanyUnavailable"
         ]
     },
     "ExpandProduct": {
@@ -41,6 +42,32 @@
                 407,
                 100
             ]
+        }
+    },
+    "WildernessCompanyUnavailable": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    {
+                        "sub_name": "StandaloneGoodDreamWell",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    7,
+                                    669,
+                                    90,
+                                    26
+                                ],
+                                "expected": "好梦井",
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    "FlagInWilderness_rec"
+                ]
+            }
         }
     },
     "EnterProduct": {

@@ -3,7 +3,8 @@
         "recognition": "DirectHit",
         "next": [
             "EnterTrade",
-            "[JumpBack]ExpandProduct"
+            "[JumpBack]ExpandProduct",
+            "WildernessCompanyUnavailable"
         ]
     },
     "EnterTrade": {

@@ -8,16 +8,42 @@
     },
     "EnterGoodDreamWell": {
         "recognition": {
-            "type": "OCR",
+            "type": "Or",
             "param": {
-                "roi": [
-                    574,
-                    672,
-                    64,
-                    22
-                ],
-                "expected": "好梦井",
-                "only_rec": true
+                "any_of": [
+                    {
+                        "sub_name": "Expanded",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    574,
+                                    672,
+                                    64,
+                                    22
+                                ],
+                                "expected": "好梦井",
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    {
+                        "sub_name": "Standalone",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    7,
+                                    669,
+                                    90,
+                                    26
+                                ],
+                                "expected": "好梦井",
+                                "only_rec": true
+                            }
+                        }
+                    }
+                ]
             }
         },
         "action": {
