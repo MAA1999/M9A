@@ -938,19 +938,24 @@ class SSReopenReplay(CustomAction):
         # 看看要不要吃不吃糖
         availability = _tc_get_availability(context)
         available_count = availability.available_count
-        if available_count is None:
-            logger.debug("识别战斗次数失败")
-            available_count = 1
-        elif available_count <= 0:
+        if availability.page is _TargetCountPage.UNKNOWN or available_count is None:
+            logger.error("无法识别关卡体力信息，停止重开关卡")
+            context.run_task("HomeButton")
+            context.tasker.post_stop()
+            return CustomAction.RunResult(success=False)
+
+        if available_count <= 0:
             logger.debug("没体力咯，吃个糖")
             for _ in range(2):  # 最多吃两次糖，防止吃mini糖体力不够
                 context.run_task("EatCandy")
 
                 availability = _tc_get_availability(context)
                 available_count = availability.available_count
-                if available_count is None:
-                    logger.debug("识别战斗次数失败")
-                    available_count = 1
+                if availability.page is _TargetCountPage.UNKNOWN or available_count is None:
+                    logger.error("补充体力后无法识别关卡体力信息，停止重开关卡")
+                    context.run_task("HomeButton")
+                    context.tasker.post_stop()
+                    return CustomAction.RunResult(success=False)
             if available_count <= 0:
                 logger.debug("尝试吃糖后体力不够，任务结束。")
                 context.run_task("HomeButton")

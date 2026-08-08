@@ -6,7 +6,9 @@ import numpy as np
 import pytest
 from maa.define import OCRResult, RecognitionDetail, RecognitionResult, Rect
 
+import agent.custom.action.combat as combat_module
 from agent.custom.action.combat import (
+    SSReopenReplay,
     TargetCountEatCandy,
     TargetCountSelectTimes,
     _TargetCountPage,
@@ -54,14 +56,33 @@ class _RecognitionContext:
 
 
 class _ActionContext:
-    def __init__(self) -> None:
+    def __init__(self, task_failed: bool | None = None) -> None:
         self.override: tuple[str, list[str]] | None = None
+        self.task_failed = task_failed
 
-    def run_task(self, *_args: object, **_kwargs: object) -> None:
-        return None
+    def run_task(self, *_args: object, **_kwargs: object) -> object | None:
+        if self.task_failed is None:
+            return None
+        return SimpleNamespace(status=SimpleNamespace(failed=self.task_failed))
 
     def override_next(self, node: str, next_nodes: list[str]) -> None:
         self.override = (node, next_nodes)
+
+
+class _SSActionContext:
+    def __init__(self) -> None:
+        self.tasks: list[str] = []
+        self.stopped = False
+        self.tasker = SimpleNamespace(
+            controller=SimpleNamespace(cached_image=object()),
+            post_stop=self._post_stop,
+        )
+
+    def run_task(self, name: str, *_args: object, **_kwargs: object) -> None:
+        self.tasks.append(name)
+
+    def _post_stop(self) -> None:
+        self.stopped = True
 
 
 def test_calculate_available_count_distinguishes_zero_and_invalid_values() -> None:
@@ -112,9 +133,55 @@ def test_select_times_aborts_when_subtask_fails(monkeypatch: pytest.MonkeyPatch)
     assert context.override == ("TargetCountSelectTimes", ["TargetCountAbort"])
 
 
+def test_select_times_keeps_normal_next_when_subtask_succeeds(monkeypatch: pytest.MonkeyPatch) -> None:
+    context = _ActionContext(task_failed=False)
+    monkeypatch.setattr(_TargetCountState, "current_times", 3)
+
+    TargetCountSelectTimes().run(context, None)  # type: ignore[arg-type]
+
+    assert context.override is None
+
+
 def test_eat_candy_aborts_when_subtask_fails() -> None:
     context = _ActionContext()
 
     TargetCountEatCandy().run(context, None)  # type: ignore[arg-type]
 
     assert context.override == ("TargetCountEatCandy", ["TargetCountAbort"])
+
+
+def test_eat_candy_returns_to_determine_when_subtask_succeeds() -> None:
+    context = _ActionContext(task_failed=False)
+
+    TargetCountEatCandy().run(context, None)  # type: ignore[arg-type]
+
+    assert context.override == ("TargetCountEatCandy", ["TargetCountDetermine"])
+
+
+def test_ss_reopen_stops_when_initial_availability_is_unknown(monkeypatch: pytest.MonkeyPatch) -> None:
+    context = _SSActionContext()
+    unknown = combat_module._TargetCountAvailability(page=_TargetCountPage.UNKNOWN)
+    monkeypatch.setattr(combat_module, "_tc_get_availability", lambda _context: unknown)
+
+    result = SSReopenReplay().run(context, None)  # type: ignore[arg-type]
+
+    assert not result.success
+    assert context.tasks == ["SSToReplayIfCan", "HomeButton"]
+    assert context.stopped
+
+
+def test_ss_reopen_stops_when_availability_is_unknown_after_eating_candy(monkeypatch: pytest.MonkeyPatch) -> None:
+    context = _SSActionContext()
+    availabilities = iter(
+        [
+            combat_module._TargetCountAvailability(page=_TargetCountPage.RECOVERY, available_count=0),
+            combat_module._TargetCountAvailability(page=_TargetCountPage.UNKNOWN),
+        ]
+    )
+    monkeypatch.setattr(combat_module, "_tc_get_availability", lambda _context: next(availabilities))
+
+    result = SSReopenReplay().run(context, None)  # type: ignore[arg-type]
+
+    assert not result.success
+    assert context.tasks == ["SSToReplayIfCan", "EatCandy", "HomeButton"]
+    assert context.stopped
