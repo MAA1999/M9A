@@ -6,7 +6,8 @@
             "[JumpBack]CollectTrust",
             "[JumpBack]TrustDialogueNext",
             "[JumpBack]TrustDialogueInteraction",
-            "FlagInWilderness_rec"
+            "FlagInWilderness_rec",
+            "[JumpBack]WildernessTrustRecoverBack"
         ]
     },
     "CollectTrust": {
@@ -24,6 +25,44 @@
         },
         "action": {
             "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                0,
+                58,
+                188,
+                438
+            ]
+        }
+    },
+    "WildernessTrustRecoverBack": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    0,
+                    134,
+                    138
+                ],
+                "template": [
+                    "StartUp/BackButton.png"
+                ],
+                "green_mask": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                0,
+                0,
+                260,
+                140
+            ]
         }
     },
     "TrustDialogueNext": {
