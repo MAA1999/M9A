@@ -168,6 +168,7 @@
         },
         "next": [
             "PsychubeFlagInReadyForAction",
+            "HomeFlag",
             "PsychubeVictory",
             "[JumpBack]BackButton",
             "[JumpBack]HomeLoading"
