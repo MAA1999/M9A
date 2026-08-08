@@ -1128,5 +1128,21 @@
                 }
             }
         }
+    },
+    "3.9": {
+        "version_name": "重燃！流金之海",
+        "start_time": 1786586400000,
+        "end_time": 1790197199000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1786586400000,
+                "end_time": 1789937999000
+            },
+            "re-release": {
+                "start_time": 1789074000000,
+                "end_time": 1789851599000
+            }
+        }
     }
 }
