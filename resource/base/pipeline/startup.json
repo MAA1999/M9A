@@ -32,6 +32,7 @@
         "max_hit": 2,
         "next": [
             "EquipmentOverflowDissociate",
+            "[JumpBack]StoryIntroductionBack",
             "[JumpBack]Confirm",
             "HomeFlagCloseReturnMain",
             "[JumpBack]HomeButton",
@@ -49,8 +50,7 @@
             "[JumpBack]Downloading",
             "[JumpBack]CandyCancel",
             "[JumpBack]ClickBlank",
-            "[JumpBack]SkipButton",
-            "[JumpBack]ClickHomeCount"
+            "[JumpBack]SkipButton"
         ]
     },
     "EquipmentOverflowDissociate": {
@@ -85,6 +85,42 @@
             "[JumpBack]Dissociation4StarSelect",
             "[JumpBack]Dissociation3StarSelect"
         ]
+    },
+    "StoryIntroductionBack": {
+        "desc": "点击弹层外退出意外打开的剧情介绍",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    920,
+                    400,
+                    115,
+                    55
+                ],
+                "expected": "开始剧情",
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    15,
+                    5,
+                    65,
+                    65
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": [
+                0,
+                0,
+                400,
+                150
+            ]
+        }
     },
     "StartGame": {
         "recognition": {
@@ -596,7 +632,8 @@
                     138
                 ],
                 "template": [
-                    "StartUp/BackButton.png"
+                    "StartUp/BackButton.png",
+                    "StartUp/BackButton_2.png"
                 ],
                 "green_mask": true
             }
@@ -616,7 +653,8 @@
                     138
                 ],
                 "template": [
-                    "StartUp/BackButton.png"
+                    "StartUp/BackButton.png",
+                    "StartUp/BackButton_2.png"
                 ],
                 "green_mask": true
             }
