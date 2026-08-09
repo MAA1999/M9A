@@ -352,6 +352,7 @@
             "type": "Click"
         },
         "next": [
+            "[JumpBack]ObtainedAwards",
             "AwardGrannyOrderCompleted",
             "AwardGrannyOrderResult"
         ]
