@@ -68,6 +68,7 @@
             "type": "Click"
         },
         "next": [
+            "EquipmentOverflowDissociate",
             "PsychubeFlagInReplayReady",
             "[JumpBack]PsychubeSwitchToReplay",
             "[JumpBack]CombatEntering"
