@@ -57,12 +57,13 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    863,
-                    531,
-                    133,
-                    35
+                    844,
+                    535,
+                    197,
+                    25
                 ],
-                "expected": "浅眠域"
+                "expected": "浅眠域",
+                "only_rec": true
             }
         },
         "next": [
