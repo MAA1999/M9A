@@ -145,12 +145,15 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    169,
-                    139,
-                    167,
-                    67
+                    120,
+                    70,
+                    700,
+                    200
                 ],
-                "template": "Wilderness/CollectProductAwards.png"
+                "template": [
+                    "Wilderness/CollectProductAwards.png",
+                    "Wilderness/CollectProductAwards2.png"
+                ]
             }
         },
         "action": {

@@ -1,6 +1,7 @@
 {
     "Wilderness": {
         "next": [
+            "[JumpBack]ExitCollectProductAwards",
             "FlagInWilderness",
             "[JumpBack]EnterWilderness",
             "[JumpBack]HomeLoading",
