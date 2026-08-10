@@ -853,7 +853,7 @@
                                     155
                                 ],
                                 "template": "StartUp/SignInReward.png",
-                                "threshold": 0.88
+                                "threshold": 0.85
                             }
                         }
                     },
