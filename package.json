@@ -1,6 +1,6 @@
 {
     "devDependencies": {
-        "@nekosu/maa-tools": "1.0.25",
+        "@nekosu/maa-tools": "1.1.0",
         "@nekosu/prettier-plugin-maafw-sort": "1.0.6",
         "ajv": "8.20.0",
         "ajv-formats": "3.0.1",

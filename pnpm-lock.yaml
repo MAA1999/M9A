@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@nekosu/maa-tools':
-        specifier: 1.0.25
-        version: 1.0.25
+        specifier: 1.1.0
+        version: 1.1.0
       '@nekosu/prettier-plugin-maafw-sort':
         specifier: 1.0.6
         version: 1.0.6
@@ -83,18 +83,18 @@ packages:
   '@nekosu/maa-locale@1.0.3':
     resolution: {integrity: sha512-7HNGbhhuKky8kumBxAJXrezSzIPmP1en+DlqENx5r5DZHwJRCDSjzbW7Wi7Zogbo8lpBZNq631kEDspdTbFKIA==}
 
-  '@nekosu/maa-pipeline-manager@1.0.12':
-    resolution: {integrity: sha512-xIw6xYbAZwcNl6NmpriqwZS2KrMLAA2ZGvOYij87rtTX+tp3749dyvTySBQ+2MqFg4kvMPm1M2L/zigmtt1vCQ==}
+  '@nekosu/maa-pipeline-manager@1.0.13':
+    resolution: {integrity: sha512-zgnZXk2HwIIGnTSMqAn36kfg4vVYMc9QfDFx6THz+cngkrNQB20kgK6jBgrUFopokMvEOlRY/KpBZmraJVwATw==}
 
   '@nekosu/maa-tasker@1.0.0':
     resolution: {integrity: sha512-p5SaBJGvAMr5J2uk6imoiK7eIF7yA67HndWyfxddAHHdoyliai2dkHqBhTmDDuRmmAJ/ly4INg5Hnx8CI7Po3A==}
 
-  '@nekosu/maa-tools@1.0.25':
-    resolution: {integrity: sha512-5A+t2ZYTD7D1LnQmVB93yP3tN/rt7qTR7oXGRwKL1ocYbca2LqjnTo2u4Iwu2DPgvKIhvq8hZ/0qQ3kAT1iXNg==}
+  '@nekosu/maa-tools@1.1.0':
+    resolution: {integrity: sha512-+RPjfMFNmhA89M8VKP34VuR+ZZsKAUSFFTeaAOBSPK/wb8hXdG7WDZ/c8khs0NPGCZ/EvuddjZhYPrrORxmpIQ==}
     hasBin: true
 
-  '@nekosu/maa-version-manager@1.0.2':
-    resolution: {integrity: sha512-jQ4wTJKNAkjzf7MIFzKMlyRx3PjHyEWMD+M8Yjh8pCLAB+LyZKDHcDojczWQKeYmGL93uxtTDhyKB12UEo7TkQ==}
+  '@nekosu/maa-version-manager@1.1.0':
+    resolution: {integrity: sha512-WB2rHQYFUK+e49+dTd7KW0k17OWM3H89jkTgH092iOH/pmOqBIBAzanUSKw5yEwI1ikhY+IRa75b1zhKh+wjNA==}
 
   '@nekosu/prettier-plugin-maafw-sort@1.0.6':
     resolution: {integrity: sha512-KuWR3y4pyFx5/3tPryDWyLS9DWiplTZLOhOco/7qxjFWtfvg/eNFwMUr88nrqMfFK6GMh8aw34LDewhG9aGrkw==}
@@ -212,8 +212,8 @@ packages:
   bignumber.js@9.3.1:
     resolution: {integrity: sha512-Ko0uX15oIUS7wJ3Rb30Fs6SkVbLmPBAKdlm7q9+ak9bbIeFf0MwuBsQV6z7+X768/cHsfg+WlysDWJcmthjsjQ==}
 
-  brace-expansion@5.0.8:
-    resolution: {integrity: sha512-JZyDyq3D4AUifKTPOB7DELf6XsB3WdPuNxCtob1vFXPsSXhdAiHBWJ/tJ8HAc9aH84BK+5JFZLNkJKx3G9kzQg==}
+  brace-expansion@5.0.9:
+    resolution: {integrity: sha512-ScQ4IuvIEF1TMlP7Zt+vjJ//9zlPb2SDcxWxM3bk8s6t6GGdJ7KO1dCcTidOPJKePW30LE/2cT7wCyPho9/Wxg==}
     engines: {node: 20 || >=22}
 
   browser-or-node@3.0.0:
@@ -323,8 +323,8 @@ packages:
     resolution: {integrity: sha512-IBTdIkzZNOpqm7q3dRqJvMaldXjDHWkEDfrwGEQTs5eaQMWV+djAhR+wahyNNMAa+qpbDUhBMVt4ZKNwpPm7xQ==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  ip-address@10.3.1:
-    resolution: {integrity: sha512-1e9d3kb97NHJTIJDZW9rKqW2h6+dFa50Dy0fpPSMQp2ADje5gvKsXmdiK6dwY5t76TaTt5+P5N1Y/LoToIxP6g==}
+  ip-address@10.4.0:
+    resolution: {integrity: sha512-oSK96Grm3aP6OrS263xVxbNDGVL7rzBtYdpGqlDG8iQdoenDoTs/nkki+DflYbAEE8Xl6o5YxhxlrKvI3nqKXQ==}
     engines: {node: '>= 12'}
 
   isexe@4.0.0:
@@ -366,8 +366,8 @@ packages:
     resolution: {integrity: sha512-Je0fLJ0F5atA7F+eIlLzk+Wkcl57JDf4kf+EW8xiP5E31xOQxkIxTbgf1Oi1Lw9tRI9UEMRdI5Vz2xTzoNU1Jw==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  minimatch@10.2.5:
-    resolution: {integrity: sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==}
+  minimatch@10.2.6:
+    resolution: {integrity: sha512-vpLQEs+VLCr1nU0BXS07maYoFwlDAH0gngQuuttxIwutDFEMHq2blX+8vpgxDdK3J1PwjCJiep77OitTZ4Ll1A==}
     engines: {node: 18 || 20 || >=22}
 
   minipass-collect@2.0.1:
@@ -486,8 +486,8 @@ packages:
     resolution: {integrity: sha512-ss7IuTHbS6SeuEKcFfkVtp8kInS8HfMOb1dc/1x1aIyXp97sdQRDH781j1j3PeU5ieLR3FLUrIqF1+UjQ2oIZQ==}
     engines: {node: '>=22'}
 
-  readdirp@5.0.0:
-    resolution: {integrity: sha512-9u/XQ1pvrQtYyMpZe7DXKv2p5CNvyVwzUB6uhLAnQwHMSgKMBR62lc7AHljaeteeHXn11XTAaLLUVZYVZyuRBQ==}
+  readdirp@5.1.1:
+    resolution: {integrity: sha512-Kko+Y5XQ6fM+Ce3dq3m9YGxnacYZYl9cA1wZjaF3Vbry2L3i1qVg8+CAgNPsXRArPMUMCaOR7oa9Nqntc43JKA==}
     engines: {node: '>= 20.19.0'}
 
   require-from-string@2.0.2:
@@ -656,7 +656,7 @@ snapshots:
 
   '@nekosu/maa-locale@1.0.3': {}
 
-  '@nekosu/maa-pipeline-manager@1.0.12':
+  '@nekosu/maa-pipeline-manager@1.0.13':
     dependencies:
       '@nekosu/maa-locale': 1.0.3
       '@nekosu/maa-tasker': 1.0.0
@@ -667,12 +667,12 @@ snapshots:
     dependencies:
       '@nekosu/simple-parser': 1.0.0
 
-  '@nekosu/maa-tools@1.0.25':
+  '@nekosu/maa-tools@1.1.0':
     dependencies:
       '@actions/core': 3.0.1
       '@nekosu/maa-locale': 1.0.3
-      '@nekosu/maa-pipeline-manager': 1.0.12
-      '@nekosu/maa-version-manager': 1.0.2
+      '@nekosu/maa-pipeline-manager': 1.0.13
+      '@nekosu/maa-version-manager': 1.1.0
       chalk: 5.6.2
       jiti: 2.7.0
       jsonc-parser: 3.3.1
@@ -680,7 +680,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@nekosu/maa-version-manager@1.0.2':
+  '@nekosu/maa-version-manager@1.1.0':
     dependencies:
       pacote: 21.5.1
       proper-lockfile: 4.1.2
@@ -795,7 +795,7 @@ snapshots:
   '@tufjs/models@4.1.0':
     dependencies:
       '@tufjs/canonical-json': 2.0.0
-      minimatch: 10.2.5
+      minimatch: 10.2.6
 
   '@types/luxon@3.7.2': {}
 
@@ -820,7 +820,7 @@ snapshots:
 
   bignumber.js@9.3.1: {}
 
-  brace-expansion@5.0.8:
+  brace-expansion@5.0.9:
     dependencies:
       balanced-match: 4.0.4
 
@@ -843,7 +843,7 @@ snapshots:
 
   chokidar@5.0.0:
     dependencies:
-      readdirp: 5.0.0
+      readdirp: 5.1.1
 
   chownr@3.0.0: {}
 
@@ -879,7 +879,7 @@ snapshots:
 
   glob@13.0.6:
     dependencies:
-      minimatch: 10.2.5
+      minimatch: 10.2.6
       minipass: 7.1.3
       path-scurry: 2.0.2
 
@@ -912,11 +912,11 @@ snapshots:
 
   ignore-walk@8.0.0:
     dependencies:
-      minimatch: 10.2.5
+      minimatch: 10.2.6
 
   ini@6.0.0: {}
 
-  ip-address@10.3.1: {}
+  ip-address@10.4.0: {}
 
   isexe@4.0.0: {}
 
@@ -953,9 +953,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  minimatch@10.2.5:
+  minimatch@10.2.6:
     dependencies:
-      brace-expansion: 5.0.8
+      brace-expansion: 5.0.9
 
   minipass-collect@2.0.1:
     dependencies:
@@ -1107,7 +1107,7 @@ snapshots:
       '@augment-vir/assert': 32.2.1
       '@augment-vir/common': 32.2.1
 
-  readdirp@5.0.0: {}
+  readdirp@5.1.1: {}
 
   require-from-string@2.0.2: {}
 
@@ -1143,7 +1143,7 @@ snapshots:
 
   socks@2.8.9:
     dependencies:
-      ip-address: 10.3.1
+      ip-address: 10.4.0
       smart-buffer: 4.2.0
 
   spdx-exceptions@2.5.0: {}
