@@ -9,6 +9,7 @@ from maa.define import OCRResult, RecognitionDetail, RecognitionResult, Rect
 import agent.custom.action.combat as combat_module
 from agent.custom.action.combat import (
     SSReopenReplay,
+    TargetCountDetermine,
     TargetCountEatCandy,
     TargetCountSelectTimes,
     _TargetCountPage,
@@ -45,14 +46,24 @@ class _ScreenshotRequest:
 
 
 class _RecognitionContext:
-    def __init__(self, results: dict[str, RecognitionDetail | None]) -> None:
+    def __init__(self, results: dict[str, RecognitionDetail | None], eat_candy_enabled: bool = True) -> None:
         self.results = results
         self.calls: list[str] = []
+        self.eat_candy_enabled = eat_candy_enabled
+        self.override: tuple[str, list[str]] | None = None
         self.tasker = SimpleNamespace(controller=SimpleNamespace(post_screencap=lambda: _ScreenshotRequest()))
 
     def run_recognition(self, name: str, _image: object) -> RecognitionDetail | None:
         self.calls.append(name)
         return self.results.get(name)
+
+    def get_node_data(self, name: str) -> dict[str, object] | None:
+        if name != "EatCandy":
+            return None
+        return {"enabled": self.eat_candy_enabled}
+
+    def override_next(self, node: str, next_nodes: list[str]) -> None:
+        self.override = (node, next_nodes)
 
 
 class _ActionContext:
@@ -70,10 +81,11 @@ class _ActionContext:
 
 
 class _SSActionContext:
-    def __init__(self, eat_candy_failed: bool | None = False) -> None:
+    def __init__(self, eat_candy_failed: bool | None = False, eat_candy_enabled: bool = True) -> None:
         self.tasks: list[str] = []
         self.stopped = False
         self.eat_candy_failed = eat_candy_failed
+        self.eat_candy_enabled = eat_candy_enabled
         self.pipeline_overridden = False
         self.tasker = SimpleNamespace(
             controller=SimpleNamespace(cached_image=object()),
@@ -90,11 +102,23 @@ class _SSActionContext:
     def run_recognition(self, _name: str, _image: object) -> None:
         return None
 
+    def get_node_data(self, name: str) -> dict[str, object] | None:
+        if name != "EatCandy":
+            return None
+        return {"enabled": self.eat_candy_enabled}
+
     def override_pipeline(self, _pipeline: object) -> None:
         self.pipeline_overridden = True
 
     def _post_stop(self) -> None:
         self.stopped = True
+
+
+def _reset_target_count_state(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(_TargetCountState, "target_count", 10)
+    monkeypatch.setattr(_TargetCountState, "already_count", 0)
+    monkeypatch.setattr(_TargetCountState, "current_times", 0)
+    monkeypatch.setattr(_TargetCountState, "candy_attempts", 0)
 
 
 def test_calculate_available_count_distinguishes_zero_and_invalid_values() -> None:
@@ -170,6 +194,40 @@ def test_eat_candy_returns_to_determine_when_subtask_succeeds() -> None:
     assert context.override == ("TargetCountEatCandy", ["TargetCountDetermine"])
 
 
+def test_determine_finishes_when_eat_candy_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
+    _reset_target_count_state(monkeypatch)
+    context = _RecognitionContext(
+        {
+            "RecognizeRemainingAp": _recognition_detail("10"),
+            "RecognizeStageAp": _recognition_detail("25"),
+            "RecognizeCombatTimes": _recognition_detail("1"),
+        },
+        eat_candy_enabled=False,
+    )
+
+    result = TargetCountDetermine().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountDetermine", ["TargetCountFinish"])
+
+
+def test_determine_keeps_eat_candy_next_when_enabled(monkeypatch: pytest.MonkeyPatch) -> None:
+    _reset_target_count_state(monkeypatch)
+    context = _RecognitionContext(
+        {
+            "RecognizeRemainingAp": _recognition_detail("10"),
+            "RecognizeStageAp": _recognition_detail("25"),
+            "RecognizeCombatTimes": _recognition_detail("1"),
+        },
+        eat_candy_enabled=True,
+    )
+
+    result = TargetCountDetermine().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountDetermine", ["TargetCountEatCandy"])
+
+
 def test_ss_reopen_stops_when_initial_availability_is_unknown(monkeypatch: pytest.MonkeyPatch) -> None:
     context = _SSActionContext()
     unknown = combat_module._TargetCountAvailability(page=_TargetCountPage.UNKNOWN)
@@ -231,3 +289,15 @@ def test_ss_reopen_stops_when_eat_candy_subtask_fails(
     assert not result.success
     assert context.tasks == ["SSToReplayIfCan", "EatCandy", "HomeButton"]
     assert context.stopped
+
+
+def test_ss_reopen_ends_when_eat_candy_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
+    context = _SSActionContext(eat_candy_enabled=False)
+    recovery = combat_module._TargetCountAvailability(page=_TargetCountPage.RECOVERY, available_count=0)
+    monkeypatch.setattr(combat_module, "_tc_get_availability", lambda _context: recovery)
+
+    result = SSReopenReplay().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.tasks == ["SSToReplayIfCan", "HomeButton"]
+    assert not context.stopped

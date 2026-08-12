@@ -721,6 +721,11 @@ def _tc_pick_times(available_count: int, target_count: int, already_count: int) 
     return min(4, available_count, left_count)
 
 
+def _tc_is_eat_candy_disabled(context: Context) -> bool:
+    node = context.get_node_data("EatCandy")
+    return node is not None and not node.get("enabled", True)
+
+
 @AgentServer.custom_action("TargetCountInit")
 class TargetCountInit(CustomAction):
     """
@@ -782,6 +787,11 @@ class TargetCountDetermine(CustomAction):
             _TargetCountState.current_times = times
             logger.info(f"准备复现 {times} 次，累计已刷 {_TargetCountState.already_count} 次")
             context.override_next("TargetCountDetermine", ["TargetCountOpenPanel"])
+            return CustomAction.RunResult(success=True)
+
+        if _tc_is_eat_candy_disabled(context):
+            logger.info("未启用吃糖，直接结束刷图任务")
+            context.override_next("TargetCountDetermine", ["TargetCountFinish"])
             return CustomAction.RunResult(success=True)
 
         if _TargetCountState.candy_attempts >= 2:
@@ -945,6 +955,11 @@ class SSReopenReplay(CustomAction):
             return CustomAction.RunResult(success=False)
 
         if available_count <= 0:
+            if _tc_is_eat_candy_disabled(context):
+                logger.info("未启用吃糖，任务结束")
+                context.run_task("HomeButton")
+                return CustomAction.RunResult(success=True)
+
             logger.debug("没体力咯，吃个糖")
             for _ in range(2):  # 最多吃两次糖，防止吃mini糖体力不够
                 task_detail = context.run_task("EatCandy")
