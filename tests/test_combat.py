@@ -158,6 +158,7 @@ def test_eat_candy_pipeline_accepts_open_page_before_stage_entry() -> None:
     pipeline = json.loads(pipeline_path.read_text(encoding="utf-8"))
 
     assert pipeline["EatCandy"]["next"] == ["EatCandyPage", "EatCandyEnter"]
+    assert pipeline["EatCandyEnter"]["post_delay"] == 1500
 
 
 def test_select_times_aborts_when_subtask_fails(monkeypatch: pytest.MonkeyPatch) -> None:
