@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@nekosu/maa-tools':
-        specifier: 1.1.0
-        version: 1.1.0
+        specifier: 1.1.1
+        version: 1.1.1
       '@nekosu/prettier-plugin-maafw-sort':
         specifier: 1.0.6
         version: 1.0.6
@@ -89,8 +89,8 @@ packages:
   '@nekosu/maa-tasker@1.0.0':
     resolution: {integrity: sha512-p5SaBJGvAMr5J2uk6imoiK7eIF7yA67HndWyfxddAHHdoyliai2dkHqBhTmDDuRmmAJ/ly4INg5Hnx8CI7Po3A==}
 
-  '@nekosu/maa-tools@1.1.0':
-    resolution: {integrity: sha512-+RPjfMFNmhA89M8VKP34VuR+ZZsKAUSFFTeaAOBSPK/wb8hXdG7WDZ/c8khs0NPGCZ/EvuddjZhYPrrORxmpIQ==}
+  '@nekosu/maa-tools@1.1.1':
+    resolution: {integrity: sha512-QSSt8ivIDSnVRMaBxpmT+2shrsLGvMkZohYCAesKQg8UOHKw6G/MQhvHgNftY8u/XPwwUiWx0fZ2PxOyl9hZCw==}
     hasBin: true
 
   '@nekosu/maa-version-manager@1.1.0':
@@ -323,8 +323,8 @@ packages:
     resolution: {integrity: sha512-IBTdIkzZNOpqm7q3dRqJvMaldXjDHWkEDfrwGEQTs5eaQMWV+djAhR+wahyNNMAa+qpbDUhBMVt4ZKNwpPm7xQ==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  ip-address@10.4.0:
-    resolution: {integrity: sha512-oSK96Grm3aP6OrS263xVxbNDGVL7rzBtYdpGqlDG8iQdoenDoTs/nkki+DflYbAEE8Xl6o5YxhxlrKvI3nqKXQ==}
+  ip-address@10.5.0:
+    resolution: {integrity: sha512-R5SnVLJmgYYvf2F2ZgwSBnelz5G4q5AxIC277GDfUaNbrZKNANcBC7RHqYYePlszf4kBolVkJauG0ZjHHFh55g==}
     engines: {node: '>= 12'}
 
   isexe@4.0.0:
@@ -667,7 +667,7 @@ snapshots:
     dependencies:
       '@nekosu/simple-parser': 1.0.0
 
-  '@nekosu/maa-tools@1.1.0':
+  '@nekosu/maa-tools@1.1.1':
     dependencies:
       '@actions/core': 3.0.1
       '@nekosu/maa-locale': 1.0.3
@@ -916,7 +916,7 @@ snapshots:
 
   ini@6.0.0: {}
 
-  ip-address@10.4.0: {}
+  ip-address@10.5.0: {}
 
   isexe@4.0.0: {}
 
@@ -1143,7 +1143,7 @@ snapshots:
 
   socks@2.8.9:
     dependencies:
-      ip-address: 10.4.0
+      ip-address: 10.5.0
       smart-buffer: 4.2.0
 
   spdx-exceptions@2.5.0: {}
