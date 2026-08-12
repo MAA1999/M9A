@@ -252,6 +252,7 @@
         },
         "post_wait_freezes": {
             "time": 500,
+            "timeout": 5000,
             "target": [
                 517,
                 271,
