@@ -809,5 +809,17 @@
                 }
             }
         }
+    },
+    "3.7": {
+        "version_name": "他者の哀しみ",
+        "start_time": 1786582800000,
+        "end_time": 1790452799000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1786582800000,
+                "end_time": 1790193599000
+            }
+        }
     }
 }
