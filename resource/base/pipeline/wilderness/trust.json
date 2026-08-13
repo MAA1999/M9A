@@ -63,7 +63,13 @@
                 260,
                 140
             ]
-        }
+        },
+        "next": [
+            "FlagInWilderness_rec"
+        ],
+        "on_error": [
+            "WildernessTrustRecoverBack"
+        ]
     },
     "TrustDialogueNext": {
         "recognition": {

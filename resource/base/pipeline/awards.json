@@ -1011,6 +1011,12 @@
                                     78
                                 ],
                                 "expected": "领取",
+                                "replace": [
+                                    [
+                                        "职",
+                                        "取"
+                                    ]
+                                ],
                                 "color_filter": "AwardBreakingSignalsAward_color_filter"
                             }
                         }
@@ -1025,7 +1031,13 @@
                                     381,
                                     67
                                 ],
-                                "expected": "领取"
+                                "expected": "领取",
+                                "replace": [
+                                    [
+                                        "职",
+                                        "取"
+                                    ]
+                                ]
                             }
                         }
                     }

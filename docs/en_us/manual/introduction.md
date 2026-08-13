@@ -136,7 +136,9 @@ Leave the field empty to scroll to the bottom of the account list and switch to 
 - After switching, you can continue adding tasks for multi-account multi-configuration task execution
 - Currently only supports Official server
 - Only supports emulator environments with an actual unscaled resolution of 1280×720
-  :::
+- The emulator DPI must be set to 240
+
+:::
 
 ## Switch Art Framework
 
