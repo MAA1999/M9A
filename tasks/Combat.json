@@ -184,6 +184,23 @@
                     }
                 },
                 {
+                    "name": "骨架：7-7 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "7-7"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "骨架：10-13 厄险",
                     "pipeline_override": {
                         "SelectCombatStage": {
@@ -310,6 +327,23 @@
                                 "param": {
                                     "custom_action_param": {
                                         "stage": "9-8"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "百灵鸟：10-6 厄险",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "10-6"
                                     }
                                 }
                             },
