@@ -18,6 +18,13 @@ on:
       - ".github/workflows/android.yml"
   workflow_dispatch:
     inputs:
+      assemble:
+        description: "debug 或 release"
+        type: choice
+        options:
+          - debug
+          - release
+        default: debug
       maafw_tag:
         description: "MaaFramework release tag"
         required: false
@@ -120,18 +127,65 @@ jobs:
           {
             echo "sdk.dir=${ANDROID_HOME}"
             echo "pi.profile=${PI_PROFILE}"
-            echo "build.debugAbi=arm64-v8a"
+            if [ "${{ github.event.inputs.assemble || 'debug' }}" != "release" ]; then
+              echo "build.debugAbi=arm64-v8a"
+            fi
           } > local.properties
 
+      - name: Decode keystore
+        if: ${{ github.event.inputs.assemble == 'release' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/release.jks
+
       - name: Build Debug APK
+        if: ${{ github.event.inputs.assemble != 'release' }}
         working-directory: Android/MaaFwApp
         run: |
           chmod +x ./gradlew
           ./gradlew clean assembleDebug
 
-      - name: Upload APK
+      - name: Build Release APK
+        if: ${{ github.event.inputs.assemble == 'release' }}
+        working-directory: Android/MaaFwApp
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean assembleRelease
+
+      - name: Rename Release APK
+        if: ${{ github.event.inputs.assemble == 'release' }}
+        run: |
+          cd Android/MaaFwApp/app/build/outputs/apk/release
+          TAG="${GITHUB_REF_NAME:-dev}"
+          for f in *.apk; do
+            mv "$f" "M9A-Meow-${TAG}-arm64-v8a.apk"
+          done
+
+      - name: Upload Debug APK
+        if: ${{ github.event.inputs.assemble != 'release' }}
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk
           path: Android/MaaFwApp/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload Release APK
+        if: ${{ github.event.inputs.assemble == 'release' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk-arm64-v8a
+          path: Android/MaaFwApp/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Upload R8 mapping
+        if: ${{ github.event.inputs.assemble == 'release' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-mapping-arm64-v8a
+          path: Android/MaaFwApp/app/build/outputs/mapping/release/mapping.txt
           if-no-files-found: error
