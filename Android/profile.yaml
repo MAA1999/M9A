@@ -1,0 +1,45 @@
+# Android 打包配方。相对路径相对本文件。
+# assets 指向上一级，也就是本仓库根；改任务 / agent 不用再设环境变量。
+
+assets: ..
+
+include:
+  - interface.json
+  - tasks/**
+  - resource/**
+  - data/**
+  - agent/**
+  - config/**
+  - logo.ico
+  - CONTACT
+  - LICENSE
+
+# images/ 不能整目录挖：银行等 option 的 icon 指在这里
+exclude:
+  - resource/announcement/*.md
+  - resource/announcement/images/CCMain.png
+  - resource/announcement/images/mojing_tjb.jpg
+  - resource/announcement/images/uttu.png
+  - resource/announcement/images/SOSMain.png
+  - resource/announcement/images/newbie-main-interface.png
+
+# 出运行时（在 android/MaaFwApp 下执行）：
+#   python scripts/build_agent_bundle.py --out ../agent-dist \
+#     --requirements ../../requirements.txt \
+#     --exclude pillow --require pillow==11.0.0 --extra-index-url https://chaquo.com/pypi-13.1/
+agent:
+  sourceDir: agent-dist
+  abi: [arm64-v8a]
+  runtimes:
+    - location: bundle
+      executable: bin/python3
+      args: [-u, agent/main.py]
+      env:
+        PYTHONHOME: "{bundle}/prefix"
+        PYTHONPATH: "{bundle}/site-packages/pure.zip:{bundle}/site-packages"
+        LD_LIBRARY_PATH: "{bundle}/prefix/lib:{bundle}/site-packages/chaquopy/lib:{nativeLibs}"
+        MAAFW_BINARY_PATH: "{nativeLibs}"
+
+app:
+  id: m9a
+  label: M9A
