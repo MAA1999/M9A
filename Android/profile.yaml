@@ -43,3 +43,4 @@ agent:
 app:
   id: m9a
   label: M9A
+  icon: logo.png
