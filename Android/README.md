@@ -37,3 +37,9 @@ git -C Android/MaaFwApp fetch
 git -C Android/MaaFwApp checkout origin/main
 git add Android/MaaFwApp
 ```
+
+## CI
+
+改 `Android/`、`agent/`、`requirements.txt` 或 `interface.json` 后，Actions 会打一份 arm64 debug APK。打 `android-v*` tag（或手动跑 Android Release）出 release 包。
+
+Release 签名可选，仓库 Secrets：`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`。不配就打未签名包。

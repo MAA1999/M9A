@@ -1,0 +1,117 @@
+name: Android
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "Android/**"
+      - "agent/**"
+      - "requirements.txt"
+      - "interface.json"
+      - ".github/workflows/android.yml"
+  pull_request:
+    paths:
+      - "Android/**"
+      - "agent/**"
+      - "requirements.txt"
+      - "interface.json"
+      - ".github/workflows/android.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PI_PROFILE: ${{ github.workspace }}/Android/profile.yaml
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install CMake
+        run: sdkmanager "cmake;3.22.1"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+
+      - name: Cache MaaFramework zips
+        uses: actions/cache@v4
+        with:
+          path: Android/MaaFwApp/.maa-cache
+          key: maa-fw-${{ runner.os }}-${{ hashFiles('Android/MaaFwApp/scripts/setup_maa_framework.py') }}
+
+      - name: Cache agent core
+        uses: actions/cache@v4
+        with:
+          path: Android/MaaFwApp/.maafw
+          key: maa-agent-core-${{ runner.os }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
+
+      - name: Cache agent bundle
+        uses: actions/cache@v4
+        with:
+          path: Android/agent-dist
+          key: m9a-agent-${{ runner.os }}-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
+
+      - name: Fetch MaaFramework native libraries
+        working-directory: Android/MaaFwApp
+        run: python scripts/setup_maa_framework.py --abi arm64-v8a
+
+      - name: Build agent runtime
+        working-directory: Android/MaaFwApp
+        run: |
+          if [ -x "${GITHUB_WORKSPACE}/Android/agent-dist/arm64-v8a/bundle/bin/python3" ]; then
+            echo "agent bundle cache hit"
+            exit 0
+          fi
+          python scripts/build_agent_bundle.py \
+            --out "${GITHUB_WORKSPACE}/Android/agent-dist" \
+            --abi arm64-v8a \
+            --requirements "${GITHUB_WORKSPACE}/requirements.txt" \
+            --exclude pillow --require pillow==11.0.0 \
+            --extra-index-url https://chaquo.com/pypi-13.1/
+
+      - name: Write local.properties
+        working-directory: Android/MaaFwApp
+        run: |
+          {
+            echo "sdk.dir=${ANDROID_HOME}"
+            echo "pi.profile=${PI_PROFILE}"
+            echo "build.debugAbi=arm64-v8a"
+          } > local.properties
+
+      - name: Assemble debug APK
+        working-directory: Android/MaaFwApp
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: M9A-Meow-debug
+          path: Android/MaaFwApp/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
