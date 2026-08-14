@@ -1,4 +1,4 @@
-name: Android
+name: Build Dev APK
 
 on:
   push:
@@ -17,45 +17,58 @@ on:
       - "interface.json"
       - ".github/workflows/android.yml"
   workflow_dispatch:
+    inputs:
+      maafw_tag:
+        description: "MaaFramework release tag"
+        required: false
+        default: "latest"
 
 concurrency:
-  group: android-${{ github.ref }}
+  group: android-dev-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  apk:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: macos-latest
     timeout-minutes: 60
     env:
       PI_PROFILE: ${{ github.workspace }}/Android/profile.yaml
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           submodules: recursive
 
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
           java-version: "25"
+          distribution: temurin
 
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-
-      - name: Set up Android SDK
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install CMake
-        run: sdkmanager "cmake;3.22.1"
+      - name: Install NDK and CMake
+        run: sdkmanager --install "ndk;29.0.13113456" "cmake;3.22.1"
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - name: Cache Gradle
+        uses: actions/cache@v4
         with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('Android/MaaFwApp/**/*.gradle.kts', 'Android/MaaFwApp/**/gradle-wrapper.properties', 'Android/MaaFwApp/**/libs.versions.toml') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Cache MaaFramework zips
         uses: actions/cache@v4
@@ -75,9 +88,17 @@ jobs:
           path: Android/agent-dist
           key: m9a-agent-${{ runner.os }}-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
-      - name: Fetch MaaFramework native libraries
+      - name: Download and deploy MaaFramework
         working-directory: Android/MaaFwApp
-        run: python scripts/setup_maa_framework.py --abi arm64-v8a
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_ARG=""
+          MAAFW_TAG="${{ github.event.inputs.maafw_tag }}"
+          if [ -n "$MAAFW_TAG" ] && [ "$MAAFW_TAG" != "latest" ]; then
+            TAG_ARG="--tag $MAAFW_TAG"
+          fi
+          python scripts/setup_maa_framework.py --abi arm64-v8a $TAG_ARG
 
       - name: Build agent runtime
         working-directory: Android/MaaFwApp
@@ -102,16 +123,15 @@ jobs:
             echo "build.debugAbi=arm64-v8a"
           } > local.properties
 
-      - name: Assemble debug APK
+      - name: Build Debug APK
         working-directory: Android/MaaFwApp
         run: |
-          chmod +x gradlew
-          ./gradlew :app:assembleDebug --no-daemon --stacktrace
+          chmod +x ./gradlew
+          ./gradlew clean assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: M9A-Meow-debug
+          name: debug-apk
           path: Android/MaaFwApp/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-          retention-days: 14
