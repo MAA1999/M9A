@@ -24,3 +24,5 @@ maafw.log
 
 # Android 客户端：agent 产物在子模块外，必须在这里忽略
 Android/agent-dist/
+*.jks
+*.jks.b64
