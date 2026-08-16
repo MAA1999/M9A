@@ -1,5 +1,5 @@
 {
-    "MusesBoxStratParty": {
+    "MusesBoxStartParty": {
         "desc": "缪斯碰碰盒点击派对启程",
         "recognition": {
             "type": "OCR",
@@ -21,7 +21,7 @@
         "timeout": 600000,
         "next": [
             "MusesBoxSettlement",
-            "MusesBoxStratParty" //兜底
+            "MusesBoxStartParty" //兜底
         ]
     },
     "MusesBoxSettlement": {
@@ -44,7 +44,7 @@
             "type": "Click"
         },
         "next": [
-            "MusesBoxStratParty",
+            "MusesBoxStartParty",
             "MusesBoxSettlement" //兜底
         ]
     }

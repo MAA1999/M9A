@@ -2,7 +2,7 @@
     "task": [
         {
             "name": "缪斯碰碰盒速刷",
-            "entry": "MusesBoxStratParty",
+            "entry": "MusesBoxStartParty",
             "group": [
                 "standalone"
             ],
