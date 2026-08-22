@@ -1,20 +1,33 @@
-name: Build Dev APK
+name: Build Android APK
 
 on:
   push:
     branches: [main, master]
+    tags: ["android-v*"]
     paths:
       - "Android/**"
       - "agent/**"
+      - "tasks/**"
+      - "resource/**"
+      - "data/**"
       - "requirements.txt"
       - "interface.json"
+      - "logo.ico"
+      - "CONTACT"
+      - "LICENSE"
       - ".github/workflows/android.yml"
   pull_request:
     paths:
       - "Android/**"
       - "agent/**"
+      - "tasks/**"
+      - "resource/**"
+      - "data/**"
       - "requirements.txt"
       - "interface.json"
+      - "logo.ico"
+      - "CONTACT"
+      - "LICENSE"
       - ".github/workflows/android.yml"
   workflow_dispatch:
     inputs:
@@ -31,7 +44,7 @@ on:
         default: "latest"
 
 concurrency:
-  group: android-dev-${{ github.ref }}
+  group: android-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -43,27 +56,30 @@ jobs:
     timeout-minutes: 60
     env:
       PI_PROFILE: ${{ github.workspace }}/Android/profile.yaml
+      # workflow_dispatch 的 assemble 输入、android-v* tag 推送、其余事件，统一推导本次构建模式
+      ASSEMBLE: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.assemble) || (startsWith(github.ref, 'refs/tags/android-v') && 'release') || 'debug' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: recursive
+          persist-credentials: false
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: "25"
           distribution: temurin
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Install NDK and CMake
         run: sdkmanager --install "ndk;29.0.13113456" "cmake;3.22.1"
 
       - name: Cache Gradle
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -73,24 +89,32 @@ jobs:
             gradle-${{ runner.os }}-
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          python-version: "3.13"
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
 
       - name: Cache MaaFramework zips
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Android/MaaFwApp/.maa-cache
           key: maa-fw-${{ runner.os }}-${{ hashFiles('Android/MaaFwApp/scripts/setup_maa_framework.py') }}
 
       - name: Cache agent core
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Android/MaaFwApp/.maafw
           key: maa-agent-core-${{ runner.os }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
+      # agent-dist 只含 CPython + pip 依赖，与 agent/** 源码无关；agent/** 经
+      # syncPiAssets 直接从工作区进 APK（永远是最新 commit），故缓存键不含 agent/**。
       - name: Cache agent bundle
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Android/agent-dist
           key: m9a-agent-${{ runner.os }}-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
@@ -99,9 +123,9 @@ jobs:
         working-directory: Android/MaaFwApp
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAAFW_TAG: ${{ github.event.inputs.maafw_tag || 'latest' }}
         run: |
           TAG_ARG=""
-          MAAFW_TAG="${{ github.event.inputs.maafw_tag }}"
           if [ -n "$MAAFW_TAG" ] && [ "$MAAFW_TAG" != "latest" ]; then
             TAG_ARG="--tag $MAAFW_TAG"
           fi
@@ -121,32 +145,37 @@ jobs:
             --exclude pillow --require pillow==11.0.0 \
             --extra-index-url https://chaquo.com/pypi-13.1/
 
+      # OCR 模型由 MaaCommonAssets 子模块提供、不进 git；与桌面流程同一机制，
+      # 由 maa-project.json 的 ocr 字段驱动，无项目特定路径
+      - name: Sync OCR models
+        run: pnpm dlx create-maa-project@latest --update ocr-models
+
       - name: Write local.properties
         working-directory: Android/MaaFwApp
         run: |
           {
             echo "sdk.dir=${ANDROID_HOME}"
             echo "pi.profile=${PI_PROFILE}"
-            if [ "${{ github.event.inputs.assemble || 'debug' }}" != "release" ]; then
+            if [ "$ASSEMBLE" != "release" ]; then
               echo "build.debugAbi=arm64-v8a"
             fi
           } > local.properties
 
       - name: Decode keystore
-        if: ${{ github.event.inputs.assemble == 'release' }}
+        if: env.ASSEMBLE == 'release'
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: echo "$KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/release.jks
 
       - name: Build Debug APK
-        if: ${{ github.event.inputs.assemble != 'release' }}
+        if: env.ASSEMBLE != 'release'
         working-directory: Android/MaaFwApp
         run: |
           chmod +x ./gradlew
           ./gradlew clean assembleDebug
 
       - name: Build Release APK
-        if: ${{ github.event.inputs.assemble == 'release' }}
+        if: env.ASSEMBLE == 'release'
         working-directory: Android/MaaFwApp
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/release.jks
@@ -158,34 +187,57 @@ jobs:
           ./gradlew clean assembleRelease
 
       - name: Rename Release APK
-        if: ${{ github.event.inputs.assemble == 'release' }}
+        if: env.ASSEMBLE == 'release'
         run: |
           cd Android/MaaFwApp/app/build/outputs/apk/release
           TAG="${GITHUB_REF_NAME:-dev}"
+          TAG="${TAG//\//-}"
           for f in *.apk; do
             mv "$f" "M9A-Meow-${TAG}-arm64-v8a.apk"
           done
 
       - name: Upload Debug APK
-        if: ${{ github.event.inputs.assemble != 'release' }}
-        uses: actions/upload-artifact@v4
+        if: env.ASSEMBLE != 'release'
+        uses: actions/upload-artifact@v7
         with:
           name: debug-apk
           path: Android/MaaFwApp/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
       - name: Upload Release APK
-        if: ${{ github.event.inputs.assemble == 'release' }}
-        uses: actions/upload-artifact@v4
+        if: env.ASSEMBLE == 'release'
+        uses: actions/upload-artifact@v7
         with:
           name: release-apk-arm64-v8a
           path: Android/MaaFwApp/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
       - name: Upload R8 mapping
-        if: ${{ github.event.inputs.assemble == 'release' }}
-        uses: actions/upload-artifact@v4
+        if: env.ASSEMBLE == 'release'
+        uses: actions/upload-artifact@v7
         with:
           name: release-mapping-arm64-v8a
           path: Android/MaaFwApp/app/build/outputs/mapping/release/mapping.txt
           if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/android-v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all APK artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: release-apk-*
+          merge-multiple: true
+          path: apks
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          files: apks/*.apk
+          generate_release_notes: true

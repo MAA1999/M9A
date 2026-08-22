@@ -14,6 +14,12 @@ python Android/MaaFwApp/scripts/build_agent_bundle.py \
     --extra-index-url https://chaquo.com/pypi-13.1/
 ```
 
+OCR 模型由 `MaaCommonAssets` 子模块提供、不进 git，同步机制与桌面端一致（由 `maa-project.json` 的 `ocr` 字段驱动）。本地没跑过桌面端同步的话先执行：
+
+```bash
+pnpm dlx create-maa-project@latest --update ocr-models
+```
+
 在 `Android/MaaFwApp/local.properties` 里写（不进 git）：
 
 ```properties
@@ -40,8 +46,9 @@ git add Android/MaaFwApp
 
 ## CI
 
-debug 走 **Build Dev APK**（`macos-latest` + JDK 25 + NDK 29），正式包走 **Build Release APK**。
+统一走 **Build Android APK**（`macos-latest` + JDK 25 + NDK 29，Python 3.13）：
 
-改 `Android/`、`agent/`、`requirements.txt` 或 `interface.json` 会打 arm64 debug APK。打 `android-v*` tag（或手动跑 Build Release APK）出签名包。
+- 改 `Android/`、`agent/`、`tasks/`、`resource/`、`data/`、`requirements.txt` 或 `interface.json` 等打 arm64 debug APK（PR 与 main 都会触发）。
+- 打 `android-v*` tag 自动出签名 release APK 并发布 GitHub Release；也可以手动跑 workflow 选 `assemble=release`。
 
 Release 需要仓库 Secrets：`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`。手动跑时可以指定 MaaFramework 的 tag，默认 latest。
