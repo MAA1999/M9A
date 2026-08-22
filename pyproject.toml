@@ -28,6 +28,7 @@ packages = ["agent"]
 [tool.ruff]
 target-version = "py313"
 line-length = 120
+extend-exclude = ["Android/MaaFwApp"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

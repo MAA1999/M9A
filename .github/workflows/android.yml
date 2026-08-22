@@ -99,12 +99,6 @@ jobs:
         with:
           node-version: 24
 
-      - name: Cache MaaFramework zips
-        uses: actions/cache@v6
-        with:
-          path: Android/MaaFwApp/.maa-cache
-          key: maa-fw-${{ runner.os }}-${{ hashFiles('Android/MaaFwApp/scripts/setup_maa_framework.py') }}
-
       - name: Cache agent core
         uses: actions/cache@v6
         with:
@@ -119,6 +113,8 @@ jobs:
           path: Android/agent-dist
           key: m9a-agent-${{ runner.os }}-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
+      # 不缓存 MaaFramework zip：脚本按字典序部署缓存里全部 MAA-android-*.zip，
+      # 跨 run 复用会让 workflow_dispatch 指定的 maafw_tag 被旧版本覆盖
       - name: Download and deploy MaaFramework
         working-directory: Android/MaaFwApp
         env:

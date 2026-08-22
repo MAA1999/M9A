@@ -6,6 +6,7 @@ dist/
 pnpm-lock.yaml
 uv.lock
 MaaCommonAssets/
+Android/MaaFwApp/
 resource/base/model/ocr/
 tools/schema/interface.schema.json
 tools/schema/interface_config.schema.json
