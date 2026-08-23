@@ -9,7 +9,7 @@
             "path": "tools/schema/interface.schema.json",
             "upstreamPath": "tools/interface.schema.json",
             "url": "https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/tools/interface.schema.json",
-            "sha256": "e112d24b12d529b162e791dadb77094cf3f07bfdf313948e3f3497b9c9ff5e3e"
+            "sha256": "0add059a88074e9b96cb14fcc829042abb1ac1b83438395613ff677f792f568d"
         },
         {
             "path": "tools/schema/interface_import.schema.json",
