@@ -1,0 +1,12 @@
+{
+    "task": [
+        {
+            "name": "缪斯碰碰盒速刷",
+            "entry": "MusesBoxStartParty",
+            "group": [
+                "standalone"
+            ],
+            "description": "缪斯碰碰盒自动刷分<br><span style=\"color:tomato;font-size:15px\">请在右下角为「派对启程」的情况下运行该任务</span>"
+        }
+    ]
+}
