@@ -19,6 +19,7 @@
             "type": "Click"
         },
         "timeout": 600000,
+        "rate_limit": 5000,
         "next": [
             "MusesBoxSettlement",
             "MusesBoxStartParty" //兜底
