@@ -242,6 +242,9 @@ class SOSNodeProcess(CustomAction):
     节点处理
     """
 
+    # 事件选项界面始终未出现（搁浅）的连续次数，按事件名累计；任意节点处理成功后清空
+    stranded_counts: dict[str, int] = {}
+
     def run(
         self,
         context: Context,
@@ -297,13 +300,56 @@ class SOSNodeProcess(CustomAction):
         if context.tasker.stopping:
             logger.debug("任务即将停止，跳过节点处理")
             return CustomAction.RunResult(success=True)
+        skipped = False
         for action in actions:
             if context.tasker.stopping:
                 logger.debug("任务即将停止，跳过节点处理")
                 return CustomAction.RunResult(success=True)
             if not self.exec_main(context, action, interrupts):
+                if self._skip_stranded_event(context, nodes, node_type, event_name):
+                    skipped = True
+                    continue
                 return CustomAction.RunResult(success=False)
+        if not skipped:
+            SOSNodeProcess.stranded_counts.clear()
         return CustomAction.RunResult(success=True)
+
+    def _skip_stranded_event(self, context: Context, nodes: dict[str, Any], node_type: str, event_name: str) -> bool:
+        """
+        判断事件是否已"搁浅"：点击事件后选项界面始终未出现，且事件横幅已消失。
+        此时继续重试只会原地空转并消耗恢复预算（#839），应跳过该事件剩余动作。
+        返回 True 表示已确认搁浅、跳过剩余动作；False 表示按普通失败走恢复流程。
+        """
+        if not event_name:
+            return False
+        event_name_roi = nodes.get(node_type, {}).get("event_name_roi")
+        if not event_name_roi:
+            return False
+
+        img = context.tasker.controller.post_screencap().wait().get()
+
+        # 途中偶遇选项界面仍在：属于点击失败，而非搁浅
+        option_reco = context.run_recognition("SOSSelectEncounterOptionRec_Template", img)
+        if is_hit(option_reco):
+            return False
+
+        # 事件横幅仍在：交由恢复流程重试
+        banner_reco = context.run_recognition("SOSEventRec", img, {"SOSEventRec": {"roi": event_name_roi}})
+        if is_hit(banner_reco):
+            return False
+
+        # 已回到主地图：事件无法继续处理，跳过；同一事件连续搁浅 3 次则走恢复流程
+        main_reco = context.run_recognition("FlagInSOSMain", img)
+        if not is_hit(main_reco):
+            return False
+
+        stranded = SOSNodeProcess.stranded_counts.get(event_name, 0) + 1
+        SOSNodeProcess.stranded_counts[event_name] = stranded
+        if stranded >= 3:
+            logger.error(f"事件 {event_name} 连续 {stranded} 次界面未出现，停止跳过，交由恢复流程处理")
+            return False
+        logger.warning(f"事件 {event_name} 界面未出现且事件横幅已消失（第 {stranded} 次），跳过该事件")
+        return True
 
     def _resolve_interrupts(self, interrupts: str | list[Any], nodes: dict[str, Any]) -> list[Any]:
         """
@@ -338,7 +384,11 @@ class SOSNodeProcess(CustomAction):
 
     def exec_main(self, context: Context, action: dict[str, Any] | list[Any], interrupts: list[Any]):
         retry_times = 0
-        while retry_times < 5:
+        # interrupt 命中会重置 retry_times，需另设总轮数上限，
+        # 防止"事件横幅一直在→反复点击"造成无限循环（#839）
+        total_rounds = 0
+        while retry_times < 5 and total_rounds < 12:
+            total_rounds += 1
             if context.tasker.stopping:
                 return False
             # 先尝试执行主动作
