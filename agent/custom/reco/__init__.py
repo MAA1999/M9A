@@ -10,6 +10,7 @@ RECO_MODULES = (
     "compare_numbers",
     "lucidscape",
     "syndrome_of_silence",
+    "sos_node_template",
     "critter_crash",
 )
 

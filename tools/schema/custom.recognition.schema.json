@@ -19,7 +19,7 @@
                 "APPhaseGate",
                 "APModeGate",
                 "LucidscapeStageSelect",
-                "SOSSelectNode",
+                "SOSSelectNodeTemplate",
                 "SOSSelectEncounterOptionList",
                 "SOSSelectEncounterOptionFindSelected",
                 "APMapAnalyze",
@@ -76,7 +76,7 @@
             "$ref": "#/$defs/LucidscapeStageSelect"
         },
         {
-            "$ref": "#/$defs/SOSSelectNode"
+            "$ref": "#/$defs/SOSSelectNodeTemplate"
         },
         {
             "$ref": "#/$defs/SOSSelectEncounterOptionList"
@@ -948,11 +948,11 @@
                 }
             }
         },
-        "SOSSelectNode": {
+        "SOSSelectNodeTemplate": {
             "properties": {
                 "custom_recognition": {
-                    "const": "SOSSelectNode",
-                    "description": "局外演绎：无声综合征-节点选择"
+                    "const": "SOSSelectNodeTemplate",
+                    "description": "局外演绎：无声综合征-节点选择（模板匹配后端）。无入参，标定阈值等常量见 agent/custom/reco/sos_node_template.py"
                 }
             }
         },

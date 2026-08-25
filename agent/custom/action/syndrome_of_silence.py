@@ -1,8 +1,6 @@
-import ast
 import copy
 import difflib
 import json
-import os
 import re
 import time
 from typing import Any
@@ -11,8 +9,6 @@ import numpy as np
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from maa.define import NeuralNetworkDetectResult
-from PIL import Image
 from utils import logger
 from utils.maa_types import is_hit, ocr_text
 from utils.params import parse_params
@@ -70,66 +66,13 @@ class SOSSelectNode(CustomAction):
             print(f"读取 JSON 文件时发生未知错误：{e}")
             return CustomAction.RunResult(success=False)
 
-        # 检查识别结果中在期望列表中的结果，保存截图用于调试
-        expected_indices = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12]
-        score_threshold = 0.6
-        if argv.reco_detail.filtered_results:
-            expected_results = [
-                r
-                for r in argv.reco_detail.filtered_results
-                if isinstance(r, NeuralNetworkDetectResult)
-                and r.cls_index in expected_indices
-                and r.score < score_threshold
-            ]
-            if expected_results:
-                img = context.tasker.controller.cached_image
-
-                # BGR2RGB
-                if len(img.shape) == 3 and img.shape[2] == 3:
-                    rgb_img = img[:, :, ::-1]
-                else:
-                    rgb_img = img
-                    logger.warning("当前截图并非三通道")
-
-                timestamp = time.strftime("%Y%m%d_%H%M%S")
-                save_dir = "debug/custom/SOSSelectNode"
-                os.makedirs(save_dir, exist_ok=True)
-                save_path = f"{save_dir}/{timestamp}.png"
-                Image.fromarray(rgb_img).save(save_path)
-                logger.debug(f"检测到低分数节点，截图已保存: {save_path}")
-                for i, r in enumerate(expected_results):
-                    logger.debug(
-                        f"  结果{i}: 类型={nodes['types'][r.cls_index]} (cls_index={r.cls_index}), 分数={r.score:.3f}"
-                    )
-
-        # 如果 reco_detail 是字符串，解析为 dict
-        if isinstance(reco_detail, str):
-            try:
-                reco_detail = ast.literal_eval(reco_detail)
-            except (ValueError, SyntaxError):
-                logger.error(f"无法解析 reco_detail: {reco_detail}")
-                return CustomAction.RunResult(success=False)
-
-        # 获取 cls_index
-        if isinstance(reco_detail, dict):
-            cls_index = reco_detail.get("best", {}).get("cls_index")
-        elif hasattr(reco_detail, "cls_index"):
-            cls_index = reco_detail.cls_index
-        else:
-            logger.error(f"无法获取 cls_index from reco_detail: {type(reco_detail)} {reco_detail}")
-            return CustomAction.RunResult(success=False)
+        # 模板匹配后端的 detail 结构：{"all": [...], "filtered": [...], "best": {...}}
+        best = reco_detail.get("best") if isinstance(reco_detail, dict) else None
+        cls_index = best.get("cls_index") if best else None
+        box = best.get("box") if best else None
 
         if cls_index is None:
             logger.error("cls_index 为 None")
-            return CustomAction.RunResult(success=False)
-
-        # 获取 box
-        if isinstance(reco_detail, dict):
-            box = reco_detail.get("best", {}).get("box")
-        elif hasattr(reco_detail, "box"):
-            box = reco_detail.box
-        else:
-            logger.error(f"无法获取 box from reco_detail: {type(reco_detail)} {reco_detail}")
             return CustomAction.RunResult(success=False)
 
         if box is None:
@@ -387,7 +330,7 @@ class SOSNodeProcess(CustomAction):
         # interrupt 命中会重置 retry_times，需另设总轮数上限，
         # 防止"事件横幅一直在→反复点击"造成无限循环（#839）
         total_rounds = 0
-        while retry_times < 5 and total_rounds < 12:
+        while retry_times < 5 and total_rounds < 100:
             total_rounds += 1
             if context.tasker.stopping:
                 return False

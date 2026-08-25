@@ -1,4 +1,4 @@
-﻿---
+---
 order: 1
 icon: ri:game-fill
 ---
@@ -268,10 +268,11 @@ Interrupt handler nodes that may be triggered during action execution:
 
 #### 1. Node Selection Phase (SOSSelectNode)
 
-1. Use neural network to recognize node type (from the `types` array)
-2. Click the node and wait for UI response (up to 5 retries)
-3. If `event_name_roi` is configured, recognize the event name in the specified region
-4. Record the current node type and event name
+1. Use template matching to recognize node type (from the `types` array)
+2. Drop visited nodes: those whose top-right orange-circle checkmark (explicit in-game mark) template match intersects the node's corner region
+3. Click the node and wait for UI response (up to 5 retries)
+4. If `event_name_roi` is configured, recognize the event name in the specified region
+5. Record the current node type and event name
 
 #### 2. Node Processing Phase (SOSNodeProcess)
 

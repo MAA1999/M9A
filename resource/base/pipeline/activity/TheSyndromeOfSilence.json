@@ -766,7 +766,7 @@
         "recognition": {
             "type": "Custom",
             "param": {
-                "custom_recognition": "SOSSelectNode"
+                "custom_recognition": "SOSSelectNodeTemplate"
             }
         },
         "action": {
@@ -810,6 +810,9 @@
             "[JumpBack]SOSInformation",
             "[JumpBack]SOSAbortConfirm",
             "[JumpBack]SOSCombat",
+            "[JumpBack]SOSSkipMessage",
+            "[JumpBack]SOSNextMessage",
+            "[JumpBack]SOSNextMessage_left",
             "SOSNodeProcessErrorLoop"
         ]
     },
@@ -2406,39 +2409,23 @@
             "type": "Click"
         }
     },
-    "SOSSelectNode_rec": {
+    // 模板匹配后端的识别参数基座：SOSSelectNodeTemplate 自定义识别
+    // 每次调用会按类覆盖 template / threshold / roi，此处仅为缺省值与文档
+    "SOSSelectNode_rec_template": {
         "recognition": {
-            "type": "NeuralNetworkDetect",
+            "type": "TemplateMatch",
             "param": {
-                "expected": [
-                    1,
-                    2,
-                    3,
-                    4,
-                    5,
-                    6,
-                    8,
-                    9,
-                    10,
-                    11,
-                    12
+                "roi": [
+                    0,
+                    30,
+                    1280,
+                    600
                 ],
-                "model": "sos_nodes.onnx",
-                "labels": [
-                    "C", // 已完成节点
-                    "Conflict", // 冲突
-                    "Dangerous", // 险象环生
-                    "Encounter", // 遭遇
-                    "EncounterAlongTheWay", // 途中偶遇
-                    "EntertainmentOnTheWay", // 途中余兴
-                    "FierceBattle", // 恶战
-                    "Message", // 对话
-                    "RestArea", // 休憩处
-                    "ShoppingOpportunity", // 购物契机
-                    "TheHandOfAMasterCraftsman", // 巧匠之手
-                    "TheOnlyWay", // 必经之路
-                    "TreasureLand" // 藏宝地
+                "template": [
+                    "SyndromeOfSilence/nodes/Conflict.png"
                 ],
+                "method": 5,
+                "threshold": 0.8,
                 "order_by": "Score"
             }
         }
