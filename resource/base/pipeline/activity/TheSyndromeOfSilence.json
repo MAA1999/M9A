@@ -1775,7 +1775,8 @@
                 393,
                 488
             ]
-        }
+        },
+        "timeout": 3000
     },
     "SOSClickEventRec": {
         "recognition": {
