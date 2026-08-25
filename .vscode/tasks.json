@@ -1,21 +1,29 @@
 {
     "tasks": [
         {
-            "command": "pnpm check",
-            "label": "check",
+            "command": "pnpm install --frozen-lockfile",
+            "label": "pnpm install",
+            "presentation": {
+                "panel": "dedicated",
+                "reveal": "silent"
+            },
             "problemMatcher": [],
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
             "type": "shell"
         },
         {
-            "command": "pnpm format",
-            "label": "format",
+            "command": "uv sync",
+            "label": "uv sync",
+            "presentation": {
+                "panel": "dedicated",
+                "reveal": "silent"
+            },
             "problemMatcher": [],
-            "type": "shell"
-        },
-        {
-            "command": "pnpm release:dry-run",
-            "label": "release dry-run",
-            "problemMatcher": [],
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
             "type": "shell"
         }
     ],
