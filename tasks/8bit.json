@@ -22,12 +22,12 @@
             "cases": [
                 {
                     "name": "单向投币Ⅰ",
-                    "label": "$Option.EightBitArcade.StageDifficulty.OneWayCoin1",
+                    "label": "$Option.EightBitArcade.StageDifficulty.1",
                     "pipeline_override": {}
                 },
                 {
                     "name": "单向投币Ⅱ",
-                    "label": "$Option.EightBitArcade.StageDifficulty.OneWayCoin2",
+                    "label": "$Option.EightBitArcade.StageDifficulty.2",
                     "pipeline_override": {
                         "8bitLevelSelect": {
                             "recognition": {
@@ -45,7 +45,7 @@
                 },
                 {
                     "name": "单向投币Ⅲ",
-                    "label": "$Option.EightBitArcade.StageDifficulty.OneWayCoin3",
+                    "label": "$Option.EightBitArcade.StageDifficulty.3",
                     "pipeline_override": {
                         "8bitLevelSelect": {
                             "recognition": {
