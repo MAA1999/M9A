@@ -61,7 +61,8 @@ Before submitting changes, run `pnpm check` (and `pnpm check:py` for Python chan
 ## Coding Style & Naming Conventions
 
 - **Python**: 120-character line limit, 4-space indentation. Linted with `ruff` (via `pnpm lint:py`) and type-checked with `pyright --strict` (via `pnpm typecheck:py`). Follow PEP 8 and PEP 484.
-- **JSON / YAML / Markdown**: 2-space indentation, formatted with Prettier.
+- **JSON / Markdown**: 4-space indentation (`tabWidth: 4` in `.prettierrc.mjs`), formatted with Prettier.
+- **YAML**: 2-space indentation, via the YAML override in `.prettierrc.mjs`.
 - **Resource files**: Use forward slashes for paths. Follow MaaFW 720p baseline for coordinates, ROI, and template images.
 - **Naming**: Modules use `snake_case`. Classes use `PascalCase`. Functions/variables use `snake_case`. Custom actions/recognitions match their pipeline node names.
 
