@@ -101,7 +101,7 @@
                 },
                 {
                     "name": "启寤Ⅱ",
-                    "label": "$Option.Bank.PsychubeObservation.Awakening2",
+                    "label": "$Option.Bank.PsychubeObservation.Enlighten2",
                     "icon": "./resource/announcement/images/Equipment_suit-1003.png",
                     "pipeline_override": {
                         "EnlightenmentII": {
@@ -111,7 +111,7 @@
                 },
                 {
                     "name": "启寤Ⅰ",
-                    "label": "$Option.Bank.PsychubeObservation.Awakening1",
+                    "label": "$Option.Bank.PsychubeObservation.Enlighten1",
                     "icon": "./resource/announcement/images/Equipment_suit-1002.png",
                     "pipeline_override": {
                         "EnlightenmentI": {
