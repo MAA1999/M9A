@@ -75,7 +75,7 @@
                 },
                 {
                     "name": "意外",
-                    "label": "$Option.CombatActivity.EventDifficulty.Incident",
+                    "label": "$Option.CombatActivity.EventDifficulty.Surprise",
                     "pipeline_override": {
                         "ActivityTargetLevel": {
                             "action": {
