@@ -228,4 +228,8 @@ if (!ok) {
     process.exit(1);
 }
 
-console.log(`[OK] i18n is consistent (${referenced.size} keys across ${Object.keys(languages).length} languages)`);
+if (!languages || Object.keys(languages).length === 0) {
+    console.log("[OK] no translation files are declared and no i18n keys are in use");
+} else {
+    console.log(`[OK] i18n is consistent (${referenced.size} keys across ${Object.keys(languages).length} languages)`);
+}
