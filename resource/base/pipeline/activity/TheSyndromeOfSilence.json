@@ -1349,7 +1349,10 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 500
+        "post_wait_freezes": {
+            "time": 500,
+            "timeout": 5000
+        }
     },
     "SOSCombat": {
         "recognition": {
