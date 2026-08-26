@@ -625,7 +625,8 @@
         },
         "next": [
             "SOSSelectInstrument",
-            "[JumpBack]SOSNextStep"
+            "[JumpBack]SOSNextStep",
+            "[JumpBack]Confirm"
         ]
     },
     "SOSSelectInstrument": {
