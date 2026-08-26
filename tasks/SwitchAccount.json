@@ -2,6 +2,7 @@
     "task": [
         {
             "name": "切换账号",
+            "label": "$Task.SwitchAccount",
             "entry": "SwitchAccount",
             "option": [
                 "目标账号(可选)"
@@ -12,21 +13,21 @@
             "group": [
                 "daily"
             ],
-            "description": "<span style=\"color:tomato;font-size:15px\">留空时会下滑到账号列表底部并切换至最后一个账号；填写目标账号时会在账号列表中逐页下滑查找并切换，找不到则任务失败</span><br><span style=\"color:tomato;font-size:15px\">切换后可继续添加任务，以便多账号多配置运行任务</span><br><span style=\"color:tomato;font-size:15px\">目前该功能仅支持官服，且仅支持 1280×720 实际未缩放分辨率，模拟器 DPI 需设置为 240 </span>"
+            "description": "$Task.SwitchAccount.desc"
         }
     ],
     "option": {
         "目标账号(可选)": {
             "type": "input",
-            "label": "目标账号",
+            "label": "$Option.SwitchAccount.TargetAccount",
             "inputs": [
                 {
                     "name": "账号",
-                    "label": "账号",
+                    "label": "$Option.SwitchAccount.TargetAccount.Account",
                     "pipeline_type": "string",
                     "default": "",
                     "verify": ".*",
-                    "description": "留空则下滑到账号列表底部后切换最后一个账号；填写后会逐页下滑查找该账号，找不到则失败"
+                    "description": "$Option.SwitchAccount.TargetAccount.Account.desc"
                 }
             ],
             "pipeline_override": {

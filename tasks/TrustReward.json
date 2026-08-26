@@ -2,11 +2,12 @@
     "task": [
         {
             "name": "信任奖励",
+            "label": "$Task.TrustReward",
             "entry": "Character",
             "group": [
                 "standalone"
             ],
-            "description": "请在主界面开始任务，将会领取角色的信任奖励"
+            "description": "$Task.TrustReward.desc"
         }
     ]
 }

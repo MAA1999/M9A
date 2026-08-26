@@ -2,6 +2,7 @@
     "task": [
         {
             "name": "每日心相（意志解析）",
+            "label": "$Task.Psychube",
             "entry": "Psychube",
             "option": [
                 "双重解析加成作战",
@@ -29,7 +30,8 @@
                     "pipeline_override": {}
                 }
             ],
-            "description": "双重解析期间是否进行加成作战"
+            "description": "$Option.Psychube.DoubleAnalysisBattle.desc",
+            "label": "$Option.Psychube.DoubleAnalysisBattle"
         },
         "吃糖": {
             "type": "switch",
@@ -61,15 +63,16 @@
                     }
                 }
             ],
-            "description": "是否吃糖"
+            "description": "$Option.Psychube.ConsumeCandy.desc",
+            "label": "$Option.Psychube.ConsumeCandy"
         },
         "糖果有效期": {
-            "label": "有效期",
+            "label": "$Option.Psychube.CandyExpiry",
             "type": "select",
             "cases": [
                 {
                     "name": "24h",
-                    "description": "24小时内过期的糖",
+                    "description": "$Option.Psychube.CandyExpiry.24h.desc",
                     "pipeline_override": {
                         "EatCandyStart": {
                             "attach": {
@@ -80,7 +83,7 @@
                 },
                 {
                     "name": "7d",
-                    "description": "7天内过期的糖",
+                    "description": "$Option.Psychube.CandyExpiry.7d.desc",
                     "pipeline_override": {
                         "EatCandyStart": {
                             "attach": {
@@ -91,7 +94,7 @@
                 },
                 {
                     "name": "14d",
-                    "description": "14天内过期的糖",
+                    "description": "$Option.Psychube.CandyExpiry.14d.desc",
                     "pipeline_override": {
                         "EatCandyStart": {
                             "attach": {
@@ -102,7 +105,8 @@
                 },
                 {
                     "name": "无限期",
-                    "description": "不会过期的糖",
+                    "label": "$Option.Psychube.CandyExpiry.Unlimited",
+                    "description": "$Option.Psychube.CandyExpiry.Unlimited.desc",
                     "pipeline_override": {
                         "EatCandyStart": {
                             "attach": {
@@ -112,7 +116,7 @@
                     }
                 }
             ],
-            "description": "可以吃的糖果的有效期"
+            "description": "$Option.Psychube.CandyExpiry.desc"
         },
         "自定义吃糖次数": {
             "type": "switch",
@@ -132,14 +136,16 @@
                     ]
                 }
             ],
-            "description": "关闭时，吃所有符合要求的糖"
+            "description": "$Option.Psychube.CustomCandyCount.desc",
+            "label": "$Option.Psychube.CustomCandyCount"
         },
         "吃糖次数": {
             "type": "input",
-            "label": "吃糖次数",
+            "label": "$Option.Psychube.CandyCount",
             "inputs": [
                 {
                     "name": "吃糖次数",
+                    "label": "$Option.Psychube.CandyCount.Count",
                     "pipeline_type": "int",
                     "default": "114514",
                     "verify": "^(0|[1-9]\\d*)$"
@@ -150,7 +156,7 @@
                     "max_hit": "{吃糖次数}"
                 }
             },
-            "description": "注意小熊软糖(主线掉落5体力糖)会默认吃完，不会被计入该次数"
+            "description": "$Option.Psychube.CandyCount.desc"
         },
         "连续吃糖": {
             "type": "switch",
@@ -176,7 +182,8 @@
                     }
                 }
             ],
-            "description": "开启后，每次进入吃糖界面尽可能多吃糖；关闭后，每次进入吃糖界面只吃一次糖"
+            "description": "$Option.Psychube.ContinuousCandy.desc",
+            "label": "$Option.Psychube.ContinuousCandy"
         },
         "关闭吃糖提示": {
             "type": "switch",
@@ -198,7 +205,8 @@
                     }
                 }
             ],
-            "description": "关闭吃糖时弹出的本日登录不再提醒的提示，关闭后可能导致多吃糖，请慎重选择！"
+            "description": "$Option.Psychube.DismissCandyPrompt.desc",
+            "label": "$Option.Psychube.DismissCandyPrompt"
         }
     }
 }

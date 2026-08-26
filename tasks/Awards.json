@@ -2,6 +2,7 @@
     "task": [
         {
             "name": "领取奖励",
+            "label": "$Task.Awards",
             "entry": "Awards",
             "option": [
                 "领取邮件奖励",
@@ -21,7 +22,7 @@
     "option": {
         "领取邮件奖励": {
             "type": "switch",
-            "label": "领取邮件奖励",
+            "label": "$Option.Awards.Mail",
             "cases": [
                 {
                     "name": "Yes",
@@ -39,7 +40,7 @@
         },
         "领取任务奖励": {
             "type": "switch",
-            "label": "领取任务奖励",
+            "label": "$Option.Awards.Tasks",
             "cases": [
                 {
                     "name": "Yes",
@@ -65,7 +66,7 @@
         },
         "领取每日活跃奖励": {
             "type": "switch",
-            "label": "领取每日活跃奖励",
+            "label": "$Option.Awards.DailyActivity",
             "cases": [
                 {
                     "name": "Yes",
@@ -83,7 +84,7 @@
         },
         "领取每周活跃奖励": {
             "type": "switch",
-            "label": "领取每周活跃奖励",
+            "label": "$Option.Awards.WeeklyActivity",
             "cases": [
                 {
                     "name": "Yes",
@@ -103,7 +104,7 @@
         },
         "领取每周显影罐": {
             "type": "switch",
-            "label": "领取每周显影罐",
+            "label": "$Option.Awards.WeeklyDevelopingJar",
             "cases": [
                 {
                     "name": "No",
@@ -127,7 +128,7 @@
         },
         "领取吼吼点唱机": {
             "type": "switch",
-            "label": "领取吼吼点唱机",
+            "label": "$Option.Awards.Jukebox",
             "cases": [
                 {
                     "name": "Yes"
@@ -147,7 +148,7 @@
         },
         "领取前线观察室奖励": {
             "type": "switch",
-            "label": "领取前线观察室奖励",
+            "label": "$Option.Awards.FrontlineObservationRoom",
             "cases": [
                 {
                     "name": "Yes",
@@ -165,7 +166,7 @@
         },
         "综合体日常": {
             "type": "switch",
-            "label": "综合体日常",
+            "label": "$Option.Awards.ComplexDaily",
             "cases": [
                 {
                     "name": "Yes",
@@ -191,7 +192,7 @@
         },
         "有终的劳作": {
             "type": "switch",
-            "label": "有终的劳作",
+            "label": "$Option.Awards.LabourWithAnEnd",
             "cases": [
                 {
                     "name": "Yes",
@@ -213,7 +214,7 @@
         },
         "婆婆的秩序": {
             "type": "switch",
-            "label": "婆婆的秩序",
+            "label": "$Option.Awards.GrannysOrder",
             "cases": [
                 {
                     "name": "Yes",
@@ -234,9 +235,9 @@
             ]
         },
         "领取拉普拉斯论坛奖励": {
-            "description": "3.4版本使用",
+            "description": "$Option.Awards.LaplaceForum.desc",
             "type": "switch",
-            "label": "领取拉普拉斯论坛奖励",
+            "label": "$Option.Awards.LaplaceForum",
             "cases": [
                 {
                     "name": "No",
@@ -277,11 +278,12 @@
                         }
                     }
                 }
-            ]
+            ],
+            "label": "$Option.Awards.EventBox"
         },
         "活动奖励·狂想与解构": {
             "type": "switch",
-            "label": "狂想与解构",
+            "label": "$Option.Awards.EventRhapsody",
             "cases": [
                 {
                     "name": "Yes",
@@ -303,7 +305,7 @@
         },
         "活动奖励·崭新的电波": {
             "type": "switch",
-            "label": "崭新的电波",
+            "label": "$Option.Awards.EventNewWaves",
             "cases": [
                 {
                     "name": "Yes",
@@ -325,7 +327,7 @@
         },
         "活动奖励·吼吼狂欢夜": {
             "type": "switch",
-            "label": "吼吼狂欢夜",
+            "label": "$Option.Awards.EventRoarCarnival",
             "cases": [
                 {
                     "name": "Yes",
@@ -347,7 +349,7 @@
         },
         "活动奖励·播种于月光下": {
             "type": "switch",
-            "label": "播种于月光下",
+            "label": "$Option.Awards.EventSownMoonlight",
             "cases": [
                 {
                     "name": "Yes",
@@ -386,7 +388,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "label": "$Option.Awards.MysterySeaWeekly"
         }
     }
 }

@@ -2,6 +2,7 @@
     "task": [
         {
             "name": "常规作战",
+            "label": "$Task.Combat",
             "entry": "Combat",
             "option": [
                 "自定义作战关卡",
@@ -12,7 +13,7 @@
             "group": [
                 "daily"
             ],
-            "description": "13章更新了，大家可以帮忙刷刷新关卡助力一图流更新，谢谢喵Thanks♪(･ω･)ﾉ<br>点击放大图片，仅限刷材料关卡<br>![bydjl](resource/announcement/images/mojing_tjb.jpg)"
+            "description": "$Task.Combat.desc"
         }
     ],
     "option": {
@@ -34,26 +35,30 @@
                         "主线关卡难度"
                     ]
                 }
-            ]
+            ],
+            "label": "$Option.Combat.CustomStage"
         },
         "关卡类型": {
             "type": "select",
-            "label": "关卡类型",
+            "label": "$Option.Combat.StageType",
             "cases": [
                 {
                     "name": "主线",
+                    "label": "$Option.Combat.StageType.MainStory",
                     "option": [
                         "作战关卡(主线)"
                     ]
                 },
                 {
                     "name": "资源",
+                    "label": "$Option.Combat.StageType.Resource",
                     "option": [
                         "作战关卡(资源)"
                     ]
                 },
                 {
                     "name": "洞悉",
+                    "label": "$Option.Combat.StageType.Insight",
                     "option": [
                         "作战关卡(洞悉)"
                     ]
@@ -62,10 +67,11 @@
         },
         "作战关卡(主线)": {
             "type": "select",
-            "label": "作战关卡",
+            "label": "$Option.Combat.StageMain",
             "cases": [
                 {
                     "name": "盒子(银光子弹)：5-19 厄险",
+                    "label": "$Option.Combat.StageMain.BitingBox_5_19",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -83,6 +89,7 @@
                 },
                 {
                     "name": "盒子(床下怪物)：7-26 厄险",
+                    "label": "$Option.Combat.StageMain.BitingBox_7_26",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -100,6 +107,7 @@
                 },
                 {
                     "name": "盒子：12-17 厄险",
+                    "label": "$Option.Combat.StageMain.BitingBox_12_17",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -117,6 +125,7 @@
                 },
                 {
                     "name": "曼德拉(狂人絮语)：3-13 厄险",
+                    "label": "$Option.Combat.StageMain.Mandrake_3_13",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -134,6 +143,7 @@
                 },
                 {
                     "name": "曼德拉：12-16 厄险",
+                    "label": "$Option.Combat.StageMain.Mandrake_12_16",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -151,6 +161,7 @@
                 },
                 {
                     "name": "曼德拉：13-3 厄险",
+                    "label": "$Option.Combat.StageMain.Mandrake_13_3",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -168,6 +179,7 @@
                 },
                 {
                     "name": "骨架：4-20 厄险",
+                    "label": "$Option.Combat.StageMain.Skeleton_4_20",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -185,6 +197,7 @@
                 },
                 {
                     "name": "骨架：7-7 厄险",
+                    "label": "$Option.Combat.StageMain.Skeleton_7_7",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -202,6 +215,7 @@
                 },
                 {
                     "name": "骨架：10-13 厄险",
+                    "label": "$Option.Combat.StageMain.Skeleton_10_13",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -219,6 +233,7 @@
                 },
                 {
                     "name": "骨架：13-5 厄险",
+                    "label": "$Option.Combat.StageMain.Skeleton_13_5",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -236,6 +251,7 @@
                 },
                 {
                     "name": "秘银：10-09 厄险",
+                    "label": "$Option.Combat.StageMain.Mithril_10_09",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -253,6 +269,7 @@
                 },
                 {
                     "name": "秘银(幼龙骨标本)：6-14 厄险",
+                    "label": "$Option.Combat.StageMain.Mithril_6_14",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -270,6 +287,7 @@
                 },
                 {
                     "name": "秘银：12-5 厄险",
+                    "label": "$Option.Combat.StageMain.Mithril_12_5",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -287,6 +305,7 @@
                 },
                 {
                     "name": "秘银：13-7 厄险",
+                    "label": "$Option.Combat.StageMain.Mithril_13_7",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -304,6 +323,7 @@
                 },
                 {
                     "name": "百灵鸟：2-6 厄险",
+                    "label": "$Option.Combat.StageMain.Lark_2_6",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -321,6 +341,7 @@
                 },
                 {
                     "name": "百灵鸟：9-8 厄险",
+                    "label": "$Option.Combat.StageMain.Lark_9_8",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -338,6 +359,7 @@
                 },
                 {
                     "name": "百灵鸟：10-6 厄险",
+                    "label": "$Option.Combat.StageMain.Lark_10_6",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -355,6 +377,7 @@
                 },
                 {
                     "name": "百灵鸟：12-7 厄险",
+                    "label": "$Option.Combat.StageMain.Lark_12_7",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -372,6 +395,7 @@
                 },
                 {
                     "name": "百灵鸟：13-8 厄险",
+                    "label": "$Option.Combat.StageMain.Lark_13_8",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -389,6 +413,7 @@
                 },
                 {
                     "name": "钥匙(微光蛾翼灯)：9-15 厄险",
+                    "label": "$Option.Combat.StageMain.Key_9_15",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -406,6 +431,7 @@
                 },
                 {
                     "name": "钥匙：12-18 厄险",
+                    "label": "$Option.Combat.StageMain.Key_12_18",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -423,6 +449,7 @@
                 },
                 {
                     "name": "钥匙：13-11 厄险",
+                    "label": "$Option.Combat.StageMain.Key_13_11",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -440,6 +467,7 @@
                 },
                 {
                     "name": "鹅颈：5-4 厄险",
+                    "label": "$Option.Combat.StageMain.Gooseneck_5_4",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -457,6 +485,7 @@
                 },
                 {
                     "name": "鹅颈(轮与轴之芯)：10-22 厄险",
+                    "label": "$Option.Combat.StageMain.Gooseneck_10_22",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -474,6 +503,7 @@
                 },
                 {
                     "name": "鹅颈：13-13 厄险",
+                    "label": "$Option.Combat.StageMain.Gooseneck_13_13",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -491,6 +521,7 @@
                 },
                 {
                     "name": "焚香：4-4 故事",
+                    "label": "$Option.Combat.StageMain.Incense_4_4",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -508,6 +539,7 @@
                 },
                 {
                     "name": "焚香：8-18 厄险",
+                    "label": "$Option.Combat.StageMain.Incense_8_18",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -525,6 +557,7 @@
                 },
                 {
                     "name": "焚香(金钟灵质瓶)：13-15 厄险",
+                    "label": "$Option.Combat.StageMain.Incense_13_15",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -542,6 +575,7 @@
                 },
                 {
                     "name": "泥板：9-1 厄险",
+                    "label": "$Option.Combat.StageMain.ClayTablet_9_1",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -559,6 +593,7 @@
                 },
                 {
                     "name": "泥板(翡翠石板)：12-21 厄险",
+                    "label": "$Option.Combat.StageMain.ClayTablet_12_21",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -576,6 +611,7 @@
                 },
                 {
                     "name": "泥板(翡翠石板)：13-20 厄险",
+                    "label": "$Option.Combat.StageMain.ClayTablet_13_20",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -593,6 +629,7 @@
                 },
                 {
                     "name": "灵摆：5-14 厄险",
+                    "label": "$Option.Combat.StageMain.Pendulum_5_14",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -610,6 +647,7 @@
                 },
                 {
                     "name": "灵摆：7-20 厄险",
+                    "label": "$Option.Combat.StageMain.Pendulum_7_20",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -627,6 +665,7 @@
                 },
                 {
                     "name": "灵摆：13-10 厄险",
+                    "label": "$Option.Combat.StageMain.Pendulum_13_10",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -644,6 +683,7 @@
                 },
                 {
                     "name": "甲虫：10-2 厄险",
+                    "label": "$Option.Combat.StageMain.Beetle_10_2",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -661,6 +701,7 @@
                 },
                 {
                     "name": "甲虫：3-15 故事",
+                    "label": "$Option.Combat.StageMain.Beetle_3_15",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -678,6 +719,7 @@
                 },
                 {
                     "name": "甲虫：12-11 厄险",
+                    "label": "$Option.Combat.StageMain.Beetle_12_11",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -695,6 +737,7 @@
                 },
                 {
                     "name": "甲虫：13-14 厄险",
+                    "label": "$Option.Combat.StageMain.Beetle_13_14",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -712,6 +755,7 @@
                 },
                 {
                     "name": "彩蛋：2-14 厄险",
+                    "label": "$Option.Combat.StageMain.EasterEgg_2_14",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -729,6 +773,7 @@
                 },
                 {
                     "name": "彩蛋：12-3 厄险",
+                    "label": "$Option.Combat.StageMain.EasterEgg_12_3",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -746,6 +791,7 @@
                 },
                 {
                     "name": "彩蛋：13-21 厄险",
+                    "label": "$Option.Combat.StageMain.EasterEgg_13_21",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -763,6 +809,7 @@
                 },
                 {
                     "name": "战栗：10-17 厄险",
+                    "label": "$Option.Combat.StageMain.Tremor_10_17",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -780,6 +827,7 @@
                 },
                 {
                     "name": "战栗：9-3 厄险",
+                    "label": "$Option.Combat.StageMain.Tremor_9_3",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -797,6 +845,7 @@
                 },
                 {
                     "name": "蓝盐：5-8 厄险",
+                    "label": "$Option.Combat.StageMain.BitterSalt_5_8",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -814,6 +863,7 @@
                 },
                 {
                     "name": "蓝盐：9-16 厄险",
+                    "label": "$Option.Combat.StageMain.BitterSalt_9_16",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -831,6 +881,7 @@
                 },
                 {
                     "name": "蓝骨：5-7 厄险",
+                    "label": "$Option.Combat.StageMain.RootBone_5_7",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -848,6 +899,7 @@
                 },
                 {
                     "name": "蓝骨：5-3 厄险",
+                    "label": "$Option.Combat.StageMain.RootBone_5_3",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -865,6 +917,7 @@
                 },
                 {
                     "name": "蓝银：9-6 厄险",
+                    "label": "$Option.Combat.StageMain.SilverIngot_9_6",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -882,6 +935,7 @@
                 },
                 {
                     "name": "蓝银：7-19 厄险",
+                    "label": "$Option.Combat.StageMain.SilverIngot_7_19",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -899,6 +953,7 @@
                 },
                 {
                     "name": "蓝咒：4-20 厄险",
+                    "label": "$Option.Combat.StageMain.LuckyIncantation_4_20",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -916,6 +971,7 @@
                 },
                 {
                     "name": "蝉翼：10-4 厄险",
+                    "label": "$Option.Combat.StageMain.CicadaWing_10_4",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -933,6 +989,7 @@
                 },
                 {
                     "name": "轮子：7-16 厄险",
+                    "label": "$Option.Combat.StageMain.Wheel_7_16",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -950,6 +1007,7 @@
                 },
                 {
                     "name": "狐儿尾：8-18 厄险",
+                    "label": "$Option.Combat.StageMain.Foxtail_8_18",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -967,6 +1025,7 @@
                 },
                 {
                     "name": "辉石：9-1 厄险",
+                    "label": "$Option.Combat.StageMain.Pyroxene_9_1",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -986,10 +1045,11 @@
         },
         "作战关卡(资源)": {
             "type": "select",
-            "label": "作战关卡",
+            "label": "$Option.Combat.StageResource",
             "cases": [
                 {
                     "name": "尘埃运动 06",
+                    "label": "$Option.Combat.StageResource.DustInMotion_06",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1007,6 +1067,7 @@
                 },
                 {
                     "name": "铸币美学 06",
+                    "label": "$Option.Combat.StageResource.CoinageAesthetics_06",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1024,6 +1085,7 @@
                 },
                 {
                     "name": "意志解析 07",
+                    "label": "$Option.Combat.StageResource.WillAnalysis_07",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1043,28 +1105,32 @@
         },
         "作战关卡(洞悉)": {
             "type": "select",
-            "label": "灵感",
+            "label": "$Option.Combat.StageInsight",
             "cases": [
                 {
                     "name": "岩",
+                    "label": "$Option.Combat.StageInsight.Rock",
                     "option": [
                         "作战关卡(岩)"
                     ]
                 },
                 {
                     "name": "星",
+                    "label": "$Option.Combat.StageInsight.Star",
                     "option": [
                         "作战关卡(星)"
                     ]
                 },
                 {
                     "name": "木",
+                    "label": "$Option.Combat.StageInsight.Wood",
                     "option": [
                         "作战关卡(木)"
                     ]
                 },
                 {
                     "name": "兽",
+                    "label": "$Option.Combat.StageInsight.Beast",
                     "option": [
                         "作战关卡(兽)"
                     ]
@@ -1073,10 +1139,11 @@
         },
         "作战关卡(岩)": {
             "type": "select",
-            "label": "作战关卡",
+            "label": "$Option.Combat.StageRock",
             "cases": [
                 {
                     "name": "群山之声 02",
+                    "label": "$Option.Combat.StageRock.VoiceOfMountains_02",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1103,6 +1170,7 @@
                 },
                 {
                     "name": "群山之声 04",
+                    "label": "$Option.Combat.StageRock.VoiceOfMountains_04",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1129,6 +1197,7 @@
                 },
                 {
                     "name": "群山之声 06",
+                    "label": "$Option.Combat.StageRock.VoiceOfMountains_06",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1157,10 +1226,11 @@
         },
         "作战关卡(星)": {
             "type": "select",
-            "label": "作战关卡",
+            "label": "$Option.Combat.StageStar",
             "cases": [
                 {
                     "name": "星陨之所 02",
+                    "label": "$Option.Combat.StageStar.WhereStarsFall_02",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1187,6 +1257,7 @@
                 },
                 {
                     "name": "星陨之所 04",
+                    "label": "$Option.Combat.StageStar.WhereStarsFall_04",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1213,6 +1284,7 @@
                 },
                 {
                     "name": "星陨之所 06",
+                    "label": "$Option.Combat.StageStar.WhereStarsFall_06",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1241,10 +1313,11 @@
         },
         "作战关卡(木)": {
             "type": "select",
-            "label": "作战关卡",
+            "label": "$Option.Combat.StageWood",
             "cases": [
                 {
                     "name": "深林之形 02",
+                    "label": "$Option.Combat.StageWood.ShapeOfDeepForest_02",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1271,6 +1344,7 @@
                 },
                 {
                     "name": "深林之形 04",
+                    "label": "$Option.Combat.StageWood.ShapeOfDeepForest_04",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1297,6 +1371,7 @@
                 },
                 {
                     "name": "深林之形 06",
+                    "label": "$Option.Combat.StageWood.ShapeOfDeepForest_06",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1325,10 +1400,11 @@
         },
         "作战关卡(兽)": {
             "type": "select",
-            "label": "作战关卡",
+            "label": "$Option.Combat.StageBeast",
             "cases": [
                 {
                     "name": "荒兽之野 02",
+                    "label": "$Option.Combat.StageBeast.FieldOfWildBeasts_02",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1355,6 +1431,7 @@
                 },
                 {
                     "name": "荒兽之野 04",
+                    "label": "$Option.Combat.StageBeast.FieldOfWildBeasts_04",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1381,6 +1458,7 @@
                 },
                 {
                     "name": "荒兽之野 06",
+                    "label": "$Option.Combat.StageBeast.FieldOfWildBeasts_06",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "action": {
@@ -1409,23 +1487,25 @@
         },
         "作战关卡(自定义)": {
             "type": "input",
-            "label": "作战关卡",
+            "label": "$Option.Combat.StageCustom",
             "inputs": [
                 {
                     "name": "章节号",
+                    "label": "$Option.Combat.StageCustom.Chapter",
                     "pipeline_type": "string",
                     "default": "2",
-                    "pattern_msg": "请输入章节号，如2",
+                    "pattern_msg": "$Option.Combat.StageCustom.Chapter.msg",
                     "verify": "^(\\d+)$",
-                    "description": "请输入章节号，如2"
+                    "description": "$Option.Combat.StageCustom.Chapter.desc"
                 },
                 {
                     "name": "关卡号",
+                    "label": "$Option.Combat.StageCustom.Stage",
                     "pipeline_type": "string",
                     "default": "6",
-                    "pattern_msg": "请输入关卡号，如6",
+                    "pattern_msg": "$Option.Combat.StageCustom.Stage.msg",
                     "verify": "^(\\d+)$",
-                    "description": "请输入关卡号，如6"
+                    "description": "$Option.Combat.StageCustom.Stage.desc"
                 }
             ],
             "pipeline_override": {
@@ -1442,10 +1522,11 @@
         },
         "主线关卡难度": {
             "type": "select",
-            "label": "关卡难度",
+            "label": "$Option.Combat.MainStoryDifficulty",
             "cases": [
                 {
                     "name": "厄险",
+                    "label": "$Option.Combat.MainStoryDifficulty.Hard",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "attach": {
@@ -1456,6 +1537,7 @@
                 },
                 {
                     "name": "故事",
+                    "label": "$Option.Combat.MainStoryDifficulty.Story",
                     "pipeline_override": {
                         "SelectCombatStage": {
                             "attach": {
@@ -1490,14 +1572,16 @@
                     ]
                 }
             ],
-            "description": "关闭时会清空体力"
+            "description": "$Option.Combat.CustomCount.desc",
+            "label": "$Option.Combat.CustomCount"
         },
         "作战次数(自定义)": {
             "type": "input",
-            "label": "作战次数",
+            "label": "$Option.Combat.CountCustom",
             "inputs": [
                 {
                     "name": "作战次数",
+                    "label": "$Option.Combat.CountCustom.Count",
                     "pipeline_type": "int",
                     "default": "114514",
                     "verify": "^(0|[1-9]\\d*)$"
@@ -1535,7 +1619,8 @@
                     }
                 }
             ],
-            "description": "是否统计主线关卡掉落并将掉落结果上报到[必要的记录](https://www.kdocs.cn/l/cd5MWeCl5bKw)（仅主线关卡生效），非国服该选项无效"
+            "description": "$Option.Combat.DropReport.desc",
+            "label": "$Option.Combat.DropReport"
         }
     }
 }

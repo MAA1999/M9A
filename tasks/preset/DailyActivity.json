@@ -2,7 +2,8 @@
     "preset": [
         {
             "name": "日常-活动",
-            "description": "非主线版本刷取活动关卡",
+            "label": "$Preset.DailyEvent",
+            "description": "$Preset.DailyEvent.desc",
             "task": [
                 {
                     "name": "启动游戏"

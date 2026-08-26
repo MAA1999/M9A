@@ -2,6 +2,7 @@
     "task": [
         {
             "name": "复刻活动推图",
+            "label": "$Task.SSReopen",
             "entry": "SSReopen",
             "option": [
                 "吃糖"
@@ -27,7 +28,7 @@
             "group": [
                 "standalone"
             ],
-            "description": "本任务根据任务列表完成任务，仅支持已打过的往期活动推图"
+            "description": "$Task.SSReopen.desc"
         }
     ]
 }

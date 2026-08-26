@@ -2,6 +2,7 @@
     "task": [
         {
             "name": "局外演绎：黄昏的音序",
+            "label": "$Task.SeriesOfDusks",
             "entry": "SeriesOfDusks",
             "option": [
                 "触媒选择",
@@ -11,20 +12,22 @@
             "group": [
                 "standalone"
             ],
-            "description": "<span style=\"color:darkgray;font-size:15px\">本功能有两种模式，触媒选择仅在非速刷模式生效，开启速刷模式后仅使用术式神灯刷取第一层</span><br><span style=\"color:black;font-size:18px\">速刷模式</span><br><span style=\"color:darkgray;font-size:15px\">1.使用前请先将`刻画生长-指引之歌`以及`刻画生长-建筑章程`点满</span><br><span style=\"color:darkgray;font-size:15px\">2.请尽量调高难度等级(11难度达到最高信用效率)以及点足科技树中信用效率加成，以防止分数不够2k5导致刷取信物失败</span><br><span style=\"color:black;font-size:18px\">非速刷模式</span><br><span style=\"color:darkgray;font-size:15px\">1.可在箱子里置顶(标记)四个角色出战</span><br><span style=\"color:darkgray;font-size:15px\">2.队伍推荐携带奶</span><br><span style=\"color:darkgray;font-size:15px\">3.M9A不能检查是否处于自动战斗状态，请自行调整</span><br><span style=\"color:orange;font-size:15px\">⚠更多详细说明请看文档</span>"
+            "description": "$Task.SeriesOfDusks.desc"
         }
     ],
     "option": {
         "触媒选择": {
             "type": "select",
-            "label": "触媒选择",
+            "label": "$Option.SeriesOfDusks.Catalyst",
             "cases": [
                 {
                     "name": "术式神灯",
+                    "label": "$Option.SeriesOfDusks.Catalyst.MagicLamp",
                     "pipeline_override": {}
                 },
                 {
                     "name": "石榴心血",
+                    "label": "$Option.SeriesOfDusks.Catalyst.PomegranateHeartblood",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
                             "recognition": {
@@ -37,6 +40,7 @@
                 },
                 {
                     "name": "精神视界",
+                    "label": "$Option.SeriesOfDusks.Catalyst.MentalHorizon",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
                             "recognition": {
@@ -49,6 +53,7 @@
                 },
                 {
                     "name": "仪式匕首",
+                    "label": "$Option.SeriesOfDusks.Catalyst.RitualDagger",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
                             "recognition": {
@@ -61,6 +66,7 @@
                 },
                 {
                     "name": "曳变灵摆",
+                    "label": "$Option.SeriesOfDusks.Catalyst.DriftingPendulum",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
                             "recognition": {
@@ -73,6 +79,7 @@
                 },
                 {
                     "name": "“一”的诫令",
+                    "label": "$Option.SeriesOfDusks.Catalyst.CommandmentOfOne",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
                             "recognition": {
@@ -85,6 +92,7 @@
                 },
                 {
                     "name": "“全”的振歌",
+                    "label": "$Option.SeriesOfDusks.Catalyst.AnthemOfAll",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
                             "recognition": {
@@ -97,6 +105,7 @@
                 },
                 {
                     "name": "点金之石",
+                    "label": "$Option.SeriesOfDusks.Catalyst.PhilosophersStone",
                     "pipeline_override": {
                         "SODStart_MediaSelect": {
                             "recognition": {
@@ -111,7 +120,7 @@
         },
         "速刷模式": {
             "type": "switch",
-            "label": "速刷模式",
+            "label": "$Option.SeriesOfDusks.FastMode",
             "cases": [
                 {
                     "name": "No",
@@ -132,7 +141,7 @@
         },
         "演绎难度": {
             "type": "select",
-            "label": "演绎难度",
+            "label": "$Option.SeriesOfDusks.Difficulty",
             "cases": [
                 {
                     "name": "Current",

@@ -2,6 +2,7 @@
     "task": [
         {
             "name": "活动推图",
+            "label": "$Task.AutoPromotion",
             "entry": "AutoPromotion",
             "option": [
                 "选择活动",
@@ -29,7 +30,7 @@
             "group": [
                 "standalone"
             ],
-            "description": "使用前请先手动进入活动关卡地图页，再运行本任务。<br><b>故事/主线</b>——自动识别编号旁带灰色星标的未完成关卡并依次推进，推完后会自动尝试小径任务；没有小径则正常结束。<br><b>探索模式</b>——活动后期开放，若当前在故事页会先切换到探索模式；主线地图无探索模式时自动跳过。<br>遇到小游戏、特殊教程等无法自动处理的界面时任务会自动停止（出错截图见 debug/on_error），请手动完成后回到关卡地图页重新运行即可继续。"
+            "description": "$Task.AutoPromotion.desc"
         }
     ],
     "option": {
@@ -39,10 +40,12 @@
             "cases": [
                 {
                     "name": "故事/主线",
+                    "label": "$Option.AutoPromotion.ClearMode.Story",
                     "pipeline_override": {}
                 },
                 {
                     "name": "探索模式",
+                    "label": "$Option.AutoPromotion.ClearMode.Exploration",
                     "pipeline_override": {
                         "AutoPromotion": {
                             "next": [
@@ -64,10 +67,11 @@
                     }
                 }
             ],
-            "description": "选择要推进的地图模式。故事/主线推完后会自动尝试小径；探索模式只推进探索地图"
+            "description": "$Option.AutoPromotion.ClearMode.desc",
+            "label": "$Option.AutoPromotion.ClearMode"
         },
         "推图吃糖": {
-            "label": "吃糖",
+            "label": "$Option.AutoPromotion.ConsumeCandy",
             "type": "switch",
             "default_case": "Yes",
             "cases": [
@@ -99,7 +103,7 @@
                     }
                 }
             ],
-            "description": "体力耗尽时自动吃糖（不限有效期，吃所有糖）"
+            "description": "$Option.AutoPromotion.ConsumeCandy.desc"
         },
         "选择活动": {
             "type": "select",
@@ -107,10 +111,12 @@
             "cases": [
                 {
                     "name": "当前页面",
+                    "label": "$Option.AutoPromotion.SelectEvent.CurrentPage",
                     "pipeline_override": {}
                 },
                 {
                     "name": "当期活动",
+                    "label": "$Option.AutoPromotion.SelectEvent.CurrentEvent",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -182,6 +188,7 @@
                 },
                 {
                     "name": "雷米特杯失窃案",
+                    "label": "$Option.AutoPromotion.SelectEvent.RemitCup",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -247,6 +254,7 @@
                 },
                 {
                     "name": "绿湖噩梦",
+                    "label": "$Option.AutoPromotion.SelectEvent.GreenLake",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -312,6 +320,7 @@
                 },
                 {
                     "name": "行至摩卢旁卡",
+                    "label": "$Option.AutoPromotion.SelectEvent.MorPankh",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -377,6 +386,7 @@
                 },
                 {
                     "name": "洞穴的囚徒",
+                    "label": "$Option.AutoPromotion.SelectEvent.CavePrisoner",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -442,6 +452,7 @@
                 },
                 {
                     "name": "复兴！乌卢鲁运动会",
+                    "label": "$Option.AutoPromotion.SelectEvent.Uluru",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -507,6 +518,7 @@
                 },
                 {
                     "name": "朔日手记",
+                    "label": "$Option.AutoPromotion.SelectEvent.NewMoon",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -572,6 +584,7 @@
                 },
                 {
                     "name": "再见，来亚什基",
+                    "label": "$Option.AutoPromotion.SelectEvent.Liyashki",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -637,6 +650,7 @@
                 },
                 {
                     "name": "孤独之歌",
+                    "label": "$Option.AutoPromotion.SelectEvent.SongOfSolitude",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -702,6 +716,7 @@
                 },
                 {
                     "name": "7号往事",
+                    "label": "$Option.AutoPromotion.SelectEvent.NumberSeven",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -767,6 +782,7 @@
                 },
                 {
                     "name": "忧郁的热带",
+                    "label": "$Option.AutoPromotion.SelectEvent.TristesTropiques",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -832,6 +848,7 @@
                 },
                 {
                     "name": "地球上最后的夜晚",
+                    "label": "$Option.AutoPromotion.SelectEvent.LastEvenings",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -897,6 +914,7 @@
                 },
                 {
                     "name": "唐人街影话",
+                    "label": "$Option.AutoPromotion.SelectEvent.Chinatown",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -962,6 +980,7 @@
                 },
                 {
                     "name": "疯癫与文明",
+                    "label": "$Option.AutoPromotion.SelectEvent.FolieEtDeraison",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -1027,6 +1046,7 @@
                 },
                 {
                     "name": "1987宇宙组曲",
+                    "label": "$Option.AutoPromotion.SelectEvent.CosmicOverture",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -1092,6 +1112,7 @@
                 },
                 {
                     "name": "复乐园",
+                    "label": "$Option.AutoPromotion.SelectEvent.ParadiseRegained",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -1157,6 +1178,7 @@
                 },
                 {
                     "name": "今夜星光灿烂",
+                    "label": "$Option.AutoPromotion.SelectEvent.StarlightTonight",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -1222,6 +1244,7 @@
                 },
                 {
                     "name": "飞驰！明日之城",
+                    "label": "$Option.AutoPromotion.SelectEvent.CityOfTomorrow",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -1287,6 +1310,7 @@
                 },
                 {
                     "name": "圣火纪行：东区黎明",
+                    "label": "$Option.AutoPromotion.SelectEvent.SacredFlame",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -1352,6 +1376,7 @@
                 },
                 {
                     "name": "行于漫漫长路上",
+                    "label": "$Option.AutoPromotion.SelectEvent.LongRoad",
                     "pipeline_override": {
                         "AP_Navigate": {
                             "recognition": {
@@ -1416,7 +1441,8 @@
                     }
                 }
             ],
-            "description": "「当前页面」=先手动进入活动关卡地图页再运行（默认）；选择具体活动则从游戏主页自动导航：入场 → 映像 → 找到对应卡片 → 活动正篇/主线正篇 → 开始推图"
+            "description": "$Option.AutoPromotion.SelectEvent.desc",
+            "label": "$Option.AutoPromotion.SelectEvent"
         }
     }
 }
