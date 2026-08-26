@@ -45,9 +45,11 @@ def test_i18n_validator_rejects_unresolved_and_orphan_keys(tmp_path: Path) -> No
             "interface_version": 2,
             "name": "demo",
             "label": "$Project.Label",
+            "description": "$Project.Missing",
             "languages": {"zh_cn": "i18n/zh_cn.json", "en_us": "i18n/en_us.json"},
         },
     )
+    # Project.Missing is referenced but undefined; Project.Unused is defined but unreferenced
     write_json(tmp_path / "i18n/zh_cn.json", {"Project.Label": "演示", "Project.Unused": "多余"})
     write_json(tmp_path / "i18n/en_us.json", {"Project.Label": "Demo", "Project.Unused": "extra"})
 
@@ -55,6 +57,7 @@ def test_i18n_validator_rejects_unresolved_and_orphan_keys(tmp_path: Path) -> No
     output = result.stdout + result.stderr
 
     assert result.returncode == 1
+    assert 'missing "Project.Missing"' in output
     assert "Project.Unused" in output and "never referenced" in output
 
 
