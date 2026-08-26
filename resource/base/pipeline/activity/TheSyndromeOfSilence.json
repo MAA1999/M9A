@@ -2092,6 +2092,7 @@
     },
     "SOSBack2Start": {
         "next": [
+            "[JumpBack]SOSStop",
             "FlagInSOSMainMenu",
             "[JumpBack]BackButton"
         ]

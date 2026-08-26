@@ -34,6 +34,8 @@ class SOSSelectNode(CustomAction):
 
     node_type: str = ""
     event_name: str = ""
+    # 恶战重开待跳过标记：重开后 SOSNodeProcess 据此短路成功，避免拿陈旧节点状态空转
+    restart_pending: bool = False
 
     def run(
         self,
@@ -86,6 +88,11 @@ class SOSSelectNode(CustomAction):
         if node_type == "恶战" and restart_on_ezhan:
             logger.info("检测到恶战节点，返回主界面重新开始")
             context.run_task("SOSBack2Start")
+            # 复位状态：SOSNodeProcess 在主菜单上没有可处理的节点，
+            # 置跳过标记让它立即成功返回，由外层循环重新开局
+            SOSSelectNode.node_type = ""
+            SOSSelectNode.event_name = ""
+            SOSSelectNode.restart_pending = True
             return CustomAction.RunResult(success=True)
         SOSSelectNode.node_type = node_type
         logger.info(f"当前进入节点类型: {node_type}")
@@ -193,6 +200,11 @@ class SOSNodeProcess(CustomAction):
         context: Context,
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
+
+        if SOSSelectNode.restart_pending:
+            SOSSelectNode.restart_pending = False
+            logger.debug("刚完成恶战重开，跳过本次节点处理")
+            return CustomAction.RunResult(success=True)
 
         with open("data/sos/nodes.json", encoding="utf-8") as f:
             nodes = json.load(f)
