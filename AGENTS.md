@@ -38,21 +38,23 @@ docs/           # Developer docs and user manual (see below)
 | Project structure & conventions      | `docs/*/develop/structure.md`                  |
 | Bug-fixing workflow                  | `docs/*/develop/fix.md`                        |
 | Formatting & linting                 | `docs/*/develop/formatting.md`                 |
+| Interface / task localisation        | `docs/*/develop/i18n.md`                       |
 | Overseas client adaptation           | `docs/*/develop/overseas-client-adaptation.md` |
 | Activity / combat / item protocols   | `docs/*/protocol/`                             |
 | CLI / connection / FAQ (user-facing) | `docs/*/manual/`                               |
 
 ## Build, Test, and Development Commands
 
-| Command             | Purpose                                                |
-| ------------------- | ------------------------------------------------------ |
-| `pnpm check`        | Formatting check → schema validation → MaaFW integrity |
-| `pnpm check:py`     | Lint Python → type check → run tests                   |
-| `pnpm format`       | Auto-format all non-Python files with Prettier         |
-| `pnpm format:py`    | Auto-format Python files with ruff                     |
-| `pnpm lint:py`      | Lint Python with ruff                                  |
-| `pnpm test:py`      | Run Python tests via pytest                            |
-| `pnpm typecheck:py` | Static type check Python with pyright (strict mode)    |
+| Command             | Purpose                                                                  |
+| ------------------- | ------------------------------------------------------------------------ |
+| `pnpm check`        | Formatting check → schema validation → i18n validation → MaaFW integrity |
+| `pnpm check:i18n`   | Verify interface/task i18n keys resolve in every language                |
+| `pnpm check:py`     | Lint Python → type check → run tests                                     |
+| `pnpm format`       | Auto-format all non-Python files with Prettier                           |
+| `pnpm format:py`    | Auto-format Python files with ruff                                       |
+| `pnpm lint:py`      | Lint Python with ruff                                                    |
+| `pnpm test:py`      | Run Python tests via pytest                                              |
+| `pnpm typecheck:py` | Static type check Python with pyright (strict mode)                      |
 
 Before submitting changes, run `pnpm check` (and `pnpm check:py` for Python changes).
 
