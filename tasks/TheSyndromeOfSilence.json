@@ -120,7 +120,7 @@
                 },
                 {
                     "name": "尖啸 Ⅰ",
-                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Shriek1",
+                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Fortissimo1",
                     "pipeline_override": {
                         "SOSSelectNoise": {
                             "action": {
@@ -135,7 +135,7 @@
                 },
                 {
                     "name": "尖啸 Ⅱ",
-                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Shriek2",
+                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Fortissimo2",
                     "pipeline_override": {
                         "SOSSelectNoise": {
                             "action": {
@@ -150,7 +150,7 @@
                 },
                 {
                     "name": "崩解 Ⅰ",
-                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Collapse1",
+                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Disintegration1",
                     "pipeline_override": {
                         "SOSSelectNoise": {
                             "action": {
@@ -165,7 +165,7 @@
                 },
                 {
                     "name": "崩解 Ⅱ",
-                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Collapse2",
+                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Disintegration2",
                     "pipeline_override": {
                         "SOSSelectNoise": {
                             "action": {
