@@ -177,6 +177,9 @@ class SOSSelectNode(CustomAction):
                     node_type = "购物契机"
                     SOSSelectNode.node_type = node_type
                     SOSSelectNode.event_name = ""
+                elif SOSSelectNode._resolve_event_cross_type(context, nodes, node_type):
+                    # 本类型 ROI 失败多为节点分类有误：换其他类型的 ROI 重读事件名并跨类型修正
+                    return CustomAction.RunResult(success=True)
                 else:
                     SOSSelectNode.event_name = ""
                     return CustomAction.RunResult(success=False)
@@ -184,6 +187,60 @@ class SOSSelectNode(CustomAction):
             # 没有事件名
             SOSSelectNode.event_name = ""
         return CustomAction.RunResult(success=True)
+
+    @staticmethod
+    def _collect_alt_event_rois(nodes: dict[str, Any], node_type: str) -> list[Any]:
+        """收集除自身类型外所有出现过的事件名 ROI，按首次出现顺序去重。"""
+        own_roi = nodes[node_type]["event_name_roi"]
+        alt_rois: list[Any] = []
+        for type_name, info in nodes.items():
+            if type_name in ("types", "common_interrupts") or not isinstance(info, dict):
+                continue
+            roi = info.get("event_name_roi")
+            if roi and roi != own_roi and roi not in alt_rois:
+                alt_rois.append(roi)
+        return alt_rois
+
+    @staticmethod
+    def _find_event_owner(event: str, nodes: dict[str, Any]) -> str | None:
+        """在全部节点类型的事件表中查找事件归属：先精确匹配，后 0.6 相似度兜底。"""
+        candidates: dict[str, str] = {}
+        for type_name, info in nodes.items():
+            if type_name in ("types", "common_interrupts") or not isinstance(info, dict):
+                continue
+            events = info.get("events")
+            if not isinstance(events, dict):
+                continue
+            if event in events:
+                return type_name
+            candidates.update({name: type_name for name in events})
+        matches = difflib.get_close_matches(event, list(candidates.keys()), n=1, cutoff=0.6)
+        return candidates[matches[0]] if matches else None
+
+    @staticmethod
+    def _resolve_event_cross_type(context: Context, nodes: dict[str, Any], node_type: str) -> bool:
+        """
+        事件名按本类型 ROI 识别失败时的自愈：节点分类可能有误（如必经之路被
+        误分为途中偶遇），依次改用其他类型的 event_name_roi 重读事件名，
+        并跨类型查找归属；命中则修正 node_type/event_name 供 SOSNodeProcess 使用。
+        """
+        for roi in SOSSelectNode._collect_alt_event_rois(nodes, node_type):
+            if context.tasker.stopping:
+                return False
+            img = context.tasker.controller.post_screencap().wait().get()
+            reco_detail = context.run_recognition("SOSEventRec", img, {"SOSEventRec": {"roi": roi}})
+            if not is_hit(reco_detail):
+                continue
+            event = ocr_text(reco_detail)
+            owner = SOSSelectNode._find_event_owner(event, nodes)
+            if owner is None:
+                logger.debug(f"备用 ROI 识别到「{event}」，未命中任何事件表")
+                continue
+            logger.warning(f"节点类型修正: {node_type} -> {owner}（事件「{event}」）")
+            SOSSelectNode.node_type = owner
+            SOSSelectNode.event_name = event
+            return True
+        return False
 
 
 @AgentServer.custom_action("SOSNodeProcess")
