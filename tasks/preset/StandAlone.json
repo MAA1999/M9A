@@ -47,6 +47,10 @@
                 {
                     "name": "8-bit 街机秀",
                     "enabled": false
+                },
+                {
+                    "name": "缪斯碰碰盒速刷",
+                    "enabled": false
                 }
             ]
         }

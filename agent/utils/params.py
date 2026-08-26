@@ -26,6 +26,11 @@ def parse_params(raw: str | None, *required_keys: str) -> dict[str, Any]:
         params = json.loads(raw)
     except json.JSONDecodeError as e:
         raise ValueError(f"JSON解析失败: {e}") from e
+    if params is None:
+        # MaaFW 在节点未写 custom_*_param 时传的是字面量 "null" 而非空串，视同缺省
+        if required_keys:
+            raise ValueError(f"参数为空，需要字段: {list(required_keys)}")
+        return {}
     if not isinstance(params, dict):
         raise ValueError(f"参数必须是对象，得到: {type(params).__name__}")
     if required_keys:

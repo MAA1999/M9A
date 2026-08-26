@@ -1,0 +1,52 @@
+{
+    "MusesBoxStartParty": {
+        "desc": "缪斯碰碰盒点击派对启程",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    985,
+                    595,
+                    295,
+                    70
+                ],
+                "expected": [
+                    ".*派对启程.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 600000,
+        "rate_limit": 5000,
+        "next": [
+            "MusesBoxSettlement",
+            "MusesBoxStartParty" //兜底
+        ]
+    },
+    "MusesBoxSettlement": {
+        "desc": "缪斯碰碰盒结算",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    569,
+                    661,
+                    146,
+                    49
+                ],
+                "expected": [
+                    ".*点击空白退出.*"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "MusesBoxStartParty",
+            "MusesBoxSettlement" //兜底
+        ]
+    }
+}

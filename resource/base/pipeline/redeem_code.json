@@ -120,7 +120,8 @@
                 329,
                 222,
                 33
-            ]
+            ],
+            "timeout": 3000
         },
         "next": [
             "redeem_codeInputCompleted",

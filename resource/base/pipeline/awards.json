@@ -1015,6 +1015,10 @@
                                     [
                                         "职",
                                         "取"
+                                    ],
+                                    [
+                                        "预",
+                                        "领"
                                     ]
                                 ],
                                 "color_filter": "AwardBreakingSignalsAward_color_filter"
@@ -1036,6 +1040,10 @@
                                     [
                                         "职",
                                         "取"
+                                    ],
+                                    [
+                                        "预",
+                                        "领"
                                     ]
                                 ]
                             }

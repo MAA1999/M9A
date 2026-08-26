@@ -128,10 +128,10 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    210,
                     301,
-                    1058,
-                    405
+                    302,
+                    376,
+                    373
                 ],
                 "expected": "免费"
             }
@@ -166,10 +166,10 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    210,
                     301,
-                    1058,
-                    405
+                    302,
+                    376,
+                    373
                 ],
                 "expected": "免费"
             }
@@ -196,10 +196,10 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    760,
-                    509,
-                    60,
-                    27
+                    753,
+                    493,
+                    67,
+                    46
                 ],
                 "expected": "购买",
                 "only_rec": true
@@ -1056,18 +1056,21 @@
     },
     "HeartObservationPendingTinyGlobe(1)": {
         "enabled": false,
+        "max_hit": 10,
         "next": [
             "SwipeUp"
         ]
     },
     "HeartObservationPendingEnlightenmentII": {
         "enabled": false,
+        "max_hit": 10,
         "next": [
             "SwipeUp"
         ]
     },
     "HeartObservationPendingEnlightenmentI": {
         "enabled": false,
+        "max_hit": 10,
         "next": [
             "SwipeUp"
         ]
@@ -1391,8 +1394,14 @@
                 ],
                 "expected": "启寤Ⅰ",
                 "replace": [
-                    "启[IⅠ]",
-                    "启寤Ⅰ"
+                    [
+                        "启[IⅠ]",
+                        "启寤Ⅰ"
+                    ],
+                    [
+                        "启寤[IⅠ]",
+                        "启寤Ⅰ"
+                    ]
                 ]
             }
         },
@@ -1504,8 +1513,14 @@
                 ],
                 "expected": "启寤Ⅰ",
                 "replace": [
-                    "启[IⅠ]",
-                    "启寤Ⅰ"
+                    [
+                        "启[IⅠ]",
+                        "启寤Ⅰ"
+                    ],
+                    [
+                        "启寤[IⅠ]",
+                        "启寤Ⅰ"
+                    ]
                 ]
             }
         },
@@ -1667,8 +1682,14 @@
                 ],
                 "expected": "启寤Ⅱ",
                 "replace": [
-                    "启Ⅱ",
-                    "启寤Ⅱ"
+                    [
+                        "启[ⅡI]{2}",
+                        "启寤Ⅱ"
+                    ],
+                    [
+                        "启寤[ⅡI]{2}",
+                        "启寤Ⅱ"
+                    ]
                 ]
             }
         },
@@ -1780,8 +1801,14 @@
                 ],
                 "expected": "启寤Ⅱ",
                 "replace": [
-                    "启Ⅱ",
-                    "启寤Ⅱ"
+                    [
+                        "启[ⅡI]{2}",
+                        "启寤Ⅱ"
+                    ],
+                    [
+                        "启寤[ⅡI]{2}",
+                        "启寤Ⅱ"
+                    ]
                 ]
             }
         },

@@ -1,8 +1,6 @@
-import ast
 import copy
 import difflib
 import json
-import os
 import re
 import time
 from typing import Any
@@ -11,8 +9,6 @@ import numpy as np
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from maa.define import NeuralNetworkDetectResult
-from PIL import Image
 from utils import logger
 from utils.maa_types import is_hit, ocr_text
 from utils.params import parse_params
@@ -38,6 +34,8 @@ class SOSSelectNode(CustomAction):
 
     node_type: str = ""
     event_name: str = ""
+    # 恶战重开待跳过标记：重开后 SOSNodeProcess 据此短路成功，避免拿陈旧节点状态空转
+    restart_pending: bool = False
 
     def run(
         self,
@@ -70,66 +68,13 @@ class SOSSelectNode(CustomAction):
             print(f"读取 JSON 文件时发生未知错误：{e}")
             return CustomAction.RunResult(success=False)
 
-        # 检查识别结果中在期望列表中的结果，保存截图用于调试
-        expected_indices = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12]
-        score_threshold = 0.6
-        if argv.reco_detail.filtered_results:
-            expected_results = [
-                r
-                for r in argv.reco_detail.filtered_results
-                if isinstance(r, NeuralNetworkDetectResult)
-                and r.cls_index in expected_indices
-                and r.score < score_threshold
-            ]
-            if expected_results:
-                img = context.tasker.controller.cached_image
-
-                # BGR2RGB
-                if len(img.shape) == 3 and img.shape[2] == 3:
-                    rgb_img = img[:, :, ::-1]
-                else:
-                    rgb_img = img
-                    logger.warning("当前截图并非三通道")
-
-                timestamp = time.strftime("%Y%m%d_%H%M%S")
-                save_dir = "debug/custom/SOSSelectNode"
-                os.makedirs(save_dir, exist_ok=True)
-                save_path = f"{save_dir}/{timestamp}.png"
-                Image.fromarray(rgb_img).save(save_path)
-                logger.debug(f"检测到低分数节点，截图已保存: {save_path}")
-                for i, r in enumerate(expected_results):
-                    logger.debug(
-                        f"  结果{i}: 类型={nodes['types'][r.cls_index]} (cls_index={r.cls_index}), 分数={r.score:.3f}"
-                    )
-
-        # 如果 reco_detail 是字符串，解析为 dict
-        if isinstance(reco_detail, str):
-            try:
-                reco_detail = ast.literal_eval(reco_detail)
-            except (ValueError, SyntaxError):
-                logger.error(f"无法解析 reco_detail: {reco_detail}")
-                return CustomAction.RunResult(success=False)
-
-        # 获取 cls_index
-        if isinstance(reco_detail, dict):
-            cls_index = reco_detail.get("best", {}).get("cls_index")
-        elif hasattr(reco_detail, "cls_index"):
-            cls_index = reco_detail.cls_index
-        else:
-            logger.error(f"无法获取 cls_index from reco_detail: {type(reco_detail)} {reco_detail}")
-            return CustomAction.RunResult(success=False)
+        # 模板匹配后端的 detail 结构：{"all": [...], "filtered": [...], "best": {...}}
+        best = reco_detail.get("best") if isinstance(reco_detail, dict) else None
+        cls_index = best.get("cls_index") if best else None
+        box = best.get("box") if best else None
 
         if cls_index is None:
             logger.error("cls_index 为 None")
-            return CustomAction.RunResult(success=False)
-
-        # 获取 box
-        if isinstance(reco_detail, dict):
-            box = reco_detail.get("best", {}).get("box")
-        elif hasattr(reco_detail, "box"):
-            box = reco_detail.box
-        else:
-            logger.error(f"无法获取 box from reco_detail: {type(reco_detail)} {reco_detail}")
             return CustomAction.RunResult(success=False)
 
         if box is None:
@@ -143,6 +88,11 @@ class SOSSelectNode(CustomAction):
         if node_type == "恶战" and restart_on_ezhan:
             logger.info("检测到恶战节点，返回主界面重新开始")
             context.run_task("SOSBack2Start")
+            # 复位状态：SOSNodeProcess 在主菜单上没有可处理的节点，
+            # 置跳过标记让它立即成功返回，由外层循环重新开局
+            SOSSelectNode.node_type = ""
+            SOSSelectNode.event_name = ""
+            SOSSelectNode.restart_pending = True
             return CustomAction.RunResult(success=True)
         SOSSelectNode.node_type = node_type
         logger.info(f"当前进入节点类型: {node_type}")
@@ -166,7 +116,34 @@ class SOSSelectNode(CustomAction):
             img = context.tasker.controller.post_screencap().wait().get()
             rec = context.run_recognition("SOSGOTO", img)
             if is_hit(rec):
+                # 预览面板标注节点类型，以界面标注为准修正模板识别结果
+                # 各类型标注均在顶部槽位，仅冲突面板因顶部敌人提示横幅下移一行
+                type_rec = context.run_recognition("SOSSelectNodeTypeRec", img)
+                if not is_hit(type_rec):
+                    type_rec = context.run_recognition(
+                        "SOSSelectNodeTypeRec",
+                        img,
+                        {"SOSSelectNodeTypeRec": {"roi": [843, 190, 180, 40]}},
+                    )
+                if is_hit(type_rec):
+                    preview_type = SOSSelectNode._match_node_type(ocr_text(type_rec), nodes)
+                    if preview_type and preview_type != node_type:
+                        logger.warning(f"节点类型修正(预览面板): {node_type} -> {preview_type}")
+                        node_type = preview_type
+                        SOSSelectNode.node_type = node_type
+                if node_type == "恶战" and restart_on_ezhan:
+                    logger.info("预览面板确认为恶战节点，返回主界面重新开始")
+                    context.run_task("SOSBack2Start")
+                    SOSSelectNode.node_type = ""
+                    SOSSelectNode.event_name = ""
+                    SOSSelectNode.restart_pending = True
+                    return CustomAction.RunResult(success=True)
                 context.run_task("SOSGOTO")
+                break
+            # 部分过渡层点击节点会跳过预览直接进入事件：
+            # 已离开主地图时不再盲点击旧坐标，立即转入事件名阶段
+            if not is_hit(context.run_recognition("FlagInSOSMain", img)):
+                logger.debug("未出现前往按钮且已离开主地图，判定为直接进入节点")
                 break
             times += 1
 
@@ -227,6 +204,9 @@ class SOSSelectNode(CustomAction):
                     node_type = "购物契机"
                     SOSSelectNode.node_type = node_type
                     SOSSelectNode.event_name = ""
+                elif SOSSelectNode._resolve_event_cross_type(context, nodes, node_type):
+                    # 本类型 ROI 失败多为节点分类有误：换其他类型的 ROI 重读事件名并跨类型修正
+                    return CustomAction.RunResult(success=True)
                 else:
                     SOSSelectNode.event_name = ""
                     return CustomAction.RunResult(success=False)
@@ -235,6 +215,72 @@ class SOSSelectNode(CustomAction):
             SOSSelectNode.event_name = ""
         return CustomAction.RunResult(success=True)
 
+    @staticmethod
+    def _match_node_type(text: str, nodes: dict[str, Any]) -> str:
+        """预览面板 OCR 文本 → 节点类型名：精确 → 包含 → 0.6 相似度；失败返回空串。"""
+        if text in nodes:
+            return text
+        names = [k for k in nodes if k not in ("types", "common_interrupts")]
+        for name in names:
+            if name and (name in text or text in name):
+                return name
+        matches = difflib.get_close_matches(text, names, n=1, cutoff=0.6)
+        return matches[0] if matches else ""
+
+    @staticmethod
+    def _collect_alt_event_rois(nodes: dict[str, Any], node_type: str) -> list[Any]:
+        """收集除自身类型外所有出现过的事件名 ROI，按首次出现顺序去重。"""
+        own_roi = nodes[node_type]["event_name_roi"]
+        alt_rois: list[Any] = []
+        for type_name, info in nodes.items():
+            if type_name in ("types", "common_interrupts") or not isinstance(info, dict):
+                continue
+            roi = info.get("event_name_roi")
+            if roi and roi != own_roi and roi not in alt_rois:
+                alt_rois.append(roi)
+        return alt_rois
+
+    @staticmethod
+    def _find_event_owner(event: str, nodes: dict[str, Any]) -> str | None:
+        """在全部节点类型的事件表中查找事件归属：先精确匹配，后 0.6 相似度兜底。"""
+        candidates: dict[str, str] = {}
+        for type_name, info in nodes.items():
+            if type_name in ("types", "common_interrupts") or not isinstance(info, dict):
+                continue
+            events = info.get("events")
+            if not isinstance(events, dict):
+                continue
+            if event in events:
+                return type_name
+            candidates.update({name: type_name for name in events})
+        matches = difflib.get_close_matches(event, list(candidates.keys()), n=1, cutoff=0.6)
+        return candidates[matches[0]] if matches else None
+
+    @staticmethod
+    def _resolve_event_cross_type(context: Context, nodes: dict[str, Any], node_type: str) -> bool:
+        """
+        事件名按本类型 ROI 识别失败时的自愈：节点分类可能有误（如必经之路被
+        误分为途中偶遇），依次改用其他类型的 event_name_roi 重读事件名，
+        并跨类型查找归属；命中则修正 node_type/event_name 供 SOSNodeProcess 使用。
+        """
+        for roi in SOSSelectNode._collect_alt_event_rois(nodes, node_type):
+            if context.tasker.stopping:
+                return False
+            img = context.tasker.controller.post_screencap().wait().get()
+            reco_detail = context.run_recognition("SOSEventRec", img, {"SOSEventRec": {"roi": roi}})
+            if not is_hit(reco_detail):
+                continue
+            event = ocr_text(reco_detail)
+            owner = SOSSelectNode._find_event_owner(event, nodes)
+            if owner is None:
+                logger.debug(f"备用 ROI 识别到「{event}」，未命中任何事件表")
+                continue
+            logger.warning(f"节点类型修正: {node_type} -> {owner}（事件「{event}」）")
+            SOSSelectNode.node_type = owner
+            SOSSelectNode.event_name = event
+            return True
+        return False
+
 
 @AgentServer.custom_action("SOSNodeProcess")
 class SOSNodeProcess(CustomAction):
@@ -242,11 +288,19 @@ class SOSNodeProcess(CustomAction):
     节点处理
     """
 
+    # 事件选项界面始终未出现（搁浅）的连续次数，按事件名累计；任意节点处理成功后清空
+    stranded_counts: dict[str, int] = {}
+
     def run(
         self,
         context: Context,
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
+
+        if SOSSelectNode.restart_pending:
+            SOSSelectNode.restart_pending = False
+            logger.debug("刚完成恶战重开，跳过本次节点处理")
+            return CustomAction.RunResult(success=True)
 
         with open("data/sos/nodes.json", encoding="utf-8") as f:
             nodes = json.load(f)
@@ -297,13 +351,56 @@ class SOSNodeProcess(CustomAction):
         if context.tasker.stopping:
             logger.debug("任务即将停止，跳过节点处理")
             return CustomAction.RunResult(success=True)
+        skipped = False
         for action in actions:
             if context.tasker.stopping:
                 logger.debug("任务即将停止，跳过节点处理")
                 return CustomAction.RunResult(success=True)
             if not self.exec_main(context, action, interrupts):
+                if self._skip_stranded_event(context, nodes, node_type, event_name):
+                    skipped = True
+                    continue
                 return CustomAction.RunResult(success=False)
+        if not skipped:
+            SOSNodeProcess.stranded_counts.clear()
         return CustomAction.RunResult(success=True)
+
+    def _skip_stranded_event(self, context: Context, nodes: dict[str, Any], node_type: str, event_name: str) -> bool:
+        """
+        判断事件是否已"搁浅"：点击事件后选项界面始终未出现，且事件横幅已消失。
+        此时继续重试只会原地空转并消耗恢复预算（#839），应跳过该事件剩余动作。
+        返回 True 表示已确认搁浅、跳过剩余动作；False 表示按普通失败走恢复流程。
+        """
+        if not event_name:
+            return False
+        event_name_roi = nodes.get(node_type, {}).get("event_name_roi")
+        if not event_name_roi:
+            return False
+
+        img = context.tasker.controller.post_screencap().wait().get()
+
+        # 途中偶遇选项界面仍在：属于点击失败，而非搁浅
+        option_reco = context.run_recognition("SOSSelectEncounterOptionRec_Template", img)
+        if is_hit(option_reco):
+            return False
+
+        # 事件横幅仍在：交由恢复流程重试
+        banner_reco = context.run_recognition("SOSEventRec", img, {"SOSEventRec": {"roi": event_name_roi}})
+        if is_hit(banner_reco):
+            return False
+
+        # 已回到主地图：事件无法继续处理，跳过；同一事件连续搁浅 3 次则走恢复流程
+        main_reco = context.run_recognition("FlagInSOSMain", img)
+        if not is_hit(main_reco):
+            return False
+
+        stranded = SOSNodeProcess.stranded_counts.get(event_name, 0) + 1
+        SOSNodeProcess.stranded_counts[event_name] = stranded
+        if stranded >= 3:
+            logger.error(f"事件 {event_name} 连续 {stranded} 次界面未出现，停止跳过，交由恢复流程处理")
+            return False
+        logger.warning(f"事件 {event_name} 界面未出现且事件横幅已消失（第 {stranded} 次），跳过该事件")
+        return True
 
     def _resolve_interrupts(self, interrupts: str | list[Any], nodes: dict[str, Any]) -> list[Any]:
         """
@@ -338,7 +435,11 @@ class SOSNodeProcess(CustomAction):
 
     def exec_main(self, context: Context, action: dict[str, Any] | list[Any], interrupts: list[Any]):
         retry_times = 0
-        while retry_times < 5:
+        # interrupt 命中会重置 retry_times，需另设总轮数上限，
+        # 防止"事件横幅一直在→反复点击"造成无限循环（#839）
+        total_rounds = 0
+        while retry_times < 5 and total_rounds < 100:
+            total_rounds += 1
             if context.tasker.stopping:
                 return False
             # 先尝试执行主动作

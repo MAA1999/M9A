@@ -1,3 +1,5 @@
 packages: []
+overrides:
+  fast-uri: 3.1.5
 minimumReleaseAgeExclude:
   - create-maa-project

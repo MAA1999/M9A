@@ -32,9 +32,36 @@ jobs:
           python tools/activity_data/main.py
 
       - name: Commit and Push Changes
+        id: commit
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add data/activity/*.json
-          git commit -m "Auto-update activities data - $(date -u '+%Y-%m-%d %H:%M:%S') UTC" || echo "No changes to commit"
-          git push || echo "Nothing to push"
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-update activities data - $(date -u '+%Y-%m-%d %H:%M:%S') UTC"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # GITHUB_TOKEN 产生的 push 不会触发其它 workflow，
+      # 因此这里显式向 M9A-API 发送 repository_dispatch 触发数据同步。
+      - name: Trigger M9A-API Sync
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.DISPATCH_TOKEN }}
+          script: |
+            await github.rest.repos.createDispatchEvent({
+              owner: 'MAA1999',
+              repo: 'M9A-API',
+              event_type: 'sync-resource-data',
+              client_payload: {
+                source_repo: context.repo.repo,
+                source_ref: context.ref,
+                triggered_by: context.actor
+              }
+            });
+            console.log('已触发 M9A-API 仓库的数据同步');

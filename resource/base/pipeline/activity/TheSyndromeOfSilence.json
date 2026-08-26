@@ -625,7 +625,8 @@
         },
         "next": [
             "SOSSelectInstrument",
-            "[JumpBack]SOSNextStep"
+            "[JumpBack]SOSNextStep",
+            "[JumpBack]Confirm"
         ]
     },
     "SOSSelectInstrument": {
@@ -766,7 +767,7 @@
         "recognition": {
             "type": "Custom",
             "param": {
-                "custom_recognition": "SOSSelectNode"
+                "custom_recognition": "SOSSelectNodeTemplate"
             }
         },
         "action": {
@@ -779,7 +780,48 @@
             "SOSNodeProcess"
         ],
         "on_error": [
-            "SOSMain"
+            "SOSMain",
+            // 通用清屏：关闭提示 / 返回上级
+            "[JumpBack]CloseTip",
+            "[JumpBack]BackButton",
+            // 对话（动作内 interrupt 未覆盖的盲区）
+            "[JumpBack]SOSSkipMessage",
+            "[JumpBack]SOSNextMessage",
+            "[JumpBack]SOSNextMessage_left",
+            // 弹窗：属性 / 造物 / 谐波 / 共鸣器 / 骰子
+            "[JumpBack]SOSWarning",
+            "[JumpBack]SOSStatBreakthrough",
+            "[JumpBack]SOSStatsUpButton",
+            "[JumpBack]SOSStatsUp",
+            "[JumpBack]SOSArtefactsObtained",
+            "[JumpBack]SOSSelectArtefact",
+            "[JumpBack]SOSLoseArtefact",
+            "[JumpBack]SOSStrengthenArtefact",
+            "[JumpBack]SOSHarmonicObtained",
+            "[JumpBack]SOSSelectHarmonic",
+            "[JumpBack]SOSResonatorObtained",
+            "[JumpBack]SOSSelectResonator",
+            "[JumpBack]SOSFormBreakthrough",
+            "[JumpBack]SOSDice",
+            "[JumpBack]SOSDiceSuccess",
+            "[JumpBack]SOSDiceGiveUp",
+            // 通用推进与终局
+            "[JumpBack]SOSContinue",
+            "[JumpBack]SOSEventEnd",
+            "[JumpBack]SOSSelectOption",
+            "[JumpBack]SOS_Skip",
+            "[JumpBack]SOSConfirm",
+            "[JumpBack]SOSInformation",
+            "[JumpBack]SOSSetOff",
+            "[JumpBack]SOSSummary",
+            "[JumpBack]SOSEnding",
+            "[JumpBack]SOSAbortConfirm",
+            "[JumpBack]SOSCollectBack",
+            "[JumpBack]SOSGiveup",
+            // 破坏性兜底（重开 / 中止）必须置底
+            "[JumpBack]SOSMainMenu",
+            "[JumpBack]SOSStart",
+            "[JumpBack]SOSStop"
         ]
     },
     "SOSNodeProcess": {
@@ -795,7 +837,8 @@
     },
     "SOSNodeProcessErrorLoop": {
         // 处理节点选择或战斗过程中出现的错误
-        "max_hit": 10,
+        // max_hit 为任务内累计额度：长跑局中每次异常恢复消耗 1 次，10 次会在后半局耗尽导致无路可恢复（#839）
+        "max_hit": 50,
         "next": [
             "SOSMain",
             "SOSSelectNoise",
@@ -809,6 +852,9 @@
             "[JumpBack]SOSInformation",
             "[JumpBack]SOSAbortConfirm",
             "[JumpBack]SOSCombat",
+            "[JumpBack]SOSSkipMessage",
+            "[JumpBack]SOSNextMessage",
+            "[JumpBack]SOSNextMessage_left",
             "SOSNodeProcessErrorLoop"
         ]
     },
@@ -1011,15 +1057,15 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    254,
-                    543,
-                    130,
-                    60
+                    188,
+                    519,
+                    188,
+                    84
                 ],
                 "expected": [
+                    "确认",
                     "选择"
-                ],
-                "only_rec": true
+                ]
             }
         },
         "action": {
@@ -1112,6 +1158,33 @@
             }
         },
         "inverse": true
+    },
+    "SOSSelectNodeTypeRec": {
+        "desc": "节点预览面板的类型标注，作为节点类型的权威真值；各类型均在顶部槽位，仅冲突面板（顶部有敌人提示横幅）下移一行，由动作侧重试；expected 与识别后端 EXPECTED_CLASSES（可点击类型）一致",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    843,
+                    120,
+                    180,
+                    36
+                ],
+                "expected": [
+                    "冲突",
+                    "险象环生",
+                    "遭遇",
+                    "途中偶遇",
+                    "途中余兴",
+                    "恶战",
+                    "休憩处",
+                    "购物契机",
+                    "巧匠之手",
+                    "必经之路",
+                    "藏宝地"
+                ]
+            }
+        }
     },
     "SOSContinue": {
         "recognition": {
@@ -1277,7 +1350,10 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 500
+        "post_wait_freezes": {
+            "time": 500,
+            "timeout": 5000
+        }
     },
     "SOSCombat": {
         "recognition": {
@@ -1771,7 +1847,8 @@
                 393,
                 488
             ]
-        }
+        },
+        "timeout": 3000
     },
     "SOSClickEventRec": {
         "recognition": {
@@ -2087,6 +2164,7 @@
     },
     "SOSBack2Start": {
         "next": [
+            "[JumpBack]SOSStop",
             "FlagInSOSMainMenu",
             "[JumpBack]BackButton"
         ]
@@ -2405,39 +2483,23 @@
             "type": "Click"
         }
     },
-    "SOSSelectNode_rec": {
+    // 模板匹配后端的识别参数基座：SOSSelectNodeTemplate 自定义识别
+    // 每次调用会按类覆盖 template / threshold / roi，此处仅为缺省值与文档
+    "SOSSelectNode_rec_template": {
         "recognition": {
-            "type": "NeuralNetworkDetect",
+            "type": "TemplateMatch",
             "param": {
-                "expected": [
-                    1,
-                    2,
-                    3,
-                    4,
-                    5,
-                    6,
-                    8,
-                    9,
-                    10,
-                    11,
-                    12
+                "roi": [
+                    0,
+                    30,
+                    1280,
+                    600
                 ],
-                "model": "sos_nodes.onnx",
-                "labels": [
-                    "C", // 已完成节点
-                    "Conflict", // 冲突
-                    "Dangerous", // 险象环生
-                    "Encounter", // 遭遇
-                    "EncounterAlongTheWay", // 途中偶遇
-                    "EntertainmentOnTheWay", // 途中余兴
-                    "FierceBattle", // 恶战
-                    "Message", // 对话
-                    "RestArea", // 休憩处
-                    "ShoppingOpportunity", // 购物契机
-                    "TheHandOfAMasterCraftsman", // 巧匠之手
-                    "TheOnlyWay", // 必经之路
-                    "TreasureLand" // 藏宝地
+                "template": [
+                    "SyndromeOfSilence/nodes/Conflict.png"
                 ],
+                "method": 5,
+                "threshold": 0.8,
                 "order_by": "Score"
             }
         }

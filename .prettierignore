@@ -1,12 +1,28 @@
+# 依赖与包管理器
 node_modules/
-dist/
-.create-maa-project/
+.pnpm-store/
 .venv/
 .uv-cache/
 pnpm-lock.yaml
 uv.lock
+
+# 构建产物
+dist/
+build/
+.gradle/
+
+# 工具缓存
+.pytest_cache/
+.ruff_cache/
+
+# 运行时调试输出
+debug/
+
+# 第三方资产 / 脚手架
 MaaCommonAssets/
-resource/base/model/ocr/
+.create-maa-project/
+
+# 第三方 schema（随 MaaFW 上游更新，不参与本地格式化）
 tools/schema/interface.schema.json
 tools/schema/interface_config.schema.json
 tools/schema/interface_import.schema.json
