@@ -779,7 +779,48 @@
             "SOSNodeProcess"
         ],
         "on_error": [
-            "SOSMain"
+            "SOSMain",
+            // 通用清屏：关闭提示 / 返回上级
+            "[JumpBack]CloseTip",
+            "[JumpBack]BackButton",
+            // 对话（动作内 interrupt 未覆盖的盲区）
+            "[JumpBack]SOSSkipMessage",
+            "[JumpBack]SOSNextMessage",
+            "[JumpBack]SOSNextMessage_left",
+            // 弹窗：属性 / 造物 / 谐波 / 共鸣器 / 骰子
+            "[JumpBack]SOSWarning",
+            "[JumpBack]SOSStatBreakthrough",
+            "[JumpBack]SOSStatsUpButton",
+            "[JumpBack]SOSStatsUp",
+            "[JumpBack]SOSArtefactsObtained",
+            "[JumpBack]SOSSelectArtefact",
+            "[JumpBack]SOSLoseArtefact",
+            "[JumpBack]SOSStrengthenArtefact",
+            "[JumpBack]SOSHarmonicObtained",
+            "[JumpBack]SOSSelectHarmonic",
+            "[JumpBack]SOSResonatorObtained",
+            "[JumpBack]SOSSelectResonator",
+            "[JumpBack]SOSFormBreakthrough",
+            "[JumpBack]SOSDice",
+            "[JumpBack]SOSDiceSuccess",
+            "[JumpBack]SOSDiceGiveUp",
+            // 通用推进与终局
+            "[JumpBack]SOSContinue",
+            "[JumpBack]SOSEventEnd",
+            "[JumpBack]SOSSelectOption",
+            "[JumpBack]SOS_Skip",
+            "[JumpBack]SOSConfirm",
+            "[JumpBack]SOSInformation",
+            "[JumpBack]SOSSetOff",
+            "[JumpBack]SOSSummary",
+            "[JumpBack]SOSEnding",
+            "[JumpBack]SOSAbortConfirm",
+            "[JumpBack]SOSCollectBack",
+            "[JumpBack]SOSGiveup",
+            // 破坏性兜底（重开 / 中止）必须置底
+            "[JumpBack]SOSMainMenu",
+            "[JumpBack]SOSStart",
+            "[JumpBack]SOSStop"
         ]
     },
     "SOSNodeProcess": {
