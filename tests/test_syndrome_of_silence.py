@@ -10,6 +10,7 @@ _NODES = {
     "common_interrupts": {"stats": ["SOSWarning"]},
     "已完成节点": {"event_name_roi": None, "actions": []},
     "冲突": {"event_name_roi": None, "actions": []},
+    "恶战": {"event_name_roi": None, "actions": []},
     "途中偶遇": {
         "event_name_roi": [45, 74, 207, 29],
         "events": {"鬃毛的回报": {"actions": []}},
@@ -57,3 +58,18 @@ def test_collect_alt_event_rois_skips_null_roi_types() -> None:
         [45, 74, 207, 29],
         [858, 72, 132, 33],
     ]
+
+
+def test_match_node_type_exact_hit() -> None:
+    """预览面板 OCR 文本与类型名完全一致。"""
+    assert SOSSelectNode._match_node_type("必经之路", _NODES) == "必经之路"
+
+
+def test_match_node_type_containment_hit() -> None:
+    """类型名带前后缀修饰时按包含关系命中（如「恶战·试炼」→ 恶战）。"""
+    assert SOSSelectNode._match_node_type("恶战·试炼", _NODES) == "恶战"
+
+
+def test_match_node_type_miss_returns_empty() -> None:
+    """无法归属的文本返回空串，保留模板识别结果。"""
+    assert SOSSelectNode._match_node_type("毫不相干的乱码", _NODES) == ""

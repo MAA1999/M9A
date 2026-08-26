@@ -1158,6 +1158,33 @@
         },
         "inverse": true
     },
+    "SOSSelectNodeTypeRec": {
+        "desc": "节点预览面板的类型标注，作为节点类型的权威真值；各类型均在顶部槽位，仅冲突面板（顶部有敌人提示横幅）下移一行，由动作侧重试；expected 与识别后端 EXPECTED_CLASSES（可点击类型）一致",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    843,
+                    120,
+                    180,
+                    36
+                ],
+                "expected": [
+                    "冲突",
+                    "险象环生",
+                    "遭遇",
+                    "途中偶遇",
+                    "途中余兴",
+                    "恶战",
+                    "休憩处",
+                    "购物契机",
+                    "巧匠之手",
+                    "必经之路",
+                    "藏宝地"
+                ]
+            }
+        }
+    },
     "SOSContinue": {
         "recognition": {
             "type": "OCR",

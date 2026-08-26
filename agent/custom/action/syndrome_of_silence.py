@@ -116,7 +116,34 @@ class SOSSelectNode(CustomAction):
             img = context.tasker.controller.post_screencap().wait().get()
             rec = context.run_recognition("SOSGOTO", img)
             if is_hit(rec):
+                # 预览面板标注节点类型，以界面标注为准修正模板识别结果
+                # 各类型标注均在顶部槽位，仅冲突面板因顶部敌人提示横幅下移一行
+                type_rec = context.run_recognition("SOSSelectNodeTypeRec", img)
+                if not is_hit(type_rec):
+                    type_rec = context.run_recognition(
+                        "SOSSelectNodeTypeRec",
+                        img,
+                        {"SOSSelectNodeTypeRec": {"roi": [843, 190, 180, 40]}},
+                    )
+                if is_hit(type_rec):
+                    preview_type = SOSSelectNode._match_node_type(ocr_text(type_rec), nodes)
+                    if preview_type and preview_type != node_type:
+                        logger.warning(f"节点类型修正(预览面板): {node_type} -> {preview_type}")
+                        node_type = preview_type
+                        SOSSelectNode.node_type = node_type
+                if node_type == "恶战" and restart_on_ezhan:
+                    logger.info("预览面板确认为恶战节点，返回主界面重新开始")
+                    context.run_task("SOSBack2Start")
+                    SOSSelectNode.node_type = ""
+                    SOSSelectNode.event_name = ""
+                    SOSSelectNode.restart_pending = True
+                    return CustomAction.RunResult(success=True)
                 context.run_task("SOSGOTO")
+                break
+            # 部分过渡层点击节点会跳过预览直接进入事件：
+            # 已离开主地图时不再盲点击旧坐标，立即转入事件名阶段
+            if not is_hit(context.run_recognition("FlagInSOSMain", img)):
+                logger.debug("未出现前往按钮且已离开主地图，判定为直接进入节点")
                 break
             times += 1
 
@@ -187,6 +214,18 @@ class SOSSelectNode(CustomAction):
             # 没有事件名
             SOSSelectNode.event_name = ""
         return CustomAction.RunResult(success=True)
+
+    @staticmethod
+    def _match_node_type(text: str, nodes: dict[str, Any]) -> str:
+        """预览面板 OCR 文本 → 节点类型名：精确 → 包含 → 0.6 相似度；失败返回空串。"""
+        if text in nodes:
+            return text
+        names = [k for k in nodes if k not in ("types", "common_interrupts")]
+        for name in names:
+            if name and (name in text or text in name):
+                return name
+        matches = difflib.get_close_matches(text, names, n=1, cutoff=0.6)
+        return matches[0] if matches else ""
 
     @staticmethod
     def _collect_alt_event_rois(nodes: dict[str, Any], node_type: str) -> list[Any]:
