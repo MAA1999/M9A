@@ -14,9 +14,10 @@
 
 ```text
 agent/          # Python agent —— custom actions, recognitions, utilities (entry: main.py)
-tasks/          # Preset task pipeline definitions
-tools/          # Build, release, schema validation, and CI scripts
-resource/       # MaaFW resource packs (images, pipeline, model)
+tasks/          # Project Interface task and preset definitions
+i18n/           # Project Interface display translations
+tools/          # Build, release, schema/i18n validation, and CI scripts
+resource/       # MaaFW runtime resource packs (images, pipeline, model)
 data/           # Game reference data (activity schedules, drop tables, item databases, etc.)
 tests/          # pytest test suite, mirrors agent/ structure
 docs/           # Developer docs and user manual (see below)
@@ -104,7 +105,8 @@ When reviewing code, check for:
 - **Code formatting**: All files must pass `pnpm check` (includes Prettier, schema, and MaaFW integrity). Run `pnpm format` / `pnpm format:py` to auto-format.
 - **Type safety**: Python code must pass `pnpm check:py` (ruff lint + pyright type check + pytest) without errors.
 - **Custom registration**: New custom actions/recognitions must be registered in the corresponding `__init__.py`.
-- **Consistency**: `interface.json`, task files, and resource files must stay in sync.
+- **Interface i18n**: Keep stable `name` identifiers unchanged, add display text through `label`, update every declared language table, and run `pnpm check:i18n`.
+- **Consistency**: `interface.json`, `tasks/`, `i18n/`, and `resource/` must stay in sync.
 - **Edge cases**: Pipelines should handle interruptions (pop-ups, unexpected dialogs). Every action should be followed by a recognition step.
 
 ## Additional Notes
