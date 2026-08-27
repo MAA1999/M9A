@@ -2,6 +2,7 @@
     "task": [
         {
             "name": "局外演绎：无声综合征",
+            "label": "$Task.TheSyndromeOfSilence",
             "entry": "TheSyndromeOfSilence",
             "option": [
                 "携带好旅伴",
@@ -12,13 +13,13 @@
             "group": [
                 "standalone"
             ],
-            "description": "<span style=\"color:darkgray;font-size:15px\">3.8版本开始支持从游戏主页面启动，3.7版本须手动到如下界面启动</span>![SOSMain](resource/announcement/images/SOSMain.png)<span style=\"color:darkgray;font-size:15px\">M9A不能检查是否处于自动战斗状态，请确定上一次使用的是自动战斗（3.7版本请自行提前编好编队）</span><br><span style=\"color:orange;font-size:15px\">⚠使用前请先至少手动打完第一层，更多详细说明请看文档</span>"
+            "description": "$Task.TheSyndromeOfSilence.desc"
         }
     ],
     "option": {
         "携带好旅伴": {
             "type": "switch",
-            "label": "携带好旅伴",
+            "label": "$Option.TheSyndromeOfSilence.GoodCompanion",
             "cases": [
                 {
                     "name": "No",
@@ -40,10 +41,11 @@
         },
         "难度选择": {
             "type": "select",
-            "label": "难度选择",
+            "label": "$Option.TheSyndromeOfSilence.Difficulty",
             "cases": [
                 {
                     "name": "当前",
+                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Current",
                     "pipeline_override": {
                         "SOSSelectNoise": {
                             "action": {
@@ -58,6 +60,7 @@
                 },
                 {
                     "name": "颤动 Ⅰ",
+                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Tremor1",
                     "pipeline_override": {
                         "SOSSelectNoise": {
                             "action": {
@@ -72,6 +75,7 @@
                 },
                 {
                     "name": "颤动 Ⅱ",
+                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Tremor2",
                     "pipeline_override": {
                         "SOSSelectNoise": {
                             "action": {
@@ -86,6 +90,7 @@
                 },
                 {
                     "name": "嗡鸣 Ⅰ",
+                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Hum1",
                     "pipeline_override": {
                         "SOSSelectNoise": {
                             "action": {
@@ -100,6 +105,7 @@
                 },
                 {
                     "name": "嗡鸣 Ⅱ",
+                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Hum2",
                     "pipeline_override": {
                         "SOSSelectNoise": {
                             "action": {
@@ -114,6 +120,7 @@
                 },
                 {
                     "name": "尖啸 Ⅰ",
+                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Fortissimo1",
                     "pipeline_override": {
                         "SOSSelectNoise": {
                             "action": {
@@ -128,6 +135,7 @@
                 },
                 {
                     "name": "尖啸 Ⅱ",
+                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Fortissimo2",
                     "pipeline_override": {
                         "SOSSelectNoise": {
                             "action": {
@@ -142,6 +150,7 @@
                 },
                 {
                     "name": "崩解 Ⅰ",
+                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Disintegration1",
                     "pipeline_override": {
                         "SOSSelectNoise": {
                             "action": {
@@ -156,6 +165,7 @@
                 },
                 {
                     "name": "崩解 Ⅱ",
+                    "label": "$Option.TheSyndromeOfSilence.Difficulty.Disintegration2",
                     "pipeline_override": {
                         "SOSSelectNoise": {
                             "action": {
@@ -172,10 +182,11 @@
         },
         "配器选择": {
             "type": "select",
-            "label": "配器选择",
+            "label": "$Option.TheSyndromeOfSilence.Instrument",
             "cases": [
                 {
                     "name": "管钟",
+                    "label": "$Option.TheSyndromeOfSilence.Instrument.TubularBells",
                     "pipeline_override": {
                         "SOSSelectInstrument": {
                             "action": {
@@ -190,6 +201,7 @@
                 },
                 {
                     "name": "拨弦",
+                    "label": "$Option.TheSyndromeOfSilence.Instrument.Pizzicato",
                     "pipeline_override": {
                         "SOSSelectInstrument": {
                             "action": {
@@ -204,6 +216,7 @@
                 },
                 {
                     "name": "乐鞭",
+                    "label": "$Option.TheSyndromeOfSilence.Instrument.Whip",
                     "pipeline_override": {
                         "SOSSelectInstrument": {
                             "action": {
@@ -220,14 +233,16 @@
         },
         "作战策略": {
             "type": "select",
-            "label": "作战策略",
+            "label": "$Option.TheSyndromeOfSilence.BattleStrategy",
             "cases": [
                 {
                     "name": "尽量打",
+                    "label": "$Option.TheSyndromeOfSilence.BattleStrategy.PushOn",
                     "pipeline_override": {}
                 },
                 {
                     "name": "遇到恶战重开",
+                    "label": "$Option.TheSyndromeOfSilence.BattleStrategy.RestartOnHardBattle",
                     "pipeline_override": {
                         "SOSSelectNode": {
                             "action": {

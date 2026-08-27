@@ -2,6 +2,7 @@
     "task": [
         {
             "name": "使用兑换码",
+            "label": "$Task.RedeemCode",
             "entry": "redeem_code",
             "option": [
                 "自定义兑换码"
@@ -9,7 +10,7 @@
             "group": [
                 "daily"
             ],
-            "description": "<span style=\"color:tomato;font-size:15px\">会根据当前账号自动跳过已使用过的兑换码</span>"
+            "description": "$Task.RedeemCode.desc"
         }
     ],
     "option": {
@@ -18,8 +19,9 @@
             "inputs": [
                 {
                     "name": "兑换码",
+                    "label": "$Option.RedeemCode.CustomCodes.Code",
                     "default": "占位",
-                    "pattern_msg": "多个兑换码间用空格、逗号或分号分开",
+                    "pattern_msg": "$Option.RedeemCode.CustomCodes.Code.msg",
                     "pipeline_type": "string"
                 }
             ],
@@ -29,7 +31,8 @@
                         "codes": "{兑换码}"
                     }
                 }
-            }
+            },
+            "label": "$Option.RedeemCode.CustomCodes"
         }
     }
 }

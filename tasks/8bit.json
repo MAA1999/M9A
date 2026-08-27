@@ -2,6 +2,7 @@
     "task": [
         {
             "name": "8-bit 街机秀",
+            "label": "$Task.EightBitArcade",
             "entry": "8bit",
             "option": [
                 "8-bit关卡难度",
@@ -11,20 +12,22 @@
             "group": [
                 "standalone"
             ],
-            "desc": "8-bit 街机秀刷代币，请到游戏主界面开始任务"
+            "desc": "$Task.EightBitArcade.desc"
         }
     ],
     "option": {
         "8-bit关卡难度": {
             "type": "select",
-            "label": "关卡难度",
+            "label": "$Option.EightBitArcade.StageDifficulty",
             "cases": [
                 {
                     "name": "单向投币Ⅰ",
+                    "label": "$Option.EightBitArcade.StageDifficulty.1",
                     "pipeline_override": {}
                 },
                 {
                     "name": "单向投币Ⅱ",
+                    "label": "$Option.EightBitArcade.StageDifficulty.2",
                     "pipeline_override": {
                         "8bitLevelSelect": {
                             "recognition": {
@@ -42,6 +45,7 @@
                 },
                 {
                     "name": "单向投币Ⅲ",
+                    "label": "$Option.EightBitArcade.StageDifficulty.3",
                     "pipeline_override": {
                         "8bitLevelSelect": {
                             "recognition": {
@@ -61,10 +65,11 @@
         },
         "8-bit刷取模式": {
             "type": "select",
-            "label": "刷取模式",
+            "label": "$Option.EightBitArcade.FarmingMode",
             "cases": [
                 {
                     "name": "通关第一层后直接退出(稳定)",
+                    "label": "$Option.EightBitArcade.FarmingMode.ExitAfterFirstFloor",
                     "pipeline_override": {
                         "8bitFlagInCombat": {
                             "action": {
@@ -81,6 +86,7 @@
                 },
                 {
                     "name": "尽力打",
+                    "label": "$Option.EightBitArcade.FarmingMode.PushOn",
                     "pipeline_override": {
                         "8bitCombatEnd": {
                             "next": [
@@ -103,15 +109,17 @@
         },
         "8-bit移动方式": {
             "type": "select",
-            "label": "移动方式",
-            "description": "默认使用键盘方向键移动；如果进入移动界面后不动，可以切换为点击游戏界面的方式移动。",
+            "label": "$Option.EightBitArcade.MovementInput",
+            "description": "$Option.EightBitArcade.MovementInput.desc",
             "cases": [
                 {
                     "name": "键盘输入",
+                    "label": "$Option.EightBitArcade.MovementInput.Keyboard",
                     "pipeline_override": {}
                 },
                 {
                     "name": "点击输入",
+                    "label": "$Option.EightBitArcade.MovementInput.Tap",
                     "pipeline_override": {
                         "8bitCombatMove": {
                             "action": {

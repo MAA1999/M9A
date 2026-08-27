@@ -38,28 +38,31 @@ docs/           # Developer docs and user manual (see below)
 | Project structure & conventions      | `docs/*/develop/structure.md`                  |
 | Bug-fixing workflow                  | `docs/*/develop/fix.md`                        |
 | Formatting & linting                 | `docs/*/develop/formatting.md`                 |
+| Interface / task localisation        | `docs/*/develop/i18n.md`                       |
 | Overseas client adaptation           | `docs/*/develop/overseas-client-adaptation.md` |
 | Activity / combat / item protocols   | `docs/*/protocol/`                             |
 | CLI / connection / FAQ (user-facing) | `docs/*/manual/`                               |
 
 ## Build, Test, and Development Commands
 
-| Command             | Purpose                                                |
-| ------------------- | ------------------------------------------------------ |
-| `pnpm check`        | Formatting check → schema validation → MaaFW integrity |
-| `pnpm check:py`     | Lint Python → type check → run tests                   |
-| `pnpm format`       | Auto-format all non-Python files with Prettier         |
-| `pnpm format:py`    | Auto-format Python files with ruff                     |
-| `pnpm lint:py`      | Lint Python with ruff                                  |
-| `pnpm test:py`      | Run Python tests via pytest                            |
-| `pnpm typecheck:py` | Static type check Python with pyright (strict mode)    |
+| Command             | Purpose                                                                  |
+| ------------------- | ------------------------------------------------------------------------ |
+| `pnpm check`        | Formatting check → schema validation → i18n validation → MaaFW integrity |
+| `pnpm check:i18n`   | Verify interface/task i18n keys resolve in every language                |
+| `pnpm check:py`     | Lint Python → type check → run tests                                     |
+| `pnpm format`       | Auto-format all non-Python files with Prettier                           |
+| `pnpm format:py`    | Auto-format Python files with ruff                                       |
+| `pnpm lint:py`      | Lint Python with ruff                                                    |
+| `pnpm test:py`      | Run Python tests via pytest                                              |
+| `pnpm typecheck:py` | Static type check Python with pyright (strict mode)                      |
 
 Before submitting changes, run `pnpm check` (and `pnpm check:py` for Python changes).
 
 ## Coding Style & Naming Conventions
 
 - **Python**: 120-character line limit, 4-space indentation. Linted with `ruff` (via `pnpm lint:py`) and type-checked with `pyright --strict` (via `pnpm typecheck:py`). Follow PEP 8 and PEP 484.
-- **JSON / YAML / Markdown**: 2-space indentation, formatted with Prettier.
+- **JSON / Markdown**: 4-space indentation (`tabWidth: 4` in `.prettierrc.mjs`), formatted with Prettier.
+- **YAML**: 2-space indentation, via the YAML override in `.prettierrc.mjs`.
 - **Resource files**: Use forward slashes for paths. Follow MaaFW 720p baseline for coordinates, ROI, and template images.
 - **Naming**: Modules use `snake_case`. Classes use `PascalCase`. Functions/variables use `snake_case`. Custom actions/recognitions match their pipeline node names.
 

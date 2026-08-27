@@ -162,7 +162,7 @@ This feature is currently not supported on the Global server PC client. If you n
 Roguelike mode for farming credits, including the following options:
 
 - **Catalyst Selection**: Choose the catalyst to use (only effective in non-fast mode)
-- **Fast Mode**: When enabled, only uses Magic Lamp to farm the first floor
+- **Fast Mode**: When enabled, only uses the Arcane Lantern to farm the first floor
 - **Deduction Difficulty**: Select deduction difficulty
 
 ### Fast Mode

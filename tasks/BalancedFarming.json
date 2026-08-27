@@ -2,6 +2,7 @@
     "task": [
         {
             "name": "智能均衡刷材料",
+            "label": "$Task.BalancedFarming",
             "entry": "BalancedFarming",
             "option": [
                 "吃糖",
@@ -11,7 +12,7 @@
             "group": [
                 "daily"
             ],
-            "description": "识别仓库中 12 种紫色主线材料数量，自动刷取数量最少的紫材料对应最优关卡"
+            "description": "$Task.BalancedFarming.desc"
         }
     ]
 }
