@@ -110,7 +110,7 @@
                         "name": "SOSCombat"
                     }
                 ],
-                "interrupts": "@stats+@artefact+@harmonic+@resonator+CloseTip"
+                "interrupts": "@stats+@artefact+@harmonic+@resonator+@message+SOSContinue+CloseTip"
             },
             "险象环生": {
                 "actions": [
@@ -148,7 +148,7 @@
                         "name": "SOSCombat"
                     }
                 ],
-                "interrupts": "@stats+@artefact+@harmonic+@resonator+@message+CloseTip"
+                "interrupts": "@stats+@artefact+@harmonic+@resonator+@message+SOSContinue+CloseTip"
             }
         }
     },
