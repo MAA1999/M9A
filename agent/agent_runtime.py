@@ -116,7 +116,7 @@ def run_agent(project_root_dir: str) -> int:
     import custom
 
     custom.register_all()
-    Tasker.set_log_dir("./debug")
+    Tasker.set_log_dir("./debug/agent")
 
     socket_id = sys.argv[-1]
     logger.debug("socket_id: {}", socket_id)
