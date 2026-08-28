@@ -313,7 +313,7 @@
     "Task.Lucidscape": "自动醒梦",
     "Task.Lucidscape.desc": "<span style=\"color:tomato;font-size:15px\">注意上下半编队不要重复。支持旧版和改版编队、支持编队自定义命名，未来可支持编队超出前四个</span>",
     "Task.MusesBox": "缪斯碰碰盒速刷",
-    "Task.MusesBox.desc": "缪斯碰碰盒自动刷分<br><span style=\"color:tomato;font-size:15px\">请在右下角为「派对启程」的情况下运行该任务</span>",
+    "Task.MusesBox.desc": "缪斯碰碰盒自动刷分<br><span style=\"color:tomato;font-size:15px\">请在右下角为「派对启程」的界面下运行该任务</span><br>![CCMain](resource/announcement/images/MusesBoxStart.png)",
     "Task.PreStormProtocol": "雨前漫游指南",
     "Task.PreStormProtocol.desc": "该任务需单独运行。运行前请将游戏停在小游戏主页面。<br>该任务分为两种情况：<br>1.未击败教程中第三天的boss（即点击“开始模拟”后不是难度选择界面）<br>2.已击败教程中第三天的boss（即点击“开始模拟”后进入难度选择界面）<br><br>请根据个人情况选择对应选项。",
     "Task.Psychube": "每日心相（意志解析）",

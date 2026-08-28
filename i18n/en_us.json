@@ -313,7 +313,7 @@
     "Task.Lucidscape": "Auto Awakening Dream",
     "Task.Lucidscape.desc": "<span style=\"color:tomato;font-size:15px\">Make sure the first-half and second-half formations are not the same. Both the old and the reworked formation systems are supported, as are custom formation names; formations beyond the first four may be supported in future.</span>",
     "Task.MusesBox": "Muses Box Fast Farm",
-    "Task.MusesBox.desc": "Automatic score farming for Muses Box<br><span style=\"color:tomato;font-size:15px\">Run this task with \"Start the Party\" showing in the bottom-right corner</span>",
+    "Task.MusesBox.desc": "Automatic score farming for Muses Box<br><span style=\"color:tomato;font-size:15px\">Run this task with \"Start the Party\" showing in the bottom-right corner</span><br>![CCMain](resource/announcement/images/MusesBoxStart.png)",
     "Task.PreStormProtocol": "Pre-Storm Protocol",
     "Task.PreStormProtocol.desc": "This task has to be run on its own. Leave the game on the mini-game main screen before starting.<br>There are two cases:<br>1. You have not beaten the day-three boss in the tutorial (clicking \"Start Simulation\" does not open the difficulty selection screen).<br>2. You have beaten the day-three boss in the tutorial (clicking \"Start Simulation\" opens the difficulty selection screen).<br><br>Pick the option that matches your situation.",
     "Task.Psychube": "Daily Psychube (Will Analysis)",
