@@ -5,6 +5,7 @@ assets: ..
 
 include:
   - interface.json
+  - i18n/**
   - tasks/**
   - resource/**
   - data/**
