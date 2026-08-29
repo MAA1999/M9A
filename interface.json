@@ -1,5 +1,9 @@
 {
     "interface_version": 2,
+    "languages": {
+        "zh_cn": "i18n/zh_cn.json",
+        "en_us": "i18n/en_us.json"
+    },
     "contact": "CONTACT",
     "license": "LICENSE",
     "name": "m9a",
@@ -17,7 +21,7 @@
     "controller": [
         {
             "name": "ADB",
-            "label": "模拟器",
+            "label": "$Controller.Adb",
             "type": "Adb"
         },
         {
@@ -41,6 +45,7 @@
     "resource": [
         {
             "name": "官服",
+            "label": "$Resource.Official",
             "path": [
                 "./resource/base"
             ],
@@ -51,6 +56,7 @@
         },
         {
             "name": "B 服",
+            "label": "$Resource.Bilibili",
             "path": [
                 "./resource/base",
                 "./resource/bilibili"
@@ -62,6 +68,7 @@
         },
         {
             "name": "OPPO 服",
+            "label": "$Resource.Oppo",
             "path": [
                 "./resource/base",
                 "./resource/oppo"
@@ -73,6 +80,7 @@
         },
         {
             "name": "小米服",
+            "label": "$Resource.Mi",
             "path": [
                 "./resource/base",
                 "./resource/mi"
@@ -84,6 +92,7 @@
         },
         {
             "name": "华为服",
+            "label": "$Resource.Huawei",
             "path": [
                 "./resource/base",
                 "./resource/huawei"
@@ -95,6 +104,7 @@
         },
         {
             "name": "国际服（EN）",
+            "label": "$Resource.GlobalEn",
             "path": [
                 "./resource/base",
                 "./resource/global_jp",
@@ -108,6 +118,7 @@
         },
         {
             "name": "国际服（JP）",
+            "label": "$Resource.GlobalJp",
             "path": [
                 "./resource/base",
                 "./resource/global_jp"
@@ -120,6 +131,7 @@
         },
         {
             "name": "港澳台服",
+            "label": "$Resource.Tw",
             "path": [
                 "./resource/base",
                 "./resource/global_jp",
@@ -133,6 +145,7 @@
         },
         {
             "name": "国际服（KR）",
+            "label": "$Resource.GlobalKr",
             "path": [
                 "./resource/base",
                 "./resource/global_jp",
@@ -158,11 +171,11 @@
     "group": [
         {
             "name": "daily",
-            "label": "日常任务"
+            "label": "$Group.Daily"
         },
         {
             "name": "standalone",
-            "label": "独立任务"
+            "label": "$Group.Standalone"
         }
     ],
     "import": [

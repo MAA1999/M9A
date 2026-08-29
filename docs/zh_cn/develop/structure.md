@@ -1,4 +1,4 @@
-﻿---
+---
 order: 2
 icon: hugeicons:structure-01
 ---
@@ -35,10 +35,13 @@ icon: hugeicons:structure-01
     - en_us/ # 英文文档
     - zh_cn/ # 中文文档
     - .markdownlint.yaml # Markdown 代码检查配置
+- i18n/ # Project Interface 界面翻译文件
+    - en_us.json # 英文翻译
+    - zh_cn.json # 简体中文翻译
 - MaaCommonAssets/ # MAA 公共资源（子模块）
     - OCR/ # OCR 模型
-- resource/ # 管线资源（图片、Pipeline JSON、模型等）
-- tasks/ # 任务管线定义
+- resource/ # MaaFW 运行资源（图片、Pipeline JSON、模型等）
+- tasks/ # Project Interface 任务与预设定义
 - tests/ # 测试
 - tools/ # 工具脚本目录
     - activity_data/ # 活动数据处理工具
@@ -50,6 +53,7 @@ icon: hugeicons:structure-01
     - optimize-images.mjs # 图片优化脚本
     - sync-runtime.mjs # 运行时同步脚本
     - sync-schema.mjs # Schema 同步脚本
+    - validate-i18n.mjs # 界面翻译一致性校验
     - validate-schema.mjs # Schema 校验脚本
 - .editorconfig # 编辑器配置
 - .gitattributes # Git 属性配置

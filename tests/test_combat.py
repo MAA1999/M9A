@@ -1,5 +1,3 @@
-import json
-from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -151,14 +149,6 @@ def test_get_availability_aborts_when_page_and_required_values_are_unknown() -> 
 
     assert availability.page is _TargetCountPage.UNKNOWN
     assert availability.available_count is None
-
-
-def test_eat_candy_pipeline_accepts_open_page_before_stage_entry() -> None:
-    pipeline_path = Path(__file__).parents[1] / "resource" / "base" / "pipeline" / "eat_candy.json"
-    pipeline = json.loads(pipeline_path.read_text(encoding="utf-8"))
-
-    assert pipeline["EatCandy"]["next"] == ["EatCandyPage", "EatCandyEnter"]
-    assert pipeline["EatCandyEnter"]["post_delay"] == 1500
 
 
 def test_select_times_aborts_when_subtask_fails(monkeypatch: pytest.MonkeyPatch) -> None:

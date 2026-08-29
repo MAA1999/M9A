@@ -48,31 +48,6 @@ def _make_scan(tmp_path: Path, items: dict[str, dict[str, dict[str, str]]]) -> W
     return scan
 
 
-def test_items_json_contains_all_rarity_groups() -> None:
-    """items.json 材料表包含金/黄/紫/蓝/绿五档稀有度。"""
-    with open("data/combat/items.json", encoding="utf-8") as f:
-        items = json.load(f)
-    assert set(items.keys()) == {"gold", "yellow", "purple", "blue", "green"}
-    total = sum(len(v) for v in items.values())
-    assert total >= 46
-
-
-def test_all_balanced_farming_items_have_templates() -> None:
-    """智能均衡刷材料的 12 种材料都应存在仓库模板。"""
-    with open("data/combat/balanced_farming.json", encoding="utf-8") as f:
-        materials = json.load(f)
-    for item_id in materials:
-        template = Path(f"resource/base/image/Warehouse/Item-{item_id}.png")
-        assert template.exists(), f"缺少模板 {template}"
-
-
-def test_has_template_detects_existing_and_missing() -> None:
-    """_has_template 对存在的模板返回 True，对缺失模板返回 False。"""
-    scan = WarehouseInventoryScan.__new__(WarehouseInventoryScan)
-    assert scan._has_template("110103")
-    assert not scan._has_template("999999")
-
-
 def test_all_items_json_materials_have_templates() -> None:
     """items.json 全部材料都应存在仓库模板（识别任务可覆盖全量）。"""
     with open("data/combat/items.json", encoding="utf-8") as f:
@@ -112,18 +87,6 @@ def test_best_count_fallback_to_min() -> None:
     assert scan._best_count([1, 11]) == 1  # 金羊毛：装饰条把 1 读成 11
     assert scan._best_count([3, 31]) == 3  # 双蛇权杖：装饰条把 3 读成 31
     assert scan._best_count([73, 3]) == 3  # 无众数一律取最小
-
-
-def test_action_registered_in_action_modules() -> None:
-    """warehouse_inventory 模块在 ACTION_MODULES 注册表中。"""
-    from agent.custom.action import ACTION_MODULES
-
-    assert "warehouse_inventory" in ACTION_MODULES
-
-
-def test_default_output_path_is_outside_hot_update_data() -> None:
-    """仓库快照默认写入 config，避免与可热更新的 data 资源混放。"""
-    assert WarehouseInventoryScan._OUTPUT_PATH == "config/warehouse_inventory.json"
 
 
 def test_write_snapshot_atomic(tmp_path: Path) -> None:

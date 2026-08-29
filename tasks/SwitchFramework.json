@@ -2,6 +2,7 @@
     "task": [
         {
             "name": "切换艺术框架",
+            "label": "$Task.SwitchFramework",
             "entry": "switch_menu",
             "option": [
                 "艺术框架"
@@ -25,6 +26,7 @@
             "cases": [
                 {
                     "name": "手提箱制式（初始）",
+                    "label": "$Option.SwitchFramework.ArtFramework.Suitcase",
                     "pipeline_override": {
                         "frame_art_open": {
                             "recognition": {
@@ -44,6 +46,7 @@
                 },
                 {
                     "name": "伊卡洛斯所见",
+                    "label": "$Option.SwitchFramework.ArtFramework.Icarus",
                     "pipeline_override": {
                         "frame_art_open": {
                             "recognition": {
@@ -63,6 +66,7 @@
                 },
                 {
                     "name": "渐弱之心弦",
+                    "label": "$Option.SwitchFramework.ArtFramework.Diminuendo",
                     "pipeline_override": {
                         "frame_art_open": {
                             "recognition": {
@@ -82,6 +86,7 @@
                 },
                 {
                     "name": "裁纸饰朱梅",
+                    "label": "$Option.SwitchFramework.ArtFramework.PaperCutPlum",
                     "pipeline_override": {
                         "frame_art_open": {
                             "recognition": {
@@ -101,6 +106,7 @@
                 },
                 {
                     "name": "鸮式特快",
+                    "label": "$Option.SwitchFramework.ArtFramework.OwlExpress",
                     "pipeline_override": {
                         "frame_art_open": {
                             "recognition": {
@@ -118,7 +124,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "label": "$Option.SwitchFramework.ArtFramework"
         }
     }
 }

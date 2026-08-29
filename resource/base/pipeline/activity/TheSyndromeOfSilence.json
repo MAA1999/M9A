@@ -824,6 +824,22 @@
             "[JumpBack]SOSStop"
         ]
     },
+    "SOSNodeProcessFinished": {
+        // 正常退出节点处理：回到主地图，或战败进入痛苦逃遁并交由 SOSMain.next 收尾
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "FlagInSOSMain",
+                    "SOSGiveup"
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "timeout": 1500
+        }
+    },
     "SOSNodeProcess": {
         "action": {
             "type": "Custom",
@@ -1485,10 +1501,7 @@
         },
         "action": {
             "type": "Click"
-        },
-        "next": [
-            "[JumpBack]SOSStop"
-        ]
+        }
     },
     "SOSSelectHarmonic": {
         "recognition": {
@@ -2249,6 +2262,10 @@
                     [
                         "^恩德与回报$",
                         "恩德与回报Ⅰ"
+                    ],
+                    [
+                        "功合",
+                        "巧合"
                     ]
                 ],
                 "only_rec": true,

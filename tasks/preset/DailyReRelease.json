@@ -2,7 +2,8 @@
     "preset": [
         {
             "name": "日常-复刻",
-            "description": "刷取复刻活动关卡",
+            "label": "$Preset.DailyRerun",
+            "description": "$Preset.DailyRerun.desc",
             "task": [
                 {
                     "name": "启动游戏"

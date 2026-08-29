@@ -2,7 +2,8 @@
     "preset": [
         {
             "name": "日常-长草",
-            "description": "无活动或换完商店时使用，进行常规刷取",
+            "label": "$Preset.DailyIdle",
+            "description": "$Preset.DailyIdle.desc",
             "task": [
                 {
                     "name": "启动游戏"

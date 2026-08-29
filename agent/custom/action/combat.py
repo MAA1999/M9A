@@ -721,6 +721,11 @@ def _tc_pick_times(available_count: int, target_count: int, already_count: int) 
     return min(4, available_count, left_count)
 
 
+def _tc_is_psychube_stage() -> bool:
+    stage = SelectCombatStage.stage
+    return isinstance(stage, str) and stage.startswith("Psychube-")
+
+
 def _tc_is_eat_candy_disabled(context: Context) -> bool:
     node = context.get_node_data("EatCandy")
     return node is not None and not node.get("enabled", True)
@@ -772,17 +777,20 @@ class TargetCountDetermine(CustomAction):
             context.override_next("TargetCountDetermine", ["TargetCountFinish"])
             return CustomAction.RunResult(success=True)
 
-        availability = _tc_get_availability(context)
-        if availability.page is _TargetCountPage.UNKNOWN or availability.available_count is None:
-            context.override_next("TargetCountDetermine", ["TargetCountAbort"])
-            return CustomAction.RunResult(success=True)
-        available_count = availability.available_count
+        if _tc_is_psychube_stage():
+            # 意志解析有每日免费次数，不能通过批次总消耗计算可复现次数。
+            times = _tc_pick_times(4, _TargetCountState.target_count, _TargetCountState.already_count)
+        else:
+            availability = _tc_get_availability(context)
+            if availability.page is _TargetCountPage.UNKNOWN or availability.available_count is None:
+                context.override_next("TargetCountDetermine", ["TargetCountAbort"])
+                return CustomAction.RunResult(success=True)
+            times = _tc_pick_times(
+                availability.available_count,
+                _TargetCountState.target_count,
+                _TargetCountState.already_count,
+            )
 
-        times = _tc_pick_times(
-            available_count,
-            _TargetCountState.target_count,
-            _TargetCountState.already_count,
-        )
         if times > 0:
             _TargetCountState.current_times = times
             logger.info(f"准备复现 {times} 次，累计已刷 {_TargetCountState.already_count} 次")

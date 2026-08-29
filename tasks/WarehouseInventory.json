@@ -2,11 +2,12 @@
     "task": [
         {
             "name": "仓库材料识别",
+            "label": "$Task.WarehouseInventory",
             "entry": "WarehouseInventory",
             "group": [
                 "daily"
             ],
-            "description": "扫描仓库素材页全部已配模板的材料数量并保存到 config/warehouse_inventory.json，供未来功能使用"
+            "description": "$Task.WarehouseInventory.desc"
         }
     ]
 }

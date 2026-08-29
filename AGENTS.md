@@ -14,9 +14,10 @@
 
 ```text
 agent/          # Python agent —— custom actions, recognitions, utilities (entry: main.py)
-tasks/          # Preset task pipeline definitions
-tools/          # Build, release, schema validation, and CI scripts
-resource/       # MaaFW resource packs (images, pipeline, model)
+tasks/          # Project Interface task and preset definitions
+i18n/           # Project Interface display translations
+tools/          # Build, release, schema/i18n validation, and CI scripts
+resource/       # MaaFW runtime resource packs (images, pipeline, model)
 data/           # Game reference data (activity schedules, drop tables, item databases, etc.)
 tests/          # pytest test suite, mirrors agent/ structure
 docs/           # Developer docs and user manual (see below)
@@ -38,28 +39,31 @@ docs/           # Developer docs and user manual (see below)
 | Project structure & conventions      | `docs/*/develop/structure.md`                  |
 | Bug-fixing workflow                  | `docs/*/develop/fix.md`                        |
 | Formatting & linting                 | `docs/*/develop/formatting.md`                 |
+| Interface / task localisation        | `docs/*/develop/i18n.md`                       |
 | Overseas client adaptation           | `docs/*/develop/overseas-client-adaptation.md` |
 | Activity / combat / item protocols   | `docs/*/protocol/`                             |
 | CLI / connection / FAQ (user-facing) | `docs/*/manual/`                               |
 
 ## Build, Test, and Development Commands
 
-| Command             | Purpose                                                |
-| ------------------- | ------------------------------------------------------ |
-| `pnpm check`        | Formatting check → schema validation → MaaFW integrity |
-| `pnpm check:py`     | Lint Python → type check → run tests                   |
-| `pnpm format`       | Auto-format all non-Python files with Prettier         |
-| `pnpm format:py`    | Auto-format Python files with ruff                     |
-| `pnpm lint:py`      | Lint Python with ruff                                  |
-| `pnpm test:py`      | Run Python tests via pytest                            |
-| `pnpm typecheck:py` | Static type check Python with pyright (strict mode)    |
+| Command             | Purpose                                                                  |
+| ------------------- | ------------------------------------------------------------------------ |
+| `pnpm check`        | Formatting check → schema validation → i18n validation → MaaFW integrity |
+| `pnpm check:i18n`   | Verify interface/task i18n keys resolve in every language                |
+| `pnpm check:py`     | Lint Python → type check → run tests                                     |
+| `pnpm format`       | Auto-format all non-Python files with Prettier                           |
+| `pnpm format:py`    | Auto-format Python files with ruff                                       |
+| `pnpm lint:py`      | Lint Python with ruff                                                    |
+| `pnpm test:py`      | Run Python tests via pytest                                              |
+| `pnpm typecheck:py` | Static type check Python with pyright (strict mode)                      |
 
 Before submitting changes, run `pnpm check` (and `pnpm check:py` for Python changes).
 
 ## Coding Style & Naming Conventions
 
 - **Python**: 120-character line limit, 4-space indentation. Linted with `ruff` (via `pnpm lint:py`) and type-checked with `pyright --strict` (via `pnpm typecheck:py`). Follow PEP 8 and PEP 484.
-- **JSON / YAML / Markdown**: 2-space indentation, formatted with Prettier.
+- **JSON / Markdown**: 4-space indentation (`tabWidth: 4` in `.prettierrc.mjs`), formatted with Prettier.
+- **YAML**: 2-space indentation, via the YAML override in `.prettierrc.mjs`.
 - **Resource files**: Use forward slashes for paths. Follow MaaFW 720p baseline for coordinates, ROI, and template images.
 - **Naming**: Modules use `snake_case`. Classes use `PascalCase`. Functions/variables use `snake_case`. Custom actions/recognitions match their pipeline node names.
 
@@ -101,7 +105,8 @@ When reviewing code, check for:
 - **Code formatting**: All files must pass `pnpm check` (includes Prettier, schema, and MaaFW integrity). Run `pnpm format` / `pnpm format:py` to auto-format.
 - **Type safety**: Python code must pass `pnpm check:py` (ruff lint + pyright type check + pytest) without errors.
 - **Custom registration**: New custom actions/recognitions must be registered in the corresponding `__init__.py`.
-- **Consistency**: `interface.json`, task files, and resource files must stay in sync.
+- **Interface i18n**: Keep stable `name` identifiers unchanged, add display text through `label`, update every declared language table, and run `pnpm check:i18n`.
+- **Consistency**: `interface.json`, `tasks/`, `i18n/`, and `resource/` must stay in sync.
 - **Edge cases**: Pipelines should handle interruptions (pop-ups, unexpected dialogs). Every action should be followed by a recognition step.
 
 ## Additional Notes

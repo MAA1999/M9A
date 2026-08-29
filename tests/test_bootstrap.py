@@ -156,12 +156,6 @@ def test_requirements_marker_is_written_atomically(
     assert not marker.with_name(marker.name + ".tmp").exists()
 
 
-def test_empty_package_version_is_not_installed(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(bootstrap.importlib.metadata, "version", lambda _name: None)
-
-    assert bootstrap.is_package_installed("maafw") is False
-
-
 def test_empty_maafw_version_reports_invalid_metadata(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

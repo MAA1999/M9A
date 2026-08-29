@@ -122,6 +122,7 @@ if (enabledGuis.length === 0) {
 for (const path of [
     ...strings(interfaceJson.resource),
     ...strings(interfaceJson.import),
+    ...interfaceLanguagePaths(interfaceJson.languages),
 ]) {
     if (path.includes("\\")) {
         throw new Error(`release paths must use forward slashes: ${path}`);
@@ -253,6 +254,12 @@ function interfaceResourcePaths(value) {
     return Array.isArray(value) ? value.flatMap((item) => (isRecord(item) ? strings(item.path) : [])) : [];
 }
 
+// interface.json `languages` maps a language code to its translation file. If one of
+// those files is missing from the package the client renders raw `$Key` strings.
+function interfaceLanguagePaths(value) {
+    return isRecord(value) ? Object.values(value).filter((item) => typeof item === "string") : [];
+}
+
 function isProjectRelativePath(path) {
     const stripped = path.startsWith("./") ? path.slice(2) : path;
     return (
@@ -268,6 +275,8 @@ function releasePackagePaths(interfaceJson, runtimePlatform, guiKey) {
     const paths = [
         "tasks",
         "resource",
+        // translation files are only required when interface.json declares `languages`
+        ...interfaceLanguagePaths(interfaceJson.languages),
     ];
     if (guiKey === "mfaa") {
         paths.push("runtimes", "libs/MaaAgentBinary", "plugins");
@@ -462,6 +471,7 @@ function smokeReleasePackage(gui, root, packagePaths, runtimePlatform) {
     for (const path of [
         ...interfaceResourcePaths(packagedInterface.resource),
         ...strings(packagedInterface.import),
+        ...interfaceLanguagePaths(packagedInterface.languages),
     ]) {
         if (path.includes("\\")) {
             throw new Error(`release package smoke failed: package path uses backslashes: ${path}`);

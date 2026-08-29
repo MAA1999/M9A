@@ -1,4 +1,4 @@
-﻿---
+---
 order: 2
 icon: hugeicons:structure-01
 ---
@@ -31,10 +31,13 @@ icon: hugeicons:structure-01
     - en_us/ # English documentation
     - zh_cn/ # Chinese documentation
     - .markdownlint.yaml # Markdown linting configuration
+- i18n/ # Project Interface display translations
+    - en_us.json # English translations
+    - zh_cn.json # Simplified Chinese translations
 - MaaCommonAssets/ # MAA common resources (submodule)
     - OCR/ # OCR models
-- resource/ # Project pipelines & resources
-- tasks/ # Task pipeline definitions
+- resource/ # MaaFW runtime resources
+- tasks/ # Project Interface task and preset definitions
 - tests/ # Tests
 - tools/ # Tool scripts directory
     - activity_data/ # Activity data processing tools
@@ -46,6 +49,7 @@ icon: hugeicons:structure-01
     - optimize-images.mjs # Image optimization
     - sync-runtime.mjs # Runtime synchronisation
     - sync-schema.mjs # Schema synchronisation
+    - validate-i18n.mjs # Interface translation consistency validation
     - validate-schema.mjs # Schema validation
 - .editorconfig # Editor configuration
 - .gitattributes # Git attributes configuration

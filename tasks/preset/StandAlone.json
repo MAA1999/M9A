@@ -2,7 +2,8 @@
     "preset": [
         {
             "name": "各种小游戏",
-            "description": "这部分的每个任务都需独立运行",
+            "label": "$Preset.MiniGames",
+            "description": "$Preset.MiniGames.desc",
             "task": [
                 {
                     "name": "局外演绎：黄昏的音序",

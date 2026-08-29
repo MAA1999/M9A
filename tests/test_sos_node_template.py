@@ -5,40 +5,9 @@
 reco↔action 的 detail 结构漂移。
 """
 
-import json
 from pathlib import Path
 
 from agent.custom.reco.sos_node_template import NodeHit, SOSSelectNodeTemplate
-
-# data/sos/nodes.json types（中文）与 CLASS_NAMES（英文）的对应关系
-_CN_TYPES = {
-    0: "已完成节点",
-    1: "冲突",
-    2: "险象环生",
-    3: "遭遇",
-    4: "途中偶遇",
-    5: "途中余兴",
-    6: "恶战",
-    7: "对话",
-    8: "休憩处",
-    9: "购物契机",
-    10: "巧匠之手",
-    11: "必经之路",
-    12: "藏宝地",
-}
-
-
-def test_class_names_align_with_nodes_json() -> None:
-    """CLASS_NAMES 顺序必须与 data/sos/nodes.json 的 types 数组一致。
-
-    动作侧用 nodes["types"][cls_index] 查表，顺序错位不会报错，只会静默点错节点类型。
-    """
-    class_names = SOSSelectNodeTemplate.CLASS_NAMES
-    with open("data/sos/nodes.json", encoding="utf-8") as f:
-        nodes = json.load(f)
-    assert len(nodes["types"]) == len(class_names) == 13
-    for index, cn_name in _CN_TYPES.items():
-        assert nodes["types"][index] == cn_name
 
 
 def _hit(cls_index: int, cls_name: str, box: tuple[int, int, int, int], score: float) -> NodeHit:

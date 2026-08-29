@@ -240,23 +240,6 @@ class CCChessboard(CustomAction):
         return CustomAction.RunResult(success=True)
 
 
-@AgentServer.custom_action("CCChessboardReset")
-class CCChessboardReset(CustomAction):
-    """
-    翻斗棋：棋盘位置重置
-    """
-
-    def run(
-        self,
-        context: Context,
-        argv: CustomAction.RunArg,
-    ) -> CustomAction.RunResult:
-
-        CCChessboard.board_reset()
-
-        return CustomAction.RunResult(success=True)
-
-
 @AgentServer.custom_action("CCBuyCard")
 class CCBuyCard(CustomAction):
     """

@@ -326,7 +326,7 @@ class SOSNodeProcess(CustomAction):
 
         # 无 event 的处理
         if node_type in ["购物契机", "遭遇", "途中余兴", "冲突", "恶战", "巧匠之手"]:
-            actions = nodes[node_type]["actions"] + [{"type": "RunNode", "name": "FlagInSOSMain"}]
+            actions = nodes[node_type]["actions"] + [{"type": "RunNode", "name": "SOSNodeProcessFinished"}]
             interrupts = self._resolve_interrupts(nodes[node_type].get("interrupts", []), nodes)
         else:
             # 有 event 的处理
@@ -345,7 +345,7 @@ class SOSNodeProcess(CustomAction):
             if event_name == "最终难题":
                 actions = info["actions"]
             else:
-                actions = info["actions"] + [{"type": "RunNode", "name": "FlagInSOSMain"}]
+                actions = info["actions"] + [{"type": "RunNode", "name": "SOSNodeProcessFinished"}]
             interrupts: list[Any] = self._resolve_interrupts(info.get("interrupts", []), nodes)
 
         if context.tasker.stopping:

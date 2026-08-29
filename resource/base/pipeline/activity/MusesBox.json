@@ -44,6 +44,7 @@
         "action": {
             "type": "Click"
         },
+        "timeout": 600000,
         "next": [
             "MusesBoxStartParty",
             "MusesBoxSettlement" //兜底
