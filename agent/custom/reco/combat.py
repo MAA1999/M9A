@@ -55,6 +55,10 @@ def get_valid_period_threshold(period_option: str) -> float:
     return thresholds.get(period_option, 24.0)
 
 
+# 游戏隐性体力上限：活性可以通过吃糖堆到显示上限之上，但超过该值后游戏不再允许继续吃糖。
+AP_OVERFLOW_LIMIT = 1200
+
+
 @AgentServer.custom_recognition("CandyPageRecord")
 class CandyPageRecord(CustomRecognition):
     """
@@ -110,12 +114,15 @@ class CandyPageRecord(CustomRecognition):
     _has_eaten_once = False
     # 记录上次各糖果数量，用于验证是否真的吃了
     _last_candy_counts: dict[str, int] = {}
+    # 允许溢出模式下记录上次识别到的体力，用于确认吃糖真的生效（-1 表示本次吃糖界面尚未吃过）
+    _last_remaining_ap: int = -1
 
     @classmethod
     def reset_eaten_flag(cls):
         """重置吃糖标记（由 ResetEatCandyFlag action 调用）"""
         cls._has_eaten_once = False
         cls._last_candy_counts = {}
+        cls._last_remaining_ap = -1
         logger.debug("已重置吃糖标记")
 
     def analyze(
@@ -186,16 +193,20 @@ class CandyPageRecord(CustomRecognition):
         attach = getattr(node_obj, "attach", {}) if node_obj else {}
         user_period_option = attach.get("valid_period", "24h") if attach else "24h"
         fast_mode = attach.get("fast", 0) if attach else 0  # 快速吃糖模式
+        allow_overflow = attach.get("allow_overflow", 0) if attach else 0  # 允许体力溢出
         threshold_hours = get_valid_period_threshold(user_period_option)
 
         # 计算可恢复的体力空间
         ap_space = max_ap - remaining_ap
 
-        logger.debug(f"用户设置：有效期={user_period_option}, 阈值={threshold_hours}小时, 快速模式={fast_mode}")
+        logger.debug(
+            f"用户设置：有效期={user_period_option}, 阈值={threshold_hours}小时, "
+            f"快速模式={fast_mode}, 允许溢出={allow_overflow}"
+        )
         logger.debug(f"当前体力：{remaining_ap}/{max_ap}, 可恢复空间：{ap_space}")
 
-        # 快速模式：体力已满则不吃糖
-        if fast_mode == 1 and ap_space <= 0:
+        # 快速模式：体力已满则不吃糖（允许溢出时改由隐性体力上限判定）
+        if fast_mode == 1 and allow_overflow != 1 and ap_space <= 0:
             logger.debug("快速模式：体力已满，跳过吃糖")
             return None
 
@@ -288,7 +299,18 @@ class CandyPageRecord(CustomRecognition):
 
         # 检查要吃的糖的恢复体力是否超过可恢复空间
         total_restore = current_candy_info["total_restore"]
-        if total_restore > ap_space:
+        if allow_overflow == 1:
+            # 允许溢出：一直吃到游戏隐性体力上限，超过显示上限的部分视为可接受的浪费
+            if remaining_ap > AP_OVERFLOW_LIMIT:
+                logger.debug(f"允许溢出：体力 {remaining_ap} 已超过隐性上限 {AP_OVERFLOW_LIMIT}，跳过吃糖")
+                return None
+            # 体力没有增长说明上一次吃糖没有生效，停止以免在吃糖界面空转
+            last_remaining_ap = CandyPageRecord._last_remaining_ap
+            if last_remaining_ap >= 0 and remaining_ap <= last_remaining_ap:
+                logger.warning(f"允许溢出：体力未增长（{last_remaining_ap} -> {remaining_ap}），停止吃糖")
+                return None
+            CandyPageRecord._last_remaining_ap = remaining_ap
+        elif total_restore > ap_space:
             logger.debug(f"糖果 {current_candy_name} 恢复体力 {total_restore} 超过可恢复空间 {ap_space}，跳过吃糖")
             return None
 
@@ -315,6 +337,7 @@ class CandyPageRecord(CustomRecognition):
                 },
                 "user_period_option": user_period_option,
                 "fast_mode": fast_mode,
+                "allow_overflow": allow_overflow,
                 "remaining_ap": remaining_ap,
                 "max_ap": max_ap,
                 "ap_space": ap_space,

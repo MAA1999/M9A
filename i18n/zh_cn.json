@@ -196,6 +196,8 @@
     "Option.PreStormProtocol.FarmingMode": "刷取模式",
     "Option.PreStormProtocol.FarmingMode.BossBeaten": "已击败教程中boss",
     "Option.PreStormProtocol.FarmingMode.BossNotBeaten": "未击败教程中boss",
+    "Option.Psychube.AllowApOverflow": "允许体力溢出",
+    "Option.Psychube.AllowApOverflow.desc": "开启后会一直吃到游戏隐性体力上限（1200），体力可以堆到显示上限之上；关闭时只吃恢复量不超过剩余空间的糖，常常每次只能吃一颗",
     "Option.Psychube.CandyCount": "吃糖次数",
     "Option.Psychube.CandyCount.Count": "吃糖次数",
     "Option.Psychube.CandyCount.desc": "注意小熊软糖(主线掉落5体力糖)会默认吃完，不会被计入该次数",

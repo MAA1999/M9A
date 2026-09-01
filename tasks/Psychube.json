@@ -42,6 +42,7 @@
                         "糖果有效期",
                         "自定义吃糖次数",
                         "连续吃糖",
+                        "允许体力溢出",
                         "关闭吃糖提示"
                     ]
                 },
@@ -184,6 +185,33 @@
             ],
             "description": "$Option.Psychube.ContinuousCandy.desc",
             "label": "$Option.Psychube.ContinuousCandy"
+        },
+        "允许体力溢出": {
+            "type": "switch",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "allow_overflow": 0
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "EatCandyStart": {
+                            "attach": {
+                                "allow_overflow": 1
+                            }
+                        }
+                    }
+                }
+            ],
+            "description": "$Option.Psychube.AllowApOverflow.desc",
+            "label": "$Option.Psychube.AllowApOverflow"
         },
         "关闭吃糖提示": {
             "type": "switch",
