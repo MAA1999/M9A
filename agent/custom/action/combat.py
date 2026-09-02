@@ -630,6 +630,8 @@ class SelectCombatStage(CustomAction):
         # SelectCombatStage.stageName = stageName
         SelectCombatStage.level = level
         SelectCombatStage.mainStoryChapter = mainStoryChapter
+        _TargetCountState.free_used = False
+        _TargetCountState.candy_page_hits = 0
 
         return CustomAction.RunResult(success=True)
 
@@ -639,6 +641,11 @@ class _TargetCountState:
     already_count: int = 0
     current_times: int = 0
     candy_attempts: int = 0
+    # 心相关卡当日免费次数已用完（由 RecordNoFreePsychube 在章节导航时记录，
+    # 或由吃糖页兜底路由在免费假设被推翻时置位）
+    free_used: bool = False
+    # 兜底路由本次选关内遇到吃糖界面的次数（SelectCombatStage 时重置）
+    candy_page_hits: int = 0
 
 
 class _TargetCountPage(Enum):
@@ -731,6 +738,23 @@ def _tc_is_eat_candy_disabled(context: Context) -> bool:
     return node is not None and not node.get("enabled", True)
 
 
+@AgentServer.custom_action("RecordNoFreePsychube")
+class RecordNoFreePsychube(CustomAction):
+    """
+    记录心相关卡当日免费次数已用完，供 TargetCountDetermine 改按剩余体力核算可复现次数。
+    """
+
+    def run(
+        self,
+        context: Context,
+        argv: CustomAction.RunArg,
+    ) -> CustomAction.RunResult:
+
+        _TargetCountState.free_used = True
+        logger.info("心相关卡免费次数已用完，将按剩余体力计算可复现次数")
+        return CustomAction.RunResult(success=True)
+
+
 @AgentServer.custom_action("TargetCountInit")
 class TargetCountInit(CustomAction):
     """
@@ -777,19 +801,25 @@ class TargetCountDetermine(CustomAction):
             context.override_next("TargetCountDetermine", ["TargetCountFinish"])
             return CustomAction.RunResult(success=True)
 
-        if _tc_is_psychube_stage():
+        if _tc_is_psychube_stage() and not _TargetCountState.free_used:
             # 意志解析有每日免费次数，不能通过批次总消耗计算可复现次数。
             times = _tc_pick_times(4, _TargetCountState.target_count, _TargetCountState.already_count)
         else:
             availability = _tc_get_availability(context)
             if availability.page is _TargetCountPage.UNKNOWN or availability.available_count is None:
-                context.override_next("TargetCountDetermine", ["TargetCountAbort"])
-                return CustomAction.RunResult(success=True)
-            times = _tc_pick_times(
-                availability.available_count,
-                _TargetCountState.target_count,
-                _TargetCountState.already_count,
-            )
+                if _tc_is_psychube_stage():
+                    # 免费次数已用完但体力信息识别失败，退回固定次数尝试，由吃糖页兜底节点防卡死。
+                    logger.warning("心相关卡体力信息识别失败，退回固定复现次数")
+                    times = _tc_pick_times(4, _TargetCountState.target_count, _TargetCountState.already_count)
+                else:
+                    context.override_next("TargetCountDetermine", ["TargetCountAbort"])
+                    return CustomAction.RunResult(success=True)
+            else:
+                times = _tc_pick_times(
+                    availability.available_count,
+                    _TargetCountState.target_count,
+                    _TargetCountState.already_count,
+                )
 
         if times > 0:
             _TargetCountState.current_times = times
@@ -871,6 +901,68 @@ class TargetCountEatCandy(CustomAction):
         return CustomAction.RunResult(success=True)
 
 
+@AgentServer.custom_action("TargetCountCandyRoute")
+class TargetCountCandyRoute(CustomAction):
+    """
+    连续复现点击后弹出吃糖界面的兜底路由，防止复现链无法识别吃糖界面而超时失败。
+
+    吃糖页弹出说明"按免费次数盲目选 4 次"的假设不成立：首次弹页切换为按剩余体力
+    核算可复现次数并尝试吃糖；再次弹页说明补体无进展，关闭吃糖界面优雅结束任务。
+    """
+
+    def run(
+        self,
+        context: Context,
+        argv: CustomAction.RunArg,
+    ) -> CustomAction.RunResult:
+
+        _TargetCountState.candy_page_hits += 1
+        no_progress = _TargetCountState.candy_page_hits >= 2
+
+        if _tc_is_eat_candy_disabled(context) or no_progress:
+            logger.info("体力不足且无法通过吃糖继续，关闭吃糖界面并结束刷图任务")
+            context.run_task("QuitEatCandyPage", {"QuitEatCandyPage": {"next": []}})
+            context.override_next("TargetCountCandyPage", ["TargetCountFinish"])
+            return CustomAction.RunResult(success=True)
+
+        _TargetCountState.free_used = True
+        logger.info("体力不足，转为按剩余体力核算复现次数，并尝试从吃糖界面补充体力")
+        context.override_next("TargetCountCandyPage", ["TargetCountEatCandy"])
+        return CustomAction.RunResult(success=True)
+
+
+@AgentServer.custom_action("StartReplayCandyRoute")
+class StartReplayCandyRoute(CustomAction):
+    """
+    固定次数复现点击后弹出吃糖界面的兜底路由。
+
+    吃糖开启时首次先吃糖再回到复现按钮重试；再次弹页说明补体无进展，
+    关闭吃糖界面并结束任务。
+    """
+
+    def run(
+        self,
+        context: Context,
+        argv: CustomAction.RunArg,
+    ) -> CustomAction.RunResult:
+
+        _TargetCountState.candy_page_hits += 1
+        no_progress = _TargetCountState.candy_page_hits >= 2
+
+        if _tc_is_eat_candy_disabled(context) or no_progress:
+            logger.info("体力不足且无法通过吃糖继续，关闭吃糖界面并结束任务")
+            context.run_task("QuitEatCandyPage", {"QuitEatCandyPage": {"next": []}})
+            context.override_next("StartReplay", [])
+            return CustomAction.RunResult(success=True)
+
+        logger.info("体力不足，从吃糖界面补充体力后重试复现")
+        task_detail = context.run_task("EatCandy")
+        if task_detail is None or task_detail.status.failed:
+            logger.warning("吃糖子任务执行失败，仍将重试复现")
+        context.override_next("StartReplayCandyPage", ["StartReplay"])
+        return CustomAction.RunResult(success=True)
+
+
 @AgentServer.custom_action("TargetCountProgress")
 class TargetCountProgress(CustomAction):
     """
@@ -886,6 +978,7 @@ class TargetCountProgress(CustomAction):
         _TargetCountState.already_count += _TargetCountState.current_times
         _TargetCountState.current_times = 0
         _TargetCountState.candy_attempts = 0
+        _TargetCountState.candy_page_hits = 0
 
         logger.info(f"累计已刷 {_TargetCountState.already_count} 次")
 

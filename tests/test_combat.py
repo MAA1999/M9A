@@ -6,7 +6,11 @@ from maa.define import OCRResult, RecognitionDetail, RecognitionResult, Rect
 
 import agent.custom.action.combat as combat_module
 from agent.custom.action.combat import (
+    RecordNoFreePsychube,
+    SelectCombatStage,
     SSReopenReplay,
+    StartReplayCandyRoute,
+    TargetCountCandyRoute,
     TargetCountDetermine,
     TargetCountEatCandy,
     TargetCountSelectTimes,
@@ -112,11 +116,35 @@ class _SSActionContext:
         self.stopped = True
 
 
+class _RouteContext:
+    def __init__(self, eat_candy_enabled: bool, task_failed: bool | None = None) -> None:
+        self.tasks: list[str] = []
+        self.task_failed = task_failed
+        self.eat_candy_enabled = eat_candy_enabled
+        self.override: tuple[str, list[str]] | None = None
+
+    def run_task(self, name: str, *_args: object, **_kwargs: object) -> object | None:
+        self.tasks.append(name)
+        if self.task_failed is None:
+            return None
+        return SimpleNamespace(status=SimpleNamespace(failed=self.task_failed))
+
+    def get_node_data(self, name: str) -> dict[str, object] | None:
+        if name != "EatCandy":
+            return None
+        return {"enabled": self.eat_candy_enabled}
+
+    def override_next(self, node: str, next_nodes: list[str]) -> None:
+        self.override = (node, next_nodes)
+
+
 def _reset_target_count_state(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(_TargetCountState, "target_count", 10)
     monkeypatch.setattr(_TargetCountState, "already_count", 0)
     monkeypatch.setattr(_TargetCountState, "current_times", 0)
     monkeypatch.setattr(_TargetCountState, "candy_attempts", 0)
+    monkeypatch.setattr(_TargetCountState, "free_used", False)
+    monkeypatch.setattr(_TargetCountState, "candy_page_hits", 0)
 
 
 def test_calculate_available_count_distinguishes_zero_and_invalid_values() -> None:
@@ -292,3 +320,185 @@ def test_ss_reopen_ends_when_eat_candy_disabled(monkeypatch: pytest.MonkeyPatch)
     assert result.success
     assert context.tasks == ["SSToReplayIfCan", "HomeButton"]
     assert not context.stopped
+
+
+def test_record_no_free_psychube_sets_flag(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(_TargetCountState, "free_used", False)
+
+    result = RecordNoFreePsychube().run(_ActionContext(), None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert _TargetCountState.free_used is True
+
+
+def test_select_combat_stage_resets_free_used(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(SelectCombatStage, "stage", None)
+    monkeypatch.setattr(_TargetCountState, "free_used", True)
+    monkeypatch.setattr(_TargetCountState, "candy_page_hits", 1)
+    context = SimpleNamespace(
+        get_node_object=lambda _name: SimpleNamespace(attach={"level": None}),
+        override_pipeline=lambda _pipeline: None,
+    )
+    argv = SimpleNamespace(custom_action_param='{"stage": "Psychube-07"}')
+
+    result = SelectCombatStage().run(context, argv)  # type: ignore[arg-type]
+
+    assert result.success
+    assert _TargetCountState.free_used is False
+    assert _TargetCountState.candy_page_hits == 0
+
+
+def test_determine_psychube_keeps_fixed_times_when_free_attempts_remain(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _reset_target_count_state(monkeypatch)
+    monkeypatch.setattr(SelectCombatStage, "stage", "Psychube-07")
+    context = _RecognitionContext({})
+
+    result = TargetCountDetermine().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountDetermine", ["TargetCountOpenPanel"])
+    assert _TargetCountState.current_times == 4
+    assert context.calls == []
+
+
+def test_determine_psychube_uses_availability_when_free_used(monkeypatch: pytest.MonkeyPatch) -> None:
+    _reset_target_count_state(monkeypatch)
+    monkeypatch.setattr(SelectCombatStage, "stage", "Psychube-07")
+    monkeypatch.setattr(_TargetCountState, "free_used", True)
+    context = _RecognitionContext(
+        {
+            "RecognizeRemainingAp": _recognition_detail("30"),
+            "RecognizeStageAp": _recognition_detail("25"),
+            "RecognizeCombatTimes": _recognition_detail("1"),
+        }
+    )
+
+    result = TargetCountDetermine().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountDetermine", ["TargetCountOpenPanel"])
+    assert _TargetCountState.current_times == 1
+
+
+def test_determine_psychube_eats_candy_when_free_used_and_no_ap(monkeypatch: pytest.MonkeyPatch) -> None:
+    _reset_target_count_state(monkeypatch)
+    monkeypatch.setattr(SelectCombatStage, "stage", "Psychube-07")
+    monkeypatch.setattr(_TargetCountState, "free_used", True)
+    context = _RecognitionContext(
+        {
+            "RecognizeRemainingAp": _recognition_detail("10"),
+            "RecognizeStageAp": _recognition_detail("25"),
+            "RecognizeCombatTimes": _recognition_detail("1"),
+        },
+        eat_candy_enabled=True,
+    )
+
+    result = TargetCountDetermine().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountDetermine", ["TargetCountEatCandy"])
+    assert _TargetCountState.candy_attempts == 1
+
+
+def test_determine_psychube_finishes_when_free_used_and_candy_disabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _reset_target_count_state(monkeypatch)
+    monkeypatch.setattr(SelectCombatStage, "stage", "Psychube-07")
+    monkeypatch.setattr(_TargetCountState, "free_used", True)
+    context = _RecognitionContext(
+        {
+            "RecognizeRemainingAp": _recognition_detail("10"),
+            "RecognizeStageAp": _recognition_detail("25"),
+            "RecognizeCombatTimes": _recognition_detail("1"),
+        },
+        eat_candy_enabled=False,
+    )
+
+    result = TargetCountDetermine().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountDetermine", ["TargetCountFinish"])
+
+
+def test_determine_psychube_falls_back_to_fixed_times_when_unknown(monkeypatch: pytest.MonkeyPatch) -> None:
+    _reset_target_count_state(monkeypatch)
+    monkeypatch.setattr(SelectCombatStage, "stage", "Psychube-07")
+    monkeypatch.setattr(_TargetCountState, "free_used", True)
+    context = _RecognitionContext({})
+
+    result = TargetCountDetermine().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountDetermine", ["TargetCountOpenPanel"])
+    assert _TargetCountState.current_times == 4
+
+
+def test_candy_route_finishes_when_eat_candy_disabled() -> None:
+    context = _RouteContext(eat_candy_enabled=False)
+
+    result = TargetCountCandyRoute().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.tasks == ["QuitEatCandyPage"]
+    assert context.override == ("TargetCountCandyPage", ["TargetCountFinish"])
+
+
+def test_candy_route_eats_when_enabled(monkeypatch: pytest.MonkeyPatch) -> None:
+    _reset_target_count_state(monkeypatch)
+    context = _RouteContext(eat_candy_enabled=True)
+
+    result = TargetCountCandyRoute().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.tasks == []
+    assert context.override == ("TargetCountCandyPage", ["TargetCountEatCandy"])
+    assert _TargetCountState.free_used is True
+    assert _TargetCountState.candy_page_hits == 1
+
+
+def test_candy_route_finishes_gracefully_on_repeated_candy_page(monkeypatch: pytest.MonkeyPatch) -> None:
+    _reset_target_count_state(monkeypatch)
+    monkeypatch.setattr(_TargetCountState, "candy_page_hits", 1)
+    context = _RouteContext(eat_candy_enabled=True)
+
+    result = TargetCountCandyRoute().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.tasks == ["QuitEatCandyPage"]
+    assert context.override == ("TargetCountCandyPage", ["TargetCountFinish"])
+
+
+def test_start_replay_candy_route_ends_task_when_disabled() -> None:
+    context = _RouteContext(eat_candy_enabled=False)
+
+    result = StartReplayCandyRoute().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.tasks == ["QuitEatCandyPage"]
+    assert context.override == ("StartReplay", [])
+
+
+def test_start_replay_candy_route_retries_after_eating(monkeypatch: pytest.MonkeyPatch) -> None:
+    _reset_target_count_state(monkeypatch)
+    context = _RouteContext(eat_candy_enabled=True, task_failed=False)
+
+    result = StartReplayCandyRoute().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.tasks == ["EatCandy"]
+    assert context.override == ("StartReplayCandyPage", ["StartReplay"])
+
+
+def test_start_replay_candy_route_ends_on_repeated_candy_page(monkeypatch: pytest.MonkeyPatch) -> None:
+    _reset_target_count_state(monkeypatch)
+    monkeypatch.setattr(_TargetCountState, "candy_page_hits", 1)
+    context = _RouteContext(eat_candy_enabled=True, task_failed=False)
+
+    result = StartReplayCandyRoute().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.tasks == ["QuitEatCandyPage"]
+    assert context.override == ("StartReplay", [])

@@ -367,6 +367,12 @@
                 "template": "Psychube/NoFreePsychubeStagesFlag.png"
             }
         },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "RecordNoFreePsychube"
+            }
+        },
         "next": [
             "SwipeRightForPsychube"
         ]
