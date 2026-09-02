@@ -197,7 +197,7 @@
     "Option.PreStormProtocol.FarmingMode.BossBeaten": "Tutorial boss already beaten",
     "Option.PreStormProtocol.FarmingMode.BossNotBeaten": "Tutorial boss not yet beaten",
     "Option.Psychube.AllowApOverflow": "Allow Stamina Overflow",
-    "Option.Psychube.AllowApOverflow.desc": "When on, candy keeps being consumed up to the game's hidden stamina ceiling (1200), stacking stamina above the displayed cap. When off, only candy whose restore value fits the remaining headroom is consumed, which often means just one candy per visit.",
+    "Option.Psychube.AllowApOverflow.desc": "When on, candy keeps being consumed up to the game's hidden stamina ceiling (1600), stacking stamina above the displayed cap. When off, only candy whose restore value fits the remaining headroom is consumed, which often means just one candy per visit.",
     "Option.Psychube.CandyCount": "Candy Count",
     "Option.Psychube.CandyCount.Count": "Candy count",
     "Option.Psychube.CandyCount.desc": "Note that gummy bears (the 5-stamina candy dropped in the main story) are always consumed in full and do not count towards this number.",

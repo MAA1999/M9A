@@ -127,10 +127,11 @@ def test_candy_page_record_keeps_eating_above_the_displayed_cap_when_overflow_al
 
 
 def test_candy_page_record_stops_at_the_hidden_ap_ceiling() -> None:
+    # 达到隐性上限（含）即停止：达到上限时不再吃，差一颗时仍可再吃
     attach: dict[str, object] = {"valid_period": "14d", "fast": 1, "allow_overflow": 1}
 
-    assert _analyze(_big_candy_only_context(AP_OVERFLOW_LIMIT, attach)) is not None
-    assert _analyze(_big_candy_only_context(AP_OVERFLOW_LIMIT + 1, attach)) is None
+    assert _analyze(_big_candy_only_context(AP_OVERFLOW_LIMIT, attach)) is None
+    assert _analyze(_big_candy_only_context(AP_OVERFLOW_LIMIT - 1, attach)) is not None
 
 
 def test_candy_page_record_stops_at_full_stamina_without_overflow_permission() -> None:

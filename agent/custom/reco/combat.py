@@ -55,8 +55,8 @@ def get_valid_period_threshold(period_option: str) -> float:
     return thresholds.get(period_option, 24.0)
 
 
-# 游戏隐性体力上限：活性可以通过吃糖堆到显示上限之上，但超过该值后游戏不再允许继续吃糖。
-AP_OVERFLOW_LIMIT = 1200
+# 游戏隐性体力上限：活性可以通过吃糖堆到显示上限之上，但达到该值后游戏不再允许继续吃糖。
+AP_OVERFLOW_LIMIT = 1600
 
 
 @AgentServer.custom_recognition("CandyPageRecord")
@@ -301,8 +301,8 @@ class CandyPageRecord(CustomRecognition):
         total_restore = current_candy_info["total_restore"]
         if allow_overflow == 1:
             # 允许溢出：一直吃到游戏隐性体力上限，超过显示上限的部分视为可接受的浪费
-            if remaining_ap > AP_OVERFLOW_LIMIT:
-                logger.debug(f"允许溢出：体力 {remaining_ap} 已超过隐性上限 {AP_OVERFLOW_LIMIT}，跳过吃糖")
+            if remaining_ap >= AP_OVERFLOW_LIMIT:
+                logger.debug(f"允许溢出：体力 {remaining_ap} 已达到隐性上限 {AP_OVERFLOW_LIMIT}，跳过吃糖")
                 return None
             # 体力没有增长说明上一次吃糖没有生效，停止以免在吃糖界面空转
             last_remaining_ap = CandyPageRecord._last_remaining_ap
