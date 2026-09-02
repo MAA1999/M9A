@@ -9,7 +9,7 @@ from utils.maa_types import is_hit, ocr_text
 from utils.params import parse_params
 
 
-@AgentServer.custom_recognition("CCBuyCard")
+@AgentServer.custom_recognition("CCBuyCardRec")
 class CCBuyCardRec(CustomRecognition):
     """
     翻斗棋：识别可购买卡牌
