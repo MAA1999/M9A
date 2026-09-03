@@ -170,18 +170,29 @@ def explore(
         cursor = next_cursor
 
 
+PRERELEASE_RANKS: dict[str, int] = {
+    "alpha": -1,
+    "beta": 0,
+    "rc": 1,
+}
+STABLE_RELEASE_RANK = 2
+
+
 def release_version_key(release: str) -> tuple[int, int, int, int, int] | None:
-    """解析 release 字符串内嵌的版本排序键,不匹配时返回 None。"""
+    """解析 release 字符串内嵌的版本排序键,不匹配或预发布类型未知时返回 None。"""
     match = RELEASE_PATTERN.search(release)
     if match is None:
         return None
 
     major, minor, patch, prerelease, prerelease_number = match.groups()
     if prerelease is None or prerelease_number is None:
-        prerelease_rank = 2
+        prerelease_rank = STABLE_RELEASE_RANK
         prerelease_number = "0"
     else:
-        prerelease_rank = {"beta": 0, "rc": 1}.get(prerelease.lower(), 0)
+        rank = PRERELEASE_RANKS.get(prerelease.lower())
+        if rank is None:
+            return None
+        prerelease_rank = rank
 
     return (
         int(major),

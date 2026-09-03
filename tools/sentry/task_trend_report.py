@@ -22,6 +22,7 @@ try:
         DEFAULT_RELEASE_DISCOVERY_PERIOD,
         DEFAULT_SENTRY_TIMEOUT_SECONDS,
         MIN_RELEASE_UNIQUE_USERS,
+        STABLE_RELEASE_RANK,
         explore,
         release_version_key,
         resolve_sentry_command,
@@ -34,6 +35,7 @@ except ImportError:
         DEFAULT_RELEASE_DISCOVERY_PERIOD,
         DEFAULT_SENTRY_TIMEOUT_SECONDS,
         MIN_RELEASE_UNIQUE_USERS,
+        STABLE_RELEASE_RANK,
         explore,
         release_version_key,
         resolve_sentry_command,
@@ -136,8 +138,8 @@ def discover_versions(
         label = version_label(release)
         if key is None or label is None:
             continue
-        # key[3] == 2 代表正式稳定版,0/1 分别为 beta/rc
-        if not include_prerelease and key[3] != 2:
+        # key[3] == STABLE_RELEASE_RANK 代表正式稳定版,其余为 alpha/beta/rc
+        if not include_prerelease and key[3] != STABLE_RELEASE_RANK:
             continue
         version_users[key] += user_count
         version_labels[key] = label

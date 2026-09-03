@@ -25,6 +25,26 @@ class TestM9AReleaseVersionKey:
         assert report_common.m9a_release_version_key("MXU@2.4.5+m9a@v4.7.1+extra") is None
         assert report_common.m9a_release_version_key("MXU@2.4.5+m9a@abc") is None
 
+    def test_sentry_report_prerelease_rank_ordering(self) -> None:
+        key_alpha = (4, 7, 0, report_common.PRERELEASE_RANKS["alpha"], 1)
+        key_beta = (4, 7, 0, report_common.PRERELEASE_RANKS["beta"], 1)
+        key_rc = (4, 7, 0, report_common.PRERELEASE_RANKS["rc"], 1)
+        key_stable = (4, 7, 0, report_common.STABLE_RELEASE_RANK, 0)
+        assert key_alpha < key_beta < key_rc < key_stable
+
+    def test_sentry_report_rejects_unknown_prerelease_tag(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import re
+
+        custom_pattern = re.compile(r"m9a@v(\d+)\.(\d+)\.(\d+)(?:-([a-z]+)\.(\d+))?")
+        monkeypatch.setattr(report_common, "RELEASE_PATTERN", custom_pattern)
+        # 支持的预发布标签
+        assert report_common.release_version_key("m9a@v4.7.1-beta.2") == (4, 7, 1, 0, 2)
+        assert report_common.release_version_key("m9a@v4.7.1-rc.1") == (4, 7, 1, 1, 1)
+        assert report_common.release_version_key("m9a@v4.7.1-alpha.3") == (4, 7, 1, -1, 3)
+        # 未知标签不应静默获得 beta 的 rank 0，必须返回 None
+        assert report_common.release_version_key("m9a@v4.7.1-preview.1") is None
+        assert report_common.release_version_key("m9a@v4.7.1-dev.5") is None
+
 
 class TestSelectLatestReportedRelease:
     def test_requires_finalized_release_with_deploy(self) -> None:
