@@ -6,8 +6,10 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -24,6 +26,21 @@ class ProjectConfig:
     ignored_prefixes: tuple[str, ...] = ()
     # 任务列表中忽略的私有 span 后缀
     ignored_suffixes: tuple[str, ...] = ()
+
+
+def _parse_str_list(value: Any, field_name: str, config_file: Path) -> tuple[str, ...]:
+    if value is None:
+        return ()
+    if not isinstance(value, (list, tuple)):
+        raise ValueError(f"配置文件 {config_file} 中的 '{field_name}' 必须是字符串列表。")
+    result: list[str] = []
+    for item in value:
+        if not isinstance(item, str):
+            raise ValueError(
+                f"配置文件 {config_file} 中的 '{field_name}' 列表项必须是字符串，发现: {type(item).__name__}"
+            )
+        result.append(item)
+    return tuple(result)
 
 
 def load_config(config_path: Path | str | None = None) -> ProjectConfig:
@@ -46,13 +63,27 @@ def load_config(config_path: Path | str | None = None) -> ProjectConfig:
     if not isinstance(project_prefix, str) or not project_prefix.strip():
         raise ValueError(f"配置文件 {config_file} 缺少必填字段 'project_prefix'。")
 
+    release_pattern = data.get("release_pattern")
+    if release_pattern is not None:
+        if not isinstance(release_pattern, str) or not release_pattern.strip():
+            raise ValueError(f"配置文件 {config_file} 中的 'release_pattern' 必须是非空字符串。")
+        try:
+            compiled = re.compile(release_pattern)
+            if compiled.groups != 5:
+                raise ValueError(
+                    f"配置文件 {config_file} 中的 'release_pattern' 必须包含恰好 5 个捕获组 "
+                    f"(major, minor, patch, prerelease, prerelease_number)，当前包含 {compiled.groups} 个。"
+                )
+        except re.error as err:
+            raise ValueError(f"配置文件 {config_file} 中的 'release_pattern' 正则表达式无效: {err}") from err
+
     return ProjectConfig(
         target=target.strip(),
         project_prefix=project_prefix.strip(),
-        release_pattern=data.get("release_pattern"),
-        task_run_spans=tuple(data.get("task_run_spans", ())),
-        ignored_prefixes=tuple(data.get("ignored_prefixes", ())),
-        ignored_suffixes=tuple(data.get("ignored_suffixes", ())),
+        release_pattern=release_pattern,
+        task_run_spans=_parse_str_list(data.get("task_run_spans"), "task_run_spans", config_file),
+        ignored_prefixes=_parse_str_list(data.get("ignored_prefixes"), "ignored_prefixes", config_file),
+        ignored_suffixes=_parse_str_list(data.get("ignored_suffixes"), "ignored_suffixes", config_file),
     )
 
 

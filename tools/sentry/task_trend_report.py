@@ -153,6 +153,7 @@ def build_trend_report(
     statuses: Iterable[dict[str, Any]],
     versions: Sequence[str],
     *,
+    display_versions: Sequence[str] | None = None,
     task_filter: str | None = None,
     min_latest_runs: int = DEFAULT_MIN_LATEST_RUNS,
     sort: str = "runs",
@@ -185,17 +186,28 @@ def build_trend_report(
             elif status == "ok":
                 task_oks[description] += count
 
+    target_versions = set(display_versions) if display_versions else version_set
     all_tasks = set()
-    for v in version_set:
+    for v in target_versions:
         all_tasks.update(task_totals[v].keys())
 
     # 若指定了单任务筛选,提取单任务在各个版本下的详细统计
     detailed_stats: list[VersionTaskStat] | None = None
+    resolved_task_filter = task_filter
     if task_filter:
-        target_task = next(
-            (t for t in all_tasks if task_filter.lower() in t.lower()),
-            task_filter,
-        )
+        exact_match = next((t for t in sorted(all_tasks) if t.lower() == task_filter.lower()), None)
+        if exact_match is not None:
+            target_task = exact_match
+        else:
+            fuzzy_matches = [t for t in sorted(all_tasks) if task_filter.lower() in t.lower()]
+            if len(fuzzy_matches) == 1:
+                target_task = fuzzy_matches[0]
+            elif len(fuzzy_matches) > 1:
+                candidates = ", ".join(f"'{m}'" for m in fuzzy_matches)
+                raise ValueError(f"任务筛选 '{task_filter}' 匹配到多个候选任务: {candidates}。请指定更精确的任务名称。")
+            else:
+                target_task = task_filter
+        resolved_task_filter = target_task
         detailed_stats = []
         for i, version in enumerate(versions):
             tot = task_totals[version].get(target_task, 0)
@@ -298,7 +310,7 @@ def build_trend_report(
     return TrendReport(
         versions=list(versions),
         rows=rows,
-        task_filter=task_filter,
+        task_filter=resolved_task_filter,
         detailed_task_stats=detailed_stats,
     )
 
@@ -380,6 +392,7 @@ def collect_report(
         totals,
         statuses,
         query_versions,
+        display_versions=display_versions,
         task_filter=task_filter,
         min_latest_runs=min_latest_runs,
         sort=sort,
@@ -390,7 +403,7 @@ def collect_report(
     return TrendReport(
         versions=display_versions,
         rows=report.rows,
-        task_filter=task_filter,
+        task_filter=report.task_filter,
         detailed_task_stats=(
             [s for s in report.detailed_task_stats if s.version in display_versions]
             if report.detailed_task_stats

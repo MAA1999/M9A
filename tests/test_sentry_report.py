@@ -1,4 +1,5 @@
 import io
+import json
 from pathlib import Path
 from typing import Any
 
@@ -553,6 +554,42 @@ class TestConfig:
         with pytest.raises(ValueError, match="缺少必填字段"):
             load_config(bad_file)
 
+    def test_raises_when_collection_fields_not_string_list(self, tmp_path: Path) -> None:
+        from tools.sentry.config import load_config
+
+        # 字符串而非列表
+        bad_str = tmp_path / "bad_str.json"
+        bad_str.write_text('{"target": "t", "project_prefix": "p", "task_run_spans": "not_a_list"}', encoding="utf-8")
+        with pytest.raises(ValueError, match="必须是字符串列表"):
+            load_config(bad_str)
+
+        # 列表中包含非字符串元素
+        bad_items = tmp_path / "bad_items.json"
+        bad_items.write_text('{"target": "t", "project_prefix": "p", "task_run_spans": [123]}', encoding="utf-8")
+        with pytest.raises(ValueError, match="列表项必须是字符串"):
+            load_config(bad_items)
+
+    def test_validates_custom_release_pattern_group_count(self, tmp_path: Path) -> None:
+        from tools.sentry.config import load_config
+
+        # 仅有 3 个组，不足 5 个
+        bad_pattern = tmp_path / "bad_pattern.json"
+        bad_pattern.write_text(
+            '{"target": "t", "project_prefix": "p", "release_pattern": "v(\\\\d+)\\\\.(\\\\d+)\\\\.(\\\\d+)"}',
+            encoding="utf-8",
+        )
+        with pytest.raises(ValueError, match="必须包含恰好 5 个捕获组"):
+            load_config(bad_pattern)
+
+        good_pattern = tmp_path / "good_pattern.json"
+        pattern_str = r"v(\d+)\.(\d+)\.(\d+)(-beta\.(\d+))?"
+        good_pattern.write_text(
+            json.dumps({"target": "t", "project_prefix": "p", "release_pattern": pattern_str}),
+            encoding="utf-8",
+        )
+        cfg = load_config(good_pattern)
+        assert cfg.release_pattern is not None
+
     def test_generic_version_extraction_for_other_projects(self) -> None:
         import re
 
@@ -569,3 +606,117 @@ class TestConfig:
         match_release = pattern.search("MaaEnd@v2.1.0")
         assert match_release is not None
         assert match_release.groups() == ("2", "1", "0", None, None)
+
+
+class TestTaskFailureEdgeCases:
+    def test_in_version_excludes_missing_or_null_release(self) -> None:
+        from tools.sentry.task_failure_report import _in_version
+
+        key = (4, 7, 1, 2, 0)
+        assert _in_version({"release": "m9a@v4.7.1"}, key) is True
+        assert _in_version({"release": "m9a@v4.7.0"}, key) is False
+        assert _in_version({"release": None}, key) is False
+        assert _in_version({}, key) is False
+        # 未指定版本时，返回 True
+        assert _in_version({"release": None}, None) is True
+
+    def test_build_release_rows_with_target_release(self) -> None:
+        from tools.sentry.task_failure_report import build_release_rows
+
+        totals = [
+            {"release": "custom_build_1", "count_unique(trace)": 100},
+            {"release": "other_build", "count_unique(trace)": 50},
+        ]
+        failures = [
+            {"release": "custom_build_1", "count_unique(trace)": 10},
+            {"release": "other_build", "count_unique(trace)": 5},
+        ]
+        # version_key is None (非标准 release), 指定 target_release 仅保留目标 release
+        rows = build_release_rows(totals, failures, None, target_release="custom_build_1")
+        assert len(rows) == 1
+        assert rows[0].release == "custom_build_1"
+        assert rows[0].total == 100
+        assert rows[0].failed == 10
+
+    def test_markers_sorting_respects_reverse(self) -> None:
+        from tools.sentry.task_failure_report import build_task_rows
+
+        # 仅失败的节点标记
+        totals = [
+            {"span.description": "MarkerA", "count_unique(trace)": 5, "release": "m9a@v4.7.1"},
+            {"span.description": "MarkerB", "count_unique(trace)": 15, "release": "m9a@v4.7.1"},
+        ]
+        statuses = [
+            {
+                "span.description": "MarkerA",
+                "span.status": "internal_error",
+                "count_unique(trace)": 5,
+                "release": "m9a@v4.7.1",
+            },
+            {
+                "span.description": "MarkerB",
+                "span.status": "internal_error",
+                "count_unique(trace)": 15,
+                "release": "m9a@v4.7.1",
+            },
+        ]
+        key = (4, 7, 1, 2, 0)
+        # reverse=False: 次数多的在前 (MarkerB: 15, MarkerA: 5)
+        _tasks, markers_desc = build_task_rows(totals, statuses, key, reverse=False)
+        assert markers_desc[0].task == "MarkerB"
+        assert markers_desc[1].task == "MarkerA"
+
+        # reverse=True: 次数少的在前 (MarkerA: 5, MarkerB: 15)
+        _tasks, markers_asc = build_task_rows(totals, statuses, key, reverse=True)
+        assert markers_asc[0].task == "MarkerA"
+        assert markers_asc[1].task == "MarkerB"
+
+
+class TestTaskTrendEdgeCases:
+    def test_task_filter_exact_and_fuzzy_resolution(self) -> None:
+        from tools.sentry.task_trend_report import build_trend_report
+
+        totals = [
+            {"release": "m9a@v4.7.1", "span.description": "常规作战", "count_unique(trace)": 20},
+            {"release": "m9a@v4.7.1", "span.description": "活动作战", "count_unique(trace)": 10},
+            {"release": "m9a@v4.7.1", "span.description": "每日任务", "count_unique(trace)": 15},
+        ]
+        statuses = [
+            {"release": "m9a@v4.7.1", "span.description": "常规作战", "span.status": "ok", "count_unique(trace)": 20},
+            {"release": "m9a@v4.7.1", "span.description": "活动作战", "span.status": "ok", "count_unique(trace)": 10},
+            {"release": "m9a@v4.7.1", "span.description": "每日任务", "span.status": "ok", "count_unique(trace)": 15},
+        ]
+        # 1. 唯一模糊匹配: "每日" -> "每日任务"
+        rep1 = build_trend_report(totals, statuses, ["v4.7.1"], task_filter="每日")
+        assert rep1.task_filter == "每日任务"
+
+        # 2. 完全精确匹配优先 (即便 "常规" 也能模糊匹配, 精确匹配仍生效)
+        rep2 = build_trend_report(totals, statuses, ["v4.7.1"], task_filter="常规作战")
+        assert rep2.task_filter == "常规作战"
+
+        # 3. 多个模糊匹配冲突 ("作战" 同时匹配到 "常规作战" 和 "活动作战")
+        with pytest.raises(ValueError, match="匹配到多个候选任务"):
+            build_trend_report(totals, statuses, ["v4.7.1"], task_filter="作战")
+
+    def test_baseline_only_task_not_in_displayed_rows(self) -> None:
+        from tools.sentry.task_trend_report import build_trend_report
+
+        # 某个任务仅在最老基准版本 v4.6.1 中运行，但在展示版本 v4.7.1 中不存在
+        totals = [
+            {"release": "m9a@v4.7.1", "span.description": "活跃任务", "count_unique(trace)": 30},
+            {"release": "m9a@v4.6.1", "span.description": "已废弃任务", "count_unique(trace)": 50},
+        ]
+        statuses = [
+            {"release": "m9a@v4.7.1", "span.description": "活跃任务", "span.status": "ok", "count_unique(trace)": 30},
+            {"release": "m9a@v4.6.1", "span.description": "已废弃任务", "span.status": "ok", "count_unique(trace)": 50},
+        ]
+        # 查询 2 个版本 (v4.7.1 与基准 v4.6.1)，但 display_versions 仅展示 ["v4.7.1"]
+        rep = build_trend_report(
+            totals,
+            statuses,
+            ["v4.7.1", "v4.6.1"],
+            display_versions=["v4.7.1"],
+        )
+        task_names = [row.task for row in rep.rows]
+        assert "活跃任务" in task_names
+        assert "已废弃任务" not in task_names

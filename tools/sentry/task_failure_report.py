@@ -61,9 +61,8 @@ DEFAULT_PERIOD = "7d"
 INTERNAL_ERROR = "internal_error"
 CANCELLED = "cancelled"
 OK = "ok"
-# 各渠道上报"整次运行"的 umbrella span 名称。
 TASK_RUN_SPANS = CONFIG.task_run_spans
-UMBRELLA_FILTER = f"span.description:[{','.join(TASK_RUN_SPANS)}]"
+UMBRELLA_FILTER = f"span.description:[{','.join(TASK_RUN_SPANS)}]" if TASK_RUN_SPANS else ""
 SYSTEM_LABELS = {
     "controller_initialization_failed": "控制器初始化失败",
     "connection_failed": "连接失败",
@@ -110,12 +109,12 @@ def _unique_trace_count(row: dict[str, Any], key: str) -> int | None:
 
 
 def _in_version(row: dict[str, Any], version_key: tuple[int, int, int, int, int] | None) -> bool:
-    """判断行是否属于目标版本;无法判定(行缺少 release)时视为属于。"""
+    """判断行是否属于目标版本；当指定了目标版本时，缺少或无效 release 的行不属于该版本。"""
     if version_key is None:
         return True
     release = row.get("release")
     if not isinstance(release, str):
-        return True
+        return False
     return release_version_key(release) == version_key
 
 
@@ -188,7 +187,7 @@ def build_task_rows(
     else:  # "failures" (默认)
         tasks.sort(key=lambda row: (row.failed, row.total, row.task), reverse=not reverse)
 
-    markers.sort(key=lambda row: (-row.total, row.task))
+    markers.sort(key=lambda row: (row.total, row.task), reverse=not reverse)
     if limit is not None and limit > 0:
         tasks = tasks[:limit]
         markers = markers[:limit]
@@ -200,8 +199,13 @@ def build_release_rows(
     totals: Iterable[dict[str, Any]],
     failures: Iterable[dict[str, Any]],
     version_key: tuple[int, int, int, int, int] | None,
+    *,
+    target_release: str | None = None,
 ) -> list[ReleaseRow]:
-    """按 release 字符串聚合运行失败率;version_key 非空时仅保留内嵌同版本号的渠道。"""
+    """按 release 字符串聚合运行失败率。
+
+    version_key 非空时仅保留内嵌同版本号的渠道；否则若指定 target_release 则仅保留该 release。
+    """
     total_by_release: dict[str, int] = {}
     failed_by_release: dict[str, int] = defaultdict(int)
     for row in totals:
@@ -217,8 +221,12 @@ def build_release_rows(
 
     report = []
     for release, total in total_by_release.items():
-        if version_key is not None and release_version_key(release) != version_key:
-            continue
+        if version_key is not None:
+            if release_version_key(release) != version_key:
+                continue
+        elif target_release is not None:
+            if release != target_release:
+                continue
         failed = failed_by_release.get(release, 0)
         report.append(
             ReleaseRow(
@@ -293,31 +301,37 @@ def collect_report(
         timeout_seconds=timeout_seconds,
     )
 
-    show_progress("[3/4] 查询各渠道运行总量", quiet=quiet)
-    run_total_rows = explore(
-        sentry_command,
-        target=target,
-        period=period,
-        fields=("release", "count_unique(trace)"),
-        query=UMBRELLA_FILTER,
-        sort="-count_unique(trace)",
-        verbose=verbose,
-        timeout_seconds=timeout_seconds,
-    )
+    runs: list[ReleaseRow] = []
+    if TASK_RUN_SPANS:
+        umbrella_query = f"{scope_filter} {UMBRELLA_FILTER}".strip()
+        show_progress("[3/4] 查询各渠道运行总量", quiet=quiet)
+        run_total_rows = explore(
+            sentry_command,
+            target=target,
+            period=period,
+            fields=("release", "count_unique(trace)"),
+            query=umbrella_query,
+            sort="-count_unique(trace)",
+            verbose=verbose,
+            timeout_seconds=timeout_seconds,
+        )
 
-    show_progress("[4/4] 查询各渠道运行失败分布", quiet=quiet)
-    run_failure_rows = explore(
-        sentry_command,
-        target=target,
-        period=period,
-        fields=("release", "count_unique(trace)"),
-        query=f"{UMBRELLA_FILTER} span.status:{INTERNAL_ERROR}",
-        sort="-count_unique(trace)",
-        verbose=verbose,
-        timeout_seconds=timeout_seconds,
-    )
+        show_progress("[4/4] 查询各渠道运行失败分布", quiet=quiet)
+        run_failure_rows = explore(
+            sentry_command,
+            target=target,
+            period=period,
+            fields=("release", "count_unique(trace)"),
+            query=f"{umbrella_query} span.status:{INTERNAL_ERROR}".strip(),
+            sort="-count_unique(trace)",
+            verbose=verbose,
+            timeout_seconds=timeout_seconds,
+        )
 
-    runs = build_release_rows(run_total_rows, run_failure_rows, version_key)
+        runs = build_release_rows(run_total_rows, run_failure_rows, version_key, target_release=release)
+    else:
+        show_progress("[3/4] 未配置 umbrella span，跳过渠道运行查询", quiet=quiet)
+        show_progress("[4/4] 完成任务聚合", quiet=quiet)
 
     tasks, markers = build_task_rows(
         task_total_rows,
@@ -361,19 +375,20 @@ def write_console(report: Report, output: TextIO) -> None:
         right_aligned={1},
     )
 
-    spans_desc = " / ".join(TASK_RUN_SPANS)
-    print("\n运行失败率(跨渠道对比)", file=output)
-    print(
-        f"口径:各渠道 umbrella span({spans_desc})的失败率,"
-        "即一次完整运行失败的占比。release 字符串由渠道注册,内嵌相同的版本号。\n",
-        file=output,
-    )
-    write_console_table(
-        ("release", "运行数", "失败", "失败率"),
-        [(row.release, str(row.total), str(row.failed), format_rate(row.failure_rate)) for row in report.runs],
-        output,
-        right_aligned={1, 2, 3},
-    )
+    if report.runs:
+        spans_desc = " / ".join(TASK_RUN_SPANS)
+        print("\n运行失败率(跨渠道对比)", file=output)
+        print(
+            f"口径:各渠道 umbrella span({spans_desc})的失败率,"
+            "即一次完整运行失败的占比。release 字符串由渠道注册,内嵌相同的版本号。\n",
+            file=output,
+        )
+        write_console_table(
+            ("release", "运行数", "失败", "失败率"),
+            [(row.release, str(row.total), str(row.failed), format_rate(row.failure_rate)) for row in report.runs],
+            output,
+            right_aligned={1, 2, 3},
+        )
 
 
 def write_markdown(report: Report, output: TextIO) -> None:
@@ -398,19 +413,20 @@ def write_markdown(report: Report, output: TextIO) -> None:
     for row in report.markers:
         print(f"| {describe(row.task)} | {row.total} |", file=output)
 
-    spans_desc = " / ".join(TASK_RUN_SPANS)
-    print("\n## 运行失败率(跨渠道对比)\n", file=output)
-    print(
-        f"> 口径:各渠道 umbrella span({spans_desc})的失败率,即一次完整运行失败的占比。\n",
-        file=output,
-    )
-    print("| release | 运行数 | 失败 | 失败率 |", file=output)
-    print("|---|---:|---:|---:|", file=output)
-    for row in report.runs:
+    if report.runs:
+        spans_desc = " / ".join(TASK_RUN_SPANS)
+        print("\n## 运行失败率(跨渠道对比)\n", file=output)
         print(
-            f"| `{row.release}` | {row.total} | {row.failed} | {format_rate(row.failure_rate)} |",
+            f"> 口径:各渠道 umbrella span({spans_desc})的失败率,即一次完整运行失败的占比。\n",
             file=output,
         )
+        print("| release | 运行数 | 失败 | 失败率 |", file=output)
+        print("|---|---:|---:|---:|", file=output)
+        for row in report.runs:
+            print(
+                f"| `{row.release}` | {row.total} | {row.failed} | {format_rate(row.failure_rate)} |",
+                file=output,
+            )
 
 
 def write_json(report: Report, output: TextIO) -> None:
