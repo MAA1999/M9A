@@ -303,7 +303,7 @@ def collect_report(
 
     runs: list[ReleaseRow] = []
     if TASK_RUN_SPANS:
-        umbrella_query = f"{scope_filter} {UMBRELLA_FILTER}".strip()
+        umbrella_query = UMBRELLA_FILTER if version_key is not None else f"{scope_filter} {UMBRELLA_FILTER}".strip()
         show_progress("[3/4] 查询各渠道运行总量", quiet=quiet)
         run_total_rows = explore(
             sentry_command,

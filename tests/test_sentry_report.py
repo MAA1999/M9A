@@ -554,7 +554,7 @@ class TestConfig:
         with pytest.raises(ValueError, match="缺少必填字段"):
             load_config(bad_file)
 
-    def test_raises_when_collection_fields_not_string_list(self, tmp_path: Path) -> None:
+    def test_sentry_report_raises_when_collection_fields_not_string_list(self, tmp_path: Path) -> None:
         from tools.sentry.config import load_config
 
         # 字符串而非列表
@@ -569,7 +569,7 @@ class TestConfig:
         with pytest.raises(ValueError, match="列表项必须是字符串"):
             load_config(bad_items)
 
-    def test_validates_custom_release_pattern_group_count(self, tmp_path: Path) -> None:
+    def test_sentry_report_validates_custom_release_pattern_group_count(self, tmp_path: Path) -> None:
         from tools.sentry.config import load_config
 
         # 仅有 3 个组，不足 5 个
@@ -582,7 +582,7 @@ class TestConfig:
             load_config(bad_pattern)
 
         good_pattern = tmp_path / "good_pattern.json"
-        pattern_str = r"v(\d+)\.(\d+)\.(\d+)(-beta\.(\d+))?"
+        pattern_str = r"v(\d+)\.(\d+)\.(\d+)(?:-(beta|rc)\.(\d+))?"
         good_pattern.write_text(
             json.dumps({"target": "t", "project_prefix": "p", "release_pattern": pattern_str}),
             encoding="utf-8",
@@ -590,7 +590,7 @@ class TestConfig:
         cfg = load_config(good_pattern)
         assert cfg.release_pattern is not None
 
-    def test_generic_version_extraction_for_other_projects(self) -> None:
+    def test_sentry_report_generic_version_extraction_for_other_projects(self) -> None:
         import re
 
         # MaaEnd standard release: MaaEnd@v2.1.0-beta.2
@@ -609,7 +609,7 @@ class TestConfig:
 
 
 class TestTaskFailureEdgeCases:
-    def test_in_version_excludes_missing_or_null_release(self) -> None:
+    def test_sentry_report_in_version_excludes_missing_or_null_release(self) -> None:
         from tools.sentry.task_failure_report import _in_version
 
         key = (4, 7, 1, 2, 0)
@@ -620,7 +620,7 @@ class TestTaskFailureEdgeCases:
         # 未指定版本时，返回 True
         assert _in_version({"release": None}, None) is True
 
-    def test_build_release_rows_with_target_release(self) -> None:
+    def test_sentry_report_build_release_rows_with_target_release(self) -> None:
         from tools.sentry.task_failure_report import build_release_rows
 
         totals = [
@@ -638,7 +638,29 @@ class TestTaskFailureEdgeCases:
         assert rows[0].total == 100
         assert rows[0].failed == 10
 
-    def test_markers_sorting_respects_reverse(self) -> None:
+    def test_sentry_report_multi_channel_umbrella_aggregation_for_standard_version(self) -> None:
+        from tools.sentry.task_failure_report import build_release_rows
+
+        totals = [
+            {"release": "m9a@v4.7.1", "count_unique(trace)": 100},
+            {"release": "MXU@2.4.5+m9a@v4.7.1", "count_unique(trace)": 50},
+            {"release": "m9a@v4.7.0", "count_unique(trace)": 200},
+        ]
+        failures = [
+            {"release": "m9a@v4.7.1", "count_unique(trace)": 10},
+            {"release": "MXU@2.4.5+m9a@v4.7.1", "count_unique(trace)": 5},
+            {"release": "m9a@v4.7.0", "count_unique(trace)": 20},
+        ]
+        key = (4, 7, 1, 2, 0)
+        rows = build_release_rows(totals, failures, key)
+        # 同一版本的两个渠道均保留，排除不同版本
+        assert len(rows) == 2
+        release_names = {r.release for r in rows}
+        assert "m9a@v4.7.1" in release_names
+        assert "MXU@2.4.5+m9a@v4.7.1" in release_names
+        assert "m9a@v4.7.0" not in release_names
+
+    def test_sentry_report_markers_sorting_respects_reverse(self) -> None:
         from tools.sentry.task_failure_report import build_task_rows
 
         # 仅失败的节点标记
@@ -673,7 +695,7 @@ class TestTaskFailureEdgeCases:
 
 
 class TestTaskTrendEdgeCases:
-    def test_task_filter_exact_and_fuzzy_resolution(self) -> None:
+    def test_sentry_report_task_filter_exact_and_fuzzy_resolution(self) -> None:
         from tools.sentry.task_trend_report import build_trend_report
 
         totals = [
@@ -698,7 +720,7 @@ class TestTaskTrendEdgeCases:
         with pytest.raises(ValueError, match="匹配到多个候选任务"):
             build_trend_report(totals, statuses, ["v4.7.1"], task_filter="作战")
 
-    def test_baseline_only_task_not_in_displayed_rows(self) -> None:
+    def test_sentry_report_baseline_only_task_not_in_displayed_rows(self) -> None:
         from tools.sentry.task_trend_report import build_trend_report
 
         # 某个任务仅在最老基准版本 v4.6.1 中运行，但在展示版本 v4.7.1 中不存在

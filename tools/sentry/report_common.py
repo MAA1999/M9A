@@ -181,7 +181,7 @@ def release_version_key(release: str) -> tuple[int, int, int, int, int] | None:
         prerelease_rank = 2
         prerelease_number = "0"
     else:
-        prerelease_rank = {"beta": 0, "rc": 1}[prerelease.lower()]
+        prerelease_rank = {"beta": 0, "rc": 1}.get(prerelease.lower(), 0)
 
     return (
         int(major),
