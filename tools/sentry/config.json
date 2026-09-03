@@ -1,0 +1,15 @@
+{
+    "target": "m9a/gui",
+    "project_prefix": "m9a",
+    "release_pattern": null,
+    "task_run_spans": [
+        "mfa.task_run",
+        "mxu.task_run"
+    ],
+    "ignored_prefixes": [
+        "__MXU"
+    ],
+    "ignored_suffixes": [
+        ".task_run"
+    ]
+}
