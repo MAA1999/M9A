@@ -31,6 +31,9 @@
                 "TargetCountProgress",
                 "TargetCountFinish",
                 "TargetCountAbort",
+                "RecordNoFreePsychube",
+                "TargetCountCandyRoute",
+                "StartReplayCandyRoute",
                 "BalancedFarmingAnalyze",
                 "JudgeDepthsOfMythWeekly",
                 "ResetEatCandyFlag",
@@ -151,6 +154,15 @@
         },
         {
             "$ref": "#/$defs/TargetCountAbort"
+        },
+        {
+            "$ref": "#/$defs/RecordNoFreePsychube"
+        },
+        {
+            "$ref": "#/$defs/TargetCountCandyRoute"
+        },
+        {
+            "$ref": "#/$defs/StartReplayCandyRoute"
         },
         {
             "$ref": "#/$defs/BalancedFarmingAnalyze"
@@ -1273,6 +1285,30 @@
                 "custom_action": {
                     "const": "WarehouseInventoryScan",
                     "description": "扫描仓库素材页全部已配模板材料数量并保存到 config/warehouse_inventory.json"
+                }
+            }
+        },
+        "RecordNoFreePsychube": {
+            "properties": {
+                "custom_action": {
+                    "const": "RecordNoFreePsychube",
+                    "description": "记录心相关卡当日免费次数已用完，供 TargetCountDetermine 改按剩余体力核算可复现次数。"
+                }
+            }
+        },
+        "TargetCountCandyRoute": {
+            "properties": {
+                "custom_action": {
+                    "const": "TargetCountCandyRoute",
+                    "description": "连续复现点击后弹出吃糖界面的兜底路由，防止复现链无法识别吃糖界面而超时失败。"
+                }
+            }
+        },
+        "StartReplayCandyRoute": {
+            "properties": {
+                "custom_action": {
+                    "const": "StartReplayCandyRoute",
+                    "description": "固定次数复现点击后弹出吃糖界面的兜底路由。"
                 }
             }
         }

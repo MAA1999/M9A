@@ -14,7 +14,7 @@
                 "SailingRecordSelectTarget",
                 "SailingRecordBoatRecord",
                 "FindFirstUnplayedStageByCheckmark",
-                "CCBuyCard",
+                "CCBuyCardRec",
                 "CCRemainMoney",
                 "APPhaseGate",
                 "APModeGate",
@@ -61,7 +61,7 @@
             "$ref": "#/$defs/FindFirstUnplayedStageByCheckmark"
         },
         {
-            "$ref": "#/$defs/CCBuyCard"
+            "$ref": "#/$defs/CCBuyCardRec"
         },
         {
             "$ref": "#/$defs/CCRemainMoney"
@@ -430,10 +430,10 @@
                 }
             }
         },
-        "CCBuyCard": {
+        "CCBuyCardRec": {
             "properties": {
                 "custom_recognition": {
-                    "const": "CCBuyCard",
+                    "const": "CCBuyCardRec",
                     "description": "翻斗棋：识别可购买卡牌"
                 }
             }

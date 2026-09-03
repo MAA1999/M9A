@@ -83,3 +83,9 @@ def test_custom_recognition_registration_matches_schema() -> None:
     assert len(registered_name_list) == len(registered_names)
     assert registered_modules == set(reco.RECO_MODULES)
     assert registered_names == enum_names == referenced_names == defined_names
+
+
+def test_custom_action_and_recognition_names_do_not_overlap() -> None:
+    action_names, _ = _decorator_contract("agent/custom/action", "custom_action")
+    reco_names, _ = _decorator_contract("agent/custom/reco", "custom_recognition")
+    assert not (set(action_names) & set(reco_names))

@@ -578,7 +578,7 @@
         "recognition": {
             "type": "Custom",
             "param": {
-                "custom_recognition": "CCBuyCard"
+                "custom_recognition": "CCBuyCardRec"
             }
         },
         "action": {

@@ -78,8 +78,34 @@
         },
         "next": [
             "TargetCountReplaying",
+            "TargetCountCandyPage",
             "TargetCountStartReplay"
         ]
+    },
+    "TargetCountCandyPage": {
+        "desc": "点击复现后体力不足弹出的吃糖界面兜底，避免复现链空转超时",
+        "max_hit": 3,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    465,
+                    571,
+                    277,
+                    149
+                ],
+                "expected": [
+                    "活性",
+                    "恢复"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "TargetCountCandyRoute"
+            }
+        }
     },
     "TargetCountReplaying": {
         "recognition": {
@@ -345,8 +371,34 @@
         },
         "next": [
             "Replaying",
+            "StartReplayCandyPage",
             "StartReplay"
         ]
+    },
+    "StartReplayCandyPage": {
+        "desc": "固定次数复现点击后体力不足弹出的吃糖界面兜底",
+        "max_hit": 3,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    465,
+                    571,
+                    277,
+                    149
+                ],
+                "expected": [
+                    "活性",
+                    "恢复"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "StartReplayCandyRoute"
+            }
+        }
     },
     "FlagInStartReplay": {
         "recognition": {

@@ -489,7 +489,8 @@
         },
         "post_wait_freezes": {
             "time": 300,
-            "target": "HomeLoading_wait"
+            "target": "HomeLoading_wait",
+            "timeout": 5000
         }
     },
     "HomeFlag": {
@@ -732,7 +733,8 @@
         },
         "post_wait_freezes": {
             "time": 300,
-            "target": "HomeLoading_wait"
+            "target": "HomeLoading_wait",
+            "timeout": 5000
         }
     },
     "AccumulatedSignIn": {
