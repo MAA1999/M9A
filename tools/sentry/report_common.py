@@ -306,6 +306,8 @@ def query_sentry_releases(
         verbose=verbose,
         timeout_seconds=timeout_seconds,
     )
+    if isinstance(result, dict) and isinstance(result.get("body"), list):
+        result = result["body"]
     if not isinstance(result, list) or not all(isinstance(row, dict) for row in result):
         raise RuntimeError("Sentry release API 返回的 JSON 不是对象数组。")
     return result
