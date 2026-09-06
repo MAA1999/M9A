@@ -1,3 +1,7 @@
 [submodule "MaaCommonAssets"]
 	path = MaaCommonAssets
 	url = https://github.com/MaaXYZ/MaaCommonAssets.git
+[submodule "Android/MaaFwApp"]
+	path = Android/MaaFwApp
+	url = https://github.com/Aliothmoon/MaaFwApp.git
+	branch = main

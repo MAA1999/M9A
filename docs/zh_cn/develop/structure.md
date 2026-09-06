@@ -19,6 +19,10 @@ icon: hugeicons:structure-01
     - launch.json # 调试配置
     - settings.json # 项目设置
     - tasks.json # 任务配置
+- Android/ # Android 客户端（MaaFwApp 子模块 + 打包配方）
+    - MaaFwApp/ # 外壳子模块
+    - profile.yaml # 打包配方，资源指向上一级本仓库
+    - README.md # 出包说明
 - agent/ # Agent模块代码
     - custom/ # 自定义识别和任务
     - utils/ # 工具函数

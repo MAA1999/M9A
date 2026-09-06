@@ -1,0 +1,191 @@
+name: Build Dev APK
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "Android/**"
+      - "agent/**"
+      - "requirements.txt"
+      - "interface.json"
+      - ".github/workflows/android.yml"
+  pull_request:
+    paths:
+      - "Android/**"
+      - "agent/**"
+      - "requirements.txt"
+      - "interface.json"
+      - ".github/workflows/android.yml"
+  workflow_dispatch:
+    inputs:
+      assemble:
+        description: "debug 或 release"
+        type: choice
+        options:
+          - debug
+          - release
+        default: debug
+      maafw_tag:
+        description: "MaaFramework release tag"
+        required: false
+        default: "latest"
+
+concurrency:
+  group: android-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    env:
+      PI_PROFILE: ${{ github.workspace }}/Android/profile.yaml
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: "25"
+          distribution: temurin
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK and CMake
+        run: sdkmanager --install "ndk;29.0.13113456" "cmake;3.22.1"
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('Android/MaaFwApp/**/*.gradle.kts', 'Android/MaaFwApp/**/gradle-wrapper.properties', 'Android/MaaFwApp/**/libs.versions.toml') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache MaaFramework zips
+        uses: actions/cache@v4
+        with:
+          path: Android/MaaFwApp/.maa-cache
+          key: maa-fw-${{ runner.os }}-${{ hashFiles('Android/MaaFwApp/scripts/setup_maa_framework.py') }}
+
+      - name: Cache agent core
+        uses: actions/cache@v4
+        with:
+          path: Android/MaaFwApp/.maafw
+          key: maa-agent-core-${{ runner.os }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
+
+      - name: Cache agent bundle
+        uses: actions/cache@v4
+        with:
+          path: Android/agent-dist
+          key: m9a-agent-${{ runner.os }}-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
+
+      - name: Download and deploy MaaFramework
+        working-directory: Android/MaaFwApp
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_ARG=""
+          MAAFW_TAG="${{ github.event.inputs.maafw_tag }}"
+          if [ -n "$MAAFW_TAG" ] && [ "$MAAFW_TAG" != "latest" ]; then
+            TAG_ARG="--tag $MAAFW_TAG"
+          fi
+          python scripts/setup_maa_framework.py --abi arm64-v8a $TAG_ARG
+
+      - name: Build agent runtime
+        working-directory: Android/MaaFwApp
+        run: |
+          if [ -x "${GITHUB_WORKSPACE}/Android/agent-dist/arm64-v8a/bundle/bin/python3" ]; then
+            echo "agent bundle cache hit"
+            exit 0
+          fi
+          python scripts/build_agent_bundle.py \
+            --out "${GITHUB_WORKSPACE}/Android/agent-dist" \
+            --abi arm64-v8a \
+            --requirements "${GITHUB_WORKSPACE}/requirements.txt" \
+            --exclude pillow --require pillow==11.0.0 \
+            --extra-index-url https://chaquo.com/pypi-13.1/
+
+      - name: Write local.properties
+        working-directory: Android/MaaFwApp
+        run: |
+          {
+            echo "sdk.dir=${ANDROID_HOME}"
+            echo "pi.profile=${PI_PROFILE}"
+            if [ "${{ github.event.inputs.assemble || 'debug' }}" != "release" ]; then
+              echo "build.debugAbi=arm64-v8a"
+            fi
+          } > local.properties
+
+      - name: Decode keystore
+        if: ${{ github.event.inputs.assemble == 'release' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/release.jks
+
+      - name: Build Debug APK
+        if: ${{ github.event.inputs.assemble != 'release' }}
+        working-directory: Android/MaaFwApp
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean assembleDebug
+
+      - name: Build Release APK
+        if: ${{ github.event.inputs.assemble == 'release' }}
+        working-directory: Android/MaaFwApp
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean assembleRelease
+
+      - name: Rename Release APK
+        if: ${{ github.event.inputs.assemble == 'release' }}
+        run: |
+          cd Android/MaaFwApp/app/build/outputs/apk/release
+          TAG="${GITHUB_REF_NAME:-dev}"
+          for f in *.apk; do
+            mv "$f" "M9A-Meow-${TAG}-arm64-v8a.apk"
+          done
+
+      - name: Upload Debug APK
+        if: ${{ github.event.inputs.assemble != 'release' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: Android/MaaFwApp/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload Release APK
+        if: ${{ github.event.inputs.assemble == 'release' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk-arm64-v8a
+          path: Android/MaaFwApp/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Upload R8 mapping
+        if: ${{ github.event.inputs.assemble == 'release' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-mapping-arm64-v8a
+          path: Android/MaaFwApp/app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: error
