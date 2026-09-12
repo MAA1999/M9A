@@ -28,6 +28,7 @@ from typing import Any, TextIO
 try:
     from .report_common import (
         DEFAULT_SENTRY_TIMEOUT_SECONDS,
+        MAX_RELIABLE_SPAN_PERIOD_DAYS,
         explore,
         format_rate,
         release_version_key,
@@ -35,11 +36,13 @@ try:
         resolve_sentry_command,
         show_progress,
         version_label,
+        warn_on_truncated_period,
         write_console_table,
     )
 except ImportError:
     from report_common import (
         DEFAULT_SENTRY_TIMEOUT_SECONDS,
+        MAX_RELIABLE_SPAN_PERIOD_DAYS,
         explore,
         format_rate,
         release_version_key,
@@ -47,6 +50,7 @@ except ImportError:
         resolve_sentry_command,
         show_progress,
         version_label,
+        warn_on_truncated_period,
         write_console_table,
     )
 
@@ -444,7 +448,8 @@ def create_argument_parser(prog: str | None = None) -> argparse.ArgumentParser:
     parser.add_argument(
         "--period",
         default=DEFAULT_PERIOD,
-        help='查询范围,例如 "24h"、"7d" 或 "2026-08-23..2026-08-24"',
+        help=f'查询范围,例如 "24h"、"7d" 或 "2026-08-23..2026-08-24";'
+        f"超过 {MAX_RELIABLE_SPAN_PERIOD_DAYS} 天时 Sentry 只返回截断样本,绝对计数不可用",
     )
     parser.add_argument(
         "--sort",
@@ -486,6 +491,7 @@ def main(argv: Sequence[str] | None = None, prog: str | None = None) -> int:
             stream.reconfigure(encoding="utf-8")
 
     arguments = create_argument_parser(prog).parse_args(argv)
+    warn_on_truncated_period(arguments.period)
     if not math.isfinite(arguments.timeout) or arguments.timeout <= 0:
         raise ValueError("--timeout 必须是大于 0 的有限数值。")
     if arguments.limit is not None and arguments.limit <= 0:

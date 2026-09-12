@@ -34,7 +34,7 @@ icon: hugeicons:structure-01
     - en_us/ # 英文文档
     - zh_cn/ # 中文文档
     - .markdownlint.yaml # Markdown 代码检查配置
-- i18n/ # Project Interface 界面翻译文件
+- locales/ # Project Interface 界面翻译文件
     - en_us.json # 英文翻译
     - zh_cn.json # 简体中文翻译
 - MaaCommonAssets/ # MAA 公共资源（子模块）

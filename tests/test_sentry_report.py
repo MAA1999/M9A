@@ -246,6 +246,46 @@ class TestFormatRate:
         assert report_common.format_rate(None) == "暂无样本"
 
 
+class TestPeriodWindow:
+    def test_parses_relative_periods(self) -> None:
+        assert report_common.period_days("30d") == 30
+        assert report_common.period_days(" 90D ") == 90
+        assert report_common.period_days("2w") == 14
+        assert report_common.period_days("12h") == 0.5
+        assert report_common.period_days("30m") == pytest.approx(30 / 1_440)
+
+    def test_parses_explicit_date_ranges(self) -> None:
+        assert report_common.period_days("2026-08-01..2026-08-31") == 30
+        assert report_common.period_days("2026-01-01..2026-04-01") == 90
+
+    def test_rejects_unparseable_periods(self) -> None:
+        assert report_common.period_days("") is None
+        assert report_common.period_days("last-week") is None
+        assert report_common.period_days("2026-08-01..oops") is None
+
+    def test_warns_only_beyond_the_reliable_window(self, capsys: pytest.CaptureFixture[str]) -> None:
+        for period in ("7d", "30d", "2026-08-01..2026-08-31", "last-week"):
+            assert report_common.warn_on_truncated_period(period) is False
+        assert capsys.readouterr().err == ""
+
+        assert report_common.warn_on_truncated_period("90d") is True
+        error = capsys.readouterr().err
+        assert "截断样本" in error
+        assert "90d" in error
+
+        assert report_common.warn_on_truncated_period("2026-05-01..2026-09-01") is True
+        assert "截断样本" in capsys.readouterr().err
+
+    def test_report_help_documents_the_window_limit(self, capsys: pytest.CaptureFixture[str]) -> None:
+        for parser in (
+            task_trend_report.create_argument_parser("task-trend"),
+            task_failure_report.create_argument_parser("task-failure"),
+        ):
+            with pytest.raises(SystemExit):
+                parser.parse_args(["--help"])
+            assert "截断样本" in capsys.readouterr().out
+
+
 class TestCli:
     def test_lists_task_failure_report(self, capsys: pytest.CaptureFixture[str]) -> None:
         assert cli.main([]) == 0

@@ -29,6 +29,50 @@ DEFAULT_RELEASE_DISCOVERY_PERIOD = "90d"
 MIN_RELEASE_UNIQUE_USERS = 10
 SENTRY_RELEASE_API_LIMIT = 100
 
+# Sentry explore 的时间窗口超过约 30 天时不再做真实聚合,而是返回一批固定的
+# 截断样本(不同 period 拿到完全相同的结果),绝对计数完全不可用。
+MAX_RELIABLE_SPAN_PERIOD_DAYS = 30
+PERIOD_UNIT_DAYS = {"m": 1 / 1_440, "h": 1 / 24, "d": 1.0, "w": 7.0}
+
+
+def period_days(period: str) -> float | None:
+    """把 Sentry 的 period 表达式换算成天数;无法识别的写法返回 None。
+
+    同时支持 ``7d`` / ``24h`` / ``30m`` / ``2w`` 这类相对窗口,以及工具的
+    ``--period`` help 里宣传的 ``2026-08-23..2026-08-24`` 显式区间。
+    """
+    match = re.fullmatch(r"\s*(\d+)\s*([mhdw])\s*", period, re.IGNORECASE)
+    if match is not None:
+        return int(match.group(1)) * PERIOD_UNIT_DAYS[match.group(2).lower()]
+
+    range_match = re.fullmatch(r"\s*([^\s.]+)\s*\.\.\s*([^\s.]+)\s*", period)
+    if range_match is None:
+        return None
+    try:
+        start = datetime.fromisoformat(range_match.group(1).replace("Z", "+00:00"))
+        end = datetime.fromisoformat(range_match.group(2).replace("Z", "+00:00"))
+        span = end - start
+    except (TypeError, ValueError):
+        return None
+    return span.total_seconds() / 86_400
+
+
+def warn_on_truncated_period(period: str) -> bool:
+    """period 超出可靠窗口时向 stderr 提示一次,返回本次是否已提示。
+
+    报告入口在发起查询前调用一次即可,避免每次 `explore()` 都重复刷屏。
+    """
+    days = period_days(period)
+    if days is None or days <= MAX_RELIABLE_SPAN_PERIOD_DAYS:
+        return False
+    print(
+        f"[警告] period={period} 超过 {MAX_RELIABLE_SPAN_PERIOD_DAYS} 天:Sentry explore 对长窗口返回截断样本,"
+        f"绝对计数不可用(比率趋势仍可参考)。需要精确计数时请改用 {MAX_RELIABLE_SPAN_PERIOD_DAYS}d 以内的窗口。",
+        file=sys.stderr,
+        flush=True,
+    )
+    return True
+
 
 def get_release_pattern() -> re.Pattern[str]:
     """获取项目 Release 匹配正则。"""

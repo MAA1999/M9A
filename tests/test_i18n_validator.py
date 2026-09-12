@@ -46,12 +46,12 @@ def test_i18n_validator_rejects_unresolved_and_orphan_keys(tmp_path: Path) -> No
             "name": "demo",
             "label": "$Project.Label",
             "description": "$Project.Missing",
-            "languages": {"zh_cn": "i18n/zh_cn.json", "en_us": "i18n/en_us.json"},
+            "languages": {"zh_cn": "locales/zh_cn.json", "en_us": "locales/en_us.json"},
         },
     )
     # Project.Missing is referenced but undefined; Project.Unused is defined but unreferenced
-    write_json(tmp_path / "i18n/zh_cn.json", {"Project.Label": "演示", "Project.Unused": "多余"})
-    write_json(tmp_path / "i18n/en_us.json", {"Project.Label": "Demo", "Project.Unused": "extra"})
+    write_json(tmp_path / "locales/zh_cn.json", {"Project.Label": "演示", "Project.Unused": "多余"})
+    write_json(tmp_path / "locales/en_us.json", {"Project.Label": "Demo", "Project.Unused": "extra"})
 
     result = run_validator(tmp_path)
     output = result.stdout + result.stderr
@@ -68,10 +68,10 @@ def test_i18n_validator_rejects_hard_coded_chinese(tmp_path: Path) -> None:
             "interface_version": 2,
             "name": "demo",
             "label": "$Project.Label",
-            "languages": {"zh_cn": "i18n/zh_cn.json"},
+            "languages": {"zh_cn": "locales/zh_cn.json"},
         },
     )
-    write_json(tmp_path / "i18n/zh_cn.json", {"Project.Label": "演示"})
+    write_json(tmp_path / "locales/zh_cn.json", {"Project.Label": "演示"})
     write_json(tmp_path / "tasks/Demo.json", {"task": [{"name": "demo", "entry": "Demo", "description": "硬编码"}]})
 
     result = run_validator(tmp_path)

@@ -21,6 +21,7 @@ try:
     from .report_common import (
         DEFAULT_RELEASE_DISCOVERY_PERIOD,
         DEFAULT_SENTRY_TIMEOUT_SECONDS,
+        MAX_RELIABLE_SPAN_PERIOD_DAYS,
         MIN_RELEASE_UNIQUE_USERS,
         STABLE_RELEASE_RANK,
         explore,
@@ -28,12 +29,14 @@ try:
         resolve_sentry_command,
         show_progress,
         version_label,
+        warn_on_truncated_period,
         write_console_table,
     )
 except ImportError:
     from report_common import (
         DEFAULT_RELEASE_DISCOVERY_PERIOD,
         DEFAULT_SENTRY_TIMEOUT_SECONDS,
+        MAX_RELIABLE_SPAN_PERIOD_DAYS,
         MIN_RELEASE_UNIQUE_USERS,
         STABLE_RELEASE_RANK,
         explore,
@@ -41,6 +44,7 @@ except ImportError:
         resolve_sentry_command,
         show_progress,
         version_label,
+        warn_on_truncated_period,
         write_console_table,
     )
 
@@ -505,7 +509,8 @@ def create_argument_parser(prog: str | None = None) -> argparse.ArgumentParser:
     parser.add_argument(
         "--period",
         default=DEFAULT_RELEASE_DISCOVERY_PERIOD,
-        help="查询范围(默认:90d),以覆盖多个版本的生命周期",
+        help=f"查询范围(默认:{DEFAULT_RELEASE_DISCOVERY_PERIOD},以覆盖多个版本的生命周期);"
+        f"超过 {MAX_RELIABLE_SPAN_PERIOD_DAYS} 天时 Sentry 只返回截断样本,绝对计数不可用",
     )
     parser.add_argument(
         "--include-beta",
@@ -558,6 +563,7 @@ def main(argv: Sequence[str] | None = None, prog: str | None = None) -> int:
             stream.reconfigure(encoding="utf-8")
 
     arguments = create_argument_parser(prog).parse_args(argv)
+    warn_on_truncated_period(arguments.period)
     if not math.isfinite(arguments.timeout) or arguments.timeout <= 0:
         raise ValueError("--timeout 必须是大于 0 的有限数值。")
     if arguments.versions <= 0:

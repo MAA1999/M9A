@@ -179,9 +179,9 @@ def test_release_linux_mxu_package_ships_embedded_python(tmp_path: Path) -> None
 
 
 def test_release_package_includes_translation_files(tmp_path: Path) -> None:
-    languages = {"zh_cn": "i18n/zh_cn.json", "en_us": "i18n/en_us.json"}
+    languages = {"zh_cn": "locales/zh_cn.json", "en_us": "locales/en_us.json"}
     prepare_release_project(tmp_path, languages=languages)
-    (tmp_path / "i18n").mkdir()
+    (tmp_path / "locales").mkdir()
     for relative_path in languages.values():
         write_json(tmp_path / relative_path, {"Task.Demo": "demo"})
 
@@ -201,7 +201,7 @@ def test_release_package_omits_i18n_when_no_languages_declared(tmp_path: Path) -
     result = run_release_builder(tmp_path)
 
     assert result.returncode == 0, result.stdout + result.stderr
-    assert not (tmp_path / "dist/package-mfaa/i18n").exists()
+    assert not (tmp_path / "dist/package-mfaa/locales").exists()
 
 
 def test_release_builder_rejects_unsafe_language_paths(tmp_path: Path) -> None:

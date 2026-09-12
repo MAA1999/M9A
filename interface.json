@@ -1,8 +1,8 @@
 {
     "interface_version": 2,
     "languages": {
-        "zh_cn": "i18n/zh_cn.json",
-        "en_us": "i18n/en_us.json"
+        "zh_cn": "locales/zh_cn.json",
+        "en_us": "locales/en_us.json"
     },
     "contact": "CONTACT",
     "license": "LICENSE",

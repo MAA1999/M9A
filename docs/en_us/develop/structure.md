@@ -30,7 +30,7 @@ icon: hugeicons:structure-01
     - en_us/ # English documentation
     - zh_cn/ # Chinese documentation
     - .markdownlint.yaml # Markdown linting configuration
-- i18n/ # Project Interface display translations
+- locales/ # Project Interface display translations
     - en_us.json # English translations
     - zh_cn.json # Simplified Chinese translations
 - MaaCommonAssets/ # MAA common resources (submodule)
