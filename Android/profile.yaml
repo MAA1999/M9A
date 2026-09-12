@@ -24,13 +24,15 @@ exclude:
   - resource/announcement/images/SOSMain.png
   - resource/announcement/images/newbie-main-interface.png
 
-# 出运行时（在 android/MaaFwApp 下执行）：
+# 出运行时（在 Android/MaaFwApp 下执行）：
 #   python scripts/build_agent_bundle.py --out ../agent-dist \
+#     --abi arm64-v8a --abi x86_64 \
 #     --requirements ../../requirements.txt \
 #     --exclude pillow --require pillow==11.0.0 --extra-index-url https://chaquo.com/pypi-13.1/
 agent:
   sourceDir: agent-dist
-  abi: [arm64-v8a]
+  # 外壳 release 包固定双 ABI（INTEGRATION.md），两个都要有运行时才不装出坏包
+  abi: [arm64-v8a, x86_64]
   runtimes:
     - location: bundle
       executable: bin/python3

@@ -51,6 +51,12 @@ jobs:
         with:
           python-version: "3.12"
 
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
       - name: Cache MaaFramework zips
         uses: actions/cache@v4
         with:
@@ -80,10 +86,15 @@ jobs:
         run: |
           python scripts/build_agent_bundle.py \
             --out "${GITHUB_WORKSPACE}/Android/agent-dist" \
-            --abi arm64-v8a \
+            --abi arm64-v8a --abi x86_64 \
             --requirements "${GITHUB_WORKSPACE}/requirements.txt" \
             --exclude pillow --require pillow==11.0.0 \
             --extra-index-url https://chaquo.com/pypi-13.1/
+
+      # OCR 模型由 MaaCommonAssets 子模块提供、不进 git；与桌面流程同一机制，
+      # 由 maa-project.json 的 ocr 字段驱动，无项目特定路径
+      - name: Sync OCR models
+        run: pnpm dlx create-maa-project@latest --update ocr-models
 
       - name: Decode keystore
         env:
