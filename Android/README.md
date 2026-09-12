@@ -46,10 +46,18 @@ git add Android/MaaFwApp
 
 ## CI
 
-debug 与正式包统一走 **Build Android APK**（`macos-latest` + JDK 25 + NDK 29 + Python 3.13）。push / PR 到 `main` 打 debug 包，打 `android-v*` tag 或手动跑 workflow 选 `assemble=release` 出签名包并发布 Release。
+debug 与正式包统一走 **Build Android APK**（`macos-latest` + JDK 25 + NDK 29 + Python 3.13）。push / PR 到 `main` 打 debug 包；打 `android-v*` tag 或手动跑 workflow 选 `assemble=release` 出签名包并发布 Release。
 
-改 `Android/`、`agent/`、`tasks/`、`resource/`、`data/`、`locales/`、`config/`、`requirements.txt` 或 `interface.json` 等会触发构建。外壳 release 包固定双 ABI（arm64-v8a + x86_64），CI 会把两个 ABI 的 MaaFramework 和 agent 运行时都备齐。
+改 `Android/`、`agent/`、`tasks/`、`resource/`、`data/`、`locales/`、`config/`、`requirements.txt` 或 `interface.json` 等会触发构建。
 
-release 资产名为 `M9A-<tag>-universal.apk`（`android-v1.2.3` → `M9A-v1.2.3-universal.apk`）。名字里不能出现 `arm64-v8a` 这类 ABI 标记：应用内更新按 asset 名选包，带标记会被当成拆分变体，x86_64 设备连 universal 回退都选不到。
+release 时跑三个 job，出三个包：
+
+| job | 资产 | 内容 |
+| --- | --- | --- |
+| `build` | `M9A-<tag>-universal.apk` | 双 ABI 通用包 |
+| `abi-split`（arm64-v8a） | `M9A-<tag>-arm64-v8a.apk` | 只铺 arm64 的 MaaFramework 与 agent 运行时 |
+| `abi-split`（x86_64） | `M9A-<tag>-x86_64.apk` | 同上，x86_64 |
+
+`abi-split` 会按本 ABI 生成 `Android/profile-<abi>.yaml`（只收窄 `agent.abi`）并写 `build.releaseAbi=<abi>`：单 ABI 包里连 `bundle.zip` 也只有一份运行时，体积约为 universal 的一半。应用内更新优先选本机 ABI 的资产、选不到才回退 universal，所以单 ABI 包的 ABI 标记必须保留，而 universal 包不能带任何标记。
 
 Release 需要仓库 Secrets：`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`。手动跑时可以指定 MaaFramework 的 tag，默认 latest。

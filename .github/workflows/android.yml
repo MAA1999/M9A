@@ -55,6 +55,7 @@ permissions:
   contents: read
 
 jobs:
+  # debug 包，以及 release 时的 universal（双 ABI）包
   build:
     runs-on: macos-latest
     # debug 与 release 共用一个 job，按较重的 release 取超时
@@ -63,6 +64,8 @@ jobs:
       PI_PROFILE: ${{ github.workspace }}/Android/profile.yaml
       # workflow_dispatch 的 assemble 输入、android-v* tag 推送、其余事件，统一推导本次构建模式
       ASSEMBLE: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.assemble) || (startsWith(github.ref, 'refs/tags/android-v') && 'release') || 'debug' }}
+      # agent-dist / .maafw 缓存按 ABI 集合分开，避免与 abi-split 的任务互相覆盖
+      CACHE_SCOPE: universal
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -108,7 +111,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: Android/MaaFwApp/.maafw
-          key: maa-agent-core-${{ runner.os }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
+          key: maa-agent-core-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
       # agent-dist 只含 CPython + pip 依赖，与 agent/** 源码无关；agent/** 经
       # syncPiAssets 直接从工作区进 APK（永远是最新 commit），故缓存键不含 agent/**。
@@ -116,7 +119,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: Android/agent-dist
-          key: m9a-agent-${{ runner.os }}-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
+          key: m9a-agent-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
       # 不缓存 MaaFramework zip：脚本按字典序部署缓存里全部 MAA-android-*.zip，
       # 跨 run 复用会让 workflow_dispatch 指定的 maafw_tag 被旧版本覆盖
@@ -191,16 +194,21 @@ jobs:
 
       - name: Rename Release APK
         if: env.ASSEMBLE == 'release'
+        env:
+          LABEL: universal
         run: |
           cd Android/MaaFwApp/app/build/outputs/apk/release
           TAG="${GITHUB_REF_NAME:-dev}"
           TAG="${TAG//\//-}"
           TAG="${TAG#android-}"
-          # 名里不能带 ABI 标记：应用内更新按 asset 名选包（GitHubUpdate.selectAsset），
-          # 带 arm64-v8a 会被当成拆分变体，x86_64 设备连 universal 回退都选不到
-          for f in *.apk; do
-            mv "$f" "M9A-${TAG}-universal.apk"
-          done
+          count=$(ls -1 ./*.apk 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$count" -ne 1 ]; then
+            echo "预期恰好一个 release APK，实际 $count 个；多产物请改用按 ABI 命名"
+            exit 1
+          fi
+          # universal 包不能被误认成单 ABI 包：应用内更新按 asset 名选包
+          # （GitHubUpdate.selectAsset），带 ABI 标记就会绕过 universal 回退
+          mv ./*.apk "M9A-${TAG}-${LABEL}.apk"
 
       - name: Upload Debug APK
         if: env.ASSEMBLE != 'release'
@@ -226,9 +234,171 @@ jobs:
           path: Android/MaaFwApp/app/build/outputs/mapping/release/mapping.txt
           if-no-files-found: error
 
+  # release 时额外出单 ABI 包：每个 job 只铺/只打自己的 ABI，并把配方 agent.abi 收窄，
+  # 于是 bundle.zip 里也只有这一份运行时，包体约为 universal 的一半
+  abi-split:
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.assemble == 'release') || startsWith(github.ref, 'refs/tags/android-v') }}
+    runs-on: macos-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        abi: [arm64-v8a, x86_64]
+    env:
+      ABI: ${{ matrix.abi }}
+      CACHE_SCOPE: ${{ matrix.abi }}
+      PI_PROFILE: ${{ github.workspace }}/Android/profile-${{ matrix.abi }}.yaml
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: "25"
+          distribution: temurin
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install NDK and CMake
+        run: sdkmanager --install "ndk;29.0.13113456" "cmake;3.22.1"
+
+      - name: Cache Gradle
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ matrix.abi }}-${{ hashFiles('Android/MaaFwApp/**/*.gradle.kts', 'Android/MaaFwApp/**/gradle-wrapper.properties', 'Android/MaaFwApp/**/libs.versions.toml') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-${{ matrix.abi }}-
+            gradle-${{ runner.os }}-
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Cache agent core
+        uses: actions/cache@v6
+        with:
+          path: Android/MaaFwApp/.maafw
+          key: maa-agent-core-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
+
+      - name: Cache agent bundle
+        uses: actions/cache@v6
+        with:
+          path: Android/agent-dist
+          key: m9a-agent-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
+
+      - name: Download and deploy MaaFramework
+        working-directory: Android/MaaFwApp
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAAFW_TAG: ${{ github.event.inputs.maafw_tag || 'latest' }}
+        run: |
+          TAG_ARG=""
+          if [ -n "$MAAFW_TAG" ] && [ "$MAAFW_TAG" != "latest" ]; then
+            TAG_ARG="--tag $MAAFW_TAG"
+          fi
+          python scripts/setup_maa_framework.py --abi "$ABI" $TAG_ARG
+
+      - name: Build agent runtime
+        working-directory: Android/MaaFwApp
+        run: |
+          if [ -x "${GITHUB_WORKSPACE}/Android/agent-dist/${ABI}/bundle/bin/python3" ]; then
+            echo "agent bundle cache hit"
+            exit 0
+          fi
+          python scripts/build_agent_bundle.py \
+            --out "${GITHUB_WORKSPACE}/Android/agent-dist" \
+            --abi "$ABI" \
+            --requirements "${GITHUB_WORKSPACE}/requirements.txt" \
+            --exclude pillow --require pillow==11.0.0 \
+            --extra-index-url https://chaquo.com/pypi-13.1/
+
+      - name: Sync OCR models
+        run: pnpm dlx create-maa-project@latest --update ocr-models
+
+      # 配方里的 agent.abi 决定 bundle.zip 装哪些运行时，单 ABI 包必须同步收窄
+      - name: Generate narrowed profile
+        run: |
+          python - <<'PY'
+          import os
+          import pathlib
+          import re
+
+          abi = os.environ["ABI"]
+          source = pathlib.Path("Android/profile.yaml")
+          target = pathlib.Path(f"Android/profile-{abi}.yaml")
+          text = source.read_text(encoding="utf-8")
+          narrowed, count = re.subn(r"^(\s*)abi:\s*\[[^\]]*\]\s*$", rf"\1abi: [{abi}]", text, flags=re.M)
+          if count != 1:
+              raise SystemExit(f"配方里预期恰好一处 'abi: [...]'，实际匹配 {count} 处")
+          target.write_text(narrowed, encoding="utf-8")
+          print(f"{target} -> agent.abi: [{abi}]")
+          PY
+
+      - name: Write local.properties
+        working-directory: Android/MaaFwApp
+        run: |
+          {
+            echo "sdk.dir=${ANDROID_HOME}"
+            echo "pi.profile=${PI_PROFILE}"
+            echo "build.releaseAbi=${ABI}"
+          } > local.properties
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/release.jks
+
+      - name: Build Release APK
+        working-directory: Android/MaaFwApp
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean assembleRelease
+
+      - name: Rename Release APK
+        run: |
+          cd Android/MaaFwApp/app/build/outputs/apk/release
+          TAG="${GITHUB_REF_NAME:-dev}"
+          TAG="${TAG//\//-}"
+          TAG="${TAG#android-}"
+          count=$(ls -1 ./*.apk 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$count" -ne 1 ]; then
+            echo "预期恰好一个 release APK，实际 $count 个"
+            exit 1
+          fi
+          # 单 ABI 包必须带本机 ABI 标记，应用内更新才会优先选它
+          mv ./*.apk "M9A-${TAG}-${ABI}.apk"
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-apk-${{ matrix.abi }}
+          path: Android/MaaFwApp/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
   release:
     if: startsWith(github.ref, 'refs/tags/android-v')
-    needs: build
+    needs: [build, abi-split]
     runs-on: ubuntu-latest
     permissions:
       contents: write
