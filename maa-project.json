@@ -78,7 +78,7 @@
             "uv",
             "run",
             "python",
-            "agent/bootstrap.py"
+            "agent/main.py"
         ],
         "recommendedPython": "3.13",
         "requiresPython": ">=3.13,<3.14"

@@ -1,6 +1,9 @@
 import os
 import sys
 
+if sys.version_info < (3, 13) or sys.version_info >= (3, 14):
+    raise SystemExit("Python >=3.13,<3.14 is required, got " + sys.version.split()[0])
+
 try:
     sys.stdout.reconfigure(encoding="utf-8")  # pyright: ignore[reportAttributeAccessIssue]
 except AttributeError:

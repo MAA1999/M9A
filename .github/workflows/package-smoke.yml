@@ -1,30 +1,26 @@
 name: Package Smoke
 
 on:
-  pull_request:
+  push:
+    branches:
+      - main
     paths:
+      - "agent/**"
+      - "tools/**"
       - ".github/workflows/package-smoke.yml"
       - ".github/workflows/release.yml"
-      - ".python-version"
-      - "agent/**"
-      - "data/**"
-      - "resource/**"
-      - "tasks/**"
-      - "tools/build-release.mjs"
-      - "tools/sync-runtime.mjs"
-      - "tools/ci/**"
       - "interface.json"
       - "maa-project.json"
       - "requirements.txt"
-      - "pyproject.toml"
-      - "uv.lock"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "MaaCommonAssets"
-      - "logo.ico"
-      - "CONTACT"
-      - "LICENSE"
-      - "README.md"
+  pull_request:
+    paths:
+      - "agent/**"
+      - "tools/**"
+      - ".github/workflows/package-smoke.yml"
+      - ".github/workflows/release.yml"
+      - "interface.json"
+      - "maa-project.json"
+      - "requirements.txt"
   workflow_dispatch:
 
 permissions:
@@ -35,9 +31,44 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  windows-x64:
-    name: Windows x64 package smoke
-    runs-on: windows-latest
+  package:
+    name: ${{ matrix.artifact_os }}-${{ matrix.arch }} package smoke
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runtime_platform: win-x64
+            runner: windows-latest
+            artifact_os: win
+            arch: x64
+            packages: [package-mfaa, package-mxu]
+          - runtime_platform: win-arm64
+            runner: windows-11-arm
+            artifact_os: win
+            arch: aarch64
+            packages: [package-mfaa, package-mxu]
+          - runtime_platform: linux-x64
+            runner: ubuntu-latest
+            artifact_os: linux
+            arch: x86_64
+            packages: [package-mfaa, package-mxu]
+          # MXU publishes no linux-arm64 runtime, so this target only builds MFAA.
+          - runtime_platform: linux-arm64
+            runner: ubuntu-24.04-arm
+            artifact_os: linux
+            arch: aarch64
+            packages: [package-mfaa]
+          - runtime_platform: osx-x64
+            runner: macos-15-intel
+            artifact_os: macos
+            arch: x86_64
+            packages: [package-mfaa, package-mxu]
+          - runtime_platform: osx-arm64
+            runner: macos-latest
+            artifact_os: macos
+            arch: aarch64
+            packages: [package-mfaa, package-mxu]
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -54,15 +85,16 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm sync:runtime
         env:
-          CREATE_MAA_PROJECT_RUNTIME_PLATFORM: win-x64
+          CREATE_MAA_PROJECT_RUNTIME_PLATFORM: ${{ matrix.runtime_platform }}
           GITHUB_TOKEN: ${{ github.token }}
       - run: node tools/build-release.mjs --release-tag v0.0.0-package-smoke
         env:
-          CREATE_MAA_PROJECT_RUNTIME_PLATFORM: win-x64
+          CREATE_MAA_PROJECT_RUNTIME_PLATFORM: ${{ matrix.runtime_platform }}
       - name: Verify package layout and embedded Python
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $expected = @("package-mfaa", "package-mxu")
+          $expected = '${{ toJSON(matrix.packages) }}' | ConvertFrom-Json
           $actual = @(
             Get-ChildItem -LiteralPath dist -Directory |
               Where-Object Name -Like "package-*" |
@@ -96,3 +128,34 @@ jobs:
             }
             Write-Host "[OK] $packageName"
           }
+      - name: Verify package layout and embedded Python
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected=( ${{ join(matrix.packages, ' ') }} )
+          actual=( dist/package-*/ )
+          if (( ${#actual[@]} != ${#expected[@]} )); then
+            echo "[ERR] expected ${#expected[@]} package(s), found ${#actual[@]}: ${actual[*]}"
+            exit 1
+          fi
+
+          for package_name in "${expected[@]}"; do
+            package="dist/$package_name"
+            interpreter="$package/python/bin/python3"
+            if [ ! -f "$interpreter" ]; then
+              echo "[ERR] embedded Python is missing: $interpreter"
+              exit 1
+            fi
+            if [ ! -x "$interpreter" ]; then
+              echo "[ERR] embedded Python is not executable: $interpreter"
+              exit 1
+            fi
+
+            (
+              cd "$package"
+              ./python/bin/python3 -I -c 'import sys; sys.path.insert(0, "agent"); import loguru, maa, PIL, pytz, requests; import agent_runtime, custom; print("embedded Python imports passed")'
+              ./python/bin/python3 -I -m compileall -q agent
+            )
+            echo "[OK] $package_name"
+          done

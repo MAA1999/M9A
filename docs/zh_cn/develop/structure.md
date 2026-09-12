@@ -28,7 +28,6 @@ icon: hugeicons:structure-01
     - utils/ # 工具函数
     - __init__.py # 模块初始化
     - agent_runtime.py # Agent 服务运行入口
-    - bootstrap.py # Agent 引导与虚拟环境管理
     - main.py # 主入口文件
 - data/ # 数据
 - docs/ # 文档目录

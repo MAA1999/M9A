@@ -1,4 +1,4 @@
-﻿name: Release
+name: Release
 
 on:
   push:
@@ -40,16 +40,19 @@ jobs:
             runtime_arch: x64
             drop_os: linux
             drop_core_supported: true
-            drop_core_smoke_import: false
+            # The runtime now holds a bundled interpreter, so the import smoke runs against it.
+            drop_core_smoke_import: true
             ext: tar.gz
-          - os: ubuntu-latest
+          # Native arm64 runner: the aarch64 interpreter and its wheels cannot be executed
+          # (or installed by executing it) on an x86_64 host.
+          - os: ubuntu-24.04-arm
             artifact_os: linux
             arch: aarch64
             runtime_os: linux
             runtime_arch: arm64
             drop_os: linux
             drop_core_supported: true
-            drop_core_smoke_import: false
+            drop_core_smoke_import: true
             ext: tar.gz
           - os: macos-15-intel
             artifact_os: macos

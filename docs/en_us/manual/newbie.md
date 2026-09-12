@@ -78,8 +78,7 @@ icon: ri:guide-fill
     </tr>
     <tr>
        <td><div align="center">Requires<br>Python</div></td>
-        <td colspan="6"><div align="center">The archive comes with it, no additional steps required</div></td>
-        <td colspan="3"><div align="center">Requires Python 3.10 ≤ version < 3.14</div></td>
+        <td colspan="9"><div align="center">The archive comes with it, no additional steps required</div></td>
     </tr>
   </tbody>
 </table>
@@ -158,7 +157,7 @@ All users of the **MFA** graphical interface need to download and install **.NET
 
 #### 3. Python
 
-Linux users need to install Python separately.
+Every archive ships its own Python runtime with all dependencies, so nothing has to be installed.
 
 <details>
 
@@ -168,8 +167,8 @@ Linux users need to install Python separately.
 
 <blockquote>
 
-- Your system needs to have **Python version ≥ 3.10** installed. This is required for M9A to start and manage its internal environment.
-- M9A will automatically create and use an independent virtual environment and install the required Python dependency packages (from `requirements.txt`) when it is run for the first time. You **do not** need to manually create a virtual environment or install these dependencies.
+- The `python/` directory inside the archive is the Python runtime M9A uses (Python 3.13), with the dependencies preinstalled, so startup needs no network access.
+- You **do not** need to install a system Python, create a virtual environment, or install any dependency yourself.
 
 </blockquote>
 
@@ -678,26 +677,6 @@ For Mac users using PlayCover, select PlayCover in the **Controller Type** secti
 ---
 
 #### Settings
-
-##### pip Settings
-
-M9A supports configuring pip installation related settings through the `config/pip_config.json` file. Generally, you don't need to modify this file unless you have special requirements.
-
-  <details>
-    <summary>config/pip_config.json Example</summary>
-    <p></p>
-    <blockquote>
-
-```jsonc
-{
-    "enable_pip_install": true, // Whether to enable pip installation, default true
-    "mirror": "https://pypi.tuna.tsinghua.edu.cn/simple", // Mirror source
-    "backup_mirror": "https://mirrors.ustc.edu.cn/pypi/simple", // Backup mirror sources
-}
-```
-
-  </blockquote>
-  </details>
 
 ##### Resource Hot Update Configuration
 

@@ -306,7 +306,8 @@
                 ],
                 "template": [
                     "SwitchAccount/AccountMainExpand.png"
-                ]
+                ],
+                "threshold": 0.65
             }
         },
         "action": {

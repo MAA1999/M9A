@@ -186,7 +186,25 @@
                     815,
                     234
                 ],
-                "expected": "[012][0-9]"
+                "expected": "[012][0-9]",
+                "color_filter": "ActivityCombatStageNum_color_filter"
+            }
+        }
+    },
+    "ActivityCombatStageNum_color_filter": {
+        "recognition": {
+            "type": "ColorMatch",
+            "param": {
+                "lower": [
+                    173,
+                    167,
+                    151
+                ],
+                "upper": [
+                    205,
+                    203,
+                    199
+                ]
             }
         }
     },
@@ -343,10 +361,32 @@
             }
         },
         "next": [
-            "ActivityRe_releaseChapter"
+            "ActivityRe_releaseChapter",
+            "[JumpBack]ActivityRe_releaseSwipeRight"
         ]
     },
+    "ActivityRe_releaseSwipeRight": {
+        "max_hit": 5,
+        "action": {
+            "type": "Swipe",
+            "param": {
+                "begin": [
+                    799,
+                    672,
+                    43,
+                    33
+                ],
+                "end": [
+                    581,
+                    672,
+                    44,
+                    33
+                ]
+            }
+        }
+    },
     "ActivityRe_releaseChapter": {
+        "max_hit": 5,
         "recognition": {
             "type": "Custom",
             "param": {
@@ -361,7 +401,8 @@
         },
         "post_delay": 3000,
         "next": [
-            "ActivityMainChapter"
+            "ActivityMainChapter",
+            "ActivityRe_releaseChapter"
         ],
         "on_error": [
             "ActivityRe_releaseChapterError"

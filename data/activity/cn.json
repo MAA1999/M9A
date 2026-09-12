@@ -1141,7 +1141,61 @@
             },
             "re-release": {
                 "start_time": 1789074000000,
-                "end_time": 1789851599000
+                "end_time": 1789851599000,
+                "name": "迁流的盛宴",
+                "alias": "迁流的盛宴",
+                "override": {
+                    "JudgeDuringRe_release": {
+                        "next": [
+                            "ActivityRe_releaseChapter",
+                            "[JumpBack]ActivityRe_releaseSwipeRight"
+                        ]
+                    },
+                    "ActivityRe_releaseSwipeRight": {
+                        "max_hit": 5,
+                        "action": {
+                            "type": "Swipe",
+                            "param": {
+                                "begin": [
+                                    799,
+                                    672,
+                                    43,
+                                    33
+                                ],
+                                "end": [
+                                    581,
+                                    672,
+                                    44,
+                                    33
+                                ]
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum": {
+                        "recognition": {
+                            "param": {
+                                "color_filter": "ActivityCombatStageNum_color_filter"
+                            }
+                        }
+                    },
+                    "ActivityCombatStageNum_color_filter": {
+                        "recognition": {
+                            "type": "ColorMatch",
+                            "param": {
+                                "lower": [
+                                    173,
+                                    167,
+                                    151
+                                ],
+                                "upper": [
+                                    205,
+                                    203,
+                                    199
+                                ]
+                            }
+                        }
+                    }
+                }
             }
         }
     }

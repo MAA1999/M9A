@@ -14,6 +14,14 @@ import {dirname, join} from "node:path";
 
 const PYTHON_EMBED_VERSION = "3.13.14";
 const PYTHON_STANDALONE_MINOR = "3.13";
+// Must stay above the top-level `await syncPythonRuntime()` call below: `const` bindings are
+// not initialized before their statement runs, so a later declaration is a TDZ error here.
+const PYTHON_STANDALONE_TRIPLES = {
+    "linux-arm64": "aarch64-unknown-linux-gnu",
+    "linux-x64": "x86_64-unknown-linux-gnu",
+    "osx-arm64": "aarch64-apple-darwin",
+    "osx-x64": "x86_64-apple-darwin",
+};
 
 const project = JSON.parse(readFileSync("maa-project.json", "utf8"));
 
@@ -142,32 +150,15 @@ async function syncPythonRuntime() {
     const platform = detectRuntimePlatform();
     console.log(`Synchronizing Python Agent release runtime for ${platform}...`);
     if (platform.startsWith("linux-")) {
-        syncLinuxPythonDeps(platform);
+        await syncPythonStandaloneRuntime(platform);
     } else if (platform.startsWith("win-")) {
         await syncWindowsPythonRuntime(platform);
     } else if (platform.startsWith("osx-")) {
-        await syncMacosPythonRuntime(platform);
+        await syncPythonStandaloneRuntime(platform);
     } else {
         throw new Error(`Unsupported Python runtime platform: ${platform}`);
     }
     console.log("Python Agent release runtime synchronized.");
-}
-
-function syncLinuxPythonDeps(platform) {
-    const depsPath = `.create-maa-project/runtime/python-deps/${platform}`;
-    rmSync(depsPath, {recursive: true, force: true});
-    mkdirSync(depsPath, {recursive: true});
-    run("python", [
-        "-m",
-        "pip",
-        "download",
-        "--requirement",
-        "requirements.txt",
-        "--dest",
-        depsPath,
-        "--only-binary=:all:",
-        ...linuxWheelPlatformArgs(platform),
-    ]);
 }
 
 async function syncWindowsPythonRuntime(platform) {
@@ -183,8 +174,9 @@ async function syncWindowsPythonRuntime(platform) {
     installRequirementsIntoEmbeddedPython(platform);
 }
 
-async function syncMacosPythonRuntime(platform) {
-    const asset = await resolveMacosPythonAsset(platform);
+// macOS and Linux both bundle python-build-standalone; only the platform triple differs.
+async function syncPythonStandaloneRuntime(platform) {
+    const asset = await resolvePythonStandaloneAsset(platform);
     const archivePath = await downloadToCache(asset.url, asset.name, asset.sha256);
     const root = pythonRuntimeRoot(platform);
     rmSync(root, {recursive: true, force: true});
@@ -199,15 +191,59 @@ function installRequirementsIntoEmbeddedPython(platform) {
     if (!existsSync(python)) {
         throw new Error(`Embedded Python executable is missing after extraction: ${python}`);
     }
+    if (canExecute(python)) {
+        run("uv", [
+            "pip",
+            "install",
+            "--python",
+            python,
+            "--system",
+            "--requirement",
+            "requirements.txt",
+        ]);
+        return;
+    }
+    // Cross-building: the target interpreter cannot run on this host, so install the
+    // prebuilt wheels for the target platform without executing it.
+    if (platform.startsWith("win-")) {
+        throw new Error(`Embedded Windows Python cannot run on this host: ${python}`);
+    }
+    const sitePackages = join(pythonRuntimeRoot(platform), "lib", `python${PYTHON_STANDALONE_MINOR}`, "site-packages");
+    mkdirSync(sitePackages, {recursive: true});
     run("uv", [
         "pip",
         "install",
-        "--python",
-        python,
-        "--system",
+        "--target",
+        sitePackages,
+        "--python-version",
+        PYTHON_STANDALONE_MINOR,
+        "--python-platform",
+        pythonPlatformTag(platform),
+        "--only-binary",
+        ":all:",
         "--requirement",
         "requirements.txt",
     ]);
+}
+
+function canExecute(command) {
+    const probe = spawnSync(
+        command,
+        [
+            "--version",
+        ],
+        {stdio: "ignore", shell: false},
+    );
+    return probe.status === 0;
+}
+
+function pythonPlatformTag(platform) {
+    // Only Linux wheels can be installed without running the target interpreter: a macOS
+    // package must be built on a macOS host, otherwise the requirements would silently be
+    // resolved for the wrong platform.
+    if (platform === "linux-arm64") return "aarch64-manylinux_2_28";
+    if (platform === "linux-x64") return "x86_64-manylinux_2_28";
+    throw new Error(`Cannot install requirements into the ${platform} runtime on this host`);
 }
 
 function ensureEmbeddedPythonExecutable(platform) {
@@ -216,10 +252,12 @@ function ensureEmbeddedPythonExecutable(platform) {
         chmodSync(python, 0o755);
         return;
     }
-    if (!platform.startsWith("osx-")) {
+    if (platform.startsWith("win-")) {
         throw new Error(`Embedded Python executable is missing after extraction: ${python}`);
     }
 
+    // python-build-standalone links bin/python3 to the versioned interpreter and the
+    // extractor skips symlinks, so copy the real binary into place (macOS and Linux).
     const binDir = join(pythonRuntimeRoot(platform), "bin");
     const candidate = findPythonExecutableCandidate(binDir);
     if (!candidate) {
@@ -241,7 +279,7 @@ function findPythonExecutableCandidate(binDir) {
     return readdirSync(binDir).find((name) => /^python3(?:\.\d+)?$/.test(name));
 }
 
-async function resolveMacosPythonAsset(platform) {
+async function resolvePythonStandaloneAsset(platform) {
     const response = await fetchGithubJson(
         "https://api.github.com/repos/astral-sh/python-build-standalone/releases/latest",
     );
@@ -249,7 +287,10 @@ async function resolveMacosPythonAsset(platform) {
         throw new Error("Invalid python-build-standalone release payload.");
     }
     const tag = response.tag_name;
-    const platformTriple = platform === "osx-arm64" ? "aarch64-apple-darwin" : "x86_64-apple-darwin";
+    const platformTriple = PYTHON_STANDALONE_TRIPLES[platform];
+    if (!platformTriple) {
+        throw new Error(`No python-build-standalone target for ${platform}`);
+    }
     const pattern = new RegExp(
         `^cpython-${escapeRegExp(PYTHON_STANDALONE_MINOR)}\\.\\d+\\+${escapeRegExp(tag)}-${escapeRegExp(platformTriple)}-install_only_stripped\\.tar\\.gz$`,
     );
@@ -466,27 +507,6 @@ function normalizeRuntimeArch(value) {
     if (value === "x64" || value === "x86_64" || value === "amd64") return "x64";
     if (value === "arm64" || value === "aarch64") return "arm64";
     return "";
-}
-
-function linuxWheelPlatformArgs(platform) {
-    const tags =
-        platform === "linux-arm64"
-            ? [
-                  "manylinux_2_28_aarch64",
-                  "manylinux_2_17_aarch64",
-                  "manylinux2014_aarch64",
-                  "linux_aarch64",
-              ]
-            : [
-                  "manylinux_2_28_x86_64",
-                  "manylinux_2_17_x86_64",
-                  "manylinux2014_x86_64",
-                  "linux_x86_64",
-              ];
-    return tags.flatMap((tag) => [
-        "--platform",
-        tag,
-    ]);
 }
 
 function pythonRuntimeRoot(platform) {

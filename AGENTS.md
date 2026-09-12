@@ -72,7 +72,7 @@ Before submitting changes, run `pnpm check` (and `pnpm check:py` for Python chan
 - Framework: `pytest`, configured via `pyproject.toml`. Test paths: `tests/`.
 - Test naming: `test_<module>_<behaviour>` (e.g., `test_aspect_ratio`, `test_http_session`).
 - Run with `pnpm test:py` or `uv run --frozen pytest`.
-- Cover custom action/recognition registration, utility modules, and bootstrap flow.
+- Cover custom action/recognition registration, utility modules, and the release packaging flow.
 
 ## Commit & Pull Request Guidelines
 

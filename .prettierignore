@@ -22,6 +22,9 @@ debug/
 MaaCommonAssets/
 .create-maa-project/
 
+# Android 客户端工程（独立项目，不参与本仓库格式化）
+Android/
+
 # 第三方 schema（随 MaaFW 上游更新，不参与本地格式化）
 tools/schema/interface.schema.json
 tools/schema/interface_config.schema.json

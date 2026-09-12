@@ -1,3 +1,4 @@
+import re
 import time
 
 from maa.agent.agent_server import AgentServer
@@ -43,6 +44,24 @@ class GoodDreamWellFishing(CustomAction):
     好梦井打捞。
     """
 
+    @staticmethod
+    def _parse_remaining_hours(raw: str) -> int:
+        """解析好梦井馈赠更新的剩余小时数。
+
+        游戏可能显示"X小时""X小时Y分钟"，不足 1 小时时显示"Y分钟"。分钟向下取整，
+        不会跨越 >=4/8/12/16 的小时阈值。解析失败按 0 处理，走未满足打捞分支。
+        """
+        hours = re.search(r"(\d+)\s*小时", raw)
+        if hours:
+            return int(hours.group(1))
+        if re.search(r"\d+\s*分", raw) or re.search(r"\d+\s*秒", raw):
+            return 0
+        digits = re.search(r"\d+", raw)
+        if digits:
+            return int(digits.group())
+        logger.warning(f"好梦井剩余时间识别失败: {raw!r}")
+        return 0
+
     def run(
         self,
         context: Context,
@@ -62,12 +81,12 @@ class GoodDreamWellFishing(CustomAction):
                 "GoodDreamWellOCR": {
                     "roi": [4, 161, 236, 26],
                     "expected": "\\d",
-                    "replace": [["距好梦井馈赠更新", ""], ["[:：]", ""], ["小时", ""]],
+                    "replace": [["距好梦井馈赠更新", ""], ["[:：]", ""]],
                 }
             },
         )
 
-        hours = int(ocr_text(reco_detail))
+        hours = self._parse_remaining_hours(ocr_text(reco_detail))
 
         if hours >= 16 and cans >= 4:
             index = 3

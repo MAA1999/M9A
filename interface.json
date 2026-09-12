@@ -164,7 +164,7 @@
             "child_args": [
                 "run",
                 "python",
-                "agent/bootstrap.py"
+                "agent/main.py"
             ]
         }
     ],

@@ -28,6 +28,8 @@ packages = ["agent"]
 [tool.ruff]
 target-version = "py313"
 line-length = 120
+# Android 客户端工程为独立的本地项目，不参与本仓库 Python 代码规范
+extend-exclude = ["Android"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
