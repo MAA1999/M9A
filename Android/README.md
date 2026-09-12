@@ -46,8 +46,8 @@ git add Android/MaaFwApp
 
 ## CI
 
-debug 走 **Build Dev APK**（`macos-latest` + JDK 25 + NDK 29），正式包走 **Build Release APK**。
+debug 与正式包统一走 **Build Android APK**（`macos-latest` + JDK 25 + NDK 29 + Python 3.13）。push / PR 到 `main` 打 debug 包，打 `android-v*` tag 或手动跑 workflow 选 `assemble=release` 出签名包并发布 Release。
 
-改 `Android/`、`agent/`、`requirements.txt` 或 `interface.json` 会打 arm64 debug APK。打 `android-v*` tag（或手动跑 Build Release APK）出签名包。外壳 release 包固定双 ABI（arm64-v8a + x86_64），CI 会把两个 ABI 的 MaaFramework 和 agent 运行时都备齐。
+改 `Android/`、`agent/`、`tasks/`、`resource/`、`data/`、`locales/`、`config/`、`requirements.txt` 或 `interface.json` 等会触发构建。外壳 release 包固定双 ABI（arm64-v8a + x86_64），CI 会把两个 ABI 的 MaaFramework 和 agent 运行时都备齐。
 
 Release 需要仓库 Secrets：`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`。手动跑时可以指定 MaaFramework 的 tag，默认 latest。
