@@ -195,8 +195,11 @@ jobs:
           cd Android/MaaFwApp/app/build/outputs/apk/release
           TAG="${GITHUB_REF_NAME:-dev}"
           TAG="${TAG//\//-}"
+          TAG="${TAG#android-}"
+          # 名里不能带 ABI 标记：应用内更新按 asset 名选包（GitHubUpdate.selectAsset），
+          # 带 arm64-v8a 会被当成拆分变体，x86_64 设备连 universal 回退都选不到
           for f in *.apk; do
-            mv "$f" "M9A-Meow-${TAG}-arm64-v8a.apk"
+            mv "$f" "M9A-${TAG}-universal.apk"
           done
 
       - name: Upload Debug APK
@@ -211,7 +214,7 @@ jobs:
         if: env.ASSEMBLE == 'release'
         uses: actions/upload-artifact@v7
         with:
-          name: release-apk-arm64-v8a
+          name: release-apk-universal
           path: Android/MaaFwApp/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
@@ -219,7 +222,7 @@ jobs:
         if: env.ASSEMBLE == 'release'
         uses: actions/upload-artifact@v7
         with:
-          name: release-mapping-arm64-v8a
+          name: release-mapping
           path: Android/MaaFwApp/app/build/outputs/mapping/release/mapping.txt
           if-no-files-found: error
 
