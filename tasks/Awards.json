@@ -8,7 +8,6 @@
                 "领取邮件奖励",
                 "领取任务奖励",
                 "领取吼吼点唱机",
-                "领取前线观察室奖励",
                 "活动盒子奖励",
                 "迷思海周扫荡奖励"
             ],
@@ -138,24 +137,6 @@
                             "enabled": false
                         },
                         "Sub_JukeboxBadge_3.7": {
-                            "enabled": false
-                        }
-                    }
-                }
-            ]
-        },
-        "领取前线观察室奖励": {
-            "type": "switch",
-            "label": "$Option.Awards.FrontlineObservationRoom",
-            "cases": [
-                {
-                    "name": "Yes",
-                    "pipeline_override": {}
-                },
-                {
-                    "name": "No",
-                    "pipeline_override": {
-                        "AwardWarRoom": {
                             "enabled": false
                         }
                     }
