@@ -29,7 +29,7 @@ jobs:
             runtime_os: win
             runtime_arch: arm64
             drop_os: windows
-            # drop_core v1.3.1 has no Windows ARM64 asset; combat falls back to the non-native path.
+            # drop_core publishes no Windows ARM64 asset; combat falls back to the non-native path.
             drop_core_supported: false
             drop_core_smoke_import: false
             ext: zip
@@ -198,6 +198,20 @@ jobs:
               fi
             )
             rm -rf "$pkg_dir"
+          done
+          # 断言该平台必须产出的资产集合：MFAA 恒有；MXU 仅在 linux-arm64 上没有可用运行时，
+          # 是唯一合法的缺失。否则缺失的 GUI 运行时会被当作完整 Release 发布出去。
+          expected_guis=(MFAA)
+          if [[ "${{ matrix.runtime_os }}-${{ matrix.runtime_arch }}" != "linux-arm64" ]]; then
+            expected_guis+=(MXU)
+          fi
+          for gui_upper in "${expected_guis[@]}"; do
+            archive="M9A-${{ matrix.artifact_os }}-${{ matrix.arch }}-${GITHUB_REF_NAME}-${gui_upper}.${{ matrix.ext }}"
+            if [[ ! -f "dist/$archive" ]]; then
+              echo "[ERR] expected release asset was not produced: $archive"
+              exit 1
+            fi
+            echo "[OK] packaged release asset: $archive"
           done
       - uses: actions/upload-artifact@v7
         if: github.event_name != 'workflow_dispatch'
