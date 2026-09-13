@@ -115,48 +115,12 @@ jobs:
 
       # 不缓存 MaaFramework zip：脚本按字典序部署缓存里全部 MAA-android-*.zip，
       # 跨 run 复用会让 workflow_dispatch 指定的 maafw_tag 被旧版本覆盖
-      # MaaFW 版本：Android 的 Python 绑定就是内核（MaaAgentCoreAndroid）自带那份，
-      # 公开索引没有 Android 版 maafw 轮子，所以 client 原生库必须与内核同版本；
-      # 内核发新版后随子模块 CORE_TAG 一起跟上即可，无需额外步骤
-      - name: Resolve MaaFW version
+      # MaaFW 版本与资产前缀由 tools/ci/resolve_android_maafw.py 解析：
+      # Android 的 Python 绑定就是内核（MaaAgentCoreAndroid）自带那份，公开索引没有 Android 版
+      # maafw 轮子，所以 client 原生库必须与内核同版本；内核更新后随子模块 CORE_TAG 一起跟上
+      - name: Resolve Android packaging
         id: maafw
-        run: |
-          python - <<'PY'
-          import json
-          import os
-          import pathlib
-          import re
-
-          core_script = pathlib.Path("Android/MaaFwApp/scripts/build_agent_bundle.py").read_text(encoding="utf-8")
-          core_match = re.search(r'CORE_TAG\s*=\s*"[^"]*?maafw([0-9][^"]*)"', core_script)
-          if not core_match:
-              raise SystemExit("解析不到内核 CORE_TAG 里的 maafw 版本")
-          core = core_match.group(1)
-
-          requirements = pathlib.Path("requirements.txt").read_text(encoding="utf-8")
-          pin_match = re.search(r"^maafw==([0-9][^\s;]*)", requirements, flags=re.M)
-          if not pin_match:
-              raise SystemExit("requirements.txt 里没有 maafw== 的精确 pin")
-          pin = pin_match.group(1)
-
-          project = json.loads(pathlib.Path("maa-project.json").read_text(encoding="utf-8"))
-          maafw = project.get("maafw") or {}
-          channel = str(maafw.get("channel") or "stable").strip()
-          declared = str(maafw.get("version") or "").strip() or f"{channel} 通道最新"
-
-          if pin != core:
-              print(
-                  f"::warning::Android 绑定暂时只能跟内核 {core}（无公开 Android 轮子）；"
-                  f"requirements 的 maafw=={pin}、maa-project.json 的 {declared} 待内核更新后自动跟进"
-              )
-
-          tag = f"v{core}"
-          print(f"client MaaFW tag : {tag}（与内核绑定 {core} 一致）")
-          print(f"maa-project.json : {declared}")
-          print(f"requirements pin : {pin}")
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write(f"maafw_tag={tag}\n")
-          PY
+        run: python tools/ci/resolve_android_maafw.py
 
       - name: Download and deploy MaaFramework
         working-directory: Android/MaaFwApp
@@ -245,7 +209,7 @@ jobs:
           fi
           # universal 包不能被误认成单 ABI 包：应用内更新按 asset 名选包
           # （GitHubUpdate.selectAsset），带 ABI 标记就会绕过 universal 回退
-          mv ./*.apk "M9A-${TAG}-${LABEL}.apk"
+          mv ./*.apk "${{ steps.maafw.outputs.artifact_prefix }}-${TAG}-${LABEL}.apk"
 
       - name: Upload Debug APK
         if: env.ASSEMBLE != 'release'
@@ -333,48 +297,12 @@ jobs:
           path: Android/MaaFwApp/.maafw
           key: maa-agent-core-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
-      # MaaFW 版本：Android 的 Python 绑定就是内核（MaaAgentCoreAndroid）自带那份，
-      # 公开索引没有 Android 版 maafw 轮子，所以 client 原生库必须与内核同版本；
-      # 内核发新版后随子模块 CORE_TAG 一起跟上即可，无需额外步骤
-      - name: Resolve MaaFW version
+      # MaaFW 版本与资产前缀由 tools/ci/resolve_android_maafw.py 解析：
+      # Android 的 Python 绑定就是内核（MaaAgentCoreAndroid）自带那份，公开索引没有 Android 版
+      # maafw 轮子，所以 client 原生库必须与内核同版本；内核更新后随子模块 CORE_TAG 一起跟上
+      - name: Resolve Android packaging
         id: maafw
-        run: |
-          python - <<'PY'
-          import json
-          import os
-          import pathlib
-          import re
-
-          core_script = pathlib.Path("Android/MaaFwApp/scripts/build_agent_bundle.py").read_text(encoding="utf-8")
-          core_match = re.search(r'CORE_TAG\s*=\s*"[^"]*?maafw([0-9][^"]*)"', core_script)
-          if not core_match:
-              raise SystemExit("解析不到内核 CORE_TAG 里的 maafw 版本")
-          core = core_match.group(1)
-
-          requirements = pathlib.Path("requirements.txt").read_text(encoding="utf-8")
-          pin_match = re.search(r"^maafw==([0-9][^\s;]*)", requirements, flags=re.M)
-          if not pin_match:
-              raise SystemExit("requirements.txt 里没有 maafw== 的精确 pin")
-          pin = pin_match.group(1)
-
-          project = json.loads(pathlib.Path("maa-project.json").read_text(encoding="utf-8"))
-          maafw = project.get("maafw") or {}
-          channel = str(maafw.get("channel") or "stable").strip()
-          declared = str(maafw.get("version") or "").strip() or f"{channel} 通道最新"
-
-          if pin != core:
-              print(
-                  f"::warning::Android 绑定暂时只能跟内核 {core}（无公开 Android 轮子）；"
-                  f"requirements 的 maafw=={pin}、maa-project.json 的 {declared} 待内核更新后自动跟进"
-              )
-
-          tag = f"v{core}"
-          print(f"client MaaFW tag : {tag}（与内核绑定 {core} 一致）")
-          print(f"maa-project.json : {declared}")
-          print(f"requirements pin : {pin}")
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write(f"maafw_tag={tag}\n")
-          PY
+        run: python tools/ci/resolve_android_maafw.py
 
       - name: Download and deploy MaaFramework
         working-directory: Android/MaaFwApp
@@ -438,7 +366,7 @@ jobs:
             exit 1
           fi
           # 单 ABI 包必须带本机 ABI 标记，应用内更新才会优先选它
-          mv ./*.apk "M9A-${TAG}-${ABI}.apk"
+          mv ./*.apk "${{ steps.maafw.outputs.artifact_prefix }}-${TAG}-${ABI}.apk"
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v7
