@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   push:
     branches: [main, master]
-    tags: ["android-v*"]
+    tags: ["v*"]
     paths:
       - "Android/**"
       - "agent/**"
@@ -62,8 +62,8 @@ jobs:
     timeout-minutes: 90
     env:
       PI_PROFILE: ${{ github.workspace }}/Android/profile.yaml
-      # workflow_dispatch 的 assemble 输入、android-v* tag 推送、其余事件，统一推导本次构建模式
-      ASSEMBLE: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.assemble) || (startsWith(github.ref, 'refs/tags/android-v') && 'release') || 'debug' }}
+      # workflow_dispatch 的 assemble 输入、v* tag 推送、其余事件，统一推导本次构建模式
+      ASSEMBLE: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.assemble) || (startsWith(github.ref, 'refs/tags/v') && 'release') || 'debug' }}
       # agent-dist / .maafw 缓存按 ABI 集合分开，避免与 abi-split 的任务互相覆盖
       CACHE_SCOPE: universal
     steps:
@@ -285,7 +285,6 @@ jobs:
           cd Android/MaaFwApp/app/build/outputs/apk/release
           TAG="${GITHUB_REF_NAME:-dev}"
           TAG="${TAG//\//-}"
-          TAG="${TAG#android-}"
           count=$(ls -1 ./*.apk 2>/dev/null | wc -l | tr -d ' ')
           if [ "$count" -ne 1 ]; then
             echo "预期恰好一个 release APK，实际 $count 个；多产物请改用按 ABI 命名"
@@ -322,7 +321,7 @@ jobs:
   # release 时额外出单 ABI 包：每个 job 只铺/只打自己的 ABI，并把配方 agent.abi 收窄，
   # 于是 bundle.zip 里也只有这一份运行时，包体约为 universal 的一半
   abi-split:
-    if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.assemble == 'release') || startsWith(github.ref, 'refs/tags/android-v') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.assemble == 'release') || startsWith(github.ref, 'refs/tags/v') }}
     runs-on: macos-latest
     timeout-minutes: 90
     strategy:
@@ -550,7 +549,6 @@ jobs:
           cd Android/MaaFwApp/app/build/outputs/apk/release
           TAG="${GITHUB_REF_NAME:-dev}"
           TAG="${TAG//\//-}"
-          TAG="${TAG#android-}"
           count=$(ls -1 ./*.apk 2>/dev/null | wc -l | tr -d ' ')
           if [ "$count" -ne 1 ]; then
             echo "预期恰好一个 release APK，实际 $count 个"
@@ -567,9 +565,14 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: startsWith(github.ref, 'refs/tags/android-v')
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: [build, abi-split]
     runs-on: ubuntu-latest
+    # 与桌面 Release workflow 认同一批 v* tag，两边会给同一个 Release 传资产；
+    # 用同一个 concurrency group 串行化，避免并发创建同名 Release
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       contents: write
     steps:
@@ -580,10 +583,10 @@ jobs:
           merge-multiple: true
           path: apks
 
+      # 只传文件、不写正文：Release 说明与变更日志由桌面 Release 流程维护
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           draft: false
-          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
           files: apks/*.apk
-          generate_release_notes: true

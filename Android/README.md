@@ -46,7 +46,9 @@ git add Android/MaaFwApp
 
 ## CI
 
-debug 与正式包统一走 **Build Android APK**（`macos-latest` + JDK 25 + NDK 29 + Python 3.13）。push / PR 到 `main` 打 debug 包；打 `android-v*` tag 或手动跑 workflow 选 `assemble=release` 出签名包并发布 Release。
+debug 与正式包统一走 **Build Android APK**（`macos-latest` + JDK 25 + NDK 29 + Python 3.13）。push / PR 到 `main` 打 debug 包；打 `v*` tag 或手动跑 workflow 选 `assemble=release` 出签名包并发布 Release。
+
+发布与桌面共用同一批 `v*` tag：一个版本 tag 会同时触发桌面 Release 与 Android 的三个包，两边把资产传进**同一个 GitHub Release**（共用 `release-<ref>` concurrency group 串行，避免并发建 Release；Release 正文与变更日志仍由桌面流程维护）。APK 的 `versionName` / `versionCode` 取自最外层仓库的 `git describe` 与提交数，所以 tag 统一后与应用内自更新的版本比较自动对齐。
 
 改 `Android/`、`agent/`、`tasks/`、`resource/`、`data/`、`locales/`、`config/`、`requirements.txt` 或 `interface.json` 等会触发构建。
 
@@ -68,4 +70,4 @@ MaaFW 版本分工与桌面一致：
 
 内核只提供 CPython 与 numpy/strenum 等基础包，它的 `maa` 版本不再决定 Android 的绑定版本；若目标版本在 Android 索引里没有可用轮子，pip 阶段会直接失败，不会静默退回旧版本。
 
-Release 需要仓库 Secrets：`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`。手动跑时可以指定 MaaFramework 的 tag，默认 latest。
+Release 需要仓库 Secrets：`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`。手动跑时可用 `maafw_tag` 指定 MaaFramework 的 tag，留空则按 `maa-project.json` 解析。
