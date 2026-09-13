@@ -113,15 +113,6 @@ jobs:
           path: Android/MaaFwApp/.maafw
           key: maa-agent-core-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
-      # agent-dist 只含 CPython + pip 依赖，与 agent/** 源码无关；agent/** 经
-      # syncPiAssets 直接从工作区进 APK（永远是最新 commit），故缓存键不含 agent/**。
-      # -vN- 是打包配方版本号：配方变了就 +1 强制重建（内核版本变化由脚本 hash 覆盖）。
-      - name: Cache agent bundle
-        uses: actions/cache@v6
-        with:
-          path: Android/agent-dist
-          key: m9a-agent-${{ runner.os }}-${{ env.CACHE_SCOPE }}-v2-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
-
       # 不缓存 MaaFramework zip：脚本按字典序部署缓存里全部 MAA-android-*.zip，
       # 跨 run 复用会让 workflow_dispatch 指定的 maafw_tag 被旧版本覆盖
       # MaaFW 版本：Android 的 Python 绑定就是内核（MaaAgentCoreAndroid）自带那份，
@@ -183,11 +174,6 @@ jobs:
       - name: Build agent runtime
         working-directory: Android/MaaFwApp
         run: |
-          if [ -x "${GITHUB_WORKSPACE}/Android/agent-dist/arm64-v8a/bundle/bin/python3" ] && \
-             [ -x "${GITHUB_WORKSPACE}/Android/agent-dist/x86_64/bundle/bin/python3" ]; then
-            echo "agent bundle cache hit"
-            exit 0
-          fi
           python scripts/build_agent_bundle.py \
             --out "${GITHUB_WORKSPACE}/Android/agent-dist" \
             --abi arm64-v8a --abi x86_64 \
@@ -339,13 +325,6 @@ jobs:
           path: Android/MaaFwApp/.maafw
           key: maa-agent-core-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
-      # -vN- 是打包配方版本号：配方变了就 +1 强制重建（内核版本变化由脚本 hash 覆盖）。
-      - name: Cache agent bundle
-        uses: actions/cache@v6
-        with:
-          path: Android/agent-dist
-          key: m9a-agent-${{ runner.os }}-${{ env.CACHE_SCOPE }}-v2-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
-
       # MaaFW 版本：Android 的 Python 绑定就是内核（MaaAgentCoreAndroid）自带那份，
       # 公开索引没有 Android 版 maafw 轮子，所以 client 原生库必须与内核同版本；
       # 内核发新版后随子模块 CORE_TAG 一起跟上即可，无需额外步骤
@@ -404,10 +383,6 @@ jobs:
       - name: Build agent runtime
         working-directory: Android/MaaFwApp
         run: |
-          if [ -x "${GITHUB_WORKSPACE}/Android/agent-dist/${ABI}/bundle/bin/python3" ]; then
-            echo "agent bundle cache hit"
-            exit 0
-          fi
           python scripts/build_agent_bundle.py \
             --out "${GITHUB_WORKSPACE}/Android/agent-dist" \
             --abi "$ABI" \
