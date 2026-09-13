@@ -207,6 +207,84 @@ jobs:
               output.write(f"maafw_pin={pin}\n")
           PY
 
+      # Android 没有公开的 maafw 轮子（CI 实测 maafw==5.13.0 在 Android tag 下解析不到任何版本），
+      # 而内核里那份 maa 本来就是纯 Python（无 .so，原生库由 APK 的 jniLibs 提供），
+      # 所以按 requirements 的 pin 从上游 tag 重新打一个 py3-none-any 轮子交给 pip
+      - name: Build Android maafw wheel
+        id: maafw-wheel
+        env:
+          MAAFW_VERSION: ${{ steps.maafw.outputs.maafw_pin }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - <<'PY'
+          import base64
+          import hashlib
+          import io
+          import os
+          import pathlib
+          import tarfile
+          import urllib.request
+          import zipfile
+
+          version = os.environ["MAAFW_VERSION"]
+          tag = f"v{version}"
+          url = f"https://github.com/MaaXYZ/MaaFramework/archive/refs/tags/{tag}.tar.gz"
+          headers = {"User-Agent": "m9a-android-ci"}
+          token = os.environ.get("GITHUB_TOKEN")
+          if token:
+              headers["Authorization"] = f"Bearer {token}"
+          request = urllib.request.Request(url, headers=headers)
+          with urllib.request.urlopen(request, timeout=180) as response:
+              source = response.read()
+
+          prefix = "source/binding/Python/maa/"
+          payloads = {}
+          with tarfile.open(fileobj=io.BytesIO(source), mode="r:gz") as tar:
+              for member in tar.getmembers():
+                  if not member.isfile():
+                      continue
+                  name = member.name.split("/", 1)[-1]
+                  if not name.startswith(prefix):
+                      continue
+                  handle = tar.extractfile(member)
+                  if handle is None:
+                      continue
+                  payloads["maa/" + name[len(prefix):]] = handle.read()
+          if not payloads:
+              raise SystemExit(f"{tag} 里找不到绑定源码 {prefix}")
+
+          dist_info = f"maafw-{version}.dist-info"
+          payloads[f"{dist_info}/METADATA"] = (
+              "Metadata-Version: 2.1\n"
+              "Name: maafw\n"
+              f"Version: {version}\n"
+              "Summary: MaaFramework Python binding, rebuilt for Android from the upstream tag\n"
+              "Requires-Python: >=3.9\n"
+          ).encode()
+          payloads[f"{dist_info}/WHEEL"] = (
+              "Wheel-Version: 1.0\n"
+              "Generator: m9a-android-ci\n"
+              "Root-Is-Purelib: true\n"
+              "Tag: py3-none-any\n"
+          ).encode()
+          records = []
+          for path, data in sorted(payloads.items()):
+              digest = base64.urlsafe_b64encode(hashlib.sha256(data).digest()).rstrip(b"=").decode()
+              records.append(f"{path},sha256={digest},{len(data)}")
+          records.append(f"{dist_info}/RECORD,,")
+          payloads[f"{dist_info}/RECORD"] = ("\n".join(records) + "\n").encode()
+
+          out = pathlib.Path(os.environ["RUNNER_TEMP"]) / "maafw-wheel"
+          out.mkdir(parents=True, exist_ok=True)
+          wheel = out / f"maafw-{version}-py3-none-any.whl"
+          with zipfile.ZipFile(wheel, "w", zipfile.ZIP_DEFLATED) as wheel_zip:
+              for path, data in sorted(payloads.items()):
+                  wheel_zip.writestr(path, data)
+          print(f"built {wheel} ({wheel.stat().st_size / 1024:.0f} KB, {len(payloads)} entries)")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"wheel={wheel}\n")
+          PY
+
       - name: Download and deploy MaaFramework
         working-directory: Android/MaaFwApp
         env:
@@ -233,7 +311,7 @@ jobs:
             --abi arm64-v8a --abi x86_64 \
             --requirements "${GITHUB_WORKSPACE}/requirements.txt" \
             --exclude pillow --require pillow==11.0.0 \
-            --require "maafw==${{ steps.maafw.outputs.maafw_pin }}" \
+            --require "${{ steps.maafw-wheel.outputs.wheel }}" \
             --extra-index-url https://chaquo.com/pypi-13.1/
 
       # OCR 模型由 MaaCommonAssets 子模块提供、不进 git；与桌面流程同一机制，
@@ -470,6 +548,84 @@ jobs:
               output.write(f"maafw_pin={pin}\n")
           PY
 
+      # Android 没有公开的 maafw 轮子（CI 实测 maafw==5.13.0 在 Android tag 下解析不到任何版本），
+      # 而内核里那份 maa 本来就是纯 Python（无 .so，原生库由 APK 的 jniLibs 提供），
+      # 所以按 requirements 的 pin 从上游 tag 重新打一个 py3-none-any 轮子交给 pip
+      - name: Build Android maafw wheel
+        id: maafw-wheel
+        env:
+          MAAFW_VERSION: ${{ steps.maafw.outputs.maafw_pin }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - <<'PY'
+          import base64
+          import hashlib
+          import io
+          import os
+          import pathlib
+          import tarfile
+          import urllib.request
+          import zipfile
+
+          version = os.environ["MAAFW_VERSION"]
+          tag = f"v{version}"
+          url = f"https://github.com/MaaXYZ/MaaFramework/archive/refs/tags/{tag}.tar.gz"
+          headers = {"User-Agent": "m9a-android-ci"}
+          token = os.environ.get("GITHUB_TOKEN")
+          if token:
+              headers["Authorization"] = f"Bearer {token}"
+          request = urllib.request.Request(url, headers=headers)
+          with urllib.request.urlopen(request, timeout=180) as response:
+              source = response.read()
+
+          prefix = "source/binding/Python/maa/"
+          payloads = {}
+          with tarfile.open(fileobj=io.BytesIO(source), mode="r:gz") as tar:
+              for member in tar.getmembers():
+                  if not member.isfile():
+                      continue
+                  name = member.name.split("/", 1)[-1]
+                  if not name.startswith(prefix):
+                      continue
+                  handle = tar.extractfile(member)
+                  if handle is None:
+                      continue
+                  payloads["maa/" + name[len(prefix):]] = handle.read()
+          if not payloads:
+              raise SystemExit(f"{tag} 里找不到绑定源码 {prefix}")
+
+          dist_info = f"maafw-{version}.dist-info"
+          payloads[f"{dist_info}/METADATA"] = (
+              "Metadata-Version: 2.1\n"
+              "Name: maafw\n"
+              f"Version: {version}\n"
+              "Summary: MaaFramework Python binding, rebuilt for Android from the upstream tag\n"
+              "Requires-Python: >=3.9\n"
+          ).encode()
+          payloads[f"{dist_info}/WHEEL"] = (
+              "Wheel-Version: 1.0\n"
+              "Generator: m9a-android-ci\n"
+              "Root-Is-Purelib: true\n"
+              "Tag: py3-none-any\n"
+          ).encode()
+          records = []
+          for path, data in sorted(payloads.items()):
+              digest = base64.urlsafe_b64encode(hashlib.sha256(data).digest()).rstrip(b"=").decode()
+              records.append(f"{path},sha256={digest},{len(data)}")
+          records.append(f"{dist_info}/RECORD,,")
+          payloads[f"{dist_info}/RECORD"] = ("\n".join(records) + "\n").encode()
+
+          out = pathlib.Path(os.environ["RUNNER_TEMP"]) / "maafw-wheel"
+          out.mkdir(parents=True, exist_ok=True)
+          wheel = out / f"maafw-{version}-py3-none-any.whl"
+          with zipfile.ZipFile(wheel, "w", zipfile.ZIP_DEFLATED) as wheel_zip:
+              for path, data in sorted(payloads.items()):
+                  wheel_zip.writestr(path, data)
+          print(f"built {wheel} ({wheel.stat().st_size / 1024:.0f} KB, {len(payloads)} entries)")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"wheel={wheel}\n")
+          PY
+
       - name: Download and deploy MaaFramework
         working-directory: Android/MaaFwApp
         env:
@@ -494,7 +650,7 @@ jobs:
             --abi "$ABI" \
             --requirements "${GITHUB_WORKSPACE}/requirements.txt" \
             --exclude pillow --require pillow==11.0.0 \
-            --require "maafw==${{ steps.maafw.outputs.maafw_pin }}" \
+            --require "${{ steps.maafw-wheel.outputs.wheel }}" \
             --extra-index-url https://chaquo.com/pypi-13.1/
 
       - name: Sync OCR models

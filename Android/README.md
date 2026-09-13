@@ -65,9 +65,9 @@ release 时跑三个 job，出三个包：
 MaaFW 版本分工与桌面一致：
 
 - **client 侧**（APK 里的 `jniLibs/*.so`）按 `maa-project.json` 的 `maafw.channel` / `maafw.version` 解析：`version` 留空时按通道取最新，`beta` 通道收预发布
-- **agent 侧**（包里 Python 的 `maa`）按 `requirements.txt` 的 `maafw==X` 安装，用 `--require` 覆盖内核（MaaAgentCoreAndroid）自带的旧版本
+- **agent 侧**（包里 Python 的 `maa`）按 `requirements.txt` 的 `maafw==X` 走：CI 用 MaaFramework 对应 tag 的绑定源码现打一个 `py3-none-any` 轮子（`Build Android maafw wheel`），再以 `--require <wheel>` 覆盖内核自带的旧版本
 - 两边主版本号不一致时 CI 打 warning；手动跑 workflow 时 `maafw_tag` 可覆盖 client 侧版本（填 `latest` 表示取 GitHub 最新正式版）
 
-内核只提供 CPython 与 numpy/strenum 等基础包，它的 `maa` 版本不再决定 Android 的绑定版本；若目标版本在 Android 索引里没有可用轮子，pip 阶段会直接失败，不会静默退回旧版本。
+为什么自己打轮子：公开索引里没有 Android 版 `maafw` 轮子（CI 实测 `maafw==5.13.0` 在 Android tag 下解析不到任何版本），而绑定本身是纯 Python（无 `.so`，原生库由 APK 的 `jniLibs` 提供）。内核（MaaAgentCoreAndroid）只提供 CPython 与 numpy/strenum，所以内核停在 5.12.3 也不影响绑定升到 requirements 的版本——只要上下游没有 breaking change。
 
 Release 需要仓库 Secrets：`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`。手动跑时可用 `maafw_tag` 指定 MaaFramework 的 tag，留空则按 `maa-project.json` 解析。
