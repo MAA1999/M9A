@@ -44,6 +44,11 @@ agent:
         LD_LIBRARY_PATH: "{bundle}/prefix/lib:{bundle}/site-packages/chaquopy/lib:{nativeLibs}"
         MAAFW_BINARY_PATH: "{nativeLibs}"
 
+# 应用内更新查 Mirror酱的「可执行包」流：M9A_exec 与 PI 里声明的资源 rid（M9A）不是同一条，
+# 写了就压过 PI 的 mirrorchyan_rid（INTEGRATION.md）
+update:
+  mirrorchyanRid: M9A_exec
+
 app:
   id: m9a
   label: M9A

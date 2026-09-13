@@ -73,4 +73,6 @@ MaaFW 版本以**内核（MaaAgentCoreAndroid）为准**：
 
 内核更新后随子模块 `CORE_TAG` 一起跟上即可：换子模块 pointer → CI 的 tag 与缓存键都会跟着变，不需要额外步骤。
 
-Release 需要仓库 Secrets：`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`。手动跑时可用 `maafw_tag` 指定 MaaFramework 的 tag，留空则按 `maa-project.json` 解析。
+发布还会把三个包分别推到 MirrorChyan 的 `M9A_exec`（`mirrorchyan` job，排在 `release` 之后，因此 Release 里三个 APK 都已就位；只在 `MAA1999` 仓库的 `v*` tag 上跑）：universal → `arch: any`，arm64-v8a → `arch: arm64`，x86_64 → `arch: x64`。应用内更新因此查的是这条「可执行包」流——配方里的 `update.mirrorchyanRid: M9A_exec` 会压过 PI 的 `mirrorchyan_rid`（后者是桌面资源包）。
+
+Release 需要仓库 Secrets：`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`，以及 `MirrorChyanUploadToken`。手动跑时可用 `maafw_tag` 指定 MaaFramework 的 tag，留空则按 `maa-project.json` 解析。

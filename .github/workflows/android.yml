@@ -403,3 +403,36 @@ jobs:
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
           files: apks/*.apk
+
+  # 三个包分别推到 MirrorChyan 的 M9A_exec：universal 走 any，另两个 arm64 / x64。
+  # 排在 release 之后（needs），这样 release 里三个 APK 都已就位，不用去猜时序。
+  mirrorchyan:
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository_owner == 'MAA1999'
+    needs: [release]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: any
+            suffix: universal
+          - arch: arm64
+            suffix: arm64-v8a
+          - arch: x64
+            suffix: x86_64
+    steps:
+      # Mirror酱为第三方分发服务，token 走 secrets.MirrorChyanUploadToken
+      - uses: MirrorChyan/uploading-action@v1
+        with:
+          filetype: latest-release
+          filename: ${{ format('*-{0}.apk', matrix.suffix) }}
+          mirrorchyan_rid: M9A_exec
+          tag: ${{ github.ref_name }}
+
+          os: android
+          arch: ${{ matrix.arch }}
+
+          owner: MAA1999
+          repo: M9A
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          upload_token: ${{ secrets.MirrorChyanUploadToken }}
