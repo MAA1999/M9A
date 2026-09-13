@@ -31,8 +31,9 @@ exclude:
 #     --exclude pillow --require pillow==11.0.0 --extra-index-url https://chaquo.com/pypi-13.1/
 agent:
   sourceDir: agent-dist
-  # 外壳 release 包固定双 ABI（INTEGRATION.md），两个都要有运行时才不装出坏包
-  abi: [arm64-v8a, x86_64]
+  # 这里不写死 abi：省略时外壳按 ["*"] 打包，也就是“agent-dist 里实际建出来的那几份运行时”。
+  # 建哪些 ABI 由上面那条 build_agent_bundle 命令的 --abi 决定，必须与 APK 的
+  # build.debugAbi / build.releaseAbi 对齐，否则 APK 会宣称支持一个不带运行时的架构。
   runtimes:
     - location: bundle
       executable: bin/python3

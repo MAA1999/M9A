@@ -61,8 +61,7 @@ jobs:
     # debug 与 release 共用一个 job，按较重的 release 取超时
     timeout-minutes: 90
     env:
-      # 由下一步按构建模式（debug / release）生成收窄后的配方
-      PI_PROFILE: ${{ github.workspace }}/Android/profile-ci.yaml
+      PI_PROFILE: ${{ github.workspace }}/Android/profile.yaml
       # workflow_dispatch 的 assemble 输入、v* tag 推送、其余事件，统一推导本次构建模式
       ASSEMBLE: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.assemble) || (startsWith(github.ref, 'refs/tags/v') && 'release') || 'debug' }}
       # agent-dist / .maafw 缓存按 ABI 集合分开，避免与 abi-split 的任务互相覆盖
@@ -175,10 +174,17 @@ jobs:
       - name: Build agent runtime
         working-directory: Android/MaaFwApp
         run: |
+          # debug 包只出 arm64（build.debugAbi），运行时也只建 arm64；配方不写死 abi，
+          # bundle.zip 装的就是这里建出来的那几份
+          if [ "$ASSEMBLE" = "release" ]; then
+            ABIS="--abi arm64-v8a --abi x86_64"
+          else
+            ABIS="--abi arm64-v8a"
+          fi
           # pillow 走 Chaquopy 的索引，那里最高只有 11.0.0，requirements 的 12.3.0 装不进 Android
           python scripts/build_agent_bundle.py \
             --out "${GITHUB_WORKSPACE}/Android/agent-dist" \
-            --abi arm64-v8a --abi x86_64 \
+            $ABIS \
             --requirements "${GITHUB_WORKSPACE}/requirements.txt" \
             --exclude pillow --require pillow==11.0.0 \
             --extra-index-url https://chaquo.com/pypi-13.1/
@@ -187,27 +193,6 @@ jobs:
       # 由 maa-project.json 的 ocr 字段驱动，无项目特定路径
       - name: Sync OCR models
         run: pnpm dlx create-maa-project@latest --update ocr-models
-
-      # 配方里的 agent.abi 决定 bundle.zip 装哪些运行时，而 debug 包只出 arm64
-      # （build.debugAbi），所以这里按构建模式收窄，省掉一份用不到的 x86_64 运行时
-      - name: Generate CI profile
-        run: |
-          python - <<'PY'
-          import os
-          import pathlib
-          import re
-
-          abis = ["arm64-v8a", "x86_64"] if os.environ["ASSEMBLE"] == "release" else ["arm64-v8a"]
-          list_text = ", ".join(abis)
-          source = pathlib.Path("Android/profile.yaml")
-          target = pathlib.Path("Android/profile-ci.yaml")
-          text = source.read_text(encoding="utf-8")
-          narrowed, count = re.subn(r"^(\s*)abi:\s*\[[^\]]*\]\s*$", rf"\1abi: [{list_text}]", text, flags=re.M)
-          if count != 1:
-              raise SystemExit(f"配方里预期恰好一处 'abi: [...]'，实际匹配 {count} 处")
-          target.write_text(narrowed, encoding="utf-8")
-          print(f"{target} -> agent.abi: [{list_text}]")
-          PY
 
       - name: Write local.properties
         working-directory: Android/MaaFwApp
@@ -299,7 +284,7 @@ jobs:
     env:
       ABI: ${{ matrix.abi }}
       CACHE_SCOPE: ${{ matrix.abi }}
-      PI_PROFILE: ${{ github.workspace }}/Android/profile-${{ matrix.abi }}.yaml
+      PI_PROFILE: ${{ github.workspace }}/Android/profile.yaml
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -416,25 +401,6 @@ jobs:
 
       - name: Sync OCR models
         run: pnpm dlx create-maa-project@latest --update ocr-models
-
-      # 配方里的 agent.abi 决定 bundle.zip 装哪些运行时，单 ABI 包必须同步收窄
-      - name: Generate narrowed profile
-        run: |
-          python - <<'PY'
-          import os
-          import pathlib
-          import re
-
-          abi = os.environ["ABI"]
-          source = pathlib.Path("Android/profile.yaml")
-          target = pathlib.Path(f"Android/profile-{abi}.yaml")
-          text = source.read_text(encoding="utf-8")
-          narrowed, count = re.subn(r"^(\s*)abi:\s*\[[^\]]*\]\s*$", rf"\1abi: [{abi}]", text, flags=re.M)
-          if count != 1:
-              raise SystemExit(f"配方里预期恰好一处 'abi: [...]'，实际匹配 {count} 处")
-          target.write_text(narrowed, encoding="utf-8")
-          print(f"{target} -> agent.abi: [{abi}]")
-          PY
 
       - name: Write local.properties
         working-directory: Android/MaaFwApp
