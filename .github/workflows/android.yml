@@ -43,9 +43,9 @@ on:
           - release
         default: debug
       maafw_tag:
-        description: "MaaFramework release tag"
+        description: "MaaFramework release tag；留空则按 maa-project.json 的 maafw.channel/version 解析，填 latest 取 GitHub 最新正式版"
         required: false
-        default: "latest"
+        default: ""
 
 concurrency:
   group: android-${{ github.ref }}
@@ -123,11 +123,95 @@ jobs:
 
       # 不缓存 MaaFramework zip：脚本按字典序部署缓存里全部 MAA-android-*.zip，
       # 跨 run 复用会让 workflow_dispatch 指定的 maafw_tag 被旧版本覆盖
+      # client 侧（APK 里的 jniLibs）按桌面同一份 maa-project.json 的 maafw.channel/version
+      # 解析版本；agent 侧（Python 的 maa 包）按 requirements.txt 的 pin——与桌面同样的分工
+      - name: Resolve MaaFW version
+        id: maafw
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import pathlib
+          import re
+          import urllib.request
+
+          REPO = "MaaXYZ/MaaFramework"
+          project = json.loads(pathlib.Path("maa-project.json").read_text(encoding="utf-8"))
+          maafw = project.get("maafw") or {}
+          channel = str(maafw.get("channel") or "stable").strip().lower()
+          pinned = str(maafw.get("version") or "").strip()
+
+
+          def pre_key(pre):
+              if not pre:
+                  return ()
+              return tuple((0, int(part)) if part.isdigit() else (1, part) for part in pre.split("."))
+
+
+          def sort_key(tag):
+              match = re.match(r"^v(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.\-]+))?$", tag)
+              if not match:
+                  return None
+              major, minor, patch = (int(match.group(index)) for index in (1, 2, 3))
+              pre = match.group(4)
+              # 同一版本下预发布排在正式版之前
+              return (major, minor, patch, 0 if pre else 1, pre_key(pre))
+
+
+          def fetch_releases():
+              headers = {
+                  "Accept": "application/vnd.github+json",
+                  "User-Agent": "m9a-android-ci",
+              }
+              token = os.environ.get("GITHUB_TOKEN")
+              if token:
+                  headers["Authorization"] = f"Bearer {token}"
+              request = urllib.request.Request(
+                  f"https://api.github.com/repos/{REPO}/releases?per_page=100", headers=headers
+              )
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  return json.load(response)
+
+
+          if pinned:
+              tag = pinned if pinned.startswith("v") else f"v{pinned}"
+          else:
+              items = [
+                  item
+                  for item in fetch_releases()
+                  if isinstance(item, dict)
+                  and not item.get("draft")
+                  and sort_key(str(item.get("tag_name", "")))
+              ]
+              # 只有 beta 通道收预发布，其余按正式版解析
+              if channel != "beta":
+                  items = [item for item in items if not item.get("prerelease")]
+              if not items:
+                  raise SystemExit(f"{channel} 通道里没有可用的 MaaFramework release")
+              tag = max(items, key=lambda item: sort_key(item["tag_name"]))["tag_name"]
+
+          requirements = pathlib.Path("requirements.txt").read_text(encoding="utf-8")
+          match = re.search(r"^maafw==([0-9][^\s;]*)", requirements, flags=re.M)
+          if not match:
+              raise SystemExit("requirements.txt 里没有 maafw== 的精确 pin，agent 侧版本无法确定")
+          pin = match.group(1)
+
+          if tag.lstrip("v").split("-")[0] != pin:
+              print(f"::warning::client {tag} 与 requirements 的 maafw=={pin} 不一致；agent 侧仍按 requirements 安装")
+          print(f"client MaaFW tag: {tag}")
+          print(f"agent maafw pin : {pin}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"maafw_tag={tag}\n")
+              output.write(f"maafw_pin={pin}\n")
+          PY
+
       - name: Download and deploy MaaFramework
         working-directory: Android/MaaFwApp
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MAAFW_TAG: ${{ github.event.inputs.maafw_tag || 'latest' }}
+          MAAFW_TAG: ${{ github.event.inputs.maafw_tag || steps.maafw.outputs.maafw_tag }}
         run: |
           TAG_ARG=""
           if [ -n "$MAAFW_TAG" ] && [ "$MAAFW_TAG" != "latest" ]; then
@@ -149,6 +233,7 @@ jobs:
             --abi arm64-v8a --abi x86_64 \
             --requirements "${GITHUB_WORKSPACE}/requirements.txt" \
             --exclude pillow --require pillow==11.0.0 \
+            --require "maafw==${{ steps.maafw.outputs.maafw_pin }}" \
             --extra-index-url https://chaquo.com/pypi-13.1/
 
       # OCR 模型由 MaaCommonAssets 子模块提供、不进 git；与桌面流程同一机制，
@@ -302,11 +387,95 @@ jobs:
           path: Android/agent-dist
           key: m9a-agent-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
+      # client 侧（APK 里的 jniLibs）按桌面同一份 maa-project.json 的 maafw.channel/version
+      # 解析版本；agent 侧（Python 的 maa 包）按 requirements.txt 的 pin——与桌面同样的分工
+      - name: Resolve MaaFW version
+        id: maafw
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import pathlib
+          import re
+          import urllib.request
+
+          REPO = "MaaXYZ/MaaFramework"
+          project = json.loads(pathlib.Path("maa-project.json").read_text(encoding="utf-8"))
+          maafw = project.get("maafw") or {}
+          channel = str(maafw.get("channel") or "stable").strip().lower()
+          pinned = str(maafw.get("version") or "").strip()
+
+
+          def pre_key(pre):
+              if not pre:
+                  return ()
+              return tuple((0, int(part)) if part.isdigit() else (1, part) for part in pre.split("."))
+
+
+          def sort_key(tag):
+              match = re.match(r"^v(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.\-]+))?$", tag)
+              if not match:
+                  return None
+              major, minor, patch = (int(match.group(index)) for index in (1, 2, 3))
+              pre = match.group(4)
+              # 同一版本下预发布排在正式版之前
+              return (major, minor, patch, 0 if pre else 1, pre_key(pre))
+
+
+          def fetch_releases():
+              headers = {
+                  "Accept": "application/vnd.github+json",
+                  "User-Agent": "m9a-android-ci",
+              }
+              token = os.environ.get("GITHUB_TOKEN")
+              if token:
+                  headers["Authorization"] = f"Bearer {token}"
+              request = urllib.request.Request(
+                  f"https://api.github.com/repos/{REPO}/releases?per_page=100", headers=headers
+              )
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  return json.load(response)
+
+
+          if pinned:
+              tag = pinned if pinned.startswith("v") else f"v{pinned}"
+          else:
+              items = [
+                  item
+                  for item in fetch_releases()
+                  if isinstance(item, dict)
+                  and not item.get("draft")
+                  and sort_key(str(item.get("tag_name", "")))
+              ]
+              # 只有 beta 通道收预发布，其余按正式版解析
+              if channel != "beta":
+                  items = [item for item in items if not item.get("prerelease")]
+              if not items:
+                  raise SystemExit(f"{channel} 通道里没有可用的 MaaFramework release")
+              tag = max(items, key=lambda item: sort_key(item["tag_name"]))["tag_name"]
+
+          requirements = pathlib.Path("requirements.txt").read_text(encoding="utf-8")
+          match = re.search(r"^maafw==([0-9][^\s;]*)", requirements, flags=re.M)
+          if not match:
+              raise SystemExit("requirements.txt 里没有 maafw== 的精确 pin，agent 侧版本无法确定")
+          pin = match.group(1)
+
+          if tag.lstrip("v").split("-")[0] != pin:
+              print(f"::warning::client {tag} 与 requirements 的 maafw=={pin} 不一致；agent 侧仍按 requirements 安装")
+          print(f"client MaaFW tag: {tag}")
+          print(f"agent maafw pin : {pin}")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"maafw_tag={tag}\n")
+              output.write(f"maafw_pin={pin}\n")
+          PY
+
       - name: Download and deploy MaaFramework
         working-directory: Android/MaaFwApp
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MAAFW_TAG: ${{ github.event.inputs.maafw_tag || 'latest' }}
+          MAAFW_TAG: ${{ github.event.inputs.maafw_tag || steps.maafw.outputs.maafw_tag }}
         run: |
           TAG_ARG=""
           if [ -n "$MAAFW_TAG" ] && [ "$MAAFW_TAG" != "latest" ]; then
@@ -326,6 +495,7 @@ jobs:
             --abi "$ABI" \
             --requirements "${GITHUB_WORKSPACE}/requirements.txt" \
             --exclude pillow --require pillow==11.0.0 \
+            --require "maafw==${{ steps.maafw.outputs.maafw_pin }}" \
             --extra-index-url https://chaquo.com/pypi-13.1/
 
       - name: Sync OCR models
