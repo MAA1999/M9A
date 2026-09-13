@@ -16,7 +16,7 @@ icon: ri:guide-fill
 |                            |       Windows        |   macOS    |               Linux               |       Android       |
 | :------------------------: | :------------------: | :--------: | :-------------------------------: | :-----------------: |
 |    System Requirements     | Windows 10 and above | Self-test  |             Self-test             | Android 9 and above |
-| Environment Setup Required |         Yes          |    Yes     |                Yes                |         Yes         |
+| Environment Setup Required |         Yes          |    Yes     |                Yes                |         No          |
 |     Emulator Required      |         Yes          |    Yes     | Emulator or containerized Android |         No          |
 |           Usage            |      GUI or CLI      | GUI or CLI |            GUI or CLI             |         GUI         |
 
