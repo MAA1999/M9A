@@ -115,174 +115,56 @@ jobs:
 
       # agent-dist 只含 CPython + pip 依赖，与 agent/** 源码无关；agent/** 经
       # syncPiAssets 直接从工作区进 APK（永远是最新 commit），故缓存键不含 agent/**。
+      # -vN- 是打包配方版本号：配方变了就 +1 强制重建（内核版本变化由脚本 hash 覆盖）。
       - name: Cache agent bundle
         uses: actions/cache@v6
         with:
           path: Android/agent-dist
-          key: m9a-agent-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
+          key: m9a-agent-${{ runner.os }}-${{ env.CACHE_SCOPE }}-v2-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
       # 不缓存 MaaFramework zip：脚本按字典序部署缓存里全部 MAA-android-*.zip，
       # 跨 run 复用会让 workflow_dispatch 指定的 maafw_tag 被旧版本覆盖
-      # client 侧（APK 里的 jniLibs）按桌面同一份 maa-project.json 的 maafw.channel/version
-      # 解析版本；agent 侧（Python 的 maa 包）按 requirements.txt 的 pin——与桌面同样的分工
+      # MaaFW 版本：Android 的 Python 绑定就是内核（MaaAgentCoreAndroid）自带那份，
+      # 公开索引没有 Android 版 maafw 轮子，所以 client 原生库必须与内核同版本；
+      # 内核发新版后随子模块 CORE_TAG 一起跟上即可，无需额外步骤
       - name: Resolve MaaFW version
         id: maafw
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python - <<'PY'
           import json
           import os
           import pathlib
           import re
-          import urllib.request
 
-          REPO = "MaaXYZ/MaaFramework"
-          project = json.loads(pathlib.Path("maa-project.json").read_text(encoding="utf-8"))
-          maafw = project.get("maafw") or {}
-          channel = str(maafw.get("channel") or "stable").strip().lower()
-          pinned = str(maafw.get("version") or "").strip()
-
-
-          def pre_key(pre):
-              if not pre:
-                  return ()
-              return tuple((0, int(part)) if part.isdigit() else (1, part) for part in pre.split("."))
-
-
-          def sort_key(tag):
-              match = re.match(r"^v(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.\-]+))?$", tag)
-              if not match:
-                  return None
-              major, minor, patch = (int(match.group(index)) for index in (1, 2, 3))
-              pre = match.group(4)
-              # 同一版本下预发布排在正式版之前
-              return (major, minor, patch, 0 if pre else 1, pre_key(pre))
-
-
-          def fetch_releases():
-              headers = {
-                  "Accept": "application/vnd.github+json",
-                  "User-Agent": "m9a-android-ci",
-              }
-              token = os.environ.get("GITHUB_TOKEN")
-              if token:
-                  headers["Authorization"] = f"Bearer {token}"
-              request = urllib.request.Request(
-                  f"https://api.github.com/repos/{REPO}/releases?per_page=100", headers=headers
-              )
-              with urllib.request.urlopen(request, timeout=60) as response:
-                  return json.load(response)
-
-
-          if pinned:
-              tag = pinned if pinned.startswith("v") else f"v{pinned}"
-          else:
-              items = [
-                  item
-                  for item in fetch_releases()
-                  if isinstance(item, dict)
-                  and not item.get("draft")
-                  and sort_key(str(item.get("tag_name", "")))
-              ]
-              # 只有 beta 通道收预发布，其余按正式版解析
-              if channel != "beta":
-                  items = [item for item in items if not item.get("prerelease")]
-              if not items:
-                  raise SystemExit(f"{channel} 通道里没有可用的 MaaFramework release")
-              tag = max(items, key=lambda item: sort_key(item["tag_name"]))["tag_name"]
+          core_script = pathlib.Path("Android/MaaFwApp/scripts/build_agent_bundle.py").read_text(encoding="utf-8")
+          core_match = re.search(r'CORE_TAG\s*=\s*"[^"]*?maafw([0-9][^"]*)"', core_script)
+          if not core_match:
+              raise SystemExit("解析不到内核 CORE_TAG 里的 maafw 版本")
+          core = core_match.group(1)
 
           requirements = pathlib.Path("requirements.txt").read_text(encoding="utf-8")
-          match = re.search(r"^maafw==([0-9][^\s;]*)", requirements, flags=re.M)
-          if not match:
-              raise SystemExit("requirements.txt 里没有 maafw== 的精确 pin，agent 侧版本无法确定")
-          pin = match.group(1)
+          pin_match = re.search(r"^maafw==([0-9][^\s;]*)", requirements, flags=re.M)
+          if not pin_match:
+              raise SystemExit("requirements.txt 里没有 maafw== 的精确 pin")
+          pin = pin_match.group(1)
 
-          if tag.lstrip("v").split("-")[0] != pin:
-              print(f"::warning::client {tag} 与 requirements 的 maafw=={pin} 不一致；agent 侧仍按 requirements 安装")
-          print(f"client MaaFW tag: {tag}")
-          print(f"agent maafw pin : {pin}")
+          project = json.loads(pathlib.Path("maa-project.json").read_text(encoding="utf-8"))
+          maafw = project.get("maafw") or {}
+          channel = str(maafw.get("channel") or "stable").strip()
+          declared = str(maafw.get("version") or "").strip() or f"{channel} 通道最新"
+
+          if pin != core:
+              print(
+                  f"::warning::Android 绑定暂时只能跟内核 {core}（无公开 Android 轮子）；"
+                  f"requirements 的 maafw=={pin}、maa-project.json 的 {declared} 待内核更新后自动跟进"
+              )
+
+          tag = f"v{core}"
+          print(f"client MaaFW tag : {tag}（与内核绑定 {core} 一致）")
+          print(f"maa-project.json : {declared}")
+          print(f"requirements pin : {pin}")
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
               output.write(f"maafw_tag={tag}\n")
-              output.write(f"maafw_pin={pin}\n")
-          PY
-
-      # Android 没有公开的 maafw 轮子（CI 实测 maafw==5.13.0 在 Android tag 下解析不到任何版本），
-      # 而内核里那份 maa 本来就是纯 Python（无 .so，原生库由 APK 的 jniLibs 提供），
-      # 所以按 requirements 的 pin 从上游 tag 重新打一个 py3-none-any 轮子交给 pip
-      - name: Build Android maafw wheel
-        id: maafw-wheel
-        env:
-          MAAFW_VERSION: ${{ steps.maafw.outputs.maafw_pin }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python - <<'PY'
-          import base64
-          import hashlib
-          import io
-          import os
-          import pathlib
-          import tarfile
-          import urllib.request
-          import zipfile
-
-          version = os.environ["MAAFW_VERSION"]
-          tag = f"v{version}"
-          url = f"https://github.com/MaaXYZ/MaaFramework/archive/refs/tags/{tag}.tar.gz"
-          headers = {"User-Agent": "m9a-android-ci"}
-          token = os.environ.get("GITHUB_TOKEN")
-          if token:
-              headers["Authorization"] = f"Bearer {token}"
-          request = urllib.request.Request(url, headers=headers)
-          with urllib.request.urlopen(request, timeout=180) as response:
-              source = response.read()
-
-          prefix = "source/binding/Python/maa/"
-          payloads = {}
-          with tarfile.open(fileobj=io.BytesIO(source), mode="r:gz") as tar:
-              for member in tar.getmembers():
-                  if not member.isfile():
-                      continue
-                  name = member.name.split("/", 1)[-1]
-                  if not name.startswith(prefix):
-                      continue
-                  handle = tar.extractfile(member)
-                  if handle is None:
-                      continue
-                  payloads["maa/" + name[len(prefix):]] = handle.read()
-          if not payloads:
-              raise SystemExit(f"{tag} 里找不到绑定源码 {prefix}")
-
-          dist_info = f"maafw-{version}.dist-info"
-          payloads[f"{dist_info}/METADATA"] = (
-              "Metadata-Version: 2.1\n"
-              "Name: maafw\n"
-              f"Version: {version}\n"
-              "Summary: MaaFramework Python binding, rebuilt for Android from the upstream tag\n"
-              "Requires-Python: >=3.9\n"
-          ).encode()
-          payloads[f"{dist_info}/WHEEL"] = (
-              "Wheel-Version: 1.0\n"
-              "Generator: m9a-android-ci\n"
-              "Root-Is-Purelib: true\n"
-              "Tag: py3-none-any\n"
-          ).encode()
-          records = []
-          for path, data in sorted(payloads.items()):
-              digest = base64.urlsafe_b64encode(hashlib.sha256(data).digest()).rstrip(b"=").decode()
-              records.append(f"{path},sha256={digest},{len(data)}")
-          records.append(f"{dist_info}/RECORD,,")
-          payloads[f"{dist_info}/RECORD"] = ("\n".join(records) + "\n").encode()
-
-          out = pathlib.Path(os.environ["RUNNER_TEMP"]) / "maafw-wheel"
-          out.mkdir(parents=True, exist_ok=True)
-          wheel = out / f"maafw-{version}-py3-none-any.whl"
-          with zipfile.ZipFile(wheel, "w", zipfile.ZIP_DEFLATED) as wheel_zip:
-              for path, data in sorted(payloads.items()):
-                  wheel_zip.writestr(path, data)
-          print(f"built {wheel} ({wheel.stat().st_size / 1024:.0f} KB, {len(payloads)} entries)")
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write(f"wheel={wheel}\n")
           PY
 
       - name: Download and deploy MaaFramework
@@ -311,7 +193,6 @@ jobs:
             --abi arm64-v8a --abi x86_64 \
             --requirements "${GITHUB_WORKSPACE}/requirements.txt" \
             --exclude pillow --require pillow==11.0.0 \
-            --require "${{ steps.maafw-wheel.outputs.wheel }}" \
             --extra-index-url https://chaquo.com/pypi-13.1/
 
       # OCR 模型由 MaaCommonAssets 子模块提供、不进 git；与桌面流程同一机制，
@@ -458,172 +339,54 @@ jobs:
           path: Android/MaaFwApp/.maafw
           key: maa-agent-core-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
+      # -vN- 是打包配方版本号：配方变了就 +1 强制重建（内核版本变化由脚本 hash 覆盖）。
       - name: Cache agent bundle
         uses: actions/cache@v6
         with:
           path: Android/agent-dist
-          key: m9a-agent-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
+          key: m9a-agent-${{ runner.os }}-${{ env.CACHE_SCOPE }}-v2-${{ hashFiles('requirements.txt', 'Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
-      # client 侧（APK 里的 jniLibs）按桌面同一份 maa-project.json 的 maafw.channel/version
-      # 解析版本；agent 侧（Python 的 maa 包）按 requirements.txt 的 pin——与桌面同样的分工
+      # MaaFW 版本：Android 的 Python 绑定就是内核（MaaAgentCoreAndroid）自带那份，
+      # 公开索引没有 Android 版 maafw 轮子，所以 client 原生库必须与内核同版本；
+      # 内核发新版后随子模块 CORE_TAG 一起跟上即可，无需额外步骤
       - name: Resolve MaaFW version
         id: maafw
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python - <<'PY'
           import json
           import os
           import pathlib
           import re
-          import urllib.request
 
-          REPO = "MaaXYZ/MaaFramework"
-          project = json.loads(pathlib.Path("maa-project.json").read_text(encoding="utf-8"))
-          maafw = project.get("maafw") or {}
-          channel = str(maafw.get("channel") or "stable").strip().lower()
-          pinned = str(maafw.get("version") or "").strip()
-
-
-          def pre_key(pre):
-              if not pre:
-                  return ()
-              return tuple((0, int(part)) if part.isdigit() else (1, part) for part in pre.split("."))
-
-
-          def sort_key(tag):
-              match = re.match(r"^v(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.\-]+))?$", tag)
-              if not match:
-                  return None
-              major, minor, patch = (int(match.group(index)) for index in (1, 2, 3))
-              pre = match.group(4)
-              # 同一版本下预发布排在正式版之前
-              return (major, minor, patch, 0 if pre else 1, pre_key(pre))
-
-
-          def fetch_releases():
-              headers = {
-                  "Accept": "application/vnd.github+json",
-                  "User-Agent": "m9a-android-ci",
-              }
-              token = os.environ.get("GITHUB_TOKEN")
-              if token:
-                  headers["Authorization"] = f"Bearer {token}"
-              request = urllib.request.Request(
-                  f"https://api.github.com/repos/{REPO}/releases?per_page=100", headers=headers
-              )
-              with urllib.request.urlopen(request, timeout=60) as response:
-                  return json.load(response)
-
-
-          if pinned:
-              tag = pinned if pinned.startswith("v") else f"v{pinned}"
-          else:
-              items = [
-                  item
-                  for item in fetch_releases()
-                  if isinstance(item, dict)
-                  and not item.get("draft")
-                  and sort_key(str(item.get("tag_name", "")))
-              ]
-              # 只有 beta 通道收预发布，其余按正式版解析
-              if channel != "beta":
-                  items = [item for item in items if not item.get("prerelease")]
-              if not items:
-                  raise SystemExit(f"{channel} 通道里没有可用的 MaaFramework release")
-              tag = max(items, key=lambda item: sort_key(item["tag_name"]))["tag_name"]
+          core_script = pathlib.Path("Android/MaaFwApp/scripts/build_agent_bundle.py").read_text(encoding="utf-8")
+          core_match = re.search(r'CORE_TAG\s*=\s*"[^"]*?maafw([0-9][^"]*)"', core_script)
+          if not core_match:
+              raise SystemExit("解析不到内核 CORE_TAG 里的 maafw 版本")
+          core = core_match.group(1)
 
           requirements = pathlib.Path("requirements.txt").read_text(encoding="utf-8")
-          match = re.search(r"^maafw==([0-9][^\s;]*)", requirements, flags=re.M)
-          if not match:
-              raise SystemExit("requirements.txt 里没有 maafw== 的精确 pin，agent 侧版本无法确定")
-          pin = match.group(1)
+          pin_match = re.search(r"^maafw==([0-9][^\s;]*)", requirements, flags=re.M)
+          if not pin_match:
+              raise SystemExit("requirements.txt 里没有 maafw== 的精确 pin")
+          pin = pin_match.group(1)
 
-          if tag.lstrip("v").split("-")[0] != pin:
-              print(f"::warning::client {tag} 与 requirements 的 maafw=={pin} 不一致；agent 侧仍按 requirements 安装")
-          print(f"client MaaFW tag: {tag}")
-          print(f"agent maafw pin : {pin}")
+          project = json.loads(pathlib.Path("maa-project.json").read_text(encoding="utf-8"))
+          maafw = project.get("maafw") or {}
+          channel = str(maafw.get("channel") or "stable").strip()
+          declared = str(maafw.get("version") or "").strip() or f"{channel} 通道最新"
+
+          if pin != core:
+              print(
+                  f"::warning::Android 绑定暂时只能跟内核 {core}（无公开 Android 轮子）；"
+                  f"requirements 的 maafw=={pin}、maa-project.json 的 {declared} 待内核更新后自动跟进"
+              )
+
+          tag = f"v{core}"
+          print(f"client MaaFW tag : {tag}（与内核绑定 {core} 一致）")
+          print(f"maa-project.json : {declared}")
+          print(f"requirements pin : {pin}")
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
               output.write(f"maafw_tag={tag}\n")
-              output.write(f"maafw_pin={pin}\n")
-          PY
-
-      # Android 没有公开的 maafw 轮子（CI 实测 maafw==5.13.0 在 Android tag 下解析不到任何版本），
-      # 而内核里那份 maa 本来就是纯 Python（无 .so，原生库由 APK 的 jniLibs 提供），
-      # 所以按 requirements 的 pin 从上游 tag 重新打一个 py3-none-any 轮子交给 pip
-      - name: Build Android maafw wheel
-        id: maafw-wheel
-        env:
-          MAAFW_VERSION: ${{ steps.maafw.outputs.maafw_pin }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python - <<'PY'
-          import base64
-          import hashlib
-          import io
-          import os
-          import pathlib
-          import tarfile
-          import urllib.request
-          import zipfile
-
-          version = os.environ["MAAFW_VERSION"]
-          tag = f"v{version}"
-          url = f"https://github.com/MaaXYZ/MaaFramework/archive/refs/tags/{tag}.tar.gz"
-          headers = {"User-Agent": "m9a-android-ci"}
-          token = os.environ.get("GITHUB_TOKEN")
-          if token:
-              headers["Authorization"] = f"Bearer {token}"
-          request = urllib.request.Request(url, headers=headers)
-          with urllib.request.urlopen(request, timeout=180) as response:
-              source = response.read()
-
-          prefix = "source/binding/Python/maa/"
-          payloads = {}
-          with tarfile.open(fileobj=io.BytesIO(source), mode="r:gz") as tar:
-              for member in tar.getmembers():
-                  if not member.isfile():
-                      continue
-                  name = member.name.split("/", 1)[-1]
-                  if not name.startswith(prefix):
-                      continue
-                  handle = tar.extractfile(member)
-                  if handle is None:
-                      continue
-                  payloads["maa/" + name[len(prefix):]] = handle.read()
-          if not payloads:
-              raise SystemExit(f"{tag} 里找不到绑定源码 {prefix}")
-
-          dist_info = f"maafw-{version}.dist-info"
-          payloads[f"{dist_info}/METADATA"] = (
-              "Metadata-Version: 2.1\n"
-              "Name: maafw\n"
-              f"Version: {version}\n"
-              "Summary: MaaFramework Python binding, rebuilt for Android from the upstream tag\n"
-              "Requires-Python: >=3.9\n"
-          ).encode()
-          payloads[f"{dist_info}/WHEEL"] = (
-              "Wheel-Version: 1.0\n"
-              "Generator: m9a-android-ci\n"
-              "Root-Is-Purelib: true\n"
-              "Tag: py3-none-any\n"
-          ).encode()
-          records = []
-          for path, data in sorted(payloads.items()):
-              digest = base64.urlsafe_b64encode(hashlib.sha256(data).digest()).rstrip(b"=").decode()
-              records.append(f"{path},sha256={digest},{len(data)}")
-          records.append(f"{dist_info}/RECORD,,")
-          payloads[f"{dist_info}/RECORD"] = ("\n".join(records) + "\n").encode()
-
-          out = pathlib.Path(os.environ["RUNNER_TEMP"]) / "maafw-wheel"
-          out.mkdir(parents=True, exist_ok=True)
-          wheel = out / f"maafw-{version}-py3-none-any.whl"
-          with zipfile.ZipFile(wheel, "w", zipfile.ZIP_DEFLATED) as wheel_zip:
-              for path, data in sorted(payloads.items()):
-                  wheel_zip.writestr(path, data)
-          print(f"built {wheel} ({wheel.stat().st_size / 1024:.0f} KB, {len(payloads)} entries)")
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write(f"wheel={wheel}\n")
           PY
 
       - name: Download and deploy MaaFramework
@@ -650,7 +413,6 @@ jobs:
             --abi "$ABI" \
             --requirements "${GITHUB_WORKSPACE}/requirements.txt" \
             --exclude pillow --require pillow==11.0.0 \
-            --require "${{ steps.maafw-wheel.outputs.wheel }}" \
             --extra-index-url https://chaquo.com/pypi-13.1/
 
       - name: Sync OCR models

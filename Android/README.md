@@ -62,12 +62,13 @@ release 时跑三个 job，出三个包：
 
 `abi-split` 会按本 ABI 生成 `Android/profile-<abi>.yaml`（只收窄 `agent.abi`）并写 `build.releaseAbi=<abi>`：单 ABI 包里连 `bundle.zip` 也只有一份运行时，体积约为 universal 的一半。应用内更新优先选本机 ABI 的资产、选不到才回退 universal，所以单 ABI 包的 ABI 标记必须保留，而 universal 包不能带任何标记。
 
-MaaFW 版本分工与桌面一致：
+MaaFW 版本以**内核（MaaAgentCoreAndroid）为准**：
 
-- **client 侧**（APK 里的 `jniLibs/*.so`）按 `maa-project.json` 的 `maafw.channel` / `maafw.version` 解析：`version` 留空时按通道取最新，`beta` 通道收预发布
-- **agent 侧**（包里 Python 的 `maa`）按 `requirements.txt` 的 `maafw==X` 走：CI 用 MaaFramework 对应 tag 的绑定源码现打一个 `py3-none-any` 轮子（`Build Android maafw wheel`），再以 `--require <wheel>` 覆盖内核自带的旧版本
-- 两边主版本号不一致时 CI 打 warning；手动跑 workflow 时 `maafw_tag` 可覆盖 client 侧版本（填 `latest` 表示取 GitHub 最新正式版）
+- APK 里的 Python 绑定（`maa`）就是内核自带的那个版本；公开索引没有 Android 版 `maafw` 轮子，`requirements.txt` 的 `maafw==X` 在 Android 上不生效（`build_agent_bundle.py` 会按 `core ships …` 丢弃它）
+- 所以 **client 侧（`jniLibs/*.so`）跟着内核版本走**：CI 从子模块 `build_agent_bundle.py` 的 `CORE_TAG` 解析出版本并据此铺 MaaFramework，保证 APK 里 client 与 agent 同版本
+- 与 `requirements.txt` 或 `maa-project.json` 声明的版本不一致时 CI 打 warning（当前内核 5.12.3，桌面侧已到 5.13.0）
+- 手动跑 workflow 时 `maafw_tag` 仍可覆盖 client 侧（会破坏前后一致，一般不用）
 
-为什么自己打轮子：公开索引里没有 Android 版 `maafw` 轮子（CI 实测 `maafw==5.13.0` 在 Android tag 下解析不到任何版本），而绑定本身是纯 Python（无 `.so`，原生库由 APK 的 `jniLibs` 提供）。内核（MaaAgentCoreAndroid）只提供 CPython 与 numpy/strenum，所以内核停在 5.12.3 也不影响绑定升到 requirements 的版本——只要上下游没有 breaking change。
+内核更新后随子模块 `CORE_TAG` 一起跟上即可：换子模块 pointer → CI 的 tag 与缓存键都会跟着变，不需要额外步骤。
 
 Release 需要仓库 Secrets：`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`。手动跑时可用 `maafw_tag` 指定 MaaFramework 的 tag，留空则按 `maa-project.json` 解析。
