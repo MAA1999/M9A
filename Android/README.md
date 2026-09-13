@@ -48,7 +48,7 @@ git add Android/MaaFwApp
 
 debug 与正式包统一走 **Build Android APK**（`macos-latest` + JDK 25 + NDK 29 + Python 3.13）。push / PR 到 `main` 打 debug 包；打 `v*` tag 或手动跑 workflow 选 `assemble=release` 出签名包并发布 Release。
 
-包名与 MaaFW 版本都由 `tools/ci/resolve_android_maafw.py` 解析（放在脚本里而不是 workflow 内联，是为了可单测、也方便别的项目复用）：资产前缀取 `maa-project.json` 的 `project.displayName`（不可用时退回 `slug`），MaaFW tag 取子模块内核的 `CORE_TAG`。
+包名与 MaaFW 版本都由 `tools/android-packaging.mjs` 解析（放在脚本里而不是 workflow 内联，是为了可单测、也方便别的项目复用；用 Node 而非 Python 是刻意的——纯 pipeline 项目不引入 Python）：资产前缀取 `maa-project.json` 的 `project.displayName`（不可用时退回 `slug`），MaaFW tag 取子模块内核的 `CORE_TAG`。
 
 发布与桌面共用同一批 `v*` tag：一个版本 tag 会同时触发桌面 Release 与 Android 的三个包，两边把资产传进**同一个 GitHub Release**（共用 `release-<ref>` concurrency group 串行，避免并发建 Release；Release 正文与变更日志仍由桌面流程维护）。APK 的 `versionName` / `versionCode` 取自最外层仓库的 `git describe` 与提交数，所以 tag 统一后与应用内自更新的版本比较自动对齐。
 
