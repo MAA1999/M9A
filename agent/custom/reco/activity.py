@@ -28,6 +28,16 @@ class ActivityRe_releaseChapter(CustomRecognition):
     ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
         expected = parse_params(argv.custom_recognition_param, "Re_release_name")["Re_release_name"]
+        # 空别名会让 `expected in result.text` 恒真，退化成"匹配任意文本"，
+        # 从而点中当期活动卡片；这里必须直接判失败，交给节点的 on_error 处理
+        if not isinstance(expected, str) or not expected.strip():
+            logger.error(
+                f"[ActivityRe_releaseChapter] Re_release_name 为空，拒绝匹配（避免退化为匹配任意文本）"
+                f" | node={argv.node_name}"
+            )
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+        expected = expected.strip()
         reco_detail_1 = context.run_recognition("ActivityLeftList", argv.image)
         reco_detail_2 = context.run_recognition("ActivityDownList", argv.image)
 

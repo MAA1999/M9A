@@ -22,6 +22,10 @@ MANIFEST_URL = "https://api.1999.fan/api/manifest.json"
 API_BASE_URL = "https://api.1999.fan/api"
 REQUEST_TIMEOUT = 5
 
+# manifest 也走 no-cache：命中 CDN 旧清单会让"是否需要更新"的判断失真（旧的 updated
+# 会导致直接判定无更新、静默漏更），与 resource_updater.NO_CACHE_HEADERS 保持一致
+NO_CACHE_HEADERS = {"Cache-Control": "no-cache", "Pragma": "no-cache"}
+
 # 不使用系统代理（国内服务器直连更快）
 session = create_no_proxy_session()
 
@@ -118,7 +122,7 @@ def _collect_updated_manifests(
 
     try:
         url = f"{API_BASE_URL}/{manifest_path}"
-        response = session.get(url, timeout=REQUEST_TIMEOUT)
+        response = session.get(url, timeout=REQUEST_TIMEOUT, headers=NO_CACHE_HEADERS)
         response.raise_for_status()
         manifest = response.json()
 
@@ -193,7 +197,7 @@ def check_manifest_updates() -> dict[str, Any]:
 
     try:
         # 请求远程根 manifest
-        response = session.get(MANIFEST_URL, timeout=REQUEST_TIMEOUT)
+        response = session.get(MANIFEST_URL, timeout=REQUEST_TIMEOUT, headers=NO_CACHE_HEADERS)
         response.raise_for_status()
         root_manifest = response.json()
 

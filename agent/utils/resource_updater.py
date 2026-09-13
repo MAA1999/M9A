@@ -2,11 +2,14 @@
 资源热更新模块
 
 支持基于 manifest 的增量更新，可按目录选择性更新资源。
+提交粒度为单个 manifest：某个清单失败不会影响其它清单中已校验通过的文件。
 """
 
 import hashlib
 import os
 import tempfile
+import time
+from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -20,6 +23,14 @@ from .runtime_paths import get_runtime_paths
 DEFAULT_API_BASE_URL = "https://api.1999.fan/api"
 DEFAULT_TIMEOUT = 5  # 缩短超时时间
 
+# 下载重试次数与退避基数；服务端是 CDN（实测 Via: varnish / Cache-Control: max-age=600），
+# 边缘节点可能仍返回旧副本，重试时用时间戳参数 + no-cache 绕开缓存。
+DOWNLOAD_ATTEMPTS = 3
+RETRY_BACKOFF_SECONDS = 0.5
+NO_CACHE_HEADERS = {"Cache-Control": "no-cache", "Pragma": "no-cache"}
+# 属于"临时性拒绝"、值得重试的 4xx；其余 4xx 重试无意义，直接失败
+RETRYABLE_CLIENT_STATUS = (408, 429)
+
 # 与 manifest_checker 保持一致；图片和迁移前的旧 data 路径不参与热更新。
 IGNORED_MANIFEST_PREFIXES = ("images/", "resource/data/")
 
@@ -28,9 +39,36 @@ session = create_no_proxy_session()
 
 
 class FileHashMismatchError(ValueError):
-    def __init__(self, file_path: str) -> None:
+    """下载内容与 manifest 声明的哈希不一致（记录双方哈希，便于定位是服务端还是链路问题）。"""
+
+    def __init__(
+        self,
+        file_path: str,
+        *,
+        expected_hash: str,
+        actual_hash: str,
+        url: str,
+        bytes_downloaded: int,
+        attempts: int,
+        response_note: str = "",
+    ) -> None:
         self.file_path = file_path
-        super().__init__(f"文件哈希验证失败: {file_path}")
+        self.expected_hash = expected_hash
+        self.actual_hash = actual_hash
+        self.url = url
+        self.bytes_downloaded = bytes_downloaded
+        self.attempts = attempts
+        self.response_note = response_note
+
+        parts = [
+            f"期望 {expected_hash[:16]}…",
+            f"实际 {actual_hash[:16]}…",
+            f"大小 {bytes_downloaded} 字节",
+            f"尝试 {attempts} 次",
+        ]
+        if response_note:
+            parts.append(response_note)
+        super().__init__(f"文件哈希验证失败: {file_path}（{'，'.join(parts)}；最后请求 {url}）")
 
 
 def calculate_file_hash(file_path: Path) -> str:
@@ -107,7 +145,7 @@ def get_all_manifests(api_base_url: str, manifest_path: str, timeout: int) -> li
             return
 
         manifest_url = f"{api_base_url.rstrip('/')}/{current_path}"
-        response = session.get(manifest_url, timeout=timeout)
+        response = session.get(manifest_url, timeout=timeout, headers=NO_CACHE_HEADERS)
         response.raise_for_status()
         manifest = response.json()
         if not isinstance(manifest, dict):
@@ -125,24 +163,16 @@ def get_all_manifests(api_base_url: str, manifest_path: str, timeout: int) -> li
     return collected
 
 
-def _stage_download(
-    api_base_url: str,
-    file_path_str: str,
-    file_path: Path,
-    remote_hash: str,
-    timeout: int,
-) -> Path:
-    """下载到目标目录旁的临时文件，并在返回前完成哈希校验。"""
-    file_url = f"{api_base_url.rstrip('/')}/{file_path_str}"
-    logger.debug(f"下载文件: {file_url}")
+def _describe_response(response: Any) -> str:
+    """记录响应特征，便于判断是服务端发错还是链路/网关改写了响应体。"""
+    status = getattr(response, "status_code", None)
+    headers = getattr(response, "headers", None)
+    content_type = headers.get("Content-Type", "?") if isinstance(headers, Mapping) else "?"
+    return f"HTTP {status} content-type={content_type}"
 
-    file_response = session.get(file_url, timeout=timeout)
-    file_response.raise_for_status()
-    content = file_response.content
-    downloaded_hash = hashlib.sha256(content).hexdigest()
-    if downloaded_hash != remote_hash:
-        raise FileHashMismatchError(file_path_str)
 
+def _write_staged_file(file_path: Path, content: bytes) -> Path:
+    """把已校验的内容写入目标目录旁的临时文件。"""
     file_path.parent.mkdir(parents=True, exist_ok=True)
     temp_path: Path | None = None
     try:
@@ -168,43 +198,140 @@ def _stage_download(
         raise
 
 
+def _stage_download(
+    api_base_url: str,
+    file_path_str: str,
+    file_path: Path,
+    remote_hash: str,
+    timeout: int,
+) -> Path:
+    """
+    下载到目标目录旁的临时文件，并在返回前完成哈希校验。
+
+    网络错误或哈希不一致时会重试，并绕开 CDN 缓存；全部尝试失败后抛出最后一次的错误，
+    其中 FileHashMismatchError 会带上双方哈希与响应信息，供用户反馈时定位。
+    """
+    file_url = f"{api_base_url.rstrip('/')}/{file_path_str}"
+    last_error: Exception | None = None
+
+    for attempt in range(1, DOWNLOAD_ATTEMPTS + 1):
+        cache_busting = attempt > 1
+        request_url = f"{file_url}?m9a_retry={int(time.time() * 1000)}" if cache_busting else file_url
+        logger.debug(f"下载文件: {request_url}（第 {attempt}/{DOWNLOAD_ATTEMPTS} 次）")
+
+        try:
+            file_response = session.get(
+                request_url,
+                timeout=timeout,
+                headers=NO_CACHE_HEADERS if cache_busting else None,
+            )
+            file_response.raise_for_status()
+        except requests.exceptions.HTTPError as error:
+            status = getattr(error.response, "status_code", None)
+            if isinstance(status, int) and 400 <= status < 500 and status not in RETRYABLE_CLIENT_STATUS:
+                # 4xx（408/429 除外）重试不可能成功，直接失败，别浪费退避时间
+                raise
+            last_error = error
+            logger.warning(f"文件下载失败（第 {attempt}/{DOWNLOAD_ATTEMPTS} 次）: {request_url} - {error}")
+        except requests.exceptions.RequestException as error:
+            last_error = error
+            logger.warning(f"文件下载失败（第 {attempt}/{DOWNLOAD_ATTEMPTS} 次）: {request_url} - {error}")
+        else:
+            content = file_response.content
+            downloaded_hash = hashlib.sha256(content).hexdigest()
+            if downloaded_hash == remote_hash:
+                return _write_staged_file(file_path, content)
+
+            response_note = _describe_response(file_response)
+            last_error = FileHashMismatchError(
+                file_path_str,
+                expected_hash=remote_hash,
+                actual_hash=downloaded_hash,
+                url=request_url,
+                bytes_downloaded=len(content),
+                attempts=attempt,
+                response_note=response_note,
+            )
+            logger.warning(
+                f"文件哈希校验失败（第 {attempt}/{DOWNLOAD_ATTEMPTS} 次）: {file_path_str} "
+                f"期望 {remote_hash[:16]}… 实际 {downloaded_hash[:16]}… 大小 {len(content)} 字节 {response_note}"
+            )
+
+        if attempt < DOWNLOAD_ATTEMPTS:
+            time.sleep(RETRY_BACKOFF_SECONDS * attempt)
+
+    if last_error is None:  # DOWNLOAD_ATTEMPTS >= 1 时不可达，仅作类型收窄
+        raise RuntimeError(f"下载失败且无错误信息: {file_path_str}")
+    raise last_error
+
+
+def _fetch_manifest(api_base_url: str, manifest_path: str, timeout: int) -> dict[str, Any]:
+    """获取并校验单个 manifest。"""
+    manifest_url = f"{api_base_url.rstrip('/')}/{manifest_path}"
+    logger.debug(f"获取资源清单: {manifest_url}")
+
+    # manifest 也走 no-cache：若命中 CDN 的旧清单（旧哈希），文件侧再怎么重试都会校验失败
+    response = session.get(manifest_url, timeout=timeout, headers=NO_CACHE_HEADERS)
+    response.raise_for_status()
+    manifest = response.json()
+    if not isinstance(manifest, dict):
+        raise ValueError(f"manifest 内容不是对象: {manifest_path}")
+    return manifest
+
+
 def check_and_update_resources(
     api_base_url: str = DEFAULT_API_BASE_URL,
     resource_manifests: list[str] | None = None,
     timeout: int = DEFAULT_TIMEOUT,
 ) -> dict[str, Any]:
-    """检查并以可重试事务更新资源文件。"""
+    """
+    检查并更新资源文件。
+
+    每个 manifest 是一个独立事务：该清单内所有文件下载并校验通过后才统一替换正式文件；
+    某个清单失败只影响它自己，其它清单已校验通过的文件仍会提交。
+    """
     result: dict[str, Any] = {
         "success": True,
         "updated_files": [],
         "failed_files": [],
+        "failed_manifests": [],
         "error": "",
     }
-    staged_files: list[tuple[str, Path, Path]] = []
 
     try:
         project_root = get_runtime_paths().work_root.resolve()
+    except Exception as error:
+        result["success"] = False
+        result["error"] = f"资源更新失败: {error}"
+        logger.warning(result["error"])
+        return result
 
-        if resource_manifests is None:
+    if resource_manifests is None:
+        try:
             logger.debug("开始从根 manifest 递归获取资源清单列表")
             resource_manifests = get_all_manifests(api_base_url, "manifest.json", timeout)
             logger.debug(f"自动获取到 {len(resource_manifests)} 个资源清单")
             if not resource_manifests:
                 raise ValueError("未获取到可用的资源清单")
-        else:
-            logger.debug(f"使用指定的 {len(resource_manifests)} 个资源清单")
+        except Exception as error:
+            result["success"] = False
+            result["error"] = f"资源更新失败: {error}"
+            logger.warning(result["error"])
+            return result
+    else:
+        logger.debug(f"使用指定的 {len(resource_manifests)} 个资源清单")
 
-        seen_targets: set[Path] = set()
-        for manifest_path_value in resource_manifests:
+    # 跨 manifest 的重复文件检测
+    seen_targets: set[Path] = set()
+    errors: list[str] = []
+
+    for manifest_path_value in resource_manifests:
+        staged_files: list[tuple[str, Path, Path]] = []
+        manifest_path = str(manifest_path_value)
+
+        try:
             manifest_path = _normalize_relative_path(manifest_path_value, label="manifest 路径")
-            manifest_url = f"{api_base_url.rstrip('/')}/{manifest_path}"
-            logger.debug(f"获取资源清单: {manifest_url}")
-
-            response = session.get(manifest_url, timeout=timeout)
-            response.raise_for_status()
-            manifest = response.json()
-            if not isinstance(manifest, dict):
-                raise ValueError(f"manifest 内容不是对象: {manifest_path}")
+            manifest = _fetch_manifest(api_base_url, manifest_path, timeout)
 
             for file_info in manifest.get("files", []):
                 if not isinstance(file_info, dict):
@@ -229,36 +356,42 @@ def check_and_update_resources(
                 )
                 staged_files.append((file_path_str, file_path, temp_path))
 
-        # 所有下载和哈希校验完成后才替换正式文件。
-        for file_path_str, file_path, temp_path in staged_files:
-            os.replace(temp_path, file_path)
-            result["updated_files"].append(file_path_str)
+            # 该 manifest 内所有下载和哈希校验完成后才替换正式文件
+            for file_path_str, file_path, temp_path in staged_files:
+                os.replace(temp_path, file_path)
+                result["updated_files"].append(file_path_str)
 
-        if result["updated_files"]:
-            logger.info(
-                f"部分资源热更新完成，共更新 {len(result['updated_files'])} 个文件\n如前面有提示新资源版本还请更新"
-            )
-        else:
-            logger.debug("所有资源文件已是最新")
+        except FileHashMismatchError as error:
+            result["success"] = False
+            result["failed_files"].append(error.file_path)
+            result["failed_manifests"].append(manifest_path)
+            message = f"资源更新失败: {error}"
+            errors.append(message)
+            logger.warning(message)
+        except requests.exceptions.RequestException as error:
+            result["success"] = False
+            result["failed_manifests"].append(manifest_path)
+            message = f"资源更新网络错误: {manifest_path}: {error}"
+            errors.append(message)
+            logger.warning(message)
+        except Exception as error:
+            result["success"] = False
+            result["failed_manifests"].append(manifest_path)
+            message = f"资源更新失败: {error}"
+            errors.append(message)
+            logger.warning(message)
+        finally:
+            for _, _, temp_path in staged_files:
+                try:
+                    temp_path.unlink(missing_ok=True)
+                except OSError as error:
+                    logger.debug(f"清理热更新临时文件失败: {temp_path}: {error}")
 
-    except requests.exceptions.RequestException as error:
-        result["success"] = False
-        result["error"] = f"资源更新网络错误: {error}"
-        logger.warning(result["error"])
-    except FileHashMismatchError as error:
-        result["success"] = False
-        result["failed_files"].append(error.file_path)
-        result["error"] = f"资源更新失败: {error}"
-        logger.warning(result["error"])
-    except Exception as error:
-        result["success"] = False
-        result["error"] = f"资源更新失败: {error}"
-        logger.warning(result["error"])
-    finally:
-        for _, _, temp_path in staged_files:
-            try:
-                temp_path.unlink(missing_ok=True)
-            except OSError as error:
-                logger.debug(f"清理热更新临时文件失败: {temp_path}: {error}")
+    result["error"] = "\n".join(errors)
+
+    if result["updated_files"]:
+        logger.info(f"部分资源热更新完成，共更新 {len(result['updated_files'])} 个文件\n如前面有提示新资源版本还请更新")
+    elif result["success"]:
+        logger.debug("所有资源文件已是最新")
 
     return result

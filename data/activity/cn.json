@@ -1198,5 +1198,17 @@
                 }
             }
         }
+    },
+    "4.0": {
+        "version_name": "应门者",
+        "start_time": 1790215200000,
+        "end_time": 1794085199000,
+        "activity": {
+            "combat": {
+                "event_type": "MainStory",
+                "start_time": 1790215200000,
+                "end_time": 1793825999000
+            }
+        }
     }
 }

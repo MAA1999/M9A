@@ -10,13 +10,58 @@ from utils import logger, ms_timestamp_diff_to_dhm
 from utils.maa_types import ocr_text
 from utils.params import parse_params
 
+# 活动数据由热更新下发，可能比代码更旧或缺少字段，因此下面所有字段访问都容错：
+# 缺字段应表现为"该活动不可用"，而不是抛异常带崩整条流程。
+# 复刻流程曾在数据缺少 name 字段时抛 KeyError，而 MaaFW 的 ctypes 回调不会把
+# Python 异常当作失败（节点仍记为成功），复刻识别因此拿到空别名、误点了当期活动的卡片。
 
-def _find_active_re_release(data: dict[str, Any], now: int) -> dict[str, Any] | None:
-    for item in reversed(data.values()):
-        re_release = item["activity"].get("re-release")
-        if re_release and re_release["start_time"] < now < re_release["end_time"]:
-            return re_release
 
+def _load_activity_data(resource: str) -> dict[str, Any]:
+    """读取活动数据文件，只保证顶层是对象。"""
+    path = f"data/activity/{resource}.json"
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    if not isinstance(data, dict):
+        raise ValueError(f"活动数据格式错误（顶层应为对象）: {path}")
+    return data
+
+
+def _version_info(data: dict[str, Any], key: str) -> tuple[str, int | float | None]:
+    """版本的展示名与结束时间（仅用于日志）。"""
+    item = data.get(key)
+    if not isinstance(item, dict):
+        return "", None
+    name = item.get("version_name")
+    end = item.get("end_time")
+    return (name if isinstance(name, str) else "", end if isinstance(end, int | float) else None)
+
+
+def _active_section(data: dict[str, Any], now: int, section: str) -> tuple[str, dict[str, Any]] | None:
+    """按版本倒序扫描，返回当前生效的 ``(版本, 板块)``；语义与旧实现一致。"""
+    for key, item in reversed(list(data.items())):
+        activity = item.get("activity") if isinstance(item, dict) else None
+        block = activity.get(section) if isinstance(activity, dict) else None
+        if not isinstance(block, dict) or not block:
+            continue
+
+        start = block.get("start_time")
+        end = block.get("end_time")
+        if not isinstance(start, int | float) or not isinstance(end, int | float):
+            continue  # 时间字段缺失：按不可用处理
+        if start < now < end:
+            return key, block
+        if now >= end:
+            break
+
+    return None
+
+
+def _re_release_alias(block: dict[str, Any]) -> str | None:
+    """复刻别名（``alias`` 优先，回落 ``name``）；两者都缺失时返回 None。"""
+    for field in ("alias", "name"):
+        value = block.get(field)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
     return None
 
 
@@ -43,41 +88,35 @@ class DuringAct(CustomAction):
         resource = parse_params(argv.custom_action_param, "resource")["resource"]
         DuringAct.resource = resource
 
-        with open(f"data/activity/{resource}.json", encoding="utf-8") as f:
-            data = json.load(f)
+        data = _load_activity_data(resource)
 
         now = int(time.time() * 1000)
+        active = _active_section(data, now, "combat")
 
-        for key in reversed(list(data.keys())):
-            item = data[key]
-            if now < item["activity"]["combat"]["end_time"]:
-                if now > item["activity"]["combat"]["start_time"]:
-                    # 进行复刻时间判断节点的资源字段覆盖
-                    context.override_pipeline(
-                        {"JudgeDuringRe_release": {"custom_action_param": {"resource": resource}}}
-                    )
-                    # 若为主线版本，标记状态，但不直接跳过（让 CombatActivityOverride 根据 mode 决定）
-                    if item["activity"]["combat"]["event_type"] == "MainStory":
-                        DuringAct.is_main_story = True
-                        logger.info(f"当前为主线版本：{key} {item['version_name']}")
-                        logger.info(f"距离版本结束还剩 {ms_timestamp_diff_to_dhm(now, item['end_time'])}")
-                        logger.info("如果您需要刷取主线关卡，请改用常规作战功能")
-                        # 不复刻模式时，禁用 CombatActivityOverride 并跳过
-                        # 复刻模式时，继续执行让复刻判断来处理
-                        # 这里不直接跳过，让 CombatActivityOverride 来处理
-                    else:
-                        DuringAct.is_main_story = False
-                    logger.info(f"当前版本：{key} {item['version_name']}")
-                    logger.info(
-                        f"距离作战结束还剩 {ms_timestamp_diff_to_dhm(now, item['activity']['combat']['end_time'])}"
-                    )
-                    return CustomAction.RunResult(success=True)
-                continue
-            break
+        if active is None:
+            DuringAct.is_main_story = False
+            context.override_next("JudgeDuringAct", [])
+            logger.info("当前不在活动时间内，跳过当前任务")
+            return CustomAction.RunResult(success=True)
 
-        DuringAct.is_main_story = False
-        context.override_next("JudgeDuringAct", [])
-        logger.info("当前不在活动时间内，跳过当前任务")
+        key, combat = active
+        name, version_end = _version_info(data, key)
+        # 进行复刻时间判断节点的资源字段覆盖
+        context.override_pipeline({"JudgeDuringRe_release": {"custom_action_param": {"resource": resource}}})
+
+        # 若为主线版本，标记状态，但不直接跳过（让 CombatActivityOverride 根据 mode 决定）
+        # 不复刻模式时，禁用 CombatActivityOverride 并跳过；复刻模式时，继续执行让复刻判断来处理
+        if combat.get("event_type") == "MainStory":
+            DuringAct.is_main_story = True
+            logger.info(f"当前为主线版本：{key} {name}")
+            if version_end is not None:
+                logger.info(f"距离版本结束还剩 {ms_timestamp_diff_to_dhm(now, version_end)}")
+            logger.info("如果您需要刷取主线关卡，请改用常规作战功能")
+        else:
+            DuringAct.is_main_story = False
+
+        logger.info(f"当前版本：{key} {name}")
+        logger.info(f"距离作战结束还剩 {ms_timestamp_diff_to_dhm(now, combat['end_time'])}")
         return CustomAction.RunResult(success=True)
 
 
@@ -106,30 +145,29 @@ class CombatActivityOverride(CustomAction):
             logger.info("主线版本且未开启复刻模式，跳过当前任务")
             return CustomAction.RunResult(success=True)
 
-        with open(f"data/activity/{DuringAct.resource}.json", encoding="utf-8") as f:
-            data = json.load(f)
+        data = _load_activity_data(DuringAct.resource)
 
         now = int(time.time() * 1000)
 
         if mode == 1:
-            re_release = _find_active_re_release(data, now)
-            if re_release:
-                if re_release.get("override"):
-                    context.override_pipeline(re_release["override"])
+            active = _active_section(data, now, "re-release")
+            if active is None:
+                context.override_next("CombatActivityOverride", ["CombatActivityNoReRelease"])
+                logger.info("当前未开放复刻活动，跳过活动代币刷取")
                 return CustomAction.RunResult(success=True)
 
-            context.override_next("CombatActivityOverride", ["CombatActivityNoReRelease"])
-            logger.info("当前未开放复刻活动，跳过活动代币刷取")
+            _, block = active
+            override = block.get("override")
+            if isinstance(override, dict):
+                context.override_pipeline(override)
             return CustomAction.RunResult(success=True)
 
-        for key in reversed(list(data.keys())):
-            item = data[key]
-            if now < item["activity"]["combat"]["end_time"]:
-                if now > item["activity"]["combat"]["start_time"]:
-                    if item["activity"]["combat"].get("override"):
-                        context.override_pipeline(item["activity"]["combat"].get("override"))
-                    return CustomAction.RunResult(success=True)
-
+        active = _active_section(data, now, "combat")
+        if active is not None:
+            _, block = active
+            override = block.get("override")
+            if isinstance(override, dict):
+                context.override_pipeline(override)
         return CustomAction.RunResult(success=True)
 
 
@@ -152,32 +190,23 @@ class DuringAnecdote(CustomAction):
 
         resource = parse_params(argv.custom_action_param, "resource")["resource"]
 
-        with open(f"data/activity/{resource}.json", encoding="utf-8") as f:
-            data = json.load(f)
+        data = _load_activity_data(resource)
 
         now = int(time.time() * 1000)
+        active = _active_section(data, now, "anecdote")
 
-        for key in reversed(list(data.keys())):
-            item = data[key]
+        if active is None:
+            context.override_next("JudgeDuringAnecdote", [])
+            logger.info("当前不在轶事开放时间，跳过当前任务")
+            return CustomAction.RunResult(success=True)
 
-            if not item["activity"].get("anecdote"):
-                continue
-
-            if now < item["activity"]["anecdote"]["end_time"]:
-                if now > item["activity"]["anecdote"]["start_time"]:
-                    logger.info(f"当前版本：{key} {item['version_name']}")
-                    logger.info(
-                        f"距离轶事结束还剩 {ms_timestamp_diff_to_dhm(now, item['activity']['anecdote']['end_time'])}"
-                    )
-                    if item["activity"]["anecdote"].get("override"):
-                        context.override_pipeline(item["activity"]["anecdote"].get("override"))
-                    return CustomAction.RunResult(success=True)
-                continue
-            break
-
-        context.override_next("JudgeDuringAnecdote", [])
-        logger.info("当前不在轶事开放时间，跳过当前任务")
-
+        key, block = active
+        name, _ = _version_info(data, key)
+        logger.info(f"当前版本：{key} {name}")
+        logger.info(f"距离轶事结束还剩 {ms_timestamp_diff_to_dhm(now, block['end_time'])}")
+        override = block.get("override")
+        if isinstance(override, dict):
+            context.override_pipeline(override)
         return CustomAction.RunResult(success=True)
 
 
@@ -200,40 +229,39 @@ class DuringRe_release(CustomAction):
 
         resource = parse_params(argv.custom_action_param, "resource")["resource"]
 
-        with open(f"data/activity/{resource}.json", encoding="utf-8") as f:
-            data = json.load(f)
+        data = _load_activity_data(resource)
 
         now = int(time.time() * 1000)
+        active = _active_section(data, now, "re-release")
 
-        for key in reversed(list(data.keys())):
-            item = data[key]
-            if item["activity"].get("re-release"):
-                if now < item["activity"]["re-release"]["end_time"]:
-                    if now > item["activity"]["re-release"]["start_time"]:
-                        logger.info(f"当前复刻活动：{item['activity']['re-release']['name']}")
-                        logger.info(
-                            f"距离复刻作战结束还剩"
-                            f" {ms_timestamp_diff_to_dhm(now, item['activity']['re-release']['end_time'])}"
-                        )
-                        # 当前为合法复刻作战时间，且复刻模式开启，进行相关覆盖
-                        context.override_pipeline(
-                            {
-                                "ActivityMainChapter": {"enabled": True},
-                                "ActivityRe_releaseChapter": {
-                                    "custom_recognition_param": {
-                                        "Re_release_name": item["activity"]["re-release"]["alias"]
-                                    }
-                                },
-                            }
-                        )
-                        if item["activity"]["re-release"].get("override"):
-                            context.override_pipeline(item["activity"]["re-release"].get("override"))
-                        return CustomAction.RunResult(success=True)
-                    continue
-                break
+        if active is None:
+            context.override_pipeline({"JudgeDuringRe_release": {"next": []}})
+            logger.info("当前不在复刻作战开放时间，跳过当前任务")
+            return CustomAction.RunResult(success=True)
 
-        context.override_pipeline({"JudgeDuringRe_release": {"next": []}})
-        logger.info("当前不在复刻作战开放时间，跳过当前任务")
+        key, block = active
+        # 数据缺 alias/name 时不能继续：空别名会让复刻识别"匹配一切"，误点当期活动卡片
+        alias = _re_release_alias(block)
+        if alias is None:
+            logger.error(
+                f"复刻活动数据缺少 alias/name 字段（{resource} {key}），无法定位复刻活动卡片；"
+                "可能是活动数据未更新成功，请重启以重试资源更新或升级 M9A"
+            )
+            context.override_next("JudgeDuringRe_release", ["ActivityRe_releaseChapterError"])
+            return CustomAction.RunResult(success=True)
+
+        logger.info(f"当前复刻活动：{alias}")
+        logger.info(f"距离复刻作战结束还剩 {ms_timestamp_diff_to_dhm(now, block['end_time'])}")
+        # 当前为合法复刻作战时间，且复刻模式开启，进行相关覆盖
+        context.override_pipeline(
+            {
+                "ActivityMainChapter": {"enabled": True},
+                "ActivityRe_releaseChapter": {"custom_recognition_param": {"Re_release_name": alias}},
+            }
+        )
+        override = block.get("override")
+        if isinstance(override, dict):
+            context.override_pipeline(override)
         return CustomAction.RunResult(success=True)
 
 

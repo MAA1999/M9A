@@ -17,8 +17,12 @@ class FakeResponse:
 
 
 class FailingChildSession:
-    def get(self, url: str, timeout: int) -> FakeResponse:
+    def __init__(self) -> None:
+        self.headers: list[dict[str, str]] = []
+
+    def get(self, url: str, timeout: int, **kwargs: Any) -> FakeResponse:
         del timeout
+        self.headers.append(kwargs.get("headers") or {})
         if url == manifest_checker.MANIFEST_URL:
             return FakeResponse(
                 {
@@ -37,8 +41,12 @@ class FailingChildSession:
 
 
 class LegacyManifestSession:
-    def get(self, url: str, timeout: int) -> FakeResponse:
+    def __init__(self) -> None:
+        self.headers: list[dict[str, str]] = []
+
+    def get(self, url: str, timeout: int, **kwargs: Any) -> FakeResponse:
         del timeout
+        self.headers.append(kwargs.get("headers") or {})
         if url == manifest_checker.MANIFEST_URL:
             return FakeResponse(
                 {
@@ -97,3 +105,19 @@ def test_legacy_resource_data_manifest_is_ignored(monkeypatch: Any) -> None:
     assert result["success"] is True
     assert result["has_any_update"] is False
     assert result["collected_manifests"]["resource/manifest.json"] == 2
+
+
+def test_manifest_requests_bypass_cdn_cache(monkeypatch: Any) -> None:
+    """回归：manifest 命中 CDN 旧副本会判定"无更新"、静默漏更，必须带 no-cache。"""
+    session = LegacyManifestSession()
+    monkeypatch.setattr(
+        manifest_checker,
+        "_load_cache",
+        lambda: {"root_updated": 1, "manifests": {"manifest.json": 1}},
+    )
+    monkeypatch.setattr(manifest_checker, "session", session)
+
+    manifest_checker.check_manifest_updates()
+
+    assert session.headers, "应至少发起一次 manifest 请求"
+    assert all(headers.get("Cache-Control") == "no-cache" for headers in session.headers)

@@ -21,6 +21,9 @@ PI_ENV_KEYS = (
 )
 
 
+# -------------
+# region 启动时的版本检查与资源热更新
+# -------------
 def _read_hot_update_config() -> dict[str, Any]:
     """读取热更新配置"""
     paths = get_runtime_paths()
@@ -33,6 +36,34 @@ def _read_hot_update_config() -> dict[str, Any]:
     except Exception:
         logger.exception("读取 hot_update.json 失败，使用默认配置")
         return {"enable_hot_update": True}
+
+
+# manifest → 用户可理解的功能，用于热更新失败时说明影响范围
+_MANIFEST_FEATURE_HINTS = {
+    "data/activity/manifest.json": "活动代币刷取 / 复刻活动",
+    "data/combat/manifest.json": "常规作战",
+    "data/redeem_code/manifest.json": "使用兑换码",
+    "data/sos/manifest.json": "局外演绎：无声综合征",
+}
+
+
+def _describe_hot_update_failure(update_result: dict[str, Any]) -> str:
+    """把热更新失败整理成用户能看懂的一段话（含影响范围与重试方式）。"""
+    failed_files = list(update_result.get("failed_files") or [])
+    failed_manifests = list(update_result.get("failed_manifests") or [])
+    updated_files = list(update_result.get("updated_files") or [])
+
+    lines = ["资源热更新未完成，以下功能可能仍在使用旧数据："]
+    if failed_manifests:
+        hints = [f"{m}（{_MANIFEST_FEATURE_HINTS.get(m, '未知功能')}）" for m in failed_manifests]
+        lines.append(f"- 未更新：{'; '.join(hints)}")
+    if failed_files:
+        lines.append(f"- 校验失败的文件：{', '.join(failed_files)}")
+    lines.append(f"- 本次已更新 {len(updated_files)} 个文件；失败的文件保持旧版本")
+    lines.append("- 下次启动会自动重试；若反复失败，请携带 debug/custom 日志反馈")
+    if update_result.get("error"):
+        lines.append(f"- 失败原因：{update_result['error']}")
+    return "\n".join(lines)
 
 
 def _check_resource_version() -> None:
@@ -80,10 +111,11 @@ def _hot_update() -> None:
             update_result = check_and_update_resources(resource_manifests=manifests)
             if update_result and update_result.get("success"):
                 should_save_manifest_cache = manifest_result["success"]
-            elif update_result and update_result.get("error"):
-                logger.debug(f"热更部分资源更新遇到问题: {update_result['error']}")
+            elif update_result:
+                # 失败要留下用户能看懂的结论：哪些功能没更新、怎么重试
+                logger.warning(_describe_hot_update_failure(update_result))
             else:
-                logger.debug("热更部分资源更新未成功")
+                logger.warning("资源热更新未成功（未返回结果），下次启动会自动重试")
         else:
             logger.debug("所有 manifest 无更新，跳过热更新")
 
@@ -93,6 +125,14 @@ def _hot_update() -> None:
         logger.debug("热更新未完整成功，保留原 manifest 缓存")
 
 
+# -------------
+# endregion
+# -------------
+
+
+# -------------
+# region 启动入口
+# -------------
 def run_agent(project_root_dir: str) -> int:
     configure_runtime_paths(project_root=project_root_dir, work_root=os.getcwd())
 
@@ -148,3 +188,8 @@ def format_env_value(value: str, limit: int = 300) -> str:
     if len(value) <= limit:
         return value
     return f"{value[:limit]}...(truncated, total={len(value)})"
+
+
+# -------------
+# endregion
+# -------------
