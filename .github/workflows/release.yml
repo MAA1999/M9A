@@ -270,6 +270,11 @@ jobs:
     permissions:
       contents: write
     runs-on: ubuntu-latest
+    # Android 工作流认同一批 v* tag，会给同一个 Release 传 APK；两边共用同一个
+    # concurrency group 串行化，避免并发创建同名 Release
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - uses: actions/download-artifact@v8
         with:

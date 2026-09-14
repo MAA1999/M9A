@@ -1,0 +1,55 @@
+# Android 打包配方。相对路径相对本文件。
+# assets 指向上一级，也就是本仓库根；改任务 / agent 不用再设环境变量。
+
+assets: ..
+
+include:
+  - interface.json
+  - locales/**
+  - tasks/**
+  - resource/**
+  - data/**
+  - agent/**
+  - config/**
+  - logo.ico
+  - CONTACT
+  - LICENSE
+
+# images/ 不能整目录挖：银行等 option 的 icon 指在这里
+exclude:
+  - resource/announcement/*.md
+  - resource/announcement/images/CCMain.png
+  - resource/announcement/images/mojing_tjb.jpg
+  - resource/announcement/images/uttu.png
+  - resource/announcement/images/SOSMain.png
+  - resource/announcement/images/newbie-main-interface.png
+
+# 出运行时（在 Android/MaaFwApp 下执行）：
+#   python scripts/build_agent_bundle.py --out ../agent-dist \
+#     --abi arm64-v8a --abi x86_64 \
+#     --requirements ../../requirements.txt \
+#     --exclude pillow --require pillow==11.0.0 --extra-index-url https://chaquo.com/pypi-13.1/
+agent:
+  sourceDir: agent-dist
+  # 这里不写死 abi：省略时外壳按 ["*"] 打包，也就是“agent-dist 里实际建出来的那几份运行时”。
+  # 建哪些 ABI 由上面那条 build_agent_bundle 命令的 --abi 决定，必须与 APK 的
+  # build.debugAbi / build.releaseAbi 对齐，否则 APK 会宣称支持一个不带运行时的架构。
+  runtimes:
+    - location: bundle
+      executable: bin/python3
+      args: [-u, agent/main.py]
+      env:
+        PYTHONHOME: "{bundle}/prefix"
+        PYTHONPATH: "{bundle}/site-packages/pure.zip:{bundle}/site-packages"
+        LD_LIBRARY_PATH: "{bundle}/prefix/lib:{bundle}/site-packages/chaquopy/lib:{nativeLibs}"
+        MAAFW_BINARY_PATH: "{nativeLibs}"
+
+# 应用内更新查 Mirror酱的「可执行包」流：M9A_exec 与 PI 里声明的资源 rid（M9A）不是同一条，
+# 写了就压过 PI 的 mirrorchyan_rid（INTEGRATION.md）
+update:
+  mirrorchyanRid: M9A_exec
+
+app:
+  id: m9a
+  label: M9A
+  icon: logo.png
