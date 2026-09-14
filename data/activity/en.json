@@ -821,5 +821,21 @@
                 "end_time": 1790240399000
             }
         }
+    },
+    "3.8": {
+        "version_name": "The Temporal Scale",
+        "start_time": 1790258400000,
+        "end_time": 1793872799000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1790258400000,
+                "end_time": 1793613599000
+            },
+            "re-release": {
+                "start_time": 1792746000000,
+                "end_time": 1793613599000
+            }
+        }
     }
 }

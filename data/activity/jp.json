@@ -821,5 +821,18 @@
                 "end_time": 1790193599000
             }
         }
+    },
+    "3.8": {
+        "version_name": "世紀末スケール",
+        "start_time": 1793372400000,
+        "end_time": 1793908799000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1793372400000,
+                "end_time": 1793649599000
+            },
+            "re-release": {}
+        }
     }
 }
