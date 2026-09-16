@@ -18,7 +18,7 @@ export default {
     useTabs: false,
     bracketSameLine: true,
     bracketSpacing: false,
-    endOfLine: "auto",
+    endOfLine: "lf",
     overrides: [
         {
             files: [

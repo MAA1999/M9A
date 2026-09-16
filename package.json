@@ -9,7 +9,7 @@
         "prettier-plugin-multiline-arrays": "4.1.11"
     },
     "engines": {
-        "node": ">=24"
+        "node": ">=22.13"
     },
     "license": "AGPL-3.0-or-later",
     "name": "m9a",

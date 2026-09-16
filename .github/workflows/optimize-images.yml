@@ -32,7 +32,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 22
       - name: Setup oxipng
         uses: baptiste0928/cargo-install@v3
         with:

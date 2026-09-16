@@ -86,9 +86,10 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --audit-level high
       - run: pnpm check
       - run: pnpm check:py
         if: hashFiles('pyproject.toml') != ''
@@ -157,10 +158,12 @@ jobs:
 
             if [[ "${{ matrix.runtime_os }}" == "win" ]]; then
               if [ ! -f rcedit.exe ]; then
-                curl -fsSL https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe -o rcedit.exe
+                rcedit_version="2.0.0"
+                curl -fsSL "https://github.com/electron/rcedit/releases/download/v${rcedit_version}/rcedit-x64.exe" -o rcedit.exe
               fi
-              exe="$pkg_dir/m9a.exe"
-              if [[ -f "$exe" ]]; then
+              echo "3e7801db1a5edbec91b49a24a094aad776cb4515488ea5a4ca2289c400eade2a  rcedit.exe" | sha256sum --check --strict
+              exe="$(find "$pkg_dir" -maxdepth 1 -type f -name '*.exe' | head -n 1)"
+              if [[ -n "$exe" ]]; then
                 ./rcedit.exe "$exe" --set-icon logo.ico
                 echo "[OK] Applied Windows executable icon: $exe ($gui)"
               else
@@ -181,7 +184,9 @@ jobs:
           fi
           for pkg_dir in "${package_dirs[@]}"; do
             gui=$(basename "$pkg_dir" | sed 's/^package-//')
-            gui_upper=$(echo "$gui" | tr '[:lower:]' '[:upper:]')
+            # macOS runners resolve `shell: bash` to the system bash 3.2, which predates the
+            # parameter-expansion case modifiers, so uppercase through tr instead.
+            gui_upper="$(printf '%s' "$gui" | tr '[:lower:]' '[:upper:]')"
             archive="M9A-${{ matrix.artifact_os }}-${{ matrix.arch }}-${GITHUB_REF_NAME}-${gui_upper}.${{ matrix.ext }}"
             (
               cd "$pkg_dir"
@@ -237,14 +242,13 @@ jobs:
         run: |
           version="2.13.1"
           archive="git-cliff-${version}-x86_64-unknown-linux-gnu.tar.gz"
-          checksum="$archive.sha512"
+          checksum="e716cce3a07dda41b1e370d6afbd7a59eb3d4739509fb7856aeec8da2be28c0396584e29e106141c1a1c535c1827dbc1f60417524f5cfb1da9e11f700bd00f30"
           download_url="https://github.com/orhun/git-cliff/releases/download/v${version}"
           mkdir -p "$RUNNER_TEMP/git-cliff"
           curl -fsSL "$download_url/$archive" -o "$RUNNER_TEMP/$archive"
-          curl -fsSL "$download_url/$checksum" -o "$RUNNER_TEMP/$checksum"
           (
             cd "$RUNNER_TEMP"
-            sha512sum --check "$checksum"
+            printf '%s  %s\n' "$checksum" "$archive" | sha512sum --check --strict
           )
           tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/git-cliff"
           git_cliff="$(find "$RUNNER_TEMP/git-cliff" -type f -name git-cliff -perm -111 | head -n 1)"
@@ -257,7 +261,12 @@ jobs:
             exit 1
           fi
           echo "[INFO] Generating release notes for $previous_stable_tag..$GITHUB_REF_NAME"
-          "$git_cliff" --config .github/cliff.toml "$previous_stable_tag..HEAD" --strip header --output CHANGES.md
+          # GitHub 元数据需要 API，取不到时 git-cliff 会以 101 退出；发布说明不值得因此失败，
+          # 因此同一区间再用 --offline 重跑一次。
+          if ! "$git_cliff" --config .github/cliff.toml "$previous_stable_tag..HEAD" --strip header --output CHANGES.md; then
+            echo "::warning::GitHub metadata is unavailable; generating release notes without pull request and contributor data."
+            "$git_cliff" --config .github/cliff.toml --offline "$previous_stable_tag..HEAD" --strip header --output CHANGES.md
+          fi
       - name: Upload release notes
         uses: actions/upload-artifact@v7
         with:

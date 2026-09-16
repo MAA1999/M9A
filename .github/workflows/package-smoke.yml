@@ -37,77 +37,102 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runtime_platform: win-x64
+          - runtime_os: win
+            runtime_arch: x64
             runner: windows-latest
             artifact_os: win
             arch: x64
-            packages: [package-mfaa, package-mxu]
-          - runtime_platform: win-arm64
+          - runtime_os: win
+            runtime_arch: arm64
             runner: windows-11-arm
             artifact_os: win
             arch: aarch64
-            packages: [package-mfaa, package-mxu]
-          - runtime_platform: linux-x64
+          - runtime_os: linux
+            runtime_arch: x64
             runner: ubuntu-latest
             artifact_os: linux
             arch: x86_64
-            packages: [package-mfaa, package-mxu]
           # MXU publishes no linux-arm64 runtime, so this target only builds MFAA.
-          - runtime_platform: linux-arm64
+          - runtime_os: linux
+            runtime_arch: arm64
             runner: ubuntu-24.04-arm
             artifact_os: linux
             arch: aarch64
-            packages: [package-mfaa]
-          - runtime_platform: osx-x64
+          - runtime_os: osx
+            runtime_arch: x64
             runner: macos-15-intel
             artifact_os: macos
             arch: x86_64
-            packages: [package-mfaa, package-mxu]
-          - runtime_platform: osx-arm64
+          - runtime_os: osx
+            runtime_arch: arm64
             runner: macos-latest
             artifact_os: macos
             arch: aarch64
-            packages: [package-mfaa, package-mxu]
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v7
         with:
           submodules: true
       - uses: actions/setup-python@v7
+        if: hashFiles('pyproject.toml') != ''
         with:
           python-version: "3.13"
       - uses: astral-sh/setup-uv@v9.0.0
+        if: hashFiles('pyproject.toml') != ''
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm sync:runtime
         env:
-          CREATE_MAA_PROJECT_RUNTIME_PLATFORM: ${{ matrix.runtime_platform }}
+          CREATE_MAA_PROJECT_RUNTIME_PLATFORM: ${{ matrix.runtime_os }}-${{ matrix.runtime_arch }}
           GITHUB_TOKEN: ${{ github.token }}
       - run: node tools/build-release.mjs --release-tag v0.0.0-package-smoke
         env:
-          CREATE_MAA_PROJECT_RUNTIME_PLATFORM: ${{ matrix.runtime_platform }}
-      - name: Verify package layout and embedded Python
+          CREATE_MAA_PROJECT_RUNTIME_PLATFORM: ${{ matrix.runtime_os }}-${{ matrix.runtime_arch }}
+      - name: Verify packaging
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          RUNTIME_PLATFORM: ${{ matrix.runtime_os }}-${{ matrix.runtime_arch }}
         run: |
-          $expected = '${{ toJSON(matrix.packages) }}' | ConvertFrom-Json
+          $project = Get-Content -LiteralPath 'maa-project.json' -Raw | ConvertFrom-Json
+          $expected = @()
+          if ($project.runtime.mfa.enabled -ne $false) { $expected += 'package-mfaa' }
+          # MXU publishes no linux-arm64 runtime, so tools/sync-runtime.mjs skips it there and
+          # tools/build-release.mjs produces no package-mxu: expecting one would fail this job.
+          if ($project.runtime.mxu.enabled -and $env:RUNTIME_PLATFORM -ne 'linux-arm64') { $expected += 'package-mxu' }
+
           $actual = @(
             Get-ChildItem -LiteralPath dist -Directory |
               Where-Object Name -Like "package-*" |
               ForEach-Object Name |
               Sort-Object
           )
-          $difference = Compare-Object -ReferenceObject $expected -DifferenceObject $actual
+          $difference = Compare-Object -ReferenceObject ($expected | Sort-Object) -DifferenceObject $actual
           if ($difference) {
             throw "Expected package directories $($expected -join ', '), got $($actual -join ', ')"
           }
 
+          if (-not (Test-Path -LiteralPath 'pyproject.toml' -PathType Leaf)) {
+            Write-Host "[OK] no Agent project; the embedded Python checks are skipped"
+            exit 0
+          }
+
           foreach ($packageName in $expected) {
             $packageRoot = (Resolve-Path -LiteralPath (Join-Path dist $packageName)).Path
+            $interface = Get-Content -LiteralPath (Join-Path $packageRoot 'interface.json') -Raw | ConvertFrom-Json
+            if ($interface.agent) {
+              if ($interface.agent[0].child_exec -ne 'python/python.exe') {
+                throw "Unexpected Agent child_exec in ${packageName}: $($interface.agent[0].child_exec)"
+              }
+              if (($interface.agent[0].child_args -join ' ') -ne '-u agent/main.py') {
+                throw "Unexpected Agent child_args in ${packageName}: $($interface.agent[0].child_args -join ' ')"
+              }
+            }
+
             $python = Join-Path $packageRoot "python\python.exe"
             if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
               throw "Embedded Python is missing: $python"
@@ -128,20 +153,49 @@ jobs:
             }
             Write-Host "[OK] $packageName"
           }
-      - name: Verify package layout and embedded Python
+      - name: Verify packaging
         if: runner.os != 'Windows'
         shell: bash
+        env:
+          RUNTIME_PLATFORM: ${{ matrix.runtime_os }}-${{ matrix.runtime_arch }}
         run: |
           set -euo pipefail
-          expected=( ${{ join(matrix.packages, ' ') }} )
+          read_expected() {
+            node --input-type=module -e "
+          import fs from 'node:fs';
+          const project = JSON.parse(fs.readFileSync('maa-project.json', 'utf8'));
+          const names = [];
+          if (project.runtime?.mfa?.enabled !== false) names.push('package-mfaa');
+          // MXU publishes no linux-arm64 runtime, so tools/sync-runtime.mjs skips it there and
+          // tools/build-release.mjs produces no package-mxu: expecting one would fail this job.
+          if (project.runtime?.mxu?.enabled && process.env.RUNTIME_PLATFORM !== 'linux-arm64') names.push('package-mxu');
+          console.log(names.join(' '));
+          "
+          }
+          expected=( $(read_expected) )
           actual=( dist/package-*/ )
           if (( ${#actual[@]} != ${#expected[@]} )); then
             echo "[ERR] expected ${#expected[@]} package(s), found ${#actual[@]}: ${actual[*]}"
             exit 1
           fi
 
+          if [ ! -f pyproject.toml ]; then
+            echo "[OK] no Agent project; the embedded Python checks are skipped"
+            exit 0
+          fi
+
           for package_name in "${expected[@]}"; do
             package="dist/$package_name"
+            agent="$(node --input-type=module -e "
+          import fs from 'node:fs';
+          const agent = JSON.parse(fs.readFileSync(process.argv[1], 'utf8')).agent?.[0];
+          console.log(agent ? agent.child_exec + '|' + (agent.child_args ?? []).join(' ') : '');
+          " "$package/interface.json")"
+            if [ -n "$agent" ] && [ "$agent" != "python/bin/python3|-u agent/main.py" ]; then
+              echo "[ERR] unexpected Agent command in $package_name: $agent"
+              exit 1
+            fi
+
             interpreter="$package/python/bin/python3"
             if [ ! -f "$interpreter" ]; then
               echo "[ERR] embedded Python is missing: $interpreter"
