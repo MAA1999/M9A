@@ -35,7 +35,7 @@
             "[JumpBack]Sub_MailBadge",
             "[JumpBack]Sub_DailyBadge",
             "[JumpBack]Sub_JukeboxBadge",
-            "[JumpBack]Sub_JukeboxBadge_3.7",
+            "[JumpBack]Sub_JukeboxBadge_CarnivalAlbum",
             "[JumpBack]AwardBox",
             "[JumpBack]AwardReveriesInTheRain",
             "HomeFlag",
@@ -1228,7 +1228,8 @@
         }
     },
     "EventName": {},
-    "Sub_JukeboxBadge_3.7": {
+    "Sub_JukeboxBadge_CarnivalAlbum": {
+        "desc": "吼吼点唱机——典藏母盘（限定版本特供）",
         "max_hit": 3,
         "recognition": {
             "type": "TemplateMatch",
@@ -1239,7 +1240,7 @@
                     217,
                     42
                 ],
-                "template": "Awards/3.7/Entry.png",
+                "template": "Awards/CarnivalAlbum/Entry.png",
                 "threshold": 0.9
             }
         },
@@ -1247,90 +1248,10 @@
             "type": "Click"
         },
         "next": [
-            "Sub_JukeboxBadge_3.7",
-            "Sub_JukeboxBadge_3.7FlagInActMain"
-        ]
-    },
-    "Sub_JukeboxBadge_3.7FlagInActMain": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    462,
-                    347,
-                    357,
-                    186
-                ],
-                "template": "Awards/3.7/ActMain.png"
-            }
-        },
-        "next": [
-            "Sub_JukeboxBadge_3.7Song",
+            "[JumpBack]Sub_CollectJukebox",
             "HomeFlag",
+            "[JumpBack]ObtainedAwards",
             "[JumpBack]BackButton"
         ]
-    },
-    "Sub_JukeboxBadge_3.7Song": {
-        "desc": "为自我的歌儿",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    405,
-                    492,
-                    52,
-                    43
-                ],
-                "template": "Awards/3.7/AwardBox.png",
-                "threshold": 0.9
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "[JumpBack]Sub_JukeboxBadge_3.7SongAward",
-            "[JumpBack]Sub_JukeboxBadge_3.7Switch",
-            "[JumpBack]ObtainedAwards",
-            "[JumpBack]ClosePage",
-            "BackButton"
-        ]
-    },
-    "Sub_JukeboxBadge_3.7SongAward": {
-        "desc": "为自我的歌儿-领取奖励",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    569,
-                    631,
-                    306,
-                    62
-                ],
-                "expected": "领取"
-            }
-        },
-        "action": {
-            "type": "Click"
-        }
-    },
-    "Sub_JukeboxBadge_3.7Switch": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    166,
-                    231,
-                    33,
-                    121
-                ],
-                "template": "Awards/3.7/RedPoint.png",
-                "order_by": "Vertical",
-                "index": -1
-            }
-        },
-        "action": {
-            "type": "Click"
-        }
     }
 }
