@@ -29,7 +29,8 @@ try:
     from .report_common import (
         DEFAULT_SENTRY_TIMEOUT_SECONDS,
         MAX_RELIABLE_SPAN_PERIOD_DAYS,
-        explore,
+        SpanQuery,
+        explore_all,
         format_rate,
         release_version_key,
         resolve_latest_release,
@@ -43,7 +44,8 @@ except ImportError:
     from report_common import (
         DEFAULT_SENTRY_TIMEOUT_SECONDS,
         MAX_RELIABLE_SPAN_PERIOD_DAYS,
-        explore,
+        SpanQuery,
+        explore_all,
         format_rate,
         release_version_key,
         resolve_latest_release,
@@ -252,6 +254,7 @@ def collect_report(
     sort: str = "failures",
     reverse: bool = False,
     limit: int | None = None,
+    fresh: bool = True,
     timeout_seconds: float,
     verbose: bool,
     quiet: bool,
@@ -261,6 +264,7 @@ def collect_report(
         release = resolve_latest_release(
             sentry_command,
             target=target,
+            fresh=fresh,
             verbose=verbose,
             timeout_seconds=timeout_seconds,
         )
@@ -281,61 +285,53 @@ def collect_report(
     # 回退为按该 release 精确过滤。
     task_query = "" if version_key is not None else scope_filter
 
-    show_progress("[1/4] 查询任务执行总量", quiet=quiet)
-    task_total_rows = explore(
-        sentry_command,
-        target=target,
-        period=period,
-        fields=("span.description", "release", "count_unique(trace)"),
-        query=task_query,
-        sort="-count_unique(trace)",
-        verbose=verbose,
-        timeout_seconds=timeout_seconds,
-    )
+    # 四组查询互不依赖:版本口径完全在本地聚合,查询之间没有先后约束。
+    queries = [
+        SpanQuery(
+            fields=("span.description", "release", "count_unique(trace)"),
+            query=task_query,
+            sort="-count_unique(trace)",
+        ),
+        SpanQuery(
+            fields=("span.description", "span.status", "release", "count_unique(trace)"),
+            query=task_query,
+            sort="-count_unique(trace)",
+        ),
+    ]
+    if TASK_RUN_SPANS:
+        umbrella_query = UMBRELLA_FILTER if version_key is not None else f"{scope_filter} {UMBRELLA_FILTER}".strip()
+        queries.append(
+            SpanQuery(
+                fields=("release", "count_unique(trace)"),
+                query=umbrella_query,
+                sort="-count_unique(trace)",
+            )
+        )
+        queries.append(
+            SpanQuery(
+                fields=("release", "count_unique(trace)"),
+                query=f"{umbrella_query} span.status:{INTERNAL_ERROR}".strip(),
+                sort="-count_unique(trace)",
+            )
+        )
 
-    show_progress("[2/4] 查询任务结果分布", quiet=quiet)
-    task_status_rows = explore(
+    scope_note = "" if TASK_RUN_SPANS else "(未配置 umbrella span,跳过渠道运行查询)"
+    show_progress(f"[1/2] 并发查询 {len(queries)} 组任务与渠道指标{scope_note}", quiet=quiet)
+    results = explore_all(
         sentry_command,
         target=target,
         period=period,
-        fields=("span.description", "span.status", "release", "count_unique(trace)"),
-        query=task_query,
-        sort="-count_unique(trace)",
+        queries=queries,
+        fresh=fresh,
         verbose=verbose,
         timeout_seconds=timeout_seconds,
     )
+    task_total_rows, task_status_rows = results[0], results[1]
 
     runs: list[ReleaseRow] = []
     if TASK_RUN_SPANS:
-        umbrella_query = UMBRELLA_FILTER if version_key is not None else f"{scope_filter} {UMBRELLA_FILTER}".strip()
-        show_progress("[3/4] 查询各渠道运行总量", quiet=quiet)
-        run_total_rows = explore(
-            sentry_command,
-            target=target,
-            period=period,
-            fields=("release", "count_unique(trace)"),
-            query=umbrella_query,
-            sort="-count_unique(trace)",
-            verbose=verbose,
-            timeout_seconds=timeout_seconds,
-        )
-
-        show_progress("[4/4] 查询各渠道运行失败分布", quiet=quiet)
-        run_failure_rows = explore(
-            sentry_command,
-            target=target,
-            period=period,
-            fields=("release", "count_unique(trace)"),
-            query=f"{umbrella_query} span.status:{INTERNAL_ERROR}".strip(),
-            sort="-count_unique(trace)",
-            verbose=verbose,
-            timeout_seconds=timeout_seconds,
-        )
-
-        runs = build_release_rows(run_total_rows, run_failure_rows, version_key, target_release=release)
-    else:
-        show_progress("[3/4] 未配置 umbrella span，跳过渠道运行查询", quiet=quiet)
-        show_progress("[4/4] 完成任务聚合", quiet=quiet)
+        runs = build_release_rows(results[2], results[3], version_key, target_release=release)
+    show_progress("[2/2] 聚合任务失败率与失败节点标记", quiet=quiet)
 
     tasks, markers = build_task_rows(
         task_total_rows,
@@ -452,6 +448,11 @@ def create_argument_parser(prog: str | None = None) -> argparse.ArgumentParser:
         f"超过 {MAX_RELIABLE_SPAN_PERIOD_DAYS} 天时 Sentry 只返回截断样本,绝对计数不可用",
     )
     parser.add_argument(
+        "--no-fresh",
+        action="store_true",
+        help="复用 Sentry CLI 本地缓存而不拉取最新数据:同一查询约快 3 倍,适合重复试跑",
+    )
+    parser.add_argument(
         "--sort",
         choices=("failures", "rate", "total", "name"),
         default="failures",
@@ -505,6 +506,7 @@ def main(argv: Sequence[str] | None = None, prog: str | None = None) -> int:
         sort=arguments.sort,
         reverse=arguments.reverse,
         limit=arguments.limit,
+        fresh=not arguments.no_fresh,
         timeout_seconds=arguments.timeout,
         verbose=arguments.verbose,
         quiet=arguments.quiet,

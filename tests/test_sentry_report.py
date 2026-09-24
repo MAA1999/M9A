@@ -1,5 +1,6 @@
 import io
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -802,3 +803,35 @@ class TestTaskTrendEdgeCases:
         task_names = [row.task for row in rep.rows]
         assert "活跃任务" in task_names
         assert "已废弃任务" not in task_names
+
+
+class TestReportRunGuard:
+    def test_warns_when_another_report_is_running(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        lock = tmp_path / "report.lock"
+        lock.write_text("999999", encoding="utf-8")
+        with report_common.report_run_guard(lock):
+            pass
+        error = capsys.readouterr().err
+        assert "另一个 Sentry 报告" in error
+        assert "互相拖慢" in error
+
+    def test_ignores_and_takes_over_stale_lock(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+        lock = tmp_path / "report.lock"
+        lock.write_text("999999", encoding="utf-8")
+        os.utime(lock, (0, 0))
+        with report_common.report_run_guard(lock):
+            assert lock.exists()
+        assert capsys.readouterr().err == ""
+        assert not lock.exists()
+
+    def test_removes_only_its_own_lock(self, tmp_path: Path) -> None:
+        lock = tmp_path / "report.lock"
+        with report_common.report_run_guard(lock):
+            assert lock.read_text(encoding="utf-8") == str(os.getpid())
+
+        assert not lock.exists()
+
+        with report_common.report_run_guard(lock):
+            # 期间被别的报告接管:退出时不得删除他人的锁
+            lock.write_text("other-report", encoding="utf-8")
+        assert lock.read_text(encoding="utf-8") == "other-report"
