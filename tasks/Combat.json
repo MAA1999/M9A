@@ -124,6 +124,24 @@
                     }
                 },
                 {
+                    "name": "盒子：14-12 厄险",
+                    "label": "$Option.Combat.StageMain.BitingBox_14_12",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "14-12"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "曼德拉(狂人絮语)：3-13 厄险",
                     "label": "$Option.Combat.StageMain.Mandrake_3_13",
                     "pipeline_override": {
@@ -250,6 +268,24 @@
                     }
                 },
                 {
+                    "name": "骨架：14-6 厄险",
+                    "label": "$Option.Combat.StageMain.Skeleton_14_6",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "14-6"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "秘银：10-09 厄险",
                     "label": "$Option.Combat.StageMain.Mithril_10_09",
                     "pipeline_override": {
@@ -312,6 +348,24 @@
                                 "param": {
                                     "custom_action_param": {
                                         "stage": "13-7"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "秘银：14-4 厄险",
+                    "label": "$Option.Combat.StageMain.Mithril_14_4",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "14-4"
                                     }
                                 }
                             },
@@ -466,6 +520,24 @@
                     }
                 },
                 {
+                    "name": "钥匙：14-9 厄险",
+                    "label": "$Option.Combat.StageMain.Key_14_9",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "14-9"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "鹅颈：5-4 厄险",
                     "label": "$Option.Combat.StageMain.Gooseneck_5_4",
                     "pipeline_override": {
@@ -510,6 +582,24 @@
                                 "param": {
                                     "custom_action_param": {
                                         "stage": "13-13"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "鹅颈：14-13 厄险",
+                    "label": "$Option.Combat.StageMain.Gooseneck_14_13",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "14-13"
                                     }
                                 }
                             },
@@ -574,6 +664,24 @@
                     }
                 },
                 {
+                    "name": "焚香(金钟灵质瓶)：14-20 厄险",
+                    "label": "$Option.Combat.StageMain.Incense_14_20",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "14-20"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "泥板：9-1 厄险",
                     "label": "$Option.Combat.StageMain.ClayTablet_9_1",
                     "pipeline_override": {
@@ -628,6 +736,24 @@
                     }
                 },
                 {
+                    "name": "泥板(翡翠石板)：14-21 厄险",
+                    "label": "$Option.Combat.StageMain.ClayTablet_14_21",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "14-21"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "灵摆：5-14 厄险",
                     "label": "$Option.Combat.StageMain.Pendulum_5_14",
                     "pipeline_override": {
@@ -672,6 +798,24 @@
                                 "param": {
                                     "custom_action_param": {
                                         "stage": "13-10"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "灵摆：14-1 厄险",
+                    "label": "$Option.Combat.StageMain.Pendulum_14_1",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "14-1"
                                     }
                                 }
                             },
@@ -754,6 +898,24 @@
                     }
                 },
                 {
+                    "name": "甲虫：14-16 厄险",
+                    "label": "$Option.Combat.StageMain.Beetle_14_16",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "14-16"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
                     "name": "彩蛋：2-14 厄险",
                     "label": "$Option.Combat.StageMain.EasterEgg_2_14",
                     "pipeline_override": {
@@ -798,6 +960,24 @@
                                 "param": {
                                     "custom_action_param": {
                                         "stage": "13-21"
+                                    }
+                                }
+                            },
+                            "attach": {
+                                "level": "Hard"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "彩蛋：14-19 厄险",
+                    "label": "$Option.Combat.StageMain.EasterEgg_14_19",
+                    "pipeline_override": {
+                        "SelectCombatStage": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "stage": "14-19"
                                     }
                                 }
                             },
