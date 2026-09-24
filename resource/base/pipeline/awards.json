@@ -641,15 +641,15 @@
     },
     "Sub_CollectJukebox": {
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
                 "roi": [
-                    1009,
-                    594,
-                    213,
-                    126
+                    1046,
+                    642,
+                    138,
+                    61
                 ],
-                "template": "Awards/CollectJukebox.png"
+                "expected": "一?键领取"
             }
         },
         "action": {
@@ -829,6 +829,10 @@
                                     [
                                         "预",
                                         "领"
+                                    ],
+                                    [
+                                        "须",
+                                        "领"
                                     ]
                                 ],
                                 "color_filter": "AwardBreakingSignalsAward_color_filter"
@@ -853,6 +857,10 @@
                                     ],
                                     [
                                         "预",
+                                        "领"
+                                    ],
+                                    [
+                                        "须",
                                         "领"
                                     ]
                                 ]
