@@ -492,7 +492,15 @@ class ActivityTargetLevel(CustomAction):
 class SelectChapter(CustomAction):
     """
     章节选择 。
+
+    卷卡片排在一个横向列表里，目标卷可能不在当前可视区（第4卷「未选择的路」在默认
+    视图右侧约一屏），此时点击节点必然 MISS，流程会空转到超时。因此进入点击循环前
+    先向前翻页把目标卷卡片翻进可视区；向后翻页由 MainChapter_X 的
+    [JumpBack]SwipeLeftForChapter 兜底。
     """
+
+    # 向前翻页查找目标卷的次数上限
+    MAX_SWIPES = 4
 
     def run(
         self,
@@ -503,28 +511,24 @@ class SelectChapter(CustomAction):
         # 返回大章节
         context.run_task("ReturnMainStoryChapter", {"ReturnMainStoryChapter": {}})
 
+        template = f"Combat/MainStoryChapter_{SelectCombatStage.mainStoryChapter}.png"
+        override = {"SelectMainStoryChapter": {"template": template}}
+
+        # 目标卷不在画面里时向前翻页，避免点不到卡片而空转到超时
+        for _ in range(self.MAX_SWIPES):
+            img = context.tasker.controller.post_screencap().wait().get()
+            if is_hit(context.run_recognition("SelectMainStoryChapter", img, override)):
+                break
+            logger.info(f"画面中未找到 {template}，向前翻页查找")
+            context.run_task("SwipeRightForChapter")
+
         flag, count = False, 0
         while not flag:
-            context.run_task(
-                "SelectMainStoryChapter",
-                {
-                    "SelectMainStoryChapter": {
-                        "template": f"Combat/MainStoryChapter_{SelectCombatStage.mainStoryChapter}.png"
-                    }
-                },
-            )
+            context.run_task("SelectMainStoryChapter", override)
             img = context.tasker.controller.post_screencap().wait().get()
             count += 1
             # 判断是否还能匹配上大章节（位置不同/角度不同）
-            rec = context.run_recognition(
-                "SelectMainStoryChapter",
-                img,
-                {
-                    "SelectMainStoryChapter": {
-                        "template": f"Combat/MainStoryChapter_{SelectCombatStage.mainStoryChapter}.png"
-                    }
-                },
-            )
+            rec = context.run_recognition("SelectMainStoryChapter", img, override)
             if not is_hit(rec) or count >= 5:
                 flag = True
 
@@ -571,7 +575,17 @@ class SelectCombatStage(CustomAction):
 
         # 判断是否主线章节（数字），并确定大章节编号
         if mainChapter.isdigit():
-            mainStoryChapter = 1 if int(mainChapter) <= 7 else 2 if int(mainChapter) <= 10 else 3
+            # 大章节（卷）编号：1-7 第1卷「生者与余众」，8-10 第2卷「旅行归来」，
+            # 11-13 第3卷「故事的根须」，14+ 第4卷「未选择的路」（4.0 新增）
+            chapter_num = int(mainChapter)
+            if chapter_num <= 7:
+                mainStoryChapter = 1
+            elif chapter_num <= 10:
+                mainStoryChapter = 2
+            elif chapter_num <= 13:
+                mainStoryChapter = 3
+            else:
+                mainStoryChapter = 4
             # 主线关卡流程
             pipeline = {
                 "EnterTheShowFlag": {"next": ["MainChapter_X"]},
