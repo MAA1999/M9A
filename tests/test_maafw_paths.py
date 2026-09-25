@@ -86,8 +86,8 @@ def test_main_resolves_native_runtime_before_importing_maa(tmp_path: Path) -> No
         "import os, runpy; "
         "runpy.run_path('agent/main.py', run_name='import_only'); "
         "from maa.library import Library; "
-        "print('M9A_ENV=' + str(os.environ.get('MAAFW_BINARY_PATH'))); "
-        "print('M9A_LIB=' + str(Library.framework_libpath))"
+        "print('MAAFW_BINARY_PATH=' + str(os.environ.get('MAAFW_BINARY_PATH'))); "
+        "print('MAAFW_LOADED_LIB=' + str(Library.framework_libpath))"
     )
     result = subprocess.run(
         [sys.executable, "-I", "-c", code],
@@ -100,13 +100,13 @@ def test_main_resolves_native_runtime_before_importing_maa(tmp_path: Path) -> No
     assert result.returncode == 0, result.stderr
     reported: dict[str, str] = {}
     for line in result.stdout.splitlines():
-        if line.startswith("M9A_"):
+        if line.startswith("MAAFW_"):
             key, _, value = line.partition("=")
             reported[key] = value
 
     # 断言子进程自己的环境与加载结果：父进程看子进程的 environ 永远看不出问题
-    assert Path(reported["M9A_ENV"]) == native, "子进程应当把 MAAFW_BINARY_PATH 指到宿主那份"
-    assert Path(reported["M9A_LIB"]) == native / current_names()[0]
+    assert Path(reported["MAAFW_BINARY_PATH"]) == native, "子进程应当把 MAAFW_BINARY_PATH 指到宿主那份"
+    assert Path(reported["MAAFW_LOADED_LIB"]) == native / current_names()[0]
 
 
 def test_runtime_platform_tag_follows_platform_and_machine(monkeypatch: pytest.MonkeyPatch) -> None:
