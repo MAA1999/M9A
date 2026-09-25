@@ -140,7 +140,7 @@ jobs:
 
             Push-Location $packageRoot
             try {
-              & $python -I -c 'import sys; sys.path.insert(0, "agent"); import loguru, maa, PIL, pytz, requests; import agent_runtime, custom; print("embedded Python imports passed")'
+              & $python -I -c 'import sys; sys.path.insert(0, "agent"); import maafw_paths; resolved = maafw_paths.ensure_maafw_binary_path(); assert resolved, "client MaaFW runtime was not resolved"; import loguru, maa, PIL, pytz, requests; import agent_runtime, custom; custom.register_all(); from maa.library import Library; print("embedded Python smoke passed:", Library.version(), Library.framework_libpath)'
               if ($LASTEXITCODE -ne 0) {
                 throw "Embedded Python import smoke failed in $packageName"
               }
@@ -208,7 +208,7 @@ jobs:
 
             (
               cd "$package"
-              ./python/bin/python3 -I -c 'import sys; sys.path.insert(0, "agent"); import loguru, maa, PIL, pytz, requests; import agent_runtime, custom; print("embedded Python imports passed")'
+              ./python/bin/python3 -I -c 'import sys; sys.path.insert(0, "agent"); import maafw_paths; resolved = maafw_paths.ensure_maafw_binary_path(); assert resolved, "client MaaFW runtime was not resolved"; import loguru, maa, PIL, pytz, requests; import agent_runtime, custom; custom.register_all(); from maa.library import Library; print("embedded Python smoke passed:", Library.version(), Library.framework_libpath)'
               ./python/bin/python3 -I -m compileall -q agent
             )
             echo "[OK] $package_name"

@@ -338,11 +338,13 @@ function prepareReleasePackage(guiKey, gui, packagePaths, interfaceJson, runtime
     }
     if (packageHasAgent(interfaceJson)) {
         copyPath(pythonRuntimePath(runtimePlatform), join(pkgDir, "python"));
+        stripAgentNativeRuntime(pkgDir);
     }
     if (!gui.flatLayout) {
         prepareMxuMaafwRuntime(pkgDir, runtimePlatform);
         removeFiles(pkgDir, (name) => name.toLowerCase().endsWith(".pdb"));
     }
+    ensureClientNativePluginsDir(pkgDir, gui, runtimePlatform);
     if (runtimePlatform.startsWith("win-")) {
         for (const file of [
             "ModifyPCRegistry.ps1",
@@ -356,6 +358,54 @@ function prepareReleasePackage(guiKey, gui, packagePaths, interfaceJson, runtime
     }
 
     ensureUnixExecutablePermissions(pkgDir, runtimePlatform);
+}
+
+// 客户端包里已经带了同一批 MaaFramework 原生库（MFAA 在 runtimes/<platform>/native，MXU 在
+// maafw/），Agent 侧改由 MAAFW_BINARY_PATH 复用，内置解释器不再装第二份（解压后 42~59 MiB）。
+function stripAgentNativeRuntime(pkgDir) {
+    findAgentNativeRuntimes(join(pkgDir, "python"), (path) => rmSync(path, {recursive: true, force: true}));
+}
+
+// MaaFramework 的 PluginMgr 在插件目录缺失时会把 "plugins" 当库文件加载失败，打四条 ERR 日志；
+// 目录存在但没有插件则不报。这个目录是 Agent 与 GUI 共用的加载根。
+function ensureClientNativePluginsDir(pkgDir, gui, runtimePlatform) {
+    mkdirSync(join(clientNativeRuntimePath(pkgDir, gui, runtimePlatform), "plugins"), {recursive: true});
+}
+
+function clientNativeRuntimePath(root, gui, runtimePlatform) {
+    return gui.flatLayout ? join(root, "runtimes", runtimePlatform, "native") : join(root, "maafw");
+}
+
+function frameworkLibraryNames(runtimePlatform) {
+    if (runtimePlatform.startsWith("win-"))
+        return [
+            "MaaFramework.dll",
+            "MaaAgentServer.dll",
+        ];
+    if (runtimePlatform.startsWith("osx-"))
+        return [
+            "libMaaFramework.dylib",
+            "libMaaAgentServer.dylib",
+        ];
+    return [
+        "libMaaFramework.so",
+        "libMaaAgentServer.so",
+    ];
+}
+
+function isAgentNativeRuntimePath(path) {
+    return (
+        basename(path) === "bin" &&
+        basename(dirname(path)) === "maa" &&
+        basename(dirname(dirname(path))) === "site-packages"
+    );
+}
+
+function findAgentNativeRuntimes(root, visit) {
+    if (!existsSync(root)) return;
+    walkDirectories(root, (path) => {
+        if (isAgentNativeRuntimePath(path)) visit(path);
+    });
 }
 
 function prepareMxuMaafwRuntime(pkgDir, runtimePlatform) {
@@ -431,6 +481,9 @@ function smokeReleasePackage(gui, root, packagePaths, runtimePlatform) {
         }
     }
 
+    assertAgentNativeRuntimeStripped(root);
+    assertClientNativeRuntime(root, gui, runtimePlatform);
+
     const packagedInterface = readJson(join(root, "interface.json"));
     if (!isRecord(packagedInterface)) {
         throw new Error("release package smoke failed: interface.json must be an object");
@@ -460,6 +513,29 @@ function smokeReleasePackage(gui, root, packagePaths, runtimePlatform) {
         if (!existsSync(join(root, relativePath))) {
             throw new Error(`release package smoke failed: referenced path is missing: ${path}`);
         }
+    }
+}
+
+function assertAgentNativeRuntimeStripped(root) {
+    const found = [];
+    findAgentNativeRuntimes(join(root, "python"), (path) => found.push(path));
+    if (found.length > 0) {
+        throw new Error(
+            "release package smoke failed: Agent must reuse the client MaaFW runtime, " +
+                `but the bundled interpreter still ships one: ${found.join(", ")}`,
+        );
+    }
+}
+
+function assertClientNativeRuntime(root, gui, runtimePlatform) {
+    const nativeDir = clientNativeRuntimePath(root, gui, runtimePlatform);
+    for (const name of frameworkLibraryNames(runtimePlatform)) {
+        if (!existsSync(join(nativeDir, name))) {
+            throw new Error(`release package smoke failed: Agent native runtime is missing: ${join(nativeDir, name)}`);
+        }
+    }
+    if (!existsSync(join(nativeDir, "plugins"))) {
+        throw new Error(`release package smoke failed: plugins directory is missing: ${join(nativeDir, "plugins")}`);
     }
 }
 
@@ -558,6 +634,16 @@ function walkFiles(root, visit) {
         } else if (entry.isFile()) {
             visit(path, entry.name);
         }
+    }
+}
+
+function walkDirectories(root, visit) {
+    for (const entry of readdirSync(root, {withFileTypes: true})) {
+        if (!entry.isDirectory()) continue;
+        const path = join(root, entry.name);
+        visit(path, entry.name);
+        // visit 可能已经删掉了这个目录（剥离 Agent 原生库就是这么做的）
+        if (existsSync(path)) walkDirectories(path, visit);
     }
 }
 

@@ -6,6 +6,7 @@ import os
 import sys
 from typing import Any
 
+from maafw_paths import ENV_NAME
 from utils import logger
 from utils.runtime_paths import configure_runtime_paths, get_runtime_paths
 
@@ -135,6 +136,9 @@ def _hot_update() -> None:
 # -------------
 def run_agent(project_root_dir: str) -> int:
     configure_runtime_paths(project_root=project_root_dir, work_root=os.getcwd())
+
+    # info 而非 debug:发行包复用客户端原生库,开发机 sync 过 runtimes 后也会静默改源,版本漂移时要能一眼看出来
+    logger.info("MaaFW 二进制目录: {}", os.environ.get(ENV_NAME) or "wheel 自带 (site-packages/maa/bin)")
 
     try:
         logger.info(f"maafw {importlib.metadata.version('maafw')}")
