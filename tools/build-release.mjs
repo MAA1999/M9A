@@ -57,6 +57,8 @@ const GUI_TYPES = {
             const displayName =
                 typeof modified.label === "string" && modified.label.trim() ? modified.label.trim() : slug;
             modified.title = `${displayName} ${ver} | MXU`;
+            // M9A's MXU build is registered with MirrorChyan as its own product, and the id is
+            // agreed per project rather than derived, so it is stated here.
             modified.mirrorchyan_rid = "M9A-MXU";
             // Deliberately no agent override: prepareReleaseInterface already sets the
             // platform-correct command (the bundled interpreter running agent/main.py), and
@@ -107,6 +109,7 @@ function main() {
     }
 
     for (const path of [
+        ...(typeof interfaceJson.icon === "string" ? [interfaceJson.icon] : []),
         ...strings(interfaceJson.resource),
         ...strings(interfaceJson.import),
         ...interfaceLanguagePaths(interfaceJson.languages),
@@ -267,6 +270,9 @@ function releasePackagePaths(interfaceJson, guiKey) {
     if (packageHasAgent(interfaceJson)) {
         paths.push("agent");
     }
+    if (typeof interfaceJson.icon === "string" && interfaceJson.icon) {
+        paths.push(interfaceJson.icon);
+    }
     return paths;
 }
 
@@ -286,6 +292,9 @@ function packageHasAgent(interfaceJson) {
 function prepareReleaseInterface(interfaceJson, version, runtimePlatform) {
     const releaseInterface = {...interfaceJson, version};
     delete releaseInterface.$schema;
+    if (releaseInterface.icon === undefined && existsSync("logo.ico")) {
+        releaseInterface.icon = "logo.ico";
+    }
     if (packageHasAgent(interfaceJson)) {
         releaseInterface.agent = interfaceJson.agent.map((agent) =>
             isRecord(agent)
@@ -345,30 +354,25 @@ function prepareReleasePackage(guiKey, gui, packagePaths, interfaceJson, runtime
         removeFiles(pkgDir, (name) => name.toLowerCase().endsWith(".pdb"));
     }
     ensureClientNativePluginsDir(pkgDir, gui, runtimePlatform);
-    if (runtimePlatform.startsWith("win-")) {
-        for (const file of [
-            "ModifyPCRegistry.ps1",
-            "游戏PC端注册表修改_ModifyPCRegistry.bat",
-        ]) {
-            const source = join("tools/registry", file);
-            if (existsSync(source)) {
-                copyPath(source, join(pkgDir, file));
-            }
-        }
+    // Windows packages can ship game-side helper files straight from tools/registry/.
+    if (runtimePlatform.startsWith("win-") && existsSync("tools/registry")) {
+        copyDirectoryContents("tools/registry", pkgDir);
     }
 
     ensureUnixExecutablePermissions(pkgDir, runtimePlatform);
 }
 
-// 客户端包里已经带了同一批 MaaFramework 原生库（MFAA 布局在 runtimes/<platform>/native，MXU
-// 布局在 maafw/，CLI 壳的包平铺在包根），Agent 侧改由 MAAFW_BINARY_PATH 复用，内置解释器
-// 不再装第二份（每包数十 MiB）。
+// The client packages already carry the same MaaFramework libraries (MFAA under
+// runtimes/<platform>/native, MXU under maafw/, CLI shells flat at the package root), and the
+// Agent reuses that copy through MAAFW_BINARY_PATH, so the bundled interpreter must not ship a
+// second one (tens of MiB per package).
 function stripAgentNativeRuntime(pkgDir) {
     findAgentNativeRuntimes(join(pkgDir, "python"), (path) => rmSync(path, {recursive: true, force: true}));
 }
 
-// MaaFramework 的 PluginMgr 在插件目录缺失时会把 "plugins" 当库文件加载失败，打四条 ERR 日志；
-// 目录存在但没有插件则不报。这个目录是 Agent 与 GUI 共用的加载根。
+// MaaFramework's PluginMgr treats a missing plugin directory as a failed library load and logs
+// four ERR lines on every start; an existing but empty directory stays quiet. This is the load root
+// the Agent and the GUI share.
 function ensureClientNativePluginsDir(pkgDir, gui, runtimePlatform) {
     mkdirSync(join(clientNativeRuntimePath(pkgDir, gui, runtimePlatform), "plugins"), {recursive: true});
 }
@@ -441,9 +445,8 @@ function smokeReleasePackage(gui, root, packagePaths, runtimePlatform) {
         throw new Error("release package smoke failed: package must not contain a top-level wrapper directory");
     }
     for (const path of packagePaths) {
-        const packagePath = path;
-        if (!existsSync(join(root, packagePath))) {
-            throw new Error(`release package smoke failed: package path is missing: ${packagePath}`);
+        if (!existsSync(join(root, path))) {
+            throw new Error(`release package smoke failed: package path is missing: ${path}`);
         }
     }
     for (const path of releaseDevPaths()) {
@@ -503,6 +506,7 @@ function smokeReleasePackage(gui, root, packagePaths, runtimePlatform) {
     }
     assertUnixExecutablePermissions(root, runtimePlatform);
     for (const path of [
+        ...(typeof packagedInterface.icon === "string" ? [packagedInterface.icon] : []),
         ...interfaceResourcePaths(packagedInterface.resource),
         ...strings(packagedInterface.import),
         ...interfaceLanguagePaths(packagedInterface.languages),
@@ -643,7 +647,7 @@ function walkDirectories(root, visit) {
         if (!entry.isDirectory()) continue;
         const path = join(root, entry.name);
         visit(path, entry.name);
-        // visit 可能已经删掉了这个目录（剥离 Agent 原生库就是这么做的）
+        // visit may already have removed this directory (that is how the Agent native runtime is stripped)
         if (existsSync(path)) walkDirectories(path, visit);
     }
 }
@@ -740,6 +744,8 @@ function detectReleaseTag() {
     return typeof ref === "string" && ref.startsWith("refs/tags/") ? ref.slice("refs/tags/".length) : undefined;
 }
 
+// Lets CI and local runs build a staging package without pushing a tag, the way the
+// package-smoke workflow does.
 function commandLineValue(name) {
     const index = process.argv.indexOf(name);
     if (index < 0) return undefined;
