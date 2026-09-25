@@ -360,8 +360,9 @@ function prepareReleasePackage(guiKey, gui, packagePaths, interfaceJson, runtime
     ensureUnixExecutablePermissions(pkgDir, runtimePlatform);
 }
 
-// 客户端包里已经带了同一批 MaaFramework 原生库（MFAA 在 runtimes/<platform>/native，MXU 在
-// maafw/），Agent 侧改由 MAAFW_BINARY_PATH 复用，内置解释器不再装第二份（解压后 42~59 MiB）。
+// 客户端包里已经带了同一批 MaaFramework 原生库（MFAA 布局在 runtimes/<platform>/native，MXU
+// 布局在 maafw/，CLI 壳的包平铺在包根），Agent 侧改由 MAAFW_BINARY_PATH 复用，内置解释器
+// 不再装第二份（每包数十 MiB）。
 function stripAgentNativeRuntime(pkgDir) {
     findAgentNativeRuntimes(join(pkgDir, "python"), (path) => rmSync(path, {recursive: true, force: true}));
 }

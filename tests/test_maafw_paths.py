@@ -108,11 +108,12 @@ def test_runtime_platform_tag_rejects_unknown_platform(monkeypatch: pytest.Monke
     assert runtime_platform_tag() is None
 
 
-def test_candidate_dirs_cover_mfaa_and_mxu_layouts(tmp_path: Path) -> None:
+def test_candidate_dirs_cover_all_package_layouts(tmp_path: Path) -> None:
     candidates = candidate_library_dirs(tmp_path)
 
     assert candidates[0] == tmp_path / current_native_relative()
-    assert candidates[-1] == tmp_path / "maafw"
+    assert candidates[1] == tmp_path / "maafw"
+    assert candidates[-1] == tmp_path
 
 
 def test_find_maafw_library_dir_requires_both_libraries(tmp_path: Path) -> None:
@@ -126,17 +127,32 @@ def test_find_maafw_library_dir_requires_both_libraries(tmp_path: Path) -> None:
     assert find_maafw_library_dir(tmp_path) == tmp_path / relative
 
 
-def test_find_maafw_library_dir_prefers_mfaa_layout(tmp_path: Path) -> None:
+def test_find_maafw_library_dir_prefers_runtimes_native_layout(tmp_path: Path) -> None:
     preferred = make_native_dir(tmp_path, current_native_relative(), current_names())
     make_native_dir(tmp_path, "maafw", current_names())
 
     assert find_maafw_library_dir(tmp_path) == preferred
 
 
-def test_find_maafw_library_dir_falls_back_to_mxu_layout(tmp_path: Path) -> None:
+def test_find_maafw_library_dir_falls_back_to_maafw_dir_layout(tmp_path: Path) -> None:
     expected = make_native_dir(tmp_path, "maafw", current_names())
 
     assert find_maafw_library_dir(tmp_path) == expected
+
+
+def test_find_maafw_library_dir_falls_back_to_flat_root_layout(tmp_path: Path) -> None:
+    # CLI 壳（MaaPiCli）的包：库平铺在包根
+    make_native_dir(tmp_path, ".", current_names())
+
+    assert find_maafw_library_dir(tmp_path) == tmp_path
+
+
+def test_find_maafw_library_dir_prefers_client_layout_over_flat_root(tmp_path: Path) -> None:
+    # 顺序保证：客户端布局（runtimes-native / maafw 子目录）命中在前，平铺根只在没有更优候选时兜底
+    preferred = make_native_dir(tmp_path, current_native_relative(), current_names())
+    make_native_dir(tmp_path, ".", current_names())
+
+    assert find_maafw_library_dir(tmp_path) == preferred
 
 
 def test_ensure_maafw_binary_path_points_at_packaged_runtime(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

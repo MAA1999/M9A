@@ -1,7 +1,8 @@
-"""复用客户端那份 MaaFramework 原生库。
+"""复用客户端（宿主）那份 MaaFramework 原生库。
 
-发行包不再随 agent 的 Python 运行时携带第二份原生库（各平台解压后 42~59 MiB）：MFAA 包用
-``runtimes/<os>-<arch>/native``，MXU 包用 ``maafw/``，都是客户端已经在加载的同一批文件。
+发行包不再随 agent 的 Python 运行时携带第二份原生库（每包数十 MiB）：MFAA 布局放在
+``runtimes/<os>-<arch>/native``，MXU 布局放在 ``maafw/``，CLI 壳（MaaPiCli）的包把库
+平铺在包根——它们都是客户端已经在加载的同一批文件。
 
 maa 在导入时就读 MAAFW_BINARY_PATH 定死库目录，所以本模块必须在任何会 import maa 的模块之前
 调用（``utils`` 包在导入时就连带 import maa）。放成 agent/ 下的顶层模块是为了这个：按包路径
@@ -62,6 +63,9 @@ def candidate_library_dirs(project_root: Path | None = None) -> list[Path]:
     if tag is not None:
         candidates.append(root / "runtimes" / tag / "native")
     candidates.append(root / "maafw")
+    # CLI 壳（MaaPiCli）的包把库平铺在包根。GUI 布局的包与开发态的根上都不会有这两库，
+    # 放最后只作兜底，不会改变既有环境里的解析结果。
+    candidates.append(root)
     return candidates
 
 
