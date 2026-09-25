@@ -3,6 +3,7 @@ import platform
 import shutil
 import subprocess
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -17,6 +18,21 @@ from agent.maafw_paths import (
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.fixture(autouse=True)
+def isolate_maafw_env() -> Iterator[None]:
+    """每个用例都从"未设置"开始，结束后也不留下变量。
+
+    ``ensure_maafw_binary_path`` 直接写 ``os.environ``，而 monkeypatch 只对"删除前已存在"的键记录还原项：
+    变量原本不存在时，用例里写进去的值会活到整个测试会话结束，后面跑子进程的用例会连它一起继承，
+    断言随之漂移。这里显式接管，顺带把开发机 shell 里原有的值还原回去。
+    """
+    original = os.environ.pop(ENV_NAME, None)
+    yield
+    os.environ.pop(ENV_NAME, None)
+    if original is not None:
+        os.environ[ENV_NAME] = original
 
 
 def make_native_dir(root: Path, relative: str, names: tuple[str, ...]) -> Path:
@@ -67,10 +83,11 @@ def test_main_resolves_native_runtime_before_importing_maa(tmp_path: Path) -> No
     native = make_native_dir(package, current_native_relative(), current_names())
 
     code = (
-        "import runpy; "
+        "import os, runpy; "
         "runpy.run_path('agent/main.py', run_name='import_only'); "
         "from maa.library import Library; "
-        "print(Library.framework_libpath)"
+        "print('M9A_ENV=' + str(os.environ.get('MAAFW_BINARY_PATH'))); "
+        "print('M9A_LIB=' + str(Library.framework_libpath))"
     )
     result = subprocess.run(
         [sys.executable, "-I", "-c", code],
@@ -81,9 +98,15 @@ def test_main_resolves_native_runtime_before_importing_maa(tmp_path: Path) -> No
     )
 
     assert result.returncode == 0, result.stderr
-    framework = current_names()[0]
-    assert Path(result.stdout.strip()) == native / framework
-    assert os.environ.get(ENV_NAME) is None, "测试进程本身不该被改环境变量"
+    reported: dict[str, str] = {}
+    for line in result.stdout.splitlines():
+        if line.startswith("M9A_"):
+            key, _, value = line.partition("=")
+            reported[key] = value
+
+    # 断言子进程自己的环境与加载结果：父进程看子进程的 environ 永远看不出问题
+    assert Path(reported["M9A_ENV"]) == native, "子进程应当把 MAAFW_BINARY_PATH 指到宿主那份"
+    assert Path(reported["M9A_LIB"]) == native / current_names()[0]
 
 
 def test_runtime_platform_tag_follows_platform_and_machine(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -155,16 +178,14 @@ def test_find_maafw_library_dir_prefers_client_layout_over_flat_root(tmp_path: P
     assert find_maafw_library_dir(tmp_path) == preferred
 
 
-def test_ensure_maafw_binary_path_points_at_packaged_runtime(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv(ENV_NAME, raising=False)
+def test_ensure_maafw_binary_path_points_at_packaged_runtime(tmp_path: Path) -> None:
     expected = make_native_dir(tmp_path, current_native_relative(), current_names())
 
     assert ensure_maafw_binary_path(tmp_path) == expected
     assert os.environ[ENV_NAME] == str(expected)
 
 
-def test_ensure_maafw_binary_path_ignores_empty_packaged_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delenv(ENV_NAME, raising=False)
+def test_ensure_maafw_binary_path_ignores_empty_packaged_dir(tmp_path: Path) -> None:
     # 开发机现状：runtimes/<tag>/native 存在但是空的（要 pnpm sync:runtime 才有内容）。
     # 指过去要到第一次建 Tasker 时才炸 Could not find module，必须在 import maa 之前就放弃。
     (tmp_path / current_native_relative()).mkdir(parents=True)
@@ -183,20 +204,12 @@ def test_ensure_maafw_binary_path_keeps_injected_value(tmp_path: Path, monkeypat
     assert os.environ[ENV_NAME] == str(injected)
 
 
-def test_ensure_maafw_binary_path_accepts_str_project_root(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.delenv(ENV_NAME, raising=False)
+def test_ensure_maafw_binary_path_accepts_str_project_root(tmp_path: Path) -> None:
     expected = make_native_dir(tmp_path, current_native_relative(), current_names())
 
     assert ensure_maafw_binary_path(str(tmp_path)) == expected
 
 
-def test_ensure_maafw_binary_path_returns_none_without_any_runtime(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.delenv(ENV_NAME, raising=False)
-
+def test_ensure_maafw_binary_path_returns_none_without_any_runtime(tmp_path: Path) -> None:
     assert ensure_maafw_binary_path(tmp_path) is None
     assert ENV_NAME not in os.environ
