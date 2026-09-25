@@ -17,6 +17,21 @@ def gui_entrypoint(gui: str, platform: str) -> str:
     return "mxu.exe" if windows else "mxu"
 
 
+def framework_library_names(platform: str) -> tuple[str, str]:
+    if platform.startswith("win-"):
+        return ("MaaFramework.dll", "MaaAgentServer.dll")
+    if platform.startswith("osx-"):
+        return ("libMaaFramework.dylib", "libMaaAgentServer.dylib")
+    return ("libMaaFramework.so", "libMaaAgentServer.so")
+
+
+def python_site_packages(root: Path, platform: str) -> Path:
+    runtime = root / f".create-maa-project/runtime/python/{platform}"
+    if platform.startswith("win-"):
+        return runtime / "Lib/site-packages"
+    return runtime / "lib/python3.13/site-packages"
+
+
 def prepare_release_project(
     root: Path,
     imports: list[str] | None = None,
@@ -54,7 +69,8 @@ def prepare_release_project(
         (root / relative_path).mkdir(parents=True)
 
     (root / f"runtimes/{platform}/native/MaaPiCli.exe").write_bytes(b"cli")
-    (root / f"runtimes/{platform}/native/MaaFramework.dll").write_bytes(b"maafw")
+    for name in framework_library_names(platform):
+        (root / f"runtimes/{platform}/native/{name}").write_bytes(b"maafw")
     for gui in ("mfaa", "mxu"):
         entrypoint = root / f".create-maa-project/runtime/{gui}/{platform}/{gui_entrypoint(gui, platform)}"
         entrypoint.write_bytes(b"gui")
@@ -62,6 +78,11 @@ def prepare_release_project(
     interpreter = interpreter / ("python.exe" if platform.startswith("win-") else "bin/python3")
     interpreter.parent.mkdir(parents=True, exist_ok=True)
     interpreter.write_bytes(b"python")
+    # Agent 侧那份原生库由 build-release.mjs 删除；绑定的 Python 代码必须留下
+    maa_package = python_site_packages(root, platform) / "maa"
+    (maa_package / "bin").mkdir(parents=True)
+    (maa_package / "bin/MaaFramework.dll").write_bytes(b"stale-agent-copy")
+    (maa_package / "__init__.py").write_text("# maa\n", encoding="utf-8")
     (root / "agent/main.py").write_text("# main\n", encoding="utf-8")
     (root / "agent/__pycache__/main.cpython-313.pyc").write_bytes(b"cache")
     (root / "agent/main.pyo").write_bytes(b"cache")
@@ -176,6 +197,37 @@ def test_release_linux_mxu_package_ships_embedded_python(tmp_path: Path) -> None
     assert not (package_root / "deps").exists()
     for relative_path in ("runtimes", "libs", "plugins"):
         assert not (package_root / relative_path).exists()
+
+
+def test_release_package_reuses_client_native_runtime(tmp_path: Path) -> None:
+    prepare_release_project(tmp_path)
+
+    result = run_release_builder(tmp_path)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    package_root = tmp_path / "dist/package-mfaa"
+    # Agent 不再随内置解释器带第二份原生库，改由 MAAFW_BINARY_PATH 复用客户端那份
+    assert not (package_root / "python/Lib/site-packages/maa/bin").exists()
+    assert (package_root / "python/Lib/site-packages/maa/__init__.py").is_file()
+    native = package_root / "runtimes/win-x64/native"
+    for name in framework_library_names("win-x64"):
+        assert (native / name).is_file(), f"{name} is missing from the shared runtime"
+    assert (native / "plugins").is_dir()
+
+
+def test_release_mxu_package_reuses_client_native_runtime(tmp_path: Path) -> None:
+    prepare_release_project(tmp_path, mxu=True, platform="linux-x64")
+
+    result = run_release_builder(tmp_path, platform="linux-x64")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    package_root = tmp_path / "dist/package-mxu"
+    assert not (package_root / "python/lib/python3.13/site-packages/maa/bin").exists()
+    assert (package_root / "python/lib/python3.13/site-packages/maa/__init__.py").is_file()
+    native = package_root / "maafw"
+    for name in framework_library_names("linux-x64"):
+        assert (native / name).is_file(), f"{name} is missing from the shared runtime"
+    assert (native / "plugins").is_dir()
 
 
 def test_release_package_includes_translation_files(tmp_path: Path) -> None:
