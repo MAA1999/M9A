@@ -387,10 +387,10 @@ function stripAgentNativeRuntime(pkgDir) {
         stripped.push(path);
     });
     if (stripped.length === 0) {
-        // The interpreter is prepared with the Agent dependencies installed, so an empty result means
-        // either an earlier run already stripped this interpreter, or the wheel layout changed and the
-        // duplicate would ship again unnoticed.
-        console.warn("[WARN] No bundled MaaFW native runtime found to strip under python/.");
+        // The package always gets a fresh copy of the interpreter, which the Agent dependencies were
+        // installed into, so finding nothing means the wheel layout changed and the duplicate would
+        // ship again unnoticed.
+        throw new Error("release package path is missing: no bundled MaaFW native runtime under python/");
     }
 }
 
