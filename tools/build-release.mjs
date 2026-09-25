@@ -72,6 +72,13 @@ function main() {
     const dryRun = process.argv.includes("--dry-run");
     const releaseTagOverride = commandLineValue("--release-tag");
     mkdirSync("dist", {recursive: true});
+    // The release workflow archives every dist/package-*, so a package left over from an earlier run
+    // (a GUI that has since been disabled, for example) would be published again.
+    for (const entry of readdirSync("dist", {withFileTypes: true})) {
+        if (entry.isDirectory() && entry.name.startsWith("package-")) {
+            rmSync(join("dist", entry.name), {recursive: true, force: true});
+        }
+    }
 
     const project = readJson("maa-project.json");
     const interfaceJson = readJson("interface.json");
@@ -110,7 +117,7 @@ function main() {
 
     for (const path of [
         ...(typeof interfaceJson.icon === "string" ? [interfaceJson.icon] : []),
-        ...strings(interfaceJson.resource),
+        ...interfaceResourcePaths(interfaceJson.resource),
         ...strings(interfaceJson.import),
         ...interfaceLanguagePaths(interfaceJson.languages),
     ]) {
@@ -197,6 +204,9 @@ function main() {
         }
     }
 
+    // These names are a contract with the upload workflows (they match -win-/-linux-/-macos- and the
+    // GUI suffix), so the check stays independent of the rendered target matrix: a target that does
+    // not fit the convention has to fail here instead of publishing a name nothing else can match.
     const suffixPattern = enabledGuis.map((g) => GUI_TYPES[g].suffix).join("|");
     for (const artifact of artifacts) {
         if (
@@ -236,8 +246,11 @@ function strings(value) {
     return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
 
+// A resource entry is either a path or an object whose path is one or more paths, so both shapes
+// have to be walked here: the pre-build validation and the package smoke use the same list.
 function interfaceResourcePaths(value) {
-    return Array.isArray(value) ? value.flatMap((item) => (isRecord(item) ? strings(item.path) : [])) : [];
+    if (!Array.isArray(value)) return [];
+    return value.flatMap((item) => (typeof item === "string" ? [item] : isRecord(item) ? strings(item.path) : []));
 }
 
 // interface.json `languages` maps a language code to its translation file. If one of
@@ -368,7 +381,17 @@ function prepareReleasePackage(guiKey, gui, packagePaths, interfaceJson, runtime
 // Agent reuses that copy through MAAFW_BINARY_PATH, so the bundled interpreter must not ship a
 // second one (tens of MiB per package).
 function stripAgentNativeRuntime(pkgDir) {
-    findAgentNativeRuntimes(join(pkgDir, "python"), (path) => rmSync(path, {recursive: true, force: true}));
+    const stripped = [];
+    findAgentNativeRuntimes(join(pkgDir, "python"), (path) => {
+        rmSync(path, {recursive: true, force: true});
+        stripped.push(path);
+    });
+    if (stripped.length === 0) {
+        // The interpreter is prepared with the Agent dependencies installed, so an empty result means
+        // either an earlier run already stripped this interpreter, or the wheel layout changed and the
+        // duplicate would ship again unnoticed.
+        console.warn("[WARN] No bundled MaaFW native runtime found to strip under python/.");
+    }
 }
 
 // MaaFramework's PluginMgr treats a missing plugin directory as a failed library load and logs
