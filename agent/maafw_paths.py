@@ -8,7 +8,7 @@ maa 在导入时就读 MAAFW_BINARY_PATH 定死库目录，所以本模块必须
 调用（``utils`` 包在导入时就连带 import maa）。放成 agent/ 下的顶层模块是为了这个：按包路径
 ``agent.maafw_paths`` 导入同样安全，走 utils 包则不行。
 
-开发态这两个目录要么不存在要么是空的（runtimes/ 由 pnpm sync:runtime 填充），此时不设变量，
+开发态这两个目录要么不存在要么是空的（runtimes/ 只在发行包构建时同步下来），此时不设变量，
 继续用 wheel 自带的 site-packages/maa/bin。
 """
 
