@@ -103,7 +103,7 @@ node tools/i18n/sync-ocr.mjs --check    # dry-run 校验，已接入 pnpm check�
 
 ### 判定与写回规则
 
-- OCR 节点判定：`recognition == "OCR"` 或 `recognition.type == "OCR"`；
+- OCR 节点判定：`recognition == "OCR"` 或 `recognition.type == "OCR"`；Or/And 复合识别的 `any_of`/`all_of` 子识别（含嵌套）同样纳入；
 - `expected` 取值位置依次为 `recognition.param.expected` → `recognition.expected` → 节点级 `expected`；字符串与字符串数组都接受，写回统一展开为数组；
 - 按映射展开五语；跨语种相同文本去重，缺失语种跳过；
 - 写回时在数组上方保留一行 `// @i18n-src: ["原文", ...]` 注释，固化作者的原始意图：重跑时从注释重建，映射变更后旧的展开产物不会残留；

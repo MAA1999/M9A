@@ -7,7 +7,7 @@
 //（每种语言可为字符串或候选数组，展开时全部进入 expected）；node_overrides 按节点
 // 覆盖整行；untranslatable 是刻意保留单语的正则/截断片段。英文在展开时统一转为
 // (?i) + 词间 \s* + 词边界 \b 的宽松正则；官方值里的富文本标记（<alpha=#..> 等）
-// 渲染后不存在于 OCR 文本，展开前剥离。Or/And 复合识别的 any_of 子识别同样展开。
+// 渲染后不存在于 OCR 文本，展开前剥离。Or/And 复合识别的 any_of/all_of 子识别（含嵌套）同样展开。
 // JSONC 感知：经 jsonc-parser 语法树偏移原位替换，注释与排版保留，重复运行幂等。
 import {readFileSync, writeFileSync, readdirSync} from "node:fs";
 import {join} from "node:path";
@@ -125,51 +125,47 @@ function propMember(objNode, key) {
     return undefined;
 }
 
-// 收集节点上所有待展开的 expected 单元：主识别 + Or/And 的 any_of 子识别。
-// 每个单元自带 recNode（roi 所在的识别对象），子识别不回退节点级 roi。
+// 收集节点上所有待展开的 expected 单元：主识别 + Or/And 复合识别的 any_of/all_of
+// 子识别（含嵌套复合）。每个单元自带 recNode（roi 所在的识别对象），子识别不回退
+// 节点级 roi。
 function collectUnits(body) {
     const units = [];
-    const rec = prop(body, "recognition");
-    let isOcr = false;
-    if (rec?.type === "string" && rec.value === "OCR") {
-        isOcr = true;
-    } else if (rec?.type === "object") {
-        const type = prop(rec, "type")?.value;
+    const walk = (recNode, container, allowBodyRoi, depth) => {
+        if (!recNode || depth > 8) return;
+        if (recNode.type === "string") {
+            // 简写 recognition: "OCR"——expected 在容器层（顶层为节点级，子层为 item 级）
+            if (recNode.value === "OCR") {
+                const m = propMember(container, "expected");
+                if (m) units.push({member: m, recNode: null, allowBodyRoi});
+            }
+            return;
+        }
+        if (recNode.type !== "object") return;
+        const type = prop(recNode, "type")?.value;
         if (type === "OCR") {
-            isOcr = true;
-        } else if (type === "Or" || type === "And") {
-            const anyOf = prop(prop(rec, "param") ?? {}, "any_of");
-            for (const item of anyOf?.type === "array" ? anyOf.children : []) {
-                if (item?.type !== "object") continue;
-                const subRec = prop(item, "recognition");
-                if (!subRec) continue;
-                let member;
-                if (subRec.type === "string" && subRec.value === "OCR") {
-                    member = propMember(item, "expected");
-                } else if (subRec.type === "object" && prop(subRec, "type")?.value === "OCR") {
-                    const subParam = prop(subRec, "param");
-                    member =
-                        (subParam?.type === "object" ? propMember(subParam, "expected") : undefined) ??
-                        propMember(subRec, "expected");
+            const param = prop(recNode, "param");
+            const m =
+                (param?.type === "object" ? propMember(param, "expected") : undefined) ??
+                propMember(recNode, "expected") ??
+                (allowBodyRoi ? propMember(container, "expected") : undefined);
+            if (m) units.push({member: m, recNode, allowBodyRoi});
+            return;
+        }
+        if (type === "Or" || type === "And") {
+            const param = prop(recNode, "param");
+            for (const key of [
+                "any_of",
+                "all_of",
+            ]) {
+                const list = prop(param ?? {}, key);
+                for (const item of list?.type === "array" ? list.children : []) {
+                    if (item?.type !== "object") continue;
+                    walk(prop(item, "recognition"), item, false, depth + 1);
                 }
-                if (member)
-                    units.push({member, recNode: subRec.type === "object" ? subRec : item, allowBodyRoi: false});
             }
         }
-    }
-    if (isOcr) {
-        let member;
-        if (rec?.type === "object") {
-            const param = prop(rec, "param");
-            member =
-                (param?.type === "object" ? propMember(param, "expected") : undefined) ??
-                propMember(rec, "expected") ??
-                propMember(body, "expected");
-        } else {
-            member = propMember(body, "expected");
-        }
-        if (member) units.unshift({member, recNode: rec?.type === "object" ? rec : null, allowBodyRoi: true});
-    }
+    };
+    walk(prop(body, "recognition"), body, true, 0);
     return units;
 }
 

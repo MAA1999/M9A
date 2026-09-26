@@ -103,7 +103,7 @@ node tools/i18n/sync-ocr.mjs --check    # dry-run validation, wired into pnpm ch
 
 ### Detection and write-back rules
 
-- OCR node detection: `recognition == "OCR"` or `recognition.type == "OCR"`;
+- OCR node detection: `recognition == "OCR"` or `recognition.type == "OCR"`; OCR sub-recognitions inside Or/And composites (`any_of`/`all_of`, nested included) are covered as well;
 - `expected` is resolved as `recognition.param.expected` → `recognition.expected` → node-level `expected`; both a single string and a string array are accepted, and the write-back is always an array;
 - The five languages are expanded from the mapping; identical texts across languages are de-duplicated and missing languages are skipped;
 - The write-back keeps a `// @i18n-src: ["original", ...]` comment above the array to pin down the author's intent: re-runs rebuild from that comment, so stale expansion products never accumulate after mapping changes;
