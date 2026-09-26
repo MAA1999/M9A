@@ -4,10 +4,12 @@ from datetime import datetime
 from typing import Any
 
 import pytz
-from bs4 import BeautifulSoup  # pyright: ignore[reportMissingImports]
 
 
 def _extract_html_text_lines(content: str):
+    # bs4 仅在解析原始 HTML 时需要；行级解析函数保持无依赖，便于在测试环境直接导入
+    from bs4 import BeautifulSoup  # pyright: ignore[reportMissingImports]
+
     soup = BeautifulSoup(content, "html.parser")
     lines = []
     for text in soup.stripped_strings:
@@ -180,96 +182,11 @@ def analyzeContent(resource: str, content: Any):
                         continue
 
     elif resource == "jp":
-        lines = _extract_html_text_lines(content)
-
-        main_compelete_flag = False
-
-        for text in lines:
-            if "新メインストーリー" in text or "新しいメインストーリー" in text:
-                activity["combat"] = {}
-                activity["combat"]["event_type"] = "MainStory"
-                break
-            elif "イベント本編" in text:
-                activity["combat"] = {}
-                activity["combat"]["event_type"] = "SideStory"
-                break
-
-        for i, text in enumerate(lines):
-            combat_event_type = activity.get("combat", {}).get("event_type")
-            if not main_compelete_flag and combat_event_type == "MainStory":
-                if "イベント期間" in text:
-                    main_compelete_flag = True
-                    combat_duration = process_combat_duration_jp(text)
-                    try:
-                        (
-                            activity["combat"]["start_time"],
-                            activity["combat"]["end_time"],
-                        ) = convert_to_timestamps(combat_duration)
-                    except ValueError:
-                        pass
-
-            # Story Mode
-            if "ストーリーモード" in text:
-                activity.setdefault("combat", {})
-                activity["combat"].setdefault("event_type", "SideStory")
-                combat_duration = process_combat_duration_jp(text)
-                try:
-                    (
-                        activity["combat"]["start_time"],
-                        activity["combat"]["end_time"],
-                    ) = convert_to_timestamps(combat_duration)
-                except ValueError:
-                    continue
-                continue
-
-            if "イベント本編" in text and "start_time" not in activity.get("combat", {}):
-                activity.setdefault("combat", {})
-                activity["combat"].setdefault("event_type", "SideStory")
-                duration_text = _find_following_line_with(
-                    lines,
-                    i + 1,
-                    ["イベント期間"],
-                    10,
-                )
-                if not duration_text:
-                    continue
-
-                combat_duration = process_combat_duration_jp(duration_text)
-                try:
-                    (
-                        activity["combat"]["start_time"],
-                        activity["combat"]["end_time"],
-                    ) = convert_to_timestamps(combat_duration)
-                except ValueError:
-                    continue
-
-            # re-release
-            if "【イベントステージ】開放期間：" in text or "ステージ開放期間" in text:
-                activity["re-release"] = {}
-                re_release_duration = process_combat_duration_jp(text)
-                try:
-                    (
-                        activity["re-release"]["start_time"],
-                        activity["re-release"]["end_time"],
-                    ) = convert_to_timestamps(re_release_duration)
-                except ValueError:
-                    continue
-                continue
-
-        if "combat" in activity and "start_time" not in activity["combat"]:
-            for text in lines:
-                if "イベント期間" in text:
-                    combat_duration = process_combat_duration_jp(text)
-                    try:
-                        (
-                            activity["combat"]["start_time"],
-                            activity["combat"]["end_time"],
-                        ) = convert_to_timestamps(combat_duration)
-                        break
-                    except ValueError:
-                        continue
+        return _analyze_jp_lines(_extract_html_text_lines(content))
 
     elif resource == "tw":
+        from bs4 import BeautifulSoup  # pyright: ignore[reportMissingImports]
+
         soup = BeautifulSoup(content, "html.parser")
         tz_tw = pytz.timezone("Asia/Taipei")
         base_year = datetime.now(tz_tw).year
@@ -321,6 +238,96 @@ def analyzeContent(resource: str, content: Any):
                             current_section = None
                     except ValueError:
                         continue
+
+    return activity
+
+
+def _find_jp_date_range(lines: list[str], start_idx: int, window: int = 10) -> tuple[int, int] | None:
+    """从 ``start_idx``（含）起向后找第一条能解析出完整日期范围的行。
+
+    日服公告的标题行与日期行经常分两行存放，且正文描述句（"イベント期間中、…"）
+    可能包含关键词却没有日期，因此以"能否解析出日期范围"为准，而不是以关键词命中为准。
+    """
+    for i in range(start_idx, min(len(lines), start_idx + window)):
+        try:
+            return convert_to_timestamps(process_combat_duration_jp(lines[i]))
+        except ValueError:
+            continue
+    return None
+
+
+def _analyze_jp_lines(lines: list[str]) -> dict[str, Any]:
+    activity: dict[str, Any] = {}
+
+    for text in lines:
+        if "新メインストーリー" in text or "新しいメインストーリー" in text:
+            activity["combat"] = {}
+            activity["combat"]["event_type"] = "MainStory"
+            break
+        elif "イベント本編" in text:
+            activity["combat"] = {}
+            activity["combat"]["event_type"] = "SideStory"
+            break
+
+    for i, text in enumerate(lines):
+        combat = activity.get("combat", {})
+
+        if "start_time" not in combat and "イベント期間" in text and combat.get("event_type") == "MainStory":
+            parsed = _find_jp_date_range(lines, i)
+            if parsed is not None:
+                (
+                    activity["combat"]["start_time"],
+                    activity["combat"]["end_time"],
+                ) = parsed
+            continue
+
+        # Story Mode：ストーリーモード的开放时间即活动本篇作战时间。
+        # 日期常在标题的下一行，窗口取小以免吃进下一个板块（如探索モード）的档期。
+        if "ストーリーモード" in text:
+            activity.setdefault("combat", {})
+            activity["combat"].setdefault("event_type", "SideStory")
+            if "start_time" not in activity["combat"]:
+                parsed = _find_jp_date_range(lines, i, window=3)
+                if parsed is not None:
+                    (
+                        activity["combat"]["start_time"],
+                        activity["combat"]["end_time"],
+                    ) = parsed
+            continue
+
+        if "イベント本編" in text and "start_time" not in combat:
+            activity.setdefault("combat", {})
+            activity["combat"].setdefault("event_type", "SideStory")
+            parsed = _find_jp_date_range(lines, i)
+            if parsed is not None:
+                (
+                    activity["combat"]["start_time"],
+                    activity["combat"]["end_time"],
+                ) = parsed
+
+        # re-release
+        if "【イベントステージ】開放期間：" in text or "ステージ開放期間" in text:
+            activity["re-release"] = {}
+            parsed = _find_jp_date_range(lines, i, window=3)
+            if parsed is not None:
+                (
+                    activity["re-release"]["start_time"],
+                    activity["re-release"]["end_time"],
+                ) = parsed
+            continue
+
+    if "combat" in activity and "start_time" not in activity["combat"]:
+        for text in lines:
+            if "イベント期間" not in text:
+                continue
+            try:
+                (
+                    activity["combat"]["start_time"],
+                    activity["combat"]["end_time"],
+                ) = convert_to_timestamps(process_combat_duration_jp(text))
+                break
+            except ValueError:
+                continue
 
     return activity
 

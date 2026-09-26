@@ -824,15 +824,20 @@
     },
     "3.8": {
         "version_name": "世紀末スケール",
-        "start_time": 1793372400000,
-        "end_time": 1793908799000,
+        "start_time": 1790211600000,
+        "end_time": 1793823199000,
         "activity": {
             "combat": {
                 "event_type": "SideStory",
-                "start_time": 1793372400000,
-                "end_time": 1793649599000
+                "start_time": 1790211600000,
+                "end_time": 1793563199000
             },
-            "re-release": {}
+            "re-release": {
+                "name": "长夜鸣笛",
+                "alias": "长夜鸣笛",
+                "start_time": 1792699200000,
+                "end_time": 1793563199000
+            }
         }
     }
 }
