@@ -8,6 +8,8 @@
  * 2. release 资产前缀：取 maa-project.json 的显示名（不可用时退回 slug），于是同一份 workflow
  *    可以给别的项目直接用；
  * 3. 有没有 agent：纯 pipeline 项目不涉及 Python 绑定，workflow 据此跳过内核缓存与运行时构建。
+ *    Android 的 agent 运行时目前只支持 Python（内核 MaaAgentCoreAndroid 就是 CPython +
+ *    maa 绑定）；Go/Rust 等 ELF agent 理论上可走外壳的 nativeLibs 路线，真出现时这里再扩。
  *
  * 用法：`node tools/android-packaging.mjs [项目根目录]`，结果既打印也追加到 `$GITHUB_OUTPUT`。
  * 测试 / 离线可用 `ANDROID_PACKAGING_RELEASES_FIXTURE` 指向 `{core: [...], maafw: [...]}` 的
@@ -168,11 +170,14 @@ function agentDeclared(interfaceConfig) {
     return Array.isArray(interfaceConfig.agent) && interfaceConfig.agent.length > 0;
 }
 
-/** 项目侧固定的 maafw 版本：agent 项目必须 requirements.txt 钉 maafw==X，与桌面 pip 装的绑定一致 */
+/** Android 的 agent 运行时目前只支持 Python（内核自带 CPython 与 maa 绑定），
+ * 所以 agent 项目必须 requirements.txt 钉 maafw==X，与桌面 pip 装的绑定一致 */
 function pinnedMaafw(root, hasAgent) {
     const pin = parseRequirementPin(readText(join(root, REQUIREMENTS)));
     if (hasAgent && pin === undefined) {
-        throw new Error("agent 项目需要在 requirements.txt 精确固定 maafw==X，Android 据此配对内核");
+        throw new Error(
+            "Android 的 agent 运行时目前只支持 Python，需要在 requirements.txt 精确固定 maafw==X 以配对内核",
+        );
     }
     return pin;
 }
