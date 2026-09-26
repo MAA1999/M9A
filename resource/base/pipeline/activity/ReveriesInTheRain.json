@@ -57,7 +57,7 @@
                 "expected": [
                     "雨中悬想",
                     "雨中懸想",
-                    "(?i)Reveries\\s*in\\s*the\\s*Rain",
+                    "(?i)Reveries\\s*in\\s*the\\s*Rain\\b",
                     "雨中の空想",
                     "빗속의 공상"
                 ]
@@ -175,14 +175,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    107,
+                    89,
                     0
                 ],
                 // @i18n-src: ["寻思"]
                 "expected": [
                     "寻思",
                     "尋思",
-                    "(?i)Trance",
+                    "(?i)Trance\\b",
                     "思索",
                     "생각 탐색"
                 ],
@@ -219,7 +219,7 @@
                 "expected": [
                     "寻思",
                     "尋思",
-                    "(?i)Trance",
+                    "(?i)Trance\\b",
                     "思索",
                     "생각 탐색"
                 ],

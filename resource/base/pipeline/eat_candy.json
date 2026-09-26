@@ -49,17 +49,17 @@
                 "roi_offset": [
                     0,
                     0,
-                    538,
+                    277,
                     0
                 ],
                 // @i18n-src: ["活性","恢复"]
                 "expected": [
                     "活性",
-                    "(?i)Activity",
+                    "(?i)Activity\\b",
                     "활성",
                     "恢复",
                     "恢復",
-                    "(?i)Recovery",
+                    "(?i)Recovery\\b",
                     "回復",
                     "회복"
                 ]
@@ -199,17 +199,17 @@
                 "roi_offset": [
                     0,
                     0,
-                    538,
+                    277,
                     0
                 ],
                 // @i18n-src: ["活性","恢复"]
                 "expected": [
                     "活性",
-                    "(?i)Activity",
+                    "(?i)Activity\\b",
                     "활성",
                     "恢复",
                     "恢復",
-                    "(?i)Recovery",
+                    "(?i)Recovery\\b",
                     "回復",
                     "회복"
                 ]
@@ -291,14 +291,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    136,
+                    68,
                     0
                 ],
                 // @i18n-src: ["兑换"]
                 "expected": [
                     "兑换",
                     "兌換",
-                    "(?i)Exchange",
+                    "(?i)Exchange\\b",
                     "交換",
                     "교환"
                 ],
@@ -322,17 +322,17 @@
                 "roi_offset": [
                     0,
                     0,
-                    538,
+                    277,
                     0
                 ],
                 // @i18n-src: ["活性","恢复"]
                 "expected": [
                     "活性",
-                    "(?i)Activity",
+                    "(?i)Activity\\b",
                     "활성",
                     "恢复",
                     "恢復",
-                    "(?i)Recovery",
+                    "(?i)Recovery\\b",
                     "回復",
                     "회복"
                 ]

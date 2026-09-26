@@ -55,16 +55,16 @@
                 "expected": [
                     "等级",
                     "等級",
-                    "(?i)Level",
+                    "(?i)Level\\b",
                     "レベル",
                     "레벨",
                     "稀有度",
-                    "(?i)Rarity",
+                    "(?i)Rarity\\b",
                     "レア度",
                     "희귀도",
                     "信任",
-                    "(?i)Bond",
-                    "(?i)Trust",
+                    "(?i)Bond\\b",
+                    "(?i)Trust\\b",
                     "信用",
                     "絆",
                     "신뢰"
@@ -97,14 +97,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    210,
+                    116,
                     0
                 ],
                 // @i18n-src: ["信任"]
                 "expected": [
                     "信任",
-                    "(?i)Bond",
-                    "(?i)Trust",
+                    "(?i)Bond\\b",
+                    "(?i)Trust\\b",
                     "信用",
                     "絆",
                     "신뢰"
@@ -158,14 +158,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    210,
+                    116,
                     0
                 ],
                 // @i18n-src: ["信任"]
                 "expected": [
                     "信任",
-                    "(?i)Bond",
-                    "(?i)Trust",
+                    "(?i)Bond\\b",
+                    "(?i)Trust\\b",
                     "信用",
                     "絆",
                     "신뢰"
@@ -201,14 +201,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    363,
+                    182,
                     0
                 ],
                 // @i18n-src: ["个人属性"]
                 "expected": [
                     "个人属性",
                     "個人屬性",
-                    "(?i)Personal\\s*Stats",
+                    "(?i)Personal\\s*Stats\\b",
                     "個人ステータス",
                     "개인 속성"
                 ]
@@ -239,14 +239,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    363,
+                    182,
                     0
                 ],
                 // @i18n-src: ["个人属性"]
                 "expected": [
                     "个人属性",
                     "個人屬性",
-                    "(?i)Personal\\s*Stats",
+                    "(?i)Personal\\s*Stats\\b",
                     "個人ステータス",
                     "개인 속성"
                 ]
@@ -307,18 +307,18 @@
                 "roi_offset": [
                     0,
                     0,
-                    334,
+                    67,
                     0
                 ],
                 // @i18n-src: ["单品","文化"]
                 "expected": [
                     "单品",
                     "單品",
-                    "(?i)Item",
+                    "(?i)Item\\b",
                     "単品",
                     "물품",
                     "文化",
-                    "(?i)Story",
+                    "(?i)Story\\b",
                     "문화"
                 ]
             }

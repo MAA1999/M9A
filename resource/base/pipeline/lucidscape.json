@@ -65,14 +65,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    165,
+                    99,
                     0
                 ],
                 // @i18n-src: ["浅眠域"]
                 "expected": [
                     "浅眠域",
                     "淺眠域",
-                    "(?i)Surface",
+                    "(?i)Surface\\b",
                     "의식 영역"
                 ],
                 "only_rec": true
@@ -119,13 +119,13 @@
                 "roi_offset": [
                     0,
                     0,
-                    209,
+                    95,
                     0
                 ],
                 // @i18n-src: ["首通"]
                 "expected": [
                     "首通",
-                    "(?i)1st\\s*Clear",
+                    "(?i)1st\\s*Clear\\b",
                     "初クリア",
                     "첫 클리어"
                 ],
@@ -151,19 +151,19 @@
                 "roi_offset": [
                     0,
                     0,
-                    136,
+                    68,
                     0
                 ],
                 // @i18n-src: ["已领取","未达成"]
                 "expected": [
                     "已领取",
                     "已領取",
-                    "(?i)Claimed",
+                    "(?i)Claimed\\b",
                     "受取済み",
                     "수령 완료",
                     "未达成",
                     "未達成",
-                    "(?i)Incomplete",
+                    "(?i)Incomplete\\b",
                     "미달성"
                 ],
                 "only_rec": true
@@ -264,7 +264,7 @@
                 "expected": [
                     "开始行动",
                     "開始行動",
-                    "(?i)Start",
+                    "(?i)Start\\b",
                     "行動開始",
                     "행동 시작"
                 ],
@@ -323,7 +323,7 @@
                 "expected": [
                     "开始行动",
                     "開始行動",
-                    "(?i)Start",
+                    "(?i)Start\\b",
                     "行動開始",
                     "행동 시작"
                 ],
@@ -355,15 +355,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    112,
+                    48,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -401,14 +401,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    73,
+                    37,
                     0
                 ],
                 // @i18n-src: ["战斗失败"]
                 "expected": [
                     "战斗失败",
                     "戰鬥失敗",
-                    "(?i)DEFEAT",
+                    "(?i)DEFEAT\\b",
                     "FAILED",
                     "전투 패배"
                 ],
@@ -448,8 +448,8 @@
                 "expected": [
                     "战斗胜利",
                     "戰鬥勝利",
-                    "(?i)Battle\\s*Victory",
-                    "(?i)VICTORY",
+                    "(?i)Battle\\s*Victory\\b",
+                    "(?i)VICTORY\\b",
                     "VICTORY",
                     "バトル勝利",
                     "전투 승리"
@@ -498,8 +498,8 @@
                     "跳过",
                     "SKIP",
                     "跳過",
-                    "(?i)SKIP",
-                    "(?i)Skip",
+                    "(?i)SKIP\\b",
+                    "(?i)Skip\\b",
                     "スキップ",
                     "건너뛰기"
                 ],
@@ -530,7 +530,7 @@
                 "expected": [
                     "空白",
                     "狁鄢",
-                    "(?i)Ziel",
+                    "(?i)Ziel\\b",
                     "SnowRabbit",
                     "jinggun"
                 ],
@@ -614,7 +614,7 @@
                 "expected": [
                     "本层酬劳",
                     "本層酬勞",
-                    "(?i)Reward",
+                    "(?i)Reward\\b",
                     "本層の報酬",
                     "단계 보상"
                 ],
@@ -663,19 +663,19 @@
                 "roi_offset": [
                     0,
                     0,
-                    136,
+                    68,
                     0
                 ],
                 // @i18n-src: ["已领取","未达成"]
                 "expected": [
                     "已领取",
                     "已領取",
-                    "(?i)Claimed",
+                    "(?i)Claimed\\b",
                     "受取済み",
                     "수령 완료",
                     "未达成",
                     "未達成",
-                    "(?i)Incomplete",
+                    "(?i)Incomplete\\b",
                     "미달성"
                 ],
                 "only_rec": true
@@ -710,14 +710,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    128,
+                    102,
                     0
                 ],
                 // @i18n-src: ["领取"]
                 "expected": [
                     "领取",
                     "領取",
-                    "(?i)Claim",
+                    "(?i)Claim\\b",
                     "受け取る",
                     "수령"
                 ],

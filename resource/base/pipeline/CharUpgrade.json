@@ -13,14 +13,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    156,
+                    78,
                     0
                 ],
                 // @i18n-src: ["个人属性"]
                 "expected": [
                     "个人属性",
                     "個人屬性",
-                    "(?i)Personal\\s*Stats",
+                    "(?i)Personal\\s*Stats\\b",
                     "個人ステータス",
                     "개인 속성"
                 ]
@@ -149,14 +149,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    185,
+                    97,
                     0
                 ],
                 // @i18n-src: ["提升"]
                 "expected": [
                     "提升",
                     "(?i)\\+",
-                    "(?i)Level\\s*Up",
+                    "(?i)Level\\s*Up\\b",
                     "\\+",
                     "Lv UP",
                     "증가"
@@ -184,13 +184,13 @@
                 "roi_offset": [
                     0,
                     0,
-                    170,
+                    73,
                     0
                 ],
                 // @i18n-src: ["洞悉"]
                 "expected": [
                     "洞悉",
-                    "(?i)Insight",
+                    "(?i)Insight\\b",
                     "洞察",
                     "통찰"
                 ]
@@ -218,13 +218,13 @@
                 "roi_offset": [
                     0,
                     0,
-                    133,
+                    57,
                     0
                 ],
                 // @i18n-src: ["洞悉"]
                 "expected": [
                     "洞悉",
-                    "(?i)Insight",
+                    "(?i)Insight\\b",
                     "洞察",
                     "통찰"
                 ],
@@ -294,13 +294,13 @@
                 "roi_offset": [
                     0,
                     0,
-                    133,
+                    57,
                     0
                 ],
                 // @i18n-src: ["洞悉"]
                 "expected": [
                     "洞悉",
-                    "(?i)Insight",
+                    "(?i)Insight\\b",
                     "洞察",
                     "통찰"
                 ],
@@ -331,13 +331,13 @@
                 "roi_offset": [
                     0,
                     0,
-                    214,
+                    43,
                     0
                 ],
                 // @i18n-src: ["合成"]
                 "expected": [
                     "合成",
-                    "(?i)Craft",
+                    "(?i)Craft\\b",
                     "합성"
                 ]
             }
@@ -365,15 +365,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    177,
+                    76,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ]
@@ -402,14 +402,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    165,
+                    114,
                     0
                 ],
                 // @i18n-src: ["等级上限"]
                 "expected": [
                     "等级上限",
                     "等級上限",
-                    "(?i)Level\\s*cap",
+                    "(?i)Level\\s*cap\\b",
                     "レベル上限",
                     "레벨 최대치"
                 ]
@@ -509,28 +509,28 @@
                 "roi_offset": [
                     0,
                     0,
-                    195,
+                    105,
                     0
                 ],
                 // @i18n-src: ["群山之声","星陨之所","深林之形","荒兽之野"]
                 "expected": [
                     "群山之声",
                     "群山之聲",
-                    "(?i)Mountain\\s*Echoes",
+                    "(?i)Mountain\\s*Echoes\\b",
                     "山脈の声",
                     "산울림",
                     "星陨之所",
                     "星隕之所",
-                    "(?i)Starfall\\s*Locale",
+                    "(?i)Starfall\\s*Locale\\b",
                     "流星の丘",
                     "별들의 거처",
                     "深林之形",
-                    "(?i)Sylvanus\\s*Shape",
+                    "(?i)Sylvanus\\s*Shape\\b",
                     "森林の姿",
                     "숲의 모양",
                     "荒兽之野",
                     "荒獸之野",
-                    "(?i)Brutes\\s*Wilds",
+                    "(?i)Brutes\\s*Wilds\\b",
                     "野獣の地",
                     "짐승의 야성"
                 ],
@@ -614,13 +614,13 @@
                 "roi_offset": [
                     0,
                     0,
-                    133,
+                    57,
                     0
                 ],
                 // @i18n-src: ["洞悉"]
                 "expected": [
                     "洞悉",
-                    "(?i)Insight",
+                    "(?i)Insight\\b",
                     "洞察",
                     "통찰"
                 ],
@@ -643,14 +643,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    156,
+                    78,
                     0
                 ],
                 // @i18n-src: ["个人属性"]
                 "expected": [
                     "个人属性",
                     "個人屬性",
-                    "(?i)Personal\\s*Stats",
+                    "(?i)Personal\\s*Stats\\b",
                     "個人ステータス",
                     "개인 속성"
                 ]
@@ -692,14 +692,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    94,
+                    16,
                     0
                 ],
                 // @i18n-src: ["共鸣提升","察提"]
                 "expected": [
                     "共鸣提升",
                     "共鳴提升",
-                    "(?i)Level\\s*Up",
+                    "(?i)Level\\s*Up\\b",
                     "共鳴Lv UP",
                     "공명 강화",
                     "察提"
@@ -729,13 +729,13 @@
                 "roi_offset": [
                     0,
                     0,
-                    214,
+                    43,
                     0
                 ],
                 // @i18n-src: ["合成"]
                 "expected": [
                     "合成",
-                    "(?i)Craft",
+                    "(?i)Craft\\b",
                     "합성"
                 ]
             }
@@ -800,19 +800,19 @@
                 "roi_offset": [
                     0,
                     0,
-                    115,
+                    20,
                     0
                 ],
                 // @i18n-src: ["提升共鸣","提升觉察"]
                 "expected": [
                     "提升共鸣",
                     "提升共鳴",
-                    "(?i)Level\\s*Up",
+                    "(?i)Level\\s*Up\\b",
                     "Lv UP",
                     "공명 강화",
                     "提升觉察",
                     "提升覺察",
-                    "(?i)Level\\s*Up",
+                    "(?i)Level\\s*Up\\b",
                     "Lv UP",
                     "감지 강화"
                 ]

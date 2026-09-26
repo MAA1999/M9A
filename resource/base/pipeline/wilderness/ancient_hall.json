@@ -25,7 +25,7 @@
                 "expected": [
                     "古厅定位",
                     "古廳定位",
-                    "(?i)Display\\s*Paleohall",
+                    "(?i)Display\\s*Paleohall\\b",
                     "古の間に戻る",
                     "고대 로비"
                 ],
@@ -72,14 +72,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    124,
+                    69,
                     0
                 ],
                 // @i18n-src: ["古厅"]
                 "expected": [
                     "古厅",
                     "古廳",
-                    "(?i)Paleohall",
+                    "(?i)Paleohall\\b",
                     "古の間",
                     "고대 로비"
                 ],
@@ -140,7 +140,7 @@
                 // @i18n-src: ["收取"]
                 "expected": [
                     "收取",
-                    "(?i)Claim",
+                    "(?i)Claim\\b",
                     "受け取る",
                     "획득"
                 ]
@@ -179,7 +179,7 @@
                 "expected": [
                     "荒原古厅",
                     "荒原古廳",
-                    "(?i)Paleohall",
+                    "(?i)Paleohall\\b",
                     "古の間",
                     "황무지 고대 로비"
                 ],

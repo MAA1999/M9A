@@ -44,14 +44,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    345,
+                    197,
                     0
                 ],
                 // @i18n-src: ["入场阶段"]
                 "expected": [
                     "入场阶段",
                     "入場階段",
-                    "(?i)Preparation\\s*Zone",
+                    "(?i)Preparation\\s*Zone\\b",
                     "入場段階",
                     "입장 단계"
                 ]
@@ -90,13 +90,13 @@
                 "roi_offset": [
                     0,
                     0,
-                    2219,
+                    0,
                     0
                 ],
                 // @i18n-src: ["反制"]
                 "expected": [
                     "反制",
-                    "(?i)Counter",
+                    "(?i)Counter\\b",
                     "カウンター",
                     "카운터"
                 ]
@@ -116,15 +116,15 @@
                 "roi_offset": [
                     -13,
                     454,
-                    6974,
+                    29,
                     13
                 ],
                 // @i18n-src: ["选择"]
                 "expected": [
                     "选择",
                     "選擇",
-                    "(?i)Activate",
-                    "(?i)Select",
+                    "(?i)Activate\\b",
+                    "(?i)Select\\b",
                     "解放",
                     "選択",
                     "선택"
@@ -327,15 +327,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    136,
+                    68,
                     0
                 ],
                 // @i18n-src: ["选择"]
                 "expected": [
                     "选择",
                     "選擇",
-                    "(?i)Activate",
-                    "(?i)Select",
+                    "(?i)Activate\\b",
+                    "(?i)Select\\b",
                     "解放",
                     "選択",
                     "선택"
@@ -365,15 +365,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    136,
+                    68,
                     0
                 ],
                 // @i18n-src: ["选择"]
                 "expected": [
                     "选择",
                     "選擇",
-                    "(?i)Activate",
-                    "(?i)Select",
+                    "(?i)Activate\\b",
+                    "(?i)Select\\b",
                     "解放",
                     "選択",
                     "선택"
@@ -403,7 +403,7 @@
                 "expected": [
                     "缪斯赠予",
                     "繆斯贈予",
-                    "(?i)Musae\\s*'\\s*s\\s*Gift",
+                    "(?i)Musae\\s*'\\s*s\\s*Gift\\b",
                     "ムーサの贈り物",
                     "뮤즈 수여"
                 ]
@@ -430,14 +430,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    162,
+                    129,
                     0
                 ],
                 // @i18n-src: ["领取"]
                 "expected": [
                     "领取",
                     "領取",
-                    "(?i)Claim",
+                    "(?i)Claim\\b",
                     "受け取る",
                     "수령"
                 ],
@@ -472,7 +472,7 @@
                 "expected": [
                     "获得",
                     "獲得",
-                    "(?i)Acquired",
+                    "(?i)Acquired\\b",
                     "획득"
                 ]
             }
@@ -672,15 +672,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    93,
+                    49,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -727,14 +727,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    114,
+                    38,
                     0
                 ],
                 // @i18n-src: ["开始"]
                 "expected": [
                     "开始",
                     "開始",
-                    "(?i)Start",
+                    "(?i)Start\\b",
                     "시작"
                 ]
             }
@@ -760,13 +760,13 @@
                 "roi_offset": [
                     0,
                     0,
-                    257,
+                    103,
                     0
                 ],
                 // @i18n-src: ["回合"]
                 "expected": [
                     "回合",
-                    "(?i)Round",
+                    "(?i)Round\\b",
                     "ターン",
                     "턴"
                 ]
@@ -792,14 +792,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    208,
+                    153,
                     0
                 ],
                 // @i18n-src: ["战斗"]
                 "expected": [
                     "战斗",
                     "戰鬥",
-                    "(?i)Battle",
+                    "(?i)Battle\\b",
                     "バトル",
                     "전투"
                 ]
@@ -852,16 +852,16 @@
                 "roi_offset": [
                     0,
                     0,
-                    165,
+                    55,
                     0
                 ],
                 // @i18n-src: ["离场"]
                 "expected": [
                     "离场",
                     "離場",
-                    "(?i)Abandon",
-                    "(?i)Exit",
-                    "(?i)Give\\s*Up",
+                    "(?i)Abandon\\b",
+                    "(?i)Exit\\b",
+                    "(?i)Give\\s*Up\\b",
                     "退場",
                     "離れる",
                     "떠나기"
@@ -889,15 +889,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    217,
+                    93,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ]
@@ -924,14 +924,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    335,
+                    201,
                     0
                 ],
                 // @i18n-src: ["比赛回顾"]
                 "expected": [
                     "比赛回顾",
                     "比賽回顧",
-                    "(?i)Battle\\s*Recap",
+                    "(?i)Battle\\s*Recap\\b",
                     "試合の振り返り",
                     "경기 회고"
                 ]

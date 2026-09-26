@@ -22,7 +22,20 @@
                                     64,
                                     22
                                 ],
-                                "expected": "好梦井",
+                                "roi_offset": [
+                                    0,
+                                    0,
+                                    43,
+                                    0
+                                ],
+                                // @i18n-src: ["好梦井"]
+                                "expected": [
+                                    "好梦井",
+                                    "好夢井",
+                                    "(?i)Dreamwell\\b",
+                                    "夢見の井戸",
+                                    "꿈의 우물"
+                                ],
                                 "only_rec": true
                             }
                         }
@@ -38,7 +51,20 @@
                                     90,
                                     26
                                 ],
-                                "expected": "好梦井",
+                                "roi_offset": [
+                                    0,
+                                    0,
+                                    60,
+                                    0
+                                ],
+                                // @i18n-src: ["好梦井"]
+                                "expected": [
+                                    "好梦井",
+                                    "好夢井",
+                                    "(?i)Dreamwell\\b",
+                                    "夢見の井戸",
+                                    "꿈의 우물"
+                                ],
                                 "only_rec": true
                             }
                         }
@@ -79,14 +105,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    88,
+                    44,
                     0
                 ],
                 // @i18n-src: ["我的好梦井"]
                 "expected": [
                     "我的好梦井",
                     "我的好夢井",
-                    "(?i)My\\s*Dreamwell",
+                    "(?i)My\\s*Dreamwell\\b",
                     "あなたの座標",
                     "나의 꿈의 우물"
                 ]
@@ -121,7 +147,7 @@
                 "expected": [
                     "好梦井定位",
                     "好夢井定位",
-                    "(?i)Display\\s*Dreamwell",
+                    "(?i)Display\\s*Dreamwell\\b",
                     "夢見の井戸に戻る",
                     "꿈의 우물 포지션"
                 ],
@@ -153,14 +179,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    123,
+                    70,
                     0
                 ],
                 // @i18n-src: ["打捞"]
                 "expected": [
                     "打捞",
                     "打撈",
-                    "(?i)Salvage",
+                    "(?i)Salvage\\b",
                     "引き上げ",
                     "인양"
                 ]
@@ -191,19 +217,19 @@
                 "roi_offset": [
                     0,
                     0,
-                    537,
+                    172,
                     0
                 ],
                 // @i18n-src: ["剩余","耗时"]
                 "expected": [
                     "剩余",
                     "剩餘",
-                    "(?i)Remaining",
+                    "(?i)Remaining\\b",
                     "残り",
                     "남음",
                     "耗时",
                     "耗時： ",
-                    "(?i)Duration\\s*:<\\s*alpha\\s*=#\\s*00\\s*>\\.<\\s*alpha\\s*=#\\s*ff\\s*>",
+                    "(?i)Duration\\s*:\\.",
                     "所要時間： ",
                     "소모 시간:"
                 ]
@@ -228,14 +254,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    179,
+                    102,
                     0
                 ],
                 // @i18n-src: ["打捞"]
                 "expected": [
                     "打捞",
                     "打撈",
-                    "(?i)Salvage",
+                    "(?i)Salvage\\b",
                     "引き上げ",
                     "인양"
                 ]
@@ -294,7 +320,7 @@
                 "expected": [
                     "收获馈赠",
                     "收穫饋贈",
-                    "(?i)Claim",
+                    "(?i)Claim\\b",
                     "開ける",
                     "선물 획득"
                 ],

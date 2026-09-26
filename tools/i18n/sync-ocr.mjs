@@ -6,8 +6,9 @@
 // 映射表 tools/i18n/ocr_text.json：texts 以归一化简中原文为键，值为 tw/en/jp/kr
 //（每种语言可为字符串或候选数组，展开时全部进入 expected）；node_overrides 按节点
 // 覆盖整行；untranslatable 是刻意保留单语的正则/截断片段。英文在展开时统一转为
-// (?i) + 词间 \s* 的宽松正则。JSONC 感知：经 jsonc-parser 语法树偏移原位替换，
-// 注释与排版保留，重复运行幂等。
+// (?i) + 词间 \s* + 词边界 \b 的宽松正则；官方值里的富文本标记（<alpha=#..> 等）
+// 渲染后不存在于 OCR 文本，展开前剥离。Or/And 复合识别的 any_of 子识别同样展开。
+// JSONC 感知：经 jsonc-parser 语法树偏移原位替换，注释与排版保留，重复运行幂等。
 import {readFileSync, writeFileSync, readdirSync} from "node:fs";
 import {join} from "node:path";
 import {createRequire} from "node:module";
@@ -36,10 +37,19 @@ function escapeRegexLiteral(text) {
     return text.replace(/[\\.^$*+?{}[\]|()]/g, "\\$&");
 }
 
-// 英文转 (?i) 忽略大小写、词间空格放宽为 \s* 的宽松正则
+// 官方值里的富文本标记（<alpha=#00>、<nobr> 等）渲染后不存在于 OCR 文本
+function stripTags(text) {
+    return text.replace(/<[^>]*>/g, "");
+}
+
+// 英文转 (?i) 忽略大小写、词间空格放宽为 \s* 的宽松正则；末尾是字母/数字时
+// 追加 \b 词边界——regex_search 是子串匹配，没有 \b 时「…I」会命中「…II」、
+// 「1」会命中「10」的前缀
 function englishOcrRegex(text) {
     const tokens = text.match(/[A-Za-z0-9]+|[^A-Za-z0-9\s]+/g);
-    return tokens ? `(?i)${tokens.map(escapeRegexLiteral).join("\\s*")}` : "";
+    if (!tokens) return "";
+    const boundary = /[A-Za-z0-9]$/.test(text) ? "\\b" : "";
+    return `(?i)${tokens.map(escapeRegexLiteral).join("\\s*")}${boundary}`;
 }
 
 function asList(value) {
@@ -47,23 +57,28 @@ function asList(value) {
     return Array.isArray(value) ? value.filter((v) => v) : [value];
 }
 
-// 一行映射 -> expected 五语数组（zh 即键本身，跨语种去重，缺失语种跳过）
+// 一行映射 -> expected 五语条目 [{out, width}]：out 是写入 expected 的正则串，
+// width 是按剥离标记后的原文测得的显示宽（正则元字符与 (?i)/\s* 不占渲染宽度）。
+// zh 即键本身，跨语种去重，缺失语种跳过。raw=true 用于识别历史版本的产物。
 function expandRow(zh, row, raw = false) {
     const out = [];
     const seen = new Set();
-    const push = (value) => {
+    const push = (display, value) => {
         if (value && !seen.has(value)) {
             seen.add(value);
-            out.push(value);
+            out.push({out: value, width: displayWidth(display)});
         }
     };
-    push(zh);
+    push(zh, zh);
     // MaaFW 把 expected 项按正则校验/匹配，映射值来自官方纯文本，统一转义；
     // 英文另走 (?i) 宽松正则（内部已转义）。raw=true 用于识别历史版本的产物。
-    for (const value of asList(row.tw)) push(raw ? value : escapeRegexLiteral(value));
-    for (const value of asList(row.en)) push(englishOcrRegex(value));
-    for (const value of asList(row.jp)) push(raw ? value : escapeRegexLiteral(value));
-    for (const value of asList(row.kr)) push(raw ? value : escapeRegexLiteral(value));
+    for (const value of asList(row.tw)) push(stripTags(value), raw ? value : escapeRegexLiteral(stripTags(value)));
+    for (const value of asList(row.en)) {
+        const display = stripTags(value);
+        push(display, englishOcrRegex(display));
+    }
+    for (const value of asList(row.jp)) push(stripTags(value), raw ? value : escapeRegexLiteral(stripTags(value)));
+    for (const value of asList(row.kr)) push(stripTags(value), raw ? value : escapeRegexLiteral(stripTags(value)));
     return out;
 }
 
@@ -105,46 +120,65 @@ function propMember(objNode, key) {
     return undefined;
 }
 
-// expected 位置：recognition.param.expected -> recognition.expected -> 节点级
-function locateExpected(root, nodeName, body) {
+// 收集节点上所有待展开的 expected 单元：主识别 + Or/And 的 any_of 子识别。
+// 每个单元自带 recNode（roi 所在的识别对象），子识别不回退节点级 roi。
+function collectUnits(body) {
+    const units = [];
     const rec = prop(body, "recognition");
     let isOcr = false;
-    let expectedMember;
-    let param;
     if (rec?.type === "string" && rec.value === "OCR") {
         isOcr = true;
     } else if (rec?.type === "object") {
-        if (prop(rec, "type")?.value === "OCR") {
+        const type = prop(rec, "type")?.value;
+        if (type === "OCR") {
             isOcr = true;
-            param = prop(rec, "param");
-            if (param?.type === "object") expectedMember = propMember(param, "expected");
-            if (!expectedMember) expectedMember = propMember(rec, "expected");
+        } else if (type === "Or" || type === "And") {
+            const anyOf = prop(prop(rec, "param") ?? {}, "any_of");
+            for (const item of anyOf?.type === "array" ? anyOf.children : []) {
+                if (item?.type !== "object") continue;
+                const subRec = prop(item, "recognition");
+                if (!subRec) continue;
+                let member;
+                if (subRec.type === "string" && subRec.value === "OCR") {
+                    member = propMember(item, "expected");
+                } else if (subRec.type === "object" && prop(subRec, "type")?.value === "OCR") {
+                    const subParam = prop(subRec, "param");
+                    member =
+                        (subParam?.type === "object" ? propMember(subParam, "expected") : undefined) ??
+                        propMember(subRec, "expected");
+                }
+                if (member)
+                    units.push({member, recNode: subRec.type === "object" ? subRec : item, allowBodyRoi: false});
+            }
         }
     }
-    if (!expectedMember) expectedMember = propMember(body, "expected");
-    const expected = expectedMember?.children?.[1];
-    if (!isOcr || !expected || (expected.type !== "string" && expected.type !== "array")) {
-        return {};
+    if (isOcr) {
+        let member;
+        if (rec?.type === "object") {
+            const param = prop(rec, "param");
+            member =
+                (param?.type === "object" ? propMember(param, "expected") : undefined) ??
+                propMember(rec, "expected") ??
+                propMember(body, "expected");
+        } else {
+            member = propMember(body, "expected");
+        }
+        if (member) units.unshift({member, recNode: rec?.type === "object" ? rec : null, allowBodyRoi: true});
     }
-    return {
-        expected,
-        expectedKey: expectedMember.children[0],
-    };
+    return units;
 }
 
-// roi 生效值 =（roi 数字数组，或引用节点的生效 roi）叠加本节点 roi_offset。
-// 返回 { values, offsetNode, anchorNode }：offsetNode 是本节点的 roi_offset 数组
-// 成员（扩宽时原位重写）；没有 offsetNode 时用 anchorNode（本节点的 roi 成员，
-// 在其值后插入 roi_offset）。字符串引用只借被引用节点的数值，编辑永远落在本节点，
-// 否则会改坏共享引用的节点。
-function resolveRoi(root, nodeName, body, visiting = new Set()) {
+// roi 生效值 =（roi 数字数组，或引用节点的生效 roi）叠加 roi_offset。
+// 返回 { values, offsetNode, anchorNode }：offsetNode 是 roi_offset 数组成员
+//（扩宽时原位重写）；没有 offsetNode 时用 anchorNode（roi 成员，在其值后插入）。
+// 字符串引用只借被引用节点的数值，编辑永远落在本节点，否则会改坏共享引用的节点。
+function resolveRoi(root, nodeName, recNode, body, allowBodyRoi, visiting = new Set()) {
     if (visiting.has(nodeName)) return null;
     visiting.add(nodeName);
-    const rec = prop(body, "recognition");
-    const param = rec?.type === "object" ? prop(rec, "param") : undefined;
+    const param = recNode?.type === "object" ? prop(recNode, "param") : undefined;
     let roiMember = param?.type === "object" ? prop(param, "roi") : undefined;
     let offsetMember = param?.type === "object" ? prop(param, "roi_offset") : undefined;
-    if (!roiMember) {
+    if (!roiMember && allowBodyRoi) {
         roiMember = prop(body, "roi");
         offsetMember = prop(body, "roi_offset");
     }
@@ -154,7 +188,7 @@ function resolveRoi(root, nodeName, body, visiting = new Set()) {
     if (roiMember.type === "string") {
         const ref = root.children?.find((member) => member.children?.[0]?.value === roiMember.value)?.children?.[1];
         if (ref?.type !== "object") return null;
-        const resolved = resolveRoi(root, roiMember.value, ref, visiting);
+        const resolved = resolveRoi(root, roiMember.value, prop(ref, "recognition"), ref, true, visiting);
         if (!resolved) return null;
         base = resolved.values;
     } else if (
@@ -227,8 +261,8 @@ function deExpand(nodeName, items) {
         if (row) {
             intent.push(item);
             products = new Set([
-                ...expandRow(zh, row),
-                ...expandRow(zh, row, true),
+                ...expandRow(zh, row).map((p) => p.out),
+                ...expandRow(zh, row, true).map((p) => p.out),
             ]);
             continue;
         }
@@ -246,6 +280,8 @@ const problemSet = new Set();
 // offset），一轮写回后需要再算一轮才收敛——写回模式循环到不动点（上限 4 轮），
 // check 模式单轮判定（有变更即失败）。
 const MAX_PASSES = CHECK ? 1 : 4;
+const firstPass = {changedNodes: 0, changedFiles: new Set()};
+let passesUsed = 0;
 for (let pass = 1; pass <= MAX_PASSES; pass++) {
     stats.files = 0;
     stats.ocrNodes = 0;
@@ -264,116 +300,125 @@ for (let pass = 1; pass <= MAX_PASSES; pass++) {
             const nodeName = nodeProp.children?.[0]?.value;
             const body = nodeProp.children?.[1];
             if (typeof nodeName !== "string" || body?.type !== "object") continue;
-            const {expected, expectedKey} = locateExpected(root, nodeName, body);
-            if (!expected) continue;
-            stats.ocrNodes++;
-            if (text.slice(expected.offset, expected.offset + expected.length).includes(SKIP_MARKER)) {
-                stats.skipped++;
-                continue;
-            }
 
-            const current = expected.type === "string" ? [expected.value] : expected.children.map((n) => n.value);
-            const marker = findSrcMarker(text, expectedKey.offset);
-            const intent = marker ?? deExpand(nodeName, current);
-
-            // 作者意图 -> 规范数组：键展开五语，非键项原样保留
-            const canonical = [];
-            const widths = []; // 每条被展开映射的 [旧宽, 新宽]
-            for (const item of intent) {
-                if (typeof item !== "string") {
-                    canonical.push(item);
+            for (const unit of collectUnits(body)) {
+                const expectedMember = unit.member;
+                const expected = expectedMember.children[1];
+                if (expected.type !== "string" && expected.type !== "array") continue;
+                stats.ocrNodes++;
+                if (text.slice(expected.offset, expected.offset + expected.length).includes(SKIP_MARKER)) {
+                    stats.skipped++;
                     continue;
                 }
-                const zh = normalizeText(item);
-                const row = lookupRow(nodeName, zh);
-                if (!row) {
-                    canonical.push(item);
-                    if (CJK.test(zh) && !untranslatableSet.has(zh)) {
-                        problemSet.add(
-                            `${file}: ${nodeName} 的 expected「${zh}」不在映射表中（补 texts/node_overrides 或 untranslatable，或 @i18n-skip）`,
-                        );
+
+                const current = expected.type === "string" ? [expected.value] : expected.children.map((n) => n.value);
+                const marker = findSrcMarker(text, expectedMember.children[0].offset);
+                const intent = marker ?? deExpand(nodeName, current);
+
+                // 作者意图 -> 规范数组：键展开五语，非键项原样保留
+                const canonical = [];
+                const widths = []; // 每条被展开映射的 [旧宽, 新宽]（按剥离标记后的原文测宽）
+                for (const item of intent) {
+                    if (typeof item !== "string") {
+                        canonical.push(item);
+                        continue;
                     }
-                    continue;
+                    const zh = normalizeText(item);
+                    const row = lookupRow(nodeName, zh);
+                    if (!row) {
+                        canonical.push(item);
+                        if (CJK.test(zh) && !untranslatableSet.has(zh)) {
+                            problemSet.add(
+                                `${file}: ${nodeName} 的 expected「${zh}」不在映射表中（补 texts/node_overrides 或 untranslatable，或 @i18n-skip）`,
+                            );
+                        }
+                        continue;
+                    }
+                    const expansion = expandRow(zh, row);
+                    canonical.push(...expansion.map((p) => p.out));
+                    widths.push([
+                        displayWidth(zh),
+                        ...expansion.map((p) => p.width),
+                    ]);
                 }
-                const expansion = expandRow(zh, row);
-                canonical.push(...expansion);
-                widths.push([
-                    displayWidth(zh),
-                    ...expansion.map(displayWidth),
-                ]);
-            }
 
-            const arrayDiffers =
-                canonical.length !== current.length || canonical.some((value, i) => value !== current[i]);
-            const hasKey = intent.some((item) => typeof item === "string" && lookupRow(nodeName, normalizeText(item)));
-            if (!hasKey) continue; // 与映射无关的节点：不动数组也不加标记（未收录问题已在上面上报）
+                const arrayDiffers =
+                    canonical.length !== current.length || canonical.some((value, i) => value !== current[i]);
+                const hasKey = intent.some(
+                    (item) => typeof item === "string" && lookupRow(nodeName, normalizeText(item)),
+                );
+                if (!hasKey) continue; // 与映射无关的单元：不动数组也不加标记（未收录问题已在上面上报）
 
-            // ROI 扩宽：不改 roi，写/增 roi_offset 右边距，以 720p 屏宽截断。
-            // 与数组是否变更无关、ensure-at-least 幂等：offset 右边距不足计算值时补足，
-            // 已达标不动（数值读取类节点不产生翻译展开，天然不会走到这里）。
-            let roiEdit = null;
-            if (widths.length > 0) {
-                const roi = resolveRoi(root, nodeName, body);
-                if (roi) {
-                    const oldWidth = Math.max(...widths.map(([w]) => w));
-                    const newWidth = Math.max(
-                        ...widths.flatMap(
-                            ([
-                                ,
-                                ...ws
-                            ]) => ws,
-                        ),
-                    );
-                    const ownRight = roi.offsetNode ? roi.offsetNode.children[2].value : 0;
-                    const baseW = roi.values[2] - ownRight; // 人工实测基准宽（不含本工具累计扩宽）
-                    if (newWidth > oldWidth && oldWidth > 0 && baseW > 0) {
-                        let desiredRight = Math.ceil((baseW * newWidth) / oldWidth) - baseW;
-                        const maxRight = Math.floor(SCREEN_WIDTH - roi.values[0] - baseW);
-                        if (maxRight > 0) desiredRight = Math.min(desiredRight, maxRight);
-                        if (desiredRight > ownRight) roiEdit = {desiredRight};
-                        const offsetNode = roi.offsetNode;
-                        const anchorNode = roi.anchorNode;
-                        if (roiEdit && offsetNode) {
-                            roiEdit.edit = {
-                                start: offsetNode.offset,
-                                end: offsetNode.offset + offsetNode.length,
-                                replacement: JSON.stringify(
-                                    offsetNode.children.map((n, i) => (i === 2 ? desiredRight : n.value)),
-                                ),
-                            };
-                        } else if (roiEdit && anchorNode) {
-                            roiEdit.edit = {
-                                start: anchorNode.offset + anchorNode.length,
-                                end: anchorNode.offset + anchorNode.length,
-                                replacement: `, "roi_offset": [0, 0, ${desiredRight}, 0]`,
-                            };
+                // ROI 扩宽：不改 roi，把 roi_offset 右边距补足到「基准宽 × 五语/简中宽度比」，
+                // 以 720p 屏宽截断。与数组是否变更无关、ensure-at-least 幂等：offset 右边距
+                // 不足计算值时补足，已达标不动；数值读取类节点不产生翻译展开，天然不走到这里。
+                let roiEdit = null;
+                if (widths.length > 0) {
+                    const roi = resolveRoi(root, nodeName, unit.recNode, body, unit.allowBodyRoi);
+                    if (roi) {
+                        const oldWidth = Math.max(...widths.map(([w]) => w));
+                        const newWidth = Math.max(
+                            ...widths.flatMap(
+                                ([
+                                    ,
+                                    ...ws
+                                ]) => ws,
+                            ),
+                        );
+                        const ownRight = roi.offsetNode ? roi.offsetNode.children[2].value : 0;
+                        const baseW = roi.values[2] - ownRight; // 人工实测基准宽（不含本工具累计扩宽）
+                        if (newWidth > oldWidth && oldWidth > 0 && baseW > 0) {
+                            let desiredRight = Math.ceil((baseW * newWidth) / oldWidth) - baseW;
+                            // 钳制无条件生效：靠屏右缘的 ROI 不得越过 1280
+                            const maxRight = Math.floor(SCREEN_WIDTH - roi.values[0] - baseW);
+                            desiredRight = Math.min(desiredRight, Math.max(0, maxRight));
+                            const recalc = process.env.SYNC_RECALC === "1"; // 一次性收缩模式：宽度公式修正后把超配的 offset 精确设回计算值
+                            if (desiredRight > ownRight || (recalc && desiredRight !== ownRight)) {
+                                roiEdit = {desiredRight};
+                                if (roi.offsetNode) {
+                                    roiEdit.edit = {
+                                        start: roi.offsetNode.offset,
+                                        end: roi.offsetNode.offset + roi.offsetNode.length,
+                                        replacement: JSON.stringify(
+                                            roi.offsetNode.children.map((n, i) => (i === 2 ? desiredRight : n.value)),
+                                        ),
+                                    };
+                                } else if (roi.anchorNode) {
+                                    roiEdit.edit = {
+                                        start: roi.anchorNode.offset + roi.anchorNode.length,
+                                        end: roi.anchorNode.offset + roi.anchorNode.length,
+                                        replacement: `, "roi_offset": [0, 0, ${desiredRight}, 0]`,
+                                    };
+                                }
+                            }
                         }
                     }
                 }
-            }
 
-            if (marker && !arrayDiffers && !roiEdit) continue; // 幂等：意图、数组、ROI 都已就位
+                if (marker && !arrayDiffers && !roiEdit) continue; // 幂等：意图、数组、ROI 都已就位
 
-            stats.changedNodes++;
-            stats.changedFiles.add(file);
+                stats.changedNodes++;
+                stats.changedFiles.add(file);
 
-            const keyLineStart = text.lastIndexOf("\n", expectedKey.offset - 1) + 1;
-            const indent = lineIndent(text, expectedKey.offset);
-            if (!marker) {
-                edits.push({
-                    start: keyLineStart,
-                    end: keyLineStart,
-                    replacement: `// @i18n-src: ${JSON.stringify(intent)}\n${indent}`,
-                });
+                const expectedKey = expectedMember.children[0];
+                const keyLineStart = text.lastIndexOf("\n", expectedKey.offset - 1) + 1;
+                const indent = lineIndent(text, expectedKey.offset);
+                if (!marker) {
+                    edits.push({
+                        start: keyLineStart,
+                        end: keyLineStart,
+                        replacement: `// @i18n-src: ${JSON.stringify(intent)}\n${indent}`,
+                    });
+                }
+                if (arrayDiffers) {
+                    edits.push({
+                        start: expected.offset,
+                        end: expected.offset + expected.length,
+                        replacement: buildArrayText(canonical, indent),
+                    });
+                }
+                if (roiEdit?.edit) edits.push(roiEdit.edit);
             }
-            if (arrayDiffers) {
-                edits.push({
-                    start: expected.offset,
-                    end: expected.offset + expected.length,
-                    replacement: buildArrayText(canonical, indent),
-                });
-            }
-            if (roiEdit?.edit) edits.push(roiEdit.edit);
         }
 
         if (!CHECK) {
@@ -384,6 +429,11 @@ for (let pass = 1; pass <= MAX_PASSES; pass++) {
             }
             if (edits.length > 0) writeFileSync(file, result);
         }
+    }
+    passesUsed = pass;
+    if (pass === 1) {
+        firstPass.changedNodes = stats.changedNodes;
+        firstPass.changedFiles = new Set(stats.changedFiles);
     }
     if (CHECK) break;
     if (stats.changedNodes === 0) break;
@@ -406,10 +456,10 @@ if (CHECK) {
         if (problems.length > 20) console.error(`x ... and ${problems.length - 20} more`);
         process.exit(1);
     }
-    console.log(`[OK] ocr expected is consistent (${stats.ocrNodes} OCR nodes, ${stats.skipped} skipped by marker)`);
+    console.log(`[OK] ocr expected is consistent (${stats.ocrNodes} OCR units, ${stats.skipped} skipped by marker)`);
 } else {
     console.log(
-        `files: ${stats.files} | OCR nodes: ${stats.ocrNodes} | skipped: ${stats.skipped} | changed: ${stats.changedNodes} nodes in ${changedFiles} files`,
+        `files: ${stats.files} | OCR units: ${stats.ocrNodes} | skipped: ${stats.skipped} | changed: ${firstPass.changedNodes} nodes in ${firstPass.changedFiles.size} files (${passesUsed} pass${passesUsed > 1 ? "es" : ""} to converge)`,
     );
     if (problems.length > 0) {
         for (const problem of problems.slice(0, 20)) console.warn("! " + problem);

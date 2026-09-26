@@ -23,17 +23,17 @@
                 "roi_offset": [
                     0,
                     0,
-                    174,
+                    66,
                     0
                 ],
                 // @i18n-src: ["故事模式","探索模式","STORY MODE","HARD MODE"]
                 "expected": [
                     "故事模式",
-                    "(?i)Story\\s*Mode",
+                    "(?i)Story\\s*Mode\\b",
                     "ストーリー",
                     "스토리 모드",
                     "探索模式",
-                    "(?i)Hard\\s*Mode",
+                    "(?i)Hard\\s*Mode\\b",
                     "探索モード",
                     "탐색 모드",
                     "STORY MODE",
@@ -82,7 +82,7 @@
                 "expected": [
                     "领取",
                     "領取",
-                    "(?i)Claim",
+                    "(?i)Claim\\b",
                     "受け取る",
                     "수령",
                     "CLAIM"
@@ -107,14 +107,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    48,
+                    0,
                     0
                 ],
                 // @i18n-src: ["开始行动"]
                 "expected": [
                     "开始行动",
                     "開始行動",
-                    "(?i)Start",
+                    "(?i)Start\\b",
                     "行動開始",
                     "행동 시작"
                 ]
@@ -230,7 +230,7 @@
                 "expected": [
                     "开始行动",
                     "開始行動",
-                    "(?i)Start",
+                    "(?i)Start\\b",
                     "行動開始",
                     "행동 시작"
                 ]
@@ -268,12 +268,12 @@
                 "expected": [
                     "战斗",
                     "戰鬥",
-                    "(?i)Battle",
+                    "(?i)Battle\\b",
                     "バトル",
                     "전투",
                     "胜利",
                     "勝利",
-                    "(?i)Victory",
+                    "(?i)Victory\\b",
                     "승리"
                 ]
             }
@@ -355,17 +355,17 @@
                 "roi_offset": [
                     0,
                     0,
-                    174,
+                    66,
                     0
                 ],
                 // @i18n-src: ["故事模式","探索模式","STORY MODE","HARD MODE"]
                 "expected": [
                     "故事模式",
-                    "(?i)Story\\s*Mode",
+                    "(?i)Story\\s*Mode\\b",
                     "ストーリー",
                     "스토리 모드",
                     "探索模式",
-                    "(?i)Hard\\s*Mode",
+                    "(?i)Hard\\s*Mode\\b",
                     "探索モード",
                     "탐색 모드",
                     "STORY MODE",
@@ -393,8 +393,8 @@
                 // @i18n-src: ["前往","GO"]
                 "expected": [
                     "前往",
-                    "(?i)Go",
-                    "(?i)Tune\\s*In",
+                    "(?i)Go\\b",
+                    "(?i)Tune\\s*In\\b",
                     "進む",
                     "이동",
                     "GO"
@@ -436,7 +436,13 @@
                                     380,
                                     87
                                 ],
-                                "expected": "消耗"
+                                // @i18n-src: ["消耗"]
+                                "expected": [
+                                    "消耗",
+                                    "(?i)Cost\\b",
+                                    "消費",
+                                    "소모"
+                                ]
                             }
                         }
                     }

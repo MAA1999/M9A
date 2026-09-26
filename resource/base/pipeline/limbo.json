@@ -30,14 +30,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    3360,
+                    0,
                     0
                 ],
                 // @i18n-src: ["人工梦游"]
                 "expected": [
                     "人工梦游",
                     "人工夢遊",
-                    "(?i)Artificial\\s*Somnambulism",
+                    "(?i)Artificial\\s*Somnambulism\\b",
                     "가상 몽유"
                 ]
             }
@@ -90,10 +90,25 @@
                                     140,
                                     38
                                 ],
+                                "roi_offset": [
+                                    0,
+                                    0,
+                                    210,
+                                    0
+                                ],
+                                // @i18n-src: ["点击","空白","关闭"]
                                 "expected": [
                                     "点击",
                                     "空白",
-                                    "关闭"
+                                    "狁鄢",
+                                    "(?i)Ziel\\b",
+                                    "SnowRabbit",
+                                    "jinggun",
+                                    "关闭",
+                                    "關閉",
+                                    "(?i)Close\\b",
+                                    "閉じる",
+                                    "닫기"
                                 ],
                                 "only_rec": true
                             }
@@ -109,10 +124,25 @@
                                     143,
                                     24
                                 ],
+                                "roi_offset": [
+                                    0,
+                                    0,
+                                    215,
+                                    0
+                                ],
+                                // @i18n-src: ["点击","空白","关闭"]
                                 "expected": [
                                     "点击",
                                     "空白",
-                                    "关闭"
+                                    "狁鄢",
+                                    "(?i)Ziel\\b",
+                                    "SnowRabbit",
+                                    "jinggun",
+                                    "关闭",
+                                    "關閉",
+                                    "(?i)Close\\b",
+                                    "閉じる",
+                                    "닫기"
                                 ],
                                 "only_rec": true
                             }
@@ -268,7 +298,7 @@
                 "expected": [
                     "本层酬劳",
                     "本層酬勞",
-                    "(?i)Reward",
+                    "(?i)Reward\\b",
                     "本層の報酬",
                     "단계 보상"
                 ],
@@ -305,7 +335,7 @@
                 "expected": [
                     "本层酬劳",
                     "本層酬勞",
-                    "(?i)Reward",
+                    "(?i)Reward\\b",
                     "本層の報酬",
                     "단계 보상"
                 ],
@@ -334,14 +364,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    286,
+                    163,
                     0
                 ],
                 // @i18n-src: ["深眠试验"]
                 "expected": [
                     "深眠试验",
                     "深眠試驗",
-                    "(?i)Limbo\\s*Experiment",
+                    "(?i)Limbo\\s*Experiment\\b",
                     "深眠試験",
                     "무의식 테스트"
                 ],
@@ -368,14 +398,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    286,
+                    163,
                     0
                 ],
                 // @i18n-src: ["深眠试验"]
                 "expected": [
                     "深眠试验",
                     "深眠試驗",
-                    "(?i)Limbo\\s*Experiment",
+                    "(?i)Limbo\\s*Experiment\\b",
                     "深眠試験",
                     "무의식 테스트"
                 ],
@@ -402,19 +432,19 @@
                 "roi_offset": [
                     0,
                     0,
-                    94,
+                    47,
                     0
                 ],
                 // @i18n-src: ["已领取","未达成"]
                 "expected": [
                     "已领取",
                     "已領取",
-                    "(?i)Claimed",
+                    "(?i)Claimed\\b",
                     "受取済み",
                     "수령 완료",
                     "未达成",
                     "未達成",
-                    "(?i)Incomplete",
+                    "(?i)Incomplete\\b",
                     "미달성"
                 ],
                 "only_rec": true
@@ -440,19 +470,19 @@
                 "roi_offset": [
                     0,
                     0,
-                    94,
+                    47,
                     0
                 ],
                 // @i18n-src: ["已领取","未达成"]
                 "expected": [
                     "已领取",
                     "已領取",
-                    "(?i)Claimed",
+                    "(?i)Claimed\\b",
                     "受取済み",
                     "수령 완료",
                     "未达成",
                     "未達成",
-                    "(?i)Incomplete",
+                    "(?i)Incomplete\\b",
                     "미달성"
                 ],
                 "only_rec": true
@@ -514,19 +544,19 @@
                 "roi_offset": [
                     0,
                     0,
-                    94,
+                    47,
                     0
                 ],
                 // @i18n-src: ["已领取","未达成"]
                 "expected": [
                     "已领取",
                     "已領取",
-                    "(?i)Claimed",
+                    "(?i)Claimed\\b",
                     "受取済み",
                     "수령 완료",
                     "未达成",
                     "未達成",
-                    "(?i)Incomplete",
+                    "(?i)Incomplete\\b",
                     "미달성"
                 ],
                 "only_rec": true
@@ -675,7 +705,7 @@
                 "expected": [
                     "开始行动",
                     "開始行動",
-                    "(?i)Start",
+                    "(?i)Start\\b",
                     "行動開始",
                     "행동 시작"
                 ]
@@ -720,7 +750,7 @@
                 "expected": [
                     "开始行动",
                     "開始行動",
-                    "(?i)Start",
+                    "(?i)Start\\b",
                     "行動開始",
                     "행동 시작"
                 ]
@@ -751,14 +781,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    73,
+                    37,
                     0
                 ],
                 // @i18n-src: ["战斗失败"]
                 "expected": [
                     "战斗失败",
                     "戰鬥失敗",
-                    "(?i)DEFEAT",
+                    "(?i)DEFEAT\\b",
                     "FAILED",
                     "전투 패배"
                 ],
@@ -794,8 +824,8 @@
                 "expected": [
                     "战斗胜利",
                     "戰鬥勝利",
-                    "(?i)Battle\\s*Victory",
-                    "(?i)VICTORY",
+                    "(?i)Battle\\s*Victory\\b",
+                    "(?i)VICTORY\\b",
                     "VICTORY",
                     "バトル勝利",
                     "전투 승리"
@@ -853,7 +883,7 @@
                 "expected": [
                     "开始行动",
                     "開始行動",
-                    "(?i)Start",
+                    "(?i)Start\\b",
                     "行動開始",
                     "행동 시작"
                 ]
@@ -897,7 +927,7 @@
                 "expected": [
                     "开始行动",
                     "開始行動",
-                    "(?i)Start",
+                    "(?i)Start\\b",
                     "行動開始",
                     "행동 시작"
                 ]
@@ -935,8 +965,8 @@
                 "expected": [
                     "战斗胜利",
                     "戰鬥勝利",
-                    "(?i)Battle\\s*Victory",
-                    "(?i)VICTORY",
+                    "(?i)Battle\\s*Victory\\b",
+                    "(?i)VICTORY\\b",
                     "VICTORY",
                     "バトル勝利",
                     "전투 승리"
@@ -972,7 +1002,7 @@
                 "expected": [
                     "本层酬劳",
                     "本層酬勞",
-                    "(?i)Reward",
+                    "(?i)Reward\\b",
                     "本層の報酬",
                     "단계 보상"
                 ],
@@ -1106,14 +1136,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    597,
+                    358,
                     0
                 ],
                 // @i18n-src: ["深眠试验酬劳"]
                 "expected": [
                     "深眠试验酬劳",
                     "深眠試驗酬勞",
-                    "(?i)Limbo\\s*Experiment\\s*Rewards",
+                    "(?i)Limbo\\s*Experiment\\s*Rewards\\b",
                     "深眠試験報酬",
                     "무의식 테스트 보상"
                 ]
@@ -1237,14 +1267,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    597,
+                    358,
                     0
                 ],
                 // @i18n-src: ["深眠试验酬劳"]
                 "expected": [
                     "深眠试验酬劳",
                     "深眠試驗酬勞",
-                    "(?i)Limbo\\s*Experiment\\s*Rewards",
+                    "(?i)Limbo\\s*Experiment\\s*Rewards\\b",
                     "深眠試験報酬",
                     "무의식 테스트 보상"
                 ]

@@ -20,13 +20,13 @@
                 "roi_offset": [
                     0,
                     0,
-                    135,
+                    68,
                     0
                 ],
                 // @i18n-src: ["魔精公司"]
                 "expected": [
                     "魔精公司",
-                    "(?i)Critter\\s*Center",
+                    "(?i)Critter\\s*Center\\b",
                     "魔精社",
                     "크리터 회사"
                 ],
@@ -94,14 +94,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    128,
+                    77,
                     0
                 ],
                 // @i18n-src: ["生产"]
                 "expected": [
                     "生产",
                     "生產",
-                    "(?i)Production",
+                    "(?i)Production\\b",
                     "生産",
                     "생산"
                 ],
@@ -155,7 +155,7 @@
                 // @i18n-src: ["收取"]
                 "expected": [
                     "收取",
-                    "(?i)Claim",
+                    "(?i)Claim\\b",
                     "受け取る",
                     "획득"
                 ]
@@ -235,14 +235,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    296,
+                    206,
                     0
                 ],
                 // @i18n-src: ["批量放入产品"]
                 "expected": [
                     "批量放入产品",
                     "批量放入產品",
-                    "(?i)Auto\\s*Select\\s*Products",
+                    "(?i)Auto\\s*Select\\s*Products\\b",
                     "一括で製品を配置",
                     "제품 대량 투입"
                 ]
@@ -293,13 +293,13 @@
                 "roi_offset": [
                     0,
                     0,
-                    99,
+                    33,
                     0
                 ],
                 // @i18n-src: ["批量放入"]
                 "expected": [
                     "批量放入",
-                    "(?i)Confirm",
+                    "(?i)Confirm\\b",
                     "一括配置",
                     "대량 투입"
                 ]
@@ -327,7 +327,7 @@
                 "roi_offset": [
                     0,
                     0,
-                    574,
+                    287,
                     0
                 ],
                 // @i18n-src: ["分派","魔精"]
@@ -335,9 +335,9 @@
                     "分派",
                     "魔精",
                     "Soae",
-                    "(?i)Anima",
-                    "(?i)Critter",
-                    "(?i)Critters",
+                    "(?i)Anima\\b",
+                    "(?i)Critter\\b",
+                    "(?i)Critters\\b",
                     "haku\\. A",
                     "루미너스",
                     "크리터"
@@ -374,16 +374,16 @@
                 "expected": [
                     "当前",
                     "當前",
-                    "(?i)Current",
+                    "(?i)Current\\b",
                     "現在",
                     "選択中",
                     "현재",
                     "分派",
                     "魔精",
                     "Soae",
-                    "(?i)Anima",
-                    "(?i)Critter",
-                    "(?i)Critters",
+                    "(?i)Anima\\b",
+                    "(?i)Critter\\b",
+                    "(?i)Critters\\b",
                     "haku\\. A",
                     "루미너스",
                     "크리터"

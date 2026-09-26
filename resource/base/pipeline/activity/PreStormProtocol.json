@@ -27,7 +27,7 @@
                 "expected": [
                     "模拟",
                     "模擬",
-                    "(?i)Simulation",
+                    "(?i)Simulation\\b",
                     "모의"
                 ],
                 "only_rec": true
@@ -116,7 +116,7 @@
                 "expected": [
                     "模拟",
                     "模擬",
-                    "(?i)Simulation",
+                    "(?i)Simulation\\b",
                     "모의"
                 ],
                 "only_rec": true
@@ -152,15 +152,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    142,
+                    71,
                     0
                 ],
                 // @i18n-src: ["选择"]
                 "expected": [
                     "选择",
                     "選擇",
-                    "(?i)Activate",
-                    "(?i)Select",
+                    "(?i)Activate\\b",
+                    "(?i)Select\\b",
                     "解放",
                     "選択",
                     "선택"
@@ -185,20 +185,20 @@
                 "roi_offset": [
                     0,
                     0,
-                    184,
+                    99,
                     0
                 ],
                 // @i18n-src: ["下一步","开始模拟"]
                 "expected": [
                     "下一步",
-                    "(?i)Next",
-                    "(?i)The\\s*Next\\s*Step",
+                    "(?i)Next\\b",
+                    "(?i)The\\s*Next\\s*Step\\b",
                     "次の一手",
                     "次へ",
                     "다음",
                     "开始模拟",
                     "開始模擬",
-                    "(?i)Start",
+                    "(?i)Start\\b",
                     "スタート",
                     "시뮬레이션 시작"
                 ],
@@ -222,14 +222,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    70,
+                    14,
                     0
                 ],
                 // @i18n-src: ["开始"]
                 "expected": [
                     "开始",
                     "開始",
-                    "(?i)Start",
+                    "(?i)Start\\b",
                     "시작"
                 ],
                 "only_rec": true
@@ -291,15 +291,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    164,
+                    55,
                     0
                 ],
                 // @i18n-src: ["失败"]
                 "expected": [
                     "失败",
                     "失敗",
-                    "(?i)Failed",
-                    "(?i)Miss",
+                    "(?i)Failed\\b",
+                    "(?i)Miss\\b",
                     "MISS",
                     "실패"
                 ],

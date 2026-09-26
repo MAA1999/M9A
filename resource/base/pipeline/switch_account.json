@@ -362,15 +362,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    111,
+                    48,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -427,7 +427,7 @@
                 "expected": [
                     "返回登录",
                     "返回登錄",
-                    "(?i)Confirm",
+                    "(?i)Confirm\\b",
                     "タイトルに戻る",
                     "돌아가기"
                 ]
@@ -451,16 +451,16 @@
                 "roi_offset": [
                     0,
                     0,
-                    323,
+                    282,
                     0
                 ],
                 // @i18n-src: ["退出"]
                 "expected": [
                     "退出",
                     "EXIT",
-                    "(?i)EXIT",
-                    "(?i)Exit",
-                    "(?i)Save\\s*&\\s*Exit",
+                    "(?i)EXIT\\b",
+                    "(?i)Exit\\b",
+                    "(?i)Save\\s*&\\s*Exit\\b",
                     "ログアウト",
                     "一時退出",
                     "閉じる",
@@ -486,19 +486,19 @@
                 "roi_offset": [
                     0,
                     0,
-                    310,
+                    266,
                     0
                 ],
                 // @i18n-src: ["账号","账户"]
                 "expected": [
                     "账号",
                     "帳號",
-                    "(?i)Account",
+                    "(?i)Account\\b",
                     "アカウント",
                     "계정",
                     "账户",
                     "帳戶",
-                    "(?i)Account",
+                    "(?i)Account\\b",
                     "アカウント",
                     "계정"
                 ]

@@ -67,14 +67,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    183,
+                    122,
                     0
                 ],
                 // @i18n-src: ["解离"]
                 "expected": [
                     "解离",
                     "解離",
-                    "(?i)Dissociation",
+                    "(?i)Dissociation\\b",
                     "분리"
                 ],
                 "only_rec": true
@@ -452,11 +452,11 @@
                 "expected": [
                     "正在",
                     "更新",
-                    "(?i)Update",
+                    "(?i)Update\\b",
                     "업데이트",
                     "下载",
                     "下載",
-                    "(?i)Download",
+                    "(?i)Download\\b",
                     "ダウンロード",
                     "다운로드"
                 ]
@@ -493,12 +493,12 @@
                 "expected": [
                     "下载",
                     "下載",
-                    "(?i)Download",
+                    "(?i)Download\\b",
                     "ダウンロード",
                     "다운로드",
                     "重试",
                     "重試",
-                    "(?i)Retry",
+                    "(?i)Retry\\b",
                     "リトライ",
                     "재시도"
                 ]
@@ -521,7 +521,7 @@
                 "roi_offset": [
                     0,
                     0,
-                    186,
+                    0,
                     0
                 ],
                 // @i18n-src: ["跳过"]
@@ -529,8 +529,8 @@
                     "跳过",
                     "SKIP",
                     "跳過",
-                    "(?i)SKIP",
-                    "(?i)Skip",
+                    "(?i)SKIP\\b",
+                    "(?i)Skip\\b",
                     "スキップ",
                     "건너뛰기"
                 ]
@@ -1031,12 +1031,12 @@
                     "밝히자",
                     "奥秘",
                     "奧秘",
-                    "(?i)Intelligence",
+                    "(?i)Intelligence\\b",
                     "비밀",
                     "继续",
                     "繼續",
-                    "(?i)Continue",
-                    "(?i)Resume",
+                    "(?i)Continue\\b",
+                    "(?i)Resume\\b",
                     "続ける",
                     "계속"
                 ]
@@ -1059,20 +1059,20 @@
                 "roi_offset": [
                     0,
                     0,
-                    435,
+                    192,
                     0
                 ],
                 // @i18n-src: ["确认","确定"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인",
                     "确定",
                     "確定",
-                    "(?i)Confirm",
+                    "(?i)Confirm\\b",
                     "決定",
                     "확인"
                 ]
@@ -1102,12 +1102,12 @@
                 "expected": [
                     "战斗",
                     "戰鬥",
-                    "(?i)Battle",
+                    "(?i)Battle\\b",
                     "バトル",
                     "전투",
                     "胜利",
                     "勝利",
-                    "(?i)Victory",
+                    "(?i)Victory\\b",
                     "승리"
                 ]
             }
@@ -1136,7 +1136,7 @@
                 "expected": [
                     "以后再说",
                     "以後再說",
-                    "(?i)Later",
+                    "(?i)Later\\b",
                     "また今度",
                     "나중에"
                 ],

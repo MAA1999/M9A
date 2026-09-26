@@ -66,14 +66,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    176,
+                    59,
                     0
                 ],
                 // @i18n-src: ["音序选择"]
                 "expected": [
                     "音序选择",
                     "音序選擇",
-                    "(?i)Select\\s*Tone",
+                    "(?i)Select\\s*Tone\\b",
                     "難易度選択",
                     "셈여림 선택"
                 ],
@@ -117,15 +117,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    81,
+                    35,
                     0
                 ],
                 // @i18n-src: ["解锁"]
                 "expected": [
                     "解锁",
                     "解鎖",
-                    "(?i)Recruit",
-                    "(?i)Unlock",
+                    "(?i)Recruit\\b",
+                    "(?i)Unlock\\b",
                     "募集",
                     "取得",
                     "開放",
@@ -164,15 +164,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    133,
+                    57,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -197,14 +197,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    383,
+                    217,
                     0
                 ],
                 // @i18n-src: ["镜的馈赠"]
                 "expected": [
                     "镜的馈赠",
                     "鏡的饋贈",
-                    "(?i)Gifts\\s*from\\s*the\\s*Mirror",
+                    "(?i)Gifts\\s*from\\s*the\\s*Mirror\\b",
                     "鏡の贈り物",
                     "거울의 선물"
                 ],
@@ -229,18 +229,18 @@
                 "roi_offset": [
                     0,
                     0,
-                    3195,
+                    0,
                     0
                 ],
                 // @i18n-src: ["造物","发条","金雀","媒介","药剂"]
                 "expected": [
                     "造物",
-                    "(?i)Artefact",
-                    "(?i)Artefacts",
+                    "(?i)Artefact\\b",
+                    "(?i)Artefacts\\b",
                     "피조물",
                     "发条",
                     "發條",
-                    "(?i)Winder",
+                    "(?i)Winder\\b",
                     "ぜんまい",
                     "태엽",
                     "金雀",
@@ -248,8 +248,8 @@
                     "药剂",
                     "安笙",
                     "藥劑",
-                    "(?i)Medication",
-                    "(?i)downdog",
+                    "(?i)Medication\\b",
+                    "(?i)downdog\\b",
                     "Rummne",
                     "薬剤",
                     "세카",
@@ -279,18 +279,18 @@
                 "roi_offset": [
                     0,
                     0,
-                    3834,
+                    0,
                     0
                 ],
                 // @i18n-src: ["造物","发条","金雀","媒介","药剂","软盘"]
                 "expected": [
                     "造物",
-                    "(?i)Artefact",
-                    "(?i)Artefacts",
+                    "(?i)Artefact\\b",
+                    "(?i)Artefacts\\b",
                     "피조물",
                     "发条",
                     "發條",
-                    "(?i)Winder",
+                    "(?i)Winder\\b",
                     "ぜんまい",
                     "태엽",
                     "金雀",
@@ -298,8 +298,8 @@
                     "药剂",
                     "安笙",
                     "藥劑",
-                    "(?i)Medication",
-                    "(?i)downdog",
+                    "(?i)Medication\\b",
+                    "(?i)downdog\\b",
                     "Rummne",
                     "薬剤",
                     "세카",
@@ -307,8 +307,8 @@
                     "软盘",
                     "愿",
                     "磁碟",
-                    "(?i)Disk",
-                    "(?i)Nikkie",
+                    "(?i)Disk\\b",
+                    "(?i)Nikkie\\b",
                     "ディスク",
                     "ボボ坊ボ・坊ボボ",
                     "디스크",
@@ -339,15 +339,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    133,
+                    57,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -397,15 +397,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    133,
+                    57,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -482,7 +482,19 @@
                                     100,
                                     31
                                 ],
-                                "expected": "神秘术",
+                                "roi_offset": [
+                                    0,
+                                    0,
+                                    117,
+                                    0
+                                ],
+                                // @i18n-src: ["神秘术"]
+                                "expected": [
+                                    "神秘术",
+                                    "神秘術",
+                                    "(?i)Arcane\\s*Skills\\b",
+                                    "마도술"
+                                ],
                                 "only_rec": true
                             }
                         }
@@ -497,7 +509,19 @@
                                     109,
                                     31
                                 ],
-                                "expected": "神秘术",
+                                "roi_offset": [
+                                    0,
+                                    0,
+                                    128,
+                                    0
+                                ],
+                                // @i18n-src: ["神秘术"]
+                                "expected": [
+                                    "神秘术",
+                                    "神秘術",
+                                    "(?i)Arcane\\s*Skills\\b",
+                                    "마도술"
+                                ],
                                 "only_rec": true
                             }
                         }
@@ -523,15 +547,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    95,
+                    51,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -569,15 +593,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    133,
+                    57,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -970,7 +994,7 @@
                 "expected": [
                     "金雀子儿",
                     "金雀子兒",
-                    "(?i)Goldfinch\\s*Coin",
+                    "(?i)Goldfinch\\s*Coin\\b",
                     "金雀銭貨",
                     "참새 금화",
                     "不足"
@@ -1106,14 +1130,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    50,
+                    17,
                     0
                 ],
                 // @i18n-src: ["确认购买"]
                 "expected": [
                     "确认购买",
                     "確認購買",
-                    "(?i)Confirm",
+                    "(?i)Confirm\\b",
                     "購入する",
                     "구매 확인"
                 ],
@@ -1279,14 +1303,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    325,
+                    125,
                     0
                 ],
                 // @i18n-src: ["触媒等级提升"]
                 "expected": [
                     "触媒等级提升",
                     "觸媒等級提升",
-                    "(?i)Catalyst\\s*Level\\s*Up",
+                    "(?i)Catalyst\\s*Level\\s*Up\\b",
                     "触媒レベルアップ",
                     "촉매 레벨업"
                 ],
@@ -1324,14 +1348,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    284,
+                    178,
                     0
                 ],
                 // @i18n-src: ["造物选择"]
                 "expected": [
                     "造物选择",
                     "造物選擇",
-                    "(?i)Artefact\\s*Selection",
+                    "(?i)Artefact\\s*Selection\\b",
                     "造物選択",
                     "피조물 선택"
                 ],
@@ -1356,14 +1380,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    284,
+                    178,
                     0
                 ],
                 // @i18n-src: ["造物选择"]
                 "expected": [
                     "造物选择",
                     "造物選擇",
-                    "(?i)Artefact\\s*Selection",
+                    "(?i)Artefact\\s*Selection\\b",
                     "造物選択",
                     "피조물 선택"
                 ],
@@ -1456,15 +1480,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    130,
+                    56,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -1504,15 +1528,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    130,
+                    56,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -1545,15 +1569,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    130,
+                    56,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -1574,15 +1598,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    133,
+                    57,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -1615,22 +1639,22 @@
                 "roi_offset": [
                     0,
                     0,
-                    392,
+                    224,
                     0
                 ],
                 // @i18n-src: ["交付造物","失去造物","失声天平"]
                 "expected": [
                     "交付造物",
-                    "(?i)Discard\\s*Artefact",
+                    "(?i)Discard\\s*Artefact\\b",
                     "造物を提出する",
                     "피조물 전달",
                     "失去造物",
-                    "(?i)Lose\\s*Artefact",
+                    "(?i)Lose\\s*Artefact\\b",
                     "造物を失くす",
                     "피조물 잃기",
                     "失声天平",
                     "失聲天平",
-                    "(?i)Voiceless\\s*Scales",
+                    "(?i)Voiceless\\s*Scales\\b",
                     "沈黙の天秤",
                     "소리 잃은 저울"
                 ],
@@ -1667,15 +1691,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    95,
+                    51,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -1705,15 +1729,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    123,
+                    53,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -1753,15 +1777,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    123,
+                    53,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -1791,136 +1815,136 @@
                 "expected": [
                     "休憩点",
                     "休憩點",
-                    "(?i)Rest\\s*Site",
+                    "(?i)Rest\\s*Site\\b",
                     "憩いの場",
                     "휴게소",
                     "合法受益人",
-                    "(?i)Legal\\s*Beneficiary",
+                    "(?i)Legal\\s*Beneficiary\\b",
                     "受益者",
                     "합법 수익자",
                     "受害者",
-                    "(?i)The\\s*Victim",
+                    "(?i)The\\s*Victim\\b",
                     "被害者",
                     "피해자",
                     "美味汽水",
-                    "(?i)Tasty\\s*Soda",
+                    "(?i)Tasty\\s*Soda\\b",
                     "美味しいソーダ水",
                     "맛있는 음료",
                     "床位纷争",
                     "床位紛爭",
-                    "(?i)Quarrel\\s*of\\s*the\\s*Ghosts",
+                    "(?i)Quarrel\\s*of\\s*the\\s*Ghosts\\b",
                     "寝台にまつわる争い",
                     "자리 싸움",
                     "聒噪的箱子",
-                    "(?i)A\\s*Noisy\\s*Suitcase",
+                    "(?i)A\\s*Noisy\\s*Suitcase\\b",
                     "騒がしい箱",
                     "떠들썩한 여행 가방",
                     "模糊的油画",
                     "模糊的油畫",
-                    "(?i)A\\s*Blurry\\s*Oil\\s*Painting",
+                    "(?i)A\\s*Blurry\\s*Oil\\s*Painting\\b",
                     "ぼんやりした油絵",
                     "모호한 유화",
                     "赃物",
                     "贓物",
-                    "(?i)Stolen\\s*Goods",
+                    "(?i)Stolen\\s*Goods\\b",
                     "盗品",
                     "장물",
                     "水泊精灵",
                     "水泊精靈",
-                    "(?i)Waterhole\\s*Sprite",
+                    "(?i)Waterhole\\s*Sprite\\b",
                     "水溜りの精霊",
                     "호수의 정령",
                     "传闻",
                     "傳聞",
-                    "(?i)Rumor",
-                    "(?i)Storied",
+                    "(?i)Rumor\\b",
+                    "(?i)Storied\\b",
                     "伝説",
                     "依頼",
                     "소문",
                     "星空之腹",
-                    "(?i)The\\s*Belly\\s*of\\s*the\\s*Starry\\s*Sky",
+                    "(?i)The\\s*Belly\\s*of\\s*the\\s*Starry\\s*Sky\\b",
                     "星空の奥底",
                     "별하늘의 마음",
                     "交易地",
                     "命运之泉",
                     "命運之泉",
-                    "(?i)Fountain\\s*of\\s*Fate",
+                    "(?i)Fountain\\s*of\\s*Fate\\b",
                     "運命の泉",
                     "운명의 샘",
                     "便民服务",
                     "便民服務",
-                    "(?i)Convenience\\s*Services",
+                    "(?i)Convenience\\s*Services\\b",
                     "便利サービス",
                     "편리한 서비스",
                     "未来",
                     "BBT",
-                    "(?i)Couplestars",
+                    "(?i)Couplestars\\b",
                     "ねむむ",
                     "DSADxcxz",
                     "市场(.*| 雏)形",
                     "向导",
                     "嚮導",
-                    "(?i)Guide",
-                    "(?i)The\\s*Guide",
+                    "(?i)Guide\\b",
+                    "(?i)The\\s*Guide\\b",
                     "ガイド",
                     "案内人",
                     "가이드",
                     "失窃案",
                     "失竊案",
-                    "(?i)A\\s*Case\\s*of\\s*Theft",
+                    "(?i)A\\s*Case\\s*of\\s*Theft\\b",
                     "盗難事件",
                     "도난 사건",
                     "脱轨电车",
                     "脫軌電車",
-                    "(?i)<\\s*nobr\\s*>\\s*Rail\\s*-\\s*Free\\s*</\\s*nobr\\s*>\\s*Tramcar",
+                    "(?i)Rail\\s*-\\s*Free\\s*Tramcar\\b",
                     "路面電車の脱線",
                     "탈선한 전차",
                     "城市的静脉",
                     "城市的靜脈",
-                    "(?i)The\\s*Veins\\s*of\\s*the\\s*City",
+                    "(?i)The\\s*Veins\\s*of\\s*the\\s*City\\b",
                     "街の静脈",
                     "도시의 정맥",
                     "滑翔冒险",
                     "滑翔冒險",
-                    "(?i)What\\s*Goes\\s*Up",
+                    "(?i)What\\s*Goes\\s*Up\\b",
                     "滑空冒険",
                     "활공의 모험",
                     "旅者的馈赠",
                     "旅者的饋贈",
-                    "(?i)The\\s*Traveler\\s*'\\s*s\\s*Gift",
+                    "(?i)The\\s*Traveler\\s*'\\s*s\\s*Gift\\b",
                     "旅人の贈り物",
                     "여행자의 선물",
                     "艺术的回馈",
                     "藝術的回饋",
-                    "(?i)Art\\s*'\\s*s\\s*Recompense",
+                    "(?i)Art\\s*'\\s*s\\s*Recompense\\b",
                     "芸術の見返り",
                     "예술의 보답",
                     "分享情报",
                     "分享情報",
-                    "(?i)Sharing\\s*Intelligence",
+                    "(?i)Sharing\\s*Intelligence\\b",
                     "情報共有",
                     "정보 공유",
                     "巷角的围堵",
                     "巷角的圍堵",
-                    "(?i)Street\\s*Corner\\s*Ambush",
+                    "(?i)Street\\s*Corner\\s*Ambush\\b",
                     "街角の包囲",
                     "모퉁이의 포위",
                     "盛情款待",
-                    "(?i)A\\s*Most\\s*Gracious\\s*Host",
+                    "(?i)A\\s*Most\\s*Gracious\\s*Host\\b",
                     "心からのもてなし",
                     "극진한 대우",
                     "旧唱片",
                     "杜dzh",
                     "舊唱片",
-                    "(?i)An\\s*Old\\s*Record",
-                    "(?i)Fen",
+                    "(?i)An\\s*Old\\s*Record\\b",
+                    "(?i)Fen\\b",
                     "fohis",
                     "古いレコード",
                     "세상",
                     "오래된 레코드",
                     "发狂的贵族",
                     "發狂的貴族",
-                    "(?i)A\\s*Frantic\\s*Noble",
+                    "(?i)A\\s*Frantic\\s*Noble\\b",
                     "発狂した貴族",
                     "발광하는 귀족"
                 ],
@@ -1962,50 +1986,50 @@
                 "expected": [
                     "今日运势",
                     "今日運勢",
-                    "(?i)Fortune\\s*Telling",
+                    "(?i)Fortune\\s*Telling\\b",
                     "本日の運勢",
                     "오늘의 운세",
                     "落魄画家",
                     "落魄畫家",
-                    "(?i)Starving\\s*Artist",
+                    "(?i)Starving\\s*Artist\\b",
                     "不遇の画家",
                     "초라한 화가",
                     "板条箱",
                     "板條箱",
-                    "(?i)Crates",
+                    "(?i)Crates\\b",
                     "木箱",
                     "골판지 상자",
                     "降灵",
                     "降靈",
-                    "(?i)The\\s*Seance",
+                    "(?i)The\\s*Seance\\b",
                     "降霊",
                     "강령",
                     "何谓艺术",
                     "地底与星空",
                     "地底與星空",
-                    "(?i)The\\s*Underground\\s*and\\s*the\\s*Stars",
+                    "(?i)The\\s*Underground\\s*and\\s*the\\s*Stars\\b",
                     "地底と星空",
                     "지하와 별하늘",
                     "旧栈道",
                     "舊棧道",
-                    "(?i)The\\s*Old\\s*Skywalk",
+                    "(?i)The\\s*Old\\s*Skywalk\\b",
                     "古い桟道",
                     "오래된 잔도",
                     "非典型茶歇",
-                    "(?i)Atypical\\s*Tea\\s*Break",
+                    "(?i)Atypical\\s*Tea\\s*Break\\b",
                     "非典型ティータイム",
                     "비 정형적인 티타임",
                     "死胡同",
-                    "(?i)Dead\\s*End",
+                    "(?i)Dead\\s*End\\b",
                     "行き止まり",
                     "막다른 골목",
                     "乞食的鸟雀",
                     "乞食的鳥雀",
-                    "(?i)Begging\\s*Children",
+                    "(?i)Begging\\s*Children\\b",
                     "物乞いをする小鳥",
                     "굶주린 새",
                     "神奇商店",
-                    "(?i)A\\s*Shop\\s*of\\s*Wonders",
+                    "(?i)A\\s*Shop\\s*of\\s*Wonders\\b",
                     "不思議なショップ",
                     "신기한 상점"
                 ],
@@ -2047,23 +2071,23 @@
                 "expected": [
                     "破碎的怀表",
                     "破碎的懷錶",
-                    "(?i)A\\s*Broken\\s*Pocket\\s*Watch",
+                    "(?i)A\\s*Broken\\s*Pocket\\s*Watch\\b",
                     "砕かれた懐中時計",
                     "부서진 회중 시계",
                     "狂热粉丝",
                     "狂熱粉絲",
-                    "(?i)Superfan",
+                    "(?i)Superfan\\b",
                     "熱狂的なファン",
                     "열성 팬",
                     "矫饰主义",
                     "门的内侧",
                     "門的內側",
-                    "(?i)The\\s*Other\\s*Side\\s*of\\s*the\\s*Door",
+                    "(?i)The\\s*Other\\s*Side\\s*of\\s*the\\s*Door\\b",
                     "ドアの内側",
                     "문의 안쪽",
                     "魔精典当行",
                     "魔精典當行",
-                    "(?i)Critter\\s*'\\s*s\\s*Pawn\\s*Shop",
+                    "(?i)Critter\\s*'\\s*s\\s*Pawn\\s*Shop\\b",
                     "魔精の質店",
                     "크리터 전당포"
                 ],
@@ -2105,7 +2129,7 @@
                 "expected": [
                     "洞窟尽头",
                     "洞窟盡頭",
-                    "(?i)To\\s*the\\s*Back\\s*of\\s*the\\s*Cave",
+                    "(?i)To\\s*the\\s*Back\\s*of\\s*the\\s*Cave\\b",
                     "洞窟の果て",
                     "동굴의 끝"
                 ],
@@ -2147,7 +2171,7 @@
                 "expected": [
                     "窗与扉",
                     "窗與扉",
-                    "(?i)Window\\s*of\\s*Opportunity",
+                    "(?i)Window\\s*of\\s*Opportunity\\b",
                     "窓と扉",
                     "창과 문"
                 ],
@@ -2367,14 +2391,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    267,
+                    160,
                     0
                 ],
                 // @i18n-src: ["奇巧置换"]
                 "expected": [
                     "奇巧置换",
                     "奇巧置換",
-                    "(?i)Artefact\\s*Exchange",
+                    "(?i)Artefact\\s*Exchange\\b",
                     "合成工房",
                     "특별한 교체"
                 ],

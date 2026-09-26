@@ -35,14 +35,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    412,
+                    222,
                     0
                 ],
                 // @i18n-src: ["兑换码"]
                 "expected": [
                     "兑换码",
                     "兌換碼",
-                    "(?i)Exchange\\s*Code",
+                    "(?i)Exchange\\s*Code\\b",
                     "交換コード",
                     "교환 코드"
                 ]
@@ -92,14 +92,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    276,
+                    160,
                     0
                 ],
                 // @i18n-src: ["兑换奖励"]
                 "expected": [
                     "兑换奖励",
                     "兌換獎勵",
-                    "(?i)Exchange\\s*for\\s*Reward",
+                    "(?i)Exchange\\s*for\\s*Reward\\b",
                     "報酬交換",
                     "보상 교환"
                 ],
@@ -125,14 +125,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    191,
+                    101,
                     0
                 ],
                 // @i18n-src: ["输入兑换码"]
                 "expected": [
                     "输入兑换码",
                     "輸入兌換碼",
-                    "(?i)Enter\\s*exchange\\s*code",
+                    "(?i)Enter\\s*exchange\\s*code\\b",
                     "交換コードを入力",
                     "교환 코드 입력"
                 ],
@@ -214,7 +214,7 @@
                 // @i18n-src: ["取消"]
                 "expected": [
                     "取消",
-                    "(?i)Cancel",
+                    "(?i)Cancel\\b",
                     "キャンセル",
                     "취소"
                 ],
@@ -239,14 +239,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    412,
+                    222,
                     0
                 ],
                 // @i18n-src: ["兑换码"]
                 "expected": [
                     "兑换码",
                     "兌換碼",
-                    "(?i)Exchange\\s*Code",
+                    "(?i)Exchange\\s*Code\\b",
                     "交換コード",
                     "교환 코드"
                 ]
@@ -267,14 +267,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    128,
+                    55,
                     0
                 ],
                 // @i18n-src: ["确定"]
                 "expected": [
                     "确定",
                     "確定",
-                    "(?i)Confirm",
+                    "(?i)Confirm\\b",
                     "決定",
                     "확인"
                 ],
@@ -308,14 +308,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    276,
+                    160,
                     0
                 ],
                 // @i18n-src: ["兑换奖励"]
                 "expected": [
                     "兑换奖励",
                     "兌換獎勵",
-                    "(?i)Exchange\\s*for\\s*Reward",
+                    "(?i)Exchange\\s*for\\s*Reward\\b",
                     "報酬交換",
                     "보상 교환"
                 ],
@@ -348,14 +348,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    144,
+                    48,
                     0
                 ],
                 // @i18n-src: ["前往"]
                 "expected": [
                     "前往",
-                    "(?i)Go",
-                    "(?i)Tune\\s*In",
+                    "(?i)Go\\b",
+                    "(?i)Tune\\s*In\\b",
                     "進む",
                     "이동"
                 ]

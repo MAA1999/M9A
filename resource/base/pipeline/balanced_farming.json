@@ -19,14 +19,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    95,
+                    53,
                     0
                 ],
                 // @i18n-src: ["仓库"]
                 "expected": [
                     "仓库",
                     "倉庫",
-                    "(?i)Warehouse",
+                    "(?i)Warehouse\\b",
                     "창고"
                 ],
                 "only_rec": true
@@ -55,13 +55,13 @@
                 "roi_offset": [
                     0,
                     0,
-                    210,
+                    117,
                     0
                 ],
                 // @i18n-src: ["消耗品"]
                 "expected": [
                     "消耗品",
-                    "(?i)Consumables",
+                    "(?i)Consumables\\b",
                     "소모품"
                 ]
             }
@@ -121,14 +121,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    95,
+                    53,
                     0
                 ],
                 // @i18n-src: ["仓库"]
                 "expected": [
                     "仓库",
                     "倉庫",
-                    "(?i)Warehouse",
+                    "(?i)Warehouse\\b",
                     "창고"
                 ],
                 "only_rec": true

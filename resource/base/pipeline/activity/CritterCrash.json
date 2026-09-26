@@ -66,15 +66,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    123,
+                    53,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -141,14 +141,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    187,
+                    47,
                     0
                 ],
                 // @i18n-src: ["守卫名单"]
                 "expected": [
                     "守卫名单",
                     "守衛名單",
-                    "(?i)Guard\\s*List",
+                    "(?i)Guard\\s*List\\b",
                     "警備名簿",
                     "경비 명단"
                 ],
@@ -195,14 +195,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    211,
+                    71,
                     0
                 ],
                 // @i18n-src: ["制定计划"]
                 "expected": [
                     "制定计划",
                     "制定計劃",
-                    "(?i)Devise\\s*Plan",
+                    "(?i)Devise\\s*Plan\\b",
                     "プラン作成",
                     "계획 지정"
                 ],
@@ -248,14 +248,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    258,
+                    117,
                     0
                 ],
                 // @i18n-src: ["选择领队"]
                 "expected": [
                     "选择领队",
                     "選擇領隊",
-                    "(?i)Select\\s*Player",
+                    "(?i)Select\\s*Player\\b",
                     "棋士選択",
                     "리더 선택"
                 ],
@@ -427,14 +427,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    330,
+                    178,
                     0
                 ],
                 // @i18n-src: ["对战结束"]
                 "expected": [
                     "对战结束",
                     "對戰結束",
-                    "(?i)Battle\\s*Complete",
+                    "(?i)Battle\\s*Complete\\b",
                     "ラウンド終了",
                     "대전 종료"
                 ],
@@ -568,15 +568,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    390,
+                    195,
                     0
                 ],
                 // @i18n-src: ["选择"]
                 "expected": [
                     "选择",
                     "選擇",
-                    "(?i)Activate",
-                    "(?i)Select",
+                    "(?i)Activate\\b",
+                    "(?i)Select\\b",
                     "解放",
                     "選択",
                     "선택"
@@ -600,16 +600,16 @@
                 "roi_offset": [
                     0,
                     0,
-                    108,
+                    36,
                     0
                 ],
                 // @i18n-src: ["放弃"]
                 "expected": [
                     "放弃",
                     "放棄",
-                    "(?i)Give\\s*Up",
-                    "(?i)Quit",
-                    "(?i)Skip",
+                    "(?i)Give\\s*Up\\b",
+                    "(?i)Quit\\b",
+                    "(?i)Skip\\b",
                     "やめる",
                     "포기"
                 ],
@@ -633,15 +633,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    109,
+                    47,
                     0
                 ],
                 // @i18n-src: ["确认"]
                 "expected": [
                     "确认",
                     "確認",
-                    "(?i)Confirm",
-                    "(?i)Exit",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
                     "決定",
                     "확인"
                 ],
@@ -660,15 +660,15 @@
                 "roi_offset": [
                     -150,
                     361,
-                    272,
+                    256,
                     146
                 ],
                 // @i18n-src: ["选择"]
                 "expected": [
                     "选择",
                     "選擇",
-                    "(?i)Activate",
-                    "(?i)Select",
+                    "(?i)Activate\\b",
+                    "(?i)Select\\b",
                     "解放",
                     "選択",
                     "선택"

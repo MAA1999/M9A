@@ -60,24 +60,24 @@
                 "roi_offset": [
                     0,
                     0,
-                    324,
+                    185,
                     0
                 ],
                 // @i18n-src: ["碎片叙事","荒原构想","取自雨声"]
                 "expected": [
                     "碎片叙事",
                     "碎片敘事",
-                    "(?i)Fragment\\s*Shop",
+                    "(?i)Fragment\\s*Shop\\b",
                     "断片叙事",
                     "조각 상점",
                     "荒原构想",
                     "荒原構想",
-                    "(?i)Wilderness\\s*Shop",
+                    "(?i)Wilderness\\s*Shop\\b",
                     "ウィルダネス構想",
                     "황무지 상점",
                     "取自雨声",
                     "取自雨聲",
-                    "(?i)Echoes\\s*of\\s*Rain",
+                    "(?i)Echoes\\s*of\\s*Rain\\b",
                     "雨音の響き",
                     "빗소리로부터"
                 ]
@@ -124,14 +124,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    208,
+                    115,
                     0
                 ],
                 // @i18n-src: ["吼声推荐"]
                 "expected": [
                     "吼声推荐",
                     "吼聲推薦",
-                    "(?i)Arcanists\\s*'\\s*Favorite",
+                    "(?i)Arcanists\\s*'\\s*Favorite\\b",
                     "店長のおすすめ",
                     "포효 추천"
                 ],
@@ -175,7 +175,7 @@
                 "expected": [
                     "免费",
                     "免費",
-                    "(?i)Free",
+                    "(?i)Free\\b",
                     "無料",
                     "무료"
                 ]
@@ -226,7 +226,7 @@
                 "expected": [
                     "免费",
                     "免費",
-                    "(?i)Free",
+                    "(?i)Free\\b",
                     "無料",
                     "무료"
                 ]
@@ -262,15 +262,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    134,
+                    67,
                     0
                 ],
                 // @i18n-src: ["购买"]
                 "expected": [
                     "购买",
                     "購買",
-                    "(?i)Buy",
-                    "(?i)Purchase",
+                    "(?i)Buy\\b",
+                    "(?i)Purchase\\b",
                     "購入",
                     "구매"
                 ],
@@ -297,14 +297,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    604,
+                    362,
                     0
                 ],
                 // @i18n-src: ["柜员机"]
                 "expected": [
                     "柜员机",
                     "櫃員機",
-                    "(?i)The\\s*Teller\\s*Machine",
+                    "(?i)The\\s*Teller\\s*Machine\\b",
                     "受付マシン",
                     "ATM"
                 ]
@@ -351,7 +351,7 @@
                 "expected": [
                     "低阶柜台",
                     "低階櫃檯",
-                    "(?i)Bass\\s*Counter",
+                    "(?i)Bass\\s*Counter\\b",
                     "低音カウンター",
                     "저음 카운터"
                 ]
@@ -437,8 +437,8 @@
                     "独一律",
                     "可悲台服，在花錢我是狗",
                     "獨一律",
-                    "(?i)Alcr3mist",
-                    "(?i)Unilog",
+                    "(?i)Alcr3mist\\b",
+                    "(?i)Unilog\\b",
                     "JUN",
                     "モノロー",
                     "모노로그",
@@ -489,15 +489,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    120,
+                    60,
                     0
                 ],
                 // @i18n-src: ["购买"]
                 "expected": [
                     "购买",
                     "購買",
-                    "(?i)Buy",
-                    "(?i)Purchase",
+                    "(?i)Buy\\b",
+                    "(?i)Purchase\\b",
                     "購入",
                     "구매"
                 ],
@@ -578,7 +578,7 @@
                 "expected": [
                     "迷途鉴定",
                     "迷途鑒定",
-                    "(?i)Pawnshop",
+                    "(?i)Pawnshop\\b",
                     "ボイスショップ",
                     "보이스 상점"
                 ]
@@ -625,7 +625,7 @@
                 "expected": [
                     "低阶柜台",
                     "低階櫃檯",
-                    "(?i)Bass\\s*Counter",
+                    "(?i)Bass\\s*Counter\\b",
                     "低音カウンター",
                     "저음 카운터"
                 ]
@@ -745,15 +745,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    120,
+                    60,
                     0
                 ],
                 // @i18n-src: ["购买"]
                 "expected": [
                     "购买",
                     "購買",
-                    "(?i)Buy",
-                    "(?i)Purchase",
+                    "(?i)Buy\\b",
+                    "(?i)Purchase\\b",
                     "購入",
                     "구매"
                 ],
@@ -828,7 +828,7 @@
                 "expected": [
                     "低阶柜台",
                     "低階櫃檯",
-                    "(?i)Bass\\s*Counter",
+                    "(?i)Bass\\s*Counter\\b",
                     "低音カウンター",
                     "저음 카운터"
                 ]
@@ -939,15 +939,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    120,
+                    60,
                     0
                 ],
                 // @i18n-src: ["购买"]
                 "expected": [
                     "购买",
                     "購買",
-                    "(?i)Buy",
-                    "(?i)Purchase",
+                    "(?i)Buy\\b",
+                    "(?i)Purchase\\b",
                     "購入",
                     "구매"
                 ],
@@ -1015,14 +1015,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    110,
+                    50,
                     0
                 ],
                 // @i18n-src: ["心相观测"]
                 "expected": [
                     "心相观测",
                     "心相觀測",
-                    "(?i)Psychube\\s*Shop",
+                    "(?i)Psychube\\s*Shop\\b",
                     "心相観測",
                     "의지 관측"
                 ],
@@ -1101,13 +1101,13 @@
                 "roi_offset": [
                     0,
                     0,
-                    174,
+                    131,
                     0
                 ],
                 // @i18n-src: ["饕餮"]
                 "expected": [
                     "饕餮",
-                    "(?i)Gluttony",
+                    "(?i)Gluttony\\b",
                     "グラトニー",
                     "도철"
                 ],
@@ -1157,15 +1157,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    120,
+                    60,
                     0
                 ],
                 // @i18n-src: ["购买"]
                 "expected": [
                     "购买",
                     "購買",
-                    "(?i)Buy",
-                    "(?i)Purchase",
+                    "(?i)Buy\\b",
+                    "(?i)Purchase\\b",
                     "購入",
                     "구매"
                 ],
@@ -1225,14 +1225,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    286,
+                    130,
                     0
                 ],
                 // @i18n-src: ["碎片叙事","叙事"]
                 "expected": [
                     "碎片叙事",
                     "碎片敘事",
-                    "(?i)Fragment\\s*Shop",
+                    "(?i)Fragment\\s*Shop\\b",
                     "断片叙事",
                     "조각 상점",
                     "叙事"
@@ -1276,14 +1276,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    110,
+                    50,
                     0
                 ],
                 // @i18n-src: ["心相观测"]
                 "expected": [
                     "心相观测",
                     "心相觀測",
-                    "(?i)Psychube\\s*Shop",
+                    "(?i)Psychube\\s*Shop\\b",
                     "心相観測",
                     "의지 관측"
                 ],
@@ -1393,7 +1393,7 @@
                 "expected": [
                     "微频偏振",
                     "微頻偏振",
-                    "(?i)LF\\s*Polarization",
+                    "(?i)LF\\s*Polarization\\b",
                     "LFポラライゼイション",
                     "마이크로 편광"
                 ]
@@ -1415,13 +1415,13 @@
                 "roi_offset": [
                     -10,
                     -100,
-                    142,
+                    20,
                     85
                 ],
                 // @i18n-src: ["售罄","SOLD OUT"]
                 "expected": [
                     "售罄",
-                    "(?i)Sold\\s*Out",
+                    "(?i)Sold\\s*Out\\b",
                     "売り切れ",
                     "매진",
                     "SOLD OUT"
@@ -1519,7 +1519,7 @@
                 "expected": [
                     "微频偏振",
                     "微頻偏振",
-                    "(?i)LF\\s*Polarization",
+                    "(?i)LF\\s*Polarization\\b",
                     "LFポラライゼイション",
                     "마이크로 편광"
                 ]
@@ -1563,15 +1563,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    120,
+                    60,
                     0
                 ],
                 // @i18n-src: ["购买"]
                 "expected": [
                     "购买",
                     "購買",
-                    "(?i)Buy",
-                    "(?i)Purchase",
+                    "(?i)Buy\\b",
+                    "(?i)Purchase\\b",
                     "購入",
                     "구매"
                 ],
@@ -1705,7 +1705,7 @@
                 "expected": [
                     "启寤Ⅰ",
                     "啟寤Ⅰ",
-                    "(?i)Enlighten\\s*I",
+                    "(?i)Enlighten\\s*I\\b",
                     "インスパイアⅠ",
                     "계몽Ⅰ"
                 ],
@@ -1737,13 +1737,13 @@
                 "roi_offset": [
                     -10,
                     -100,
-                    142,
+                    20,
                     85
                 ],
                 // @i18n-src: ["售罄","SOLD OUT"]
                 "expected": [
                     "售罄",
-                    "(?i)Sold\\s*Out",
+                    "(?i)Sold\\s*Out\\b",
                     "売り切れ",
                     "매진",
                     "SOLD OUT"
@@ -1841,7 +1841,7 @@
                 "expected": [
                     "启寤Ⅰ",
                     "啟寤Ⅰ",
-                    "(?i)Enlighten\\s*I",
+                    "(?i)Enlighten\\s*I\\b",
                     "インスパイアⅠ",
                     "계몽Ⅰ"
                 ],
@@ -1895,15 +1895,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    120,
+                    60,
                     0
                 ],
                 // @i18n-src: ["购买"]
                 "expected": [
                     "购买",
                     "購買",
-                    "(?i)Buy",
-                    "(?i)Purchase",
+                    "(?i)Buy\\b",
+                    "(?i)Purchase\\b",
                     "購入",
                     "구매"
                 ],
@@ -2037,7 +2037,7 @@
                 "expected": [
                     "启寤Ⅱ",
                     "啟寤Ⅱ",
-                    "(?i)Enlighten\\s*II",
+                    "(?i)Enlighten\\s*II\\b",
                     "インスパイアⅡ",
                     "계몽Ⅱ"
                 ],
@@ -2069,13 +2069,13 @@
                 "roi_offset": [
                     -10,
                     -100,
-                    142,
+                    20,
                     85
                 ],
                 // @i18n-src: ["售罄","SOLD OUT"]
                 "expected": [
                     "售罄",
-                    "(?i)Sold\\s*Out",
+                    "(?i)Sold\\s*Out\\b",
                     "売り切れ",
                     "매진",
                     "SOLD OUT"
@@ -2173,7 +2173,7 @@
                 "expected": [
                     "启寤Ⅱ",
                     "啟寤Ⅱ",
-                    "(?i)Enlighten\\s*II",
+                    "(?i)Enlighten\\s*II\\b",
                     "インスパイアⅡ",
                     "계몽Ⅱ"
                 ],
@@ -2227,15 +2227,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    120,
+                    60,
                     0
                 ],
                 // @i18n-src: ["购买"]
                 "expected": [
                     "购买",
                     "購買",
-                    "(?i)Buy",
-                    "(?i)Purchase",
+                    "(?i)Buy\\b",
+                    "(?i)Purchase\\b",
                     "購入",
                     "구매"
                 ],
@@ -2364,14 +2364,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    104,
+                    42,
                     0
                 ],
                 // @i18n-src: ["梦境记述"]
                 "expected": [
                     "梦境记述",
                     "夢境記述",
-                    "(?i)Oneiric\\s*Shop",
+                    "(?i)Oneiric\\s*Shop\\b",
                     "夢の記述",
                     "꿈의 기록"
                 ],
@@ -2450,14 +2450,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    131,
+                    87,
                     0
                 ],
                 // @i18n-src: ["共鸣晶匣"]
                 "expected": [
                     "共鸣晶匣",
                     "共鳴晶匣",
-                    "(?i)Crystal\\s*Casket",
+                    "(?i)Crystal\\s*Casket\\b",
                     "共鳴結晶ボックス",
                     "공명의 상자"
                 ],
@@ -2485,15 +2485,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    120,
+                    60,
                     0
                 ],
                 // @i18n-src: ["购买"]
                 "expected": [
                     "购买",
                     "購買",
-                    "(?i)Buy",
-                    "(?i)Purchase",
+                    "(?i)Buy\\b",
+                    "(?i)Purchase\\b",
                     "購入",
                     "구매"
                 ],
@@ -2561,14 +2561,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    104,
+                    42,
                     0
                 ],
                 // @i18n-src: ["梦境记述"]
                 "expected": [
                     "梦境记述",
                     "夢境記述",
-                    "(?i)Oneiric\\s*Shop",
+                    "(?i)Oneiric\\s*Shop\\b",
                     "夢の記述",
                     "꿈의 기록"
                 ],
@@ -2680,15 +2680,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    120,
+                    60,
                     0
                 ],
                 // @i18n-src: ["购买"]
                 "expected": [
                     "购买",
                     "購買",
-                    "(?i)Buy",
-                    "(?i)Purchase",
+                    "(?i)Buy\\b",
+                    "(?i)Purchase\\b",
                     "購入",
                     "구매"
                 ],
@@ -2756,14 +2756,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    104,
+                    42,
                     0
                 ],
                 // @i18n-src: ["梦境记述"]
                 "expected": [
                     "梦境记述",
                     "夢境記述",
-                    "(?i)Oneiric\\s*Shop",
+                    "(?i)Oneiric\\s*Shop\\b",
                     "夢の記述",
                     "꿈의 기록"
                 ],
@@ -2875,15 +2875,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    120,
+                    60,
                     0
                 ],
                 // @i18n-src: ["购买"]
                 "expected": [
                     "购买",
                     "購買",
-                    "(?i)Buy",
-                    "(?i)Purchase",
+                    "(?i)Buy\\b",
+                    "(?i)Purchase\\b",
                     "購入",
                     "구매"
                 ],
@@ -2951,14 +2951,14 @@
                 "roi_offset": [
                     0,
                     0,
-                    104,
+                    42,
                     0
                 ],
                 // @i18n-src: ["梦境记述"]
                 "expected": [
                     "梦境记述",
                     "夢境記述",
-                    "(?i)Oneiric\\s*Shop",
+                    "(?i)Oneiric\\s*Shop\\b",
                     "夢の記述",
                     "꿈의 기록"
                 ],
@@ -3070,15 +3070,15 @@
                 "roi_offset": [
                     0,
                     0,
-                    120,
+                    60,
                     0
                 ],
                 // @i18n-src: ["购买"]
                 "expected": [
                     "购买",
                     "購買",
-                    "(?i)Buy",
-                    "(?i)Purchase",
+                    "(?i)Buy\\b",
+                    "(?i)Purchase\\b",
                     "購入",
                     "구매"
                 ],
