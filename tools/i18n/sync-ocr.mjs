@@ -77,8 +77,8 @@ function expandRow(zh, row, raw = false) {
         const display = stripTags(value);
         push(display, englishOcrRegex(display));
         if (raw) {
-            // 历史版本的英文正则没有  词边界，deExpand 需要一并识别为旧产物
-            const legacy = englishOcrRegex(display).replace(/\b$/, "");
+            // 历史版本的英文正则没有 \b 词边界，deExpand 需要一并识别为旧产物
+            const legacy = englishOcrRegex(display).replace(/\\b$/, "");
             push(display, legacy);
         }
     }
