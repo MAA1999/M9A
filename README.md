@@ -97,6 +97,8 @@
   基于 Avalonia UI 构建的 MaaFramework 通用 GUI 解决方案
 - [MXU](https://github.com/MistEO/MXU)  
   基于 MaaFramework PI V2 协议的通用 GUI 客户端，使用 Tauri + React + TypeScript 构建
+- [MaaFwApp](https://github.com/Aliothmoon/MaaFwApp)  
+  MaaFramework PI V2 协议的 Android GUI 客户端，M9A 的 Android 版外壳（见 [Android/](./Android/README.md)）
 - ~~[MFW-CFA](https://github.com/overflow65537/MFW-PyQt6)~~  
   ~~基于 PySide6 与 MaaFramework 的跨平台 GUI~~
 - ~~[MFAWPF](https://github.com/SweetSmellFox/MFAWPF)~~  
