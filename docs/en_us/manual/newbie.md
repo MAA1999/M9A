@@ -20,11 +20,11 @@ icon: ri:guide-fill
 |     Emulator Required      |         Yes          |    Yes     | Emulator or containerized Android |         No          |
 |           Usage            |      GUI or CLI      | GUI or CLI |            GUI or CLI             |         GUI         |
 
-|               | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Windows Users | In most cases, please download the x86_64 architecture                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Mac Users     | M9A supports both Apple Silicon and Intel chip Mac computers<br>But it's more recommended for Intel chip Mac computers to use Mac's built-in multi-system installation of Windows<br>And use Windows version M9A and emulator                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Android Users | M9A publishes an Android client APK (see [Releases](https://github.com/MAA1999/M9A/releases); for physical devices grab `M9A-<version>-arm64-v8a.apk`, for emulators and other x86 environments use `M9A-<version>-x86_64.apk`)<br>Requires Android 9 or newer; on first launch grant notifications and the battery whitelist, then authorise via Shizuku or root<br>Alternatively install the generic client from [MaaFramework](https://github.com/MaaXYZ/MaaFramework/) yourself, see [Usage Method](https://github.com/MaaXYZ/MaaFramework/issues/475) and [MAA Documentation](https://maa.plus/docs/en-us/manual/device/android.html) |
+|               | Notes                                                                                                                                                                                                                                                                                                                                                             |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Windows Users | In most cases, please download the x86_64 architecture                                                                                                                                                                                                                                                                                                            |
+| Mac Users     | M9A supports both Apple Silicon and Intel chip Mac computers<br>But it's more recommended for Intel chip Mac computers to use Mac's built-in multi-system installation of Windows<br>And use Windows version M9A and emulator                                                                                                                                     |
+| Android Users | M9A publishes an Android client APK (see [Releases](https://github.com/MAA1999/M9A/releases); for physical devices grab `M9A-<version>-arm64-v8a.apk`, for emulators and other x86 environments use `M9A-<version>-x86_64.apk`)<br>Requires Android 9 or newer; on first launch grant notifications and the battery whitelist, then authorise via Shizuku or root |
 
 </div>
 
@@ -184,9 +184,9 @@ Chinese users can also download at high speed through [MirrorChyan](https://mirr
 
 <div align="center">
 
-|                      |          Windows          |                                                macOS                                                |                                                Linux                                                |
-| :------------------: | :-----------------------: | :-------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------: |
-| You need to download | `M9A-win-x86_64-vXXX.zip` | `M9A-macos-x86_64-vXXX.tar.gz` or `M9A-macos-aarch64-vXXX.tar.gz`<br>depending on your architecture | `M9A-linux-x86_64-vXXX.tar.gz` or `M9A-linux-aarch64-vXXX.tar.gz`<br>depending on your architecture |
+|                      |          Windows          |                                                macOS                                                |                                                Linux                                                |                                                                        Android                                                                        |
+| :------------------: | :-----------------------: | :-------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------: |
+| You need to download | `M9A-win-x86_64-vXXX.zip` | `M9A-macos-x86_64-vXXX.tar.gz` or `M9A-macos-aarch64-vXXX.tar.gz`<br>depending on your architecture | `M9A-linux-x86_64-vXXX.tar.gz` or `M9A-linux-aarch64-vXXX.tar.gz`<br>depending on your architecture | `M9A-<version>-universal.apk`<br>or `M9A-<version>-arm64-v8a.apk` (recommended for physical devices)<br>or `M9A-<version>-x86_64.apk` (x86 emulators) |
 
 </div>
 
@@ -377,6 +377,19 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
 #### Linux
 
 Same as macOS, download the corresponding version of the archive, extract it, and then run `M9A`.
+
+#### Android
+
+Download the APK for your device's architecture from [Releases](https://github.com/MAA1999/M9A/releases): pick `arm64-v8a` for physical devices, `x86_64` for x86 emulators, or `universal` if unsure.
+
+1. On first launch, grant the **notification permission** and add M9A to the **battery whitelist**: background running, scheduled triggers and progress notifications all rely on these.
+2. Authorise via Shizuku or root and wait for the service to connect. Shizuku must be installed and started first: on Android 11 and above it can be started on-device via wireless debugging; on older versions (without root) a computer connected over ADB is required once, see the [official Shizuku documentation](https://shizuku.rikka.app/).
+3. The first launch unpacks the task resources automatically.
+4. Pick the server and tick tasks inside the app to start; no ADB connection configuration is needed.
+
+> [!NOTE]
+>
+> Tasks run on a **virtual display** created by the app (background mode): the phone stays usable while idling and the screen may turn off; the resolution (720P / 1080P) is chosen in the app. A **foreground mode** that directly controls the current screen is also available.
 
 ---
 
