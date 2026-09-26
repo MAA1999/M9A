@@ -134,16 +134,41 @@ def _hot_update() -> None:
 # -------------
 # region 启动入口
 # -------------
+def _log_maafw_version() -> None:
+    """报告 agent 进程实际加载的原生库版本。
+
+    pip 元数据不可信：客户端增量更新往 site-packages 写新版 dist-info 时不删旧版，两份
+    并存时 importlib.metadata.version 返回哪份并无保证（实测返回过时值）。因此以原生库
+    的 MaaVersion() 为准，元数据只在原生查询失败时兜底，失败原因会先记一行 debug。
+
+    必须在导入 maa.agent 之后调用：version() 会首次触发 API 属性初始化，而 Library.open
+    撞上已初始化标志就早退，提前调用会把 Library 钉死在非 agent 模式。
+
+    全部走 debug：版本与加载路径是维护者排查用的诊断信息，不进用户看的 GUI 日志；
+    agent 文件 sink 固定 DEBUG 级，debug/custom/*.log 里始终可查。
+    """
+    try:
+        from maa.library import Library
+
+        version = Library.version()
+        if not version:
+            raise RuntimeError("MaaVersion() 返回空值")
+    except Exception as error:
+        logger.debug("查询原生 MaaFW 版本失败，改用 binding 元数据: {}", error)
+        try:
+            logger.debug("maafw {}", importlib.metadata.version("maafw"))
+        except importlib.metadata.PackageNotFoundError:
+            pass
+        return
+
+    logger.debug("maafw {}", version)
+
+
 def run_agent(project_root_dir: str) -> int:
     configure_runtime_paths(project_root=project_root_dir, work_root=os.getcwd())
 
-    # info 而非 debug:发行包复用客户端原生库,开发机 sync 过 runtimes 后也会静默改源,版本漂移时要能一眼看出来
-    logger.info("MaaFW 二进制目录: {}", os.environ.get(ENV_NAME) or "wheel 自带 (site-packages/maa/bin)")
-
-    try:
-        logger.info(f"maafw {importlib.metadata.version('maafw')}")
-    except importlib.metadata.PackageNotFoundError:
-        pass
+    # debug:纯诊断信息，不进 GUI 日志打扰用户；agent 文件 sink 固定 DEBUG 级，排查时 debug/custom/*.log 里仍有
+    logger.debug("MaaFW 二进制目录: {}", os.environ.get(ENV_NAME) or "wheel 自带 (site-packages/maa/bin)")
 
     if len(sys.argv) < 2:
         logger.error("Missing MaaFW Agent socket id argument.")
@@ -156,6 +181,9 @@ def run_agent(project_root_dir: str) -> int:
         logger.error("Failed to import MaaFW Agent runtime: {}", error)
         logger.error("Run `uv sync` for development or sync runtime before release.")
         return 1
+
+    # 必须在导入 maa.agent 之后调用，原因见 _log_maafw_version
+    _log_maafw_version()
 
     # 版本检查
     _check_resource_version()
