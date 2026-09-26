@@ -41,8 +41,15 @@ def write_repo(
     return root
 
 
-def run_resolver(root: Path, output: Path | None = None) -> subprocess.CompletedProcess[str]:
+def run_resolver(
+    root: Path,
+    output: Path | None = None,
+    core_tag_env: str | None = None,
+) -> subprocess.CompletedProcess[str]:
     env = dict(os.environ)
+    env.pop("AGENT_CORE_TAG", None)
+    if core_tag_env is not None:
+        env["AGENT_CORE_TAG"] = core_tag_env
     if output is None:
         env.pop("GITHUB_OUTPUT", None)
     else:
@@ -67,6 +74,7 @@ def test_agent_project_outputs_tag_prefix_and_agent_flag(tmp_path: Path) -> None
 
     assert result.returncode == 0, result.stdout + result.stderr
     written = output.read_text(encoding="utf-8")
+    assert "core_tag=3.13.15-maafw5.12.3" in written
     assert "maafw_tag=v5.12.3" in written
     assert "artifact_prefix=M9A" in written
     assert "has_agent=true" in written
@@ -117,6 +125,28 @@ def test_missing_interface_fails_loudly(tmp_path: Path) -> None:
     (tmp_path / "interface.json").unlink()
 
     result = run_resolver(tmp_path)
+
+    assert result.returncode == 1
+    assert "::error::" in result.stdout
+
+
+def test_ci_pinned_core_tag_overrides_submodule_default(tmp_path: Path) -> None:
+    write_repo(tmp_path, core_tag="3.13.15-maafw5.13.0", pin="5.14.0")
+    output = tmp_path / "github_output"
+
+    result = run_resolver(tmp_path, output, core_tag_env="3.13.15-maafw5.14.0")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    written = output.read_text(encoding="utf-8")
+    assert "core_tag=3.13.15-maafw5.14.0" in written
+    assert "maafw_tag=v5.14.0" in written
+    assert "::warning::" not in result.stdout
+
+
+def test_broken_ci_pinned_core_tag_fails_loudly(tmp_path: Path) -> None:
+    write_repo(tmp_path)
+
+    result = run_resolver(tmp_path, core_tag_env="3.13.15")
 
     assert result.returncode == 1
     assert "::error::" in result.stdout

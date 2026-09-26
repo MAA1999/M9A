@@ -18,8 +18,11 @@ const PROJECT_CONFIG = "maa-project.json";
 const INTERFACE = "interface.json";
 const REQUIREMENTS = "requirements.txt";
 
-// CORE_TAG 形如 "3.13.15-maafw5.12.3"，只取 maafw 后面那段版本号
-const CORE_TAG_PATTERN = /CORE_TAG\s*=\s*"[^"]*?maafw([0-9][^"]*)"/;
+// CORE_TAG 形如 "3.13.15-maafw5.12.3"；client 原生库版本取 maafw 后面那段
+const CORE_TAG_PATTERN = /CORE_TAG\s*=\s*"([^"]*)"/;
+const CORE_VERSION_PATTERN = /maafw([0-9].*)$/;
+// 项目在 CI 里自己钉内核版本（android.yml 的 AGENT_CORE_TAG）；不设才回落到子模块的默认值
+const CORE_TAG_ENV = "AGENT_CORE_TAG";
 const REQUIREMENT_PIN_PATTERN = /^maafw==([0-9][^\s;]*)/m;
 const SAFE_PREFIX_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
@@ -37,9 +40,17 @@ function readObject(path) {
     return parsed;
 }
 
-function parseCoreVersion(text) {
-    const match = CORE_TAG_PATTERN.exec(text ?? "");
-    if (match === null) throw new Error("解析不到内核 CORE_TAG 里的 maafw 版本");
+function resolveCoreTag(root) {
+    const override = (process.env[CORE_TAG_ENV] ?? "").trim();
+    if (override !== "") return override;
+    const match = CORE_TAG_PATTERN.exec(readText(join(root, CORE_SCRIPT)) ?? "");
+    if (match === null) throw new Error("解析不到子模块里的内核 CORE_TAG");
+    return match[1];
+}
+
+function parseCoreVersion(coreTag) {
+    const match = CORE_VERSION_PATTERN.exec(coreTag);
+    if (match === null) throw new Error(`内核 tag ${coreTag} 里解析不到 maafw 版本`);
     return match[1];
 }
 
@@ -75,8 +86,10 @@ function agentDeclared(interfaceConfig) {
 
 function resolvePackaging(root) {
     const project = readObject(join(root, PROJECT_CONFIG));
+    const coreTag = resolveCoreTag(root);
     return {
-        maafwTag: `v${parseCoreVersion(readText(join(root, CORE_SCRIPT)))}`,
+        coreTag,
+        maafwTag: `v${parseCoreVersion(coreTag)}`,
         artifactPrefix: artifactPrefix(project),
         requirementPin: parseRequirementPin(readText(join(root, REQUIREMENTS))),
         declaredTarget: declaredTarget(project),
@@ -116,10 +129,11 @@ function main() {
         console.log(
             `::warning::Android 绑定暂时只能跟内核 ${coreVersion}（没有公开的 Android 版 maafw 轮子）；` +
                 `requirements 的 maafw==${packaging.requirementPin}、maa-project.json 的 ${packaging.declaredTarget}` +
-                " 待内核更新后自动跟进",
+                `；要跟进就把 ${CORE_TAG_ENV} 改到有对应内核 release 的版本`,
         );
     }
 
+    console.log(`agent core tag   : ${packaging.coreTag}`);
     console.log(`client MaaFW tag : ${packaging.maafwTag}（与内核绑定 ${coreVersion} 一致）`);
     console.log(`artifact prefix  : ${packaging.artifactPrefix}`);
     console.log(`maa-project.json : ${packaging.declaredTarget}`);
@@ -127,6 +141,7 @@ function main() {
     console.log(`has agent        : ${packaging.hasAgent}`);
 
     writeOutputs({
+        core_tag: packaging.coreTag,
         maafw_tag: packaging.maafwTag,
         artifact_prefix: packaging.artifactPrefix,
         has_agent: String(packaging.hasAgent),
