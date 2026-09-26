@@ -45,7 +45,7 @@ on:
           - release
         default: debug
       maafw_tag:
-        description: "MaaFramework release tag；留空则与 agent 内核同版本（子模块 CORE_TAG），填 latest 取 GitHub 最新正式版（会破坏 APK 内前后端同版本，一般不用）"
+        description: "MaaFramework release tag；留空则按 requirements.txt / maa-project.json 固定的 maafw 版本解析（与桌面同源），填 latest 取 GitHub 最新正式版（会破坏 APK 内前后端同版本，一般不用）"
         required: false
         default: ""
 
@@ -153,11 +153,13 @@ jobs:
 
       # MaaFW 版本与资产前缀由 tools/android-packaging.mjs 解析（Node 而不是 Python：
       # 纯 pipeline 项目不引入 Python，同一份脚本要能给它们用）：
-      # Android 的 Python 绑定就是内核（MaaAgentCoreAndroid）自带那份，公开索引没有 Android 版
-      # maafw 轮子，所以 client 原生库必须与内核同版本；内核版本跟子模块的 CORE_TAG 走，
-      # 也可用 AGENT_CORE_TAG 环境变量临时钉到别的 release tag
+      # maafw 版本由 requirements.txt / maa-project.json 固定（与桌面同源）；Android 的
+      # Python 绑定只随内核（MaaAgentCoreAndroid）发布，resolver 按固定版本挑 *-maafwX
+      # 配对的内核 release，client 原生库铺同版本，保证 APK 里前后端一致
       - name: Resolve Android packaging
         id: maafw
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node tools/android-packaging.mjs
 
       # 纯 pipeline 项目（resolver 判定无 agent）不碰内核缓存与运行时构建。
@@ -343,11 +345,13 @@ jobs:
 
       # MaaFW 版本与资产前缀由 tools/android-packaging.mjs 解析（Node 而不是 Python：
       # 纯 pipeline 项目不引入 Python，同一份脚本要能给它们用）：
-      # Android 的 Python 绑定就是内核（MaaAgentCoreAndroid）自带那份，公开索引没有 Android 版
-      # maafw 轮子，所以 client 原生库必须与内核同版本；内核版本跟子模块的 CORE_TAG 走，
-      # 也可用 AGENT_CORE_TAG 环境变量临时钉到别的 release tag
+      # maafw 版本由 requirements.txt / maa-project.json 固定（与桌面同源）；Android 的
+      # Python 绑定只随内核（MaaAgentCoreAndroid）发布，resolver 按固定版本挑 *-maafwX
+      # 配对的内核 release，client 原生库铺同版本，保证 APK 里前后端一致
       - name: Resolve Android packaging
         id: maafw
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node tools/android-packaging.mjs
 
       # 纯 pipeline 项目（resolver 判定无 agent）不碰内核缓存与运行时构建。
