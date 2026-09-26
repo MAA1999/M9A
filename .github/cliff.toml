@@ -88,8 +88,6 @@ footer = """
 | {{ self::asset(prefix="M9A-", suffix="-arm64-v8a.apk", ver=ver, tag=latest_version) }}（推荐） | Android 真机（ARM64），体积约为 universal 的一半 |
 | {{ self::asset(prefix="M9A-", suffix="-universal.apk", ver=ver, tag=latest_version) }} | Android 双架构通用包，真机 / 模拟器都能装，不确定选这个 |
 | {{ self::asset(prefix="M9A-", suffix="-x86_64.apk", ver=ver, tag=latest_version) }} | Android 模拟器等 x86 环境（Windows 上的蓝叠 / MuMu / 雷电等） |
-
-MFAA = 图形界面版（使用接近MAA方舟） | MXU = 图形界面版（MaaEnd同款）
 {%- if not latest_version %}
 以上版本号为占位 v?.?.?，release 页没找到对应包请点 show all assets
 {%- endif %}
