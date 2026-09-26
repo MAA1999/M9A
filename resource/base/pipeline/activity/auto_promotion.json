@@ -171,15 +171,17 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {
-                "target": [
-                    125,
-                    115
-                ]
-            }
+            "type": "Click"
         },
-        "post_delay": 3000,
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                20,
+                60,
+                220,
+                260
+            ]
+        },
         "next": [
             "AP_EnsureStoryOrMain"
         ]
@@ -218,15 +220,17 @@
             }
         },
         "action": {
-            "type": "Click",
-            "param": {
-                "target": [
-                    125,
-                    115
-                ]
-            }
+            "type": "Click"
         },
-        "post_delay": 3000,
+        "post_wait_freezes": {
+            "time": 1000,
+            "target": [
+                20,
+                60,
+                220,
+                260
+            ]
+        },
         "next": [
             "AP_EnsureExplore"
         ]
