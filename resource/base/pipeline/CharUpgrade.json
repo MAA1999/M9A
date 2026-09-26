@@ -10,7 +10,20 @@
                     104,
                     35
                 ],
-                "expected": "个人属性"
+                "roi_offset": [
+                    0,
+                    0,
+                    156,
+                    0
+                ],
+                // @i18n-src: ["个人属性"]
+                "expected": [
+                    "个人属性",
+                    "個人屬性",
+                    "(?i)Personal\\s*Stats",
+                    "個人ステータス",
+                    "개인 속성"
+                ]
             }
         },
         "next": [
@@ -133,7 +146,21 @@
                     97,
                     49
                 ],
-                "expected": "提升"
+                "roi_offset": [
+                    0,
+                    0,
+                    185,
+                    0
+                ],
+                // @i18n-src: ["提升"]
+                "expected": [
+                    "提升",
+                    "(?i)\\+",
+                    "(?i)Level\\s*Up",
+                    "\\+",
+                    "Lv UP",
+                    "증가"
+                ]
             }
         },
         "action": {
@@ -154,7 +181,19 @@
                     97,
                     49
                 ],
-                "expected": "洞悉"
+                "roi_offset": [
+                    0,
+                    0,
+                    170,
+                    0
+                ],
+                // @i18n-src: ["洞悉"]
+                "expected": [
+                    "洞悉",
+                    "(?i)Insight",
+                    "洞察",
+                    "통찰"
+                ]
             }
         },
         "action": {
@@ -176,7 +215,19 @@
                     76,
                     32
                 ],
-                "expected": "洞悉",
+                "roi_offset": [
+                    0,
+                    0,
+                    133,
+                    0
+                ],
+                // @i18n-src: ["洞悉"]
+                "expected": [
+                    "洞悉",
+                    "(?i)Insight",
+                    "洞察",
+                    "통찰"
+                ],
                 "only_rec": true
             }
         },
@@ -203,7 +254,7 @@
         },
         "focus": {
             "Node.Recognition.True": {
-                "content": "洞悉材料不足，请手动刷取",
+                "content": "$Focus.CUB_LackOfMaterial",
                 "display": [
                     "log",
                     "toast"
@@ -240,7 +291,19 @@
                     76,
                     32
                 ],
-                "expected": "洞悉",
+                "roi_offset": [
+                    0,
+                    0,
+                    133,
+                    0
+                ],
+                // @i18n-src: ["洞悉"]
+                "expected": [
+                    "洞悉",
+                    "(?i)Insight",
+                    "洞察",
+                    "통찰"
+                ],
                 "only_rec": true
             }
         },
@@ -265,7 +328,18 @@
                     171,
                     39
                 ],
-                "expected": "合成"
+                "roi_offset": [
+                    0,
+                    0,
+                    214,
+                    0
+                ],
+                // @i18n-src: ["合成"]
+                "expected": [
+                    "合成",
+                    "(?i)Craft",
+                    "합성"
+                ]
             }
         },
         "action": {
@@ -288,7 +362,21 @@
                     101,
                     46
                 ],
-                "expected": "确认"
+                "roi_offset": [
+                    0,
+                    0,
+                    177,
+                    0
+                ],
+                // @i18n-src: ["确认"]
+                "expected": [
+                    "确认",
+                    "確認",
+                    "(?i)Confirm",
+                    "(?i)Exit",
+                    "決定",
+                    "확인"
+                ]
             }
         },
         "action": {
@@ -311,7 +399,20 @@
                     304,
                     40
                 ],
-                "expected": "等级上限"
+                "roi_offset": [
+                    0,
+                    0,
+                    165,
+                    0
+                ],
+                // @i18n-src: ["等级上限"]
+                "expected": [
+                    "等级上限",
+                    "等級上限",
+                    "(?i)Level\\s*cap",
+                    "レベル上限",
+                    "레벨 최대치"
+                ]
             }
         },
         "action": {
@@ -405,11 +506,33 @@
                     120,
                     192
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    195,
+                    0
+                ],
+                // @i18n-src: ["群山之声","星陨之所","深林之形","荒兽之野"]
                 "expected": [
                     "群山之声",
+                    "群山之聲",
+                    "(?i)Mountain\\s*Echoes",
+                    "山脈の声",
+                    "산울림",
                     "星陨之所",
+                    "星隕之所",
+                    "(?i)Starfall\\s*Locale",
+                    "流星の丘",
+                    "별들의 거처",
                     "深林之形",
-                    "荒兽之野"
+                    "(?i)Sylvanus\\s*Shape",
+                    "森林の姿",
+                    "숲의 모양",
+                    "荒兽之野",
+                    "荒獸之野",
+                    "(?i)Brutes\\s*Wilds",
+                    "野獣の地",
+                    "짐승의 야성"
                 ],
                 "order_by": "Vertical",
                 "index": -1
@@ -428,7 +551,7 @@
         },
         "focus": {
             "Node.Recognition.Failed": {
-                "content": "识别失败：当前版本暂不支持刷取非属性突破材料，请手动刷取",
+                "content": "$Focus.CUB_IsAttributeMaterial",
                 "display": [
                     "log",
                     "toast"
@@ -488,7 +611,19 @@
                     76,
                     32
                 ],
-                "expected": "洞悉",
+                "roi_offset": [
+                    0,
+                    0,
+                    133,
+                    0
+                ],
+                // @i18n-src: ["洞悉"]
+                "expected": [
+                    "洞悉",
+                    "(?i)Insight",
+                    "洞察",
+                    "통찰"
+                ],
                 "only_rec": true
             }
         },
@@ -505,7 +640,20 @@
                     104,
                     35
                 ],
-                "expected": "个人属性"
+                "roi_offset": [
+                    0,
+                    0,
+                    156,
+                    0
+                ],
+                // @i18n-src: ["个人属性"]
+                "expected": [
+                    "个人属性",
+                    "個人屬性",
+                    "(?i)Personal\\s*Stats",
+                    "個人ステータス",
+                    "개인 속성"
+                ]
             }
         }
     },
@@ -541,8 +689,19 @@
                     125,
                     40
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    94,
+                    0
+                ],
+                // @i18n-src: ["共鸣提升","察提"]
                 "expected": [
                     "共鸣提升",
+                    "共鳴提升",
+                    "(?i)Level\\s*Up",
+                    "共鳴Lv UP",
+                    "공명 강화",
                     "察提"
                 ]
             }
@@ -567,7 +726,18 @@
                     171,
                     39
                 ],
-                "expected": "合成"
+                "roi_offset": [
+                    0,
+                    0,
+                    214,
+                    0
+                ],
+                // @i18n-src: ["合成"]
+                "expected": [
+                    "合成",
+                    "(?i)Craft",
+                    "합성"
+                ]
             }
         },
         "action": {
@@ -627,9 +797,24 @@
                     153,
                     43
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    115,
+                    0
+                ],
+                // @i18n-src: ["提升共鸣","提升觉察"]
                 "expected": [
                     "提升共鸣",
-                    "提升觉察"
+                    "提升共鳴",
+                    "(?i)Level\\s*Up",
+                    "Lv UP",
+                    "공명 강화",
+                    "提升觉察",
+                    "提升覺察",
+                    "(?i)Level\\s*Up",
+                    "Lv UP",
+                    "감지 강화"
                 ]
             }
         },

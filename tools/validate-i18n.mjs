@@ -144,6 +144,52 @@ for (const file of [...taskFiles].sort()) {
 }
 
 // ---------------------------------------------------------------------------
+// Pipeline `focus` templates are user-facing runtime text: PI v2 resolves a
+// `$key` in both the shorthand string and the object form's `content`. Chinese
+// there must go through the same translation files as the interface, while
+// game-facing fields (`expected` etc.) stay out of scope.
+// ---------------------------------------------------------------------------
+
+const resourcePipelineFiles = [];
+if (existsSync("resource")) {
+    for (const entry of readdirSync("resource", {withFileTypes: true})) {
+        if (!entry.isDirectory()) continue;
+        const pipelineDir = join("resource", entry.name, "pipeline");
+        if (!existsSync(pipelineDir)) continue;
+        for (const file of walkJsonFiles(pipelineDir)) {
+            resourcePipelineFiles.push(file.replaceAll("\\", "/"));
+        }
+    }
+}
+for (const file of resourcePipelineFiles.sort()) {
+    const data = loadJson(file);
+    for (const [
+        nodeName,
+        node,
+    ] of Object.entries(data)) {
+        if (node === null || typeof node !== "object" || typeof node.focus !== "object" || node.focus === null) {
+            continue;
+        }
+        for (const [
+            event,
+            template,
+        ] of Object.entries(node.focus)) {
+            const content = typeof template === "string" ? template : template?.content;
+            if (typeof content !== "string" || content.length === 0) {
+                fail(`${file}: focus ${nodeName}.${event} must be a string or an object with string content`);
+                continue;
+            }
+            if (content.startsWith("$")) {
+                const key = content.slice(1);
+                if (!referenced.has(key)) referenced.set(key, file);
+            } else if (CJK.test(content)) {
+                hardCoded.push(`${file} focus ${nodeName}.${event}`);
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Compare against the declared translation files
 // ---------------------------------------------------------------------------
 

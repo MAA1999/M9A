@@ -37,12 +37,12 @@
     },
     "CombatActivityOverrideError": {
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson;\">未能进入活动界面，请检查资源类型是否正确</span>"
+            "Node.Action.Starting": "$Focus.CombatActivityOverrideError"
         }
     },
     "CombatActivityNoReRelease": {
         "focus": {
-            "Node.Action.Starting": "当前未开放复刻活动，已跳过活动代币刷取"
+            "Node.Action.Starting": "$Focus.CombatActivityNoReRelease"
         }
     },
     "FlagInActivityMain": {
@@ -55,7 +55,20 @@
                     147,
                     101
                 ],
-                "expected": "预告"
+                "roi_offset": [
+                    0,
+                    0,
+                    186,
+                    0
+                ],
+                // @i18n-src: ["预告"]
+                "expected": [
+                    "预告",
+                    "預告",
+                    "(?i)Trailer",
+                    "予告",
+                    "티저"
+                ]
             }
         },
         "next": [
@@ -68,7 +81,7 @@
     },
     "FlagInActivityMainError": {
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson;\">未识别到活动界面，请检查资源类型是否正确</span>"
+            "Node.Action.Starting": "$Focus.FlagInActivityMainError"
         }
     },
     "EnterTheActivityMain": {
@@ -119,8 +132,19 @@
                     281,
                     254
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    10,
+                    0
+                ],
+                // @i18n-src: ["剧情","步"]
                 "expected": [
                     "剧情",
+                    "劇情",
+                    "(?i)Fixed",
+                    "ストーリー",
+                    "스토리",
                     "步"
                 ]
             }
@@ -140,7 +164,7 @@
     },
     "ActivityMainChapterError": {
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson;\">未识别到活动章节入口，请检查资源类型是否正确</span>"
+            "Node.Action.Starting": "$Focus.ActivityMainChapterError"
         }
     },
     "FlagInActivityStage": {
@@ -153,7 +177,20 @@
                     131,
                     41
                 ],
-                "expected": "开始行动",
+                "roi_offset": [
+                    0,
+                    0,
+                    17,
+                    0
+                ],
+                // @i18n-src: ["开始行动"]
+                "expected": [
+                    "开始行动",
+                    "開始行動",
+                    "(?i)Start",
+                    "行動開始",
+                    "행동 시작"
+                ],
                 "only_rec": true
             }
         },
@@ -294,10 +331,27 @@
                     57,
                     26
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    114,
+                    0
+                ],
+                // @i18n-src: ["艰难","意外","故事"]
                 "expected": [
                     "艰难",
+                    "艱難",
+                    "(?i)Arduous",
+                    "ハード",
+                    "곤경",
                     "意外",
-                    "故事"
+                    "(?i)Surprise",
+                    "アクシデント",
+                    "변수",
+                    "故事",
+                    "(?i)Story",
+                    "ストーリー",
+                    "스토리"
                 ],
                 "only_rec": true,
                 "threshold": 0.7
@@ -410,7 +464,7 @@
     },
     "ActivityRe_releaseChapterError": {
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson;\">未识别到复刻活动章节：请检查资源类型是否正确，或活动数据是否已更新</span>"
+            "Node.Action.Starting": "$Focus.ActivityRe_releaseChapterError"
         }
     },
     "ActivityLeftList": {

@@ -40,6 +40,7 @@ docs/           # Developer docs and user manual (see below)
 | Bug-fixing workflow                  | `docs/*/develop/fix.md`                        |
 | Formatting & linting                 | `docs/*/develop/formatting.md`                 |
 | Interface / task localisation        | `docs/*/develop/i18n.md`                       |
+| Runtime text i18n (focus / OCR)      | `docs/*/develop/runtime-text-i18n.md`          |
 | Overseas client adaptation           | `docs/*/develop/overseas-client-adaptation.md` |
 | Activity / combat / item protocols   | `docs/*/protocol/`                             |
 | CLI / connection / FAQ (user-facing) | `docs/*/manual/`                               |
