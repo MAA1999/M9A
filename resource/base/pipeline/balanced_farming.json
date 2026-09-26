@@ -16,7 +16,19 @@
                     42,
                     22
                 ],
-                "expected": "仓库",
+                "roi_offset": [
+                    0,
+                    0,
+                    53,
+                    0
+                ],
+                // @i18n-src: ["仓库"]
+                "expected": [
+                    "仓库",
+                    "倉庫",
+                    "(?i)Warehouse\\b",
+                    "창고"
+                ],
                 "only_rec": true
             }
         },
@@ -40,7 +52,18 @@
                     140,
                     360
                 ],
-                "expected": "消耗品"
+                "roi_offset": [
+                    0,
+                    0,
+                    117,
+                    0
+                ],
+                // @i18n-src: ["消耗品"]
+                "expected": [
+                    "消耗品",
+                    "(?i)Consumables\\b",
+                    "소모품"
+                ]
             }
         },
         "post_delay": 1000,
@@ -95,7 +118,19 @@
                     42,
                     22
                 ],
-                "expected": "仓库",
+                "roi_offset": [
+                    0,
+                    0,
+                    53,
+                    0
+                ],
+                // @i18n-src: ["仓库"]
+                "expected": [
+                    "仓库",
+                    "倉庫",
+                    "(?i)Warehouse\\b",
+                    "창고"
+                ],
                 "only_rec": true
             }
         },

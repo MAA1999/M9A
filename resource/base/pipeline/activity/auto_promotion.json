@@ -103,7 +103,7 @@
             "AP_AllPhasesDone"
         ],
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:orange\">当前地图无探索模式，跳过探索推图</span>"
+            "Node.Action.Starting": "$Focus.AP_NoExploreMode"
         }
     },
     "AP_StoryGate": {
@@ -156,7 +156,7 @@
             "AP_AllPhasesDone"
         ],
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:orange\">探索模式尚未开放，跳过该阶段</span>"
+            "Node.Action.Starting": "$Focus.AP_ExploreLocked"
         }
     },
     "AP_SwitchToStoryFromExplore": {
@@ -195,7 +195,19 @@
                     220,
                     260
                 ],
-                "expected": "故事"
+                "roi_offset": [
+                    0,
+                    0,
+                    330,
+                    0
+                ],
+                // @i18n-src: ["故事"]
+                "expected": [
+                    "故事",
+                    "(?i)Story\\b",
+                    "ストーリー",
+                    "스토리"
+                ]
             }
         },
         "action": {
@@ -242,8 +254,17 @@
                     220,
                     260
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    165,
+                    0
+                ],
+                // @i18n-src: ["探索","探险"]
                 "expected": [
                     "探索",
+                    "(?i)Explore\\b",
+                    "탐색",
                     "探险"
                 ]
             }
@@ -259,14 +280,14 @@
     "AP_AllPhasesDone": {
         "desc": "所有已启用的阶段执行完毕，任务正常结束",
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:green\">活动推图任务完成（已启用的阶段均已执行）</span>"
+            "Node.Action.Starting": "$Focus.AP_AllPhasesDone"
         }
     },
     "AP_StoryModeUnavailable": {
         "desc": "故事/主线模式入口兜底：不在主线地图，也找不到「故事」模式按钮时正常结束并提示",
         "focus": {
             "Node.Action.Starting": {
-                "content": "未找到故事/主线地图或故事模式入口。请切到活动故事/主线地图后重新运行。",
+                "content": "$Focus.AP_StoryModeUnavailable",
                 "display": [
                     "log",
                     "toast"
@@ -278,7 +299,7 @@
         "desc": "探索模式入口兜底：不在探索地图，也找不到「探索」模式按钮时正常结束并提示",
         "focus": {
             "Node.Action.Starting": {
-                "content": "未找到探索模式入口。若探索尚未开放，请等待开放后再运行探索模式。",
+                "content": "$Focus.AP_ExploreModeUnavailable",
                 "display": [
                     "log",
                     "toast"
@@ -328,10 +349,22 @@
                     220,
                     260
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    330,
+                    0
+                ],
+                // @i18n-src: ["探索","探险","故事"]
                 "expected": [
                     "探索",
+                    "(?i)Explore\\b",
+                    "탐색",
                     "探险",
-                    "故事"
+                    "故事",
+                    "(?i)Story\\b",
+                    "ストーリー",
+                    "스토리"
                 ]
             }
         }
@@ -423,7 +456,7 @@
             "AP_AllPhasesDone"
         ],
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:green\">当前地图推图完成，继续后续阶段</span>"
+            "Node.Action.Starting": "$Focus.AP_AllDone"
         }
     },
     "AP_InCombatRT": {
@@ -437,9 +470,19 @@
                     300,
                     70
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    150,
+                    0
+                ],
+                // @i18n-src: ["轮次","回合"]
                 "expected": [
                     "轮次",
-                    "回合"
+                    "回合",
+                    "(?i)Round\\b",
+                    "ターン",
+                    "턴"
                 ]
             }
         },
@@ -547,9 +590,23 @@
                     473,
                     240
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    129,
+                    0
+                ],
+                // @i18n-src: ["战斗","胜利"]
                 "expected": [
                     "战斗",
-                    "胜利"
+                    "戰鬥",
+                    "(?i)Battle\\b",
+                    "バトル",
+                    "전투",
+                    "胜利",
+                    "勝利",
+                    "(?i)Victory\\b",
+                    "승리"
                 ]
             }
         },
@@ -577,9 +634,21 @@
                     265,
                     115
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    37,
+                    0
+                ],
+                // @i18n-src: ["跳过"]
                 "expected": [
                     "跳过",
-                    "SKIP"
+                    "SKIP",
+                    "跳過",
+                    "(?i)SKIP\\b",
+                    "(?i)Skip\\b",
+                    "スキップ",
+                    "건너뛰기"
                 ]
             }
         },
@@ -607,7 +676,21 @@
                     60,
                     31
                 ],
-                "expected": "确认",
+                "roi_offset": [
+                    0,
+                    0,
+                    45,
+                    0
+                ],
+                // @i18n-src: ["确认"]
+                "expected": [
+                    "确认",
+                    "確認",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
+                    "決定",
+                    "확인"
+                ],
                 "only_rec": true
             }
         },
@@ -626,16 +709,27 @@
                     500,
                     130
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    20,
+                    0
+                ],
+                // @i18n-src: ["显影罐不足","显影罐","不足"]
                 "expected": [
                     "显影罐不足",
                     "显影罐",
+                    "顯影罐",
+                    "(?i)Penumbra\\s*Can\\b",
+                    "現像液缶",
+                    "현상 탱크",
                     "不足"
                 ]
             }
         },
         "focus": {
             "Node.Recognition.Succeeded": {
-                "content": "关卡解锁失败：显影罐不足。请补足显影罐后重新运行活动推图。",
+                "content": "$Focus.AP_UnlockInsufficientCanister",
                 "display": [
                     "log",
                     "toast"
@@ -654,7 +748,21 @@
                     330,
                     100
                 ],
-                "expected": "确认"
+                "roi_offset": [
+                    0,
+                    0,
+                    248,
+                    0
+                ],
+                // @i18n-src: ["确认"]
+                "expected": [
+                    "确认",
+                    "確認",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
+                    "決定",
+                    "확인"
+                ]
             }
         },
         "action": {
@@ -673,7 +781,23 @@
                     280,
                     160
                 ],
-                "expected": "解锁"
+                "roi_offset": [
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                // @i18n-src: ["解锁"]
+                "expected": [
+                    "解锁",
+                    "解鎖",
+                    "(?i)Recruit\\b",
+                    "(?i)Unlock\\b",
+                    "募集",
+                    "取得",
+                    "開放",
+                    "해제"
+                ]
             }
         },
         "action": {
@@ -692,7 +816,20 @@
                     280,
                     160
                 ],
-                "expected": "开始行动"
+                "roi_offset": [
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                // @i18n-src: ["开始行动"]
+                "expected": [
+                    "开始行动",
+                    "開始行動",
+                    "(?i)Start\\b",
+                    "行動開始",
+                    "행동 시작"
+                ]
             }
         },
         "action": {
@@ -713,7 +850,20 @@
                     751,
                     290
                 ],
-                "expected": "战斗失败"
+                "roi_offset": [
+                    0,
+                    0,
+                    94,
+                    0
+                ],
+                // @i18n-src: ["战斗失败"]
+                "expected": [
+                    "战斗失败",
+                    "戰鬥失敗",
+                    "(?i)DEFEAT\\b",
+                    "FAILED",
+                    "전투 패배"
+                ]
             }
         },
         "pre_wait_freezes": {
@@ -729,7 +879,7 @@
             "type": "Click"
         },
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson\">战斗失败，推图任务已停止。请调整队伍后重新运行本任务继续</span>"
+            "Node.Action.Starting": "$Focus.AP_CombatDefeat"
         }
     },
     "AP_MiniGame": {
@@ -748,7 +898,7 @@
         },
         "focus": {
             "Node.Action.Starting": {
-                "content": "检测到活动小游戏，无法自动完成。请手动完成小游戏后回到关卡地图页，重新运行本任务继续",
+                "content": "$Focus.AP_MiniGame",
                 "display": [
                     "log",
                     "toast"
@@ -767,12 +917,25 @@
                     280,
                     100
                 ],
-                "expected": "开始挑战"
+                "roi_offset": [
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                // @i18n-src: ["开始挑战"]
+                "expected": [
+                    "开始挑战",
+                    "開始挑戰",
+                    "(?i)Start\\b",
+                    "挑戦する",
+                    "도전 시작"
+                ]
             }
         },
         "focus": {
             "Node.Action.Starting": {
-                "content": "检测到 BOSS 挑战页，推图任务到此结束，请手动完成 BOSS 挑战后重新运行本任务继续",
+                "content": "$Focus.AP_BossChallengePage",
                 "display": [
                     "log",
                     "toast"
@@ -791,11 +954,32 @@
                     180,
                     200
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    68,
+                    0
+                ],
+                // @i18n-src: ["自救手册","最终方案","暴力艺术","最佳援手"]
                 "expected": [
                     "自救手册",
+                    "自救手冊",
+                    "(?i)Survivalist\\b",
+                    "自助手引き",
+                    "자구책",
                     "最终方案",
+                    "最終方案",
+                    "(?i)Quad\\s*Damage\\b",
+                    "최종 방안",
                     "暴力艺术",
-                    "最佳援手"
+                    "暴力藝術",
+                    "(?i)Brutality\\b",
+                    "暴力の芸術",
+                    "폭력적 예술",
+                    "最佳援手",
+                    "(?i)Buffed\\s*Up\\b",
+                    "最高の救援",
+                    "최고의 도움"
                 ]
             }
         },
@@ -823,12 +1007,24 @@
                     520,
                     440
                 ],
-                "expected": "制衡模式"
+                "roi_offset": [
+                    0,
+                    0,
+                    390,
+                    0
+                ],
+                // @i18n-src: ["制衡模式"]
+                "expected": [
+                    "制衡模式",
+                    "(?i)Balanced\\s*Mode\\b",
+                    "バランスモード",
+                    "제어 모드"
+                ]
             }
         },
         "focus": {
             "Node.Action.Starting": {
-                "content": "检测到 BOSS 制衡模式，推图任务到此结束，请手动完成 BOSS 挑战",
+                "content": "$Focus.AP_BossBalanceMode",
                 "display": [
                     "log",
                     "toast"
@@ -840,7 +1036,7 @@
         "desc": "调度超时兜底：报错结束（出错截图由框架 SaveOnError 自动保存到 debug/on_error）",
         "focus": {
             "Node.Action.Starting": {
-                "content": "推图遇到无法自动处理的界面（如小游戏、特殊教程等），出错截图见 debug/on_error。请手动完成当前内容并回到活动关卡地图页，然后重新运行本任务继续推图",
+                "content": "$Focus.AP_UnknownScreen",
                 "display": [
                     "log",
                     "toast"

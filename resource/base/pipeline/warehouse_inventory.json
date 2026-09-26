@@ -16,7 +16,19 @@
                     42,
                     22
                 ],
-                "expected": "仓库",
+                "roi_offset": [
+                    0,
+                    0,
+                    53,
+                    0
+                ],
+                // @i18n-src: ["仓库"]
+                "expected": [
+                    "仓库",
+                    "倉庫",
+                    "(?i)Warehouse\\b",
+                    "창고"
+                ],
                 "only_rec": true
             }
         },
@@ -40,7 +52,18 @@
                     140,
                     360
                 ],
-                "expected": "素材"
+                "roi_offset": [
+                    0,
+                    0,
+                    175,
+                    0
+                ],
+                // @i18n-src: ["素材"]
+                "expected": [
+                    "素材",
+                    "(?i)Materials\\b",
+                    "재료"
+                ]
             }
         },
         "post_delay": 1000,
@@ -95,7 +118,19 @@
                     42,
                     22
                 ],
-                "expected": "仓库",
+                "roi_offset": [
+                    0,
+                    0,
+                    53,
+                    0
+                ],
+                // @i18n-src: ["仓库"]
+                "expected": [
+                    "仓库",
+                    "倉庫",
+                    "(?i)Warehouse\\b",
+                    "창고"
+                ],
                 "only_rec": true
             }
         },

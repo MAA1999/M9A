@@ -62,7 +62,19 @@
                     197,
                     25
                 ],
-                "expected": "浅眠域",
+                "roi_offset": [
+                    0,
+                    0,
+                    99,
+                    0
+                ],
+                // @i18n-src: ["浅眠域"]
+                "expected": [
+                    "浅眠域",
+                    "淺眠域",
+                    "(?i)Surface\\b",
+                    "의식 영역"
+                ],
                 "only_rec": true
             }
         },
@@ -70,7 +82,7 @@
             "ResetReturnMain"
         ],
         "focus": {
-            "Node.Recognition.Succeeded": "<span style=\"color:darkorange;\">未解锁深眠域/醒梦域，本功能无法使用</span>"
+            "Node.Recognition.Succeeded": "$Focus.LucidscapeUnlocked"
         }
     },
     "LucidscapeTotalAwards": {
@@ -104,7 +116,19 @@
                     76,
                     41
                 ],
-                "expected": "首通",
+                "roi_offset": [
+                    0,
+                    0,
+                    95,
+                    0
+                ],
+                // @i18n-src: ["首通"]
+                "expected": [
+                    "首通",
+                    "(?i)1st\\s*Clear\\b",
+                    "初クリア",
+                    "첫 클리어"
+                ],
                 "only_rec": true
             }
         },
@@ -124,9 +148,23 @@
                     102,
                     30
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    68,
+                    0
+                ],
+                // @i18n-src: ["已领取","未达成"]
                 "expected": [
                     "已领取",
-                    "未达成"
+                    "已領取",
+                    "(?i)Claimed\\b",
+                    "受取済み",
+                    "수령 완료",
+                    "未达成",
+                    "未達成",
+                    "(?i)Incomplete\\b",
+                    "미달성"
                 ],
                 "only_rec": true
             }
@@ -216,7 +254,20 @@
                     126,
                     32
                 ],
-                "expected": "开始行动",
+                "roi_offset": [
+                    0,
+                    0,
+                    16,
+                    0
+                ],
+                // @i18n-src: ["开始行动"]
+                "expected": [
+                    "开始行动",
+                    "開始行動",
+                    "(?i)Start\\b",
+                    "行動開始",
+                    "행동 시작"
+                ],
                 "only_rec": true
             }
         },
@@ -262,7 +313,20 @@
                     126,
                     32
                 ],
-                "expected": "开始行动",
+                "roi_offset": [
+                    0,
+                    0,
+                    16,
+                    0
+                ],
+                // @i18n-src: ["开始行动"]
+                "expected": [
+                    "开始行动",
+                    "開始行動",
+                    "(?i)Start\\b",
+                    "行動開始",
+                    "행동 시작"
+                ],
                 "only_rec": true
             }
         },
@@ -288,7 +352,21 @@
                     64,
                     30
                 ],
-                "expected": "确认",
+                "roi_offset": [
+                    0,
+                    0,
+                    48,
+                    0
+                ],
+                // @i18n-src: ["确认"]
+                "expected": [
+                    "确认",
+                    "確認",
+                    "(?i)Confirm\\b",
+                    "(?i)Exit\\b",
+                    "決定",
+                    "확인"
+                ],
                 "only_rec": true
             }
         },
@@ -320,8 +398,19 @@
                     289,
                     78
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    37,
+                    0
+                ],
+                // @i18n-src: ["战斗失败"]
                 "expected": [
-                    "战斗失败"
+                    "战斗失败",
+                    "戰鬥失敗",
+                    "(?i)DEFEAT\\b",
+                    "FAILED",
+                    "전투 패배"
                 ],
                 "only_rec": true
             }
@@ -336,7 +425,7 @@
             "[JumpBack]HomeButton"
         ],
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson;\">战斗失败，任务结束</span>"
+            "Node.Action.Starting": "$Focus.LucidscapeFailed"
         }
     },
     "LucidscapeVictory": {
@@ -349,8 +438,21 @@
                     473,
                     240
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    129,
+                    0
+                ],
+                // @i18n-src: ["战斗胜利"]
                 "expected": [
-                    "战斗胜利"
+                    "战斗胜利",
+                    "戰鬥勝利",
+                    "(?i)Battle\\s*Victory\\b",
+                    "(?i)VICTORY\\b",
+                    "VICTORY",
+                    "バトル勝利",
+                    "전투 승리"
                 ]
             }
         },
@@ -385,9 +487,21 @@
                     48,
                     27
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    48,
+                    0
+                ],
+                // @i18n-src: ["跳过"]
                 "expected": [
                     "跳过",
-                    "SKIP"
+                    "SKIP",
+                    "跳過",
+                    "(?i)SKIP\\b",
+                    "(?i)Skip\\b",
+                    "スキップ",
+                    "건너뛰기"
                 ],
                 "only_rec": true
             }
@@ -406,7 +520,20 @@
                     128,
                     30
                 ],
-                "expected": "空白",
+                "roi_offset": [
+                    0,
+                    0,
+                    192,
+                    0
+                ],
+                // @i18n-src: ["空白"]
+                "expected": [
+                    "空白",
+                    "狁鄢",
+                    "(?i)Ziel\\b",
+                    "SnowRabbit",
+                    "jinggun"
+                ],
                 "only_rec": true
             }
         },
@@ -477,7 +604,20 @@
                     68,
                     19
                 ],
-                "expected": "本层酬劳",
+                "roi_offset": [
+                    0,
+                    0,
+                    17,
+                    0
+                ],
+                // @i18n-src: ["本层酬劳"]
+                "expected": [
+                    "本层酬劳",
+                    "本層酬勞",
+                    "(?i)Reward\\b",
+                    "本層の報酬",
+                    "단계 보상"
+                ],
                 "only_rec": true
             }
         },
@@ -520,9 +660,23 @@
                     102,
                     30
                 ],
+                "roi_offset": [
+                    0,
+                    0,
+                    68,
+                    0
+                ],
+                // @i18n-src: ["已领取","未达成"]
                 "expected": [
                     "已领取",
-                    "未达成"
+                    "已領取",
+                    "(?i)Claimed\\b",
+                    "受取済み",
+                    "수령 완료",
+                    "未达成",
+                    "未達成",
+                    "(?i)Incomplete\\b",
+                    "미달성"
                 ],
                 "only_rec": true
             }
@@ -553,7 +707,20 @@
                     102,
                     30
                 ],
-                "expected": "领取",
+                "roi_offset": [
+                    0,
+                    0,
+                    102,
+                    0
+                ],
+                // @i18n-src: ["领取"]
+                "expected": [
+                    "领取",
+                    "領取",
+                    "(?i)Claim\\b",
+                    "受け取る",
+                    "수령"
+                ],
                 "only_rec": true
             }
         },
