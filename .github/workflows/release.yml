@@ -273,14 +273,24 @@ jobs:
           name: release-notes
           path: CHANGES.md
 
+  # Android 三包（universal + 双 ABI 单包）与桌面包并行构建；Release 等
+  # 两边都完成后才创建，避免 Release 页面出现"桌面包已就位、APK 还在构建"的窗口期
+  android-apks:
+    if: startsWith(github.ref, 'refs/tags/')
+    uses: ./.github/workflows/android-build.yml
+    with:
+      assemble: release
+    secrets: inherit
+    permissions:
+      contents: read
+
   release:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [package, git_cliff]
+    needs: [package, git_cliff, android-apks]
     permissions:
       contents: write
     runs-on: ubuntu-latest
-    # Android 工作流认同一批 v* tag，会给同一个 Release 传 APK；两边共用同一个
-    # concurrency group 串行化，避免并发创建同名 Release
+    # 统一的 Release 创建点：桌面 11 个资产 + APK 3 个一起上传
     concurrency:
       group: release-${{ github.ref }}
       cancel-in-progress: false
@@ -296,6 +306,7 @@ jobs:
           files: |
             release-assets/*.zip
             release-assets/*.tar.gz
+            release-assets/*.apk
       - name: Dispatch post-release hooks
         env:
           GH_TOKEN: ${{ github.token }}
@@ -305,7 +316,8 @@ jobs:
             -f client_payload[tag]="$GITHUB_REF_NAME"
           gh api --method POST "repos/$GITHUB_REPOSITORY/dispatches" \
             -f event_type=mirrorchyan-upload \
-            -f client_payload[tag]="$GITHUB_REF_NAME"
+            -f client_payload[tag]="$GITHUB_REF_NAME" \
+            -f client_payload[android]=true
           gh api --method POST "repos/$GITHUB_REPOSITORY/dispatches" \
             -f event_type=mirrorchyan-release-note \
             -f client_payload[tag]="$GITHUB_REF_NAME"

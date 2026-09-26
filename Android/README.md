@@ -46,15 +46,15 @@ git add Android/MaaFwApp
 
 ## CI
 
-debug 与正式包统一走 **Build Android APK**（`macos-latest` + JDK 25 + NDK 29 + Python 3.13）。push / PR 到 `main` 打 debug 包；打 `v*` tag 或手动跑 workflow 选 `assemble=release` 出签名包并发布 Release。
+debug 包走 **Build Android APK**（push / PR 自动触发，手动 dispatch 可选 release 只出签名工件，不发布）；正式包由 **Release** 流程在 `v*` tag 上统一收口：调 `android-build.yml` 出三个签名 APK，**等桌面包也就绪后一次性创建 Release**（桌面 11 个资产 + APK 3 个），随后派发 Mirror酱 一次传完桌面与 Android。构建逻辑本体在可复用的 `.github/workflows/android-build.yml`（`macos-latest` + JDK 25 + NDK 29 + Python 3.13），android.yml 与 release.yml 都只是调用方。
 
 包名与 MaaFW 版本都由 `tools/android-packaging.mjs` 解析（放在脚本里而不是 workflow 内联，是为了可单测、也方便别的项目复用；用 Node 而非 Python 是刻意的——纯 pipeline 项目不引入 Python）：资产前缀取 `maa-project.json` 的 `project.displayName`（不可用时退回 `slug`），MaaFW tag 按项目侧固定的版本配对内核 release。
 
-发布与桌面共用同一批 `v*` tag：一个版本 tag 会同时触发桌面 Release 与 Android 的三个包，两边把资产传进**同一个 GitHub Release**（共用 `release-<ref>` concurrency group 串行，避免并发建 Release；Release 正文与变更日志仍由桌面流程维护）。APK 的 `versionName` / `versionCode` 取自最外层仓库的 `git describe` 与提交数，所以 tag 统一后与应用内自更新的版本比较自动对齐。
+发布与桌面共用同一批 `v*` tag：tag 上 Release 流程把桌面与 Android 的资产一起传进**同一个 GitHub Release**。APK 的 `versionName` / `versionCode` 取自最外层仓库的 `git describe` 与提交数，所以 tag 统一后与应用内自更新的版本比较自动对齐。
 
 改 `Android/`、`agent/`、`tasks/`、`resource/`、`data/`、`locales/`、`config/`、`requirements.txt`、`tools/android-packaging.mjs` 或 `interface.json` 等会触发构建。
 
-release 时跑三个 job，出三个包：
+三个 APK 由 `android-build.yml` 的三个 job 出：
 
 | job | 资产 | 内容 |
 | --- | --- | --- |
@@ -72,6 +72,6 @@ MaaFW 版本与桌面**同源固定**，发版不用改 yml：
 - `maa-project.json` 钉了具体版本且与 requirements 不一致时打 warning（GUI 运行时与 agent 绑定的漂移，PC 侧同样存在）
 - 手动跑 workflow 时 `maafw_tag` 仍可覆盖（会破坏前后一致，一般不用）
 
-发布还会把三个包分别推到 MirrorChyan 的 `M9A_exec`：`android.yml` 的 `mirrorchyan` job 在 `release` 之后**同步调用** `mirrorchyan.yml`（那里集中放所有 rid 的上传），由它的 `mirrorchyan_android` job 按 universal → `arch: any`、arm64-v8a → `arch: arm64`、x86_64 → `arch: x64` 三条流上传。走调用而不是 `release` 事件，是因为 APK 与桌面包分属两个 workflow，事件会先于资产到达。应用内更新因此查的是这条「可执行包」流——配方里的 `update.mirrorchyanRid: M9A_exec` 会压过 PI 的 `mirrorchyan_rid`（后者是桌面资源包）。
+Mirror酱 上传由 release.yml 建完 Release 后派发的 `mirrorchyan-upload` 一次性收口：`mirrorchyan.yml` 里桌面走 `M9A` / `M9A-MXU` 两条资源流，Android 的「可执行包」走 `M9A_exec`，由 `mirrorchyan_android` job 按 universal → `arch: any`、arm64-v8a → `arch: arm64`、x86_64 → `arch: x64` 三条流上传。应用内更新查的是这条「可执行包」流——配方里的 `update.mirrorchyanRid: M9A_exec` 会压过 PI 的 `mirrorchyan_rid`（后者是桌面资源包）。
 
 Release 需要仓库 Secrets：`KEYSTORE_BASE64`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`，以及 `MirrorChyanUploadToken`。手动跑时可用 `maafw_tag` 指定 MaaFramework 的 tag，留空则按 requirements / maa-project.json 固定的版本解析。

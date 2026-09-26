@@ -10,9 +10,9 @@ on:
         description: "一并上传 Android 的 M9A_exec 三个包"
         type: boolean
         default: false
-  # Android 发布流程在 Release 里三个 APK 就位后同步调用这里。
-  # 不能只靠下面的 release 事件：APK 与桌面包分属两个 workflow，
-  # 事件会先于资产到达，按 filename 去 Release 里找会扑空。
+  # 供其它 workflow 以 workflow_call 复用（当前无人调用，保留备用）。正式发布走
+  # repository_dispatch：release.yml 建完 Release 统一派发，桌面与 Android 一次传完，
+  # 不用 release 事件——事件可能先于资产到达，按 filename 去 Release 里找会扑空。
   workflow_call:
     inputs:
       tag:
@@ -32,7 +32,7 @@ jobs:
     # Mirror酱为第三方分发服务，新项目默认关闭
     # 若有需要请联系 Mirror酱 开通，直接自行开启是无法使用的
     # https://mirrorchyan.com/
-    if: ${{ github.repository_owner == 'MAA1999' && github.event_name != 'workflow_call' }}
+    if: ${{ github.repository_owner == 'MAA1999' && inputs.android != true }}
     strategy:
       fail-fast: false
       matrix:
@@ -59,7 +59,7 @@ jobs:
     # Mirror酱为第三方分发服务，新项目默认关闭
     # 若有需要请联系 Mirror酱 开通，直接自行开启是无法使用的
     # https://mirrorchyan.com/
-    if: ${{ github.repository_owner == 'MAA1999' && github.event_name != 'workflow_call' }}
+    if: ${{ github.repository_owner == 'MAA1999' && inputs.android != true }}
     strategy:
       fail-fast: false
       matrix:
@@ -83,10 +83,11 @@ jobs:
           upload_token: ${{ secrets.MirrorChyanUploadToken }}
 
   # Android 的「可执行包」流：M9A_exec 与上面两条资源流不是同一个 rid。
-  # 只在被调用或手动勾选 android 时跑，避免 release 事件下的资产时序问题。
+  # 在 mirrorchyan-upload 的 client_payload 里带 android=true（release.yml 统一派发，
+  # 桌面与 Android 一次传完），或手动跑本 workflow 勾选 android。
   mirrorchyan_android:
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'MAA1999' && (inputs.android == true || github.event.inputs.android == 'true') }}
+    if: ${{ github.repository_owner == 'MAA1999' && (inputs.android == true || github.event.inputs.android == 'true' || github.event.client_payload.android == 'true') }}
     strategy:
       fail-fast: false
       matrix:
