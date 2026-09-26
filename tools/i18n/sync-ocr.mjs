@@ -76,6 +76,11 @@ function expandRow(zh, row, raw = false) {
     for (const value of asList(row.en)) {
         const display = stripTags(value);
         push(display, englishOcrRegex(display));
+        if (raw) {
+            // 历史版本的英文正则没有  词边界，deExpand 需要一并识别为旧产物
+            const legacy = englishOcrRegex(display).replace(/\b$/, "");
+            push(display, legacy);
+        }
     }
     for (const value of asList(row.jp)) push(stripTags(value), raw ? value : escapeRegexLiteral(stripTags(value)));
     for (const value of asList(row.kr)) push(stripTags(value), raw ? value : escapeRegexLiteral(stripTags(value)));
