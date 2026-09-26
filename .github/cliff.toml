@@ -61,17 +61,33 @@ footer = """
     {%- set_global latest_version = release.version -%}
   {%- endif -%}
 {%- endfor -%}
-
-{% if latest_version -%}
+{%- if latest_version -%}
+  {%- set_global ver = latest_version -%}
+{%- else -%}
+  {%- set_global ver = "v?.?.?" -%}
+{%- endif %}
 
 ---
 
-**绝大部分用户请下载 [M9A-win-x86_64-{{ latest_version }}-MFAA.zip]({{ self::remote_url() }}/releases/download/{{ latest_version }}/M9A-win-x86_64-{{ latest_version }}-MFAA.zip) 或 [M9A-win-x86_64-{{ latest_version }}-MXU.zip]({{ self::remote_url() }}/releases/download/{{ latest_version }}/M9A-win-x86_64-{{ latest_version }}-MXU.zip)**
-{%- else -%}
-**绝大部分用户请下载 M9A-win-x86_64-vx.x.x-MFAA.zip 或 M9A-win-x86_64-vx.x.x-MXU.zip，没找到的请点 show all x assets**
-{%- endif %}
+### 下载哪个包
 
-> MFAA = 图形界面版（使用接近MAA方舟） | MXU = 图形界面版（MaaEnd同款）
+| 包 | 适用 |
+| --- | --- |
+| M9A-win-x86_64-{{ ver }}-MFAA.zip（推荐） | Windows x64，绝大部分用户 |
+| M9A-win-x86_64-{{ ver }}-MXU.zip | Windows x64（MaaEnd 同款界面） |
+| M9A-win-aarch64-{{ ver }}-MFAA.zip / -MXU.zip | Windows on ARM |
+| M9A-linux-x86_64-{{ ver }}-MFAA.tar.gz / -MXU.tar.gz | Linux x64 |
+| M9A-linux-aarch64-{{ ver }}-MFAA.tar.gz | Linux ARM64（无 MXU 包） |
+| M9A-macos-x86_64-{{ ver }}-MFAA.tar.gz / -MXU.tar.gz | macOS（Intel 芯片） |
+| M9A-macos-aarch64-{{ ver }}-MFAA.tar.gz / -MXU.tar.gz | macOS（Apple Silicon） |
+| M9A-{{ ver }}-universal.apk（推荐） | Android 通用包，双架构，不确定选这个 |
+| M9A-{{ ver }}-arm64-v8a.apk | Android 真机（ARM64），体积约为 universal 的一半 |
+| M9A-{{ ver }}-x86_64.apk | Android 模拟器等 x86 环境（Windows 上的蓝叠 / MuMu / 雷电等） |
+
+MFAA = 图形界面版（使用接近MAA方舟） | MXU = 图形界面版（MaaEnd同款）
+{%- if not latest_version %}
+以上版本号为占位 v?.?.?，release 页没找到对应包请点 show all assets
+{%- endif %}
 
 [已有 Mirror酱 CDK？点击前往高速下载](https://mirrorchyan.com/zh/projects?rid=M9A&source=m9agh-release)
 
