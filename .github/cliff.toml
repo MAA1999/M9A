@@ -51,10 +51,6 @@ body = """
 """
 
 footer = """
-{%- macro remote_url() -%}
-  https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
-{%- endmacro -%}
-
 {%- set latest_version = "" -%}
 {%- for release in releases -%}
   {%- if release.version and latest_version == "" -%}
@@ -67,22 +63,31 @@ footer = """
   {%- set_global ver = "v?.?.?" -%}
 {%- endif %}
 
+{%- macro asset(prefix, suffix, ver, tag) -%}
+  {%- set filename = prefix ~ ver ~ suffix -%}
+  {%- if tag -%}
+    [{{ filename }}](https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/releases/download/{{ tag }}/{{ filename }})
+  {%- else -%}
+    {{ filename }}
+  {%- endif -%}
+{%- endmacro %}
+
 ---
 
 ### 下载哪个包
 
 | 包 | 适用 |
 | --- | --- |
-| M9A-win-x86_64-{{ ver }}-MFAA.zip（推荐） | Windows x64，绝大部分用户 |
-| M9A-win-x86_64-{{ ver }}-MXU.zip | Windows x64（MaaEnd 同款界面） |
-| M9A-win-aarch64-{{ ver }}-MFAA.zip / -MXU.zip | Windows on ARM |
-| M9A-linux-x86_64-{{ ver }}-MFAA.tar.gz / -MXU.tar.gz | Linux x64 |
-| M9A-linux-aarch64-{{ ver }}-MFAA.tar.gz | Linux ARM64（无 MXU 包） |
-| M9A-macos-x86_64-{{ ver }}-MFAA.tar.gz / -MXU.tar.gz | macOS（Intel 芯片） |
-| M9A-macos-aarch64-{{ ver }}-MFAA.tar.gz / -MXU.tar.gz | macOS（Apple Silicon） |
-| M9A-{{ ver }}-universal.apk（推荐） | Android 通用包，双架构，不确定选这个 |
-| M9A-{{ ver }}-arm64-v8a.apk | Android 真机（ARM64），体积约为 universal 的一半 |
-| M9A-{{ ver }}-x86_64.apk | Android 模拟器等 x86 环境（Windows 上的蓝叠 / MuMu / 雷电等） |
+| {{ self::asset(prefix="M9A-win-x86_64-", suffix="-MFAA.zip", ver=ver, tag=latest_version) }}（推荐） | Windows x64，绝大部分用户 |
+| {{ self::asset(prefix="M9A-win-x86_64-", suffix="-MXU.zip", ver=ver, tag=latest_version) }} | Windows x64（MaaEnd 同款界面） |
+| {{ self::asset(prefix="M9A-win-aarch64-", suffix="-MFAA.zip", ver=ver, tag=latest_version) }} / {{ self::asset(prefix="M9A-win-aarch64-", suffix="-MXU.zip", ver=ver, tag=latest_version) }} | Windows on ARM |
+| {{ self::asset(prefix="M9A-linux-x86_64-", suffix="-MFAA.tar.gz", ver=ver, tag=latest_version) }} / {{ self::asset(prefix="M9A-linux-x86_64-", suffix="-MXU.tar.gz", ver=ver, tag=latest_version) }} | Linux x64 |
+| {{ self::asset(prefix="M9A-linux-aarch64-", suffix="-MFAA.tar.gz", ver=ver, tag=latest_version) }} | Linux ARM64（无 MXU 包） |
+| {{ self::asset(prefix="M9A-macos-x86_64-", suffix="-MFAA.tar.gz", ver=ver, tag=latest_version) }} / {{ self::asset(prefix="M9A-macos-x86_64-", suffix="-MXU.tar.gz", ver=ver, tag=latest_version) }} | macOS（Intel 芯片） |
+| {{ self::asset(prefix="M9A-macos-aarch64-", suffix="-MFAA.tar.gz", ver=ver, tag=latest_version) }} / {{ self::asset(prefix="M9A-macos-aarch64-", suffix="-MXU.tar.gz", ver=ver, tag=latest_version) }} | macOS（Apple Silicon） |
+| {{ self::asset(prefix="M9A-", suffix="-arm64-v8a.apk", ver=ver, tag=latest_version) }}（推荐） | Android 真机（ARM64），体积约为 universal 的一半 |
+| {{ self::asset(prefix="M9A-", suffix="-universal.apk", ver=ver, tag=latest_version) }} | Android 双架构通用包，真机 / 模拟器都能装，不确定选这个 |
+| {{ self::asset(prefix="M9A-", suffix="-x86_64.apk", ver=ver, tag=latest_version) }} | Android 模拟器等 x86 环境（Windows 上的蓝叠 / MuMu / 雷电等） |
 
 MFAA = 图形界面版（使用接近MAA方舟） | MXU = 图形界面版（MaaEnd同款）
 {%- if not latest_version %}
