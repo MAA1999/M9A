@@ -6,7 +6,7 @@
  *    同版本，否则 APK 里前后端版本不一致；
  * 2. release 资产前缀：取 maa-project.json 的显示名（不可用时退回 slug），于是同一份 workflow
  *    可以给别的项目直接用；
- * 3. 有没有 agent：纯 pipeline 项目不涉及 Python，workflow 据此跳过 Python 与 agent 运行时的构建。
+ * 3. 有没有 agent：纯 pipeline 项目不涉及 Python 绑定，workflow 据此跳过内核缓存与运行时构建。
  *
  * 用法：`node tools/android-packaging.mjs [项目根目录]`，结果既打印也追加到 `$GITHUB_OUTPUT`。
  */
@@ -21,7 +21,8 @@ const REQUIREMENTS = "requirements.txt";
 // CORE_TAG 形如 "3.13.15-maafw5.12.3"；client 原生库版本取 maafw 后面那段
 const CORE_TAG_PATTERN = /CORE_TAG\s*=\s*"([^"]*)"/;
 const CORE_VERSION_PATTERN = /maafw([0-9].*)$/;
-// 项目在 CI 里自己钉内核版本（android.yml 的 AGENT_CORE_TAG）；不设才回落到子模块的默认值
+// 应急 / fork 用的内核覆盖（AGENT_CORE_TAG 环境变量）；不设就走子模块的默认值，
+// 也就是换 Android/MaaFwApp 子模块 pointer 即可升内核，CI 的 tag 与缓存键都会跟着变
 const CORE_TAG_ENV = "AGENT_CORE_TAG";
 const REQUIREMENT_PIN_PATTERN = /^maafw==([0-9][^\s;]*)/m;
 const SAFE_PREFIX_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
@@ -129,7 +130,7 @@ function main() {
         console.log(
             `::warning::Android 绑定暂时只能跟内核 ${coreVersion}（没有公开的 Android 版 maafw 轮子）；` +
                 `requirements 的 maafw==${packaging.requirementPin}、maa-project.json 的 ${packaging.declaredTarget}` +
-                `；要跟进就把 ${CORE_TAG_ENV} 改到有对应内核 release 的版本`,
+                `；要跟进就把 Android/MaaFwApp 子模块换到 CORE_TAG 带新版本的提交`,
         );
     }
 

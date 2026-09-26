@@ -17,6 +17,7 @@ on:
       - "logo.ico"
       - "CONTACT"
       - "LICENSE"
+      - "tools/android-packaging.mjs"
       - ".github/workflows/android.yml"
   pull_request:
     paths:
@@ -32,6 +33,7 @@ on:
       - "logo.ico"
       - "CONTACT"
       - "LICENSE"
+      - "tools/android-packaging.mjs"
       - ".github/workflows/android.yml"
   workflow_dispatch:
     inputs:
@@ -43,7 +45,7 @@ on:
           - release
         default: debug
       maafw_tag:
-        description: "MaaFramework release tag；留空则按 maa-project.json 的 maafw.channel/version 解析，填 latest 取 GitHub 最新正式版"
+        description: "MaaFramework release tag；留空则与 agent 内核同版本（子模块 CORE_TAG），填 latest 取 GitHub 最新正式版（会破坏 APK 内前后端同版本，一般不用）"
         required: false
         default: ""
 
@@ -53,11 +55,6 @@ concurrency:
 
 permissions:
   contents: read
-
-env:
-  # 本项目自己钉的 agent 内核（Aliothmoon/MaaAgentCoreAndroid 的 release tag），不跟子模块的默认值走；
-  # APK 里的 MaaFramework 原生库版本由 tools/android-packaging.mjs 从这里的 maafw 段反推，两边恒一致
-  AGENT_CORE_TAG: "3.13.15-maafw5.14.0"
 
 jobs:
   # 库模块资源校验：verifyReleaseResources 只在库模块自己的 assembleRelease 进任务图时才跑，
@@ -154,21 +151,24 @@ jobs:
         with:
           node-version: 24
 
-      - name: Cache agent core
-        uses: actions/cache@v6
-        with:
-          path: Android/MaaFwApp/.maafw
-          key: maa-agent-core-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ env.AGENT_CORE_TAG }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
-
-      # 不缓存 MaaFramework zip：脚本按字典序部署缓存里全部 MAA-android-*.zip，
-      # 跨 run 复用会让 workflow_dispatch 指定的 maafw_tag 被旧版本覆盖
       # MaaFW 版本与资产前缀由 tools/android-packaging.mjs 解析（Node 而不是 Python：
       # 纯 pipeline 项目不引入 Python，同一份脚本要能给它们用）：
       # Android 的 Python 绑定就是内核（MaaAgentCoreAndroid）自带那份，公开索引没有 Android 版
-      # maafw 轮子，所以 client 原生库必须与内核同版本；两者都跟顶部的 AGENT_CORE_TAG 走
+      # maafw 轮子，所以 client 原生库必须与内核同版本；内核版本跟子模块的 CORE_TAG 走，
+      # 也可用 AGENT_CORE_TAG 环境变量临时钉到别的 release tag
       - name: Resolve Android packaging
         id: maafw
         run: node tools/android-packaging.mjs
+
+      # 纯 pipeline 项目（resolver 判定无 agent）不碰内核缓存与运行时构建。
+      # 不缓存 MaaFramework zip：脚本按字典序部署缓存里全部 MAA-android-*.zip，
+      # 跨 run 复用会让 workflow_dispatch 指定的 maafw_tag 被旧版本覆盖
+      - name: Cache agent core
+        if: steps.maafw.outputs.has_agent == 'true'
+        uses: actions/cache@v6
+        with:
+          path: Android/MaaFwApp/.maafw
+          key: maa-agent-core-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ steps.maafw.outputs.core_tag }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
       - name: Download and deploy MaaFramework
         working-directory: Android/MaaFwApp
@@ -184,6 +184,7 @@ jobs:
           python scripts/setup_maa_framework.py --abi x86_64 $TAG_ARG
 
       - name: Build agent runtime
+        if: steps.maafw.outputs.has_agent == 'true'
         working-directory: Android/MaaFwApp
         run: |
           # debug 包只出 arm64（build.debugAbi），运行时也只建 arm64；配方不写死 abi，
@@ -340,19 +341,24 @@ jobs:
         with:
           node-version: 24
 
-      - name: Cache agent core
-        uses: actions/cache@v6
-        with:
-          path: Android/MaaFwApp/.maafw
-          key: maa-agent-core-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ env.AGENT_CORE_TAG }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
-
       # MaaFW 版本与资产前缀由 tools/android-packaging.mjs 解析（Node 而不是 Python：
       # 纯 pipeline 项目不引入 Python，同一份脚本要能给它们用）：
       # Android 的 Python 绑定就是内核（MaaAgentCoreAndroid）自带那份，公开索引没有 Android 版
-      # maafw 轮子，所以 client 原生库必须与内核同版本；两者都跟顶部的 AGENT_CORE_TAG 走
+      # maafw 轮子，所以 client 原生库必须与内核同版本；内核版本跟子模块的 CORE_TAG 走，
+      # 也可用 AGENT_CORE_TAG 环境变量临时钉到别的 release tag
       - name: Resolve Android packaging
         id: maafw
         run: node tools/android-packaging.mjs
+
+      # 纯 pipeline 项目（resolver 判定无 agent）不碰内核缓存与运行时构建。
+      # 不缓存 MaaFramework zip：脚本按字典序部署缓存里全部 MAA-android-*.zip，
+      # 跨 run 复用会让 workflow_dispatch 指定的 maafw_tag 被旧版本覆盖
+      - name: Cache agent core
+        if: steps.maafw.outputs.has_agent == 'true'
+        uses: actions/cache@v6
+        with:
+          path: Android/MaaFwApp/.maafw
+          key: maa-agent-core-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ steps.maafw.outputs.core_tag }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
       - name: Download and deploy MaaFramework
         working-directory: Android/MaaFwApp
@@ -367,6 +373,7 @@ jobs:
           python scripts/setup_maa_framework.py --abi "$ABI" $TAG_ARG
 
       - name: Build agent runtime
+        if: steps.maafw.outputs.has_agent == 'true'
         working-directory: Android/MaaFwApp
         run: |
           # pillow 走 Chaquopy 的索引，那里最高只有 11.0.0，requirements 的 12.3.0 装不进 Android
@@ -428,7 +435,9 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build, abi-split]
+    # library-resources 一并作为门禁：verifyReleaseResources 挂了就不发版，
+    # 免得库模块资源问题（MaaFwApp#34 那类）一路潜伏进签名包
+    needs: [build, abi-split, library-resources]
     runs-on: ubuntu-latest
     # 与桌面 Release workflow 认同一批 v* tag，两边会给同一个 Release 传资产；
     # 用同一个 concurrency group 串行化，避免并发创建同名 Release
