@@ -15,9 +15,13 @@ class BalancedFarmingAnalyze(CustomAction):
     _DATA_PATH = "data/combat/balanced_farming.json"
     # 仓库列表最多翻页次数，防止滑动判断异常时死循环
     _MAX_SCROLL_PAGES = 5
-    # 数量文字相对图标 box 的偏移：(dx, dy, dw, dh)，dy 基于图标底边；
-    # 横向收窄到图标内部，避免把格子两侧装饰认成数字
-    _COUNT_ROI_OFFSET = (8, 0, -16, 36)
+    # 数量 ROI：贴图标底边、高 30px，横向只取图标中部一半（避免把格子两侧装饰竖线认成数字）。
+    # 横向收窄是必需的：整宽 71x36 会把单字符「1」稀释成小目标，OCR 置信度掉到 MaaFW 默认阈值
+    # 0.3 以下被丢弃（实测 110403 祝圣秘银 x1 只有 0.228，读不到数量）；中部 44x30 可回到 0.44。
+    _SCREEN_HEIGHT = 720
+    _COUNT_ROI_HEIGHT = 30
+    _COUNT_ROI_DX_RATIO = 0.25
+    _COUNT_ROI_DW_RATIO = -0.5
 
     def run(
         self,
@@ -110,11 +114,13 @@ class BalancedFarmingAnalyze(CustomAction):
             return False, None
 
         x, y, w, h = box
-        dx, dy, dw, dh = self._COUNT_ROI_OFFSET
-        if y + h + dy + dh > 718:
+        dx = int(w * self._COUNT_ROI_DX_RATIO)
+        dw = int(w * self._COUNT_ROI_DW_RATIO)
+        dh = self._COUNT_ROI_HEIGHT
+        if y + h + dh > self._SCREEN_HEIGHT:
             # 数量条被屏幕底部裁切，本屏不读，等滚动后完整出现再读
             return False, None
-        count_roi = [x + dx, y + h + dy, w + dw, dh]
+        count_roi = [x + dx, y + h, w + dw, dh]
         count_detail = context.run_recognition(
             "BF_ItemCount",
             img,

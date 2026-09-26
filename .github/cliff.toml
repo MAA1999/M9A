@@ -100,6 +100,3 @@ commit_parsers = [
     { message = "^[Rr]evert", group = "<!-- 11 -->撤销 | Reverts" },
 ]
 sort_commits = "oldest"
-
-[git.github]
-commits = true

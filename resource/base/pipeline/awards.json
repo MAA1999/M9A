@@ -35,12 +35,9 @@
             "[JumpBack]Sub_MailBadge",
             "[JumpBack]Sub_DailyBadge",
             "[JumpBack]Sub_JukeboxBadge",
-            "[JumpBack]Sub_JukeboxBadge_3.7",
+            "[JumpBack]Sub_JukeboxBadge_CarnivalAlbum",
             "[JumpBack]AwardBox",
-            "[JumpBack]AwardWarRoom",
-            "[JumpBack]AwardComplexDaily",
             "[JumpBack]AwardReveriesInTheRain",
-            "[JumpBack]EventLaplace",
             "HomeFlag",
             "[JumpBack]HomeButton",
             "[JumpBack]BackButton",
@@ -644,15 +641,15 @@
     },
     "Sub_CollectJukebox": {
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
                 "roi": [
-                    1009,
-                    594,
-                    213,
-                    126
+                    1046,
+                    642,
+                    138,
+                    61
                 ],
-                "template": "Awards/CollectJukebox.png"
+                "expected": "一?键领取"
             }
         },
         "action": {
@@ -674,193 +671,6 @@
             }
         }
     },
-    "AwardWarRoom": {
-        "desc": "进入前线观察室",
-        "max_hit": 3,
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    1160,
-                    564,
-                    18,
-                    43
-                ],
-                "template": "Awards/WarRoom/AwardWarRoom.png",
-                "threshold": 0.9
-            }
-        },
-        "action": {
-            "type": "Click",
-            "param": {
-                "target_offset": [
-                    -10,
-                    10,
-                    0,
-                    0
-                ]
-            }
-        },
-        "next": [
-            "AwardWarRoomTelegram",
-            "AwardWarRoom",
-            "BackButton"
-        ]
-    },
-    "AwardWarRoomTelegram": {
-        "desc": "进入函电汇报",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    1006,
-                    320,
-                    29,
-                    29
-                ],
-                "template": "Awards/WarRoom/AwardWarRoomTelegram.png",
-                "threshold": 0.9
-            }
-        },
-        "action": {
-            "type": "Click",
-            "param": {
-                "target_offset": [
-                    10,
-                    10,
-                    0,
-                    0
-                ]
-            }
-        },
-        "next": [
-            "AwardWarRoomTelegramScroll",
-            "AwardWarRoomTelegram" // 第一次点击可能失效，此时回滚
-        ]
-    },
-    "AwardWarRoomTelegramScroll": {
-        "desc": "进入寻找卷轴",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    293,
-                    571,
-                    19,
-                    17
-                ],
-                "template": "Awards/WarRoom/AwardWarRoomTelegramScroll.png",
-                "threshold": 0.9
-            }
-        },
-        "action": {
-            "type": "Click",
-            "param": {
-                "target_offset": [
-                    -20,
-                    20,
-                    0,
-                    0
-                ]
-            }
-        },
-        "post_wait_freezes": {
-            "time": 1000,
-            "target": [
-                499,
-                45,
-                770,
-                635
-            ]
-        },
-        "next": [
-            "[JumpBack]AwardWarRoomTelegramScrollClaim",
-            "[JumpBack]AwardWarRoomTelegramAwardClaim",
-            "AwardWarRoomTelegramScroll",
-            "[JumpBack]AwardWarRoomSelectSection",
-            "[JumpBack]ObtainedAwards",
-            "HomeButton"
-        ]
-    },
-    "AwardWarRoomTelegramScrollClaim": {
-        "desc": "领取卷轴",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    1138,
-                    129,
-                    124,
-                    100
-                ],
-                "template": [
-                    "Awards/WarRoom/Claim.png",
-                    "Awards/WarRoom/ClaimAll.png"
-                ],
-                "threshold": 0.8
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "post_delay": 1500
-    },
-    "AwardWarRoomTelegramAwardClaim": {
-        "desc": "领取下方奖励",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    656,
-                    564,
-                    595,
-                    75
-                ],
-                "expected": "领取"
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "post_delay": 1500
-    },
-    "AwardWarRoomSelectSection": {
-        "desc": "选择有可领取奖励的部分（解构进程/遗落事项）",
-        "recognition": {
-            "type": "ColorMatch",
-            "param": {
-                "roi": [
-                    867,
-                    26,
-                    413,
-                    34
-                ],
-                "lower": [
-                    181,
-                    42,
-                    27
-                ],
-                "upper": [
-                    201,
-                    62,
-                    47
-                ],
-                "connected": true,
-                "count": 50
-            }
-        },
-        "action": {
-            "type": "Click",
-            "param": {
-                "target_offset": [
-                    -20,
-                    20,
-                    0,
-                    0
-                ]
-            }
-        }
-    },
     "AwardBox": {
         "desc": "进入吼吼点唱机右边的盒子",
         "max_hit": 5,
@@ -870,7 +680,7 @@
                 "roi": [
                     281,
                     30,
-                    149,
+                    224,
                     32
                 ],
                 "template": [
@@ -1019,6 +829,10 @@
                                     [
                                         "预",
                                         "领"
+                                    ],
+                                    [
+                                        "须",
+                                        "领"
                                     ]
                                 ],
                                 "color_filter": "AwardBreakingSignalsAward_color_filter"
@@ -1043,6 +857,10 @@
                                     ],
                                     [
                                         "预",
+                                        "领"
+                                    ],
+                                    [
+                                        "须",
                                         "领"
                                     ]
                                 ]
@@ -1409,7 +1227,9 @@
             }
         }
     },
-    "Sub_JukeboxBadge_3.7": {
+    "EventName": {},
+    "Sub_JukeboxBadge_CarnivalAlbum": {
+        "desc": "吼吼点唱机——典藏母盘（限定版本特供）",
         "max_hit": 3,
         "recognition": {
             "type": "TemplateMatch",
@@ -1420,7 +1240,7 @@
                     217,
                     42
                 ],
-                "template": "Awards/3.7/Entry.png",
+                "template": "Awards/CarnivalAlbum/Entry.png",
                 "threshold": 0.9
             }
         },
@@ -1428,90 +1248,10 @@
             "type": "Click"
         },
         "next": [
-            "Sub_JukeboxBadge_3.7",
-            "Sub_JukeboxBadge_3.7FlagInActMain"
-        ]
-    },
-    "Sub_JukeboxBadge_3.7FlagInActMain": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    462,
-                    347,
-                    357,
-                    186
-                ],
-                "template": "Awards/3.7/ActMain.png"
-            }
-        },
-        "next": [
-            "Sub_JukeboxBadge_3.7Song",
+            "[JumpBack]Sub_CollectJukebox",
             "HomeFlag",
+            "[JumpBack]ObtainedAwards",
             "[JumpBack]BackButton"
         ]
-    },
-    "Sub_JukeboxBadge_3.7Song": {
-        "desc": "为自我的歌儿",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    405,
-                    492,
-                    52,
-                    43
-                ],
-                "template": "Awards/3.7/AwardBox.png",
-                "threshold": 0.9
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "next": [
-            "[JumpBack]Sub_JukeboxBadge_3.7SongAward",
-            "[JumpBack]Sub_JukeboxBadge_3.7Switch",
-            "[JumpBack]ObtainedAwards",
-            "[JumpBack]ClosePage",
-            "BackButton"
-        ]
-    },
-    "Sub_JukeboxBadge_3.7SongAward": {
-        "desc": "为自我的歌儿-领取奖励",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    569,
-                    631,
-                    306,
-                    62
-                ],
-                "expected": "领取"
-            }
-        },
-        "action": {
-            "type": "Click"
-        }
-    },
-    "Sub_JukeboxBadge_3.7Switch": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    166,
-                    231,
-                    33,
-                    121
-                ],
-                "template": "Awards/3.7/RedPoint.png",
-                "order_by": "Vertical",
-                "index": -1
-            }
-        },
-        "action": {
-            "type": "Click"
-        }
     }
 }

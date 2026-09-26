@@ -7,6 +7,7 @@ from maa.define import OCRResult, RecognitionDetail, RecognitionResult, Rect
 import agent.custom.action.combat as combat_module
 from agent.custom.action.combat import (
     RecordNoFreePsychube,
+    SelectChapter,
     SelectCombatStage,
     SSReopenReplay,
     StartReplayCandyRoute,
@@ -502,3 +503,46 @@ def test_start_replay_candy_route_ends_on_repeated_candy_page(monkeypatch: pytes
     assert result.success
     assert context.tasks == ["QuitEatCandyPage"]
     assert context.override == ("StartReplay", [])
+
+
+class _SelectChapterContext:
+    """SelectChapter 的桩上下文：目标卷卡片在向前翻页若干次后才出现在画面里。"""
+
+    def __init__(self, visible_after_swipes: int) -> None:
+        self.tasks: list[str] = []
+        self.swipes = 0
+        self.visible_after_swipes = visible_after_swipes
+        self.tasker = SimpleNamespace(controller=SimpleNamespace(post_screencap=lambda: _ScreenshotRequest()))
+
+    def run_task(self, name: str, *_args: object, **_kwargs: object) -> object | None:
+        self.tasks.append(name)
+        if name == "SwipeRightForChapter":
+            self.swipes += 1
+        return None
+
+    def run_recognition(self, name: str, _image: object, _override: object | None = None) -> RecognitionDetail | None:
+        if name != "SelectMainStoryChapter":
+            return None
+        # 未翻够页数时目标卷卡片不在可视区，识别必然 MISS
+        return _recognition_detail() if self.swipes >= self.visible_after_swipes else None
+
+
+def test_select_chapter_swipes_forward_until_volume_card_is_visible(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(SelectCombatStage, "mainStoryChapter", 4)
+    context = _SelectChapterContext(visible_after_swipes=2)
+
+    result = SelectChapter().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.tasks[0] == "ReturnMainStoryChapter"
+    assert context.tasks.count("SwipeRightForChapter") == 2
+
+
+def test_select_chapter_clicks_without_swiping_when_volume_card_is_visible(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(SelectCombatStage, "mainStoryChapter", 3)
+    context = _SelectChapterContext(visible_after_swipes=0)
+
+    result = SelectChapter().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert "SwipeRightForChapter" not in context.tasks

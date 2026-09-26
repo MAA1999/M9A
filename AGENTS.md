@@ -120,4 +120,4 @@ When reviewing code, check for:
     - For **non-`.ps1`** files: Prefer `apply_patch` for diffs.
     - For **`.ps1`** files: **Do NOT use `apply_patch`** (BOM breaks line offsets). Always use full file rewrites via Python's `open()`/`pathlib`.
 - Python 3.13 is required. Dependencies are locked in `uv.lock` and managed with `uv`.
-- The project uses `pnpm` workspaces and requires Node.js >= 24.
+- The project uses `pnpm` workspaces and requires Node.js >= 22.13.

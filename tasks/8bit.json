@@ -12,7 +12,7 @@
             "group": [
                 "standalone"
             ],
-            "desc": "$Task.EightBitArcade.desc"
+            "description": "$Task.EightBitArcade.desc"
         }
     ],
     "option": {

@@ -57,6 +57,8 @@ const GUI_TYPES = {
             const displayName =
                 typeof modified.label === "string" && modified.label.trim() ? modified.label.trim() : slug;
             modified.title = `${displayName} ${ver} | MXU`;
+            // M9A publishes the MXU build as its own MirrorChyan product; the id is agreed with
+            // MirrorChyan rather than derived, so it is stated here.
             modified.mirrorchyan_rid = "M9A-MXU";
             // Deliberately no agent override: prepareReleaseInterface already sets the
             // platform-correct command (the bundled interpreter running agent/main.py), and
@@ -70,6 +72,13 @@ function main() {
     const dryRun = process.argv.includes("--dry-run");
     const releaseTagOverride = commandLineValue("--release-tag");
     mkdirSync("dist", {recursive: true});
+    // The release workflow archives every dist/package-*, so a package left over from an earlier run
+    // (a GUI that has since been disabled, for example) would be published again.
+    for (const entry of readdirSync("dist", {withFileTypes: true})) {
+        if (entry.isDirectory() && entry.name.startsWith("package-")) {
+            rmSync(join("dist", entry.name), {recursive: true, force: true});
+        }
+    }
 
     const project = readJson("maa-project.json");
     const interfaceJson = readJson("interface.json");
@@ -107,7 +116,8 @@ function main() {
     }
 
     for (const path of [
-        ...strings(interfaceJson.resource),
+        ...(typeof interfaceJson.icon === "string" ? [interfaceJson.icon] : []),
+        ...interfaceResourcePaths(interfaceJson.resource),
         ...strings(interfaceJson.import),
         ...interfaceLanguagePaths(interfaceJson.languages),
     ]) {
@@ -194,6 +204,9 @@ function main() {
         }
     }
 
+    // These names are a contract with the upload workflows (they match -win-/-linux-/-macos- and the
+    // GUI suffix), so the check stays independent of the rendered target matrix: a target that does
+    // not fit the convention has to fail here instead of publishing a name nothing else can match.
     const suffixPattern = enabledGuis.map((g) => GUI_TYPES[g].suffix).join("|");
     for (const artifact of artifacts) {
         if (
@@ -233,8 +246,11 @@ function strings(value) {
     return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
 
+// A resource entry is either a path or an object whose path is one or more paths, so both shapes
+// have to be walked here: the pre-build validation and the package smoke use the same list.
 function interfaceResourcePaths(value) {
-    return Array.isArray(value) ? value.flatMap((item) => (isRecord(item) ? strings(item.path) : [])) : [];
+    if (!Array.isArray(value)) return [];
+    return value.flatMap((item) => (typeof item === "string" ? [item] : isRecord(item) ? strings(item.path) : []));
 }
 
 // interface.json `languages` maps a language code to its translation file. If one of
@@ -267,6 +283,9 @@ function releasePackagePaths(interfaceJson, guiKey) {
     if (packageHasAgent(interfaceJson)) {
         paths.push("agent");
     }
+    if (typeof interfaceJson.icon === "string" && interfaceJson.icon) {
+        paths.push(interfaceJson.icon);
+    }
     return paths;
 }
 
@@ -286,6 +305,9 @@ function packageHasAgent(interfaceJson) {
 function prepareReleaseInterface(interfaceJson, version, runtimePlatform) {
     const releaseInterface = {...interfaceJson, version};
     delete releaseInterface.$schema;
+    if (releaseInterface.icon === undefined && existsSync("logo.ico")) {
+        releaseInterface.icon = "logo.ico";
+    }
     if (packageHasAgent(interfaceJson)) {
         releaseInterface.agent = interfaceJson.agent.map((agent) =>
             isRecord(agent)
@@ -338,24 +360,64 @@ function prepareReleasePackage(guiKey, gui, packagePaths, interfaceJson, runtime
     }
     if (packageHasAgent(interfaceJson)) {
         copyPath(pythonRuntimePath(runtimePlatform), join(pkgDir, "python"));
+        stripAgentNativeRuntime(pkgDir);
     }
     if (!gui.flatLayout) {
         prepareMxuMaafwRuntime(pkgDir, runtimePlatform);
         removeFiles(pkgDir, (name) => name.toLowerCase().endsWith(".pdb"));
+        // MXU never loads the debug, RPC or HTTP control units, the CLI or the Node bindings.
+        removeFiles(join(pkgDir, "maafw"), isMxuMaafwExcludedName);
     }
-    if (runtimePlatform.startsWith("win-")) {
-        for (const file of [
-            "ModifyPCRegistry.ps1",
-            "游戏PC端注册表修改_ModifyPCRegistry.bat",
-        ]) {
-            const source = join("tools/registry", file);
-            if (existsSync(source)) {
-                copyPath(source, join(pkgDir, file));
-            }
-        }
+    ensureClientNativePluginsDir(pkgDir, gui, runtimePlatform);
+    // M9A ships the game-side registry helpers with Windows packages.
+    if (runtimePlatform.startsWith("win-") && existsSync("tools/registry")) {
+        copyDirectoryContents("tools/registry", pkgDir);
     }
-
     ensureUnixExecutablePermissions(pkgDir, runtimePlatform);
+}
+
+// The client packages already carry the same MaaFramework libraries (MFAA under
+// runtimes/<platform>/native, MXU under maafw/, CLI shells flat at the package root), and the
+// Agent reuses that copy through MAAFW_BINARY_PATH, so the bundled interpreter must not ship a
+// second one (tens of MiB per package).
+function stripAgentNativeRuntime(pkgDir) {
+    const stripped = [];
+    findAgentNativeRuntimes(join(pkgDir, "python"), (path) => {
+        rmSync(path, {recursive: true, force: true});
+        stripped.push(path);
+    });
+    if (stripped.length === 0) {
+        // The package always gets a fresh copy of the interpreter, which the Agent dependencies were
+        // installed into, so finding nothing means the wheel layout changed and the duplicate would
+        // ship again unnoticed.
+        throw new Error("release package path is missing: no bundled MaaFW native runtime under python/");
+    }
+}
+
+// MaaFramework's PluginMgr treats a missing plugin directory as a failed library load and logs
+// four ERR lines on every start; an existing but empty directory stays quiet. This is the load root
+// the Agent and the GUI share.
+function ensureClientNativePluginsDir(pkgDir, gui, runtimePlatform) {
+    mkdirSync(join(clientNativeRuntimePath(pkgDir, gui, runtimePlatform), "plugins"), {recursive: true});
+}
+
+function clientNativeRuntimePath(root, gui, runtimePlatform) {
+    return gui.flatLayout ? join(root, "runtimes", runtimePlatform, "native") : join(root, "maafw");
+}
+
+function isAgentNativeRuntimePath(path) {
+    return (
+        basename(path) === "bin" &&
+        basename(dirname(path)) === "maa" &&
+        basename(dirname(dirname(path))) === "site-packages"
+    );
+}
+
+function findAgentNativeRuntimes(root, visit) {
+    if (!existsSync(root)) return;
+    walkDirectories(root, (path) => {
+        if (isAgentNativeRuntimePath(path)) visit(path);
+    });
 }
 
 function prepareMxuMaafwRuntime(pkgDir, runtimePlatform) {
@@ -366,7 +428,7 @@ function prepareMxuMaafwRuntime(pkgDir, runtimePlatform) {
     if (!existsSync(nativeRuntime)) {
         throw new Error(`release package path is missing: ${nativeRuntime}`);
     }
-    copyDirectoryContents(nativeRuntime, maafwDest, {filter: shouldCopyMxuMaafwPath});
+    copyDirectoryContents(nativeRuntime, maafwDest);
 
     if (existsSync("libs/MaaAgentBinary")) {
         copyDirectoryContents("libs/MaaAgentBinary", join(maafwDest, "MaaAgentBinary"));
@@ -390,9 +452,8 @@ function smokeReleasePackage(gui, root, packagePaths, runtimePlatform) {
         throw new Error("release package smoke failed: package must not contain a top-level wrapper directory");
     }
     for (const path of packagePaths) {
-        const packagePath = path;
-        if (!existsSync(join(root, packagePath))) {
-            throw new Error(`release package smoke failed: package path is missing: ${packagePath}`);
+        if (!existsSync(join(root, path))) {
+            throw new Error(`release package smoke failed: package path is missing: ${path}`);
         }
     }
     for (const path of releaseDevPaths()) {
@@ -431,6 +492,9 @@ function smokeReleasePackage(gui, root, packagePaths, runtimePlatform) {
         }
     }
 
+    assertAgentNativeRuntimeStripped(root);
+    assertClientNativeRuntime(root, gui, runtimePlatform);
+
     const packagedInterface = readJson(join(root, "interface.json"));
     if (!isRecord(packagedInterface)) {
         throw new Error("release package smoke failed: interface.json must be an object");
@@ -449,6 +513,7 @@ function smokeReleasePackage(gui, root, packagePaths, runtimePlatform) {
     }
     assertUnixExecutablePermissions(root, runtimePlatform);
     for (const path of [
+        ...(typeof packagedInterface.icon === "string" ? [packagedInterface.icon] : []),
         ...interfaceResourcePaths(packagedInterface.resource),
         ...strings(packagedInterface.import),
         ...interfaceLanguagePaths(packagedInterface.languages),
@@ -460,6 +525,38 @@ function smokeReleasePackage(gui, root, packagePaths, runtimePlatform) {
         if (!existsSync(join(root, relativePath))) {
             throw new Error(`release package smoke failed: referenced path is missing: ${path}`);
         }
+    }
+}
+
+function assertAgentNativeRuntimeStripped(root) {
+    const found = [];
+    findAgentNativeRuntimes(join(root, "python"), (path) => found.push(path));
+    if (found.length > 0) {
+        throw new Error(
+            "release package smoke failed: Agent must reuse the client MaaFW runtime, " +
+                `but the bundled interpreter still ships one: ${found.join(", ")}`,
+        );
+    }
+}
+
+// MaaFramework names its libraries <name>.<dll|so|dylib> on every platform it ships, so the check
+// matches the naming convention instead of listing platforms: a new platform cannot be forgotten
+// here, and a rename fails the build instead of silently shipping a package without a runtime.
+const CLIENT_RUNTIME_PATTERNS = [
+    /^(lib)?maaframework\.(dll|so|dylib)$/i,
+    /^(lib)?maaagentserver\.(dll|so|dylib)$/i,
+];
+
+function assertClientNativeRuntime(root, gui, runtimePlatform) {
+    const nativeDir = clientNativeRuntimePath(root, gui, runtimePlatform);
+    const entries = existsSync(nativeDir) ? readdirSync(nativeDir) : [];
+    for (const pattern of CLIENT_RUNTIME_PATTERNS) {
+        if (!entries.some((name) => pattern.test(name))) {
+            throw new Error(`release package smoke failed: Agent native runtime is missing ${pattern} in ${nativeDir}`);
+        }
+    }
+    if (!existsSync(join(nativeDir, "plugins"))) {
+        throw new Error(`release package smoke failed: plugins directory is missing: ${join(nativeDir, "plugins")}`);
     }
 }
 
@@ -484,33 +581,16 @@ function copyPath(source, target, options = {}) {
     cpSync(source, target, {recursive: true, force: true, filter: options.filter});
 }
 
-function copyDirectoryContents(source, target, options = {}) {
+function copyDirectoryContents(source, target) {
     mkdirSync(target, {recursive: true});
     for (const entry of readdirSync(source)) {
-        copyPath(join(source, entry), join(target, entry), options);
+        copyPath(join(source, entry), join(target, entry));
     }
 }
 
 function shouldCopyAgentPath(source) {
     const name = basename(source).toLowerCase();
     return name !== "__pycache__" && !name.endsWith(".pyc") && !name.endsWith(".pyo");
-}
-
-function shouldCopyMxuMaafwPath(source) {
-    return !isMxuMaafwExcludedName(basename(source));
-}
-
-function isMxuMaafwExcludedName(name) {
-    const lower = name.toLowerCase();
-    return (
-        lower.includes("maadbgcontrolunit") ||
-        lower.includes("maathriftcontrolunit") ||
-        lower.includes("maarpc") ||
-        lower.includes("maahttp") ||
-        lower.includes("maapicli") ||
-        lower.endsWith(".node") ||
-        lower.endsWith(".pdb")
-    );
 }
 
 // Windows hosts cannot represent Unix permission bits, so cross-building a non-Windows
@@ -559,6 +639,29 @@ function walkFiles(root, visit) {
             visit(path, entry.name);
         }
     }
+}
+
+function walkDirectories(root, visit) {
+    for (const entry of readdirSync(root, {withFileTypes: true})) {
+        if (!entry.isDirectory()) continue;
+        const path = join(root, entry.name);
+        visit(path, entry.name);
+        // visit may already have removed this directory (that is how the Agent native runtime is stripped)
+        if (existsSync(path)) walkDirectories(path, visit);
+    }
+}
+
+function isMxuMaafwExcludedName(name) {
+    const lower = name.toLowerCase();
+    return (
+        lower.includes("maadbgcontrolunit") ||
+        lower.includes("maathriftcontrolunit") ||
+        lower.includes("maarpc") ||
+        lower.includes("maahttp") ||
+        lower.includes("maapicli") ||
+        lower.endsWith(".node") ||
+        lower.endsWith(".pdb")
+    );
 }
 
 function removeFiles(root, shouldRemove) {
@@ -653,6 +756,8 @@ function detectReleaseTag() {
     return typeof ref === "string" && ref.startsWith("refs/tags/") ? ref.slice("refs/tags/".length) : undefined;
 }
 
+// Lets CI and local runs build a staging package without pushing a tag, the way the
+// package-smoke workflow does.
 function commandLineValue(name) {
     const index = process.argv.indexOf(name);
     if (index < 0) return undefined;

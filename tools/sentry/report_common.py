@@ -12,9 +12,15 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
+import time
 import unicodedata
-from collections.abc import Sequence
+from collections.abc import Generator, Sequence
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
+from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Any, TextIO
 from urllib.parse import quote
 
@@ -25,9 +31,15 @@ except ImportError:
 
 EXPLORE_LIMIT = 1_000
 DEFAULT_SENTRY_TIMEOUT_SECONDS = 120.0
+# 报告默认查询窗口。超过 MAX_RELIABLE_SPAN_PERIOD_DAYS 时 Sentry 只返回截断样本,
+# 绝对计数不可用,因此默认停在可靠窗口内。
+DEFAULT_SPAN_PERIOD = "30d"
+# 仅用于按独立用户数发现 release 的兜底查询:该路径只比较比率,放宽窗口不影响结论。
 DEFAULT_RELEASE_DISCOVERY_PERIOD = "90d"
 MIN_RELEASE_UNIQUE_USERS = 10
 SENTRY_RELEASE_API_LIMIT = 100
+# 独立查询的并发上限。Sentry 的瓶颈是单次请求延迟而非吞吐,少量并发即可显著提速。
+MAX_EXPLORE_WORKERS = 4
 
 # Sentry explore 的时间窗口超过约 30 天时不再做真实聚合,而是返回一批固定的
 # 截断样本(不同 period 拿到完全相同的结果),绝对计数完全不可用。
@@ -72,6 +84,49 @@ def warn_on_truncated_period(period: str) -> bool:
         flush=True,
     )
     return True
+
+
+REPORT_LOCK_FILENAME = "m9a-sentry-report.lock"
+# 报告最长会跑几分钟;超过这个时长仍存在的锁视为上一轮异常退出留下的残留。
+REPORT_LOCK_STALE_SECONDS = 900.0
+
+
+def _report_lock_path() -> Path:
+    """报告建议性锁的位置(系统临时目录,跨报告实例共享)。"""
+    return Path(tempfile.gettempdir()) / REPORT_LOCK_FILENAME
+
+
+@contextmanager
+def report_run_guard(lock_path: Path | None = None) -> Generator[None]:
+    """报告运行期间持有一个建议性锁,并在检测到并发报告时提醒一次。
+
+    Sentry explore 的瓶颈是单次请求延迟而非吞吐,并发跑多个报告只会互相拖慢,
+    因此这里不做互斥,只在发现另一个报告时向 stderr 提示。残留锁按 mtime 判定过期。
+    """
+    lock = lock_path or _report_lock_path()
+    try:
+        age_seconds = time.time() - lock.stat().st_mtime
+    except OSError:
+        age_seconds = None
+    if age_seconds is not None and age_seconds < REPORT_LOCK_STALE_SECONDS:
+        print(
+            f"[提示] 检测到另一个 Sentry 报告正在运行(已进行约 {age_seconds:.0f}s)。"
+            "并发运行多个报告会互相拖慢,建议等它结束。",
+            file=sys.stderr,
+            flush=True,
+        )
+
+    owner = str(os.getpid())
+    try:
+        lock.write_text(owner, encoding="utf-8")
+        yield
+    finally:
+        try:
+            # 只清理本次运行写入的锁,避免把后来者的锁删掉。
+            if lock.read_text(encoding="utf-8") == owner:
+                lock.unlink()
+        except OSError:
+            pass
 
 
 def get_release_pattern() -> re.Pattern[str]:
@@ -164,26 +219,25 @@ def explore(
     fields: Sequence[str],
     query: str,
     sort: str | None = None,
+    fresh: bool = True,
     verbose: bool = False,
     timeout_seconds: float = DEFAULT_SENTRY_TIMEOUT_SECONDS,
 ) -> list[dict[str, Any]]:
-    """查询 Sentry spans,并跟随游标返回全部分页结果。"""
+    """查询 Sentry spans,并跟随游标返回全部分页结果。
+
+    ``fresh=False`` 允许 Sentry CLI 复用本地缓存:同一查询只需约三分之一的往返时间,
+    代价是结果可能略滞后于最新遥测。
+    """
     base_arguments = ["explore", target, "--dataset", "spans"]
     for field in fields:
         base_arguments.extend(("--field", field))
     base_arguments.extend(("--query", query))
     if sort:
         base_arguments.extend(("--sort", sort))
-    base_arguments.extend(
-        (
-            "--period",
-            period,
-            "--limit",
-            str(EXPLORE_LIMIT),
-            "--fresh",
-            "--json",
-        )
-    )
+    base_arguments.extend(("--period", period, "--limit", str(EXPLORE_LIMIT)))
+    if fresh:
+        base_arguments.append("--fresh")
+    base_arguments.append("--json")
 
     rows: list[dict[str, Any]] = []
     cursor: str | None = None
@@ -212,6 +266,67 @@ def explore(
             raise RuntimeError(f"sentry explore 返回了重复分页游标:{next_cursor}")
         seen_cursors.add(next_cursor)
         cursor = next_cursor
+
+
+@dataclass(frozen=True)
+class SpanQuery:
+    """一次 spans 聚合查询的字段、过滤与排序。"""
+
+    fields: tuple[str, ...]
+    query: str = ""
+    sort: str | None = None
+
+
+def explore_all(
+    sentry_command: str,
+    *,
+    target: str,
+    period: str,
+    queries: Sequence[SpanQuery],
+    fresh: bool = True,
+    verbose: bool = False,
+    timeout_seconds: float = DEFAULT_SENTRY_TIMEOUT_SECONDS,
+) -> list[list[dict[str, Any]]]:
+    """并发执行互不依赖的 spans 查询,并按输入顺序返回各自结果。
+
+    单个 explore 内部必须串行跟随游标分页,而 Sentry explore 的瓶颈是单次请求延迟
+    而非吞吐;因此在查询之间并发能成倍缩短报告耗时,又不会把请求数放大。
+    """
+    if not queries:
+        return []
+    if len(queries) == 1:
+        only = queries[0]
+        return [
+            explore(
+                sentry_command,
+                target=target,
+                period=period,
+                fields=only.fields,
+                query=only.query,
+                sort=only.sort,
+                fresh=fresh,
+                verbose=verbose,
+                timeout_seconds=timeout_seconds,
+            )
+        ]
+
+    with ThreadPoolExecutor(max_workers=min(len(queries), MAX_EXPLORE_WORKERS)) as executor:
+        futures = [
+            executor.submit(
+                explore,
+                sentry_command,
+                target=target,
+                period=period,
+                fields=query.fields,
+                query=query.query,
+                sort=query.sort,
+                fresh=fresh,
+                verbose=verbose,
+                timeout_seconds=timeout_seconds,
+            )
+            for query in queries
+        ]
+        return [future.result() for future in futures]
 
 
 PRERELEASE_RANKS: dict[str, int] = {
@@ -361,6 +476,7 @@ def resolve_latest_release(
     sentry_command: str,
     *,
     target: str,
+    fresh: bool = True,
     verbose: bool = False,
     timeout_seconds: float = DEFAULT_SENTRY_TIMEOUT_SECONDS,
 ) -> str:
@@ -382,6 +498,7 @@ def resolve_latest_release(
         fields=("release", "count_unique(user)", "count_unique(trace)"),
         query="",
         sort="-count_unique(user)",
+        fresh=fresh,
         verbose=verbose,
         timeout_seconds=timeout_seconds,
     )

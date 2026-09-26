@@ -7,6 +7,7 @@ import sys
 from collections.abc import Callable, Sequence
 
 from . import task_failure_report, task_trend_report
+from .report_common import report_run_guard
 
 ReportMain = Callable[[Sequence[str] | None, str | None], int]
 
@@ -55,10 +56,11 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     _description, report_main = report
     try:
-        return report_main(
-            arguments[1:],
-            f"{parser.prog} {arguments[0]}",
-        )
+        with report_run_guard():
+            return report_main(
+                arguments[1:],
+                f"{parser.prog} {arguments[0]}",
+            )
     except (FileNotFoundError, RuntimeError, ValueError) as error:
         print(f"错误:{error}", file=sys.stderr)
         return 1

@@ -111,11 +111,8 @@ Claim various rewards, including the following options:
 - **Claim Mail Rewards**: Collect rewards from mail
 - **Claim Task Rewards**: Claim daily and weekly task rewards
 - **Claim Roar Roar Jukebox**: Claim Roar Roar Jukebox rewards
-- **Claim Frontline Observation Room Rewards**: Claim Frontline Observation Room rewards
 - **Event Box Rewards**: Claim event box rewards
 - **Mystery Sea Weekly Sweep Rewards**: Complete the Suspended in the Rain: Mystery Sea "Think" weekly sweep and claim rewards
-- **Claim Laplace Forum Rewards**: Claim Laplace Forum rewards
-- **Complex Daily**: Collect Complex daily rewards
 
 ## Redeem Codes
 

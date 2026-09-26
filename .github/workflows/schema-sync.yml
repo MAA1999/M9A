@@ -17,7 +17,7 @@ jobs:
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 22
           cache: pnpm
       - run: node tools/sync-schema.mjs
       - run: pnpm install --frozen-lockfile

@@ -19,12 +19,14 @@ from typing import Any, TextIO
 
 try:
     from .report_common import (
-        DEFAULT_RELEASE_DISCOVERY_PERIOD,
         DEFAULT_SENTRY_TIMEOUT_SECONDS,
+        DEFAULT_SPAN_PERIOD,
         MAX_RELIABLE_SPAN_PERIOD_DAYS,
         MIN_RELEASE_UNIQUE_USERS,
         STABLE_RELEASE_RANK,
+        SpanQuery,
         explore,
+        explore_all,
         release_version_key,
         resolve_sentry_command,
         show_progress,
@@ -34,12 +36,14 @@ try:
     )
 except ImportError:
     from report_common import (
-        DEFAULT_RELEASE_DISCOVERY_PERIOD,
         DEFAULT_SENTRY_TIMEOUT_SECONDS,
+        DEFAULT_SPAN_PERIOD,
         MAX_RELIABLE_SPAN_PERIOD_DAYS,
         MIN_RELEASE_UNIQUE_USERS,
         STABLE_RELEASE_RANK,
+        SpanQuery,
         explore,
+        explore_all,
         release_version_key,
         resolve_sentry_command,
         show_progress,
@@ -333,13 +337,14 @@ def collect_report(
     sort: str = "runs",
     reverse: bool = False,
     limit: int | None = None,
+    fresh: bool = True,
     timeout_seconds: float,
     verbose: bool,
     quiet: bool,
 ) -> TrendReport:
     """查询 Sentry spans 并生成多版本任务对比报告。"""
     show_progress(
-        f"[1/3] 探索最近 {versions_count} 个版本",
+        f"[1/2] 探索最近 {versions_count} 个版本",
         quiet=quiet,
     )
     version_discovery_rows = explore(
@@ -349,6 +354,7 @@ def collect_report(
         fields=("release", "count_unique(user)", "count_unique(trace)"),
         query="",
         sort="-count_unique(user)",
+        fresh=fresh,
         verbose=verbose,
         timeout_seconds=timeout_seconds,
     )
@@ -370,28 +376,27 @@ def collect_report(
 
     query_filter = f'span.description:"{task_filter}"' if task_filter else ""
 
-    show_progress("[2/3] 查询各版本任务执行总量", quiet=quiet)
-    totals = explore(
+    # 执行总量与结果分布互不依赖,并发查询以缩短整体耗时。
+    show_progress("[2/2] 查询各版本任务执行总量与结果分布", quiet=quiet)
+    totals, statuses = explore_all(
         sentry_command,
         target=target,
         period=period,
-        fields=("span.description", "release", "count_unique(trace)"),
-        query=query_filter,
-        sort="-count_unique(trace)",
+        fresh=fresh,
         verbose=verbose,
         timeout_seconds=timeout_seconds,
-    )
-
-    show_progress("[3/3] 查询各版本任务结果分布", quiet=quiet)
-    statuses = explore(
-        sentry_command,
-        target=target,
-        period=period,
-        fields=("span.description", "span.status", "release", "count_unique(trace)"),
-        query=query_filter,
-        sort="-count_unique(trace)",
-        verbose=verbose,
-        timeout_seconds=timeout_seconds,
+        queries=(
+            SpanQuery(
+                fields=("span.description", "release", "count_unique(trace)"),
+                query=query_filter,
+                sort="-count_unique(trace)",
+            ),
+            SpanQuery(
+                fields=("span.description", "span.status", "release", "count_unique(trace)"),
+                query=query_filter,
+                sort="-count_unique(trace)",
+            ),
+        ),
     )
 
     report = build_trend_report(
@@ -508,9 +513,14 @@ def create_argument_parser(prog: str | None = None) -> argparse.ArgumentParser:
     parser.add_argument("--target", default=DEFAULT_TARGET, help="<org>/<project>")
     parser.add_argument(
         "--period",
-        default=DEFAULT_RELEASE_DISCOVERY_PERIOD,
-        help=f"查询范围(默认:{DEFAULT_RELEASE_DISCOVERY_PERIOD},以覆盖多个版本的生命周期);"
+        default=DEFAULT_SPAN_PERIOD,
+        help=f"查询范围(默认:{DEFAULT_SPAN_PERIOD});"
         f"超过 {MAX_RELIABLE_SPAN_PERIOD_DAYS} 天时 Sentry 只返回截断样本,绝对计数不可用",
+    )
+    parser.add_argument(
+        "--no-fresh",
+        action="store_true",
+        help="复用 Sentry CLI 本地缓存而不拉取最新数据:同一查询约快 3 倍,适合重复试跑",
     )
     parser.add_argument(
         "--include-beta",
@@ -582,6 +592,7 @@ def main(argv: Sequence[str] | None = None, prog: str | None = None) -> int:
         sort=arguments.sort,
         reverse=arguments.reverse,
         limit=arguments.limit,
+        fresh=not arguments.no_fresh,
         timeout_seconds=arguments.timeout,
         verbose=arguments.verbose,
         quiet=arguments.quiet,

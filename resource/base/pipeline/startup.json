@@ -714,15 +714,38 @@
     "Reward": {
         "desc": "防卡日历",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "Or",
             "param": {
-                "roi": [
-                    419,
-                    90,
-                    297,
-                    148
-                ],
-                "template": "StartUp/Rewards/"
+                "any_of": [
+                    {
+                        "recognition": {
+                            "type": "TemplateMatch",
+                            "param": {
+                                "roi": [
+                                    419,
+                                    90,
+                                    297,
+                                    148
+                                ],
+                                "template": "StartUp/Rewards/"
+                            }
+                        }
+                    },
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    458,
+                                    124,
+                                    211,
+                                    73
+                                ],
+                                "expected": "^REWARD$"
+                            }
+                        }
+                    }
+                ]
             }
         },
         "action": {
