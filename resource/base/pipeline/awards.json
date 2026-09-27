@@ -801,7 +801,8 @@
         },
         "post_delay": 1500,
         "next": [
-            "AwardBreakingSignalsAward"
+            "AwardBreakingSignalsAward",
+            "AwardBreakingSignalsAwardCompleted"
         ]
     },
     "AwardBreakingSignalsAward": {
@@ -874,6 +875,24 @@
             "type": "Click"
         },
         "post_delay": 1500
+    },
+    "AwardBreakingSignalsAwardCompleted": {
+        "desc": "崭新的电波-签到奖励已领取",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    792,
+                    586,
+                    381,
+                    67
+                ],
+                "expected": "700/700"
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        }
     },
     "AwardBreakingSignalsAward_color_filter": {
         "recognition": {
