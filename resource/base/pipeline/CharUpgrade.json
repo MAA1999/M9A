@@ -202,7 +202,7 @@
             }
         },
         "focus": {
-            "Node.Recognition.True": {
+            "Node.Recognition.Succeeded": {
                 "content": "洞悉材料不足，请手动刷取",
                 "display": [
                     "log",
