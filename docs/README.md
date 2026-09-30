@@ -15,6 +15,7 @@ config:
               - theme: alt
                 text: English
                 link: /en_us/
+    - type: custom
     - type: features
       features:
           - title: 用户手册
@@ -30,3 +31,6 @@ config:
             details: 遇到问题？查看常见问题解答
             link: /zh_cn/manual/faq.md
 ---
+
+<HomeDownload />
+
