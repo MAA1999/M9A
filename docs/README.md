@@ -9,6 +9,15 @@ config:
           tagline: 选择语言 | Select Language
           image: /images/m9a-logo_512x512.png
           actions:
+              - theme: alt
+                text: 用户手册
+                link: /zh_cn/manual/newbie.md
+              - theme: alt
+                text: 开发指南
+                link: /zh_cn/develop/development.md
+              - theme: alt
+                text: 常见问题
+                link: /zh_cn/manual/faq.md
               - theme: brand
                 text: 简体中文
                 link: /zh_cn/
@@ -16,21 +25,6 @@ config:
                 text: English
                 link: /en_us/
     - type: custom
-    - type: features
-      features:
-          - title: 用户手册
-            icon: 📖
-            details: 完整的安装和使用说明
-            link: /zh_cn/manual/newbie.md
-          - title: 开发指南
-            icon: 🛠️
-            details: 面向开发者的技术文档
-            link: /zh_cn/develop/development.md
-          - title: 常见问题
-            icon: 💡
-            details: 遇到问题？查看常见问题解答
-            link: /zh_cn/manual/faq.md
 ---
 
 <HomeDownload />
-
