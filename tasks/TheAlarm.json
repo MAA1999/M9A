@@ -4,13 +4,13 @@
             "name": "警铃鸣响时（需高练度）",
             "label": "$Task.TheAlarm",
             "entry": "TheAlarm",
-            "option": [
-                "扫荡难度"
-            ],
+            "description": "$Task.TheAlarm.desc",
             "group": [
                 "standalone"
             ],
-            "description": "$Task.TheAlarm.desc"
+            "option": [
+                "扫荡难度"
+            ]
         }
     ],
     "option": {

@@ -4,19 +4,20 @@
             "name": "收取荒原",
             "label": "$Task.Wilderness",
             "entry": "Wilderness",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "好梦井",
                 "魔精收菜",
                 "交付订单"
-            ],
-            "group": [
-                "daily"
             ]
         }
     ],
     "option": {
         "好梦井": {
             "type": "switch",
+            "label": "$Option.Wilderness.Wellspring",
             "cases": [
                 {
                     "name": "Yes",
@@ -30,11 +31,12 @@
                         }
                     }
                 }
-            ],
-            "label": "$Option.Wilderness.Wellspring"
+            ]
         },
         "魔精收菜": {
             "type": "switch",
+            "label": "$Option.Wilderness.GatherEssence",
+            "description": "$Option.Wilderness.GatherEssence.desc",
             "cases": [
                 {
                     "name": "Yes",
@@ -48,11 +50,12 @@
                         }
                     }
                 }
-            ],
-            "description": "$Option.Wilderness.GatherEssence.desc",
-            "label": "$Option.Wilderness.GatherEssence"
+            ]
         },
         "交付订单": {
+            "type": "switch",
+            "label": "$Option.Wilderness.DeliverOrders",
+            "description": "$Option.Wilderness.DeliverOrders.desc",
             "cases": [
                 {
                     "name": "No",
@@ -66,10 +69,7 @@
                     "name": "Yes",
                     "pipeline_override": {}
                 }
-            ],
-            "type": "switch",
-            "description": "$Option.Wilderness.DeliverOrders.desc",
-            "label": "$Option.Wilderness.DeliverOrders"
+            ]
         }
     }
 }

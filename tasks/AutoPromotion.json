@@ -4,10 +4,9 @@
             "name": "活动推图",
             "label": "$Task.AutoPromotion",
             "entry": "AutoPromotion",
-            "option": [
-                "选择活动",
-                "推图模式",
-                "推图吃糖"
+            "description": "$Task.AutoPromotion.desc",
+            "group": [
+                "standalone"
             ],
             "pipeline_override": {
                 "WaitReplay": {
@@ -27,16 +26,18 @@
                     }
                 }
             },
-            "group": [
-                "standalone"
-            ],
-            "description": "$Task.AutoPromotion.desc"
+            "option": [
+                "选择活动",
+                "推图模式",
+                "推图吃糖"
+            ]
         }
     ],
     "option": {
         "推图模式": {
             "type": "select",
-            "default_case": "故事/主线",
+            "label": "$Option.AutoPromotion.ClearMode",
+            "description": "$Option.AutoPromotion.ClearMode.desc",
             "cases": [
                 {
                     "name": "故事/主线",
@@ -67,13 +68,12 @@
                     }
                 }
             ],
-            "description": "$Option.AutoPromotion.ClearMode.desc",
-            "label": "$Option.AutoPromotion.ClearMode"
+            "default_case": "故事/主线"
         },
         "推图吃糖": {
-            "label": "$Option.AutoPromotion.ConsumeCandy",
             "type": "switch",
-            "default_case": "Yes",
+            "label": "$Option.AutoPromotion.ConsumeCandy",
+            "description": "$Option.AutoPromotion.ConsumeCandy.desc",
             "cases": [
                 {
                     "name": "Yes",
@@ -103,11 +103,12 @@
                     }
                 }
             ],
-            "description": "$Option.AutoPromotion.ConsumeCandy.desc"
+            "default_case": "Yes"
         },
         "选择活动": {
             "type": "select",
-            "default_case": "当前页面",
+            "label": "$Option.AutoPromotion.SelectEvent",
+            "description": "$Option.AutoPromotion.SelectEvent.desc",
             "cases": [
                 {
                     "name": "当前页面",
@@ -1441,8 +1442,7 @@
                     }
                 }
             ],
-            "description": "$Option.AutoPromotion.SelectEvent.desc",
-            "label": "$Option.AutoPromotion.SelectEvent"
+            "default_case": "当前页面"
         }
     }
 }

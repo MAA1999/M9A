@@ -4,18 +4,20 @@
             "name": "每日心相（意志解析）",
             "label": "$Task.Psychube",
             "entry": "Psychube",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "双重解析加成作战",
                 "吃糖"
-            ],
-            "group": [
-                "daily"
             ]
         }
     ],
     "option": {
         "双重解析加成作战": {
             "type": "switch",
+            "label": "$Option.Psychube.DoubleAnalysisBattle",
+            "description": "$Option.Psychube.DoubleAnalysisBattle.desc",
             "cases": [
                 {
                     "name": "No",
@@ -29,12 +31,12 @@
                     "name": "Yes",
                     "pipeline_override": {}
                 }
-            ],
-            "description": "$Option.Psychube.DoubleAnalysisBattle.desc",
-            "label": "$Option.Psychube.DoubleAnalysisBattle"
+            ]
         },
         "吃糖": {
             "type": "switch",
+            "label": "$Option.Psychube.ConsumeCandy",
+            "description": "$Option.Psychube.ConsumeCandy.desc",
             "cases": [
                 {
                     "name": "Yes",
@@ -63,13 +65,12 @@
                         }
                     }
                 }
-            ],
-            "description": "$Option.Psychube.ConsumeCandy.desc",
-            "label": "$Option.Psychube.ConsumeCandy"
+            ]
         },
         "糖果有效期": {
-            "label": "$Option.Psychube.CandyExpiry",
             "type": "select",
+            "label": "$Option.Psychube.CandyExpiry",
+            "description": "$Option.Psychube.CandyExpiry.desc",
             "cases": [
                 {
                     "name": "24h",
@@ -116,11 +117,12 @@
                         }
                     }
                 }
-            ],
-            "description": "$Option.Psychube.CandyExpiry.desc"
+            ]
         },
         "自定义吃糖次数": {
             "type": "switch",
+            "label": "$Option.Psychube.CustomCandyCount",
+            "description": "$Option.Psychube.CustomCandyCount.desc",
             "cases": [
                 {
                     "name": "No",
@@ -136,19 +138,18 @@
                         "吃糖次数"
                     ]
                 }
-            ],
-            "description": "$Option.Psychube.CustomCandyCount.desc",
-            "label": "$Option.Psychube.CustomCandyCount"
+            ]
         },
         "吃糖次数": {
             "type": "input",
             "label": "$Option.Psychube.CandyCount",
+            "description": "$Option.Psychube.CandyCount.desc",
             "inputs": [
                 {
                     "name": "吃糖次数",
                     "label": "$Option.Psychube.CandyCount.Count",
-                    "pipeline_type": "int",
                     "default": "114514",
+                    "pipeline_type": "int",
                     "verify": "^(0|[1-9]\\d*)$"
                 }
             ],
@@ -156,11 +157,12 @@
                 "EatCandyStart": {
                     "max_hit": "{吃糖次数}"
                 }
-            },
-            "description": "$Option.Psychube.CandyCount.desc"
+            }
         },
         "连续吃糖": {
             "type": "switch",
+            "label": "$Option.Psychube.ContinuousCandy",
+            "description": "$Option.Psychube.ContinuousCandy.desc",
             "cases": [
                 {
                     "name": "Yes",
@@ -182,12 +184,12 @@
                         }
                     }
                 }
-            ],
-            "description": "$Option.Psychube.ContinuousCandy.desc",
-            "label": "$Option.Psychube.ContinuousCandy"
+            ]
         },
         "允许体力溢出": {
             "type": "switch",
+            "label": "$Option.Psychube.AllowApOverflow",
+            "description": "$Option.Psychube.AllowApOverflow.desc",
             "cases": [
                 {
                     "name": "No",
@@ -209,12 +211,12 @@
                         }
                     }
                 }
-            ],
-            "description": "$Option.Psychube.AllowApOverflow.desc",
-            "label": "$Option.Psychube.AllowApOverflow"
+            ]
         },
         "关闭吃糖提示": {
             "type": "switch",
+            "label": "$Option.Psychube.DismissCandyPrompt",
+            "description": "$Option.Psychube.DismissCandyPrompt.desc",
             "cases": [
                 {
                     "name": "No",
@@ -232,9 +234,7 @@
                         }
                     }
                 }
-            ],
-            "description": "$Option.Psychube.DismissCandyPrompt.desc",
-            "label": "$Option.Psychube.DismissCandyPrompt"
+            ]
         }
     }
 }

@@ -4,15 +4,15 @@
             "name": "领取奖励",
             "label": "$Task.Awards",
             "entry": "Awards",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "领取邮件奖励",
                 "领取任务奖励",
                 "领取吼吼点唱机",
                 "活动盒子奖励",
                 "迷思海周扫荡奖励"
-            ],
-            "group": [
-                "daily"
             ]
         }
     ],
@@ -41,15 +41,15 @@
             "cases": [
                 {
                     "name": "Yes",
+                    "option": [
+                        "领取每日活跃奖励",
+                        "领取每周活跃奖励"
+                    ],
                     "pipeline_override": {
                         "Sub_DailyBadge": {
                             "enabled": true
                         }
-                    },
-                    "option": [
-                        "领取每日活跃奖励",
-                        "领取每周活跃奖励"
-                    ]
+                    }
                 },
                 {
                     "name": "No",
@@ -145,20 +145,21 @@
         },
         "活动盒子奖励": {
             "type": "switch",
+            "label": "$Option.Awards.EventBox",
             "cases": [
                 {
                     "name": "Yes",
-                    "pipeline_override": {
-                        "AwardBox": {
-                            "enabled": true
-                        }
-                    },
                     "option": [
                         "活动奖励·狂想与解构",
                         "活动奖励·崭新的电波",
                         "活动奖励·吼吼狂欢夜",
                         "活动奖励·播种于月光下"
-                    ]
+                    ],
+                    "pipeline_override": {
+                        "AwardBox": {
+                            "enabled": true
+                        }
+                    }
                 },
                 {
                     "name": "No",
@@ -168,8 +169,7 @@
                         }
                     }
                 }
-            ],
-            "label": "$Option.Awards.EventBox"
+            ]
         },
         "活动奖励·狂想与解构": {
             "type": "switch",
@@ -261,6 +261,7 @@
         },
         "迷思海周扫荡奖励": {
             "type": "switch",
+            "label": "$Option.Awards.MysterySeaWeekly",
             "cases": [
                 {
                     "name": "Yes",
@@ -278,8 +279,7 @@
                         }
                     }
                 }
-            ],
-            "label": "$Option.Awards.MysterySeaWeekly"
+            ]
         }
     }
 }

@@ -4,10 +4,10 @@
             "name": "UTTU闪烁集会",
             "label": "$Task.UTTU",
             "entry": "UTTU",
+            "description": "$Task.UTTU.desc",
             "group": [
                 "standalone"
-            ],
-            "description": "$Task.UTTU.desc"
+            ]
         }
     ]
 }

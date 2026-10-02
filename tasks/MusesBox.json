@@ -4,10 +4,10 @@
             "name": "缪斯碰碰盒速刷",
             "label": "$Task.MusesBox",
             "entry": "MusesBoxStartParty",
+            "description": "$Task.MusesBox.desc",
             "group": [
                 "standalone"
-            ],
-            "description": "$Task.MusesBox.desc"
+            ]
         }
     ]
 }

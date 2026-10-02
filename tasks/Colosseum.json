@@ -4,10 +4,10 @@
             "name": "匣中交流赛（拓片杂技赛）",
             "label": "$Task.Colosseum",
             "entry": "Colosseum",
+            "description": "$Task.Colosseum.desc",
             "group": [
                 "standalone"
-            ],
-            "description": "$Task.Colosseum.desc"
+            ]
         }
     ]
 }

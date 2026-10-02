@@ -4,39 +4,39 @@
             "name": "常规作战",
             "label": "$Task.Combat",
             "entry": "Combat",
+            "description": "$Task.Combat.desc",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "自定义作战关卡",
                 "吃糖",
                 "自定义作战次数",
                 "掉落统计上报"
-            ],
-            "group": [
-                "daily"
-            ],
-            "description": "$Task.Combat.desc"
+            ]
         }
     ],
     "option": {
         "自定义作战关卡": {
             "type": "switch",
+            "label": "$Option.Combat.CustomStage",
             "cases": [
                 {
                     "name": "No",
-                    "pipeline_override": {},
                     "option": [
                         "关卡类型"
-                    ]
+                    ],
+                    "pipeline_override": {}
                 },
                 {
                     "name": "Yes",
-                    "pipeline_override": {},
                     "option": [
                         "作战关卡(自定义)",
                         "主线关卡难度"
-                    ]
+                    ],
+                    "pipeline_override": {}
                 }
-            ],
-            "label": "$Option.Combat.CustomStage"
+            ]
         },
         "关卡类型": {
             "type": "select",
@@ -1672,20 +1672,20 @@
                 {
                     "name": "章节号",
                     "label": "$Option.Combat.StageCustom.Chapter",
-                    "pipeline_type": "string",
+                    "description": "$Option.Combat.StageCustom.Chapter.desc",
                     "default": "2",
-                    "pattern_msg": "$Option.Combat.StageCustom.Chapter.msg",
+                    "pipeline_type": "string",
                     "verify": "^(\\d+)$",
-                    "description": "$Option.Combat.StageCustom.Chapter.desc"
+                    "pattern_msg": "$Option.Combat.StageCustom.Chapter.msg"
                 },
                 {
                     "name": "关卡号",
                     "label": "$Option.Combat.StageCustom.Stage",
-                    "pipeline_type": "string",
+                    "description": "$Option.Combat.StageCustom.Stage.desc",
                     "default": "6",
-                    "pattern_msg": "$Option.Combat.StageCustom.Stage.msg",
+                    "pipeline_type": "string",
                     "verify": "^(\\d+)$",
-                    "description": "$Option.Combat.StageCustom.Stage.desc"
+                    "pattern_msg": "$Option.Combat.StageCustom.Stage.msg"
                 }
             ],
             "pipeline_override": {
@@ -1730,6 +1730,8 @@
         },
         "自定义作战次数": {
             "type": "switch",
+            "label": "$Option.Combat.CustomCount",
+            "description": "$Option.Combat.CustomCount.desc",
             "cases": [
                 {
                     "name": "No",
@@ -1751,9 +1753,7 @@
                         "作战次数(自定义)"
                     ]
                 }
-            ],
-            "description": "$Option.Combat.CustomCount.desc",
-            "label": "$Option.Combat.CustomCount"
+            ]
         },
         "作战次数(自定义)": {
             "type": "input",
@@ -1762,8 +1762,8 @@
                 {
                     "name": "作战次数",
                     "label": "$Option.Combat.CountCustom.Count",
-                    "pipeline_type": "int",
                     "default": "114514",
+                    "pipeline_type": "int",
                     "verify": "^(0|[1-9]\\d*)$"
                 }
             ],
@@ -1781,6 +1781,8 @@
         },
         "掉落统计上报": {
             "type": "switch",
+            "label": "$Option.Combat.DropReport",
+            "description": "$Option.Combat.DropReport.desc",
             "cases": [
                 {
                     "name": "Yes",
@@ -1798,9 +1800,7 @@
                         }
                     }
                 }
-            ],
-            "description": "$Option.Combat.DropReport.desc",
-            "label": "$Option.Combat.DropReport"
+            ]
         }
     }
 }

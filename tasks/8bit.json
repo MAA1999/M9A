@@ -4,15 +4,15 @@
             "name": "8-bit 街机秀",
             "label": "$Task.EightBitArcade",
             "entry": "8bit",
+            "description": "$Task.EightBitArcade.desc",
+            "group": [
+                "standalone"
+            ],
             "option": [
                 "8-bit关卡难度",
                 "8-bit刷取模式",
                 "8-bit移动方式"
-            ],
-            "group": [
-                "standalone"
-            ],
-            "description": "$Task.EightBitArcade.desc"
+            ]
         }
     ],
     "option": {

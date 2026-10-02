@@ -4,16 +4,16 @@
             "name": "切换账号",
             "label": "$Task.SwitchAccount",
             "entry": "SwitchAccount",
-            "option": [
-                "目标账号(可选)"
+            "description": "$Task.SwitchAccount.desc",
+            "group": [
+                "daily"
             ],
             "resource": [
                 "官服"
             ],
-            "group": [
-                "daily"
-            ],
-            "description": "$Task.SwitchAccount.desc"
+            "option": [
+                "目标账号(可选)"
+            ]
         }
     ],
     "option": {
@@ -24,10 +24,10 @@
                 {
                     "name": "账号",
                     "label": "$Option.SwitchAccount.TargetAccount.Account",
-                    "pipeline_type": "string",
+                    "description": "$Option.SwitchAccount.TargetAccount.Account.desc",
                     "default": "",
-                    "verify": ".*",
-                    "description": "$Option.SwitchAccount.TargetAccount.Account.desc"
+                    "pipeline_type": "string",
+                    "verify": ".*"
                 }
             ],
             "pipeline_override": {

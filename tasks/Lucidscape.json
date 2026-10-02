@@ -4,14 +4,14 @@
             "name": "自动醒梦",
             "label": "$Task.Lucidscape",
             "entry": "Lucidscape",
-            "option": [
-                "醒梦上半编队",
-                "醒梦下半编队"
-            ],
+            "description": "$Task.Lucidscape.desc",
             "group": [
                 "daily"
             ],
-            "description": "$Task.Lucidscape.desc"
+            "option": [
+                "醒梦上半编队",
+                "醒梦下半编队"
+            ]
         }
     ],
     "option": {

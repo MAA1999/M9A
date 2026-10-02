@@ -4,25 +4,26 @@
             "name": "使用兑换码",
             "label": "$Task.RedeemCode",
             "entry": "redeem_code",
-            "option": [
-                "自定义兑换码"
-            ],
+            "description": "$Task.RedeemCode.desc",
             "group": [
                 "daily"
             ],
-            "description": "$Task.RedeemCode.desc"
+            "option": [
+                "自定义兑换码"
+            ]
         }
     ],
     "option": {
         "自定义兑换码": {
             "type": "input",
+            "label": "$Option.RedeemCode.CustomCodes",
             "inputs": [
                 {
                     "name": "兑换码",
                     "label": "$Option.RedeemCode.CustomCodes.Code",
                     "default": "占位",
-                    "pattern_msg": "$Option.RedeemCode.CustomCodes.Code.msg",
-                    "pipeline_type": "string"
+                    "pipeline_type": "string",
+                    "pattern_msg": "$Option.RedeemCode.CustomCodes.Code.msg"
                 }
             ],
             "pipeline_override": {
@@ -31,8 +32,7 @@
                         "codes": "{兑换码}"
                     }
                 }
-            },
-            "label": "$Option.RedeemCode.CustomCodes"
+            }
         }
     }
 }

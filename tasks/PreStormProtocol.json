@@ -4,13 +4,13 @@
             "name": "雨前漫游指南",
             "label": "$Task.PreStormProtocol",
             "entry": "PreStormProtocolStart",
-            "option": [
-                "雨前漫游刷取模式"
-            ],
+            "description": "$Task.PreStormProtocol.desc",
             "group": [
                 "standalone"
             ],
-            "description": "$Task.PreStormProtocol.desc"
+            "option": [
+                "雨前漫游刷取模式"
+            ]
         }
     ],
     "option": {

@@ -4,15 +4,15 @@
             "name": "局外演绎：黄昏的音序",
             "label": "$Task.SeriesOfDusks",
             "entry": "SeriesOfDusks",
+            "description": "$Task.SeriesOfDusks.desc",
+            "group": [
+                "standalone"
+            ],
             "option": [
                 "触媒选择",
                 "速刷模式",
                 "演绎难度"
-            ],
-            "group": [
-                "standalone"
-            ],
-            "description": "$Task.SeriesOfDusks.desc"
+            ]
         }
     ],
     "option": {

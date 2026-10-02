@@ -4,10 +4,10 @@
             "name": "完全归纳法",
             "label": "$Task.CompleteInduction",
             "entry": "CompleteInduction",
+            "description": "$Task.CompleteInduction.desc",
             "group": [
                 "standalone"
-            ],
-            "description": "$Task.CompleteInduction.desc"
+            ]
         }
     ]
 }

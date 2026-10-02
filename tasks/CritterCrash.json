@@ -4,10 +4,10 @@
             "name": "翻斗棋速刷",
             "label": "$Task.CritterCrash",
             "entry": "CritterCrash",
+            "description": "$Task.CritterCrash.desc",
             "group": [
                 "standalone"
-            ],
-            "description": "$Task.CritterCrash.desc"
+            ]
         }
     ]
 }

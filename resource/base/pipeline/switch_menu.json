@@ -53,13 +53,13 @@
             "type": "Click"
         },
         "post_wait_freezes": {
+            "time": 100,
             "target": [
                 50,
                 509,
                 56,
                 54
-            ],
-            "time": 100
+            ]
         },
         "next": [
             "switch_menu_main",

@@ -4,21 +4,23 @@
             "name": "活动代币刷取",
             "label": "$Task.CombatActivity",
             "entry": "CombatActivity",
+            "description": "$Task.CombatActivity.desc",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "复刻模式",
                 "活动难度",
                 "吃糖",
                 "自定义作战次数"
-            ],
-            "group": [
-                "daily"
-            ],
-            "description": "$Task.CombatActivity.desc"
+            ]
         }
     ],
     "option": {
         "复刻模式": {
             "type": "switch",
+            "label": "$Option.CombatActivity.RerunMode",
+            "description": "$Option.CombatActivity.RerunMode.desc",
             "cases": [
                 {
                     "name": "No",
@@ -51,12 +53,11 @@
                         }
                     }
                 }
-            ],
-            "description": "$Option.CombatActivity.RerunMode.desc",
-            "label": "$Option.CombatActivity.RerunMode"
+            ]
         },
         "活动难度": {
             "type": "select",
+            "label": "$Option.CombatActivity.EventDifficulty",
             "cases": [
                 {
                     "name": "艰难",
@@ -103,8 +104,7 @@
                         }
                     }
                 }
-            ],
-            "label": "$Option.CombatActivity.EventDifficulty"
+            ]
         }
     }
 }

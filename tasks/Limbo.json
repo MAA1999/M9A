@@ -4,20 +4,21 @@
             "name": "自动深眠",
             "label": "$Task.Limbo",
             "entry": "Limbo",
+            "description": "$Task.Limbo.desc",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "上半编队",
                 "下半编队",
                 "仅领取每周浅眠域奖励"
-            ],
-            "group": [
-                "daily"
-            ],
-            "description": "$Task.Limbo.desc"
+            ]
         }
     ],
     "option": {
         "上半编队": {
             "type": "select",
+            "label": "$Option.Limbo.FirstHalfFormation",
             "cases": [
                 {
                     "name": "一",
@@ -79,11 +80,11 @@
                         }
                     }
                 }
-            ],
-            "label": "$Option.Limbo.FirstHalfFormation"
+            ]
         },
         "下半编队": {
             "type": "select",
+            "label": "$Option.Limbo.SecondHalfFormation",
             "cases": [
                 {
                     "name": "二",
@@ -145,11 +146,12 @@
                         }
                     }
                 }
-            ],
-            "label": "$Option.Limbo.SecondHalfFormation"
+            ]
         },
         "仅领取每周浅眠域奖励": {
             "type": "switch",
+            "label": "$Option.Limbo.WeeklyShallowSleepOnly",
+            "description": "$Option.Limbo.WeeklyShallowSleepOnly.desc",
             "cases": [
                 {
                     "name": "No",
@@ -163,9 +165,7 @@
                         }
                     }
                 }
-            ],
-            "description": "$Option.Limbo.WeeklyShallowSleepOnly.desc",
-            "label": "$Option.Limbo.WeeklyShallowSleepOnly"
+            ]
         }
     }
 }

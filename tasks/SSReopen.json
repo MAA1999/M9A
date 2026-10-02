@@ -4,8 +4,9 @@
             "name": "复刻活动推图",
             "label": "$Task.SSReopen",
             "entry": "SSReopen",
-            "option": [
-                "吃糖"
+            "description": "$Task.SSReopen.desc",
+            "group": [
+                "standalone"
             ],
             "pipeline_override": {
                 "WaitReplay": {
@@ -25,10 +26,9 @@
                     }
                 }
             },
-            "group": [
-                "standalone"
-            ],
-            "description": "$Task.SSReopen.desc"
+            "option": [
+                "吃糖"
+            ]
         }
     ]
 }

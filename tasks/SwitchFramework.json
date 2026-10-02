@@ -4,8 +4,8 @@
             "name": "切换艺术框架",
             "label": "$Task.SwitchFramework",
             "entry": "switch_menu",
-            "option": [
-                "艺术框架"
+            "group": [
+                "daily"
             ],
             "pipeline_override": {
                 "RecordId": {
@@ -15,14 +15,15 @@
                     "next": []
                 }
             },
-            "group": [
-                "daily"
+            "option": [
+                "艺术框架"
             ]
         }
     ],
     "option": {
         "艺术框架": {
             "type": "select",
+            "label": "$Option.SwitchFramework.ArtFramework",
             "cases": [
                 {
                     "name": "手提箱制式（初始）",
@@ -124,8 +125,7 @@
                         }
                     }
                 }
-            ],
-            "label": "$Option.SwitchFramework.ArtFramework"
+            ]
         }
     }
 }

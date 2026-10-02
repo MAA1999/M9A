@@ -4,11 +4,11 @@
             "name": "启动游戏",
             "label": "$Task.StartUp",
             "entry": "StartUp",
-            "controller": [
-                "ADB"
-            ],
             "group": [
                 "daily"
+            ],
+            "controller": [
+                "ADB"
             ]
         }
     ]

@@ -4,15 +4,15 @@
         "zh_cn": "locales/zh_cn.json",
         "en_us": "locales/en_us.json"
     },
-    "contact": "CONTACT",
-    "license": "LICENSE",
     "name": "m9a",
     "label": "M9A",
-    "version": "v0.1.0",
     "icon": "logo.ico",
-    "github": "https://github.com/MAA1999/M9A",
     "mirrorchyan_rid": "M9A",
     "mirrorchyan_multiplatform": true,
+    "github": "https://github.com/MAA1999/M9A",
+    "version": "v0.1.0",
+    "contact": "CONTACT",
+    "license": "LICENSE",
     "telemetry": {
         "sentry": {
             "dsn": "https://1d1036e30562df13fb24ee19ff261ac3@o4511817821323264.ingest.us.sentry.io/4511856184459264"
@@ -28,14 +28,14 @@
             "name": "PC",
             "label": "PC",
             "type": "Win32",
+            "permission_required": true,
             "win32": {
                 "class_regex": "UnityWndClass",
                 "window_regex": "(重返未来|重返未來|Reverse|リバース)[：:：].*1999",
                 "screencap": "PrintWindow",
                 "mouse": "SendMessageWithCursorPos",
                 "keyboard": "SendMessageWithCursorPos"
-            },
-            "permission_required": true
+            }
         },
         {
             "name": "PlayCover",

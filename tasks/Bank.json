@@ -4,22 +4,23 @@
             "name": "银行购物",
             "label": "$Task.Bank",
             "entry": "Bank",
+            "description": "$Task.Bank.desc",
+            "group": [
+                "daily"
+            ],
             "option": [
                 "柜台特奉",
                 "低阶柜台",
                 "心相观测",
                 "梦境记述"
-            ],
-            "group": [
-                "daily"
-            ],
-            "description": "$Task.Bank.desc"
+            ]
         }
     ],
     "option": {
         "柜台特奉": {
             "type": "switch",
             "label": "$Option.Bank.CounterSpecials",
+            "description": "$Option.Bank.CounterSpecials.desc",
             "cases": [
                 {
                     "name": "Yes",
@@ -33,15 +34,11 @@
                     "name": "No",
                     "pipeline_override": {}
                 }
-            ],
-            "description": "$Option.Bank.CounterSpecials.desc"
+            ]
         },
         "低阶柜台": {
             "type": "checkbox",
             "label": "$Option.Bank.LowerCounter",
-            "default_case": [
-                "金兔子(低阶柜台)"
-            ],
             "cases": [
                 {
                     "name": "金兔子(低阶柜台)",
@@ -73,6 +70,9 @@
                         }
                     }
                 }
+            ],
+            "default_case": [
+                "金兔子(低阶柜台)"
             ]
         },
         "心相观测": {
@@ -124,9 +124,6 @@
         "梦境记述": {
             "type": "checkbox",
             "label": "$Option.Bank.DreamNarrative",
-            "default_case": [
-                "共鸣晶匣"
-            ],
             "cases": [
                 {
                     "name": "共鸣晶匣",
@@ -168,6 +165,9 @@
                         }
                     }
                 }
+            ],
+            "default_case": [
+                "共鸣晶匣"
             ]
         }
     }

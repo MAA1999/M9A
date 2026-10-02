@@ -702,13 +702,13 @@
             }
         },
         "post_wait_freezes": {
+            "time": 500,
             "target": [
                 185,
                 14,
                 421,
                 75
-            ],
-            "time": 500
+            ]
         },
         "next": [
             "[JumpBack]ObtainedAwards",
