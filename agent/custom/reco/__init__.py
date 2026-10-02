@@ -12,6 +12,7 @@ RECO_MODULES = (
     "syndrome_of_silence",
     "sos_node_template",
     "critter_crash",
+    "huawei_close_ad",
 )
 
 
