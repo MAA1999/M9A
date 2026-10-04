@@ -22,7 +22,9 @@ from utils.params import parse_params
 DEFAULT_ROI: tuple[int, int, int, int] = (800, 0, 480, 400)
 DEFAULT_THRESHOLD = 0.65
 DEFAULT_MIN_SCALE = 0.25
-DEFAULT_MAX_SCALE = 1.6
+# 上限 1.0 ⇒ 模板最大 64px。实测广告按钮最大 51px，仍有尺寸余量；
+# 更高的上限（1.6 时约 102px）只增加扫描尺度数、拖慢未命中的帧，无实测收益。
+DEFAULT_MAX_SCALE = 1.0
 DEFAULT_SCALE_STEP = 0.015
 DEFAULT_MIN_BRIGHTNESS = 100
 

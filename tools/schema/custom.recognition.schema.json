@@ -1168,7 +1168,7 @@
                         "max_scale": {
                             "type": "number",
                             "exclusiveMinimum": 0,
-                            "description": "最大缩放，默认 1.6"
+                            "description": "最大缩放，默认 1.0（约 64px 模板；实测广告按钮最大 51px，更小的上限更省未命中耗时的扫描尺度）"
                         },
                         "scale_step": {
                             "type": "number",
