@@ -87,6 +87,10 @@ function checkString(field, value, file, path) {
     if (value.startsWith("$")) {
         const key = value.slice(1);
         if (!referenced.has(key)) referenced.set(key, file);
+    } else if (value.endsWith(".md")) {
+        // Welcome entries can point to markdown files; the path itself is not
+        // translatable text even if the filename contains non-ASCII characters.
+        return;
     } else if (I18N_FIELDS.has(field) && CJK.test(value)) {
         hardCoded.push(`${file}${path}`);
     }

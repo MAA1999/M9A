@@ -13,6 +13,12 @@
     "version": "v0.1.0",
     "contact": "CONTACT",
     "license": "LICENSE",
+    "welcome": [
+        "resource/announcement/1.简介.md",
+        "resource/announcement/2.模拟器多开.md",
+        "resource/announcement/3.问题上报.md",
+        "resource/announcement/4.任务介绍.md"
+    ],
     "telemetry": {
         "sentry": {
             "dsn": "https://1d1036e30562df13fb24ee19ff261ac3@o4511817821323264.ingest.us.sentry.io/4511856184459264"
