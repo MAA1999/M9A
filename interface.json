@@ -14,10 +14,10 @@
     "contact": "CONTACT",
     "license": "LICENSE",
     "welcome": [
-        "resource/announcement/1.简介.md",
-        "resource/announcement/2.模拟器多开.md",
-        "resource/announcement/3.问题上报.md",
-        "resource/announcement/4.任务介绍.md"
+        "$Welcome.1",
+        "$Welcome.2",
+        "$Welcome.3",
+        "$Welcome.4"
     ],
     "telemetry": {
         "sentry": {

@@ -343,5 +343,9 @@
     "Task.UTTU.desc": "<span style=\"color:red;font-size:15px\">请在UTTU每阶段第一层配置好队伍后启动（自动打四层，试用角色下一层会自动下阵，请使用自己的角色）</span>![uttu](resource/announcement/images/uttu.png)",
     "Task.WarehouseInventory": "仓库材料识别",
     "Task.WarehouseInventory.desc": "扫描仓库素材页全部已配模板的材料数量并保存到 config/warehouse_inventory.json，供未来功能使用",
-    "Task.Wilderness": "收取荒原"
+    "Task.Wilderness": "收取荒原",
+    "Welcome.1": "resource/announcement/1.简介.md",
+    "Welcome.2": "resource/announcement/2.模拟器多开.md",
+    "Welcome.3": "resource/announcement/3.问题上报.md",
+    "Welcome.4": "resource/announcement/4.任务介绍.md"
 }
