@@ -8,7 +8,9 @@
         }
     },
     "HuaweiCloseAd": {
-        "max_hit": 3,
+        // max_hit 计的是「识别成功」次数（识别到即计数，[JumpBack] 不重置）；耗尽后本节点
+        // 在所有 next 里被静默跳过、且会空转到父节点 60s 超时，故留足余量而非卡紧广告数
+        "max_hit": 6,
         // 位图模板跨尺寸/渲染不稳，故改用自定义识别（见 agent/custom/reco/huawei_close_ad.py）
         "recognition": {
             "type": "Custom",
