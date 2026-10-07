@@ -709,7 +709,7 @@ class DepotMaintainPlan(CustomAction):
 
         if params.get("depot_disabled"):
             logger.info("未开启「库存保持」，按原有均衡逻辑刷取")
-            context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE])
+            context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE, "[JumpBack]ReturnMain"])
             return CustomAction.RunResult(success=True)
 
         try:
@@ -731,7 +731,7 @@ class DepotMaintainPlan(CustomAction):
         if not any(value > 0 for value in targets.values()):
             logger.info("未设置任何目标库存，按原有均衡逻辑刷取")
             logger.debug("逐材料目标与 config 覆盖均为空或 0")
-            context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE])
+            context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE, "[JumpBack]ReturnMain"])
             return CustomAction.RunResult(success=True)
 
         if _state.rounds > 0:
@@ -784,7 +784,7 @@ class DepotMaintainPlan(CustomAction):
                 context.override_next(PLAN_NODE, [REFRESH_NODE])
                 return CustomAction.RunResult(success=True)
             logger.warning("未能获取最新的库存数据，本次改用原有的均衡刷取流程")
-            context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE])
+            context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE, "[JumpBack]ReturnMain"])
             return CustomAction.RunResult(success=True)
 
         decision = pick_target(catalog, inventory, targets)

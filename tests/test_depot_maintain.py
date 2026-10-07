@@ -330,14 +330,14 @@ def test_plan_all_targets_blank_or_zero_falls_back_to_legacy(monkeypatch: pytest
     """所有目标留空或填 0 时，退回原有均衡流程。"""
     harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 1}))
     assert harness.plan('{"target_110103": "", "target_110203": "0"}').success
-    assert harness.context.next_overrides == [["BF_EnterWarehouse"]]
+    assert harness.context.next_overrides == [["BF_EnterWarehouse", "[JumpBack]ReturnMain"]]
 
 
 def test_plan_depot_disabled_falls_back_to_legacy(monkeypatch: pytest.MonkeyPatch) -> None:
     """GUI「库存保持」开关关闭时直接退回原有均衡流程，config 覆盖与缺口都不看。"""
     harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 1}), overrides={"110103": 500})
     assert harness.plan('{"depot_disabled": true}').success
-    assert harness.context.next_overrides == [["BF_EnterWarehouse"]]
+    assert harness.context.next_overrides == [["BF_EnterWarehouse", "[JumpBack]ReturnMain"]]
     assert harness.context.pipeline_overrides == []
 
 
@@ -364,7 +364,7 @@ def test_plan_selected_material_with_zero_target_is_skipped(monkeypatch: pytest.
     snapshot = _snapshot({"110103": 10, "110203": 10})
     harness = _PlanHarness(monkeypatch, snapshot=snapshot, attach={"mat_110103": True, "mat_110203": True})
     assert harness.plan('{"target_110103": "0", "target_110203": "0"}').success
-    assert harness.context.next_overrides == [["BF_EnterWarehouse"]]
+    assert harness.context.next_overrides == [["BF_EnterWarehouse", "[JumpBack]ReturnMain"]]
 
 
 def test_load_target_overrides_missing_or_broken_file(tmp_path: Path) -> None:
@@ -492,7 +492,7 @@ def test_plan_without_target_falls_back_to_legacy(monkeypatch: pytest.MonkeyPatc
     """所有目标都没设置（默认）时退回原有均衡流程。"""
     harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 1}))
     assert harness.plan("{}").success
-    assert harness.context.next_overrides == [["BF_EnterWarehouse"]]
+    assert harness.context.next_overrides == [["BF_EnterWarehouse", "[JumpBack]ReturnMain"]]
     assert not harness.context.pipeline_overrides
 
 
@@ -500,7 +500,7 @@ def test_plan_ignores_invalid_material_target(monkeypatch: pytest.MonkeyPatch) -
     """非法目标值只忽略该条并告警，余额为 0 时仍退回原有流程。"""
     harness = _PlanHarness(monkeypatch, snapshot=None)
     assert harness.plan('{"target_110103": "-1"}').success
-    assert harness.context.next_overrides == [["BF_EnterWarehouse"]]
+    assert harness.context.next_overrides == [["BF_EnterWarehouse", "[JumpBack]ReturnMain"]]
 
 
 def test_plan_refreshes_stale_snapshot_once_then_falls_back(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -512,7 +512,7 @@ def test_plan_refreshes_stale_snapshot_once_then_falls_back(monkeypatch: pytest.
     assert harness.context.next_overrides == [["BF_Refresh"]]
 
     assert harness.plan().success
-    assert harness.context.next_overrides == [["BF_Refresh"], ["BF_EnterWarehouse"]]
+    assert harness.context.next_overrides == [["BF_Refresh"], ["BF_EnterWarehouse", "[JumpBack]ReturnMain"]]
 
 
 def test_plan_enters_combat_with_stage_and_runs(monkeypatch: pytest.MonkeyPatch) -> None:
