@@ -49,8 +49,6 @@
     "Option.Awards.WeeklyDevelopingJar": "Claim Weekly Developing Jar",
     "Option.BalancedFarming.DepotMaintain": "Depot maintain",
     "Option.BalancedFarming.DepotMaintain.desc": "When enabled, pick the materials to top up with a switch each and fill in their target amount and candy uses; when disabled, the original balanced farming logic is used",
-    "Option.BalancedFarming.DryRun": "Depot maintain dry run",
-    "Option.BalancedFarming.DryRun.desc": "Only compute the deficit and print the farming plan, without entering battle.",
     "Option.BalancedFarming.Material.110103": "Biting Box (7-26)",
     "Option.BalancedFarming.Material.110203": "Salted Mandrake (3-13)",
     "Option.BalancedFarming.Material.110303": "Bifurcated Skeleton (7-7)",

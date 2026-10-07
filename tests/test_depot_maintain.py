@@ -56,7 +56,6 @@ class _FakeContext:
     def __init__(
         self,
         *,
-        dry_run: bool = False,
         drop_report_disabled: bool = False,
         attach: dict[str, Any] | None = None,
         eat_candy: bool = True,
@@ -66,7 +65,6 @@ class _FakeContext:
         self.next_overrides: list[list[str]] = []
         self.pipeline_overrides: list[dict[str, Any]] = []
         self.run_tasks: list[str] = []
-        self.dry_run = dry_run
         self.drop_report_disabled = drop_report_disabled
         self.attach = attach or {}
         self.eat_candy = eat_candy
@@ -95,8 +93,6 @@ class _FakeContext:
         return types.SimpleNamespace(hit=True, box=(0, 0, 1, 1), best_result=best)
 
     def get_node_data(self, name: str) -> dict[str, Any] | None:
-        if name == depot_maintain.DRY_RUN_FLAG_NODE:
-            return {"enabled": self.dry_run}
         if name == depot_maintain.DROP_REPORT_NODE:
             return {"enabled": not self.drop_report_disabled}
         if name == depot_maintain.EAT_CANDY_NODE:
@@ -147,7 +143,6 @@ class _PlanHarness:
         *,
         snapshot: dict[str, Any] | None,
         overrides: dict[str, int] | None = None,
-        dry_run: bool = False,
         drop_report_disabled: bool = False,
         attach: dict[str, Any] | None = None,
         eat_candy: bool = True,
@@ -155,7 +150,6 @@ class _PlanHarness:
         raw: dict[str, Any] | None = None,
     ) -> None:
         self.context = _FakeContext(
-            dry_run=dry_run,
             drop_report_disabled=drop_report_disabled,
             attach=attach,
             eat_candy=eat_candy,
@@ -698,13 +692,6 @@ def test_plan_done_when_all_satisfied(monkeypatch: pytest.MonkeyPatch) -> None:
     assert harness.plan().success
     assert harness.context.next_overrides == [["BF_Done"]]
 
-
-def test_plan_dry_run_skips_combat(monkeypatch: pytest.MonkeyPatch) -> None:
-    """试运行只规划不进入战斗。"""
-    harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 10, "110203": 0}), dry_run=True)
-    assert harness.plan().success
-    assert harness.context.next_overrides == [["BF_Done"]]
-    assert not harness.context.pipeline_overrides
 
 
 def test_plan_material_override_steers_selection(monkeypatch: pytest.MonkeyPatch) -> None:

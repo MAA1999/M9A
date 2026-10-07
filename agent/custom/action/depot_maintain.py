@@ -75,7 +75,6 @@ _RARITY_ORDER = ("gold", "yellow", "purple", "blue", "green")
 PLAN_NODE = "BF_Plan"
 REFRESH_NODE = "BF_Refresh"
 DONE_NODE = "BF_Done"
-DRY_RUN_FLAG_NODE = "BF_DryRunFlag"
 DROP_REPORT_NODE = "DropRecognition"
 ACCUMULATE_NODE = "BF_DepotAccumulate"
 # 由 combat.py 的 SelectCombatStage 在主线流程里注入，库存保持模式下才有意义
@@ -461,11 +460,6 @@ def runs_for(deficit: int, entry: MaterialEntry) -> int:
     return max(1, math.ceil(deficit / per_run))
 
 
-def _dry_run_enabled(context: Context) -> bool:
-    node = context.get_node_data(DRY_RUN_FLAG_NODE)
-    return node is not None and bool(node.get("enabled", False))
-
-
 def _capture_baselines(context: Context) -> None:
     """记录任务开始时的全局开关（GUI 选项生效后的节点数据），逐材料/逐关卡设置在其上叠加。"""
     if _state.baseline_captured:
@@ -800,11 +794,6 @@ class DepotMaintainPlan(CustomAction):
             f"每局约 {entry.per_run or 1} 个，最多刷 {runs} 局（按实际掉落提前停止）"
             f"{candy_note(entry.item_id, candy_caps)}，关卡 {entry.stage.code} {entry.level}"
         )
-
-        if _dry_run_enabled(context):
-            logger.info("库存保持试运行：只规划不进入战斗")
-            context.override_next(PLAN_NODE, [DONE_NODE])
-            return CustomAction.RunResult(success=True)
 
         _state.rounds += 1
         _state.item_id = entry.item_id

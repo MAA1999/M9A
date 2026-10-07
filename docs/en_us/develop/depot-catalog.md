@@ -124,7 +124,6 @@ Two hard rules for picking stages (verified 2026-10-07):
     - An invalid value only drops that entry with a warning; the file wins over the GUI, but a material whose switch is off still does not participate
 
 - A missing / corrupted config or invalid values are ignored, falling back to "unset"; the log states the reason
-- The "Depot maintain dry run" switch only computes the deficit and prints the plan without entering battle; use it to verify a newly added material first
 
 ## Depot snapshot
 

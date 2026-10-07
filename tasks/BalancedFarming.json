@@ -64,8 +64,7 @@
                         "木娑典全章",
                         "兽涎典残篇",
                         "兽涎典孤卷",
-                        "兽涎典全章",
-                        "库存保持试运行"
+                        "兽涎典全章"
                     ]
                 }
             ]
@@ -1421,29 +1420,6 @@
                     }
                 }
             }
-        },
-        "库存保持试运行": {
-            "type": "switch",
-            "label": "$Option.BalancedFarming.DryRun",
-            "description": "$Option.BalancedFarming.DryRun.desc",
-            "cases": [
-                {
-                    "name": "No",
-                    "pipeline_override": {
-                        "BF_DryRunFlag": {
-                            "enabled": false
-                        }
-                    }
-                },
-                {
-                    "name": "Yes",
-                    "pipeline_override": {
-                        "BF_DryRunFlag": {
-                            "enabled": true
-                        }
-                    }
-                }
-            ]
         }
     }
 }

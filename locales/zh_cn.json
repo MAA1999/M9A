@@ -49,8 +49,6 @@
     "Option.Awards.WeeklyDevelopingJar": "领取每周显影罐",
     "Option.BalancedFarming.DepotMaintain": "库存保持",
     "Option.BalancedFarming.DepotMaintain.desc": "开启后逐材料开关选择要补的材料并填写目标数量与吃糖次数；关闭则沿用原有的均衡刷取逻辑",
-    "Option.BalancedFarming.DryRun": "库存保持试运行",
-    "Option.BalancedFarming.DryRun.desc": "只计算缺口并输出刷取计划，不进入战斗",
     "Option.BalancedFarming.Material.110103": "啮咬盒（7-26）",
     "Option.BalancedFarming.Material.110203": "盐封曼德拉（3-13）",
     "Option.BalancedFarming.Material.110303": "双头形骨架（7-7）",

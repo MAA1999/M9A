@@ -38,22 +38,12 @@
         ]
     },
     "BF_Done": {
-        "desc": "库存保持：全部达标或试运行结束，直接收尾",
+        "desc": "库存保持：全部达标，直接收尾",
         "action": {
             "type": "Custom",
             "param": {
                 "custom_action": "DepotMaintainDone"
             }
-        }
-    },
-    "BF_DryRunFlag": {
-        "desc": "库存保持试运行开关，由 DepotMaintainPlan 读取 enabled",
-        "enabled": false,
-        "recognition": {
-            "type": "DirectHit"
-        },
-        "action": {
-            "type": "DoNothing"
         }
     },
     "BF_DepotAccumulate": {

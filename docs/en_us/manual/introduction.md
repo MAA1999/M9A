@@ -34,7 +34,6 @@ Farm materials: with "Depot maintain" enabled it tops up each material to its ta
 
 - **Depot maintain**: master switch (off by default); the two settings below appear only when enabled
     - **Participating materials**: tick the materials to top up and fill in each one's target amount and candy uses
-    - **Depot maintain dry run**: only compute the deficit and print the plan, without entering battle
 - **Consume Candy**: Automatically use candy
 - **Custom Combat Count**: Specify combat count. It will consume all stamina when disabled.
 - **Drop Statistics Report**: Report stage drop data
