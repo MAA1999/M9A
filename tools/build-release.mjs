@@ -120,6 +120,7 @@ function main() {
         ...interfaceResourcePaths(interfaceJson.resource),
         ...strings(interfaceJson.import),
         ...interfaceLanguagePaths(interfaceJson.languages),
+        ...welcomeNoticePaths(interfaceJson, readJson),
     ]) {
         if (path.includes("\\")) {
             throw new Error(`release paths must use forward slashes: ${path}`);
@@ -259,6 +260,28 @@ function interfaceLanguagePaths(value) {
     return isRecord(value) ? Object.values(value).filter((item) => typeof item === "string") : [];
 }
 
+// `welcome` entries are i18n keys resolved through the language files, so the notice files they
+// point at only surface after decoding every locale — the resource/import lists do not cover
+// them, and a missing entry in releasePackagePaths would otherwise ship a package whose welcome
+// page has nothing to show. `readLocale` lets the package smoke reuse this against packaged files.
+function welcomeNoticePaths(interfaceJson, readLocale) {
+    const entries = Array.isArray(interfaceJson.welcome) ? interfaceJson.welcome : [interfaceJson.welcome];
+    const paths = [];
+    for (const entry of entries) {
+        if (typeof entry !== "string") continue;
+        if (!entry.startsWith("$")) {
+            paths.push(entry);
+            continue;
+        }
+        for (const languagePath of interfaceLanguagePaths(interfaceJson.languages)) {
+            const value = readLocale(languagePath)[entry.slice(1)];
+            if (typeof value === "string") paths.push(value);
+        }
+    }
+    // a literal entry may be a remote URL instead of a file, and nothing in the repo backs it
+    return paths.filter((path) => !/^[A-Za-z][A-Za-z0-9+.-]*:/.test(path));
+}
+
 function isProjectRelativePath(path) {
     const stripped = path.startsWith("./") ? path.slice(2) : path;
     return (
@@ -274,6 +297,9 @@ function releasePackagePaths(interfaceJson, guiKey) {
     const paths = [
         "tasks",
         "resource",
+        // welcome notice markdowns (PI `welcome` protocol), referenced from the language files as
+        // $Welcome.<Index>; only projects that keep them in announcement/ ship the directory
+        ...(existsSync("announcement") ? ["announcement"] : []),
         // translation files are only required when interface.json declares `languages`
         ...interfaceLanguagePaths(interfaceJson.languages),
     ];
@@ -517,6 +543,7 @@ function smokeReleasePackage(gui, root, packagePaths, runtimePlatform) {
         ...interfaceResourcePaths(packagedInterface.resource),
         ...strings(packagedInterface.import),
         ...interfaceLanguagePaths(packagedInterface.languages),
+        ...welcomeNoticePaths(packagedInterface, (languagePath) => readJson(join(root, languagePath))),
     ]) {
         if (path.includes("\\")) {
             throw new Error(`release package smoke failed: package path uses backslashes: ${path}`);

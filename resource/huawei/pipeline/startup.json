@@ -6,5 +6,86 @@
                 "package": "com.shenlan.m.reverse1999.huawei"
             }
         }
+    },
+    "HuaweiCloseAd": {
+        // max_hit 计的是「识别成功」次数（识别到即计数，[JumpBack] 不重置）；耗尽后本节点
+        // 在所有 next 里被静默跳过、且会空转到父节点 60s 超时，故留足余量而非卡紧广告数
+        "max_hit": 6,
+        // 位图模板跨尺寸/渲染不稳，故改用自定义识别（见 agent/custom/reco/huawei_close_ad.py）
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "HuaweiCloseAd",
+                "custom_recognition_param": {
+                    "roi": [
+                        800,
+                        0,
+                        480,
+                        400
+                    ],
+                    "threshold": 0.65,
+                    "max_scale": 1.0
+                }
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": true
+        }
+    },
+    "StartUp": {
+        // 复制自 base 的 StartUp.next，仅在 StartGame 前插入广告检查；base 变更时需同步
+        "next": [
+            "[JumpBack]HuaweiCloseAd",
+            "[JumpBack]Confirm",
+            "HomeFlagFirst",
+            "StartGame",
+            "[JumpBack]Start1999",
+            "[JumpBack]Download",
+            "[JumpBack]GameLoading2",
+            "[JumpBack]BluePochLogo",
+            "[JumpBack]Disclaimer",
+            "[JumpBack]HomeLoading",
+            "[JumpBack]GameLoading",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]VictoryReturn",
+            "[JumpBack]Downloading",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]ClickHomeCount"
+        ]
+    },
+    "StartGame": {
+        // 复制自 base 的 StartGame.next，仅在头部插入广告检查；base 变更时需同步。
+        // 广告延迟弹出，进入 StartGame 后回不到 StartUp.next，故必须在这里也挂一次。
+        "next": [
+            "[JumpBack]HuaweiCloseAd",
+            "[JumpBack]Confirm",
+            "HomeFlagFirst",
+            "StartGame",
+            "[JumpBack]HomeLoading_wait",
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]AccumulatedSignIn",
+            "[JumpBack]BirthdayReward",
+            "[JumpBack]Reward",
+            "[JumpBack]SignInReward",
+            "[JumpBack]ClickTarot",
+            "[JumpBack]ClosePageFirst",
+            "[JumpBack]CandyCancel",
+            "[JumpBack]BackButton",
+            "[JumpBack]HomeButton",
+            "[JumpBack]SkipButton",
+            "[JumpBack]MoverSignIn",
+            "[JumpBack]ClickHomeCount"
+        ]
     }
 }

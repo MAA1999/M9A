@@ -1,19 +1,32 @@
 /**
- * 解析 Android 打包流程要用的版本与命名参数，供 `.github/workflows/android.yml` 使用。
+ * 解析 Android 打包流程要用的版本与命名参数，供 `.github/workflows/android-build.yml` 使用。
  *
- * 1. MaaFW 版本与桌面同源固定：agent 项目看 requirements.txt 的 `maafw==X`，纯 pipeline 项目看
- *    maa-project.json 的 maafw 字段。Android 的 Python 绑定只随内核（MaaAgentCoreAndroid）
- *    发布（公开索引没有 Android 版 maafw 轮子），所以按 X 去内核 repo 挑 `*-maafwX` 配对的
- *    release，client 原生库（jniLibs）铺同版本 MaaFramework，保证 APK 里前后端一致；
- * 2. release 资产前缀：取 maa-project.json 的显示名（不可用时退回 slug），于是同一份 workflow
- *    可以给别的项目直接用；
+ * 1. MaaFW 版本与桌面同源固定，来源链：requirements.txt 的 `maafw==X` > maa-project.json 的
+ *    maafw.version（须精确）> 纯 pipeline 项目按 maafw.channel 取最新。agent 项目必须拿到精确
+ *    版本：Android 的 Python 绑定只随内核（MaaAgentCoreAndroid）发布（公开索引没有 Android 版
+ *    maafw 轮子），按 X 去内核 repo 挑 `*-maafwX` 配对的 release，client 原生库（jniLibs）铺同
+ *    版本 MaaFramework，保证 APK 里前后端一致；
+ * 2. release 资产前缀：取 maa-project.json 的显示名（不可用时退回 slug）。非 ASCII / 带空白的
+ *    显示名会退回 slug——桌面资产名保留 Unicode，这里是刻意分叉：应用内更新按资产名选包，
+ *    前缀必须 ASCII；
  * 3. 有没有 agent：纯 pipeline 项目不涉及 Python 绑定，workflow 据此跳过内核缓存与运行时构建。
- *    Android 的 agent 运行时目前只支持 Python（内核 MaaAgentCoreAndroid 就是 CPython +
- *    maa 绑定）；Go/Rust 等 ELF agent 理论上可走外壳的 nativeLibs 路线，真出现时这里再扩。
+ *    Android 的 agent 运行时目前只支持 Python（内核 MaaAgentCoreAndroid 就是 CPython + maa 绑定）；
+ * 4. has_ocr：OCR 模型是否没入库、CI 需要重新铺（见 hasOcr 处注释）；
+ * 5. chaquopy_index / chaquopy_pins：build_agent_bundle.py 的索引列表里 pypi-upstream 永远在
+ *    （--extra-index-url 只是追加，不替换）。版本化索引 URL 由 CPython→URL 手维护表给出（无
+ *    公式）；pins 不维护包清单——解析时逐包抓 Chaquopy 索引的 simple 页面，桌面 pin 版本在
+ *    索引上没有 cp 兼容构建的包自动钉到索引最高可用版（wheel 文件名里的 python 标签即判据），
+ *    索引上没有的包是纯 Python、走 upstream 不钉；索引有构建但没有当前 CPython 的直接报错；
+ *    内核自带的包（CORE_PROVIDES）不探测——build_agent_bundle.py 会把它们整包丢弃（core wins）。
+ *    CHAQUOPY_PIN_OVERRIDES 只作人工兜底，平时为空。
  *
  * 用法：`node tools/android-packaging.mjs [项目根目录]`，结果既打印也追加到 `$GITHUB_OUTPUT`。
- * 测试 / 离线可用 `ANDROID_PACKAGING_RELEASES_FIXTURE` 指向 `{core: [...], maafw: [...]}` 的
- * JSON 文件代替 GitHub API；`AGENT_CORE_TAG` 可应急钉内核（偏离固定版本时会打 warning）。
+ * 测试 / 离线可用 `ANDROID_PACKAGING_RELEASES_FIXTURE` 指向 `{core: [...], maafw: [...]}`
+ * JSON、`ANDROID_PACKAGING_CHAQUOPY_FIXTURE` 指向 `{包名: [wheel 文件名]}` JSON，分别代替
+ * GitHub API 与 Chaquopy 索引；`AGENT_CORE_TAG` 可应急钉内核（偏离固定版本时会打 warning）。
+ *
+ * 本文件与 create-maa-project 的 android addon 模板（templates/addons/android/tools/android-packaging.mjs）
+ * 同源，改逻辑请同步两边。
  */
 import {appendFileSync, existsSync, readFileSync} from "node:fs";
 import {join} from "node:path";
@@ -22,16 +35,45 @@ const PROJECT_CONFIG = "maa-project.json";
 const INTERFACE = "interface.json";
 const REQUIREMENTS = "requirements.txt";
 
-// 内核 repo：Android 绑定随它的 release 发布，tag 形如 "3.13.15-maafw5.12.3"
-const CORE_REPO = "Aliothmoon/MaaAgentCoreAndroid";
-// 纯 pipeline 项目没有 requirements 固定时，按 maa-project.json 的通道从这里取最新
+// 内核 repo：Android 绑定随它的 release 发布，tag 形如 "3.13.15-maafw5.12.3"（第一段是 CPython 版本）
+const CORE_REPO = "AliothMoon/MaaAgentCoreAndroid";
+// 纯 pipeline 项目没有 requirements / maa-project.json 固定时，按通道从这里取最新
 const MAAFW_REPO = "MaaXYZ/MaaFramework";
 
 const CORE_TAG_ENV = "AGENT_CORE_TAG";
 const RELEASES_FIXTURE_ENV = "ANDROID_PACKAGING_RELEASES_FIXTURE";
+const CHAQUOPY_FIXTURE_ENV = "ANDROID_PACKAGING_CHAQUOPY_FIXTURE";
 const CORE_MAAFW_PATTERN = /^(\d[\w.]*)-maafw([\w.]+)$/;
 const REQUIREMENT_PIN_PATTERN = /^maafw==([0-9][^\s;]*)/m;
 const SAFE_PREFIX_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+// requirements 行首的「包名==精确版本」；uv export 的 --hash 续行（缩进 + --）、注释、-r / -e
+// 与非精确行（比较符不是 ==）都不匹配。uv export 恒为精确钉版，非精确行没有比对的基准
+const REQUIREMENT_ENTRY_PATTERN = /^([A-Za-z0-9][A-Za-z0-9._-]*)==([^\s;]+)/;
+
+// Chaquopy 的版本化 PyPI 索引。键 = 内核 CPython 的 major.minor；"13.1" 是 Chaquopy 自己的
+// 发布线编号，不是 CPython 版本，没有 CPython→URL 的公式，只能手维护（上游硬编码位置：
+// MaaFwApp scripts/build_agent_bundle.py 的文档示例写死 pypi-13.1）。
+// 注意 build_agent_bundle.py 的 pypi-upstream 永远在索引列表里，本表只是追加版本化索引。
+const CHAQUOPY_INDEX_BY_CPYTHON = new Map([
+    [
+        "3.13",
+        "https://chaquo.com/pypi-13.1/",
+    ],
+]);
+
+// 人工兜底：自动探测的结果不对时（索引页面异常、要强制别的版本）在这里钉死版本。语义与自动
+// pin 相同，仍只对 requirements 里实际出现的包生效；平时应为空——常规维护是修探测，不是加行
+const CHAQUOPY_PIN_OVERRIDES = new Map([]);
+
+// 内核自带的包（agent-core.json 的 provides，今天 = maafw 绑定 / numpy / StrEnum）：
+// build_agent_bundle.py 会把 requirements 里这些包整包丢弃（core wins），它们不进 pip，
+// 探测它们没有意义——对着索引降级内核自带的包，--require 会把旧版装回内核 site-packages
+// 旁边跟内核打架。内核新增自带包时同步这张表（manifest 在内核 tarball 内，无轻量获取渠道）
+const CORE_PROVIDES = new Set([
+    "maafw",
+    "numpy",
+    "strenum",
+]);
 
 function readText(path) {
     return existsSync(path) ? readFileSync(path, "utf8") : undefined;
@@ -83,6 +125,17 @@ async function loadFixture() {
     const path = process.env[RELEASES_FIXTURE_ENV];
     if (path === undefined || path === "") return null;
     return JSON.parse(readFileSync(path, "utf8"));
+}
+
+let chaquopyFixtureCache;
+
+/** 测试 / 离线替身：`{归一化包名: [wheel 文件名]}`，键不存在 = 索引上没这个包 */
+function chaquopyFixturePackages() {
+    if (chaquopyFixtureCache === undefined) {
+        const path = envTrim(CHAQUOPY_FIXTURE_ENV);
+        chaquopyFixtureCache = path === "" ? null : JSON.parse(readFileSync(path, "utf8"));
+    }
+    return chaquopyFixtureCache;
 }
 
 async function fetchCoreTags() {
@@ -152,6 +205,8 @@ function channelLatest(releases, channel) {
     return latest.tag.replace(/^v/, "");
 }
 
+/** displayName → slug 各过一次 ASCII 闸门，都不合格才报错。
+ *  与桌面 releaseArtifactName 是两套刻意分叉的逻辑：桌面保留 Unicode，APK 前缀必须 ASCII。 */
 function artifactPrefix(project) {
     const section = project.project ?? {};
     for (const key of [
@@ -170,33 +225,145 @@ function agentDeclared(interfaceConfig) {
     return Array.isArray(interfaceConfig.agent) && interfaceConfig.agent.length > 0;
 }
 
-/** Android 的 agent 运行时目前只支持 Python（内核自带 CPython 与 maa 绑定），
- * 所以 agent 项目必须 requirements.txt 钉 maafw==X，与桌面 pip 装的绑定一致 */
-function pinnedMaafw(root, hasAgent) {
-    const pin = parseRequirementPin(readText(join(root, REQUIREMENTS)));
-    if (hasAgent && pin === undefined) {
-        throw new Error(
-            "Android 的 agent 运行时目前只支持 Python，需要在 requirements.txt 精确固定 maafw==X 以配对内核",
-        );
-    }
-    return pin;
-}
-
 function parseRequirementPin(text) {
     if (text === undefined) return undefined;
     const match = REQUIREMENT_PIN_PATTERN.exec(text);
     return match === null ? undefined : match[1];
 }
 
+function normalizeRequirementName(name) {
+    // PEP 503：大小写与 - _ . 归一
+    return name.toLowerCase().replace(/[-_.]+/g, "-");
+}
+
+/** requirements 里的精确钉版条目（含 maafw），保持文件顺序。带 `;` 环境标记的行整行跳过：
+ *  Android 上 pip 不会装它（如 win32 专属），替它降级反而会凭空多装一个包 */
+function requirementEntries(text) {
+    if (text === undefined) return [];
+    const entries = [];
+    for (const line of text.split(/\r?\n/)) {
+        if (line.includes(";")) continue;
+        const match = REQUIREMENT_ENTRY_PATTERN.exec(line);
+        if (match === null) continue;
+        entries.push({name: normalizeRequirementName(match[1]), version: match[2]});
+    }
+    return entries;
+}
+
+/** 抓索引上某包的 wheel 文件名。索引只放 Chaquopy 自家构建的 Android wheel（纯 Python 包走
+ *  upstream），404 = 没这个包，属正常；其他失败大声报错——静默跳过会把错误拖到构建中途的 pip */
+async function fetchChaquopyWheels(indexUrl, name) {
+    const fixture = chaquopyFixturePackages();
+    if (fixture !== null) return Array.isArray(fixture[name]) ? fixture[name] : [];
+    const response = await fetch(`${indexUrl}${name}/`, {
+        headers: {"User-Agent": "android-packaging-resolver"},
+        signal: AbortSignal.timeout(20000),
+    });
+    if (response.status === 404) return [];
+    if (!response.ok) {
+        throw new Error(`查询 Chaquopy 索引的 ${name} 失败：HTTP ${response.status}（${indexUrl}${name}/）`);
+    }
+    const text = await response.text();
+    // PEP 503 simple 页面：wheel 全在 <a> 锚文本里（href 带 #sha256 尾巴，不能直接取）
+    return [...text.matchAll(/>([^<>]+\.whl)</g)].map((match) => match[1]);
+}
+
+/** wheel 文件名拆出版本与 python 标签：{dist}-{version}-{python}-{abi}-{platform}.whl。已知
+ *  dist 前缀（PEP 427 里 - 转写成 _）。version 后面可能带 build tag（numpy-1.26.2-0-cp313），
+ *  build 段不以 cp/py/pp 开头，据此让位 */
+function parseWheel(filename, distribution) {
+    const prefix = `${distribution.replace(/-/g, "_")}-`;
+    if (!filename.startsWith(prefix) || !filename.endsWith(".whl")) return undefined;
+    const segments = filename.slice(prefix.length).slice(0, -4).split("-");
+    const tagIndex = segments.findIndex((segment) => /^(cp|py|pp)/.test(segment));
+    if (tagIndex < 1) return undefined;
+    return {version: segments[0], pythonTag: segments[tagIndex]};
+}
+
+/** 该包在索引上可装的版本集合；py3 / py2.py3 纯 wheel 任何 CPython 都可装 */
+function indexVersions(wheels, distribution, cpTag) {
+    const versions = new Set();
+    for (const wheel of wheels) {
+        const parsed = parseWheel(wheel, distribution);
+        if (parsed === undefined) continue;
+        if (parsed.pythonTag === cpTag || parsed.pythonTag === "py3" || parsed.pythonTag === "py2.py3") {
+            versions.add(parsed.version);
+        }
+    }
+    return versions;
+}
+
+/** 逐包探测 Chaquopy 索引，生成 build_agent_bundle.py 的 --exclude/--require 参数串：桌面
+ *  pin 在索引上有 cp 兼容构建 → 不动；没有 → 钉到索引最高可用版；索引上没这个包 → 纯
+ *  Python 走 upstream，不钉。只处理 requirements 里实际出现的包，不给别的项目强加降级 */
+async function chaquopyPins(indexUrl, entries, cpTag) {
+    const args = [];
+    for (const {name, version} of entries) {
+        const override = CHAQUOPY_PIN_OVERRIDES.get(name);
+        if (override !== undefined) {
+            args.push(`--exclude ${name}`, `--require ${name}==${override}`);
+            continue;
+        }
+        if (CORE_PROVIDES.has(name)) continue;
+        const wheels = await fetchChaquopyWheels(indexUrl, name);
+        if (wheels.length === 0) continue;
+        const versions = indexVersions(wheels, name, cpTag);
+        if (versions.size === 0) {
+            throw new Error(
+                `Chaquopy 索引有 ${name} 的构建但没有 ${cpTag} 兼容的（${indexUrl}${name}/），` +
+                    `Android 装不进这个原生包；到上游确认后换版本，或在 CHAQUOPY_PIN_OVERRIDES 兜底`,
+            );
+        }
+        if (version !== undefined && versions.has(version)) continue;
+        const best = [...versions].sort(compareVersions).at(-1);
+        args.push(`--exclude ${name}`, `--require ${name}==${best}`);
+    }
+    return args.join(" ");
+}
+
+/** 内核 tag 第一段是 CPython 版本，取 major.minor 查手维护的 Chaquopy 索引表 */
+function chaquopyIndex(coreTag) {
+    if (coreTag === "") return "";
+    const [cpython] = coreTag.split("-");
+    const minor = cpython.split(".").slice(0, 2).join(".");
+    const url = CHAQUOPY_INDEX_BY_CPYTHON.get(minor);
+    if (url === undefined) {
+        const known = [...CHAQUOPY_INDEX_BY_CPYTHON.keys()].join("、") || "无";
+        throw new Error(
+            `Chaquopy 索引表里没有 CPython ${minor} 的条目（内核 tag ${coreTag}）；已知：${known}。` +
+                `这是手维护表（无 CPython→URL 公式），到上游确认发布线后在本表补一行`,
+        );
+    }
+    return url;
+}
+
+/** 同一内核 tag 推出 wheel 的 python 标签：3.13.15 → cp313 */
+function coreCpTag(coreTag) {
+    const [
+        major,
+        minor,
+    ] = coreTag.split("-")[0].split(".");
+    return `cp${major}${minor}`;
+}
+
 async function resolvePackaging(root) {
     const project = readObject(join(root, PROJECT_CONFIG));
-    const hasAgent = agentDeclared(readObject(join(root, INTERFACE)));
+    const interfaceConfig = readObject(join(root, INTERFACE));
+    const hasAgent = agentDeclared(interfaceConfig);
+    // has_ocr 的真实语义是「OCR 模型没入库，CI 必须重新铺」：base 模板无条件生成
+    // resource/base/model/ocr/*，走 submodule 时这些文件进 .gitignore、CI 要重新拉；
+    // 走 download 时模型入库，这步只是可选。今天「有 ocr 段」恰好等价于走 submodule
+    // （只有那个分支才写 config.ocr），所以拿它当判据。
+    const hasOcr = project.ocr !== undefined;
     const prefix = artifactPrefix(project);
     const {version: declaredVersion, channel: declaredChannel} = declaredSection(project);
     const warnings = [];
 
+    // MaaFW 版本来源链（适配点见文件头 1）：requirements 钉版 > maa-project.json 精确版本 >
+    // 纯 pipeline 按 channel 取最新。agent 项目拿不到精确版本时无法配对内核，直接报错给指引。
+    const requirementsText = readText(join(root, REQUIREMENTS));
+    const requirementPin = parseRequirementPin(requirementsText);
     let maafwVersion;
-    const requirementPin = pinnedMaafw(root, hasAgent);
     if (requirementPin !== undefined) {
         maafwVersion = requirementPin;
         if (declaredVersion !== "" && declaredVersion !== requirementPin) {
@@ -207,8 +374,14 @@ async function resolvePackaging(root) {
         }
     } else if (declaredVersion !== "") {
         maafwVersion = declaredVersion;
-    } else {
+    } else if (!hasAgent) {
         maafwVersion = await channelLatest(await fetchMaafwReleases(), declaredChannel);
+    } else {
+        throw new Error(
+            "agent 项目需要精确的 MaaFW 版本以配对内核（Android 绑定只随 MaaAgentCoreAndroid 发布）：" +
+                "在 requirements.txt 写 maafw==X，或在 maa-project.json 的 maafw.version 填精确版本；" +
+                "只有 channel 时无法配对",
+        );
     }
 
     // 内核（绑定载体）只在 agent 项目里用；纯 pipeline 项目 client 库直接从 MaaFramework release 铺
@@ -233,6 +406,13 @@ async function resolvePackaging(root) {
         }
     }
 
+    // pins 依赖索引与内核 CPython，纯 pipeline 项目没有 agent 运行时，不探测
+    const chaquopyIndexUrl = chaquopyIndex(coreTag);
+    const pins =
+        chaquopyIndexUrl === ""
+            ? ""
+            : await chaquopyPins(chaquopyIndexUrl, requirementEntries(requirementsText), coreCpTag(coreTag));
+
     return {
         coreTag,
         maafwTag: `v${maafwVersion}`,
@@ -240,6 +420,9 @@ async function resolvePackaging(root) {
         requirementPin,
         declaredTarget: describeDeclared(project),
         hasAgent,
+        hasOcr,
+        chaquopyIndex: chaquopyIndexUrl,
+        chaquopyPins: pins,
         warnings,
     };
 }
@@ -273,19 +456,24 @@ async function main() {
 
     for (const warning of packaging.warnings) console.log(`::warning::${warning}`);
 
-    const coreVersion = packaging.maafwTag.replace(/^v/, "");
-    console.log(`agent core tag   : ${packaging.coreTag}`);
-    console.log(`client MaaFW tag : ${packaging.maafwTag}（与内核绑定 ${coreVersion} 一致）`);
+    console.log(`agent core tag   : ${packaging.coreTag || "（纯 pipeline，无内核）"}`);
+    console.log(`client MaaFW tag : ${packaging.maafwTag}`);
     console.log(`artifact prefix  : ${packaging.artifactPrefix}`);
     console.log(`maa-project.json : ${packaging.declaredTarget}`);
-    console.log(`requirements pin : ${packaging.requirementPin ?? "（未钉 maafw==X，纯 pipeline 项目）"}`);
+    console.log(`requirements pin : ${packaging.requirementPin ?? "（未钉 maafw==X）"}`);
     console.log(`has agent        : ${packaging.hasAgent}`);
+    console.log(`has ocr (re-sync): ${packaging.hasOcr}`);
+    console.log(`chaquopy index   : ${packaging.chaquopyIndex || "（无 agent 运行时）"}`);
+    console.log(`chaquopy pins    : ${packaging.chaquopyPins || "（无需降级）"}`);
 
     writeOutputs({
         core_tag: packaging.coreTag,
         maafw_tag: packaging.maafwTag,
         artifact_prefix: packaging.artifactPrefix,
         has_agent: String(packaging.hasAgent),
+        has_ocr: String(packaging.hasOcr),
+        chaquopy_index: packaging.chaquopyIndex,
+        chaquopy_pins: packaging.chaquopyPins,
     });
     return 0;
 }

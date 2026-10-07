@@ -14,7 +14,8 @@
 
 ```text
 agent/          # Python agent —— custom actions, recognitions, utilities (entry: main.py)
-tasks/          # Project Interface task and preset definitions
+tasks/          # Project Interface task and preset definitions (images/ holds GUI option icons and task screenshots)
+announcement/   # Welcome-page notices shown by the GUI (PI `welcome` protocol, per locale)
 locales/        # Project Interface display translations
 tools/          # Build, release, schema/i18n validation, and CI scripts
 resource/       # MaaFW runtime resource packs (images, pipeline, model)

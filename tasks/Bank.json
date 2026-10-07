@@ -43,7 +43,7 @@
                 {
                     "name": "金兔子(低阶柜台)",
                     "label": "$Option.Bank.LowerCounter.GoldRabbit",
-                    "icon": "./resource/announcement/images/Item-140001.png",
+                    "icon": "./tasks/images/Item-140001.png",
                     "pipeline_override": {
                         "Rabbit": {
                             "enabled": true
@@ -53,7 +53,7 @@
                 {
                     "name": "紫地球仪(低阶柜台)",
                     "label": "$Option.Bank.LowerCounter.PurpleGlobe",
-                    "icon": "./resource/announcement/images/Item-180002.png",
+                    "icon": "./tasks/images/Item-180002.png",
                     "pipeline_override": {
                         "SmallGlobe": {
                             "enabled": true
@@ -63,7 +63,7 @@
                 {
                     "name": "蓝地球仪(低阶柜台)",
                     "label": "$Option.Bank.LowerCounter.BlueGlobe",
-                    "icon": "./resource/announcement/images/Item-180001.png",
+                    "icon": "./tasks/images/Item-180001.png",
                     "pipeline_override": {
                         "TinyGlobe": {
                             "enabled": true
@@ -82,7 +82,7 @@
                 {
                     "name": "饕餮",
                     "label": "$Option.Bank.PsychubeObservation.Taotie",
-                    "icon": "./resource/announcement/images/Equipment_suit-1000.png",
+                    "icon": "./tasks/images/Equipment_suit-1000.png",
                     "pipeline_override": {
                         "Gluttony": {
                             "enabled": true
@@ -92,7 +92,7 @@
                 {
                     "name": "蓝地球仪(心相观测)",
                     "label": "$Option.Bank.PsychubeObservation.BlueGlobe",
-                    "icon": "./resource/announcement/images/Item-180001.png",
+                    "icon": "./tasks/images/Item-180001.png",
                     "pipeline_override": {
                         "TinyGlobe(1)": {
                             "enabled": true
@@ -102,7 +102,7 @@
                 {
                     "name": "启寤Ⅱ",
                     "label": "$Option.Bank.PsychubeObservation.Enlighten2",
-                    "icon": "./resource/announcement/images/Equipment_suit-1003.png",
+                    "icon": "./tasks/images/Equipment_suit-1003.png",
                     "pipeline_override": {
                         "EnlightenmentII": {
                             "enabled": true
@@ -112,7 +112,7 @@
                 {
                     "name": "启寤Ⅰ",
                     "label": "$Option.Bank.PsychubeObservation.Enlighten1",
-                    "icon": "./resource/announcement/images/Equipment_suit-1002.png",
+                    "icon": "./tasks/images/Equipment_suit-1002.png",
                     "pipeline_override": {
                         "EnlightenmentI": {
                             "enabled": true
@@ -128,7 +128,7 @@
                 {
                     "name": "共鸣晶匣",
                     "label": "$Option.Bank.DreamNarrative.ResonanceCrystalBox",
-                    "icon": "./resource/announcement/images/Item-481005.png",
+                    "icon": "./tasks/images/Item-481005.png",
                     "pipeline_override": {
                         "ResonantCassette": {
                             "enabled": true
@@ -138,7 +138,7 @@
                 {
                     "name": "金瓜子(梦境记述)",
                     "label": "$Option.Bank.DreamNarrative.GoldSeed",
-                    "icon": "./resource/announcement/images/Item-120011.png",
+                    "icon": "./tasks/images/Item-120011.png",
                     "pipeline_override": {
                         "GoldenMelonSeeds": {
                             "enabled": true
@@ -148,7 +148,7 @@
                 {
                     "name": "原味鸡(梦境记述)",
                     "label": "$Option.Bank.DreamNarrative.OriginalChicken",
-                    "icon": "./resource/announcement/images/Item-120012.png",
+                    "icon": "./tasks/images/Item-120012.png",
                     "pipeline_override": {
                         "OriginalChicken": {
                             "enabled": true
@@ -158,7 +158,7 @@
                 {
                     "name": "大薯(梦境记述)",
                     "label": "$Option.Bank.DreamNarrative.LargeFries",
-                    "icon": "./resource/announcement/images/Item-120013.png",
+                    "icon": "./tasks/images/Item-120013.png",
                     "pipeline_override": {
                         "Fries": {
                             "enabled": true

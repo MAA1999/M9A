@@ -38,6 +38,7 @@ def prepare_release_project(
     languages: dict[str, str] | None = None,
     mxu: bool = False,
     platform: str = "win-x64",
+    welcome: list[str] | None = None,
 ) -> None:
     root.mkdir(exist_ok=True)
     write_json(root / "maa-project.lock.json", {"pending": []})
@@ -54,11 +55,14 @@ def prepare_release_project(
     }
     if languages is not None:
         interface["languages"] = languages
+    if welcome is not None:
+        interface["welcome"] = welcome
     write_json(root / "interface.json", interface)
 
     for relative_path in (
         "tasks",
         "resource",
+        "announcement",
         f"runtimes/{platform}/native",
         "libs/MaaAgentBinary",
         "plugins",
@@ -245,6 +249,31 @@ def test_release_package_includes_translation_files(tmp_path: Path) -> None:
         assert (package_root / relative_path).is_file(), f"{relative_path} is missing from the package"
     packaged_interface = json.loads((package_root / "interface.json").read_text(encoding="utf-8"))
     assert packaged_interface["languages"] == languages
+
+
+def test_release_package_includes_welcome_notices(tmp_path: Path) -> None:
+    languages = {"zh_cn": "locales/zh_cn.json"}
+    prepare_release_project(tmp_path, languages=languages, welcome=["$Welcome.1"])
+    (tmp_path / "locales").mkdir()
+    write_json(tmp_path / "locales/zh_cn.json", {"Welcome.1": "announcement/introduction.md"})
+    (tmp_path / "announcement/introduction.md").write_text("# intro\n", encoding="utf-8")
+
+    result = run_release_builder(tmp_path)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert (tmp_path / "dist/package-mfaa/announcement/introduction.md").is_file()
+
+
+def test_release_builder_rejects_missing_welcome_notice(tmp_path: Path) -> None:
+    languages = {"zh_cn": "locales/zh_cn.json"}
+    prepare_release_project(tmp_path, languages=languages, welcome=["$Welcome.1"])
+    (tmp_path / "locales").mkdir()
+    write_json(tmp_path / "locales/zh_cn.json", {"Welcome.1": "announcement/missing.md"})
+
+    result = run_release_builder(tmp_path)
+
+    assert result.returncode != 0
+    assert "release referenced path does not exist: announcement/missing.md" in result.stdout + result.stderr
 
 
 def test_release_package_omits_i18n_when_no_languages_declared(tmp_path: Path) -> None:

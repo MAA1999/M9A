@@ -13,6 +13,12 @@
     "version": "v0.1.0",
     "contact": "CONTACT",
     "license": "LICENSE",
+    "welcome": [
+        "$Welcome.1",
+        "$Welcome.2",
+        "$Welcome.3",
+        "$Welcome.4"
+    ],
     "telemetry": {
         "sentry": {
             "dsn": "https://1d1036e30562df13fb24ee19ff261ac3@o4511817821323264.ingest.us.sentry.io/4511856184459264"

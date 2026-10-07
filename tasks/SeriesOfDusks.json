@@ -9,7 +9,6 @@
                 "standalone"
             ],
             "option": [
-                "触媒选择",
                 "速刷模式",
                 "演绎难度"
             ]
@@ -22,8 +21,7 @@
             "cases": [
                 {
                     "name": "术式神灯",
-                    "label": "$Option.SeriesOfDusks.Catalyst.MagicLamp",
-                    "pipeline_override": {}
+                    "label": "$Option.SeriesOfDusks.Catalyst.MagicLamp"
                 },
                 {
                     "name": "石榴心血",
@@ -124,7 +122,7 @@
             "cases": [
                 {
                     "name": "No",
-                    "pipeline_override": {}
+                    "option": ["触媒选择"]
                 },
                 {
                     "name": "Yes",

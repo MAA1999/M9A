@@ -161,14 +161,15 @@ jobs:
           else
             ABIS="--abi arm64-v8a"
           fi
-          # pillow 走 Chaquopy 的索引，那里最高只有 11.0.0，requirements 的 12.3.0 装不进 Android
+          # 原生包降级表与 Chaquopy 版本化索引由 tools/android-packaging.mjs 的
+          # chaquopy_pins / chaquopy_index 输出给出（表在 resolver 里维护）
           python scripts/build_agent_bundle.py \
             --out "${GITHUB_WORKSPACE}/Android/agent-dist" \
             --core-tag "${{ steps.maafw.outputs.core_tag }}" \
+            ${{ steps.maafw.outputs.chaquopy_pins }} \
             $ABIS \
             --requirements "${GITHUB_WORKSPACE}/requirements.txt" \
-            --exclude pillow --require pillow==11.0.0 \
-            --extra-index-url https://chaquo.com/pypi-13.1/
+            --extra-index-url ${{ steps.maafw.outputs.chaquopy_index }}
 
       # OCR 模型由 MaaCommonAssets 子模块提供、不进 git；与桌面流程同一机制，
       # 由 maa-project.json 的 ocr 字段驱动，无项目特定路径
@@ -346,14 +347,15 @@ jobs:
         if: steps.maafw.outputs.has_agent == 'true'
         working-directory: Android/MaaFwApp
         run: |
-          # pillow 走 Chaquopy 的索引，那里最高只有 11.0.0，requirements 的 12.3.0 装不进 Android
+          # 原生包降级表与 Chaquopy 版本化索引由 tools/android-packaging.mjs 的
+          # chaquopy_pins / chaquopy_index 输出给出（表在 resolver 里维护）
           python scripts/build_agent_bundle.py \
             --out "${GITHUB_WORKSPACE}/Android/agent-dist" \
             --core-tag "${{ steps.maafw.outputs.core_tag }}" \
+            ${{ steps.maafw.outputs.chaquopy_pins }} \
             --abi "$ABI" \
             --requirements "${GITHUB_WORKSPACE}/requirements.txt" \
-            --exclude pillow --require pillow==11.0.0 \
-            --extra-index-url https://chaquo.com/pypi-13.1/
+            --extra-index-url ${{ steps.maafw.outputs.chaquopy_index }}
 
       - name: Sync OCR models
         run: pnpm dlx create-maa-project@latest --update ocr-models

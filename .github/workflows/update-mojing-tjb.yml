@@ -23,7 +23,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          target="resource/announcement/images/mojing_tjb.jpg"
+          target="tasks/images/mojing_tjb.jpg"
           tmp="$(mktemp)"
 
           curl -fsSL \
@@ -45,9 +45,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          git add resource/announcement/images/mojing_tjb.jpg
+          git add tasks/images/mojing_tjb.jpg
 
-          if git diff --cached --quiet -- resource/announcement/images/mojing_tjb.jpg; then
+          if git diff --cached --quiet -- tasks/images/mojing_tjb.jpg; then
             echo "No changes to commit"
             exit 0
           fi

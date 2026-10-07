@@ -25,7 +25,8 @@
                 "APMapAnalyze",
                 "ATTrailAnalyze",
                 "APCardFinder",
-                "CompareNumbers"
+                "CompareNumbers",
+                "HuaweiCloseAd"
             ]
         }
     },
@@ -95,6 +96,9 @@
         },
         {
             "$ref": "#/$defs/CompareNumbers"
+        },
+        {
+            "$ref": "#/$defs/HuaweiCloseAd"
         }
     ],
     "$defs": {
@@ -1128,6 +1132,56 @@
                         "roi",
                         "operator"
                     ],
+                    "additionalProperties": false
+                }
+            }
+        },
+        "HuaweiCloseAd": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "HuaweiCloseAd",
+                    "description": "华为服启动广告关闭按钮：多尺度笔画掩码匹配「圆圈+X」图标"
+                },
+                "custom_recognition_param": {
+                    "type": "object",
+                    "properties": {
+                        "roi": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "minItems": 4,
+                            "maxItems": 4,
+                            "description": "搜索区域 [x, y, w, h]，默认 [800, 0, 480, 400]（实测各广告的按钮都在 x 893~1111、y 14~236）"
+                        },
+                        "threshold": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "description": "F1 命中阈值，默认 0.65（真实广告实测 0.76~0.85，非图标画面 ≤0.58）"
+                        },
+                        "min_scale": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "description": "最小缩放（相对 64px 基准直径），默认 0.25（约 16px）。建议 ≥0.2：更小的模板在亮噪声区容易误命中"
+                        },
+                        "max_scale": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "description": "最大缩放，默认 1.0（约 64px 模板；实测广告按钮最大 51px，更小的上限更省未命中耗时的扫描尺度）"
+                        },
+                        "scale_step": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "description": "缩放步长，默认 0.015（步长过粗会导致尺寸量化跳变）"
+                        },
+                        "min_brightness": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 255,
+                            "description": "笔画像素灰度下限，默认 100（按钮笔画峰值仅 158~161）"
+                        }
+                    },
                     "additionalProperties": false
                 }
             }
