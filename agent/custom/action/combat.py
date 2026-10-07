@@ -570,8 +570,11 @@ class SelectCombatStage(CustomAction):
             logger.error("SelectCombatStage 节点不存在")
             return CustomAction.RunResult(success=False)
         level = node_obj.attach.get("level", "Hard")
-        # 库存保持按实际掉落提前停止时，把累计节点插进胜利链（节点定义见 balanced_farming.json）
+        # 库存保持按实际掉落提前停止时，把累计节点插进胜利链（节点定义见 balanced_farming.json）。
+        # 累计必须排在掉落识别之后、且两处都要挂：掉落识别命中会走它自己的 next，
+        # 只写在 TargetCountVictory.next 里会被绕过（可上报关卡的实测表现是快照不更新、重复刷）。
         depot_accumulate = bool(node_obj.attach.get("depot_accumulate", False))
+        victory_tail = [*(["BF_DepotAccumulate"] if depot_accumulate else []), "TargetCountVictoryClick"]
         logger.info(f"当前关卡: {stage}, 难度: {level}")
 
         # 拆分关卡编号，如 "5-19" 拆为 ["5", "19"]
@@ -609,11 +612,7 @@ class SelectCombatStage(CustomAction):
                 # 掉落识别相关节点
                 "TargetCountVictory": {
                     "action": {"type": "DoNothing"},
-                    "next": [
-                        "DropRecognition",
-                        *(["BF_DepotAccumulate"] if depot_accumulate else []),
-                        "TargetCountVictoryClick",
-                    ],
+                    "next": ["DropRecognition", *victory_tail],
                 },
                 "DropRecognition": {
                     "recognition": {
@@ -627,9 +626,7 @@ class SelectCombatStage(CustomAction):
                         "type": "Custom",
                         "param": {"custom_action": "DropRecognition"},
                     },
-                    "next": [
-                        "TargetCountVictoryClick",
-                    ],
+                    "next": victory_tail,
                 },
                 "TargetCountVictoryClick": _victory_click_node(),
             }
@@ -646,7 +643,7 @@ class SelectCombatStage(CustomAction):
                 # 不挂的话自读模式的快照不会更新，规划会反复刷同一批目标。
                 pipeline["TargetCountVictory"] = {
                     "action": {"type": "DoNothing"},
-                    "next": ["BF_DepotAccumulate", "TargetCountVictoryClick"],
+                    "next": list(victory_tail),
                 }
                 pipeline["TargetCountVictoryClick"] = _victory_click_node()
 

@@ -369,6 +369,43 @@ def test_select_combat_stage_wires_accumulate_for_resource_stage() -> None:
     assert click["action"] == {"type": "Click"}
 
 
+def test_select_combat_stage_wires_accumulate_after_drop_recognition() -> None:
+    """主线 + 库存保持：掉落识别命中后也经过累计节点（否则会被它的 next 绕过）。"""
+    captured: dict[str, object] = {}
+    context = SimpleNamespace(
+        get_node_object=lambda _name: SimpleNamespace(attach={"level": None, "depot_accumulate": 1}),
+        override_pipeline=lambda pipeline: captured.update(pipeline),
+    )
+    argv = SimpleNamespace(custom_action_param='{"stage": "7-7"}')
+
+    result = SelectCombatStage().run(context, argv)  # type: ignore[arg-type]
+
+    assert result.success
+    drop = captured["DropRecognition"]
+    assert isinstance(drop, dict)
+    assert drop["next"] == ["BF_DepotAccumulate", "TargetCountVictoryClick"]
+    victory = captured["TargetCountVictory"]
+    assert isinstance(victory, dict)
+    assert victory["next"] == ["DropRecognition", "BF_DepotAccumulate", "TargetCountVictoryClick"]
+
+
+def test_select_combat_stage_keeps_main_story_chain_without_depot() -> None:
+    """未开启库存保持时主线胜利链保持原样（掉落后直接点掉）。"""
+    captured: dict[str, object] = {}
+    context = SimpleNamespace(
+        get_node_object=lambda _name: SimpleNamespace(attach={"level": None}),
+        override_pipeline=lambda pipeline: captured.update(pipeline),
+    )
+    argv = SimpleNamespace(custom_action_param='{"stage": "7-7"}')
+
+    result = SelectCombatStage().run(context, argv)  # type: ignore[arg-type]
+
+    assert result.success
+    drop = captured["DropRecognition"]
+    assert isinstance(drop, dict)
+    assert drop["next"] == ["TargetCountVictoryClick"]
+
+
 def test_select_combat_stage_keeps_resource_victory_chain_without_depot() -> None:
     """未开启库存保持时资源本流程不覆写胜利链。"""
     captured: dict[str, object] = {}
