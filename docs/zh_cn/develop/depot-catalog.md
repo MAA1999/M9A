@@ -153,7 +153,7 @@ icon: material-symbols:inventory-2-outline-rounded
 - 数量条在图块底部：`[box.x + 22, 613, box.w - 44, 17]`，**已越出 `DropRegionRec` 的 roi 下沿**，必须按命中 box 推算；读数字前先做灰度二值化（`agent/utils/settlement_drops.py` 的 `filter_digit_colors`）
 - 累计来源二选一，由 `DepotMaintainAccumulate` 在规划时决定：官方发布版优先读 drop_core 的 `DropRecognitionState.total_drops`（要求该关卡在 `drop_index.json` 有验证数据、且「掉落统计上报」未关闭）；否则自读结算行。同一判断也决定本轮是否在胜利链里启用 `DropRecognition`——表外关卡不参与掉落上报
 - 达标后按「当前批次收尾」：把本批设为最后一批，交给既有 `TargetCountProgress` 正常结束，不在结算页做任何退出操作（代价是最多多刷 3 局）
-- 一轮作战补一种材料；`TargetCountFinish.next` 被覆写为回到 `BF_Plan`，于是同一次任务会继续补下一种缺口材料，直到：全部达标、上一轮没打成（体力不足 / 无法复现）、或达到轮数上限（`MAX_ROUNDS_PER_TASK`，默认 50）
+- 一轮作战补一种材料；`TargetCountFinish.next` 被覆写为回到 `BF_Plan`，于是同一次任务会继续补下一种缺口材料，直到：全部达标、上一轮没打成（体力不足 / 无法复现）、或达到轮数上限（`MAX_ROUNDS_PER_TASK`，默认 50）。**续刷同一关卡不回主界面**：库存保持模式下批次达标由 `combat.depot_batch_end_node()` 直接交回 `BF_Plan`（跳过 `TargetCountFinish` 的回家），规划节点探到关卡页「复现」按钮可见就用 `AllIn` 就地重选复现次数；换材料/换关卡或已经回到主界面时仍走 `Combat` 全量导航。就地结束时不会经过 `TargetCountFinish`，收尾的掉落总结与回主界面由 `DepotMaintainDone` 兜底
 - 每局把已确认的掉落增量写回仓库快照；`updated_at` 保持不变（它表示上次全量扫描时间），只更新 `counts`
 - 没有掉落模板的固定掉落关卡走估算模式，此时由**规划节点在每轮结束时按「本轮实际局数 × per_run」回写**（按轮号记账，一轮只结一次；同一轮内因快照回扫重入不会重复写）。不回写的话快照永远停在旧值，多轮循环会反复刷同一种材料
 - 仓库图标（`Warehouse/Item-<id>.png`，紧贴裁切）与掉落图标（`Items_processed/`）是两套不同素材，交叉匹配分数低于 0.6：要参与库存保持并核对逐局掉落的材料，两套模板都要准备

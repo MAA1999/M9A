@@ -771,6 +771,18 @@ def battles_done() -> int:
     return _TargetCountState.already_count
 
 
+# 库存保持的规划节点（定义在 balanced_farming.json）
+DEPOT_PLAN_NODE = "BF_Plan"
+
+
+def depot_batch_end_node(context: Context) -> str:
+    """批次结束时的去向：库存保持留在关卡页把控制权交回规划节点（就地续刷），否则回主界面收尾。"""
+    node = context.get_node_object("SelectCombatStage")
+    if node is not None and bool(node.attach.get("depot_accumulate", False)):
+        return DEPOT_PLAN_NODE
+    return "TargetCountFinish"
+
+
 @AgentServer.custom_action("RecordNoFreePsychube")
 class RecordNoFreePsychube(CustomAction):
     """
@@ -831,7 +843,7 @@ class TargetCountDetermine(CustomAction):
 
         # 已达到目标次数，结束任务
         if _TargetCountState.already_count >= _TargetCountState.target_count:
-            context.override_next("TargetCountDetermine", ["TargetCountFinish"])
+            context.override_next("TargetCountDetermine", [depot_batch_end_node(context)])
             return CustomAction.RunResult(success=True)
 
         if _tc_is_psychube_stage() and not _TargetCountState.free_used:
@@ -1017,7 +1029,7 @@ class TargetCountProgress(CustomAction):
 
         if _TargetCountState.already_count >= _TargetCountState.target_count:
             logger.info("达到目标次数，准备结束任务")
-            context.override_next("TargetCountProgress", ["TargetCountFinish"])
+            context.override_next("TargetCountProgress", [depot_batch_end_node(context)])
         else:
             context.override_next("TargetCountProgress", ["TargetCountDetermine"])
 

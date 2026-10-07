@@ -34,7 +34,7 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 from utils import logger
-from utils.maa_types import ocr_text
+from utils.maa_types import is_hit, ocr_text
 from utils.material_catalog import (
     SOURCE_CHARACTER,
     SOURCE_WAREHOUSE,
@@ -115,7 +115,7 @@ class _PlanState:
     stopped = False
     rounds = 0
     completed: list[str] = []
-    per_run = 1
+    per_run: int | None = None
     committed_round = 0
     baseline_captured = False
     candy_base_enabled = True
@@ -541,6 +541,12 @@ def _settlement_or_estimate(item_id: str, label: str) -> str:
     return READ_ESTIMATE
 
 
+def _replay_ui_visible(context: Context) -> bool:
+    """关卡页的「复现」按钮是否可见：可见说明上一批就地在关卡页结束，可直接重选次数续刷。"""
+    img = context.tasker.controller.post_screencap().wait().get()
+    return is_hit(context.run_recognition("TargetCountWaitReplay", img))
+
+
 def _observed_drops(context: Context) -> int:
     """本任务已确认的掉落数：优先 drop_core 累计，其次结算页自读累计。
 
@@ -609,12 +615,15 @@ def _commit_estimate_progress() -> None:
 
     battles = battles_done()
     _state.committed_round = _state.rounds
-    gained = battles * max(_state.per_run, 1)
+    gained = battles * max(_state.per_run or 1, 1)
     if gained <= 0:
         return
 
     _persist_snapshot(_state.persisted + gained)
-    logger.info(f"按实际局数回写库存: {_state.item_name} +{gained}（{battles} 局 × {_state.per_run}）")
+    if _state.per_run:
+        logger.info(f"按实际局数回写库存: {_state.item_name} +{gained}（{battles} 局 × 每局 {_state.per_run} 个）")
+    else:
+        logger.info(f"按实际局数回写库存: {_state.item_name} +{gained}（{battles} 局，按每局至少 1 个估算）")
 
 
 @AgentServer.custom_action("DepotMaintainAccumulate")
@@ -673,7 +682,7 @@ class DepotMaintainInit(CustomAction):
         _state.stopped = False
         _state.rounds = 0
         _state.completed = []
-        _state.per_run = 1
+        _state.per_run = None
         _state.committed_round = 0
         _state.baseline_captured = False
         _state.candy_base_enabled = True
@@ -791,12 +800,20 @@ class DepotMaintainPlan(CustomAction):
         runs = runs_for(deficit, entry)
         label = material_label(entry.item_id, catalog)
         _state.read_mode = _pick_read_mode(context, entry.item_id, label, entry.stage.code, entry.level)
+        # 未登记 per_run 的材料掉落量不确定，不向用户报「每局约 N 个」这种估算出来的确定数
+        if entry.per_run:
+            pace = f"每局约 {entry.per_run} 个，最多刷 {runs} 局（按实际掉落提前停止）"
+        else:
+            pace = "按实际掉落提前停止"
         logger.info(
             f"库存保持目标: {label} 当前 {inventory[entry.item_id]} / "
             f"目标 {targets.get(entry.item_id, 0)}，缺口 {deficit}，"
-            f"每局约 {entry.per_run or 1} 个，最多刷 {runs} 局（按实际掉落提前停止）"
-            f"{candy_note(entry.item_id, candy_caps)}，关卡 {entry.stage.code} {entry.level}"
+            f"{pace}{candy_note(entry.item_id, candy_caps)}，关卡 {entry.stage.code} {entry.level}"
         )
+
+        # 同一关卡续刷且上一批就地在关卡页结束（复现按钮可见）→ 直接重选复现次数，
+        # 省去回主界面再重新导航进关卡的往返
+        previous_stage, previous_level = _state.stage, _state.level
 
         _state.rounds += 1
         _state.item_id = entry.item_id
@@ -808,7 +825,7 @@ class DepotMaintainPlan(CustomAction):
         _state.observed = 0
         _state.persisted = 0
         _state.stopped = False
-        _state.per_run = entry.per_run or 1
+        _state.per_run = entry.per_run
 
         context.override_pipeline(
             {
@@ -825,7 +842,12 @@ class DepotMaintainPlan(CustomAction):
                 **report_override(context, entry.stage.code, entry.level),
             }
         )
-        context.override_next(PLAN_NODE, ["Combat"])
+        same_stage = previous_stage == entry.stage.code and previous_level == entry.level
+        if same_stage and _replay_ui_visible(context):
+            logger.debug("上一批就地在关卡页结束，直接重选复现次数续刷")
+            context.override_next(PLAN_NODE, ["AllIn"])
+        else:
+            context.override_next(PLAN_NODE, ["Combat"])
         return CustomAction.RunResult(success=True)
 
 
@@ -931,4 +953,10 @@ class DepotMaintainDone(CustomAction):
             logger.info(f"库存保持结束: {_state.item_name} 未达标（缺口 {_state.deficit}）")
         else:
             logger.info("库存保持结束：本次无需刷取")
+
+        # 续刷批次就地在关卡页结束时不会经过 TargetCountFinish，收尾在此补掉落总结与回主界面
+        if _drop_core_available:
+            DropRecognitionState.print_total_summary(context)
+            DropRecognitionState.reset_total()
+        context.run_task("HomeButton")
         return CustomAction.RunResult(success=True)

@@ -14,6 +14,7 @@ from agent.custom.action.combat import (
     TargetCountCandyRoute,
     TargetCountDetermine,
     TargetCountEatCandy,
+    TargetCountProgress,
     TargetCountSelectTimes,
     _TargetCountPage,
     _TargetCountState,
@@ -49,16 +50,27 @@ class _ScreenshotRequest:
 
 
 class _RecognitionContext:
-    def __init__(self, results: dict[str, RecognitionDetail | None], eat_candy_enabled: bool = True) -> None:
+    def __init__(
+        self,
+        results: dict[str, RecognitionDetail | None],
+        eat_candy_enabled: bool = True,
+        attach: dict[str, object] | None = None,
+    ) -> None:
         self.results = results
         self.calls: list[str] = []
         self.eat_candy_enabled = eat_candy_enabled
+        self.attach = attach or {}
         self.override: tuple[str, list[str]] | None = None
         self.tasker = SimpleNamespace(controller=SimpleNamespace(post_screencap=lambda: _ScreenshotRequest()))
 
     def run_recognition(self, name: str, _image: object) -> RecognitionDetail | None:
         self.calls.append(name)
         return self.results.get(name)
+
+    def get_node_object(self, name: str) -> object | None:
+        if name != "SelectCombatStage":
+            return None
+        return SimpleNamespace(attach=self.attach)
 
     def get_node_data(self, name: str) -> dict[str, object] | None:
         if name != "EatCandy":
@@ -246,6 +258,51 @@ def test_determine_keeps_eat_candy_next_when_enabled(monkeypatch: pytest.MonkeyP
 
     assert result.success
     assert context.override == ("TargetCountDetermine", ["TargetCountEatCandy"])
+
+
+def test_determine_routes_depot_batch_end_to_plan(monkeypatch: pytest.MonkeyPatch) -> None:
+    """库存保持：批次达标后留在关卡页交回规划节点，不回主界面。"""
+    _reset_target_count_state(monkeypatch)
+    monkeypatch.setattr(_TargetCountState, "already_count", 10)
+    context = _RecognitionContext({}, attach={"depot_accumulate": 1})
+
+    result = TargetCountDetermine().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountDetermine", ["BF_Plan"])
+
+
+def test_determine_finishes_when_depot_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
+    """未开启库存保持时批次达标仍回主界面收尾。"""
+    _reset_target_count_state(monkeypatch)
+    monkeypatch.setattr(_TargetCountState, "already_count", 10)
+    context = _RecognitionContext({})
+
+    result = TargetCountDetermine().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountDetermine", ["TargetCountFinish"])
+
+
+def test_progress_routes_depot_batch_end_to_plan(monkeypatch: pytest.MonkeyPatch) -> None:
+    _reset_target_count_state(monkeypatch)
+    monkeypatch.setattr(_TargetCountState, "already_count", 10)
+    context = _RecognitionContext({}, attach={"depot_accumulate": 1})
+
+    result = TargetCountProgress().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountProgress", ["BF_Plan"])
+
+
+def test_progress_continues_in_stage_without_depot(monkeypatch: pytest.MonkeyPatch) -> None:
+    _reset_target_count_state(monkeypatch)
+    context = _RecognitionContext({})
+
+    result = TargetCountProgress().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountProgress", ["TargetCountDetermine"])
 
 
 def test_ss_reopen_stops_when_initial_availability_is_unknown(monkeypatch: pytest.MonkeyPatch) -> None:

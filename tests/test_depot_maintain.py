@@ -708,6 +708,39 @@ def test_plan_material_override_steers_selection(monkeypatch: pytest.MonkeyPatch
     assert pipeline["SelectCombatStage"]["action"]["param"]["custom_action_param"]["stage"] == "7-26"
 
 
+def test_plan_continues_in_place_when_replay_ui_visible(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """同一关卡续刷且「复现」按钮可见时，直接重选复现次数，不再回主界面重新导航。"""
+    (tmp_path / "Item-110103.png").write_bytes(b"")
+    monkeypatch.setattr(depot_maintain, "DROP_TEMPLATE_DIR", tmp_path)
+    harness = _PlanHarness(
+        monkeypatch,
+        snapshot=_snapshot({"110103": 100, "110203": 100}),
+        overrides={"110103": 200, "110203": 200},
+    )
+    harness.context.ocr_texts = {"TargetCountWaitReplay": "复现"}
+
+    assert harness.plan().success
+    assert harness.context.next_overrides[-1] == ["Combat"]  # 第一轮还没在关卡页
+
+    assert harness.plan().success
+    assert harness.context.next_overrides[-1] == ["AllIn"]
+
+
+def test_plan_reenters_stage_when_replay_ui_missing(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """回合结束若已回主界面（复现按钮不可见），下一轮仍走完整导航。"""
+    (tmp_path / "Item-110103.png").write_bytes(b"")
+    monkeypatch.setattr(depot_maintain, "DROP_TEMPLATE_DIR", tmp_path)
+    harness = _PlanHarness(
+        monkeypatch,
+        snapshot=_snapshot({"110103": 100, "110203": 100}),
+        overrides={"110103": 200, "110203": 200},
+    )
+
+    assert harness.plan().success
+    assert harness.plan().success
+    assert harness.context.next_overrides[-1] == ["Combat"]
+
+
 def test_plan_fails_when_catalog_broken(monkeypatch: pytest.MonkeyPatch) -> None:
     """材料目录非法时明确失败，不静默跳过库存保持。"""
     harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 1}))
