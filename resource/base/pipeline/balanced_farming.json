@@ -1,9 +1,85 @@
 {
     "BalancedFarming": {
+        "desc": "任务入口：重置库存保持规划状态",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DepotMaintainInit"
+            }
+        },
+        "next": [
+            "BF_Plan",
+            "[JumpBack]ReturnMain"
+        ]
+    },
+    "BF_Plan": {
+        "desc": "库存保持规划：读仓库快照与目标库存，决定刷取目标、刷新快照或退回原有流程",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DepotMaintainPlan"
+            }
+        },
         "next": [
             "BF_EnterWarehouse",
             "[JumpBack]ReturnMain"
         ]
+    },
+    "BF_Refresh": {
+        "desc": "库存保持：快照过期或缺失时执行一次仓库全量扫描",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DepotMaintainRefresh"
+            }
+        },
+        "next": [
+            "BF_Plan"
+        ]
+    },
+    "BF_Done": {
+        "desc": "库存保持：全部达标或试运行结束，直接收尾",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DepotMaintainDone"
+            }
+        }
+    },
+    "BF_DryRunFlag": {
+        "desc": "库存保持试运行开关，由 DepotMaintainPlan 读取 enabled",
+        "enabled": false,
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "action": {
+            "type": "DoNothing"
+        }
+    },
+    "BF_DepotAccumulate": {
+        "desc": "库存保持：结算页累计本局掉落，达标后当前批次收尾（由 SelectCombatStage 按 attach.depot_accumulate 挂进胜利链）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    240
+                ],
+                "expected": [
+                    "战斗",
+                    "胜利"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DepotMaintainAccumulate"
+            }
+        },
+        "next": []
     },
     "BF_EnterWarehouse": {
         "desc": "主界面左侧栏点击仓库入口",
