@@ -196,6 +196,9 @@ def read_snapshot(path: Path = SNAPSHOT_PATH) -> dict[str, Any] | None:
     """读取仓库扫描快照（WarehouseInventory 任务落盘）。"""
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        logger.debug(f"尚未生成库存数据（{path}），本次将先刷新")
+        return None
     except OSError as exc:
         logger.warning(f"读取库存数据失败（{path}）: {exc}")
         return None

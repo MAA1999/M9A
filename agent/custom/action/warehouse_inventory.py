@@ -141,7 +141,7 @@ class WarehouseInventoryScan(CustomAction):
             if values:
                 counts[item_id] = self._best_count(values)
                 if len(set(values)) > 1:
-                    logger.warning(f"材料 {label} 多次读数不一致 {values}，取 {counts[item_id]}")
+                    logger.debug(f"材料 {label} 多次读数不一致 {values}，取 {counts[item_id]}")
             elif item_id in unreadable:
                 logger.warning(f"材料 {label} 数量识别失败，跳过")
                 skipped.append(item_id)
@@ -255,10 +255,22 @@ class WarehouseInventoryScan(CustomAction):
         Returns:
             (是否找到图标, 数量)，图标找到但数量识别失败时数量为 None。
         """
+        # order_by=Score：默认按位置取最左达标框，同族近似图标会串号取到别家数量；
+        # green_mask：典类模板仅保留徽记区域（其余涂纯绿），把跨材料近似匹配压到阈值之下
         reco_detail = context.run_recognition(
             "BF_ItemIcon",
             img,
-            {"BF_ItemIcon": {"recognition": {"param": {"template": f"Warehouse/Item-{item_id}.png"}}}},
+            {
+                "BF_ItemIcon": {
+                    "recognition": {
+                        "param": {
+                            "template": f"Warehouse/Item-{item_id}.png",
+                            "order_by": "Score",
+                            "green_mask": True,
+                        }
+                    }
+                }
+            },
         )
         box = best_box(reco_detail)
         if box is None:
