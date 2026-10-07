@@ -1,6 +1,7 @@
 import html
 import logging
 import os
+import re
 import sys
 from logging.handlers import TimedRotatingFileHandler
 from typing import Any
@@ -72,9 +73,18 @@ def _ansi_level_color(level_name: str) -> str:
     return ANSI_LEVEL_COLORS.get(level_name, "")
 
 
+# MXU 的日志面板按 HTML 渲染。消息整体转义后只还原 material_catalog.colorize_name
+# 产出的白名单标记（纯色名 + 六位色值），其余内容保持转义，避免注入。
+_ESCAPED_FONT_MARKUP_RE = re.compile(r"&lt;font color=&quot;(#[0-9A-Fa-f]{6})&quot;&gt;(.*?)&lt;/font&gt;")
+
+
+def _restore_font_markup(escaped: str) -> str:
+    return _ESCAPED_FONT_MARKUP_RE.sub(lambda m: f'<font color="{m.group(1)}">{m.group(2)}</font>', escaped)
+
+
 def _format_mxu_html_message(level_name: str, message: str) -> str:
     color = HTML_LEVEL_COLORS.get(level_name, "inherit")
-    escaped = html.escape(message)
+    escaped = _restore_font_markup(html.escape(message))
     lines = escaped.split("\n")
     wrapped = [f'<span style="color:{color};">{line}</span>' for line in lines]
     return "\n".join(wrapped)
