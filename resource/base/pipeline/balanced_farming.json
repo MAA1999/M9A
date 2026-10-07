@@ -181,7 +181,9 @@
                     630
                 ],
                 "template": "Warehouse/Item-110103.png",
-                "threshold": 0.9
+                "green_mask": true,
+                "threshold": 0.9,
+                "order_by": "Score"
             }
         }
     },
