@@ -558,6 +558,8 @@ class SelectCombatStage(CustomAction):
             logger.error("SelectCombatStage 节点不存在")
             return CustomAction.RunResult(success=False)
         level = node_obj.attach.get("level", "Hard")
+        # 库存保持按实际掉落提前停止时，把累计节点插进胜利链（节点定义见 balanced_farming.json）
+        depot_accumulate = bool(node_obj.attach.get("depot_accumulate", False))
         logger.info(f"当前关卡: {stage}, 难度: {level}")
 
         # 拆分关卡编号，如 "5-19" 拆为 ["5", "19"]
@@ -595,7 +597,11 @@ class SelectCombatStage(CustomAction):
                 # 掉落识别相关节点
                 "TargetCountVictory": {
                     "action": {"type": "DoNothing"},
-                    "next": ["DropRecognition", "TargetCountVictoryClick"],
+                    "next": [
+                        "DropRecognition",
+                        *(["BF_DepotAccumulate"] if depot_accumulate else []),
+                        "TargetCountVictoryClick",
+                    ],
                 },
                 "DropRecognition": {
                     "recognition": {
@@ -750,6 +756,16 @@ def _tc_is_psychube_stage() -> bool:
 def _tc_is_eat_candy_disabled(context: Context) -> bool:
     node = context.get_node_data("EatCandy")
     return node is not None and not node.get("enabled", True)
+
+
+def request_combat_stop() -> None:
+    """把当前批次设为最后一批：本批复现结束后由 TargetCountProgress 正常收尾。"""
+    _TargetCountState.target_count = _TargetCountState.already_count + _TargetCountState.current_times
+
+
+def battles_done() -> int:
+    """本轮作战已完成的战斗场次（由 TargetCountInit 在每轮开始时清零）。"""
+    return _TargetCountState.already_count
 
 
 @AgentServer.custom_action("RecordNoFreePsychube")

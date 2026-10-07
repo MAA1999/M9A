@@ -1,7 +1,7 @@
 import numpy as np
 from maa.define import BoxAndScoreResult, OCRResult, RecognitionDetail, Rect
 
-from agent.custom.action.balanced_farming import BalancedFarmingAnalyze
+from agent.custom.action.balanced_farming import BalancedFarmingAnalyze, warehouse_materials
 
 
 def _icon_detail(box: tuple[int, int, int, int] | None) -> RecognitionDetail:
@@ -58,6 +58,19 @@ class _FakeContext:
 
 def _analyze() -> BalancedFarmingAnalyze:
     return BalancedFarmingAnalyze.__new__(BalancedFarmingAnalyze)
+
+
+def test_warehouse_materials_skips_character_source() -> None:
+    """货币类材料（source=character）不在仓库页，旧流程不能把它们算进「取最少」。"""
+    raw = {
+        "110103": {"name": "啮咬盒", "stage": "7-26", "level": "Hard"},
+        "205": {"name": "微尘", "stage": "LP-06", "level": "None", "source": "character"},
+        "203": {"name": "利齿子儿", "stage": "MA-06", "level": "None", "source": "character"},
+    }
+    assert set(warehouse_materials(raw)) == {"110103"}
+
+    assert warehouse_materials(None) == {}
+    assert warehouse_materials({"110103": "not-a-dict"}) == {}
 
 
 def test_count_roi_is_middle_half_anchored_to_icon_bottom() -> None:

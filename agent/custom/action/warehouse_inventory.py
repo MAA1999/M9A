@@ -11,6 +11,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from utils import logger
 from utils.maa_types import best_box, ocr_text
+from utils.material_catalog import colorize_name
 
 
 def parse_count_from_text(text: str) -> int | None:
@@ -113,7 +114,7 @@ class WarehouseInventoryScan(CustomAction):
             logger.info(f"仓库扫描第 {page + 1}/{self._MAX_SCROLL_PAGES} 屏")
             img = context.tasker.controller.post_screencap().wait().get()
             for item_id in with_template:
-                found, count = self._recognize_item(context, img, item_id)
+                found, count = self._recognize_item(context, img, item_id, with_template[item_id]["name"])
                 if not found:
                     continue
                 if count is None:
@@ -136,18 +137,16 @@ class WarehouseInventoryScan(CustomAction):
         counts: dict[str, int] = {}
         skipped: list[str] = []
         for item_id, values in readings.items():
+            label = colorize_name(with_template[item_id]["name"], with_template[item_id]["rarity"])
             if values:
                 counts[item_id] = self._best_count(values)
                 if len(set(values)) > 1:
-                    logger.warning(
-                        f"材料 {with_template[item_id]['name']}({item_id}) "
-                        f"多次读数不一致 {values}，取 {counts[item_id]}"
-                    )
+                    logger.warning(f"材料 {label} 多次读数不一致 {values}，取 {counts[item_id]}")
             elif item_id in unreadable:
-                logger.warning(f"材料 {with_template[item_id]['name']}({item_id}) 数量识别失败，跳过")
+                logger.warning(f"材料 {label} 数量识别失败，跳过")
                 skipped.append(item_id)
             else:
-                logger.warning(f"仓库中未找到材料 {with_template[item_id]['name']}({item_id})，按 0 计")
+                logger.warning(f"仓库中未找到材料 {label}，按 0 计")
                 counts[item_id] = 0
 
         if not counts:
@@ -157,9 +156,24 @@ class WarehouseInventoryScan(CustomAction):
         # 落盘 JSON：包含数量快照 + 元信息，供未来功能读取。
         # 顺序与 data/combat/items.json 一致：按品质等级（金→黄→紫→蓝→绿）排列，
         # 同品级内按 items.json 中的条目顺序（with_template 保留了该插入顺序）。
+        scanned = {item_id: counts[item_id] for item_id in with_template if item_id in counts}
+        # 保留本次没扫的既有读数（如库存保持的角色页读数）与其时间戳，避免被整表重写挤掉
+        kept: dict[str, Any] = {}
+        carry: dict[str, Any] = {}
+        try:
+            with open(self._OUTPUT_PATH, encoding="utf-8") as f:
+                previous = json.load(f)
+            if isinstance(previous, dict):
+                prev_counts = previous.get("counts")
+                if isinstance(prev_counts, dict):
+                    kept = {k: v for k, v in prev_counts.items() if k not in scanned}
+                if "currency_updated_at" in previous:
+                    carry["currency_updated_at"] = previous["currency_updated_at"]
+        except (OSError, json.JSONDecodeError):
+            pass
         output = {
             "updated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "counts": {item_id: counts[item_id] for item_id in with_template if item_id in counts},
+            "counts": {**kept, **scanned},
             "skipped": [item_id for item_id in with_template if item_id in skipped],
             "materials": {
                 item_id: {
@@ -168,19 +182,26 @@ class WarehouseInventoryScan(CustomAction):
                 }
                 for item_id in with_template
             },
+            **carry,
         }
         try:
             self._write_snapshot(output)
         except OSError as e:
-            logger.error(f"写入仓库数量快照失败: {self._OUTPUT_PATH}, {e}")
+            logger.error(f"写入库存数据失败: {self._OUTPUT_PATH}, {e}")
             return CustomAction.RunResult(success=False)
 
         summary = ", ".join(
-            f"{with_template[item_id]['name']}x{counts[item_id]}" for item_id in with_template if item_id in counts
+            f"{colorize_name(with_template[item_id]['name'], with_template[item_id]['rarity'])}x{counts[item_id]}"
+            for item_id in with_template
+            if item_id in counts
         )
-        logger.info(f"仓库材料数量已保存到 {self._OUTPUT_PATH}: {summary}")
+        logger.info(f"已读取仓库材料数量: {summary}")
+        logger.debug(f"库存数据已保存到 {self._OUTPUT_PATH}")
         if skipped:
-            logger.warning(f"本次跳过（数量识别失败）: {skipped}")
+            names = "、".join(
+                colorize_name(with_template[item_id]["name"], with_template[item_id]["rarity"]) for item_id in skipped
+            )
+            logger.warning(f"本次数量识别失败已跳过: {names}")
 
         return CustomAction.RunResult(success=True)
 
@@ -228,7 +249,7 @@ class WarehouseInventoryScan(CustomAction):
         # 无众数：取最小值（装饰条误读把数字读大，取最小消除此类误读）
         return min(values)
 
-    def _recognize_item(self, context: Context, img: Any, item_id: str) -> tuple[bool, int | None]:
+    def _recognize_item(self, context: Context, img: Any, item_id: str, name: str = "") -> tuple[bool, int | None]:
         """匹配单个材料图标并识别其下方数量。
 
         Returns:
@@ -277,7 +298,7 @@ class WarehouseInventoryScan(CustomAction):
             if count is not None:
                 candidates.append(count)
         if not candidates:
-            logger.warning(f"材料 {item_id} 图标已找到但数量识别失败")
+            logger.debug(f"材料 {name or item_id} 本屏图标已找到但数量识别失败（可能别的屏能读到）")
             return True, None
         # 多个偏移读数用 _best_count 聚合（众数优先，无众数取最长位数），
         # 与跨屏聚合策略一致，避免平局时依赖偏移顺序。
