@@ -159,9 +159,7 @@ class _PlanHarness:
         sample = raw or _SAMPLE_RAW
         monkeypatch.setattr(depot_maintain, "read_snapshot", lambda path=None: snapshot)
         monkeypatch.setattr(depot_maintain, "load_target_overrides", lambda path=None: overrides or {})
-        monkeypatch.setattr(
-            depot_maintain, "load_catalog", lambda path=None: build_catalog(sample, source="unit-test")
-        )
+        monkeypatch.setattr(depot_maintain, "load_catalog", lambda path=None: build_catalog(sample, source="unit-test"))
         monkeypatch.setattr(depot_maintain, "request_combat_stop", self._record_stop)
         monkeypatch.setattr(depot_maintain, "battles_done", lambda: 4)
         DepotMaintainInit().run(self.context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
@@ -618,9 +616,7 @@ def test_parse_gui_targets_currency_accepts_k_m_suffixes() -> None:
     assert parse_gui_targets(params, catalog) == {"205": 5_000_000, "110203": 300}
 
 
-def test_currency_read_writes_snapshot_and_returns_home(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_currency_read_writes_snapshot_and_returns_home(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """读到两个缩写数字后合并进快照，并调用返回主界面的子任务。"""
     snapshot = tmp_path / "warehouse_inventory.json"
     snapshot.write_text(json.dumps({"updated_at": "2026-10-08 00:00:00", "counts": {}}), encoding="utf-8")
@@ -691,7 +687,6 @@ def test_plan_done_when_all_satisfied(monkeypatch: pytest.MonkeyPatch) -> None:
     harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 100, "110203": 100}))
     assert harness.plan().success
     assert harness.context.next_overrides == [["BF_Done"]]
-
 
 
 def test_plan_material_override_steers_selection(monkeypatch: pytest.MonkeyPatch) -> None:

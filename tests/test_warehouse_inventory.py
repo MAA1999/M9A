@@ -162,9 +162,7 @@ def test_run_preserves_foreign_readings(tmp_path: Path, monkeypatch: pytest.Monk
     )
     monkeypatch.setattr("agent.custom.action.warehouse_inventory.time.sleep", lambda s: None)
     monkeypatch.setattr(scan, "_has_template", lambda item_id: True)
-    monkeypatch.setattr(
-        scan, "_recognize_item", lambda context, img, item_id, name="": (True, 5)
-    )
+    monkeypatch.setattr(scan, "_recognize_item", lambda context, img, item_id, name="": (True, 5))
 
     assert scan.run(_FakeContext(), _FAKE_ARGV).success  # pyright: ignore[reportArgumentType]
 
@@ -203,9 +201,7 @@ def test_run_separates_counts_skipped_and_writes_output(tmp_path: Path, monkeypa
     monkeypatch.setattr("agent.custom.action.warehouse_inventory.time.sleep", lambda s: None)
     monkeypatch.setattr(scan, "_has_template", lambda item_id: True)
 
-    def fake_recognize(
-        context: _FakeContext, img: object, item_id: str, name: str = ""
-    ) -> tuple[bool, int | None]:
+    def fake_recognize(context: _FakeContext, img: object, item_id: str, name: str = "") -> tuple[bool, int | None]:
         if item_id == "111004":
             return True, 5  # 正常读到数量
         if item_id == "110104":
