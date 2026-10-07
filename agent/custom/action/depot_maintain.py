@@ -790,8 +790,8 @@ class DepotMaintainPlan(CustomAction):
         decision = pick_target(catalog, inventory, targets)
         if decision is None:
             # 上一轮刷的材料此时已达标（估算模式要在回写后才看到），补记进收尾总结，免得误报「未达标」
-            if _state.item_id and _state.item_id not in _state.completed:
-                _state.completed.append(_state.item_id)
+            if _state.item_name and _state.item_name not in _state.completed:
+                _state.completed.append(_state.item_name)
             logger.info(f"参与库存保持的 {len(tracked)} 种材料均已达到目标库存，任务结束")
             context.override_next(PLAN_NODE, [DONE_NODE])
             return CustomAction.RunResult(success=True)
@@ -954,9 +954,10 @@ class DepotMaintainDone(CustomAction):
         else:
             logger.info("库存保持结束：本次无需刷取")
 
-        # 续刷批次就地在关卡页结束时不会经过 TargetCountFinish，收尾在此补掉落总结与回主界面
+        # 续刷批次就地在关卡页结束时不会经过 TargetCountFinish，收尾在此补掉落总结与回主界面；
+        # 用 ReturnMain 而不是单点 HomeButton——关卡页等界面需要多级返回，单击可能落空
         if _drop_core_available:
             DropRecognitionState.print_total_summary(context)
             DropRecognitionState.reset_total()
-        context.run_task("HomeButton")
+        context.run_task("ReturnMain")
         return CustomAction.RunResult(success=True)

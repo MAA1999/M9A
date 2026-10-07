@@ -687,7 +687,7 @@ def test_plan_marks_completed_when_all_satisfied_after_round(monkeypatch: pytest
     snapshot["counts"]["110203"] = 100  # 估算/自读回写后已达标
     assert harness.plan().success
     assert harness.context.next_overrides[-1] == ["BF_Done"]
-    assert depot_maintain._state.completed == ["110203"]
+    assert depot_maintain._state.completed == [depot_maintain.material_label("110203")]
 
 
 def test_plan_done_when_all_satisfied(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -766,11 +766,12 @@ def test_refresh_follows_plan_flags(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_done_action_succeeds_after_plan(monkeypatch: pytest.MonkeyPatch) -> None:
-    """收尾动作在规划后正常返回，不抛异常。"""
+    """收尾动作在规划后正常返回，并用 ReturnMain 回主界面（多级返回，单点会落空）。"""
     harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 10, "110203": 0}))
     harness.plan()
     result = DepotMaintainDone().run(harness.context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
     assert result.success
+    assert harness.context.run_tasks == ["ReturnMain"]
 
 
 # ---------- 掉落累计与提前停止 ----------
@@ -987,5 +988,10 @@ def test_round_loop_stops_when_all_satisfied(monkeypatch: pytest.MonkeyPatch) ->
 
     assert harness.plan().success
     assert harness.context.next_overrides[-1] == ["BF_Done"]
+    # 收尾总结只留显示名：累计节点记过的材料不再重复，也不混进物品 id
+    assert depot_maintain._state.completed == [
+        depot_maintain.material_label("110203"),
+        depot_maintain.material_label("110103"),
+    ]
     result = DepotMaintainDone().run(harness.context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
     assert result.success
