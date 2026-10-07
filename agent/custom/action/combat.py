@@ -535,6 +535,18 @@ class SelectChapter(CustomAction):
         return CustomAction.RunResult(success=True)
 
 
+def _victory_click_node() -> dict[str, Any]:
+    """胜利横幅节点：识别「战斗/胜利」后点击，循环到复现按钮出现（掉落识别 / 库存保持累计的后继）。"""
+    return {
+        "recognition": {
+            "type": "OCR",
+            "param": {"roi": [678, 10, 473, 240], "expected": ["战斗", "胜利"]},
+        },
+        "action": {"type": "Click"},
+        "next": ["TargetCountWaitReplay", "[JumpBack]CombatEntering", "TargetCountVictoryClick"],
+    }
+
+
 @AgentServer.custom_action("SelectCombatStage")
 class SelectCombatStage(CustomAction):
     # 类静态变量，用于跨任务传递关卡信息
@@ -619,30 +631,24 @@ class SelectCombatStage(CustomAction):
                         "TargetCountVictoryClick",
                     ],
                 },
-                "TargetCountVictoryClick": {
-                    "recognition": {
-                        "type": "OCR",
-                        "param": {
-                            "roi": [678, 10, 473, 240],
-                            "expected": ["战斗", "胜利"],
-                        },
-                    },
-                    "action": {"type": "Click"},
-                    "next": [
-                        "TargetCountWaitReplay",
-                        "[JumpBack]CombatEntering",
-                        "TargetCountVictoryClick",
-                    ],
-                },
+                "TargetCountVictoryClick": _victory_click_node(),
             }
         else:
             mainStoryChapter = None
             # 资源关卡流程
-            pipeline = {
+            pipeline: dict[str, Any] = {
                 "EnterTheShowFlag": {"next": [f"ResourceChapter_{mainChapter}"]},
                 "TargetStageName_OCR": {"expected": [f"{targetStageName}"]},
                 "StageDifficulty": {"next": [f"StageDifficulty_{level}", "TargetStageName"]},
             }
+            if depot_accumulate:
+                # 与主线同形：结算页出现后先跑库存保持累计再点掉它。
+                # 不挂的话自读模式的快照不会更新，规划会反复刷同一批目标。
+                pipeline["TargetCountVictory"] = {
+                    "action": {"type": "DoNothing"},
+                    "next": ["BF_DepotAccumulate", "TargetCountVictoryClick"],
+                }
+                pipeline["TargetCountVictoryClick"] = _victory_click_node()
 
         context.override_pipeline(pipeline)
 

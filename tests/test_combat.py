@@ -349,6 +349,41 @@ def test_select_combat_stage_resets_free_used(monkeypatch: pytest.MonkeyPatch) -
     assert _TargetCountState.candy_page_hits == 0
 
 
+def test_select_combat_stage_wires_accumulate_for_resource_stage() -> None:
+    """资源本 + 库存保持：胜利链挂上 BF_DepotAccumulate 与胜利点击节点。"""
+    captured: dict[str, object] = {}
+    context = SimpleNamespace(
+        get_node_object=lambda _name: SimpleNamespace(attach={"level": None, "depot_accumulate": 1}),
+        override_pipeline=lambda pipeline: captured.update(pipeline),
+    )
+    argv = SimpleNamespace(custom_action_param='{"stage": "MA-06"}')
+
+    result = SelectCombatStage().run(context, argv)  # type: ignore[arg-type]
+
+    assert result.success
+    victory = captured["TargetCountVictory"]
+    assert isinstance(victory, dict)
+    assert victory["next"] == ["BF_DepotAccumulate", "TargetCountVictoryClick"]
+    click = captured["TargetCountVictoryClick"]
+    assert isinstance(click, dict)
+    assert click["action"] == {"type": "Click"}
+
+
+def test_select_combat_stage_keeps_resource_victory_chain_without_depot() -> None:
+    """未开启库存保持时资源本流程不覆写胜利链。"""
+    captured: dict[str, object] = {}
+    context = SimpleNamespace(
+        get_node_object=lambda _name: SimpleNamespace(attach={"level": None}),
+        override_pipeline=lambda pipeline: captured.update(pipeline),
+    )
+    argv = SimpleNamespace(custom_action_param='{"stage": "MA-06"}')
+
+    result = SelectCombatStage().run(context, argv)  # type: ignore[arg-type]
+
+    assert result.success
+    assert "TargetCountVictory" not in captured
+
+
 def test_determine_psychube_keeps_fixed_times_when_free_attempts_remain(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
