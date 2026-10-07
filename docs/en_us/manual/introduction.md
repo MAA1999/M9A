@@ -30,8 +30,11 @@ Farm daily free Will Analysis attempts, including the following options:
 
 ## Smart Balanced Material Farming
 
-Detect the counts of 12 purple main-story materials in the warehouse, then automatically farm the optimal stage for the material with the lowest count. Options include:
+Farm materials: with "Depot maintain" enabled it tops up each material to its target amount; otherwise it farms whichever material you have the least of. Options include:
 
+- **Depot maintain**: master switch (off by default); the two settings below appear only when enabled
+    - **Participating materials**: tick the materials to top up and fill in each one's target amount and candy uses
+    - **Depot maintain dry run**: only compute the deficit and print the plan, without entering battle
 - **Consume Candy**: Automatically use candy
 - **Custom Combat Count**: Specify combat count. It will consume all stamina when disabled.
 - **Drop Statistics Report**: Report stage drop data
