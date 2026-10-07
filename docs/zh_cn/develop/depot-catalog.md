@@ -86,7 +86,7 @@ icon: material-symbols:inventory-2-outline-rounded
 
 ## 名称、品质与关卡的来源
 
-名称/品质/desc 在解包里拿不到（`datacfg_*.dat` 是密文），改从灰机 wiki 取：`Data:Item/map.json`（名称↔id 全表）与 `Data:<id>.json`（`name/rare(1..5 → 绿蓝紫黄金)/subType/来源`），抓取脚本与坑见 `G:\M9AA\M9A-pr\55\1999\wiki-抓取方法.md`。
+名称/品质/desc 在解包里拿不到（`datacfg_*.dat` 是密文），改从灰机 wiki「重返未来1999中文维基」（`res1999.huijiwiki.com`）取：`Data:Item/map.json`（名称↔id 全表）与 `Data:<id>.json`（`name/rare(1..5 → 绿蓝紫黄金)/subType/来源`）。直接 `curl` 会被 WAF 拦（返回 JS 挑战页），需在 wiki 页面的浏览器控制台里跑同源 fetch 抓取。
 
 关卡选择的两条硬规则（2026-10-07 核对）：
 

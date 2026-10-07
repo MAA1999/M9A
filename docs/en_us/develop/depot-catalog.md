@@ -86,7 +86,7 @@ The four insight families drop per difficulty tier (verified 2026-10-07 from the
 
 ## Where names, rarity and stages come from
 
-Names/rarity/desc are not in the unpack (`datacfg_*.dat` is encrypted); take them from the huiji wiki instead: `Data:Item/map.json` (name ↔ id) and `Data:<id>.json` (`name/rare (1..5 → green/blue/purple/yellow/gold)/subType/sources`). The scraping script and its pitfalls live in `G:\M9AA\M9A-pr\55\1999\wiki-抓取方法.md`.
+Names/rarity/desc are not in the unpack (`datacfg_*.dat` is encrypted); take them from the huiji wiki (`res1999.huijiwiki.com`) instead: `Data:Item/map.json` (name ↔ id) and `Data:<id>.json` (`name/rare (1..5 → green/blue/purple/yellow/gold)/subType/sources`). Plain `curl` is blocked by the WAF (it serves a JS challenge page), so scrape with a same-origin fetch from the wiki page's browser console.
 
 Two hard rules for picking stages (verified 2026-10-07):
 
