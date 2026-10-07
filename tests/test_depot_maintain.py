@@ -1,4 +1,5 @@
 import json
+import tempfile
 import types
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -157,6 +158,12 @@ class _PlanHarness:
         )
         self.stops = 0
         sample = raw or _SAMPLE_RAW
+        # 快照写回一律落临时目录，避免用例覆盖仓库 config/warehouse_inventory.json
+        monkeypatch.setattr(
+            depot_maintain,
+            "SNAPSHOT_PATH",
+            Path(tempfile.mkdtemp(prefix="m9a-depot-test-")) / "warehouse_inventory.json",
+        )
         monkeypatch.setattr(depot_maintain, "read_snapshot", lambda path=None: snapshot)
         monkeypatch.setattr(depot_maintain, "load_target_overrides", lambda path=None: overrides or {})
         monkeypatch.setattr(depot_maintain, "load_catalog", lambda path=None: build_catalog(sample, source="unit-test"))
