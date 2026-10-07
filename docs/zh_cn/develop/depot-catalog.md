@@ -19,6 +19,7 @@ icon: material-symbols:inventory-2-outline-rounded
 1. 在游戏里截图并裁剪图标 —— **模板不能由解包原画生成**：实测原画与屏幕渲染（仓库图标是原画的放大裁切）掩膜相关仅 0.28–0.66，低于 TemplateMatch 阈值 0.9；用「原画 × 0.66 居中裁切」配方做留一验证，30 个样本 0 个达标。两套模板都要实拍：
 
     - 仓库·消耗品页截图 → 裁出 `resource/base/image/Warehouse/Item-<id>.png`（紧贴图标裁切、含游戏自带阴影；现有模板尺寸 59×83 ~ 124×93 不等）
+    - **同族近似图标（典类的残篇/孤卷/全章）只保留能区分家族的徽记区域，其余涂纯绿（RGB 0,255,0）**，匹配时由 `green_mask` 忽略 —— 四个家族的图标互相关度 0.94+，整图匹配会串到别家的格子读错数量。同时 `BF_ItemIcon` 固定 `order_by: Score`：MaaFW 默认按位置取**最左**达标框，不按分数取最高（实测四个家族全被最左那一格串号）
     - 该材料掉落时的结算页截图 → 裁出 `resource/base/image/Items_processed/Item-<id>.png`（结算行 5 格，x 起点 663/780/897/1014/1131，y 553，格 83×56）
 
 2. 在 `data/combat/balanced_farming.json` 增加一条：

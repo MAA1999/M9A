@@ -19,6 +19,7 @@ Materials and stages of the "Smart Balanced Material Farming" task (depot mainta
 1. Screenshot the game and crop the icons — **templates cannot be generated from the unpacked source art**: the warehouse icon is a zoom-cropped render of that art (masked correlation only 0.28–0.66, below the TemplateMatch threshold of 0.9; a leave-one-out validation of a "art × 0.66, centre-cropped" recipe scored 0/30). Both sets must be cropped from real screenshots:
 
     - depot → consumables page screenshot → `resource/base/image/Warehouse/Item-<id>.png` (tight crop, keeps the game's shadow; existing templates range from 59×83 to 124×93)
+    - **Look-alike icons within one family (the tome items' 残篇/孤卷/全章 tiers) must keep only the family emblem, painting everything else pure green (RGB 0,255,0)** and relying on `green_mask` — the four families' icons correlate at 0.94+, so whole-tile matching reads another family's tile. `BF_ItemIcon` also pins `order_by: Score`: MaaFW defaults to taking the **leftmost** tile above threshold, not the best score (all four families were cross-read from the leftmost tile in practice)
     - the settlement screen when the material drops → `resource/base/image/Items_processed/Item-<id>.png` (drop row of 5 tiles at x 663/780/897/1014/1131, y 553, tile 83×56)
 
 2. Append an entry to `data/combat/balanced_farming.json`:
