@@ -16,7 +16,7 @@ Materials and stages of the "Smart Balanced Material Farming" task (depot mainta
 
 ## Adding a material
 
-1. Screenshot the game and crop the icons — **templates cannot be generated from the unpacked source art**: the warehouse icon is a zoom-cropped render of that art (masked correlation only 0.28–0.66, below the TemplateMatch threshold of 0.9; a leave-one-out validation of a "art × 0.66, centre-cropped" recipe scored 0/30). Both sets must be cropped from real screenshots:
+1. Screenshot the game and crop the icons — **templates must come from real in-game screenshots** (other sources differ from the on-screen render by too much to clear the matching threshold). Both sets must be cropped from real screenshots:
 
     - depot → consumables page screenshot → `resource/base/image/Warehouse/Item-<id>.png` (tight crop, keeps the game's shadow; existing templates range from 59×83 to 124×93)
     - **Look-alike icons within one family (the tome items' 残篇/孤卷/全章 tiers) must keep only the family emblem, painting everything else pure green (RGB 0,255,0)** and relying on `green_mask` — the four families' icons correlate at 0.94+, so whole-tile matching reads another family's tile. `BF_ItemIcon` also pins `order_by: Score`: MaaFW defaults to taking the **leftmost** tile above threshold, not the best score (all four families were cross-read from the leftmost tile in practice)
@@ -67,7 +67,7 @@ Materials and stages of the "Smart Balanced Material Farming" task (depot mainta
 
 ## Codex (insight) stages and difficulties
 
-The four insight families drop per difficulty tier (verified 2026-10-07 from the reward section of the wiki stage pages):
+The four insight families drop per difficulty tier (checked 2026-10-07):
 
 | Family (stage prefix)   | 02   | 04   | 06   |
 | ----------------------- | ---- | ---- | ---- |
@@ -82,13 +82,10 @@ The four insight families drop per difficulty tier (verified 2026-10-07 from the
 - These stages are absent from `drop_index.json`, so depot maintain self-reads the settlement row; **when a material has no drop template it automatically falls back to the per-run estimate** (exact for fixed drops, no per-battle reading and no warning spam).
 - **Newly added materials do not take part in the drop report**: `drop_index.json` doubles as the report table, and planning looks the stage up in it — stages inside the table (the original materials) keep running `DropRecognition` in the victory chain as before, while stages outside it (e.g. the codex stages) have that node disabled for the round and only self-read the settlement row. Do not add new stages/items to `drop_index.json`.
 - Reference implementation: `tasks/CharUpgrade.json` + `agent/custom/action/char_upgrade.py` farms the same materials (entering the stage by clicking 获取 on the character's insight panel, re-checking with `CUB_IsEnoughMaterial` after every battle, `drop_per_run: 2`); it relies on the game's own navigation, which is equivalent to this catalog's stage codes.
-- The wiki item pages list only boxes (残典瓶/圣篇轴) as sources for 残篇/孤卷, but the stage-page reward sections prove 02/04 also drop them as fixed rewards — trust the stage pages.
 
-## Where names, rarity and stages come from
+## Stage reuse and catalog inclusion
 
-Names/rarity/desc are not in the unpack (`datacfg_*.dat` is encrypted); take them from the huiji wiki (`res1999.huijiwiki.com`) instead: `Data:Item/map.json` (name ↔ id) and `Data:<id>.json` (`name/rare (1..5 → green/blue/purple/yellow/gold)/subType/sources`). Plain `curl` is blocked by the WAF (it serves a JS challenge page), so scrape with a same-origin fetch from the wiki page's browser console.
-
-Two hard rules for picking stages (verified 2026-10-07):
+(checked 2026-10-07)
 
 - **Families share stages**: per `data/combat/drop_index.json` one stage often drops the whole material family (e.g. `7-26E` drops 110101–110104), so new entries can reuse the family's existing stage; when a tier only drops elsewhere, follow drop_index (e.g. 110504 狂人絮语 only at `3-13E`).
 - **Synthesis products stay out of the catalog**: `111003-111006` (铂金通灵板 / 分别善恶之果 / 长青剑 / 金羊毛) are wasteland-synthesis products with no farming stage; list them in `items.json` only, for naming.
@@ -141,7 +138,7 @@ These two currencies are not in the depot page; their counts only show in the to
 - Reading flow (`resource/base/pipeline/depot_currency.json`, entry `DepotCurrencyInspect`): `DepotCurrencyRead` reuses the TrustReward task's character-page entry nodes (`EnterCharacter` → `FlagInCharacter` → `FirstCharacter` → `FlagInCharacterDetail`, with `next` overridden to continue into `CI_LevelPlus`, which taps the "等级 +" button) → opens the level-up panel → recognises the two numbers and merges them into the snapshot → taps back to home
     - The TrustReward chain assumes it starts at the home screen, so the nav entry `DepotCurrencyNav` carries the same `[JumpBack]ReturnMain` guard as the `WarehouseInventory` entry; only the runtime `next` lists are overridden, **`character.json` is untouched** and the TrustReward task itself is unaffected
 - **Precision**: the panel shows an abbreviated value (e.g. `9792K`); the game uses K/M only (no Chinese units) and the unit-switch threshold is unknown — the parser converts by suffix without assuming a threshold. Thousand granularity gives a ≤1000 display error, irrelevant for targets in the tens of thousands to millions
-- Stages: Dust at `LP-06` (12500 fixed per run), Sharpodonty at `MA-06` (9000 fixed per run; checked against the wiki stage pages 2026-10-08); neither is in the `drop_index` report table, so drops are self-read from the settlement row
+- Stages: Dust at `LP-06` (12500 fixed per run), Sharpodonty at `MA-06` (9000 fixed per run); neither is in the `drop_index` report table, so drops are self-read from the settlement row
 - In the GUI, these two materials' **target-amount fields accept K/M suffixes** (`5M` = 5000000, verify regex `^\d*[KkMm]?$`); regular materials stay digits-only
 - Any character works: the panel's top-right bar is the shared currency bar and also shows for max-level characters
 - Navigation and rois were captured on device at 1280×720; re-run `DepotCurrencyInspect` on the emulator before changing them
