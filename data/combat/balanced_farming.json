@@ -1,14 +1,148 @@
 {
-    "110103": {"name": "啮咬盒", "stage": "7-26", "level": "Hard"},
-    "110203": {"name": "盐封曼德拉", "stage": "3-13", "level": "Hard"},
-    "110303": {"name": "双头形骨架", "stage": "7-7", "level": "Hard"},
-    "110403": {"name": "祝圣秘银", "stage": "12-5", "level": "Hard"},
-    "110503": {"name": "百灵百验鸟", "stage": "10-6", "level": "Hard"},
-    "110603": {"name": "翼造门匙", "stage": "12-18", "level": "Hard"},
-    "110703": {"name": "弯曲鹅颈", "stage": "5-4", "level": "Hard"},
-    "110803": {"name": "金草焚香", "stage": "4-4", "level": "Story"},
-    "110903": {"name": "红漆泥板", "stage": "9-1", "level": "Hard"},
-    "111002": {"name": "金爪灵摆", "stage": "13-10", "level": "Hard"},
-    "111012": {"name": "砂金甲虫", "stage": "3-15", "level": "Story"},
-    "111103": {"name": "真心彩蛋", "stage": "13-21", "level": "Hard"}
+    "203": {
+        "name": "利齿子儿",
+        "stage": "MA-06",
+        "level": "None",
+        "per_run": 9000,
+        "source": "character"
+    },
+    "205": {
+        "name": "微尘",
+        "stage": "LP-06",
+        "level": "None",
+        "per_run": 12500,
+        "source": "character"
+    },
+    "110103": {
+        "name": "啮咬盒",
+        "stage": "7-26",
+        "level": "Hard"
+    },
+    "110203": {
+        "name": "盐封曼德拉",
+        "stage": "3-13",
+        "level": "Hard"
+    },
+    "110303": {
+        "name": "双头形骨架",
+        "stage": "7-7",
+        "level": "Hard"
+    },
+    "110403": {
+        "name": "祝圣秘银",
+        "stage": "12-5",
+        "level": "Hard"
+    },
+    "110503": {
+        "name": "百灵百验鸟",
+        "stage": "10-6",
+        "level": "Hard"
+    },
+    "110603": {
+        "name": "翼造门匙",
+        "stage": "12-18",
+        "level": "Hard"
+    },
+    "110703": {
+        "name": "弯曲鹅颈",
+        "stage": "5-4",
+        "level": "Hard"
+    },
+    "110803": {
+        "name": "金草焚香",
+        "stage": "4-4",
+        "level": "Story"
+    },
+    "110903": {
+        "name": "红漆泥板",
+        "stage": "9-1",
+        "level": "Hard"
+    },
+    "111002": {
+        "name": "金爪灵摆",
+        "stage": "13-10",
+        "level": "Hard"
+    },
+    "111012": {
+        "name": "砂金甲虫",
+        "stage": "3-15",
+        "level": "Story"
+    },
+    "111103": {
+        "name": "真心彩蛋",
+        "stage": "13-21",
+        "level": "Hard"
+    },
+    "115011": {
+        "name": "岩中典残篇",
+        "stage": "ME-02",
+        "level": "None",
+        "per_run": 2
+    },
+    "115012": {
+        "name": "岩中典孤卷",
+        "stage": "ME-04",
+        "level": "None",
+        "per_run": 2
+    },
+    "115013": {
+        "name": "岩中典全章",
+        "stage": "ME-06",
+        "level": "None",
+        "per_run": 2
+    },
+    "115021": {
+        "name": "星升典残篇",
+        "stage": "SL-02",
+        "level": "None",
+        "per_run": 2
+    },
+    "115022": {
+        "name": "星升典孤卷",
+        "stage": "SL-04",
+        "level": "None",
+        "per_run": 2
+    },
+    "115023": {
+        "name": "星升典全章",
+        "stage": "SL-06",
+        "level": "None",
+        "per_run": 2
+    },
+    "115031": {
+        "name": "木娑典残篇",
+        "stage": "SS-02",
+        "level": "None",
+        "per_run": 2
+    },
+    "115032": {
+        "name": "木娑典孤卷",
+        "stage": "SS-04",
+        "level": "None",
+        "per_run": 2
+    },
+    "115033": {
+        "name": "木娑典全章",
+        "stage": "SS-06",
+        "level": "None",
+        "per_run": 2
+    },
+    "115041": {
+        "name": "兽涎典残篇",
+        "stage": "BW-02",
+        "level": "None",
+        "per_run": 2
+    },
+    "115042": {
+        "name": "兽涎典孤卷",
+        "stage": "BW-04",
+        "level": "None",
+        "per_run": 2
+    },
+    "115043": {
+        "name": "兽涎典全章",
+        "stage": "BW-06",
+        "level": "None",
+        "per_run": 2
+    }
 }
