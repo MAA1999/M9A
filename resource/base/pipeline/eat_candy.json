@@ -216,7 +216,10 @@
                     104,
                     100
                 ],
-                "template": "EatCandy/MiniCandy.png"
+                "template": [
+                    "EatCandy/MiniCandy.png",
+                    "EatCandy/SandwichCandy.png"
+                ]
             }
         },
         "action": {
