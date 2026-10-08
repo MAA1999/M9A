@@ -1,6 +1,7 @@
 ---
 order: 6
 icon: mdi:information-outline
+description: M9A 各项自动化功能说明：启动游戏、收取荒原、日常任务等分别做什么，以及各自的可配置选项。
 ---
 
 # 功能介绍

@@ -1,6 +1,7 @@
 ---
 order: 1
 icon: ri:guide-fill
+description: 从零配置 M9A：确认系统版本、安装运行库、下载解压、连接模拟器，并在《重返未来：1999》里跑通第一条自动化任务。
 ---
 
 <!-- markdownlint-disable MD033 -->

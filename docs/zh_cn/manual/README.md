@@ -1,8 +1,10 @@
 ---
-title: 用户手册
+title: 用户手册总览
+description: M9A 用户手册总览：新手上路、连接设置、功能介绍、Mirror酱更新与常见问题，覆盖从安装到日常使用的完整流程。
 icon: mdi:user
 index: false
 dir:
+    title: 用户手册
     order: 1
 ---
 

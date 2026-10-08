@@ -1,6 +1,7 @@
 ---
 order: 3
 icon: mdi:plug
+description: M9A 连接设置：自动检测失败时手动填写 ADB 路径与连接地址，以及国际服 PC 端窗口的连接方式。
 ---
 
 # 连接设置

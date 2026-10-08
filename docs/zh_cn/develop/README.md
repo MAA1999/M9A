@@ -1,8 +1,10 @@
 ---
-title: 开发文档
+title: 开发文档总览
+description: M9A 开发文档总览：Pull Request 流程、项目结构、Custom 与 Pipeline 编写指南、界面本地化、代码格式化与外服适配。
 icon: ph:code-bold
 index: false
 dir:
+    title: 开发文档
     order: 2
 ---
 

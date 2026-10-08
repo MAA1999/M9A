@@ -1,8 +1,10 @@
 ---
-title: Protocol Docs
+title: Protocol Docs Overview
+description: Overview of the M9A protocol docs — storage formats for activity, combat, item and warehouse inventory data, plus roguelike mode adaptation.
 icon: basil:document-solid
 index: false
 dir:
+    title: Protocol Docs
     order: 3
 ---
 

@@ -1,6 +1,7 @@
 ---
 order: 2
 icon: ph:question-fill
+description: M9A troubleshooting — failed downloads and installs, crashes while running, missing runtime libraries, a slow-starting Agent, resource loading failures and emulator connection problems.
 ---
 
 # Frequently Asked Questions (FAQ)

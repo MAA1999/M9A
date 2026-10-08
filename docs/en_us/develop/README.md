@@ -1,8 +1,10 @@
 ---
-title: Development Docs
+title: Development Docs Overview
+description: Overview of the M9A development docs — pull request flow, project structure, Custom and Pipeline writing guides, localisation, formatting and foreign server adaptation.
 icon: ph:code-bold
 index: false
 dir:
+    title: Development Docs
     order: 2
 ---
 

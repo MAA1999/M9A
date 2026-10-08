@@ -1,6 +1,7 @@
 ---
 order: 6
 icon: mdi:information-outline
+description: What each M9A automated task does — starting the game, collecting from the Wilderness, daily tasks — and which options each one exposes.
 ---
 
 # Feature Introduction

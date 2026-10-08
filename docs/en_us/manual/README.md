@@ -1,8 +1,10 @@
 ---
-title: User Manual
+title: User Manual Overview
+description: Overview of the M9A user manual — getting started, connection settings, feature guides, MirrorChyan updates and troubleshooting.
 icon: mdi:user
 index: false
 dir:
+    title: User Manual
     order: 1
 ---
 

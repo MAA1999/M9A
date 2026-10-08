@@ -1,6 +1,7 @@
 ---
 pageLayout: home
-title: 首页
+title: 下载、安装与使用教程
+description: M9A（亿韭韭韭）《重返未来：1999》自动化小助手官方文档：下载安装、模拟器连接、日常任务功能说明与常见问题排查。
 config:
     - type: doc-hero
       hero:

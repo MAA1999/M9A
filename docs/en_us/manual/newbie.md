@@ -1,6 +1,7 @@
 ---
 order: 1
 icon: ri:guide-fill
+description: "Set up M9A from scratch — check your system version, install the runtime libraries, unpack the release, connect an emulator, and run your first automated task in Reverse: 1999."
 ---
 
 <!-- markdownlint-disable MD033 -->

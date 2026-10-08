@@ -1,6 +1,7 @@
 ---
 order: 3
 icon: mdi:plug
+description: M9A connection settings — filling in the ADB path and connection address by hand when auto-detection fails, plus connecting to the global PC client.
 ---
 
 # Connection Settings

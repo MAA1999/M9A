@@ -1,8 +1,10 @@
 ---
-title: 协议文档
+title: 协议文档总览
+description: M9A 协议文档总览：活动、战斗、物品与仓库材料等游戏数据的存储格式，以及肉鸽玩法与活动推图的适配协议。
 icon: basil:document-solid
 index: false
 dir:
+    title: 协议文档
     order: 3
 ---
 

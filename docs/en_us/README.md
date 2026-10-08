@@ -1,6 +1,7 @@
 ---
 pageLayout: home
-title: Home
+title: Download and Setup
+description: "Official documentation for M9A, an automation assistant for Reverse: 1999 — download, installation, emulator connection, feature guides and troubleshooting."
 config:
     - type: doc-hero
       hero:
