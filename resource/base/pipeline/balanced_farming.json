@@ -68,9 +68,13 @@
                 "custom_action": "DepotMaintainAccumulate"
             }
         },
-        // 兜底：动作内部会把 next 覆写成 TargetCountVictoryClick（见 DepotMaintainAccumulate）。
-        // 这里留一份静态 next，万一动作根本没跑起来也不会把胜利链停在结算页上。
-        "next": [
+        // 动作成功时由内部覆写成 TargetCountVictoryClick（见 DepotMaintainAccumulate）；
+        // 动作**失败**时接管的是 on_error 而不是 next（引擎语义）—— 累计抛异常会显式返回失败，
+        // 由这里把结算页点掉，TargetCountVictoryClick 识别命中即解除异常状态。
+        // next 保持空：父列表 TargetCountVictory.next 里本节点后面就是 TargetCountVictoryClick，
+        // 不需要再写一份（写了会被 maa-tools 判成重复路由）。
+        "next": [],
+        "on_error": [
             "TargetCountVictoryClick"
         ]
     },

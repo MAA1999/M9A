@@ -596,12 +596,16 @@ class DepotMaintainAccumulate(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        # 累计本身可能抛（截图 / OCR / 落盘），而本节点的静态 next 是空的 ——
-        # 少了下面这步整条胜利链会卡在结算页上，所以无论成败都要把 next 接回去。
         try:
             self._accumulate(context)
-        except Exception as exc:  # 宁可少计一局也不能卡死流水线
-            logger.warning(f"库存保持累计失败，本局按 0 计: {exc}")
+        except Exception as exc:
+            # 显式失败而不是吞掉：本节点在 balanced_farming.json 里配了
+            # `on_error: ["TargetCountVictoryClick"]`，引擎会接管把结算页点掉，
+            # 失败同时对上可见（遥测 / focus）。少计一局只会多刷一点，方向安全。
+            logger.error(f"库存保持累计失败: {exc}")
+            return CustomAction.RunResult(success=False)
+
+        # 继续点掉本局结算页，让当前批次正常推进（停止在批次边界生效）
         context.override_next(ACCUMULATE_NODE, [VICTORY_CLICK_NODE])
         return CustomAction.RunResult(success=True)
 

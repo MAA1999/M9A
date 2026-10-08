@@ -1,4 +1,5 @@
 import json
+import re
 import tempfile
 import types
 from datetime import datetime, timedelta
@@ -981,17 +982,31 @@ def test_accumulate_keeps_progress_when_reading_fails(monkeypatch: pytest.Monkey
     assert (depot_maintain._state.observed, harness.stops) == (30, 0)
 
 
-def test_accumulate_still_advances_when_reading_raises(monkeypatch: pytest.MonkeyPatch) -> None:
-    """累计抛异常也要把胜利链接回去：本节点静态 next 为空，漏掉会卡死在结算页。"""
+def test_accumulate_fails_explicitly_when_reading_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    """累计抛异常时显式返回失败（不吞），点掉结算页交给节点的 on_error 接管。"""
     harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 10, "110203": 0}))
     assert harness.plan().success
+    assert harness.context.next_overrides[-1] == ["Combat"]
 
     def _boom(context: object, item_id: str, label: str = "") -> int:
         raise RuntimeError("截图失败")
 
     monkeypatch.setattr(depot_maintain, "read_battle_drops", _boom)
-    assert harness.accumulate().success
-    assert harness.context.next_overrides[-1] == [depot_maintain.VICTORY_CLICK_NODE]
+    assert not harness.accumulate().success
+    # 失败路径不覆写 next：引擎轮询的是节点的 on_error（见下一条用例）
+    assert harness.context.next_overrides[-1] == ["Combat"]
+
+
+def test_accumulate_node_wires_failure_path() -> None:
+    """失败路径必须有接管者：动作失败时引擎轮询的是节点的 on_error，不是 next。"""
+    text = Path("resource/base/pipeline/balanced_farming.json").read_text(encoding="utf-8")
+    text = re.sub(r"^\s*//.*$", "", text, flags=re.MULTILINE)  # pipeline 是 jsonc，注释先去掉
+    node = json.loads(text)["BF_DepotAccumulate"]
+
+    # 成功路径由动作内部覆写 next；失败路径靠 on_error（父列表里本节点后面本来就有同一个节点，
+    # 所以 next 保持空，不重复写）
+    assert node["on_error"] == [depot_maintain.VICTORY_CLICK_NODE]
+    assert node["next"] == []
 
 
 def test_accumulate_writes_snapshot_increment(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
