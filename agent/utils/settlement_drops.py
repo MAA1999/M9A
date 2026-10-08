@@ -47,9 +47,13 @@ def filter_digit_colors(img: np.ndarray) -> np.ndarray:
 
 
 def count_roi(box: list[int]) -> list[int]:
-    """由图标 box 推数量文字区域。"""
+    """由图标 box 推数量文字区域。
+
+    图标模板比 `-COUNT_ROI_DW` 窄时宽度会算成非正数；夹到 0 让 OCR 明确读空
+    （按「本局没有该材料」处理，少计只会多刷一点，方向安全）。
+    """
     x, _, w, _ = box
-    return [x + COUNT_ROI_DX, COUNT_ROI_TOP, w + COUNT_ROI_DW, COUNT_ROI_HEIGHT]
+    return [x + COUNT_ROI_DX, COUNT_ROI_TOP, max(0, w + COUNT_ROI_DW), COUNT_ROI_HEIGHT]
 
 
 def read_frame_count(context: Context, img: np.ndarray, item_id: str, label: str = "") -> int | None:

@@ -981,6 +981,19 @@ def test_accumulate_keeps_progress_when_reading_fails(monkeypatch: pytest.Monkey
     assert (depot_maintain._state.observed, harness.stops) == (30, 0)
 
 
+def test_accumulate_still_advances_when_reading_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    """累计抛异常也要把胜利链接回去：本节点静态 next 为空，漏掉会卡死在结算页。"""
+    harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 10, "110203": 0}))
+    assert harness.plan().success
+
+    def _boom(context: object, item_id: str, label: str = "") -> int:
+        raise RuntimeError("截图失败")
+
+    monkeypatch.setattr(depot_maintain, "read_battle_drops", _boom)
+    assert harness.accumulate().success
+    assert harness.context.next_overrides[-1] == [depot_maintain.VICTORY_CLICK_NODE]
+
+
 def test_accumulate_writes_snapshot_increment(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """每局把已确认的掉落增量写回仓库快照。"""
     snapshot = _snapshot({"110103": 10, "110203": 4})

@@ -596,17 +596,26 @@ class DepotMaintainAccumulate(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
+        # 累计本身可能抛（截图 / OCR / 落盘），而本节点的静态 next 是空的 ——
+        # 少了下面这步整条胜利链会卡在结算页上，所以无论成败都要把 next 接回去。
+        try:
+            self._accumulate(context)
+        except Exception as exc:  # 宁可少计一局也不能卡死流水线
+            logger.warning(f"库存保持累计失败，本局按 0 计: {exc}")
+        context.override_next(ACCUMULATE_NODE, [VICTORY_CLICK_NODE])
+        return CustomAction.RunResult(success=True)
+
+    def _accumulate(self, context: Context) -> None:
+        """读本局掉落并写回快照；缺口填满时请求批次收尾。"""
         if _state.item_id is None:
-            # 非库存保持模式：让胜利链继续即可
-            context.override_next(ACCUMULATE_NODE, [VICTORY_CLICK_NODE])
-            return CustomAction.RunResult(success=True)
+            # 非库存保持模式：什么都不用做
+            return
 
         if _state.read_mode == READ_ESTIMATE:
             # 没有掉落模板：结算页出现就是这批的结果，按实际局数折算后**立刻**回写。
             # 不能等下一轮规划才结账 —— 中途失败/停止会让快照停在旧值，而快照 24h 内都算新鲜读数。
             _commit_estimate_progress()
-            context.override_next(ACCUMULATE_NODE, [VICTORY_CLICK_NODE])
-            return CustomAction.RunResult(success=True)
+            return
 
         drops = _observed_drops(context)
         logger.info(f"库存保持进度: {_state.item_name} 已确认 {drops} / 缺口 {_state.deficit}")
@@ -618,10 +627,6 @@ class DepotMaintainAccumulate(CustomAction):
             _state.completed.append(_state.item_name)
             logger.info(f"缺口已满，当前批次结束后停止刷取（{_state.item_name} x{drops}）")
             request_combat_stop()
-
-        # 继续点掉本局结算页，让当前批次正常推进（停止在批次边界生效）
-        context.override_next(ACCUMULATE_NODE, [VICTORY_CLICK_NODE])
-        return CustomAction.RunResult(success=True)
 
 
 @AgentServer.custom_action("DepotMaintainInit")

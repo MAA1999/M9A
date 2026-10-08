@@ -115,6 +115,13 @@ def test_count_roi_matches_drop_core_constants() -> None:
     assert count_roi(list(_ICON_BOX)) == [1153, 613, 39, 17]
 
 
+def test_count_roi_clamps_when_icon_is_too_narrow() -> None:
+    """图标比数字区偏移还窄时宽度夹到 0，不把负宽度 roi 交给 OCR。"""
+    assert count_roi([100, 555, 40, 56]) == [122, 613, 0, 17]
+    assert count_roi([100, 555, 44, 56]) == [122, 613, 0, 17]
+    assert count_roi([100, 555, 45, 56]) == [122, 613, 1, 17]
+
+
 def test_read_frame_count_parses_digits() -> None:
     context = _FakeContext([(_ICON_BOX, "x300")])
     assert read_frame_count(context, _EMPTY_IMG, "203") == 300  # pyright: ignore[reportArgumentType]
