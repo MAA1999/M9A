@@ -379,7 +379,7 @@
                     "name": "target_203",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.TargetCurrency.desc",
-                    "default": "",
+                    "default": "1616830",
                     "pipeline_type": "string",
                     "verify": "^\\d*[KkMm]?$"
                 },
@@ -402,7 +402,7 @@
                     "name": "target_205",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.TargetCurrency.desc",
-                    "default": "",
+                    "default": "1352100",
                     "pipeline_type": "string",
                     "verify": "^\\d*[KkMm]?$"
                 },
@@ -425,7 +425,7 @@
                     "name": "target_110103",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "12",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -450,7 +450,7 @@
                     "name": "target_110203",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "3",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -475,7 +475,7 @@
                     "name": "target_110303",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "14",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -500,7 +500,7 @@
                     "name": "target_110403",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "15",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -525,7 +525,7 @@
                     "name": "target_110503",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "15",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -550,7 +550,7 @@
                     "name": "target_110603",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "12",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -575,7 +575,7 @@
                     "name": "target_110703",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "10",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -600,7 +600,7 @@
                     "name": "target_110803",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "18",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -625,7 +625,7 @@
                     "name": "target_110903",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "9",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -650,7 +650,7 @@
                     "name": "target_111002",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "11",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -675,7 +675,7 @@
                     "name": "target_111012",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "9",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -700,7 +700,7 @@
                     "name": "target_111103",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "10",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -725,7 +725,7 @@
                     "name": "target_115011",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "6",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -750,7 +750,7 @@
                     "name": "target_115012",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "10",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -775,7 +775,7 @@
                     "name": "target_115013",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "16",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -800,7 +800,7 @@
                     "name": "target_115021",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "6",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -825,7 +825,7 @@
                     "name": "target_115022",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "10",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -850,7 +850,7 @@
                     "name": "target_115023",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "16",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -875,7 +875,7 @@
                     "name": "target_115031",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "6",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -900,7 +900,7 @@
                     "name": "target_115032",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "10",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -925,7 +925,7 @@
                     "name": "target_115033",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "16",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -950,7 +950,7 @@
                     "name": "target_115041",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "6",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -975,7 +975,7 @@
                     "name": "target_115042",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "10",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },
@@ -1000,7 +1000,7 @@
                     "name": "target_115043",
                     "label": "$Option.BalancedFarming.Material.Target",
                     "description": "$Option.BalancedFarming.Material.Target.desc",
-                    "default": "",
+                    "default": "16",
                     "pipeline_type": "string",
                     "verify": "^\\d*$"
                 },

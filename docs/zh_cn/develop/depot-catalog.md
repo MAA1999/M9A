@@ -51,7 +51,7 @@ icon: material-symbols:inventory-2-outline-rounded
         }
         ```
 
-    - 配置项：`<材料名>·设置` 输入选项，两个字段 `target_<id>` / `candy_<id>`（都用 `pipeline_type: string`、`verify: "^\\d*$"`、`default: ""`），`pipeline_override` 把两者挂到 `BF_Plan.attach`（**不要放 `custom_action_param`**——MaaFW 的覆盖对 `attach` 是叠加合并、对末端键是整体替换，多个材料各写一份 `custom_action_param` 会只剩最后一个）；label 用共享键 `$Option.BalancedFarming.Material.Settings`
+    - 配置项：`<材料名>·设置` 输入选项，两个字段 `target_<id>` / `candy_<id>`（都用 `pipeline_type: string`；`target_<id>` 的 `verify` 是 `^\\d*$`（货币是 `^\\d*[KkMm]?$`），`candy_<id>` 是 `^\\d*$`；`default` 填该材料「拉满一名 6★」的用量，见下节），`pipeline_override` 把两者挂到 `BF_Plan.attach`（**不要放 `custom_action_param`**——MaaFW 的覆盖对 `attach` 是叠加合并、对末端键是整体替换，多个材料各写一份 `custom_action_param` 会只剩最后一个）；label 用共享键 `$Option.BalancedFarming.Material.Settings`
     - 挂进总开关：把 `<材料名>` 加进「库存保持」case `Yes` 的 `option` 列表（顺序即界面顺序）
     - 同时在 `locales/zh_cn.json` 与 `locales/en_us.json` 补 `Option.BalancedFarming.Material.<id>`（显示名，惯例带关卡：`岩中典残篇（ME-02）`）
     - 用 switch 而不是勾选列表：MFAAvalonia 的 checkbox 把开关排成一行按钮、子项统一堆在下方（开关与内容分离）；switch 的卡片是「开关行 + 紧跟其下的子项框」，开关和它自己的两个数字框在一块
@@ -107,6 +107,12 @@ icon: material-symbols:inventory-2-outline-rounded
 - 每件材料自己的两个数字框（对齐 MAA 库存保持「自己挑材料 + 各自定量」）：
     - `目标数量`（`target_<id>`）：**留空 = 不刷该材料**、`0` = 不刷、正整数 = 该材料要补到的库存
     - `吃糖次数`（`candy_<id>`）：该材料体力不足时最多吃几个糖 —— **留空 = 不限（跟随全局「吃糖」选项）**、`0` = 不吃糖、`N` = 最多 N 个
+- **`目标数量` 的默认值 = 拉满一名 6★ 的用量**（0 → 洞悉III Lv60 + 共鸣 10 级），取**最近 10 个版本的 6★** 逐材料最大值，保证任意近期 6★ 都能一次备齐。用户打开材料开关即可用，不必手填
+    - **材料开关本身仍默认关（`No`）**，这是有意为之：默认全量规划约 490 局过于激进，而且四个典类家族里用户只需要一系，让他自己挑
+    - 26 项数值（与 `tasks/BalancedFarming.json` 的 `default` 一致）：利齿子儿 1616830、微尘 1352100、金草焚香 18、祝圣秘银 15、百灵百验鸟 15、双头形骨架 14、啮咬盒 12、翼造门匙 12、金爪灵摆 11、弯曲鹅颈 10、真心彩蛋 10、红漆泥板 9、砂金甲虫 9、盐封曼德拉 3；四系典类统一 残篇 6 / 孤卷 10 / 全章 16
+    - **四系典类按「系」各给一份**：一个角色只用自己灵感属性的那一系，所以实际只需打开对应家族的三个开关；四个家族全开 = 多刷约 96 件
+    - 覆盖范围：不含塑造、不含造像、不含心相；共鸣等级上限本就是 10；只覆盖 `data/combat/balanced_farming.json` 目录内的材料
+    - 全部材料都打开时约 **490 局**（利齿子儿 180 + 微尘 109 + 其余按每局 1 件保守估）；只开一个典类家族约 **443 局**
 - 逐材料吃糖由规划节点**每轮动态覆盖**：`DepotMaintainPlan` 记下任务开始时的全局设置（`EatCandy.enabled` / `EatCandyStart.max_hit`，即 GUI「吃糖」选项生效后的节点数据），本轮按所选材料改成 `enabled = 全局开 且 该材料不是 0`、`max_hit = 该材料次数（留空则还原全局值）`，下一轮自动重算，不会泄漏到别的材料
     - `EatCandy.enabled` 就是 `TargetCountCandyRoute` / `TargetCountDetermine` 判断「能不能吃糖续体力」的开关；只关某个材料的吃糖不影响其他材料
 - 目标库存**只有 GUI 一个入口**：`DepotMaintainPlan` 只读 `BF_Plan` 的 `attach` 与 `custom_action_param` 里的 `target_<id>` / `candy_<id>`，不读任何配置文件（逐材料数值走 `attach`——MaaFW 的覆盖对 `attach` 是叠加合并、对末端键是整体替换，多个材料各写一份 `custom_action_param` 会只剩最后一个）
