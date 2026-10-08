@@ -17,6 +17,7 @@
     },
     "CI_LevelPlus": {
         "desc": "角色详情页点开「等级 +」升级面板",
+        "max_hit": 3,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -40,7 +41,16 @@
                 ]
             }
         },
-        "post_delay": 1000,
+        // 面板开启动画落在「等级」行与面板「Lv」之间，等画面停下来再让 CI_PanelReady 识别
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                820,
+                105,
+                420,
+                245
+            ]
+        },
         "next": [
             "CI_PanelReady",
             "CI_LevelPlus"
@@ -97,52 +107,6 @@
                 ],
                 "only_rec": true
             }
-        }
-    },
-    "CI_ReturnHome": {
-        "desc": "从角色页连点返回，直到回到主界面（左侧栏出现仓库入口）",
-        "max_hit": 6,
-        "next": [
-            "CI_HomeFlag",
-            "[JumpBack]CI_BackButton"
-        ]
-    },
-    "CI_HomeFlag": {
-        "desc": "已回到主界面（左侧栏出现仓库入口）",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    57,
-                    372,
-                    42,
-                    22
-                ],
-                "expected": "仓库",
-                "only_rec": true
-            }
-        }
-    },
-    "CI_BackButton": {
-        "desc": "点击左上角返回键",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    0,
-                    0,
-                    134,
-                    138
-                ],
-                "template": [
-                    "StartUp/BackButton.png",
-                    "StartUp/BackButton_2.png"
-                ],
-                "green_mask": true
-            }
-        },
-        "action": {
-            "type": "Click"
         }
     }
 }

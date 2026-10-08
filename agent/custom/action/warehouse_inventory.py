@@ -1,7 +1,5 @@
 import json
-import os
 import re
-import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -12,6 +10,9 @@ from maa.custom_action import CustomAction
 from utils import logger
 from utils.maa_types import best_box, ocr_text
 from utils.material_catalog import colorize_name
+from utils.warehouse_snapshot import load_snapshot_file, save_snapshot_file, snapshot_bucket
+
+from .record_id import RecordID
 
 
 def parse_count_from_text(text: str) -> int | None:
@@ -157,20 +158,17 @@ class WarehouseInventoryScan(CustomAction):
         # 顺序与 data/combat/items.json 一致：按品质等级（金→黄→紫→蓝→绿）排列，
         # 同品级内按 items.json 中的条目顺序（with_template 保留了该插入顺序）。
         scanned = {item_id: counts[item_id] for item_id in with_template if item_id in counts}
-        # 保留本次没扫的既有读数（如库存保持的角色页读数）与其时间戳，避免被整表重写挤掉
+        # 保留本次没扫的既有读数（如库存保持的角色页读数）与其时间戳，避免被整表重写挤掉。
+        # 过滤条件是本次扫描范围 with_template：图标已找到但数量没读出来的材料不算"有读数"，
+        # 留着旧值会被规划当成新鲜读数用（旧值偏高就误判达标、不再刷）。
         kept: dict[str, Any] = {}
         carry: dict[str, Any] = {}
-        try:
-            with open(self._OUTPUT_PATH, encoding="utf-8") as f:
-                previous = json.load(f)
-            if isinstance(previous, dict):
-                prev_counts = previous.get("counts")
-                if isinstance(prev_counts, dict):
-                    kept = {k: v for k, v in prev_counts.items() if k not in scanned}
-                if "currency_updated_at" in previous:
-                    carry["currency_updated_at"] = previous["currency_updated_at"]
-        except (OSError, json.JSONDecodeError):
-            pass
+        previous = snapshot_bucket(load_snapshot_file(Path(self._OUTPUT_PATH)), RecordID.current_account_id())
+        prev_counts = previous.get("counts")
+        if isinstance(prev_counts, dict):
+            kept = {k: v for k, v in prev_counts.items() if k not in with_template}
+        if "currency_updated_at" in previous:
+            carry["currency_updated_at"] = previous["currency_updated_at"]
         output = {
             "updated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             "counts": {**kept, **scanned},
@@ -206,24 +204,17 @@ class WarehouseInventoryScan(CustomAction):
         return CustomAction.RunResult(success=True)
 
     def _write_snapshot(self, output: dict[str, Any]) -> None:
-        """原子写入快照：先写同目录临时文件，成功后 os.replace 替换正式路径。
+        """把本次扫描结果写进当前账号的桶，其余账号的读数原样保留。
 
-        避免中途失败（磁盘满/中断）在 _OUTPUT_PATH 留下损坏的部分 JSON；
-        失败时清理临时文件并原样抛出。
+        落盘复用 utils.warehouse_snapshot 的原子写入（临时文件 + os.replace）：
+        失败时清理临时文件并原样抛出，不会在 _OUTPUT_PATH 留下损坏的部分 JSON。
         """
         out_path = Path(self._OUTPUT_PATH)
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        fd, tmp_path = tempfile.mkstemp(dir=str(out_path.parent), suffix=".tmp")
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as f:
-                json.dump(output, f, indent=4, ensure_ascii=False)
-            os.replace(tmp_path, out_path)
-        except BaseException:
-            try:
-                os.unlink(tmp_path)
-            except OSError:
-                pass
-            raise
+        data = load_snapshot_file(out_path)
+        bucket = snapshot_bucket(data, RecordID.current_account_id())
+        bucket.clear()
+        bucket.update(output)
+        save_snapshot_file(data, out_path)
 
     def _has_template(self, item_id: str) -> bool:
         """模板文件是否存在（image/Warehouse/Item-<id>.png）。"""

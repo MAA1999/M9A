@@ -535,18 +535,6 @@ class SelectChapter(CustomAction):
         return CustomAction.RunResult(success=True)
 
 
-def _victory_click_node() -> dict[str, Any]:
-    """胜利横幅节点：识别「战斗/胜利」后点击，循环到复现按钮出现（掉落识别 / 库存保持累计的后继）。"""
-    return {
-        "recognition": {
-            "type": "OCR",
-            "param": {"roi": [678, 10, 473, 240], "expected": ["战斗", "胜利"]},
-        },
-        "action": {"type": "Click"},
-        "next": ["TargetCountWaitReplay", "[JumpBack]CombatEntering", "TargetCountVictoryClick"],
-    }
-
-
 @AgentServer.custom_action("SelectCombatStage")
 class SelectCombatStage(CustomAction):
     # 类静态变量，用于跨任务传递关卡信息
@@ -573,6 +561,7 @@ class SelectCombatStage(CustomAction):
         # 库存保持按实际掉落提前停止时，把累计节点插进胜利链（节点定义见 balanced_farming.json）。
         # 累计必须排在掉落识别之后、且两处都要挂：掉落识别命中会走它自己的 next，
         # 只写在 TargetCountVictory.next 里会被绕过（可上报关卡的实测表现是快照不更新、重复刷）。
+        # 胜利横幅的点击节点（TargetCountVictoryClick）在 all_in.json 里定义一次，这里只改 next。
         depot_accumulate = bool(node_obj.attach.get("depot_accumulate", False))
         victory_tail = [*(["BF_DepotAccumulate"] if depot_accumulate else []), "TargetCountVictoryClick"]
         logger.info(f"当前关卡: {stage}, 难度: {level}")
@@ -628,7 +617,6 @@ class SelectCombatStage(CustomAction):
                     },
                     "next": victory_tail,
                 },
-                "TargetCountVictoryClick": _victory_click_node(),
             }
         else:
             mainStoryChapter = None
@@ -645,7 +633,6 @@ class SelectCombatStage(CustomAction):
                     "action": {"type": "DoNothing"},
                     "next": list(victory_tail),
                 }
-                pipeline["TargetCountVictoryClick"] = _victory_click_node()
 
         context.override_pipeline(pipeline)
 

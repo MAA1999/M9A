@@ -8,8 +8,7 @@
             }
         },
         "next": [
-            "BF_Plan",
-            "[JumpBack]ReturnMain"
+            "BF_Plan"
         ]
     },
     "BF_Plan": {

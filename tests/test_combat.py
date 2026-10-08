@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -421,9 +423,19 @@ def test_select_combat_stage_wires_accumulate_for_resource_stage() -> None:
     victory = captured["TargetCountVictory"]
     assert isinstance(victory, dict)
     assert victory["next"] == ["BF_DepotAccumulate", "TargetCountVictoryClick"]
-    click = captured["TargetCountVictoryClick"]
-    assert isinstance(click, dict)
-    assert click["action"] == {"type": "Click"}
+    # 胜利横幅点击节点在 all_in.json 里定义一次，运行时只引用、不重写
+    assert "TargetCountVictoryClick" not in captured
+
+
+def test_target_count_victory_click_is_defined_once_in_all_in() -> None:
+    """胜利横幅点击节点是 all_in.json 的共享节点（combat / char_upgrade 只覆写 next）。"""
+    pipeline = json.loads(Path("resource/base/pipeline/all_in.json").read_text(encoding="utf-8"))
+
+    node = pipeline["TargetCountVictoryClick"]
+
+    assert node["action"] == {"type": "Click"}
+    assert node["recognition"]["param"]["roi"] == [678, 10, 473, 240]
+    assert node["next"] == ["TargetCountWaitReplay", "[JumpBack]CombatEntering", "TargetCountVictoryClick"]
 
 
 def test_select_combat_stage_wires_accumulate_after_drop_recognition() -> None:

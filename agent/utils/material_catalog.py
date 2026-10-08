@@ -3,8 +3,10 @@
 「智能均衡刷材料」任务（库存保持模式与原有均衡逻辑共用）的单一数据入口，新增材料与新增关卡族都在这里收敛：
 
 - 新增材料：在 data/combat/balanced_farming.json 增加一条，并补
-  resource/base/image/Warehouse/Item-<id>.png 图标模板；不在仓库页的材料（微尘/利齿子儿等
-  货币）写 "source": "character"，改从角色升级页读取，不需要仓库图标。
+  resource/base/image/Warehouse/Item-<id>.png 图标模板；显示名默认取自
+  data/combat/items.json（单一来源），不在 items.json 里的材料（微尘/利齿子儿等
+  货币）才需要在本目录写 `name`。不在仓库页的材料写 "source": "character"，
+  改从角色升级页读取，不需要仓库图标。
 - 新增关卡族：先按 combat pipeline 既有结构补 ResourceChapter_<族> 入口节点与识别模板，
   再登记到本模块 STAGE_FAMILIES。
 
@@ -21,6 +23,8 @@ from pathlib import Path
 from typing import Any
 
 CATALOG_PATH = Path("data/combat/balanced_farming.json")
+# 材料显示名的单一来源（仓库扫描与日志着色也读它）；目录条目只在不在表里时写自己的 name
+ITEMS_PATH = Path("data/combat/items.json")
 
 
 @dataclass(frozen=True)
@@ -141,16 +145,45 @@ def parse_stage_code(code: str) -> MaterialStage:
     return MaterialStage(code=code, chapter=chapter, stage_no=stage_no, family=chapter)
 
 
-def build_catalog(raw: Any, *, source: str = str(CATALOG_PATH)) -> dict[str, MaterialEntry]:
-    """校验并构建目录；一次性报出全部问题，便于维护时逐条修。"""
+def load_item_names(path: Path = ITEMS_PATH) -> dict[str, str]:
+    """读取 items.json 的材料名（id → 名称）；文件缺失/损坏/结构不符时返回空表。"""
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(raw, dict):
+        return {}
+
+    names: dict[str, str] = {}
+    for items in raw.values():
+        if not isinstance(items, dict):
+            continue
+        for item_id, info in items.items():
+            name = info.get("name") if isinstance(info, dict) else None
+            if isinstance(name, str) and name:
+                names[str(item_id)] = name
+    return names
+
+
+def build_catalog(
+    raw: Any,
+    *,
+    source: str = str(CATALOG_PATH),
+    names: Mapping[str, str] | None = None,
+) -> dict[str, MaterialEntry]:
+    """校验并构建目录；一次性报出全部问题，便于维护时逐条修。
+
+    `names` 是材料名的回退表（通常是 items.json），条目自己的 `name` 优先。
+    """
     if not isinstance(raw, dict):
         raise CatalogError(f"{source}: 顶层应为 {{item_id: 条目}} 对象")
 
+    fallback = names or {}
     catalog: dict[str, MaterialEntry] = {}
     problems: list[str] = []
     for item_id, entry in raw.items():
         try:
-            catalog[str(item_id)] = _build_entry(str(item_id), entry)
+            catalog[str(item_id)] = _build_entry(str(item_id), entry, fallback)
         except CatalogError as exc:
             problems.append(str(exc))
 
@@ -159,15 +192,15 @@ def build_catalog(raw: Any, *, source: str = str(CATALOG_PATH)) -> dict[str, Mat
     return catalog
 
 
-def load_catalog(path: Path = CATALOG_PATH) -> dict[str, MaterialEntry]:
-    """读取材料目录；文件缺失或内容非法时抛 CatalogError。"""
+def load_catalog(path: Path = CATALOG_PATH, *, names_path: Path = ITEMS_PATH) -> dict[str, MaterialEntry]:
+    """读取材料目录（名称回退到 items.json）；文件缺失或内容非法时抛 CatalogError。"""
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except OSError as exc:
         raise CatalogError(f"读取材料目录失败: {path}: {exc}") from exc
     except json.JSONDecodeError as exc:
         raise CatalogError(f"材料目录 JSON 损坏: {path}: {exc}") from exc
-    return build_catalog(raw, source=str(path))
+    return build_catalog(raw, source=str(path), names=load_item_names(names_path))
 
 
 def catalog_problems(catalog: Mapping[str, MaterialEntry], repo_root: Path = Path(".")) -> list[str]:
@@ -196,15 +229,18 @@ def catalog_problems(catalog: Mapping[str, MaterialEntry], repo_root: Path = Pat
     return problems
 
 
-def _build_entry(item_id: str, entry: Any) -> MaterialEntry:
+def _build_entry(item_id: str, entry: Any, names: Mapping[str, str]) -> MaterialEntry:
     if not item_id.isdigit():
         raise CatalogError(f"材料 id {item_id!r} 应为纯数字（图标模板名为 Item-<id>.png）")
     if not isinstance(entry, dict):
-        raise CatalogError(f"{item_id}: 条目应为对象，含 name/stage/level")
+        raise CatalogError(f"{item_id}: 条目应为对象，含 stage/level")
 
     name = entry.get("name")
     if not isinstance(name, str) or not name.strip():
-        raise CatalogError(f"{item_id}: name 缺失或为空")
+        # 名称默认来自 items.json（单一来源），只有不在表里的材料才需要在目录里写
+        name = names.get(item_id, "")
+    if not name:
+        raise CatalogError(f"{item_id}: name 缺失或为空，且 {ITEMS_PATH.as_posix()} 里没有该材料")
 
     stage_code = entry.get("stage")
     if not isinstance(stage_code, str) or not stage_code.strip():

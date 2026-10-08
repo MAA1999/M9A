@@ -943,15 +943,19 @@
             "properties": {
                 "custom_action": {
                     "const": "DepotMaintainPlan",
-                    "description": "库存保持规划：读仓库快照与目标库存，挑缺口最大的材料并覆盖作战关卡与刷取次数；目标库存为 0 时退回原有均衡逻辑。"
+                    "description": "库存保持规划：读仓库快照与 GUI 逐材料目标库存，挑缺口最大的材料并覆盖作战关卡与刷取次数；未开启或没有任何目标时退回原有均衡逻辑。"
                 },
                 "custom_action_param": {
                     "type": "object",
                     "properties": {
-                        "target": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "description": "统一目标库存，0 表示不启用库存保持"
+                        "depot_disabled": {
+                            "type": "boolean",
+                            "description": "「库存保持」总开关关闭时为 true，直接退回原有均衡逻辑"
+                        }
+                    },
+                    "patternProperties": {
+                        "^(target|candy)_\\d+$": {
+                            "type": "string"
                         }
                     },
                     "unevaluatedProperties": false

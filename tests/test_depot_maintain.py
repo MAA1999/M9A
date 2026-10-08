@@ -17,7 +17,6 @@ from agent.custom.action.depot_maintain import (
     DepotMaintainInit,
     DepotMaintainPlan,
     DepotMaintainRefresh,
-    load_target_overrides,
     parse_abbreviated_number,
     parse_gui_candy,
     parse_gui_targets,
@@ -29,6 +28,7 @@ from agent.custom.action.depot_maintain import (
     snapshot_is_fresh,
     write_snapshot_counts,
 )
+from agent.utils.account_store import DEFAULT_ACCOUNT_KEY
 from agent.utils.material_catalog import (
     CatalogError,
     MaterialEntry,
@@ -37,8 +37,16 @@ from agent.utils.material_catalog import (
     load_catalog,
     parse_stage_code,
 )
+from agent.utils.warehouse_snapshot import SNAPSHOT_KEY
 
 _FAKE_ARGV = CustomAction.RunArg(None, "", "", "", None, None)  # pyright: ignore[reportArgumentType]
+
+
+def _bucket(path: Path) -> dict[str, Any]:
+    """读出快照文件里当前账号桶的内容（测试里账号 id 为空 → 落到默认桶）。"""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return data[SNAPSHOT_KEY][DEFAULT_ACCOUNT_KEY]
+
 
 _SAMPLE_RAW: dict[str, Any] = {
     "110103": {"name": "啮咬盒", "stage": "7-26", "level": "Hard"},
@@ -143,7 +151,6 @@ class _PlanHarness:
         monkeypatch: pytest.MonkeyPatch,
         *,
         snapshot: dict[str, Any] | None,
-        overrides: dict[str, int] | None = None,
         drop_report_disabled: bool = False,
         attach: dict[str, Any] | None = None,
         eat_candy: bool = True,
@@ -165,7 +172,6 @@ class _PlanHarness:
             Path(tempfile.mkdtemp(prefix="m9a-depot-test-")) / "warehouse_inventory.json",
         )
         monkeypatch.setattr(depot_maintain, "read_snapshot", lambda path=None: snapshot)
-        monkeypatch.setattr(depot_maintain, "load_target_overrides", lambda path=None: overrides or {})
         monkeypatch.setattr(depot_maintain, "load_catalog", lambda path=None: build_catalog(sample, source="unit-test"))
         monkeypatch.setattr(depot_maintain, "request_combat_stop", self._record_stop)
         monkeypatch.setattr(depot_maintain, "battles_done", lambda: 4)
@@ -278,7 +284,7 @@ def test_write_snapshot_counts_merges_and_keeps_timestamp(tmp_path: Path) -> Non
 
     assert write_snapshot_counts({"205": 9_792_000, "203": 3_969_000}, path)
 
-    data = json.loads(path.read_text(encoding="utf-8"))
+    data = _bucket(path)
     assert data["counts"] == {"110103": 5, "205": 9_792_000, "203": 3_969_000}
     assert data["updated_at"] == "2026-10-08 00:00:00"
     # 角色页读数有自己的时间戳：两套读数各算各的有效期
@@ -289,9 +295,43 @@ def test_write_snapshot_counts_creates_missing_snapshot(tmp_path: Path) -> None:
     """快照文件不存在时新建（只勾了微尘/利齿子儿的全新安装也能用）。"""
     path = tmp_path / "new.json"
     assert write_snapshot_counts({"205": 100}, path)
-    data = json.loads(path.read_text(encoding="utf-8"))
+    data = _bucket(path)
     assert data["counts"] == {"205": 100}
     assert isinstance(data.get("updated_at"), str)
+
+
+def test_write_snapshot_counts_keeps_other_accounts(tmp_path: Path) -> None:
+    """角色页读数只写当前账号的桶，其他账号的读数原样保留。"""
+    path = tmp_path / "warehouse_inventory.json"
+    path.write_text(
+        json.dumps({SNAPSHOT_KEY: {"other-account": {"updated_at": "x", "counts": {"110103": 5}}}}),
+        encoding="utf-8",
+    )
+
+    assert write_snapshot_counts({"205": 100}, path)
+
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    assert raw[SNAPSHOT_KEY]["other-account"] == {"updated_at": "x", "counts": {"110103": 5}}
+    assert raw[SNAPSHOT_KEY][DEFAULT_ACCOUNT_KEY]["counts"] == {"205": 100}
+
+
+def test_read_snapshot_migrates_legacy_flat_file(tmp_path: Path) -> None:
+    """旧版未分桶的文件读出来仍是同一份读数（整体搬进当前账号桶）。"""
+    path = tmp_path / "warehouse_inventory.json"
+    path.write_text(
+        json.dumps({"updated_at": "2026-10-08 00:00:00", "counts": {"110103": 5}}),
+        encoding="utf-8",
+    )
+
+    snapshot = depot_maintain.read_snapshot(path)
+
+    assert snapshot is not None
+    assert snapshot_counts(snapshot) == {"110103": 5}
+
+
+def test_read_snapshot_missing_file_returns_none(tmp_path: Path) -> None:
+    """文件缺失时返回 None（调用方据此触发一次刷新）。"""
+    assert depot_maintain.read_snapshot(tmp_path / "missing.json") is None
 
 
 def test_parse_gui_targets_blank_or_missing_means_unset() -> None:
@@ -309,13 +349,11 @@ def test_parse_gui_candy_blank_means_unlimited() -> None:
     assert parse_gui_candy({"candy_110203": "abc"}, catalog) == {}
 
 
-def test_resolve_targets_precedence() -> None:
-    """两层优先级：config 文件 > GUI 逐材料框；都没设置按 0（不刷）。"""
+def test_resolve_targets_expands_catalog_with_zero_default() -> None:
+    """目标表按材料目录展开，GUI 没填的材料按 0（不刷）。"""
     catalog = build_catalog(_SAMPLE_RAW, source="unit-test")
-    resolved = resolve_targets(catalog, {"110103": 0, "110203": 300}, {"110103": 500})
-    assert resolved == {"110103": 500, "110203": 300}
-
-    assert resolve_targets(catalog, {}, {}) == {"110103": 0, "110203": 0}
+    assert resolve_targets(catalog, {"110103": 500}) == {"110103": 500, "110203": 0}
+    assert resolve_targets(catalog, {}) == {"110103": 0, "110203": 0}
 
 
 def test_plan_excludes_material_with_gui_zero(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -334,9 +372,9 @@ def test_plan_all_targets_blank_or_zero_falls_back_to_legacy(monkeypatch: pytest
 
 
 def test_plan_depot_disabled_falls_back_to_legacy(monkeypatch: pytest.MonkeyPatch) -> None:
-    """GUI「库存保持」开关关闭时直接退回原有均衡流程，config 覆盖与缺口都不看。"""
-    harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 1}), overrides={"110103": 500})
-    assert harness.plan('{"depot_disabled": true}').success
+    """GUI「库存保持」开关关闭时直接退回原有均衡流程，目标与缺口都不看。"""
+    harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 1}))
+    assert harness.plan('{"depot_disabled": true, "target_110103": "500"}').success
     assert harness.context.next_overrides == [["BF_EnterWarehouse", "[JumpBack]ReturnMain"]]
     assert harness.context.pipeline_overrides == []
 
@@ -365,51 +403,6 @@ def test_plan_selected_material_with_zero_target_is_skipped(monkeypatch: pytest.
     harness = _PlanHarness(monkeypatch, snapshot=snapshot, attach={"mat_110103": True, "mat_110203": True})
     assert harness.plan('{"target_110103": "0", "target_110203": "0"}').success
     assert harness.context.next_overrides == [["BF_EnterWarehouse", "[JumpBack]ReturnMain"]]
-
-
-def test_load_target_overrides_missing_or_broken_file(tmp_path: Path) -> None:
-    """文件缺失 / JSON 损坏 / 非对象时一律回退空 dict。"""
-    assert load_target_overrides(tmp_path / "missing.json") == {}
-
-    broken = tmp_path / "broken.json"
-    broken.write_text("{not valid json", encoding="utf-8")
-    assert load_target_overrides(broken) == {}
-
-    array = tmp_path / "array.json"
-    array.write_text("[1, 2, 3]", encoding="utf-8")
-    assert load_target_overrides(array) == {}
-
-
-def test_load_target_overrides_skips_comment_and_null(tmp_path: Path) -> None:
-    """_ 前缀键是注释、null 表示「使用统一目标」，都不作为覆盖值。"""
-    path = tmp_path / "targets.json"
-    path.write_text(
-        json.dumps({"_说明": "注释", "110103": None, "110203": 150, "110303": "x"}),
-        encoding="utf-8",
-    )
-    assert load_target_overrides(path) == {"110203": 150}
-
-
-def test_ensure_targets_template_is_safe_by_default(tmp_path: Path) -> None:
-    """首次运行生成的模板：全为 null，语义上等于「全部使用统一目标」。"""
-    path = tmp_path / "depot_maintain_targets.json"
-    catalog = build_catalog(_SAMPLE_RAW, source="unit-test")
-    depot_maintain.ensure_targets_template(catalog, path)
-
-    assert depot_maintain.load_target_overrides(path) == {}
-    written = json.loads(path.read_text(encoding="utf-8"))
-    assert set(written) == {"_说明", *catalog}
-
-    first = path.read_text(encoding="utf-8")
-    depot_maintain.ensure_targets_template(catalog, path)  # 已存在则不覆盖
-    assert path.read_text(encoding="utf-8") == first
-
-
-def test_load_target_overrides_skips_invalid_values(tmp_path: Path) -> None:
-    """合法条目采纳，非法值忽略。"""
-    path = tmp_path / "targets.json"
-    path.write_text(json.dumps({"110103": 200, "110203": "50", "110303": -1, "110403": "x"}), encoding="utf-8")
-    assert load_target_overrides(path) == {"110103": 200, "110203": 50}
 
 
 # ---------- 仓库快照 ----------
@@ -633,8 +626,8 @@ def test_currency_read_writes_snapshot_and_returns_home(monkeypatch: pytest.Monk
     result = DepotCurrencyRead().run(context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
 
     assert result.success
-    assert context.run_tasks == [depot_maintain.CURRENCY_NAV_ENTRY, depot_maintain.CURRENCY_HOME_ENTRY]
-    data = json.loads(snapshot.read_text(encoding="utf-8"))
+    assert context.run_tasks == [depot_maintain.CURRENCY_NAV_ENTRY, depot_maintain.HOME_ENTRY]
+    data = _bucket(snapshot)
     assert data["counts"] == {"205": 9_792_000, "203": 3_969_000}
 
 
@@ -648,8 +641,8 @@ def test_currency_read_fails_without_readings(monkeypatch: pytest.MonkeyPatch, t
     result = DepotCurrencyRead().run(context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
 
     assert not result.success
-    assert context.run_tasks == [depot_maintain.CURRENCY_NAV_ENTRY, depot_maintain.CURRENCY_HOME_ENTRY]
-    assert json.loads(snapshot.read_text(encoding="utf-8"))["counts"] == {}
+    assert context.run_tasks == [depot_maintain.CURRENCY_NAV_ENTRY, depot_maintain.HOME_ENTRY]
+    assert snapshot_counts(depot_maintain.read_snapshot(snapshot)) == {}  # 没读到就不动快照
 
 
 def test_refresh_runs_currency_scan_for_character_items(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -696,33 +689,27 @@ def test_plan_done_when_all_satisfied(monkeypatch: pytest.MonkeyPatch) -> None:
     assert harness.context.next_overrides == [["BF_Done"]]
 
 
-def test_plan_material_override_steers_selection(monkeypatch: pytest.MonkeyPatch) -> None:
-    """config 文件覆盖优先于 GUI 逐材料目标。"""
-    harness = _PlanHarness(
-        monkeypatch,
-        snapshot=_snapshot({"110103": 500, "110203": 100}),
-        overrides={"110103": 1000},
-    )
-    assert harness.plan('{"target_110103": "10"}').success
+def test_plan_uses_gui_targets_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """目标只来自 GUI 逐材料框：填了才参与，缺口最大者先刷。"""
+    harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 500, "110203": 100}))
+    assert harness.plan('{"target_110103": "1000", "target_110203": "1000"}').success
     pipeline = harness.context.pipeline_overrides[0]
-    assert pipeline["SelectCombatStage"]["action"]["param"]["custom_action_param"]["stage"] == "7-26"
+    # 110203 缺口 900 大于 110103 缺口 500，先刷 110203 的关卡
+    assert pipeline["SelectCombatStage"]["action"]["param"]["custom_action_param"]["stage"] == "3-13"
 
 
 def test_plan_continues_in_place_when_replay_ui_visible(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """同一关卡续刷且「复现」按钮可见时，直接重选复现次数，不再回主界面重新导航。"""
     (tmp_path / "Item-110103.png").write_bytes(b"")
     monkeypatch.setattr(depot_maintain, "DROP_TEMPLATE_DIR", tmp_path)
-    harness = _PlanHarness(
-        monkeypatch,
-        snapshot=_snapshot({"110103": 100, "110203": 100}),
-        overrides={"110103": 200, "110203": 200},
-    )
+    harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 100, "110203": 100}))
     harness.context.ocr_texts = {"TargetCountWaitReplay": "复现"}
+    targets = '{"target_110103": "200", "target_110203": "200"}'
 
-    assert harness.plan().success
+    assert harness.plan(targets).success
     assert harness.context.next_overrides[-1] == ["Combat"]  # 第一轮还没在关卡页
 
-    assert harness.plan().success
+    assert harness.plan(targets).success
     assert harness.context.next_overrides[-1] == ["AllIn"]
 
 
@@ -730,14 +717,11 @@ def test_plan_reenters_stage_when_replay_ui_missing(monkeypatch: pytest.MonkeyPa
     """回合结束若已回主界面（复现按钮不可见），下一轮仍走完整导航。"""
     (tmp_path / "Item-110103.png").write_bytes(b"")
     monkeypatch.setattr(depot_maintain, "DROP_TEMPLATE_DIR", tmp_path)
-    harness = _PlanHarness(
-        monkeypatch,
-        snapshot=_snapshot({"110103": 100, "110203": 100}),
-        overrides={"110103": 200, "110203": 200},
-    )
+    harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 100, "110203": 100}))
+    targets = '{"target_110103": "200", "target_110203": "200"}'
 
-    assert harness.plan().success
-    assert harness.plan().success
+    assert harness.plan(targets).success
+    assert harness.plan(targets).success
     assert harness.context.next_overrides[-1] == ["Combat"]
 
 
@@ -766,12 +750,12 @@ def test_refresh_follows_plan_flags(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_done_action_succeeds_after_plan(monkeypatch: pytest.MonkeyPatch) -> None:
-    """收尾动作在规划后正常返回，并用 ReturnMain 回主界面（多级返回，单点会落空）。"""
+    """收尾动作在规划后正常返回，并经 ResetReturnMain 用共享的 ReturnMain 回主界面。"""
     harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 10, "110203": 0}))
     harness.plan()
     result = DepotMaintainDone().run(harness.context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
     assert result.success
-    assert harness.context.run_tasks == ["ReturnMain"]
+    assert harness.context.run_tasks == [depot_maintain.HOME_ENTRY]
 
 
 # ---------- 掉落累计与提前停止 ----------
@@ -869,10 +853,10 @@ def test_accumulate_writes_snapshot_increment(monkeypatch: pytest.MonkeyPatch, t
     scripted = iter([30, 40])
     monkeypatch.setattr(depot_maintain, "read_battle_drops", lambda context, item_id, label="": next(scripted))
     harness.accumulate()
-    assert json.loads(snapshot_path.read_text(encoding="utf-8"))["counts"]["110203"] == 34
+    assert _bucket(snapshot_path)["counts"]["110203"] == 34
 
     harness.accumulate()
-    written = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    written = _bucket(snapshot_path)
     assert written["counts"]["110203"] == 74
     assert written["updated_at"] == snapshot["updated_at"]  # 回扫时间戳不动
 

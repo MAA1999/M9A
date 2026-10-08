@@ -1,8 +1,7 @@
 """库存保持：按目标库存把材料补到目标量。
 
-决策链：材料目录（data/combat/balanced_farming.json）→ 目标库存（GUI 逐材料数字框 +
-config/depot_maintain_targets.json 覆盖）→ 仓库快照（config/warehouse_inventory.json）
-→ 挑缺口最大的材料 → 交给 Combat 刷取。
+决策链：材料目录（data/combat/balanced_farming.json）→ 目标库存（GUI 逐材料数字框）
+→ 仓库快照（config/warehouse_inventory.json）→ 挑缺口最大的材料 → 交给 Combat 刷取。
 
 - 所有目标库存都为 0（默认）时本动作不生效，任务退回原有「均衡取最少」流程，老配置行为不变；
 - 快照缺失/过期/缺少参与材料的读数时，每次任务先触发一次 WarehouseInventory 全量扫描，
@@ -24,7 +23,6 @@ from __future__ import annotations
 
 import json
 import math
-import os
 from collections.abc import Iterable, Mapping
 from datetime import datetime
 from pathlib import Path
@@ -45,9 +43,16 @@ from utils.material_catalog import (
 )
 from utils.params import parse_params
 from utils.settlement_drops import read_battle_drops
+from utils.warehouse_snapshot import (
+    SNAPSHOT_PATH,
+    load_snapshot_file,
+    save_snapshot_file,
+    snapshot_bucket,
+)
 
 # 相对导入：agent.custom.* 与 custom.* 是两张模块图，跨图导入会重复注册自定义动作
 from .combat import battles_done, request_combat_stop
+from .record_id import RecordID
 
 # 掉落累计读取方式：drop_core 累计 / 结算页自读 / 固定掉落只按估算
 READ_DROP_CORE = "drop_core"
@@ -64,8 +69,6 @@ try:
 except ImportError:
     logger.debug("掉落识别模块不可用，库存保持将自读结算页掉落行")
 
-SNAPSHOT_PATH = Path("config/warehouse_inventory.json")
-TARGETS_OVERRIDE_PATH = Path("config/depot_maintain_targets.json")
 SNAPSHOT_TS_FORMAT = "%Y-%m-%d %H:%M:%S"
 SNAPSHOT_TTL_HOURS = 24
 # 材料名称/品质表（与仓库扫描同源）：日志里显示「名称（品质色）」用
@@ -91,8 +94,10 @@ WAREHOUSE_SCAN_ENTRY = "WarehouseInventory"
 CURRENCY_SCAN_ENTRY = "DepotCurrencyInspect"
 # 复用「信任奖励领取」的角色页入口链：沿用它的「先回主界面」守卫（[JumpBack]ReturnMain）
 CURRENCY_NAV_ENTRY = "DepotCurrencyNav"
-CURRENCY_HOME_ENTRY = "CI_ReturnHome"
 CURRENCY_NUMBER_NODES: Mapping[str, str] = {"205": "CI_DustNumber", "203": "CI_CoinNumber"}
+# 回主界面统一走共享的 ReturnMain（startup.json）；它到家后会用 DisableNode 把自己关掉，
+# 所以二次使用必须经 ResetReturnMain 重新启用——与 warehouse_inventory.json 的 WI_AtMain 同一形状
+HOME_ENTRY = "ResetReturnMain"
 # 面板数字单位：K/M（游戏不用中文单位）。实测 3,969,000 显示为 3969K，切换阈值未知，按后缀换算即可
 _CURRENCY_SUFFIX = {"K": 1_000, "M": 1_000_000}
 
@@ -192,20 +197,33 @@ def parse_target(value: Any) -> int | None:
     return int(number)
 
 
-def read_snapshot(path: Path = SNAPSHOT_PATH) -> dict[str, Any] | None:
-    """读取仓库扫描快照（WarehouseInventory 任务落盘）。"""
+def current_account_id() -> str:
+    """当前账号 id（`RecordID` 没跑过时为空，落盘时归入默认桶）。"""
+    return RecordID.current_account_id()
+
+
+def read_snapshot(path: Path | None = None) -> dict[str, Any] | None:
+    """读取当前账号的仓库扫描快照（WarehouseInventory 任务落盘）。"""
+    target = path or SNAPSHOT_PATH
+    if not target.exists():
+        logger.debug(f"尚未生成库存数据（{target}），本次将先刷新")
+        return None
+    return snapshot_bucket(load_snapshot_file(target), current_account_id()) or None
+
+
+def save_snapshot(snapshot: Mapping[str, Any], path: Path | None = None) -> bool:
+    """把整份快照写进当前账号的桶；其他账号的读数原样保留。"""
+    target = path or SNAPSHOT_PATH
+    data = load_snapshot_file(target)
+    bucket = snapshot_bucket(data, current_account_id())
+    bucket.clear()
+    bucket.update(snapshot)
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        logger.debug(f"尚未生成库存数据（{path}），本次将先刷新")
-        return None
+        save_snapshot_file(data, target)
     except OSError as exc:
-        logger.warning(f"读取库存数据失败（{path}）: {exc}")
-        return None
-    except json.JSONDecodeError as exc:
-        logger.warning(f"库存数据文件损坏（{path}）: {exc}")
-        return None
-    return raw if isinstance(raw, dict) else None
+        logger.warning(f"写入库存数据失败（{target}）: {exc}")
+        return False
+    return True
 
 
 def snapshot_counts(snapshot: Mapping[str, Any] | None) -> dict[str, int]:
@@ -291,65 +309,7 @@ def write_snapshot_counts(updates: Mapping[str, int], path: Path | None = None) 
     for item_id, value in updates.items():
         counts[item_id] = value
     snapshot["currency_updated_at"] = datetime.now().strftime(SNAPSHOT_TS_FORMAT)
-
-    tmp_path = target.with_suffix(".json.tmp")
-    try:
-        tmp_path.write_text(json.dumps(snapshot, ensure_ascii=False, indent=4), encoding="utf-8")
-        os.replace(tmp_path, target)
-    except OSError as exc:
-        logger.warning(f"写入库存数据失败（{target}）: {exc}")
-        return False
-    return True
-
-
-def load_target_overrides(path: Path = TARGETS_OVERRIDE_PATH) -> dict[str, int]:
-    """读取逐材料目标库存覆盖；文件缺失/损坏/值非法一律忽略并回退未设置（不刷）。"""
-    if not path.exists():
-        return {}
-    try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
-    except OSError as exc:
-        logger.warning(f"读取目标库存配置失败({path}): {exc}，全部按未设置处理")
-        return {}
-    except json.JSONDecodeError as exc:
-        logger.warning(f"目标库存配置 JSON 损坏({path}): {exc}，全部按未设置处理")
-        return {}
-    if not isinstance(raw, dict):
-        logger.warning(f"目标库存配置({path})应为对象，全部按未设置处理")
-        return {}
-
-    overrides: dict[str, int] = {}
-    for item_id, value in raw.items():
-        key = str(item_id)
-        if key.startswith("_"):
-            continue  # 注释字段（如 _说明）
-        if value is None:
-            continue  # null = 未设置（不刷）
-        parsed = parse_target(value)
-        if parsed is None:
-            logger.warning(f"目标库存配置({path})中 {item_id} 的值非法: {value!r}，已忽略")
-            continue
-        overrides[key] = parsed
-    return overrides
-
-
-def ensure_targets_template(catalog: Mapping[str, MaterialEntry], path: Path = TARGETS_OVERRIDE_PATH) -> None:
-    """覆盖文件不存在时生成模板：所有材料写 null（= 未设置，不刷），用户按需改成正整数。"""
-    if path.exists():
-        return
-    body = {
-        "_说明": (
-            "逐材料目标库存：正整数 = 覆盖 GUI 逐材料目标；null = 未设置（不刷）。"
-            "材料名见 docs/zh_cn/develop/depot-catalog.md"
-        ),
-        **{item_id: None for item_id in sorted(catalog)},
-    }
-    try:
-        path.write_text(json.dumps(body, ensure_ascii=False, indent=4) + "\n", encoding="utf-8")
-    except OSError as exc:
-        logger.debug(f"生成目标库存模板失败({path}): {exc}")
-        return
-    logger.debug(f"已生成目标库存配置模板: {path}")
+    return save_snapshot(snapshot, target)
 
 
 def gui_material_params(context: Context, params: Mapping[str, Any]) -> dict[str, Any]:
@@ -420,13 +380,9 @@ def selected_items(context: Context, catalog: Mapping[str, MaterialEntry]) -> se
     return chosen or None
 
 
-def resolve_targets(
-    catalog: Mapping[str, MaterialEntry],
-    gui_overrides: Mapping[str, int],
-    file_overrides: Mapping[str, int],
-) -> dict[str, int]:
-    """合并目标库存：config 覆盖文件 > GUI 逐材料框；未设置按 0（不刷）。"""
-    return {item_id: file_overrides.get(item_id, gui_overrides.get(item_id, 0)) for item_id in catalog}
+def resolve_targets(catalog: Mapping[str, MaterialEntry], gui_overrides: Mapping[str, int]) -> dict[str, int]:
+    """把 GUI 逐材料目标展开成完整目标表；未设置的材料按 0（不刷）。"""
+    return {item_id: gui_overrides.get(item_id, 0) for item_id in catalog}
 
 
 def pick_target(
@@ -588,14 +544,7 @@ def _persist_snapshot(drops: int) -> None:
     except (TypeError, ValueError):
         return
     raw_counts[item_id] = current + increment
-
-    tmp_path = SNAPSHOT_PATH.with_suffix(".json.tmp")
-    try:
-        tmp_path.write_text(json.dumps(snapshot, ensure_ascii=False, indent=4), encoding="utf-8")
-        os.replace(tmp_path, SNAPSHOT_PATH)
-    except OSError as exc:
-        logger.warning(f"写入库存数据失败（{SNAPSHOT_PATH}）: {exc}")
-        tmp_path.unlink(missing_ok=True)
+    if not save_snapshot(snapshot):
         return
     _state.persisted = drops
     logger.debug(f"仓库快照已更新: {_state.item_name}({item_id}) +{increment} -> {raw_counts[item_id]}")
@@ -718,10 +667,7 @@ class DepotMaintainPlan(CustomAction):
             logger.error(f"材料目录不可用: {exc}")
             return CustomAction.RunResult(success=False)
 
-        file_overrides = load_target_overrides()
-        gui_overrides = parse_gui_targets(params, catalog)
-        ensure_targets_template(catalog)
-        targets = resolve_targets(catalog, gui_overrides, file_overrides)
+        targets = resolve_targets(catalog, parse_gui_targets(params, catalog))
         candy_caps = parse_gui_candy(params, catalog)
         chosen = selected_items(context, catalog)
         if chosen is not None:
@@ -730,7 +676,7 @@ class DepotMaintainPlan(CustomAction):
             logger.info(f"只刷勾选的 {len(chosen)} 种材料: {names}")
         if not any(value > 0 for value in targets.values()):
             logger.info("未设置任何目标库存，按原有均衡逻辑刷取")
-            logger.debug("逐材料目标与 config 覆盖均为空或 0")
+            logger.debug("逐材料目标均为空或 0")
             context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE, "[JumpBack]ReturnMain"])
             return CustomAction.RunResult(success=True)
 
@@ -882,6 +828,7 @@ class DepotCurrencyRead(CustomAction):
     FirstCharacter / FlagInCharacterDetail）与它的「先回主界面」守卫（DepotCurrencyNav 的
     `[JumpBack]ReturnMain`，和 WarehouseInventory 入口同一形状）；只在运行时覆写 next，
     不改 character.json，信任奖励任务本身不受影响。
+    返程复用共享的 ReturnMain（经 ResetReturnMain 重新启用，见 HOME_ENTRY）。
     面板数字是游戏显示的缩写值（如 9792K / 3.9M，单位切换阈值未知），按后缀换算，有千位误差。
     """
 
@@ -931,7 +878,7 @@ class DepotCurrencyRead(CustomAction):
             if write_snapshot_counts(updates):
                 logger.info(f"已记录库存: {summary}")
 
-        detail = context.run_task(CURRENCY_HOME_ENTRY)
+        detail = context.run_task(HOME_ENTRY)
         if detail is None or detail.status.failed:
             logger.warning("从角色页返回主界面未完成")
         return CustomAction.RunResult(success=bool(updates))
@@ -955,9 +902,10 @@ class DepotMaintainDone(CustomAction):
             logger.info("库存保持结束：本次无需刷取")
 
         # 续刷批次就地在关卡页结束时不会经过 TargetCountFinish，收尾在此补掉落总结与回主界面；
-        # 用 ReturnMain 而不是单点 HomeButton——关卡页等界面需要多级返回，单击可能落空
+        # 复用共享的 ReturnMain（startup.json）——关卡页等界面需要多级返回，单击 HomeButton 可能落空；
+        # 它到家后会 DisableNode 掉自己，所以经 ResetReturnMain 重新启用再走（见 HOME_ENTRY）
         if _drop_core_available:
             DropRecognitionState.print_total_summary(context)
             DropRecognitionState.reset_total()
-        context.run_task("ReturnMain")
+        context.run_task(HOME_ENTRY)
         return CustomAction.RunResult(success=True)
