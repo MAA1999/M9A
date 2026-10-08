@@ -9,8 +9,8 @@ icon: material-symbols:inventory-2-outline-rounded
 
 ## 数据流
 
-1. `data/combat/balanced_farming.json` —— 材料目录：材料 id → 名称 / 关卡 / 难度（可选每局掉落量 / 读数来源）。同一份目录也被原有「智能均衡刷材料」（`BalancedFarmingAnalyze`）读取：它只扫仓库，会跳过 `source: "character"` 的条目，新增材料时无需额外处理
-2. 目标库存 —— GUI「库存保持」总开关 + 每件材料一个开关，开关自己的「目标数量 / 吃糖次数」，`config/depot_maintain_targets.json` 可再按材料覆盖
+1. `data/combat/balanced_farming.json` —— 材料目录：材料 id → 关卡 / 难度（可选每局掉落量 / 读数来源）；显示名默认取自 `data/combat/items.json`，只有不在表里的材料（货币）才在本目录写 `name`。同一份目录也被原有「智能均衡刷材料」（`BalancedFarmingAnalyze`）读取：它只扫仓库，会跳过 `source: "character"` 的条目，新增材料时无需额外处理
+2. 目标库存 —— GUI「库存保持」总开关 + 每件材料一个开关，开关自己的「目标数量 / 吃糖次数」（唯一入口，没有配置文件）
 3. `config/warehouse_inventory.json` —— 材料快照：仓库材料由 `WarehouseInventory`（仓库材料识别）落盘，微尘/利齿子儿由 `DepotCurrencyInspect`（角色升级页读数）合并
 4. `DepotMaintainPlan`（pipeline 节点 `BF_Plan`）读上述三者，挑缺口最大的材料，覆盖 `SelectCombatStage`、`AllIn`、本轮吃糖与上报设置后进入战斗
 
@@ -25,12 +25,13 @@ icon: material-symbols:inventory-2-outline-rounded
 2. 在 `data/combat/balanced_farming.json` 增加一条：
 
     ```json
-    "110103": { "name": "啮咬盒", "stage": "7-26", "level": "Hard", "per_run": 1 }
+    "110103": { "stage": "7-26", "level": "Hard", "per_run": 1 }
     ```
 
     - `stage`：主线写「章节-关卡」（如 `7-26`），资源本写「族-关卡」（如 `MA-06`）
     - `level`：`Hard` / `Story` / `None`
     - `per_run`（可选）：每局掉落量的保守下界，用于折算刷取次数；省略时按每局 1 个估算
+    - `name`（可选）：**默认不用写**，显示名取自 `data/combat/items.json`（单一来源，日志着色也用它）；只有不在 items.json 里的材料（微尘/利齿子儿这类货币）才需要在这里写
 
 3. 在 `tasks/BalancedFarming.json` 里给新材料加 GUI 入口（三处）：
     - 材料开关：一个以材料名命名的 switch 选项，`Yes` case 挂参与标记并把配置项列为子项；`No` case 什么都不做（默认关）
@@ -108,24 +109,12 @@ icon: material-symbols:inventory-2-outline-rounded
     - `吃糖次数`（`candy_<id>`）：该材料体力不足时最多吃几个糖 —— **留空 = 不限（跟随全局「吃糖」选项）**、`0` = 不吃糖、`N` = 最多 N 个
 - 逐材料吃糖由规划节点**每轮动态覆盖**：`DepotMaintainPlan` 记下任务开始时的全局设置（`EatCandy.enabled` / `EatCandyStart.max_hit`，即 GUI「吃糖」选项生效后的节点数据），本轮按所选材料改成 `enabled = 全局开 且 该材料不是 0`、`max_hit = 该材料次数（留空则还原全局值）`，下一轮自动重算，不会泄漏到别的材料
     - `EatCandy.enabled` 就是 `TargetCountCandyRoute` / `TargetCountDetermine` 判断「能不能吃糖续体力」的开关；只关某个材料的吃糖不影响其他材料
-- `config/depot_maintain_targets.json`：**逐材料覆盖** GUI 的目标数量。首次以库存保持模式运行时自动生成模板（所有材料写 `null`），把关心的那几件改成正整数即可：
-
-    ```json
-    {
-        "_说明": "正整数 = 覆盖 GUI 逐材料目标；null = 未设置（不刷）",
-        "110103": 200,
-        "110203": null
-    }
-    ```
-
-    - `正整数` 覆盖 GUI 值；`null`（或直接删掉该行）= 未设置；`_` 开头的键是注释
-    - 未列出的材料 = 未设置；非法值只忽略该条并告警；文件值优先于 GUI（**开关没打开的材料仍不参与**）
-
-- 配置缺失 / JSON 损坏 / 值非法一律忽略并回退未设置，日志会说明原因
+- 目标库存**只有 GUI 一个入口**：`DepotMaintainPlan` 只读 `BF_Plan` 的 `attach` 与 `custom_action_param` 里的 `target_<id>` / `candy_<id>`，不读任何配置文件（逐材料数值走 `attach`——MaaFW 的覆盖对 `attach` 是叠加合并、对末端键是整体替换，多个材料各写一份 `custom_action_param` 会只剩最后一个）
 
 ## 仓库快照
 
 - 来源：`WarehouseInventory` 任务的 `config/warehouse_inventory.json`；微尘/利齿子儿的读数由角色升级页写入同一文件
+- **按账号分桶**：账号 id 取自 `RecordID`，每个账号一份读数，互不覆盖；没跑过 `RecordID` 时落在 `__default__` 桶。未分桶的旧文件首次读取时整体搬进当前账号桶（读写都在 `agent/utils/warehouse_snapshot.py`）
 - 有效期 24 小时，常量在 `agent/custom/action/depot_maintain.py` 的 `SNAPSHOT_TTL_HOURS`
 - **两套读数各有自己的时间戳**：仓库读数看 `updated_at`（全量扫描写入），角色页读数看 `currency_updated_at`（`write_snapshot_counts` 写入）；刷新按来源各自判新旧，只跑需要的那一步（仓库材料 → 仓库全量扫描，角色页材料 → 进角色升级页读数）。仓库扫描整表重写时会**保留自己没扫的读数**，不会把角色页读数挤掉
 - 刷新后仍不可用（扫描/读数失败）则退回实扫仓库的原有流程
@@ -135,8 +124,9 @@ icon: material-symbols:inventory-2-outline-rounded
 
 这两个货币不在仓库页，计数只显示在**角色升级面板**右上角（微尘 roi `[966,20,96,26]`、利齿子儿 roi `[1122,20,96,26]`）。
 
-- 读数流程（`resource/base/pipeline/depot_currency.json`，入口 `DepotCurrencyInspect`）：`DepotCurrencyRead` 复用「信任奖励领取」的角色页入口节点（`EnterCharacter` → `FlagInCharacter` → `FirstCharacter` → `FlagInCharacterDetail`，覆写 next 后接到 `CI_LevelPlus` 点「等级 +」）→ 打开升级面板 → 识别右上角两个数字并合并进快照 → 连点返回回到主界面
+- 读数流程（`resource/base/pipeline/depot_currency.json`，入口 `DepotCurrencyInspect`）：`DepotCurrencyRead` 复用「信任奖励领取」的角色页入口节点（`EnterCharacter` → `FlagInCharacter` → `FirstCharacter` → `FlagInCharacterDetail`，覆写 next 后接到 `CI_LevelPlus` 点「等级 +」）→ 打开升级面板 → 识别右上角两个数字并合并进快照 → 经 `ResetReturnMain` 复用共享的 `ReturnMain` 回主界面
     - 「信任奖励领取」链本身假设主界面起步，所以导航入口 `DepotCurrencyNav` 带 `[JumpBack]ReturnMain` 守卫（与 `WarehouseInventory` 入口同形状）；只在运行时覆写 next，**不改 `character.json`**，信任奖励任务本身不受影响
+    - 返程复用 `startup.json` 的 `ReturnMain`（多级返回，单点 `HomeButton` 会落空）；它到家后会用 `DisableNode` 把自己关掉，所以二次使用一律先过 `ResetReturnMain`——与 `warehouse_inventory.json` 的 `WI_AtMain` 同一形状
 - **精度**：面板显示的是缩写值（如 `9792K`），游戏用 K/M（不用中文单位），单位切换阈值未知——解析器按后缀换算、不假设阈值；千位精度带来 ≤1000 的显示误差，目标库存是几万～几百万量级时不影响决策
 - 关卡：微尘 `LP-06`（尘埃运动 06，每局固定 12500）、利齿子儿 `MA-06`（铸币美学 06，每局固定 9000）；两者都不在 `drop_index` 上报表内，走结算页自读
 - GUI 里这两件的**目标数量框支持 K/M 缩写**（`5M` = 5000000，校验正则 `^\d*[KkMm]?$`），普通材料仍是纯数字
@@ -153,7 +143,8 @@ icon: material-symbols:inventory-2-outline-rounded
 - 一轮作战补一种材料；`TargetCountFinish.next` 被覆写为回到 `BF_Plan`，于是同一次任务会继续补下一种缺口材料，直到：全部达标、上一轮没打成（体力不足 / 无法复现）、或达到轮数上限（`MAX_ROUNDS_PER_TASK`，默认 50）。**续刷同一关卡不回主界面**：库存保持模式下批次达标由 `combat.depot_batch_end_node()` 直接交回 `BF_Plan`（跳过 `TargetCountFinish` 的回家），规划节点探到关卡页「复现」按钮可见就用 `AllIn` 就地重选复现次数；换材料/换关卡或已经回到主界面时仍走 `Combat` 全量导航。就地结束时不会经过 `TargetCountFinish`，收尾的掉落总结与回主界面由 `DepotMaintainDone` 兜底
 - 每局把已确认的掉落增量写回仓库快照；`updated_at` 保持不变（它表示上次全量扫描时间），只更新 `counts`
 - 没有掉落模板的固定掉落关卡走估算模式，此时由**规划节点在每轮结束时按「本轮实际局数 × per_run」回写**（按轮号记账，一轮只结一次；同一轮内因快照回扫重入不会重复写）。不回写的话快照永远停在旧值，多轮循环会反复刷同一种材料
-- 仓库图标（`Warehouse/Item-<id>.png`，紧贴裁切）与掉落图标（`Items_processed/`）是两套不同素材，交叉匹配分数低于 0.6：要参与库存保持并核对逐局掉落的材料，两套模板都要准备
+- 仓库图标（`Warehouse/Item-<id>.png`，紧贴裁切）是库存保持读数的**前提**：缺模板的材料在 `WarehouseInventory` 里被跳过，规划时会提示「没有库存读数，本次不参与」
+- 掉落图标（`Items_processed/Item-<id>.png`）只服务**逐局核对结算页掉落**，与仓库图标是两套不同素材（交叉匹配分数低于 0.6）：`_settlement_or_estimate` 发现没有模板就走估算模式，按 `per_run` 折算。**掉落量固定的关卡不必配**——典籍每局固定 2 个、货币每局固定 9000 / 12500，估算即精确；因此 12 种典籍里只留了「兽涎典全章」的 `Item-115043.png` 作实测样例，其余 11 种走估算
 - 进战斗用普通 `next`（`BF_Plan → Combat`），**不要用 `[JumpBack]Combat`**：JumpBack 的语义是「链执行完毕后跳回父节点重新尝试其 next 列表」，单条目列表会反复重进战斗
 
 ## 截图裁剪的操作步骤（MaaMCP）
@@ -169,7 +160,8 @@ icon: material-symbols:inventory-2-outline-rounded
 
 ## 已知边界
 
-- 材料目录只覆盖仓库材料；货币类（微尘、利齿子儿等）显示为 K/M 紧凑数字，且有掉落模板而无仓库模板，drop_core 也明确不累计它们（`HELPER_ITEMS`），需要单独的读数通道，暂未纳入
+- 货币类（微尘、利齿子儿）**已纳入**：它们不在仓库页、drop_core 也不累计（`HELPER_ITEMS`），因此走「角色升级页读数 + 结算页自读掉落」两条独立通道（目录里写 `"source": "character"`）
+    - 读数精度：升级面板显示的是 K/M 缩写值，解析器按后缀换算、不假设单位切换阈值，存在 ≤1000 的显示误差；目标库存是几万～几百万量级时不影响决策
 - `per_run` 现在只是每轮刷取次数上限的依据（缺省按每局 1 个保守估算），真正的停止由实际掉落决定
 
 ## 校验

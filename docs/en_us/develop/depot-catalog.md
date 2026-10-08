@@ -9,14 +9,14 @@ Materials and stages of the "Smart Balanced Material Farming" task (depot mainta
 
 ## Data flow
 
-1. `data/combat/balanced_farming.json` — the catalog: item id → name / stage / difficulty (optional drop per run / reading source). The same file is also read by the original 智能均衡刷材料 (`BalancedFarmingAnalyze`), which only scans the depot — it skips `source: "character"` entries, so adding materials needs no extra work there
-2. Target stock — the GUI "Depot maintain" master switch plus one switch per material with its own "target amount / candy uses", overridable per material in `config/depot_maintain_targets.json`
+1. `data/combat/balanced_farming.json` — the catalog: item id → stage / difficulty (optional drop per run / reading source). Display names come from `data/combat/items.json` by default; only materials missing from that table (the currencies) write their own `name` here. The same file is also read by the original 智能均衡刷材料 (`BalancedFarmingAnalyze`), which only scans the depot — it skips `source: "character"` entries, so adding materials needs no extra work there
+2. Target stock — the GUI "Depot maintain" master switch plus one switch per material with its own "target amount / candy uses" (the only entry point; there is no config file)
 3. `config/warehouse_inventory.json` — the material snapshot: depot materials are written by the `WarehouseInventory` task, Dust/Sharpodonty are merged in by `DepotCurrencyInspect` (character-upgrade page reading)
 4. `DepotMaintainPlan` (pipeline node `BF_Plan`) reads all three, picks the material with the largest deficit, overrides `SelectCombatStage`, `AllIn`, the round's candy and report settings, then enters battle
 
 ## Adding a material
 
-1. Screenshot the game and crop the icons — **templates must come from real in-game screenshots** (other sources differ from the on-screen render by too much to clear the matching threshold). Both sets must be cropped from real screenshots:
+1. Screenshot the game and crop the icons — **templates must come from real in-game screenshots** (other sources differ from the on-screen render by too much to clear the matching threshold). The depot icon is always required; the drop icon only for materials that need per-battle verification:
 
     - depot → consumables page screenshot → `resource/base/image/Warehouse/Item-<id>.png` (tight crop, keeps the game's shadow; existing templates range from 59×83 to 124×93)
     - **Look-alike icons within one family (the tome items' 残篇/孤卷/全章 tiers) must keep only the family emblem, painting everything else pure green (RGB 0,255,0)** and relying on `green_mask` — the four families' icons correlate at 0.94+, so whole-tile matching reads another family's tile. `BF_ItemIcon` also pins `order_by: Score`: MaaFW defaults to taking the **leftmost** tile above threshold, not the best score (all four families were cross-read from the leftmost tile in practice)
@@ -25,12 +25,13 @@ Materials and stages of the "Smart Balanced Material Farming" task (depot mainta
 2. Append an entry to `data/combat/balanced_farming.json`:
 
     ```json
-    "110103": { "name": "Biting Box", "stage": "7-26", "level": "Hard", "per_run": 1 }
+    "110103": { "stage": "7-26", "level": "Hard", "per_run": 1 }
     ```
 
     - `stage`: main story uses `chapter-stage` (e.g. `7-26`), resource stages use `family-stage` (e.g. `MA-06`)
     - `level`: `Hard` / `Story` / `None`
     - `per_run` (optional): conservative lower bound of drops per run, used to estimate the number of runs; defaults to 1 per run when omitted
+    - `name` (optional): **normally omitted** — the display name comes from `data/combat/items.json` (single source of truth, also used for log colouring); only materials missing from that table (currencies such as Dust/Sharpodonty) need it here
 
 3. Add the GUI entry for the new material in `tasks/BalancedFarming.json` (three places):
     - material switch: a `switch` option named after the material; its `Yes` case carries the participation marker and lists the settings option, its `No` case does nothing (off by default)
@@ -108,24 +109,12 @@ The four insight families drop per difficulty tier (checked 2026-10-07):
     - `Candy uses` (`candy_<id>`): max candies to use for this material when stamina is short — **blank = unlimited (follow the global "糖果" option)**, `0` = never, `N` = at most N
 - Per-material candy is applied **dynamically every round** by the planner: `DepotMaintainPlan` remembers the task-wide baseline at the first round (`EatCandy.enabled` / `EatCandyStart.max_hit`, i.e. the node data after the global option applied) and then sets `enabled = global-on AND this material is not 0` and `max_hit = this material's count (blank restores the baseline)` for the chosen material only, recomputing every round so settings never leak between materials
     - `EatCandy.enabled` is exactly what `TargetCountCandyRoute` / `TargetCountDetermine` consult to decide whether candy may refill stamina; disabling it for one material does not affect the others
-- `config/depot_maintain_targets.json`: **per-material overrides** of the GUI target amount. A template (every material set to `null`) is generated automatically the first time the task runs in depot-maintain mode; turn the ones you care about into positive integers:
-
-    ```json
-    {
-        "_说明": "positive = override the GUI per-material target; null = unset (not farmed)",
-        "110103": 200,
-        "110203": null
-    }
-    ```
-
-    - A `positive integer` overrides the GUI value; `null` (or simply not listing the material) means unset; keys starting with `_` are comments
-    - An invalid value only drops that entry with a warning; the file wins over the GUI, but a material whose switch is off still does not participate
-
-- A missing / corrupted config or invalid values are ignored, falling back to "unset"; the log states the reason
+- Target stock has **exactly one entry point — the GUI**: `DepotMaintainPlan` only reads `target_<id>` / `candy_<id>` from `BF_Plan`'s `attach` and `custom_action_param`, never a config file (per-material values go through `attach` — MaaFW merges `attach` additively but replaces leaf keys, so one `custom_action_param` per material would keep only the last)
 
 ## Depot snapshot
 
 - Source: `config/warehouse_inventory.json` written by the `WarehouseInventory` task; the Dust/Sharpodonty readings are written into the same file from the character-upgrade page
+- **Bucketed per account**: the id comes from `RecordID`, so each account keeps its own readings; when `RecordID` never ran they land in the `__default__` bucket. A legacy flat file is moved into the current account's bucket on first read (read/write lives in `agent/utils/warehouse_snapshot.py`)
 - Valid for 24 hours; the constant is `SNAPSHOT_TTL_HOURS` in `agent/custom/action/depot_maintain.py`
 - **The two reading sets have separate timestamps**: depot readings use `updated_at` (written by the full scan), character-page readings use `currency_updated_at` (written by `write_snapshot_counts`). Refreshes judge freshness per source and only run the step that is needed (depot materials → full depot scan, character-page materials → a character-upgrade page visit). The depot scan rewrites the whole file but **keeps readings it did not scan**, so the character-page readings survive
 - If the snapshot is still unusable after refreshing (scan/read failed), the original in-place depot scan flow is used instead
@@ -135,8 +124,9 @@ The four insight families drop per difficulty tier (checked 2026-10-07):
 
 These two currencies are not in the depot page; their counts only show in the top-right of the **character level-up panel** (Dust roi `[966,20,96,26]`, Sharpodonty roi `[1122,20,96,26]`).
 
-- Reading flow (`resource/base/pipeline/depot_currency.json`, entry `DepotCurrencyInspect`): `DepotCurrencyRead` reuses the TrustReward task's character-page entry nodes (`EnterCharacter` → `FlagInCharacter` → `FirstCharacter` → `FlagInCharacterDetail`, with `next` overridden to continue into `CI_LevelPlus`, which taps the "等级 +" button) → opens the level-up panel → recognises the two numbers and merges them into the snapshot → taps back to home
+- Reading flow (`resource/base/pipeline/depot_currency.json`, entry `DepotCurrencyInspect`): `DepotCurrencyRead` reuses the TrustReward task's character-page entry nodes (`EnterCharacter` → `FlagInCharacter` → `FirstCharacter` → `FlagInCharacterDetail`, with `next` overridden to continue into `CI_LevelPlus`, which taps the "等级 +" button) → opens the level-up panel → recognises the two numbers and merges them into the snapshot → returns home via `ResetReturnMain` into the shared `ReturnMain`
     - The TrustReward chain assumes it starts at the home screen, so the nav entry `DepotCurrencyNav` carries the same `[JumpBack]ReturnMain` guard as the `WarehouseInventory` entry; only the runtime `next` lists are overridden, **`character.json` is untouched** and the TrustReward task itself is unaffected
+    - The trip home reuses `ReturnMain` from `startup.json` (multi-level returns — a single `HomeButton` tap would miss); once home it disables itself through `DisableNode`, so every later use goes through `ResetReturnMain` first, exactly like `WI_AtMain` in `warehouse_inventory.json`
 - **Precision**: the panel shows an abbreviated value (e.g. `9792K`); the game uses K/M only (no Chinese units) and the unit-switch threshold is unknown — the parser converts by suffix without assuming a threshold. Thousand granularity gives a ≤1000 display error, irrelevant for targets in the tens of thousands to millions
 - Stages: Dust at `LP-06` (12500 fixed per run), Sharpodonty at `MA-06` (9000 fixed per run); neither is in the `drop_index` report table, so drops are self-read from the settlement row
 - In the GUI, these two materials' **target-amount fields accept K/M suffixes** (`5M` = 5000000, verify regex `^\d*[KkMm]?$`); regular materials stay digits-only
@@ -153,7 +143,8 @@ These two currencies are not in the depot page; their counts only show in the to
 - One round tops up one material; `TargetCountFinish.next` is overridden back to `BF_Plan`, so the same task keeps topping up the next material with a deficit until: everything is satisfied, the previous round fought no battle (no stamina / cannot replay), or the round cap (`MAX_ROUNDS_PER_TASK`, 50) is hit. **Continuing on the same stage skips the trip home**: in depot-maintain mode `combat.depot_batch_end_node()` hands control straight back to `BF_Plan` (bypassing `TargetCountFinish`'s home button), and the planner re-opens the replay-count panel in place via `AllIn` whenever the stage page's replay button is on screen; switching material/stage, or ending a batch back at the home screen, still goes through the full `Combat` navigation. In-place batches never reach `TargetCountFinish`, so `DepotMaintainDone` prints the drop summary and returns home at the end
 - Every battle writes the confirmed drop increment back into the depot snapshot; `updated_at` stays untouched (it marks the last full scan), only `counts` change
 - Fixed-drop stages without a drop template run in estimate mode, where the **planning node writes back `battles actually fought × per_run` at the end of each round** (accounted per round number, so a re-entry after a snapshot rescan never double-writes). Without this the snapshot would stay stale and the multi-material loop would farm the same material over and over
-- Depot icons (`Warehouse/Item-<id>.png`, tightly cropped) and drop icons (`Items_processed/`) are two different asset sets — cross-matching scores below 0.6. A material that should both participate in depot maintain and be counted per battle needs templates in both sets
+- Depot icons (`Warehouse/Item-<id>.png`, tightly cropped) are the **prerequisite** for depot-maintain readings: a material without a template is skipped by `WarehouseInventory` and gets no reading (planning then reports "no stock reading, skipping this one")
+- Drop icons (`Items_processed/Item-<id>.png`) only serve **per-battle verification of the settlement row** and are a different asset set from depot icons (cross-matching scores below 0.6): `_settlement_or_estimate` falls back to estimate mode when no template exists, converting via `per_run`. **Fixed-drop stages need no template** — codex stages always drop 2 per run and the currencies a fixed 9000 / 12500, so the estimate is exact; that is why only 兽涎典全章 ships `Item-115043.png` (kept as a device-verified sample) while the other 11 codex materials use the estimate
 - Entering combat uses a plain `next` (`BF_Plan → Combat`); **never `[JumpBack]Combat`** — a jump-back returns to the parent node and retries its `next` list, so a single-entry list re-enters combat forever
 
 ## Cropping from a live device (MaaMCP)
@@ -169,7 +160,8 @@ Identifying an item without OCR: first the **seal colour** (岩中 = gold, 星�
 
 ## Known limits
 
-- The catalog only covers depot materials; currencies (dust, sharpodonty, …) use compact K/M numbers, have a drop template but no depot template, and drop_core explicitly skips them (`HELPER_ITEMS`), so they need a separate reading channel and are currently out of scope
+- Currencies (Dust, Sharpodonty) **are supported**: they are not on the depot page and drop_core does not accumulate them (`HELPER_ITEMS`), so they use two dedicated channels — the character-upgrade page for readings and the settlement row for drops (marked `"source": "character"` in the catalog)
+    - Reading precision: the panel shows K/M abbreviated values; the parser converts by suffix without assuming a switch threshold, giving a ≤1000 display error — irrelevant for targets in the tens of thousands to millions
 - `per_run` now only caps the runs per round (defaulting to a conservative 1 per run); the actual stop is driven by observed drops
 
 ## Checks
