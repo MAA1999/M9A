@@ -68,7 +68,11 @@
                 "custom_action": "DepotMaintainAccumulate"
             }
         },
-        "next": []
+        // 兜底：动作内部会把 next 覆写成 TargetCountVictoryClick（见 DepotMaintainAccumulate）。
+        // 这里留一份静态 next，万一动作根本没跑起来也不会把胜利链停在结算页上。
+        "next": [
+            "TargetCountVictoryClick"
+        ]
     },
     "BF_EnterWarehouse": {
         "desc": "主界面左侧栏点击仓库入口",
