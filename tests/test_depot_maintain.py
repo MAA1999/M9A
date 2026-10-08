@@ -755,14 +755,56 @@ def test_plan_continues_in_place_when_replay_ui_visible(monkeypatch: pytest.Monk
     (tmp_path / "Item-110103.png").write_bytes(b"")
     monkeypatch.setattr(depot_maintain, "DROP_TEMPLATE_DIR", tmp_path)
     harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 100, "110203": 100}))
-    harness.context.ocr_texts = {"TargetCountWaitReplay": "复现"}
     targets = '{"target_110103": "200", "target_110203": "200"}'
 
     assert harness.plan(targets).success
     assert harness.context.next_overrides[-1] == ["Combat"]  # 第一轮还没在关卡页
+    assert harness.context.run_tasks == []  # 不在关卡页就不用先回家
 
+    harness.context.ocr_texts = {"TargetCountWaitReplay": "复现"}
     assert harness.plan(targets).success
     assert harness.context.next_overrides[-1] == ["AllIn"]
+    assert harness.context.run_tasks == []
+
+
+def test_plan_returns_home_when_switching_stage(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """换材料即换关卡：上一批停在关卡页时先回主界面再导航。
+
+    `Combat` 靠主界面的「进入」按钮（`EnterTheShow`）导航，停在关卡页时它那四个候选
+    （EnterTheShowFlag / EnterTheShow / ShowClickStory / ReturnMain）一个都认不出，
+    会一直空转到父节点超时。
+    """
+    (tmp_path / "Item-110103.png").write_bytes(b"")
+    monkeypatch.setattr(depot_maintain, "DROP_TEMPLATE_DIR", tmp_path)
+    snapshot = _snapshot({"110103": 100, "110203": 100})
+    harness = _PlanHarness(monkeypatch, snapshot=snapshot)
+    targets = '{"target_110103": "200", "target_110203": "200"}'
+
+    # 第一轮：缺口最大的是 110103（7-26），此时在主界面，直接导航
+    assert harness.plan(targets).success
+    assert harness.context.next_overrides[-1] == ["Combat"]
+    assert harness.context.run_tasks == []
+
+    # 打完一批停在关卡页（「复现」按钮可见），110103 已补齐 → 换 110203（3-13）
+    snapshot["counts"]["110103"] = 200
+    harness.context.ocr_texts = {"TargetCountWaitReplay": "复现"}
+    assert harness.plan(targets).success
+    assert harness.context.run_tasks == [depot_maintain.HOME_ENTRY]
+    assert harness.context.next_overrides[-1] == ["Combat"]
+    # ReturnMain 的 max_hit 只有 2 且计数整轮累计，必须自己抬上限，否则会被静默跳过
+    assert harness.context.pipeline_overrides[-1]["ReturnMain"] == {"max_hit": depot_maintain.RETURN_MAIN_MAX_HIT}
+
+
+def test_plan_returns_home_when_starting_at_stage_page(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """任务从关卡页起步时也要先回主界面：首轮没有「上一关卡」，但同样导航不了。"""
+    (tmp_path / "Item-110103.png").write_bytes(b"")
+    monkeypatch.setattr(depot_maintain, "DROP_TEMPLATE_DIR", tmp_path)
+    harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 0}))
+    harness.context.ocr_texts = {"TargetCountWaitReplay": "复现"}
+
+    assert harness.plan('{"target_110103": "200"}').success
+    assert harness.context.run_tasks == [depot_maintain.HOME_ENTRY]
+    assert harness.context.next_overrides[-1] == ["Combat"]
 
 
 def test_plan_reenters_stage_when_replay_ui_missing(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -1002,8 +1044,11 @@ def test_round_loop_ends_at_round_cap(monkeypatch: pytest.MonkeyPatch) -> None:
     assert harness.context.next_overrides[-1] == ["BF_Done"]
 
 
-def test_estimate_mode_commits_progress_to_snapshot(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """估算模式按实际局数回写快照，否则多轮循环会反复刷同一种材料。"""
+def test_estimate_mode_commits_at_batch_result(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """估算模式在结算页（批次结果）出现时**立刻**回写，不等下一轮规划。
+
+    快照 24h 内都算新鲜读数，所以中途失败/停止之前必须已经落盘，否则会误导后续的库存判断。
+    """
     snapshot = _snapshot({"110103": 10, "110203": 0})
     harness = _PlanHarness(monkeypatch, snapshot=snapshot)
     monkeypatch.setattr(depot_maintain, "DROP_TEMPLATE_DIR", tmp_path)
@@ -1012,11 +1057,36 @@ def test_estimate_mode_commits_progress_to_snapshot(monkeypatch: pytest.MonkeyPa
     assert harness.plan().success
     assert depot_maintain._state.read_mode == depot_maintain.READ_ESTIMATE
     assert depot_maintain._state.per_run == 2
-    assert harness.accumulate().success  # 估算模式空转
 
+    # 结算页出现 = 这批打完了 → 立刻按实际局数回写（此后任务中断也不会留下旧值）
     monkeypatch.setattr(depot_maintain, "battles_done", lambda: 4)
-    assert harness.plan().success  # 新一轮开始时回写上一轮
+    assert harness.accumulate().success
     assert snapshot["counts"]["110203"] == 8  # 4 局 × 每局 2 个
+
+    # 下一轮规划再调一次只作兜底（结算页没出现时补写），不重复计
+    assert harness.plan().success
+    assert snapshot["counts"]["110203"] == 8
+
+
+def test_estimate_commit_is_incremental_across_batches(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """跨批按增量记账：第二批只补新增局数，规划兜底不会把上一批再写一遍。"""
+    snapshot = _snapshot({"110103": 10, "110203": 0})
+    harness = _PlanHarness(monkeypatch, snapshot=snapshot)
+    monkeypatch.setattr(depot_maintain, "DROP_TEMPLATE_DIR", tmp_path)
+    monkeypatch.setattr(depot_maintain, "SNAPSHOT_PATH", tmp_path / "snap.json")
+    targets = '{"target_110103": "100", "target_110203": "100"}'
+
+    assert harness.plan(targets).success
+    monkeypatch.setattr(depot_maintain, "battles_done", lambda: 4)
+    assert harness.accumulate().success
+    assert snapshot["counts"]["110203"] == 8
+
+    # 第二批：TargetCountInit 把局数清零后重新累计到 3
+    assert harness.plan(targets).success  # 兜底：局数没变，不重复写
+    assert snapshot["counts"]["110203"] == 8
+    monkeypatch.setattr(depot_maintain, "battles_done", lambda: 3)
+    assert harness.accumulate().success
+    assert snapshot["counts"]["110203"] == 14  # 8 + 3×2
 
 
 def test_estimate_commit_does_not_double_count(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

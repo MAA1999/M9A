@@ -98,6 +98,10 @@ CURRENCY_NUMBER_NODES: Mapping[str, str] = {"205": "CI_DustNumber", "203": "CI_C
 # 回主界面统一走共享的 ReturnMain（startup.json）；它到家后会用 DisableNode 把自己关掉，
 # 所以二次使用必须经 ResetReturnMain 重新启用——与 warehouse_inventory.json 的 WI_AtMain 同一形状
 HOME_ENTRY = "ResetReturnMain"
+# ReturnMain 在 startup.json 里 max_hit 只有 2，而命中计数在整个 task run 内按节点名累计、
+# 只有 post_task 才清零；ResetReturnMain 又只重置 enabled、不管计数。库存保持整轮要多次回主界面
+# （每换一种材料一次 + 收尾一次），不自己把上限抬起来就会被 run_next 静默跳过、空转到超时。
+RETURN_MAIN_MAX_HIT = 114514
 # 面板数字单位：K/M（游戏不用中文单位）。实测 3,969,000 显示为 3969K，切换阈值未知，按后缀换算即可
 _CURRENCY_SUFFIX = {"K": 1_000, "M": 1_000_000}
 
@@ -121,7 +125,8 @@ class _PlanState:
     rounds = 0
     completed: list[str] = []
     per_run: int | None = None
-    committed_round = 0
+    # 估算模式（无掉落模板）已回写的局数：按增量记账，批次结果一出现就写，重复调用不会重复计数
+    estimate_committed_battles = 0
     baseline_captured = False
     candy_base_enabled = True
     candy_base_max_hit = UNLIMITED_CANDY
@@ -556,28 +561,29 @@ def _persist_snapshot(drops: int) -> None:
 
 
 def _commit_estimate_progress() -> None:
-    """估算模式（无掉落模板）下按本轮实际局数把进度写回快照。
+    """估算模式（无掉落模板）下按已打局数把进度写回快照。
 
     固定掉落的关卡每局必掉 per_run 个，`battles_done()` 就是真实产出，早停也不会多算；
     不写回的话快照永远停在旧值，多轮循环会一直重复刷同一种材料。
+
+    批次结果一出现（结算页）就由 `DepotMaintainAccumulate` 写一次；规划节点再调一次只作兜底
+    （结算页没出现时补写）。按「已回写局数」增量记账，所以重复调用不会重复计数。
     """
     if _state.item_id is None or _state.read_mode != READ_ESTIMATE:
         return
-    # 一轮只结一次账：同一个轮号重复进入规划（如快照回扫后重跑）不重复写
-    if _state.rounds <= _state.committed_round:
-        return
 
     battles = battles_done()
-    _state.committed_round = _state.rounds
-    gained = battles * max(_state.per_run or 1, 1)
-    if gained <= 0:
+    new_battles = battles - _state.estimate_committed_battles
+    if new_battles <= 0:
         return
+    _state.estimate_committed_battles = battles
 
+    gained = new_battles * max(_state.per_run or 1, 1)
     _persist_snapshot(_state.persisted + gained)
     if _state.per_run:
-        logger.info(f"按实际局数回写库存: {_state.item_name} +{gained}（{battles} 局 × 每局 {_state.per_run} 个）")
+        logger.info(f"按实际局数回写库存: {_state.item_name} +{gained}（{new_battles} 局 × 每局 {_state.per_run} 个）")
     else:
-        logger.info(f"按实际局数回写库存: {_state.item_name} +{gained}（{battles} 局，按每局至少 1 个估算）")
+        logger.info(f"按实际局数回写库存: {_state.item_name} +{gained}（{new_battles} 局，按每局至少 1 个估算）")
 
 
 @AgentServer.custom_action("DepotMaintainAccumulate")
@@ -590,8 +596,15 @@ class DepotMaintainAccumulate(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
 
-        if _state.item_id is None or _state.read_mode == READ_ESTIMATE:
-            # 非库存保持模式，或固定掉落只按估算刷取：让胜利链继续即可
+        if _state.item_id is None:
+            # 非库存保持模式：让胜利链继续即可
+            context.override_next(ACCUMULATE_NODE, [VICTORY_CLICK_NODE])
+            return CustomAction.RunResult(success=True)
+
+        if _state.read_mode == READ_ESTIMATE:
+            # 没有掉落模板：结算页出现就是这批的结果，按实际局数折算后**立刻**回写。
+            # 不能等下一轮规划才结账 —— 中途失败/停止会让快照停在旧值，而快照 24h 内都算新鲜读数。
+            _commit_estimate_progress()
             context.override_next(ACCUMULATE_NODE, [VICTORY_CLICK_NODE])
             return CustomAction.RunResult(success=True)
 
@@ -637,7 +650,7 @@ class DepotMaintainInit(CustomAction):
         _state.rounds = 0
         _state.completed = []
         _state.per_run = None
-        _state.committed_round = 0
+        _state.estimate_committed_battles = 0
         _state.baseline_captured = False
         _state.candy_base_enabled = True
         _state.candy_base_max_hit = UNLIMITED_CANDY
@@ -780,6 +793,7 @@ class DepotMaintainPlan(CustomAction):
         _state.runs = runs
         _state.observed = 0
         _state.persisted = 0
+        _state.estimate_committed_battles = 0
         _state.stopped = False
         _state.per_run = entry.per_run
 
@@ -794,15 +808,28 @@ class DepotMaintainPlan(CustomAction):
                 },
                 # 一轮结束后回到规划节点续补下一种材料；收尾由规划节点判断（全部达标 / 打不动）
                 "TargetCountFinish": {"next": [PLAN_NODE]},
+                # 库存保持整轮要多次回主界面，先抬 ReturnMain 的命中上限（见 RETURN_MAIN_MAX_HIT）
+                "ReturnMain": {"max_hit": RETURN_MAIN_MAX_HIT},
                 **material_candy_override(context, entry.item_id, candy_caps),
                 DROP_REPORT_NODE: {"enabled": reportable},
             }
         )
+        # 上一批就地结束时游戏停在关卡页（「复现」按钮可见）：同关卡就原地重选次数续刷；
+        # 换关卡必须先回主界面 —— `Combat` 靠主界面的「进入」按钮（`EnterTheShow`）导航，
+        # 停在关卡页时它那四个候选（EnterTheShowFlag / EnterTheShow / ShowClickStory / ReturnMain）
+        # 一个都认不出，会一直空转到父节点超时。
+        on_stage_page = _replay_ui_visible(context)
         same_stage = previous_stage == entry.stage.code and previous_level == entry.level
-        if same_stage and _replay_ui_visible(context):
+        if same_stage and on_stage_page:
             logger.debug("上一批就地在关卡页结束，直接重选复现次数续刷")
             context.override_next(PLAN_NODE, ["AllIn"])
         else:
+            if on_stage_page:
+                logger.info(f"目标换到 {entry.stage.code}，先回主界面再重新导航")
+                detail = context.run_task(HOME_ENTRY)
+                if detail is None or detail.status.failed:
+                    logger.warning("换关卡前未能回到主界面")
+                    return CustomAction.RunResult(success=False)
             context.override_next(PLAN_NODE, ["Combat"])
         return CustomAction.RunResult(success=True)
 
