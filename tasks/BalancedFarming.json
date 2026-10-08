@@ -5,9 +5,7 @@
             "label": "$Task.BalancedFarming",
             "entry": "BalancedFarming",
             "description": "$Task.BalancedFarming.desc",
-            "group": [
-                "daily"
-            ],
+            "group": ["daily"],
             "option": [
                 "库存保持",
                 "吃糖",
@@ -25,15 +23,7 @@
                 {
                     "name": "No",
                     "pipeline_override": {
-                        "BF_Plan": {
-                            "action": {
-                                "param": {
-                                    "custom_action_param": {
-                                        "depot_disabled": true
-                                    }
-                                }
-                            }
-                        }
+                        "BF_Plan": {"action": {"param": {"custom_action_param": {"depot_disabled": true}}}}
                     }
                 },
                 {
@@ -73,21 +63,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.203",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "利齿子儿·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_203": true
-                            }
-                        }
-                    }
+                    "option": ["利齿子儿·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_203": true}}}
                 }
             ]
         },
@@ -95,21 +75,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.205",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "微尘·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_205": true
-                            }
-                        }
-                    }
+                    "option": ["微尘·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_205": true}}}
                 }
             ]
         },
@@ -117,21 +87,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.110103",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "啮咬盒·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_110103": true
-                            }
-                        }
-                    }
+                    "option": ["啮咬盒·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110103": true}}}
                 }
             ]
         },
@@ -139,21 +99,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.110203",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "盐封曼德拉·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_110203": true
-                            }
-                        }
-                    }
+                    "option": ["盐封曼德拉·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110203": true}}}
                 }
             ]
         },
@@ -161,21 +111,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.110303",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "双头形骨架·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_110303": true
-                            }
-                        }
-                    }
+                    "option": ["双头形骨架·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110303": true}}}
                 }
             ]
         },
@@ -183,21 +123,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.110403",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "祝圣秘银·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_110403": true
-                            }
-                        }
-                    }
+                    "option": ["祝圣秘银·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110403": true}}}
                 }
             ]
         },
@@ -205,21 +135,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.110503",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "百灵百验鸟·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_110503": true
-                            }
-                        }
-                    }
+                    "option": ["百灵百验鸟·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110503": true}}}
                 }
             ]
         },
@@ -227,21 +147,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.110603",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "翼造门匙·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_110603": true
-                            }
-                        }
-                    }
+                    "option": ["翼造门匙·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110603": true}}}
                 }
             ]
         },
@@ -249,21 +159,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.110703",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "弯曲鹅颈·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_110703": true
-                            }
-                        }
-                    }
+                    "option": ["弯曲鹅颈·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110703": true}}}
                 }
             ]
         },
@@ -271,21 +171,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.110803",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "金草焚香·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_110803": true
-                            }
-                        }
-                    }
+                    "option": ["金草焚香·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110803": true}}}
                 }
             ]
         },
@@ -293,21 +183,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.110903",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "红漆泥板·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_110903": true
-                            }
-                        }
-                    }
+                    "option": ["红漆泥板·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110903": true}}}
                 }
             ]
         },
@@ -315,21 +195,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.111002",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "金爪灵摆·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_111002": true
-                            }
-                        }
-                    }
+                    "option": ["金爪灵摆·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_111002": true}}}
                 }
             ]
         },
@@ -337,21 +207,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.111012",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "砂金甲虫·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_111012": true
-                            }
-                        }
-                    }
+                    "option": ["砂金甲虫·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_111012": true}}}
                 }
             ]
         },
@@ -359,21 +219,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.111103",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "真心彩蛋·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_111103": true
-                            }
-                        }
-                    }
+                    "option": ["真心彩蛋·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_111103": true}}}
                 }
             ]
         },
@@ -381,21 +231,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.115011",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "岩中典残篇·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_115011": true
-                            }
-                        }
-                    }
+                    "option": ["岩中典残篇·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115011": true}}}
                 }
             ]
         },
@@ -403,21 +243,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.115012",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "岩中典孤卷·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_115012": true
-                            }
-                        }
-                    }
+                    "option": ["岩中典孤卷·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115012": true}}}
                 }
             ]
         },
@@ -425,21 +255,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.115013",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "岩中典全章·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_115013": true
-                            }
-                        }
-                    }
+                    "option": ["岩中典全章·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115013": true}}}
                 }
             ]
         },
@@ -447,21 +267,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.115021",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "星升典残篇·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_115021": true
-                            }
-                        }
-                    }
+                    "option": ["星升典残篇·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115021": true}}}
                 }
             ]
         },
@@ -469,21 +279,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.115022",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "星升典孤卷·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_115022": true
-                            }
-                        }
-                    }
+                    "option": ["星升典孤卷·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115022": true}}}
                 }
             ]
         },
@@ -491,21 +291,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.115023",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "星升典全章·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_115023": true
-                            }
-                        }
-                    }
+                    "option": ["星升典全章·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115023": true}}}
                 }
             ]
         },
@@ -513,21 +303,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.115031",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "木娑典残篇·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_115031": true
-                            }
-                        }
-                    }
+                    "option": ["木娑典残篇·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115031": true}}}
                 }
             ]
         },
@@ -535,21 +315,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.115032",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "木娑典孤卷·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_115032": true
-                            }
-                        }
-                    }
+                    "option": ["木娑典孤卷·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115032": true}}}
                 }
             ]
         },
@@ -557,21 +327,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.115033",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "木娑典全章·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_115033": true
-                            }
-                        }
-                    }
+                    "option": ["木娑典全章·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115033": true}}}
                 }
             ]
         },
@@ -579,21 +339,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.115041",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "兽涎典残篇·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_115041": true
-                            }
-                        }
-                    }
+                    "option": ["兽涎典残篇·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115041": true}}}
                 }
             ]
         },
@@ -601,21 +351,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.115042",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "兽涎典孤卷·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_115042": true
-                            }
-                        }
-                    }
+                    "option": ["兽涎典孤卷·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115042": true}}}
                 }
             ]
         },
@@ -623,21 +363,11 @@
             "type": "switch",
             "label": "$Option.BalancedFarming.Material.115043",
             "cases": [
-                {
-                    "name": "No"
-                },
+                {"name": "No"},
                 {
                     "name": "Yes",
-                    "option": [
-                        "兽涎典全章·设置"
-                    ],
-                    "pipeline_override": {
-                        "BF_Plan": {
-                            "attach": {
-                                "mat_115043": true
-                            }
-                        }
-                    }
+                    "option": ["兽涎典全章·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115043": true}}}
                 }
             ]
         },
@@ -662,14 +392,7 @@
                     "verify": "^\\d*$"
                 }
             ],
-            "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_203": "{target_203}",
-                        "candy_203": "{candy_203}"
-                    }
-                }
-            }
+            "pipeline_override": {"BF_Plan": {"attach": {"target_203": "{target_203}", "candy_203": "{candy_203}"}}}
         },
         "微尘·设置": {
             "type": "input",
@@ -692,14 +415,7 @@
                     "verify": "^\\d*$"
                 }
             ],
-            "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_205": "{target_205}",
-                        "candy_205": "{candy_205}"
-                    }
-                }
-            }
+            "pipeline_override": {"BF_Plan": {"attach": {"target_205": "{target_205}", "candy_205": "{candy_205}"}}}
         },
         "啮咬盒·设置": {
             "type": "input",
@@ -723,12 +439,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_110103": "{target_110103}",
-                        "candy_110103": "{candy_110103}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_110103": "{target_110103}", "candy_110103": "{candy_110103}"}}
             }
         },
         "盐封曼德拉·设置": {
@@ -753,12 +464,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_110203": "{target_110203}",
-                        "candy_110203": "{candy_110203}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_110203": "{target_110203}", "candy_110203": "{candy_110203}"}}
             }
         },
         "双头形骨架·设置": {
@@ -783,12 +489,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_110303": "{target_110303}",
-                        "candy_110303": "{candy_110303}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_110303": "{target_110303}", "candy_110303": "{candy_110303}"}}
             }
         },
         "祝圣秘银·设置": {
@@ -813,12 +514,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_110403": "{target_110403}",
-                        "candy_110403": "{candy_110403}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_110403": "{target_110403}", "candy_110403": "{candy_110403}"}}
             }
         },
         "百灵百验鸟·设置": {
@@ -843,12 +539,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_110503": "{target_110503}",
-                        "candy_110503": "{candy_110503}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_110503": "{target_110503}", "candy_110503": "{candy_110503}"}}
             }
         },
         "翼造门匙·设置": {
@@ -873,12 +564,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_110603": "{target_110603}",
-                        "candy_110603": "{candy_110603}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_110603": "{target_110603}", "candy_110603": "{candy_110603}"}}
             }
         },
         "弯曲鹅颈·设置": {
@@ -903,12 +589,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_110703": "{target_110703}",
-                        "candy_110703": "{candy_110703}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_110703": "{target_110703}", "candy_110703": "{candy_110703}"}}
             }
         },
         "金草焚香·设置": {
@@ -933,12 +614,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_110803": "{target_110803}",
-                        "candy_110803": "{candy_110803}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_110803": "{target_110803}", "candy_110803": "{candy_110803}"}}
             }
         },
         "红漆泥板·设置": {
@@ -963,12 +639,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_110903": "{target_110903}",
-                        "candy_110903": "{candy_110903}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_110903": "{target_110903}", "candy_110903": "{candy_110903}"}}
             }
         },
         "金爪灵摆·设置": {
@@ -993,12 +664,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_111002": "{target_111002}",
-                        "candy_111002": "{candy_111002}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_111002": "{target_111002}", "candy_111002": "{candy_111002}"}}
             }
         },
         "砂金甲虫·设置": {
@@ -1023,12 +689,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_111012": "{target_111012}",
-                        "candy_111012": "{candy_111012}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_111012": "{target_111012}", "candy_111012": "{candy_111012}"}}
             }
         },
         "真心彩蛋·设置": {
@@ -1053,12 +714,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_111103": "{target_111103}",
-                        "candy_111103": "{candy_111103}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_111103": "{target_111103}", "candy_111103": "{candy_111103}"}}
             }
         },
         "岩中典残篇·设置": {
@@ -1083,12 +739,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_115011": "{target_115011}",
-                        "candy_115011": "{candy_115011}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_115011": "{target_115011}", "candy_115011": "{candy_115011}"}}
             }
         },
         "岩中典孤卷·设置": {
@@ -1113,12 +764,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_115012": "{target_115012}",
-                        "candy_115012": "{candy_115012}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_115012": "{target_115012}", "candy_115012": "{candy_115012}"}}
             }
         },
         "岩中典全章·设置": {
@@ -1143,12 +789,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_115013": "{target_115013}",
-                        "candy_115013": "{candy_115013}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_115013": "{target_115013}", "candy_115013": "{candy_115013}"}}
             }
         },
         "星升典残篇·设置": {
@@ -1173,12 +814,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_115021": "{target_115021}",
-                        "candy_115021": "{candy_115021}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_115021": "{target_115021}", "candy_115021": "{candy_115021}"}}
             }
         },
         "星升典孤卷·设置": {
@@ -1203,12 +839,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_115022": "{target_115022}",
-                        "candy_115022": "{candy_115022}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_115022": "{target_115022}", "candy_115022": "{candy_115022}"}}
             }
         },
         "星升典全章·设置": {
@@ -1233,12 +864,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_115023": "{target_115023}",
-                        "candy_115023": "{candy_115023}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_115023": "{target_115023}", "candy_115023": "{candy_115023}"}}
             }
         },
         "木娑典残篇·设置": {
@@ -1263,12 +889,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_115031": "{target_115031}",
-                        "candy_115031": "{candy_115031}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_115031": "{target_115031}", "candy_115031": "{candy_115031}"}}
             }
         },
         "木娑典孤卷·设置": {
@@ -1293,12 +914,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_115032": "{target_115032}",
-                        "candy_115032": "{candy_115032}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_115032": "{target_115032}", "candy_115032": "{candy_115032}"}}
             }
         },
         "木娑典全章·设置": {
@@ -1323,12 +939,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_115033": "{target_115033}",
-                        "candy_115033": "{candy_115033}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_115033": "{target_115033}", "candy_115033": "{candy_115033}"}}
             }
         },
         "兽涎典残篇·设置": {
@@ -1353,12 +964,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_115041": "{target_115041}",
-                        "candy_115041": "{candy_115041}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_115041": "{target_115041}", "candy_115041": "{candy_115041}"}}
             }
         },
         "兽涎典孤卷·设置": {
@@ -1383,12 +989,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_115042": "{target_115042}",
-                        "candy_115042": "{candy_115042}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_115042": "{target_115042}", "candy_115042": "{candy_115042}"}}
             }
         },
         "兽涎典全章·设置": {
@@ -1413,12 +1014,7 @@
                 }
             ],
             "pipeline_override": {
-                "BF_Plan": {
-                    "attach": {
-                        "target_115043": "{target_115043}",
-                        "candy_115043": "{candy_115043}"
-                    }
-                }
+                "BF_Plan": {"attach": {"target_115043": "{target_115043}", "candy_115043": "{candy_115043}"}}
             }
         }
     }
