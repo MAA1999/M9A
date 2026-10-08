@@ -75,6 +75,9 @@ class _FakeContext:
         self.pipeline_overrides: list[dict[str, Any]] = []
         self.run_tasks: list[str] = []
         self.drop_report_disabled = drop_report_disabled
+        # 模拟 MaaFW 的覆盖语义：override_pipeline 写进去的值会被后续 get_node_data 读到，
+        # 也就是会跨轮次残留（正是「读数模式不能读节点数据」那条的成因）
+        self.drop_report_enabled = not drop_report_disabled
         self.attach = attach or {}
         self.eat_candy = eat_candy
         self.candy_max_hit = candy_max_hit
@@ -89,6 +92,9 @@ class _FakeContext:
 
     def override_pipeline(self, pipeline: dict[str, Any]) -> None:
         self.pipeline_overrides.append(pipeline)
+        report = pipeline.get(depot_maintain.DROP_REPORT_NODE)
+        if isinstance(report, dict):
+            self.drop_report_enabled = bool(report.get("enabled", True))
 
     def run_task(self, entry: str, *args: Any, **kwargs: Any) -> Any:
         self.run_tasks.append(entry)
@@ -103,7 +109,7 @@ class _FakeContext:
 
     def get_node_data(self, name: str) -> dict[str, Any] | None:
         if name == depot_maintain.DROP_REPORT_NODE:
-            return {"enabled": not self.drop_report_disabled}
+            return {"enabled": self.drop_report_enabled}
         if name == depot_maintain.EAT_CANDY_NODE:
             return {"enabled": self.eat_candy}
         if name == depot_maintain.EAT_CANDY_START_NODE:
@@ -313,6 +319,27 @@ def test_write_snapshot_counts_keeps_other_accounts(tmp_path: Path) -> None:
     raw = json.loads(path.read_text(encoding="utf-8"))
     assert raw[SNAPSHOT_KEY]["other-account"] == {"updated_at": "x", "counts": {"110103": 5}}
     assert raw[SNAPSHOT_KEY][DEFAULT_ACCOUNT_KEY]["counts"] == {"205": 100}
+
+
+def test_write_snapshot_counts_keeps_timestamp_when_incomplete(tmp_path: Path) -> None:
+    """读数没读全（complete=False）时保留原时间戳：读到的照常合并，下次规划仍会重试。"""
+    path = tmp_path / "warehouse_inventory.json"
+    path.write_text(
+        json.dumps(
+            {
+                "updated_at": "2026-10-08 00:00:00",
+                "counts": {},
+                "currency_updated_at": "2026-10-01 00:00:00",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert write_snapshot_counts({"205": 100}, path, complete=False)
+
+    data = _bucket(path)
+    assert data["counts"] == {"205": 100}
+    assert data["currency_updated_at"] == "2026-10-01 00:00:00"
 
 
 def test_read_snapshot_migrates_legacy_flat_file(tmp_path: Path) -> None:
@@ -645,6 +672,31 @@ def test_currency_read_fails_without_readings(monkeypatch: pytest.MonkeyPatch, t
     assert snapshot_counts(depot_maintain.read_snapshot(snapshot)) == {}  # 没读到就不动快照
 
 
+def test_currency_read_keeps_timestamp_when_reading_incomplete(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """只读到一种货币时不刷新时间戳：另一种的旧值不能被当成新鲜读数用。"""
+    snapshot = tmp_path / "warehouse_inventory.json"
+    snapshot.write_text(
+        json.dumps(
+            {
+                "updated_at": "2026-10-08 00:00:00",
+                "counts": {"203": 1},
+                "currency_updated_at": "2026-10-01 00:00:00",
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(depot_maintain, "SNAPSHOT_PATH", snapshot)
+    monkeypatch.setattr(depot_maintain._state, "required_currency", ["205", "203"])
+
+    context = _FakeContext(ocr_texts={"CI_DustNumber": "9792K"})  # 只读到微尘
+    result = DepotCurrencyRead().run(context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
+
+    assert result.success
+    data = _bucket(snapshot)
+    assert data["counts"] == {"203": 1, "205": 9_792_000}  # 读到的照常合并，旧值保留
+    assert data["currency_updated_at"] == "2026-10-01 00:00:00"  # 时间戳不刷新 → 下次重试
+
+
 def test_refresh_runs_currency_scan_for_character_items(monkeypatch: pytest.MonkeyPatch) -> None:
     """角色页材料缺读数时只进角色升级页读一次，不跑仓库扫描。"""
     harness = _PlanHarness(monkeypatch, snapshot=_snapshot({}), raw=_CURRENCY_RAW)
@@ -758,6 +810,21 @@ def test_done_action_succeeds_after_plan(monkeypatch: pytest.MonkeyPatch) -> Non
     assert harness.context.run_tasks == [depot_maintain.HOME_ENTRY]
 
 
+def test_done_action_fails_when_return_home_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    """收尾没回到主界面时如实报失败：游戏可能停在关卡页，不该按「已完成」继续。"""
+    harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 10, "110203": 0}))
+    harness.plan()
+    monkeypatch.setattr(
+        harness.context,
+        "run_task",
+        lambda entry, *args, **kwargs: types.SimpleNamespace(status=types.SimpleNamespace(failed=True)),
+    )
+
+    result = DepotMaintainDone().run(harness.context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
+
+    assert not result.success
+
+
 # ---------- 掉落累计与提前停止 ----------
 
 
@@ -811,6 +878,36 @@ def test_accumulate_falls_back_when_report_disabled(monkeypatch: pytest.MonkeyPa
     harness.install_drop_core(monkeypatch)
     assert harness.plan().success
     assert depot_maintain._state.read_mode == depot_maintain.READ_SETTLEMENT
+
+
+def test_read_mode_uses_current_round_report_state(monkeypatch: pytest.MonkeyPatch) -> None:
+    """读数模式按**本轮**关卡的上报开关选，不沿用上一轮残留的 DropRecognition.enabled。
+
+    上一轮刷表外关卡会把上报关掉；本轮刷表内关卡时必须仍然读 drop_core 累计。
+    """
+    raw = {
+        "110103": {"name": "啮咬盒", "stage": "1-1", "level": "Hard"},  # 不在上报表内
+        "110203": {"name": "盐封曼德拉", "stage": "3-13", "level": "Hard"},  # 在表内
+    }
+    snapshot = _snapshot({"110103": 0, "110203": 0})
+    harness = _PlanHarness(monkeypatch, snapshot=snapshot, raw=raw)
+    harness.install_drop_core(monkeypatch)
+    targets = '{"target_110103": "100", "target_110203": "50"}'
+
+    # 第一轮刷表外的 1-1：上报被关掉（残留成 enabled=false）
+    assert harness.plan(targets).success
+    assert depot_maintain._state.item_id == "110103"
+    assert depot_maintain._state.read_mode == depot_maintain.READ_SETTLEMENT
+    assert harness.context.drop_report_enabled is False
+
+    snapshot["counts"]["110103"] = 100  # 第一轮补满，改刷表内的 110203
+    # 节点数据里还残留上一轮的 false，本轮的上报开关却是 true——按节点数据选就会选错
+    assert harness.context.get_node_data(depot_maintain.DROP_REPORT_NODE) == {"enabled": False}
+    assert depot_maintain.report_enabled(harness.context, "3-13", "Hard") is True
+
+    assert harness.plan(targets).success
+    assert depot_maintain._state.item_id == "110203"
+    assert depot_maintain._state.read_mode == depot_maintain.READ_DROP_CORE
 
 
 def test_accumulate_self_read_accumulates_and_stops(monkeypatch: pytest.MonkeyPatch) -> None:

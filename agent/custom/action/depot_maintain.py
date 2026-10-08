@@ -126,6 +126,8 @@ class _PlanState:
     candy_base_enabled = True
     candy_base_max_hit = UNLIMITED_CANDY
     report_base_enabled = True
+    # 本轮参与库存保持、需要角色页读数的货币（决定读数齐全与否，见 write_snapshot_counts）
+    required_currency: list[str] = []
 
 
 _state = _PlanState()
@@ -292,11 +294,14 @@ def parse_abbreviated_number(text: str) -> int | None:
     return round(float(raw) * factor)
 
 
-def write_snapshot_counts(updates: Mapping[str, int], path: Path | None = None) -> bool:
-    """把角色页读数合并进仓库快照，并盖自己的时间戳 currency_updated_at。
+def write_snapshot_counts(updates: Mapping[str, int], path: Path | None = None, *, complete: bool = True) -> bool:
+    """把角色页读数合并进仓库快照，并在读数齐全时盖自己的时间戳 currency_updated_at。
 
     仓库读数的 updated_at 保持不变（它表示上次全量扫描时间，两套读数各算各的有效期）；
     文件不存在时新建，缺失的 updated_at 一并补上当前时间。
+
+    `complete=False`（本轮没读全参与材料的读数）时**保留原时间戳**：读到的那几个数照常合并，
+    但时间戳不刷新，下次规划仍会判定角色页读数过期并重试，不会拿没读到的旧值当新鲜读数用。
     """
     target = path or SNAPSHOT_PATH
     snapshot = read_snapshot(target)
@@ -308,7 +313,8 @@ def write_snapshot_counts(updates: Mapping[str, int], path: Path | None = None) 
         snapshot["counts"] = counts
     for item_id, value in updates.items():
         counts[item_id] = value
-    snapshot["currency_updated_at"] = datetime.now().strftime(SNAPSHOT_TS_FORMAT)
+    if complete:
+        snapshot["currency_updated_at"] = datetime.now().strftime(SNAPSHOT_TS_FORMAT)
     return save_snapshot(snapshot, target)
 
 
@@ -444,11 +450,10 @@ def material_candy_override(context: Context, item_id: str, caps: Mapping[str, i
     return {"EatCandy": {"enabled": enabled}, "EatCandyStart": {"max_hit": max_hit}}
 
 
-def report_override(context: Context, stage: str, level: str) -> dict[str, Any]:
+def report_enabled(context: Context, stage: str, level: str) -> bool:
     """本轮关卡的掉落上报开关：只有上报表内的关卡（原有材料）参与上报，新加的不参与。"""
     _capture_baselines(context)
-    enabled = _state.report_base_enabled and _stage_reportable(stage, level)
-    return {DROP_REPORT_NODE: {"enabled": enabled}}
+    return _state.report_base_enabled and _stage_reportable(stage, level)
 
 
 def candy_note(item_id: str, caps: Mapping[str, int]) -> str:
@@ -472,18 +477,18 @@ def _stage_reportable(stage: str, level: str) -> bool:
         return False
 
 
-def _pick_read_mode(context: Context, item_id: str, label: str, stage: str, level: str) -> str:
-    """选掉落累计来源：能读 drop_core 累计就用它，否则自读结算页。"""
+def _pick_read_mode(item_id: str, label: str, *, reportable: bool) -> str:
+    """选掉落累计来源：能读 drop_core 累计就用它，否则自读结算页。
+
+    `reportable` 必须是调用方按**本轮**关卡算出来的上报开关（`report_enabled`）。
+    不能读 `context.get_node_data()`：那是上一轮留下的值——上一轮刷表外关卡会把
+    `DropRecognition` 关掉，本轮刷表内关卡时会被误判成"不上报"而退回自读。
+    """
     if not _drop_core_available:
         return _settlement_or_estimate(item_id, label)
 
-    report_node = context.get_node_data(DROP_REPORT_NODE)
-    if report_node is not None and not report_node.get("enabled", True):
-        logger.debug("掉落统计上报已关闭，库存保持改用结算页自读")
-        return _settlement_or_estimate(item_id, label)
-
-    if not _stage_reportable(stage, level):
-        logger.debug(f"{stage} {level} 不在掉落上报表内，库存保持改用结算页自读")
+    if not reportable:
+        logger.debug("本轮不参与掉落上报，库存保持改用结算页自读")
         return _settlement_or_estimate(item_id, label)
 
     return READ_DROP_CORE
@@ -637,6 +642,7 @@ class DepotMaintainInit(CustomAction):
         _state.candy_base_enabled = True
         _state.candy_base_max_hit = UNLIMITED_CANDY
         _state.report_base_enabled = True
+        _state.required_currency = []
         return CustomAction.RunResult(success=True)
 
 
@@ -703,6 +709,8 @@ class DepotMaintainPlan(CustomAction):
         missing = [item_id for item_id in tracked if item_id not in inventory]
         wh_ids = [item_id for item_id in tracked if catalog[item_id].source == SOURCE_WAREHOUSE]
         ch_ids = [item_id for item_id in tracked if catalog[item_id].source == SOURCE_CHARACTER]
+        # 角色页读数只有在本轮参与的货币都读到时才算齐（见 write_snapshot_counts）
+        _state.required_currency = ch_ids
         # 两套读数各有自己的时间戳：仓库读数看 updated_at，角色页读数看 currency_updated_at，
         # 各自只要求自己那一侧的读数齐全且没过期（刷新也只会清掉自己那一侧）。
         wh_stale = bool(wh_ids) and not snapshot_is_fresh(snapshot)
@@ -745,7 +753,9 @@ class DepotMaintainPlan(CustomAction):
         entry, deficit = decision
         runs = runs_for(deficit, entry)
         label = material_label(entry.item_id, catalog)
-        _state.read_mode = _pick_read_mode(context, entry.item_id, label, entry.stage.code, entry.level)
+        # 本轮的上报开关先算出来：读数模式依赖它，而节点数据里还是上一轮的残留值
+        reportable = report_enabled(context, entry.stage.code, entry.level)
+        _state.read_mode = _pick_read_mode(entry.item_id, label, reportable=reportable)
         # 未登记 per_run 的材料掉落量不确定，不向用户报「每局约 N 个」这种估算出来的确定数
         if entry.per_run:
             pace = f"每局约 {entry.per_run} 个，最多刷 {runs} 局（按实际掉落提前停止）"
@@ -785,7 +795,7 @@ class DepotMaintainPlan(CustomAction):
                 # 一轮结束后回到规划节点续补下一种材料；收尾由规划节点判断（全部达标 / 打不动）
                 "TargetCountFinish": {"next": [PLAN_NODE]},
                 **material_candy_override(context, entry.item_id, candy_caps),
-                **report_override(context, entry.stage.code, entry.level),
+                DROP_REPORT_NODE: {"enabled": reportable},
             }
         )
         same_stage = previous_stage == entry.stage.code and previous_level == entry.level
@@ -875,7 +885,11 @@ class DepotCurrencyRead(CustomAction):
             summary = "、".join(
                 f"{material_label(item_id, catalog)}x{updates[item_id]}" for item_id in sort_items_by_rarity(updates)
             )
-            if write_snapshot_counts(updates):
+            missing = [item_id for item_id in _state.required_currency if item_id not in updates]
+            if missing:
+                names = "、".join(material_label(item_id, catalog) for item_id in missing)
+                logger.warning(f"{names} 本轮没读到，保留旧读数且不刷新时间戳（下次任务会重试）")
+            if write_snapshot_counts(updates, complete=not missing):
                 logger.info(f"已记录库存: {summary}")
 
         detail = context.run_task(HOME_ENTRY)
@@ -907,5 +921,9 @@ class DepotMaintainDone(CustomAction):
         if _drop_core_available:
             DropRecognitionState.print_total_summary(context)
             DropRecognitionState.reset_total()
-        context.run_task(HOME_ENTRY)
+        # 收尾没能回到主界面就如实报失败：游戏可能停在关卡页，后续任务不该按「已完成」继续
+        detail = context.run_task(HOME_ENTRY)
+        if detail is None or detail.status.failed:
+            logger.warning("库存保持收尾未能回到主界面")
+            return CustomAction.RunResult(success=False)
         return CustomAction.RunResult(success=True)

@@ -117,6 +117,7 @@ icon: material-symbols:inventory-2-outline-rounded
 - **按账号分桶**：账号 id 取自 `RecordID`，每个账号一份读数，互不覆盖；没跑过 `RecordID` 时落在 `__default__` 桶。未分桶的旧文件首次读取时整体搬进当前账号桶（读写都在 `agent/utils/warehouse_snapshot.py`）
 - 有效期 24 小时，常量在 `agent/custom/action/depot_maintain.py` 的 `SNAPSHOT_TTL_HOURS`
 - **两套读数各有自己的时间戳**：仓库读数看 `updated_at`（全量扫描写入），角色页读数看 `currency_updated_at`（`write_snapshot_counts` 写入）；刷新按来源各自判新旧，只跑需要的那一步（仓库材料 → 仓库全量扫描，角色页材料 → 进角色升级页读数）。仓库扫描整表重写时会**保留自己没扫的读数**，不会把角色页读数挤掉
+    - `currency_updated_at` 只在**本轮参与的货币全部读到**时才刷新（`write_snapshot_counts(complete=...)`）：只读到一种时保留原时间戳，读到的值照常合并，下次任务仍会重试——否则没读到的那种会顶着新时间戳继续用旧值
 - 刷新后仍不可用（扫描/读数失败）则退回实扫仓库的原有流程
 - 规划只读取快照，不会重写它
 
@@ -138,7 +139,8 @@ icon: material-symbols:inventory-2-outline-rounded
 - 掉落行位置固定：图块 84×84、等距 117，共 5 格，y 553..637；`DropRegionRec` 的 roi `[661,549,598,68]` 覆盖全部图块。行内容会横向滚动，识别时最多滑 3 次
 - 掉落模板用 `resource/base/image/Items_processed/Item-<id>.png`（图标区 83×56，**不含数量**，匹配与数量无关）
 - 数量条在图块底部：`[box.x + 22, 613, box.w - 44, 17]`，**已越出 `DropRegionRec` 的 roi 下沿**，必须按命中 box 推算；读数字前先做灰度二值化（`agent/utils/settlement_drops.py` 的 `filter_digit_colors`）
-- 累计来源二选一，由 `DepotMaintainAccumulate` 在规划时决定：官方发布版优先读 drop_core 的 `DropRecognitionState.total_drops`（要求该关卡在 `drop_index.json` 有验证数据、且「掉落统计上报」未关闭）；否则自读结算行。同一判断也决定本轮是否在胜利链里启用 `DropRecognition`——表外关卡不参与掉落上报
+- 累计来源二选一，由**规划节点按本轮关卡**决定（`_pick_read_mode`）：官方发布版优先读 drop_core 的 `DropRecognitionState.total_drops`（要求该关卡在 `drop_index.json` 有验证数据、且「掉落统计上报」未关闭）；否则自读结算行。同一个开关也决定本轮是否在胜利链里启用 `DropRecognition`——表外关卡不参与掉落上报
+    - 两者必须用**同一个、本轮算出来的**值：不能去读 `DropRecognition.enabled` 的节点数据，那还是上一轮留下的（上一轮刷表外关卡会把它关掉，本轮刷表内关卡就会被误判成"不上报"而退回自读）
 - 达标后按「当前批次收尾」：把本批设为最后一批，交给既有 `TargetCountProgress` 正常结束，不在结算页做任何退出操作（代价是最多多刷 3 局）
 - 一轮作战补一种材料；`TargetCountFinish.next` 被覆写为回到 `BF_Plan`，于是同一次任务会继续补下一种缺口材料，直到：全部达标、上一轮没打成（体力不足 / 无法复现）、或达到轮数上限（`MAX_ROUNDS_PER_TASK`，默认 50）。**续刷同一关卡不回主界面**：库存保持模式下批次达标由 `combat.depot_batch_end_node()` 直接交回 `BF_Plan`（跳过 `TargetCountFinish` 的回家），规划节点探到关卡页「复现」按钮可见就用 `AllIn` 就地重选复现次数；换材料/换关卡或已经回到主界面时仍走 `Combat` 全量导航。就地结束时不会经过 `TargetCountFinish`，收尾的掉落总结与回主界面由 `DepotMaintainDone` 兜底
 - 每局把已确认的掉落增量写回仓库快照；`updated_at` 保持不变（它表示上次全量扫描时间），只更新 `counts`
