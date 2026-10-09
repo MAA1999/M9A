@@ -729,6 +729,7 @@
                         }
                     },
                     {
+                        // 标题是金色花体，入场动画裁掉右侧时末位 D 会被读成 L
                         "recognition": {
                             "type": "OCR",
                             "param": {
@@ -738,12 +739,19 @@
                                     211,
                                     73
                                 ],
-                                "expected": "^REWARD$"
+                                "expected": "^REWAR[DL]$"
                             }
                         }
                     }
                 ]
             }
+        },
+        // 命中后等画面静止再执行动作：wait_freezes 会刷新 cached_image，
+        // 段落 OCR 与点击才不会落在动画中途的帧上
+        "pre_wait_freezes": {
+            "time": 300,
+            "target": true,
+            "timeout": 5000
         },
         "action": {
             "type": "Custom",
