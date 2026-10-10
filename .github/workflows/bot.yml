@@ -493,23 +493,31 @@ jobs:
           # 仓库根），它能改写 analyze 留下的那份来放宽约束，而伪造的 id 用只读 token 就查得到。取不到
           # 就整段跳过 —— 宁可不收，也不收错。
           #
-          # resolve 失败只告警：这一轮的 review 已经发出去了，没有理由因为它把整步判失败，让读者再收到
-          # 一条「分析未完成」。
+          # stderr 不重定向：这里失败过一轮而现场被我自己丢进 /dev/null，只能回头翻代码猜。
+          #
+          # **已知：这个 mutation 目前会失败。** `resolveReviewThread` 对 App installation token 要求
+          # `contents: write`，只给 `pull-requests: write` 会拿到 `Resource not accessible by
+          # integration`（实测：同一个 id 用维护者的 token 能收，用 App token 不能）。加那个权限等于让
+          # bot 能推仓库，是个需要单独拍板的决定，所以先留着告警、不改权限。
           open="$RUNNER_TEMP/open-threads.json"
-          if bash tools/bot/open-threads.sh > "$open" 2>/dev/null; then
+          if bash tools/bot/open-threads.sh > "$open"; then
             resolved="$(jq -r --slurpfile open "$open" \
               '(.resolved // [])[] as $want | select($open[0] | any(.id == $want)) | $want' \
               "$ANALYSIS_DIR/review.json" 2>/dev/null || true)"
+            attempted=0
+            done_count=0
             for id in $resolved; do
+              attempted=$((attempted + 1))
               if gh api graphql \
                   -f query='mutation($id: ID!) { resolveReviewThread(input: { threadId: $id }) { thread { isResolved } } }' \
-                  -F id="$id" > /dev/null 2>&1; then
+                  -F id="$id" > /dev/null; then
                 echo "resolved $id"
+                done_count=$((done_count + 1))
               else
                 echo "::warning::could not resolve $id"
               fi
             done
-            echo "resolved $(printf '%s' "$resolved" | grep -c . || true) of $(jq 'length' "$open" 2>/dev/null || echo '?') open threads"
+            echo "resolved $done_count of $attempted proposed, out of $(jq 'length' "$open" 2>/dev/null || echo '?') open threads"
           else
             echo "::warning::could not read our open threads, resolving nothing"
           fi
