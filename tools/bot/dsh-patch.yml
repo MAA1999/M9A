@@ -1,0 +1,47 @@
+# 让 CI 里的 headless profile 用第三方 provider，而不是默认的 deepseek-official。
+#
+# 这份是本地 $DSH_HOME/profiles/web/cordis.patch.yml 里那两段的最小可用子集：
+# provider 形状、baseURL、模型能力照抄，但只带 bot 实际要用的那一个模型
+#
+# 用法：dsh --profile headless --patch tools/bot/dsh-patch.yml
+- id: agent-default-model
+  config:
+    provider: command-code
+    model: deepseek/deepseek-v4.1-flash
+    reasoningEffort: high
+- id: llm-pi-ai
+  config:
+    providers:
+      command-code:
+        apiKeyEnv: COMMAND_CODE_API_KEY
+        api: openai-completions
+        baseURL: https://api.commandcode.ai/provider/v1
+        defaultContextWindow: 262144
+        defaultMaxTokens: 32768
+        # 换模型要连这里一起改：id 是拿这份目录本地校验的，不在目录里会直接 `UNKNOWN_MODEL`
+        # 报错，只改上面 agent-default-model 的 model 不够。目录里只放 bot 要用的，
+        # 不搬本地那份 85 个 id。
+        models:
+          - id: deepseek/deepseek-v4.1-flash
+            name: DeepSeek V4.1 Flash
+            contextWindow: 1000000
+            input:
+              - text
+              - image
+            maxTokens: 65536
+            reasoningEfforts:
+              low: low
+              high: high
+              max: max
+# 关掉网页搜索，只留取 URL。
+#
+# 这个 bot 的证据是日志和源码：MEK 的契约就是「日志与源码是证据，agent 输出是解释」，多一条没有
+# 出处的断言进来，报告的可回溯性就白给了。MaaFW 的事实走 MaaLLMWiki 那份版本锁定的出处，游戏事实
+# 在仓库的 data/ 里，都不需要发现机制。
+#
+# 关工具而不是在 prompt 里叮嘱：少一个工具是结构性的，写一句「不要用」只是建议。`fetch` 保持开着，
+# 所以知道出处的 URL 照样能取 —— 而 `search` 一旦关掉，DEEPSEEK_API_KEY 那个 secret 也就没用了。
+- id: tool-web
+  config:
+    search: false
+    fetch: true

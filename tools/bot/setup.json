@@ -1,0 +1,77 @@
+{
+    "packages": [
+        {
+            "key": "dsh",
+            "name": "@deepseek-ai/dsh",
+            "spec": "next",
+            "binary": "dsh",
+            "cacheKey": true
+        },
+        {
+            "key": "mek",
+            "name": "maa-evidence-kit",
+            "spec": "latest",
+            "binary": "maa-evidence",
+            "skillInstall": "skill --install .agents/skills",
+            "skillCheck": "skill --check .agents/skills --format json",
+            "skillCheckPass": ".match == true and (.extraFiles | length) == 0"
+        },
+        {
+            "key": "maafw-live",
+            "name": "@windsland52/maafw-live",
+            "spec": "latest",
+            "binary": "maafw-live",
+            "skillInstall": "skill --install .agents/skills",
+            "skillCheck": "skill --check .agents/skills"
+        }
+    ],
+    "skills": {
+        "sources": {
+            "repo": {
+                "type": "committed"
+            },
+            "mek": {
+                "type": "package",
+                "package": "mek"
+            },
+            "maafw-live": {
+                "type": "package",
+                "package": "maafw-live"
+            },
+            "maatutorial": {
+                "type": "skills-cli",
+                "repo": "https://github.com/Windsland52/MaaTutorial"
+            }
+        },
+        "list": [
+            {
+                "name": "maa-evidence",
+                "source": "mek"
+            },
+            {
+                "name": "maafw-sentry-analysis",
+                "source": "repo"
+            },
+            {
+                "name": "maafw-pipeline",
+                "source": "maatutorial"
+            },
+            {
+                "name": "maafw-interface",
+                "source": "maatutorial"
+            },
+            {
+                "name": "maafw-custom",
+                "source": "maatutorial"
+            },
+            {
+                "name": "maafw-debug",
+                "source": "maatutorial"
+            },
+            {
+                "name": "maafw-live",
+                "source": "maafw-live"
+            }
+        ]
+    }
+}
