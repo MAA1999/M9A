@@ -103,6 +103,17 @@ jobs:
               if [ "$same_repo" = "true" ] && [ "$draft" = "false" ] && [ "$author" != "Bot" ]; then
                 run=true
               fi
+              # fork PR 被跳过时，在运行页上留一句为什么：`Analyze` 和 `Post` 都会 skipped，两个 job 都发
+              # 不出评论（fork 的 `pull_request` 运行没有任何 secret），而 step summary 不需要 secret。
+              if [ "$same_repo" != "true" ]; then
+                {
+                  echo "### fork PR：不自动审查"
+                  echo
+                  echo '`pull_request` 在 fork 上拿不到任何 secret，agent 连不上模型，所以这里直接跳过。'
+                  echo '要审就在 PR 里评论 `@M9ABot`（`issue_comment` 在 base 仓库执行，secret 是齐的），'
+                  echo "或者手动派发 Bot workflow（number=$target、kind=pr）。"
+                } >> "$GITHUB_STEP_SUMMARY"
+              fi
               ;;
           esac
 
@@ -230,8 +241,8 @@ jobs:
       # `.github/workflows/bot-cache.yml`，那边由 push / schedule / workflow_dispatch 触发，也就是能写
       # 默认分支作用域的那批事件。
       #
-      # Linux 实测：npm 缓存为空时冷装这三个包要 193 s，其中 165 s 是 685 MB 的下载，其余是解包。
-      # 在已装好的树上重装是 22 s，而 `Install toolchain` 里的版本检查只要 0.1 s —— 那 0.1 s 成为常态的
+      # Linux 实测：冷装这三个包 31–193 s 不等（网络差异很大，2026-10-10 那次 31 s），存进缓存的那棵树
+      # 是 146,083,121 字节。命中缓存时 `Install toolchain` 只剩版本检查（0.1 s）—— 那 0.1 s 成为常态的
       # 前提，正是有人先把 `~/.npm-global` 填进缓存。
       #
       # 不缓存 `$DSH_HOME/profiles/headless`：76 KB、首启动 3.3 s 就能重建，而 warm 那个 job 里没有模型
