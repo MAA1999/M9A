@@ -481,11 +481,15 @@ jobs:
           # 文件），并且 **App 不应出现在 main 的绕过名单里** —— 否则这里等于给协作者开了直接推送。
           permission-contents: write
 
+      # 下载到 workspace 而不是 `$ANALYSIS_DIR`：`upload-artifact` 在有两个及以上 `path` 时，会把
+      # artifact 的根抬到它们的**最近公共祖先**（这里是 workspace），于是内部结构是 `.analysis/…`
+      # 与 `.dsh-home/…`。下载到 `$ANALYSIS_DIR` 就会变成 `$ANALYSIS_DIR/.analysis/answer.md`，
+      # 而 `Post the answer` 找的是 `$ANALYSIS_DIR/answer.md` —— 一条都发不出去。
       - uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: bot-output
-          path: ${{ env.ANALYSIS_DIR }}
+          path: ${{ github.workspace }}
 
       - name: Post the answer
         env:
@@ -499,6 +503,14 @@ jobs:
           # 在这里失败会把解释交给下面那一步，于是一次失败运行只有一条通知路径。
           if [ "$ANALYZE_RESULT" != "success" ]; then
             echo "::error::the analysis job did not succeed ($ANALYZE_RESULT)"
+            exit 1
+          fi
+
+          # 产物没到 ≠ 没什么值得说的：前者要吵，后者要静。`agent.stderr` 每次运行都会有（agent 的
+          # 诊断输出总会写），用它区分 —— 少了它说明 artifact 压根没下来（上传/下载的目录层级对不上
+          # 之类），而不是 agent 决定不说。少了这一条，一次下载路径错误会被"空答案即沉默"吞掉。
+          if [ ! -f "$ANALYSIS_DIR/agent.stderr" ]; then
+            echo "::error::the analysis artifact did not arrive at $ANALYSIS_DIR"
             exit 1
           fi
 
