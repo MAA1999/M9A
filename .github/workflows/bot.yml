@@ -172,7 +172,9 @@ jobs:
           set -euo pipefail
           printf '%s' "$GH_TOKEN" > .gh-token
           chmod 600 .gh-token
-          gh auth login --with-token < .gh-token
+          # `gh auth login --with-token` 在 `GH_TOKEN` 已设时会拒绝落凭证，而 job 级 env 里就有它 ——
+          # 所以只给这一条命令摘掉。落进 ~/.config/gh 之后，agent 那个没有 GH_TOKEN 的 shell 才用得上。
+          env -u GH_TOKEN gh auth login --with-token < .gh-token
           gh auth status
 
       # npm 是这个 job 唯一需要的包管理器。全新的 headless profile 只有 76 KB，自身不声明任何 bundle
