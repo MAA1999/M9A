@@ -125,8 +125,13 @@ class _PlanState:
     rounds = 0
     completed: list[str] = []
     per_run: int | None = None
-    # 估算模式（无掉落模板）已回写的局数：按增量记账，批次结果一出现就写，重复调用不会重复计数
+    # 估算模式（无掉落模板）本轮已回写的局数：按增量记账，重复调用不会重复计数。
+    # 与 `battles_done()` 同为「本轮」口径（`TargetCountInit` 每轮把计数器清零）。
     estimate_committed_battles = 0
+    # 本批（两次 `TargetCountProgress` 之间）已打完、还没并进 `battles_done()` 的局数
+    estimate_batch_battles = 0
+    # 上次观测到的 `battles_done()`：跳变即「本批局数已并入」，逐局计数随之作废
+    estimate_folded_battles = 0
     baseline_captured = False
     candy_base_enabled = True
     candy_base_max_hit = UNLIMITED_CANDY
@@ -560,19 +565,43 @@ def _persist_snapshot(drops: int) -> None:
     logger.debug(f"仓库快照已更新: {_state.item_name}({item_id}) +{increment} -> {raw_counts[item_id]}")
 
 
+def _sync_estimate_folded() -> None:
+    """`battles_done()` 一跳变就说明批次收尾把本批局数并进了计数器，逐局计数随之作废。
+
+    不清零的话下一批会把这批局数再加一遍（跨批重复计数）。批次没走到 `TargetCountProgress`
+    就中断时计数器不动，逐局计数会保留下来，正是我们想要的。
+    """
+    total = battles_done()
+    if total != _state.estimate_folded_battles:
+        _state.estimate_folded_battles = total
+        _state.estimate_batch_battles = 0
+
+
+def _note_estimate_battle() -> None:
+    """估算模式每局结算页到达时调用：本局计入「本批逐局数」，随后立刻回写。
+
+    必须先同步批次并入再自增 —— 否则批次收尾后的第一局会连带把已并入的局数一起冲掉。
+    """
+    _sync_estimate_folded()
+    _state.estimate_batch_battles += 1
+    _commit_estimate_progress()
+
+
 def _commit_estimate_progress() -> None:
     """估算模式（无掉落模板）下按已打局数把进度写回快照。
 
-    固定掉落的关卡每局必掉 per_run 个，`battles_done()` 就是真实产出，早停也不会多算；
+    固定掉落的关卡每局必掉 per_run 个，局数就是真实产出，早停也不会多算；
     不写回的话快照永远停在旧值，多轮循环会一直重复刷同一种材料。
 
-    批次结果一出现（结算页）就由 `DepotMaintainAccumulate` 写一次；规划节点再调一次只作兜底
-    （结算页没出现时补写）。按「已回写局数」增量记账，所以重复调用不会重复计数。
+    「已完成局数」= `battles_done()`（本批之前的批次已并入的部分）+ 本批尚未并入的逐局数。
+    结算页（每局打完）由 `DepotMaintainAccumulate` 立刻写一次；规划节点再调一次只作兜底
+    （批次收尾没走到结算页时补写）。`estimate_committed_battles` 本轮累计，重复调用不会重复计数。
     """
     if _state.item_id is None or _state.read_mode != READ_ESTIMATE:
         return
 
-    battles = battles_done()
+    _sync_estimate_folded()
+    battles = battles_done() + _state.estimate_batch_battles
     new_battles = battles - _state.estimate_committed_battles
     if new_battles <= 0:
         return
@@ -616,9 +645,9 @@ class DepotMaintainAccumulate(CustomAction):
             return
 
         if _state.read_mode == READ_ESTIMATE:
-            # 没有掉落模板：结算页出现就是这批的结果，按实际局数折算后**立刻**回写。
+            # 没有掉落模板：结算页出现就是本局打完，按局数折算后**立刻**回写。
             # 不能等下一轮规划才结账 —— 中途失败/停止会让快照停在旧值，而快照 24h 内都算新鲜读数。
-            _commit_estimate_progress()
+            _note_estimate_battle()
             return
 
         drops = _observed_drops(context)
@@ -660,6 +689,8 @@ class DepotMaintainInit(CustomAction):
         _state.completed = []
         _state.per_run = None
         _state.estimate_committed_battles = 0
+        _state.estimate_batch_battles = 0
+        _state.estimate_folded_battles = 0
         _state.baseline_captured = False
         _state.candy_base_enabled = True
         _state.candy_base_max_hit = UNLIMITED_CANDY
@@ -803,6 +834,7 @@ class DepotMaintainPlan(CustomAction):
         _state.observed = 0
         _state.persisted = 0
         _state.estimate_committed_battles = 0
+        _state.estimate_batch_battles = 0
         _state.stopped = False
         _state.per_run = entry.per_run
 

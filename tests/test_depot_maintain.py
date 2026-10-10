@@ -171,6 +171,9 @@ class _PlanHarness:
             candy_max_hit=candy_max_hit,
         )
         self.stops = 0
+        # 刷图计数器：真实值由 TargetCountInit（每轮清零）与 TargetCountProgress（批次收尾并入）推动，
+        # 用例用 set_battles() 按真实拓扑逐步推进，而不是给个固定值掩盖时序。
+        self.battles = 4
         sample = raw or _SAMPLE_RAW
         # 快照写回一律落临时目录，避免用例覆盖仓库 config/warehouse_inventory.json
         monkeypatch.setattr(
@@ -181,8 +184,12 @@ class _PlanHarness:
         monkeypatch.setattr(depot_maintain, "read_snapshot", lambda path=None: snapshot)
         monkeypatch.setattr(depot_maintain, "load_catalog", lambda path=None: build_catalog(sample, source="unit-test"))
         monkeypatch.setattr(depot_maintain, "request_combat_stop", self._record_stop)
-        monkeypatch.setattr(depot_maintain, "battles_done", lambda: 4)
+        monkeypatch.setattr(depot_maintain, "battles_done", lambda: self.battles)
         DepotMaintainInit().run(self.context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
+
+    def set_battles(self, count: int) -> None:
+        """模拟 `TargetCountInit`（每轮清零）与 `TargetCountProgress`（批次收尾并入本批局数）。"""
+        self.battles = count
 
     def _record_stop(self) -> None:
         self.stops += 1
@@ -1057,7 +1064,7 @@ def test_round_loop_ends_when_no_battle_fought(monkeypatch: pytest.MonkeyPatch) 
     harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 10, "110203": 0}))
     assert harness.plan().success
 
-    monkeypatch.setattr(depot_maintain, "battles_done", lambda: 0)
+    harness.set_battles(0)
     assert harness.plan().success
     assert harness.context.next_overrides[-1] == ["BF_Done"]
 
@@ -1072,49 +1079,55 @@ def test_round_loop_ends_at_round_cap(monkeypatch: pytest.MonkeyPatch) -> None:
     assert harness.context.next_overrides[-1] == ["BF_Done"]
 
 
-def test_estimate_mode_commits_at_batch_result(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """估算模式在结算页（批次结果）出现时**立刻**回写，不等下一轮规划。
+def test_estimate_mode_commits_each_battle_at_settlement(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """估算模式每局结算页就回写一局，不等下一轮规划。
 
-    快照 24h 内都算新鲜读数，所以中途失败/停止之前必须已经落盘，否则会误导后续的库存判断。
+    真实拓扑：`TargetCountInit` 每轮把计数器清零，`TargetCountProgress` 只在批次收尾才把本批
+    局数并进去 —— 所以累计节点跑的时候 `battles_done()` 还是 0，只按它记账会恒为空操作，
+    快照要拖到下一轮规划才更新（中途停止就留下旧值，而快照 24h 内都算新鲜读数）。
     """
     snapshot = _snapshot({"110103": 10, "110203": 0})
     harness = _PlanHarness(monkeypatch, snapshot=snapshot)
     monkeypatch.setattr(depot_maintain, "DROP_TEMPLATE_DIR", tmp_path)
     monkeypatch.setattr(depot_maintain, "SNAPSHOT_PATH", tmp_path / "snap.json")
 
+    harness.set_battles(0)  # 本轮刚跑过 TargetCountInit
     assert harness.plan().success
     assert depot_maintain._state.read_mode == depot_maintain.READ_ESTIMATE
     assert depot_maintain._state.per_run == 2
 
-    # 结算页出现 = 这批打完了 → 立刻按实际局数回写（此后任务中断也不会留下旧值）
-    monkeypatch.setattr(depot_maintain, "battles_done", lambda: 4)
+    # 结算页出现 = 这一局打完了 → 立刻回写（此后任务中断也不会留下旧值）
     assert harness.accumulate().success
-    assert snapshot["counts"]["110203"] == 8  # 4 局 × 每局 2 个
-
-    # 下一轮规划再调一次只作兜底（结算页没出现时补写），不重复计
-    assert harness.plan().success
-    assert snapshot["counts"]["110203"] == 8
+    assert snapshot["counts"]["110203"] == 2  # 1 局 × 每局 2 个
+    assert harness.accumulate().success
+    assert snapshot["counts"]["110203"] == 4
 
 
 def test_estimate_commit_is_incremental_across_batches(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """跨批按增量记账：第二批只补新增局数，规划兜底不会把上一批再写一遍。"""
+    """批次收尾把本批局数并进计数器后，第二批只补本批增量，不把第一批重算一遍。"""
     snapshot = _snapshot({"110103": 10, "110203": 0})
     harness = _PlanHarness(monkeypatch, snapshot=snapshot)
     monkeypatch.setattr(depot_maintain, "DROP_TEMPLATE_DIR", tmp_path)
     monkeypatch.setattr(depot_maintain, "SNAPSHOT_PATH", tmp_path / "snap.json")
     targets = '{"target_110103": "100", "target_110203": "100"}'
 
+    harness.set_battles(0)
     assert harness.plan(targets).success
-    monkeypatch.setattr(depot_maintain, "battles_done", lambda: 4)
+    assert harness.accumulate().success
+    assert harness.accumulate().success
+    assert snapshot["counts"]["110203"] == 4
+
+    # 第一批收尾：TargetCountProgress 把本批 2 局并进计数器
+    harness.set_battles(2)
+    assert harness.accumulate().success
+    assert snapshot["counts"]["110203"] == 6  # 只补本批这一局
     assert harness.accumulate().success
     assert snapshot["counts"]["110203"] == 8
 
-    # 第二批：TargetCountInit 把局数清零后重新累计到 3
-    assert harness.plan(targets).success  # 兜底：局数没变，不重复写
+    # 第二批收尾后回规划：兜底调用看到计数器已并入，不再重复写
+    harness.set_battles(4)
+    assert harness.plan(targets).success
     assert snapshot["counts"]["110203"] == 8
-    monkeypatch.setattr(depot_maintain, "battles_done", lambda: 3)
-    assert harness.accumulate().success
-    assert snapshot["counts"]["110203"] == 14  # 8 + 3×2
 
 
 def test_estimate_commit_does_not_double_count(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -1124,8 +1137,9 @@ def test_estimate_commit_does_not_double_count(monkeypatch: pytest.MonkeyPatch, 
     monkeypatch.setattr(depot_maintain, "DROP_TEMPLATE_DIR", tmp_path)
     monkeypatch.setattr(depot_maintain, "SNAPSHOT_PATH", tmp_path / "snap.json")
 
+    harness.set_battles(0)
     assert harness.plan().success
-    monkeypatch.setattr(depot_maintain, "battles_done", lambda: 4)
+    harness.set_battles(4)
     assert harness.plan().success
     assert snapshot["counts"]["110203"] == 8
 
