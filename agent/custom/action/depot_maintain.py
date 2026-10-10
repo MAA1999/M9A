@@ -104,7 +104,11 @@ HOME_ENTRY = "ResetReturnMain"
 RECORD_ID_ENTRY = "RecordId"
 # ReturnMain 在 startup.json 里 max_hit 只有 2，而命中计数在整个 task run 内按节点名累计、
 # 只有 post_task 才清零；ResetReturnMain 又只重置 enabled、不管计数。库存保持整轮要多次回主界面
-# （每换一种材料一次 + 收尾一次），不自己把上限抬起来就会被 run_next 静默跳过、空转到超时。
+# （读账号前一次 + 仓库扫描收尾一次 + 角色页读数收尾一次 + 每换一种材料一次），
+# 不自己把上限抬起来就会被 run_next 静默跳过、空转到节点超时。
+# 抬升必须在**任务入口**就做（见 DepotMaintainInit）：原先放在「选好材料」之后，而读账号、
+# 仓库扫描收尾、角色页读数收尾的回家都排在它前面，照样撞上 base 的 2 次配额
+# （实测空转 20 秒后报「从角色页返回主界面未完成」）。
 RETURN_MAIN_MAX_HIT = 114514
 # 面板数字单位：K/M（游戏不用中文单位）。实测 3,969,000 显示为 3969K，切换阈值未知，按后缀换算即可
 _CURRENCY_SUFFIX = {"K": 1_000, "M": 1_000_000}
@@ -725,6 +729,10 @@ class DepotMaintainInit(CustomAction):
         _state.candy_base_max_hit = UNLIMITED_CANDY
         _state.report_base_enabled = True
         _state.required_currency = []
+        # 抬 ReturnMain 的命中上限（见 RETURN_MAIN_MAX_HIT）。必须在**任务入口**就抬好：
+        # 读账号、仓库扫描收尾、角色页读数收尾都要回主界面，而它们全排在规划节点之前，
+        # 等规划「选好材料」才抬的话前面几次回家已经撞上 base 的 2 次配额。
+        context.override_pipeline({"ReturnMain": {"max_hit": RETURN_MAIN_MAX_HIT}})
         return CustomAction.RunResult(success=True)
 
 
@@ -884,8 +892,6 @@ class DepotMaintainPlan(CustomAction):
                 },
                 # 一轮结束后回到规划节点续补下一种材料；收尾由规划节点判断（全部达标 / 打不动）
                 "TargetCountFinish": {"next": [PLAN_NODE]},
-                # 库存保持整轮要多次回主界面，先抬 ReturnMain 的命中上限（见 RETURN_MAIN_MAX_HIT）
-                "ReturnMain": {"max_hit": RETURN_MAIN_MAX_HIT},
                 **material_candy_override(context, entry.item_id, candy_caps),
                 DROP_REPORT_NODE: {"enabled": reportable},
             }

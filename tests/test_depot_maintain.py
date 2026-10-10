@@ -188,6 +188,9 @@ class _PlanHarness:
         # 账号解析要有主界面才能做，与本脚手架驱动的流程无关；单独有用例覆盖它
         monkeypatch.setattr(depot_maintain, "_ensure_account_id", lambda _context: True)
         DepotMaintainInit().run(self.context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
+        # 入口节点会抬 ReturnMain 的命中上限（见 RETURN_MAIN_MAX_HIT），它不属于「规划」，
+        # 清掉以免干扰下面按索引取规划覆盖的断言；该行为由 test_init_raises_return_main_limit 覆盖。
+        self.context.pipeline_overrides.clear()
 
     def set_battles(self, count: int) -> None:
         """模拟 `TargetCountInit`（每轮清零）与 `TargetCountProgress`（批次收尾并入本批局数）。"""
@@ -765,6 +768,22 @@ def test_plan_falls_back_when_account_id_unreadable(monkeypatch: pytest.MonkeyPa
     assert context.next_overrides == [[depot_maintain.LEGACY_ENTRY_NODE, "[JumpBack]ReturnMain"]]
 
 
+def test_init_raises_return_main_limit() -> None:
+    """任务入口就抬 ReturnMain 的命中上限。
+
+    base 的 max_hit 只有 2，而命中计数在整个 task run 内按节点名累计、只有 post_task 才清零
+    （`ResetReturnMain` 只重置 enabled、不管计数）。库存保持要回主界面好几次 —— 读账号、
+    仓库扫描收尾、角色页读数收尾 —— 而且它们全排在规划节点之前，所以必须在入口就抬好。
+    实测放到「选好材料」之后才抬时，角色页读数收尾的回家撞上配额：`ReturnMain` 被静默跳过、
+    空转 20 秒后报「从角色页返回主界面未完成」。
+    """
+    context = _FakeContext()
+
+    DepotMaintainInit().run(context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
+
+    assert context.pipeline_overrides == [{"ReturnMain": {"max_hit": depot_maintain.RETURN_MAIN_MAX_HIT}}]
+
+
 def test_refresh_runs_currency_scan_for_character_items(monkeypatch: pytest.MonkeyPatch) -> None:
     """角色页材料缺读数时只进角色升级页读一次，不跑仓库扫描。"""
     harness = _PlanHarness(monkeypatch, snapshot=_snapshot({}), raw=_CURRENCY_RAW)
@@ -859,8 +878,6 @@ def test_plan_returns_home_when_switching_stage(monkeypatch: pytest.MonkeyPatch,
     assert harness.plan(targets).success
     assert harness.context.run_tasks == [depot_maintain.HOME_ENTRY]
     assert harness.context.next_overrides[-1] == ["Combat"]
-    # ReturnMain 的 max_hit 只有 2 且计数整轮累计，必须自己抬上限，否则会被静默跳过
-    assert harness.context.pipeline_overrides[-1]["ReturnMain"] == {"max_hit": depot_maintain.RETURN_MAIN_MAX_HIT}
 
 
 def test_plan_returns_home_when_starting_at_stage_page(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
