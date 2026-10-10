@@ -422,6 +422,17 @@ jobs:
           private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
           permission-issues: write
           permission-pull-requests: write
+          # `resolveReviewThread` 对 App installation token 要求 `contents: write`：只给
+          # `pull-requests: write` 会拿到 `Resource not accessible by integration`（实测同一个 thread
+          # 用维护者 token 能收、用 App token 不能）。
+          #
+          # 这个权限同时覆盖 commits / branches / releases / merges —— 也就是 bot 能发版。维护者知情
+          # 并选择接受：自动收起已修意见要它，而 App 这条路没有更窄的替代（细粒度 PAT 可以只给
+          # pull requests，代价是另一个会过期的 secret）。
+          #
+          # 所以防线在别处：`gate` 只放行本仓库自己的 PR（同仓库 PR 的作者本来就能改这个 workflow
+          # 文件），并且 **App 不应出现在 main 的绕过名单里** —— 否则这里等于给协作者开了直接推送。
+          permission-contents: write
 
       - uses: actions/download-artifact@v8
         continue-on-error: true
