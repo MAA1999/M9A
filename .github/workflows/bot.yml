@@ -351,6 +351,9 @@ jobs:
       TARGET: ${{ needs.gate.outputs.target }}
       KIND: ${{ needs.gate.outputs.kind }}
       ANALYSIS_DIR: ${{ github.workspace }}/.analysis
+      # 这个 job 必须跑起来才能发出失败通知，所以它不能靠 `if` 去挡失败的 analyze —— 于是把结果传进来，
+      # 由发布步骤自己判。少了这个，`dsh` 中途失败但 answer.md 已写了一半时，半成品会被当成正常结论发出。
+      ANALYZE_RESULT: ${{ needs.analyze.result }}
     steps:
       - uses: actions/checkout@v7
 
@@ -377,8 +380,14 @@ jobs:
           set -euo pipefail
           answer="$ANALYSIS_DIR/answer.md"
 
-          # 没有答案意味着分析什么都没产出，或者 artifact 根本没到。在这里失败会把解释交给下面那一步，
-          # 于是一次失败运行只有一条通知路径。
+          # 分析没成功就不发布。`answer.md` 非空不等于分析完成 —— `dsh` 中途失败时会留下一份写了一半
+          # 的文件，而 `Validate` 在没有 review.json 时是放行的，两条合起来足以让半成品当成结论发出去。
+          # 在这里失败会把解释交给下面那一步，于是一次失败运行只有一条通知路径。
+          if [ "$ANALYZE_RESULT" != "success" ]; then
+            echo "::error::the analysis job did not succeed ($ANALYZE_RESULT)"
+            exit 1
+          fi
+
           if [ ! -s "$answer" ]; then
             echo "::error::no answer to publish"
             exit 1
