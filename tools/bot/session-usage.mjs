@@ -61,21 +61,37 @@ if (!root) {
     process.exit(2);
 }
 
+// 用量在两个地方出现过，取决于会话是怎么产生的：
+//   - `assistant/chunk` → `data.chunk.usage`：流式增量，本机交互式会话走这条；
+//   - `assistant/message` → `data.usage`：聚合后的整条消息，CI 的 headless 会话只有这条。
+// 同一步两处都可能有值，所以按 (turn, step) 去重而不是直接相加 —— 相加会把用量翻倍。
+function usageOf(ev) {
+    if (ev.type === "assistant/chunk" && ev.data?.chunk?.type === "usage") {
+        return {key: `${ev.data.turn}:${ev.data.step}`, usage: ev.data.chunk.usage, final: false};
+    }
+    if (ev.type === "assistant/message" && ev.data?.usage) {
+        return {key: `${ev.data.turn}:${ev.data.step}`, usage: ev.data.usage, final: true};
+    }
+    return null;
+}
+
 const sessions = [];
 const total = {inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, reasoningTokens: 0};
 const rootTotal = {inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, reasoningTokens: 0};
 let rootSteps = 0;
+const unreadable = [];
 
 for (const file of walk(root)) {
     let text;
     let frames = 0;
     try {
         ({text, frames} = decompressFrames(readFileSync(file)));
-    } catch {
+    } catch (e) {
+        // 不静默跳过：读不到就说出来，否则「0 个会话」和「真的没有会话」分不开。
+        unreadable.push(`${file}: ${e.message}`);
         continue;
     }
-    const sum = {inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, reasoningTokens: 0};
-    let steps = 0;
+    const perStep = new Map();
     let id = null;
     let cwd = null;
     let parent = null;
@@ -91,13 +107,20 @@ for (const file of walk(root)) {
             id ??= ev.id;
             cwd ??= ev.cwd;
             parent ??= ev.parentSession ?? null;
-        } else if (ev.type === "assistant/chunk" && ev.data?.chunk?.type === "usage") {
-            const u = ev.data.chunk.usage ?? {};
-            for (const k of Object.keys(sum)) sum[k] += u[k] ?? 0;
-            steps++;
+            continue;
         }
+        const hit = usageOf(ev);
+        if (!hit) continue;
+        // 聚合消息覆盖增量的值：同一步若两者都在，以聚合那条为准。
+        if (hit.final || !perStep.has(hit.key)) perStep.set(hit.key, hit.usage);
     }
-    if (steps === 0) continue;
+    if (perStep.size === 0) continue;
+
+    const sum = {inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, reasoningTokens: 0};
+    for (const u of perStep.values()) {
+        for (const k of Object.keys(sum)) sum[k] += u[k] ?? 0;
+    }
+    const steps = perStep.size;
     for (const k of Object.keys(total)) total[k] += sum[k];
     // 子会话的日志里带着父会话的种子（同一个 session 内容会出现两次），把两者都算进去会重复计数 ——
     // 所以合计只取根会话。
@@ -114,6 +137,7 @@ const report = {
     // 只含根会话 —— 这个才是实际消耗，另一个会把子会话里种入的父日志再算一遍。
     root: {sessions: sessions.filter((s) => !s.parent).length, steps: rootSteps, total: rootTotal},
     total,
+    unreadable,
     detail: sessions.sort((a, b) => b.inputTokens + b.outputTokens - (a.inputTokens + a.outputTokens)),
 };
 
@@ -132,6 +156,11 @@ for (const s of report.detail) {
             `in ${fmt(s.inputTokens).padStart(9)}  out ${fmt(s.outputTokens).padStart(8)}  ` +
             `cache-read ${fmt(s.cacheReadTokens).padStart(9)}  reasoning ${fmt(s.reasoningTokens).padStart(8)}`,
     );
+}
+
+if (unreadable.length) {
+    console.log(`\n读不到的会话 ${unreadable.length} 个：`);
+    unreadable.slice(0, 5).forEach((u) => console.log(`  ${u}`));
 }
 
 if (process.argv[3]) {
