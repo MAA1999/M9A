@@ -129,6 +129,10 @@ jobs:
       MAA_EVIDENCE_TELEMETRY: "0"
       DSH_HOME: ${{ github.workspace }}/.dsh-home
       ANALYSIS_DIR: ${{ github.workspace }}/.analysis
+      # App 自己的 bot 登录名，用来认出「上一轮是我们审的」。不能用 `user.type == "Bot"`：那会把这个
+      # 仓库上的 sentry / CodeRabbit / Sourcery 一起命中，而它们在更晚的 commit 上留过 review 时，增量
+      # 基线会被推到那个 commit，我们没看过的改动就被跳过了 —— 重复审可以接受，漏审不行。
+      REVIEW_AUTHOR: "m9abot[bot]"
     steps:
       # 故意拉全量历史。浅克隆照样能取到某个 tag 的文件内容，但取不到两个 tag 之间的区间 —— 而且它给
       # `git log <old>..<new>` 返回的是一个看起来合理的孤立 commit 而不是报错，这是错误答案里最糟的形态。
@@ -176,7 +180,7 @@ jobs:
       #
       # Linux 实测：npm 缓存为空时冷装这三个包要 193 s，其中 165 s 是 685 MB 的下载，其余是解包。
       # 在已装好的树上重装是 22 s，而 `Install toolchain` 里的版本检查只要 0.1 s。
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: |
             ~/.npm-global
@@ -278,7 +282,7 @@ jobs:
         run: |
           set -euo pipefail
           base="$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" \
-            --jq '.[] | select(.user.type == "Bot") | .commit_id' | tail -1)" \
+            | jq -r --arg who "$REVIEW_AUTHOR" '.[] | select(.user.login == $who) | .commit_id' | tail -1)" \
             || { echo "::warning::could not read the last review, reviewing the whole pull request"; base=""; }
           echo "REVIEW_BASE=$base" >> "$GITHUB_ENV"
           echo "last reviewed commit: ${base:-<none>}"
@@ -311,16 +315,18 @@ jobs:
           if [ "$KIND" != "pr" ]; then
             exit 0
           fi
-          # 没有值得挂行的 review 也是合法 review，所以空列表照样通过。格式坏掉的文件不行：它会静默地
-          # 以「没找到评论」的样子发出去。
-          if ! jq -e '.comments | type == "array"' "$ANALYSIS_DIR/review.json" > /dev/null 2>&1; then
-            echo "::error::review.json is missing or does not hold a comments array"
+          # 没有值得挂行的 review 也是合法 review，所以文件缺失和空列表都通过 —— prompt 说的是「有值得
+          # 逐行说的问题时才另写」，把可选写成必填会让一篇没有行内意见的 review 连正文都发不出去。
+          # 格式坏掉的文件不行：它会静默地以「没找到评论」的样子发出去。
+          if [ -f "$ANALYSIS_DIR/review.json" ] &&
+             ! jq -e '.comments | type == "array"' "$ANALYSIS_DIR/review.json" > /dev/null 2>&1; then
+            echo "::error::review.json exists but does not hold a comments array"
             exit 1
           fi
-          echo "inline comments proposed: $(jq '.comments | length' "$ANALYSIS_DIR/review.json")"
+          echo "inline comments proposed: $(jq '.comments | length' "$ANALYSIS_DIR/review.json" 2>/dev/null || echo 0)"
 
       # 只有校验过的产物会离开这个 job；能写的 token 在下一个 job 里。
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: bot-output
@@ -358,7 +364,7 @@ jobs:
           permission-issues: write
           permission-pull-requests: write
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: bot-output
@@ -385,12 +391,17 @@ jobs:
 
           # GitHub 只接受落在当前 diff 所含行上的行内评论，而一个已经过期、不再属于当前修订的位置会让
           # 整个 review 被拒。先按 diff 过滤，再一次发帖，让摘要和行内评论作为同一条 review 到达。
+          #
+          # agent 可以合法地不写 review.json（prompt 把它定为可选），所以缺失按空列表处理 —— 否则下面
+          # 每条 jq 都会因文件不存在退出，整篇 review 变成一条「分析未完成」。
+          review="$ANALYSIS_DIR/review.json"
+          [ -f "$review" ] || echo '{"comments": []}' > "$review"
           gh pr diff "$TARGET" | awk -f tools/bot/review-lines.awk | sort -u > "$RUNNER_TEMP/lines.txt"
-          total="$(jq '.comments | length' "$ANALYSIS_DIR/review.json")"
+          total="$(jq '.comments | length' "$review")"
           if ! jq --rawfile valid "$RUNNER_TEMP/lines.txt" '
             ($valid | split("\n") | map(select(length > 0)) | reduce .[] as $l ({}; .[$l] = true)) as $ok
             | {comments: [.comments[] | select($ok[[.path, (.line | tostring)] | join("\t")])]}
-          ' "$ANALYSIS_DIR/review.json" > "$RUNNER_TEMP/comments.json"; then
+          ' "$review" > "$RUNNER_TEMP/comments.json"; then
             echo "::warning::could not filter inline comments, posting the summary alone"
             echo '{"comments": []}' > "$RUNNER_TEMP/comments.json"
           fi
