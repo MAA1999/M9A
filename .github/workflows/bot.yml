@@ -1,0 +1,434 @@
+name: Bot
+
+# 一个 workflow 带两种任务：Issue 分析与 PR review。两者共用同一套工具链和评论通道，
+# 差别只在材料准备和 prompt 里的判据。
+#
+# 写权限与 agent 分开：`analyze` 只有读权限，`post` 才持有 GitHub App 的 installation token。
+# agent 读的是不可信的 Issue 正文和 diff，这样它就没有任何改 GitHub 的能力。
+#
+# 触发面：这个仓库自己的 PR 自动跑（草稿和 bot 提的除外），其余一律靠 `@M9ABot` 召唤。
+# fork 的 PR 必须走召唤 —— `pull_request` 事件在 fork 上拿不到 secret，跑起来 agent 连不上模型；
+# 而 `issue_comment` 始终在 base 仓库里执行，所以维护者一 @ 就能审。
+#
+# 发帖身份是 GitHub App，所以 `@M9ABot` 是一个真实账号：评论里 @ 它会被自动补全、渲染成链接
+# （App 的 slug 是小写的，触发匹配特意不区分大小写）。installation token 只有 1 小时有效期，
+# 所以它只在 `post` 里现签 —— agent 跑多久都不影响它。
+
+on:
+  issues:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      number:
+        description: Issue or pull request number
+        required: true
+        type: number
+      kind:
+        description: What to review
+        required: true
+        type: choice
+        options: [issue, pr]
+
+concurrency:
+  group: bot-${{ github.event.issue.number || github.event.pull_request.number || inputs.number }}
+  # 最新的一次请求获胜。若上一次还在跑时有人再次召唤，排队会把整套分析跑两遍；被取消的 `analyze`
+  # 不会发布任何内容 —— 活下来的那次运行负责回答。
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Decide what to run
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+      target: ${{ steps.decide.outputs.target }}
+      kind: ${{ steps.decide.outputs.kind }}
+    steps:
+      - id: decide
+        env:
+          DISPATCH_NUMBER: ${{ inputs.number }}
+          DISPATCH_KIND: ${{ inputs.kind }}
+          TRIGGER: "@M9ABot"
+        run: |
+          set -euo pipefail
+          run=false
+          target=""
+          kind=""
+
+          case "$GITHUB_EVENT_NAME" in
+            workflow_dispatch)
+              run=true
+              target="$DISPATCH_NUMBER"
+              kind="$DISPATCH_KIND"
+              ;;
+            issues)
+              target="$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")"
+              kind=issue
+              # 用 `labeled` 而不是 `opened`：Issue 模板在创建时就打上 `bug`，所以新的 bug 报告恰好触发
+              # 一次；维护者判定某个已有 Issue 是 bug，或者摘掉标签再重新加上、要求再分析一遍时也会触发。
+              label="$(jq -r '.label.name // ""' "$GITHUB_EVENT_PATH")"
+              if [ "$label" = "bug" ]; then
+                run=true
+              fi
+              ;;
+            issue_comment)
+              target="$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")"
+              # PR 就是带 `pull_request` 字段的 Issue，所以一个事件同时覆盖两者。
+              kind="$(jq -r 'if .issue.pull_request then "pr" else "issue" end' "$GITHUB_EVENT_PATH")"
+              body="$(jq -r '.comment.body // ""' "$GITHUB_EVENT_PATH")"
+              author="$(jq -r '.comment.user.type // ""' "$GITHUB_EVENT_PATH")"
+              if printf '%s' "$body" | grep -qiF "$TRIGGER" && [ "$author" != "Bot" ]; then
+                run=true
+              fi
+              ;;
+            pull_request)
+              target="$(jq -r '.pull_request.number' "$GITHUB_EVENT_PATH")"
+              kind=pr
+              # 只处理本仓库自己的 PR。fork 的 `pull_request` 运行拿不到任何 secret，agent 连模型都连不上；
+              # 在 PR 上召唤仍然可用，因为 `issue_comment` 在 base 仓库里执行。草稿要等
+              # `ready_for_review`，而 bot 提的 PR 只是依赖噪音，没人想读它的 diff。
+              same_repo="$(jq -r '.pull_request.head.repo.full_name == .pull_request.base.repo.full_name' "$GITHUB_EVENT_PATH")"
+              draft="$(jq -r '.pull_request.draft' "$GITHUB_EVENT_PATH")"
+              author="$(jq -r '.pull_request.user.type // ""' "$GITHUB_EVENT_PATH")"
+              if [ "$same_repo" = "true" ] && [ "$draft" = "false" ] && [ "$author" != "Bot" ]; then
+                run=true
+              fi
+              ;;
+          esac
+
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+          echo "kind=$kind" >> "$GITHUB_OUTPUT"
+          echo "event=$GITHUB_EVENT_NAME target=$target kind=$kind run=$run"
+
+  analyze:
+    name: Analyze
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # 故意只给读权限：agent 处理的 Issue 正文和 diff 都不可信，所以它没有任何写 GitHub 的途径。
+    # 对外的发布全部走 `post`，那个 job 在发帖前一刻才签出自己的 App token。
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TARGET: ${{ needs.gate.outputs.target }}
+      # MEK 永远装最新 release（见安装步骤），所以运行内的自更新保持关闭：查到一半被换掉提取器，
+      # 会让一份已经引用了证据 ID 的报告对不上号。新鲜度在 agent 启动前一次性决定，不在运行中决定。
+      MAA_EVIDENCE_AUTO_UPDATE: "0"
+      MAA_EVIDENCE_TELEMETRY: "0"
+      DSH_HOME: ${{ github.workspace }}/.dsh-home
+      ANALYSIS_DIR: ${{ github.workspace }}/.analysis
+    steps:
+      # 故意拉全量历史。浅克隆照样能取到某个 tag 的文件内容，但取不到两个 tag 之间的区间 —— 而且它给
+      # `git log <old>..<new>` 返回的是一个看起来合理的孤立 commit 而不是报错，这是错误答案里最糟的形态。
+      # 定位修复 commit、进而得出「升级到 >= x」，都依赖那个区间。实测：14 s / 188 MB，对比 3.5 s / 26 MB。
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # npm 是这个 job 唯一需要的包管理器。全新的 headless profile 只有 76 KB，自身不声明任何 bundle
+      # 依赖；dsh 只在确实有东西要装时才去调包管理器 —— 实测首次启动，PATH 里有 pnpm 时 13.6 s，
+      # 没有时 3.3 s。
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Point npm globals at a writable prefix
+        run: |
+          set -euo pipefail
+          npm config set prefix "$HOME/.npm-global"
+          echo "$HOME/.npm-global/bin" >> "$GITHUB_PATH"
+
+      # 包声明在 tools/bot/setup.json 里，改版本或加工具是改那个文件，不是改这里。
+      #
+      # `cache_tag` 由标了 `cacheKey` 的包拼成 —— 这些包贵到一旦升版本就该让整棵缓存树失效。小包不该
+      # 放进去：它升个版本会把 launcher 一起丢掉，而 `Install toolchain` 里的版本检查本来只会重装
+      # 那一个包。
+      - name: Resolve packages
+        id: pkgs
+        run: |
+          set -euo pipefail
+          tag=""
+          : > "$RUNNER_TEMP/versions.txt"
+          while read -r key name spec inKey; do
+            version="$(npm view "$name@$spec" version)"
+            echo "$key=$version" >> "$GITHUB_OUTPUT"
+            echo "$key $version" >> "$RUNNER_TEMP/versions.txt"
+            echo "  $name@$spec -> $version"
+            [ "$inKey" = "true" ] && tag="$tag$key-$version-"
+          done < <(jq -r '.packages[] | "\(.key) \(.name) \(.spec) \(.cacheKey // false)"' tools/bot/setup.json)
+          echo "cache_tag=${tag%-}" >> "$GITHUB_OUTPUT"
+
+      # 有两样东西会让缓存树失效，原因各不相同。配置哈希：改名或删包会在 bin 里留下残留，下一次安装会
+      # 因 EEXIST 直接失败 —— 而一个永不变化的 key 意味着这条缓存永不刷新，之后每次运行都会同样失败。
+      # `cache_tag`：`next` 移动时，交回来的树里应当已经带着新的 launcher。
+      #
+      # Linux 实测：npm 缓存为空时冷装这三个包要 193 s，其中 165 s 是 685 MB 的下载，其余是解包。
+      # 在已装好的树上重装是 22 s，而 `Install toolchain` 里的版本检查只要 0.1 s。
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ~/.npm-global
+            ${{ env.DSH_HOME }}/profiles/headless
+          key: bot-${{ runner.os }}-${{ hashFiles('tools/bot/setup.json') }}-${{ steps.pkgs.outputs.cache_tag }}
+
+      - name: Install toolchain
+        run: |
+          set -euo pipefail
+          while read -r key name spec binary; do
+            want="$(awk -v k="$key" '$1 == k {print $2}' "$RUNNER_TEMP/versions.txt")"
+            # 各二进制的版本打印格式不同 —— dsh 只打 `0.2.0-rc.2`，maafw-live 打
+            # `@windsland52/maafw-live 0.3.0` —— 所以取第一个长得像版本的 token 来比对。
+            got="$("$binary" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+[^ ]*' | head -1 || true)"
+            if [ "$got" = "$want" ]; then
+              echo "$binary $want already present"
+            else
+              npm install --global "$name@$spec"
+            fi
+          done < <(jq -r '.packages[] | "\(.key) \(.name) \(.spec) \(.binary)"' tools/bot/setup.json)
+
+          while read -r binary; do echo "$binary $("$binary" --version)"; done \
+            < <(jq -r '.packages[].binary' tools/bot/setup.json)
+
+      # agent 能拿到哪些 skill 由 tools/bot/setup.json 决定，每个来源都要声明它的 skill 怎么落地：
+      # `committed` 已经在本仓库里，`package` 随某个 npm 包发布、由该包自己的 CLI 安装，`skills-cli`
+      # 给出一个仓库名，交给 `skills` CLI 去装 —— 就是那些仓库给人看的那套工具。
+      #
+      # 不管来源是什么，装完都要在磁盘上核对一遍清单：少一个 skill 的 agent 照样会跑，只是答得更差，
+      # 而这种失败在它产出的评论里完全看不出来。
+      - name: Install and verify skills
+        run: |
+          set -euo pipefail
+          cfg=tools/bot/setup.json
+
+          # 用 `\x1f` 而不是制表符：bash 对 IFS 里的空白字符有特殊处理 —— 连续多个会折叠成一个分隔符 ——
+          # 那样空的 `repo` 会把 `package` 挤到错误的变量里。
+          while IFS=$'\x1f' read -r source type repo pkg; do
+            case "$type" in
+              committed) continue ;;
+              package)
+                binary="$(jq -r --arg k "$pkg" '.packages[] | select(.key == $k) | .binary' "$cfg")"
+                install="$(jq -r --arg k "$pkg" '.packages[] | select(.key == $k) | .skillInstall' "$cfg")"
+                check="$(jq -r --arg k "$pkg" '.packages[] | select(.key == $k) | .skillCheck' "$cfg")"
+                pass="$(jq -r --arg k "$pkg" '.packages[] | select(.key == $k) | .skillCheckPass // ""' "$cfg")"
+                echo "from package $pkg"
+                # `< /dev/null` 让循环自己的输入不被任何读 stdin 的东西抢走。
+                "$binary" $install < /dev/null
+                # 判定由各包自己给出，因为这两个带 skill 的包并不一致：MEK 的 `--check` 永远退出 0，
+                # 靠 JSON 报告结果；而 maafw-live 在漂移时退出 3。
+                if [ -n "$pass" ]; then
+                  "$binary" $check < /dev/null | tee "$RUNNER_TEMP/skill-check-$pkg.json"
+                  if ! jq -e "$pass" "$RUNNER_TEMP/skill-check-$pkg.json" > /dev/null; then
+                    echo "::error::the skill installed from $pkg does not match the CLI that will run"
+                    exit 1
+                  fi
+                elif ! "$binary" $check < /dev/null; then
+                  echo "::error::the skill installed from $pkg does not match the CLI that will run"
+                  exit 1
+                fi
+                ;;
+              skills-cli)
+                args=()
+                while read -r name; do args+=(-s "$name"); done \
+                  < <(jq -r --arg s "$source" '.skills.list[] | select(.source == $s) | .name' "$cfg")
+                echo "from $repo: ${args[*]}"
+                # --copy：CLI 自己的那份 clone 一旦被清理，软链接就会断掉。
+                npx -y skills@latest add "$repo" "${args[@]}" --copy -y < /dev/null
+                ;;
+              *)
+                echo "::error::unknown source type '$type' for '$source' in $cfg"
+                exit 1
+                ;;
+            esac
+          done < <(jq -r '.skills.sources | to_entries[]
+            | [.key, .value.type, (.value.repo // ""), (.value.package // "")] | join("\u001f")' "$cfg")
+
+          missing=""
+          while read -r name; do
+            [ -f ".agents/skills/$name/SKILL.md" ] || missing="$missing $name"
+          done < <(jq -r '.skills.list[].name' "$cfg")
+          if [ -n "$missing" ]; then
+            echo "::error::listed in tools/bot/setup.json but absent from .agents/skills/:$missing"
+            exit 1
+          fi
+          echo "skills: $(jq -r '[.skills.list[] | "\(.name) (\(.source))"] | join(", ")' "$cfg")"
+
+      # 复评只应覆盖上一次之后变化的部分，而 App 自己的 review 已经记录了它当时针对的 commit —— 所以基准
+      # 从 GitHub 读回来，不在这里记。这一步只回答「从哪开始」；增量由 agent 自己去取，因为在
+      # `issue_comment` 下 checkout 拿到的是默认分支，不是 PR 的 head。
+      #
+      # 分页交给 gh，用 `tail` 取最后一条匹配，这样无论接口按什么顺序返回 review 都成立。
+      #
+      # 兜底是给偶发 API 失败用的，目的不是把失败吞掉：`pipefail` 会让管道带上 gh 的退出码，没有兜底时
+      # `set -e` 会判整个 job 失败，提问者收到的就是一条失败通知而不是 review。全量复评的代价只是重复
+      # 评论，别的没有，所以它是更划算的落点。
+      - name: Find the last review
+        if: needs.gate.outputs.kind == 'pr'
+        run: |
+          set -euo pipefail
+          base="$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" \
+            --jq '.[] | select(.user.type == "Bot") | .commit_id' | tail -1)" \
+            || { echo "::warning::could not read the last review, reviewing the whole pull request"; base=""; }
+          echo "REVIEW_BASE=$base" >> "$GITHUB_ENV"
+          echo "last reviewed commit: ${base:-<none>}"
+
+      - name: Analyze
+        env:
+          # 模型由 tools/bot/dsh-patch.yml 选定，那里把 command-code provider 指向这个环境变量名。
+          # 换 key 是改 Settings，不需要提交。
+          COMMAND_CODE_API_KEY: ${{ secrets.COMMAND_CODE_API_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$ANALYSIS_DIR"
+          dsh --profile headless --patch tools/bot/dsh-patch.yml - < tools/bot/prompt.md \
+            > "$ANALYSIS_DIR/answer.md" 2> "$ANALYSIS_DIR/agent.stderr"
+          echo "--- agent stderr (tail) ---"
+          tail -n 40 "$ANALYSIS_DIR/agent.stderr" || true
+
+      # 发布前仍设关卡的是 review 的载荷形状。Issue 分析原样发出：MEK 的证据纪律活在 agent 读的 Skill
+      # 里，而在这里数证据 ID 是个很差的代理指标 —— 它的失效形态是「什么都不发」，比它想防的那段话更糟。
+      - name: Validate the output
+        env:
+          KIND: ${{ needs.gate.outputs.kind }}
+        run: |
+          set -euo pipefail
+          answer="$ANALYSIS_DIR/answer.md"
+          if [ ! -s "$answer" ]; then
+            echo "::error::agent produced no answer"
+            exit 1
+          fi
+          if [ "$KIND" != "pr" ]; then
+            exit 0
+          fi
+          # 没有值得挂行的 review 也是合法 review，所以空列表照样通过。格式坏掉的文件不行：它会静默地
+          # 以「没找到评论」的样子发出去。
+          if ! jq -e '.comments | type == "array"' "$ANALYSIS_DIR/review.json" > /dev/null 2>&1; then
+            echo "::error::review.json is missing or does not hold a comments array"
+            exit 1
+          fi
+          echo "inline comments proposed: $(jq '.comments | length' "$ANALYSIS_DIR/review.json")"
+
+      # 只有校验过的产物会离开这个 job；能写的 token 在下一个 job 里。
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: bot-output
+          path: ${{ env.ANALYSIS_DIR }}
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+
+  post:
+    name: Post
+    needs: [gate, analyze]
+    if: always() && needs.gate.outputs.run == 'true' && needs.analyze.result != 'cancelled'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # 挂行内评论需要 `pull-requests: write`，而这个权限同时也允许批准或要求修改。只靠载荷把它保持在
+    # 建议性质：review 以 `event: COMMENT` 发出，任何 token 权限都变不成结论。
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    env:
+      TARGET: ${{ needs.gate.outputs.target }}
+      KIND: ${{ needs.gate.outputs.kind }}
+      ANALYSIS_DIR: ${{ github.workspace }}/.analysis
+    steps:
+      - uses: actions/checkout@v7
+
+      # installation token 一小时后过期，而分析允许跑得比这更久。只在负责发帖的 job 里现签，token 的
+      # 寿命就与 agent 跑了多久无关。
+      - uses: actions/create-github-app-token@v3
+        id: app
+        with:
+          client-id: ${{ vars.BOT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          permission-issues: write
+          permission-pull-requests: write
+
+      - uses: actions/download-artifact@v7
+        continue-on-error: true
+        with:
+          name: bot-output
+          path: ${{ env.ANALYSIS_DIR }}
+
+      - name: Post the answer
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          set -euo pipefail
+          answer="$ANALYSIS_DIR/answer.md"
+
+          # 没有答案意味着分析什么都没产出，或者 artifact 根本没到。在这里失败会把解释交给下面那一步，
+          # 于是一次失败运行只有一条通知路径。
+          if [ ! -s "$answer" ]; then
+            echo "::error::no answer to publish"
+            exit 1
+          fi
+
+          if [ "$KIND" != "pr" ]; then
+            gh issue comment "$TARGET" --body-file "$answer"
+            exit 0
+          fi
+
+          # GitHub 只接受落在当前 diff 所含行上的行内评论，而一个已经过期、不再属于当前修订的位置会让
+          # 整个 review 被拒。先按 diff 过滤，再一次发帖，让摘要和行内评论作为同一条 review 到达。
+          gh pr diff "$TARGET" | awk -f tools/bot/review-lines.awk | sort -u > "$RUNNER_TEMP/lines.txt"
+          total="$(jq '.comments | length' "$ANALYSIS_DIR/review.json")"
+          if ! jq --rawfile valid "$RUNNER_TEMP/lines.txt" '
+            ($valid | split("\n") | map(select(length > 0)) | reduce .[] as $l ({}; .[$l] = true)) as $ok
+            | {comments: [.comments[] | select($ok[[.path, (.line | tostring)] | join("\t")])]}
+          ' "$ANALYSIS_DIR/review.json" > "$RUNNER_TEMP/comments.json"; then
+            echo "::warning::could not filter inline comments, posting the summary alone"
+            echo '{"comments": []}' > "$RUNNER_TEMP/comments.json"
+          fi
+
+          kept="$(jq '.comments | length' "$RUNNER_TEMP/comments.json")"
+          echo "inline comments: $kept kept, $((total - kept)) dropped as not in the diff"
+          if [ "$total" -gt 0 ] && [ "$kept" -eq 0 ]; then
+            echo "::warning::every proposed inline comment was outside the diff"
+          fi
+
+          jq -n --rawfile body "$answer" --slurpfile c "$RUNNER_TEMP/comments.json" \
+            '{event: "COMMENT", body: $body, comments: $c[0].comments}' > "$RUNNER_TEMP/review.json"
+
+          if ! gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" --input "$RUNNER_TEMP/review.json"; then
+            echo "::warning::review rejected with inline comments, retrying as a summary-only review"
+            jq -n --rawfile body "$answer" '{event: "COMMENT", body: $body, comments: []}' \
+              > "$RUNNER_TEMP/review.json"
+            gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" --input "$RUNNER_TEMP/review.json"
+          fi
+
+      # 没有这一步，一次已经过了 gate 却中途失败的运行就是沉默的：提问者什么都看不到，也分不清 bot 是
+      # 死了还是压根没跑。token 回退到 Actions 那个，这样连 App 配错也至少能出一句话。
+      #
+      # `gate` 内部失败够不着 —— 这个 job 的 `if` 需要 `run` 输出，而要发到哪个号也是 gate 给的。这个
+      # 代价可以接受：gate 只读四个事件必然携带的字段，而且 gate 坏掉表现为一次红叉运行，而不是对一个
+      # 没人在等的 PR 保持沉默。
+      - name: Report a failed publish
+        if: failure()
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # 用 printf 而不是 heredoc：YAML 块缩进会作为前导空格一起发出去，把每一行都变成 Markdown
+          # 代码块。
+          gh issue comment "$TARGET" --body "$(printf '%s\n' \
+            '## 分析未完成' \
+            '' \
+            '本次没有产出可发布的结论。' \
+            '' \
+            '- 阻断环节：见本次 Actions 运行记录' \
+            '- 建议：稍后评论 `@M9ABot` 重新触发')"

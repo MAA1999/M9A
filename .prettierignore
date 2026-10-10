@@ -30,3 +30,6 @@ tools/schema/interface.schema.json
 tools/schema/interface_config.schema.json
 tools/schema/interface_import.schema.json
 tools/schema/pipeline.schema.json
+
+# 无 Prettier 解析器的 CI 辅助脚本
+tools/bot/review-lines.awk
