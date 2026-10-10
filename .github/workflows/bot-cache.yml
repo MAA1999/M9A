@@ -27,7 +27,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  # 周任务正好撞上一次 push 时，两次温存只会白跑一遍约 146 MB 的下载和上传。
+  # 周任务正好撞上一次 push 时，两次温存只会白跑一遍安装（npm 下载）和一次缓存上传。
   group: bot-cache
   cancel-in-progress: true
 
@@ -66,7 +66,7 @@ jobs:
           SETUP_HASH: ${{ hashFiles('tools/bot/setup.json') }}
         run: bash tools/bot/resolve-packages.sh
 
-      # 只查不下载：命中说明这棵树已经是对的，再拉约 146 MB 下来确认一遍没有意义。
+      # 只查不下载：命中说明这棵树已经是对的，没必要为了确认再拉一次约 146 MB 的归档。
       - name: Look up the toolchain cache
         id: cache
         uses: actions/cache/restore@v6
