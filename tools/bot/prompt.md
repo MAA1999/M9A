@@ -4,9 +4,14 @@
 
 ## gh 可以直接用
 
-`gh` 已经认证过（只读、仅限本仓库）：`gh issue view` / `gh search issues` / `gh pr view` / `gh pr diff` 都能用。**分析 issue 时正文、评论和日志附件都从这里取**；要对照历史或症状相似的 issue 也用 `gh search issues` —— 这是 `git` 给不了的部分。
+`gh` 已经认证过。token 只发给本仓库，但**公开数据任何 token 都读得到**，所以上游也能查 —— 查别的仓库加 `--repo owner/name`：
 
-若它报未认证，用仓库根那把 token 逐条前缀（**别写 `export`**：每次 bash 调用都是新 shell，导出不跨调用）：
+    gh issue view 1556 --repo MaaXYZ/MaaFramework
+    gh search issues "wait_freezes" --repo MaaXYZ/MaaFramework
+
+`gh issue view` / `gh search issues` / `gh pr view` / `gh pr diff` 都能用。**分析 issue 时正文、评论和日志附件都从这里取**；要对照历史或症状相似的 issue、或核对上游（`MaaXYZ/MaaFramework` 等）的行为与 issue，也用 `gh` —— 这是 `git` 给不了的部分。（只读，私有仓库读不到；token 的价值在于 5000/小时而不是 60/小时的速率。）
+
+若 `gh` 报未认证，用仓库根那把 token 逐条前缀（**别写 `export`**：每次 bash 调用都是新 shell，导出不跨调用）：
 
     GH_TOKEN="$(cat .gh-token)" gh issue view "$TARGET" --json body
 
