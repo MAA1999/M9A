@@ -406,12 +406,12 @@ jobs:
       # analyze 那边同名变量的注释）。
       REVIEW_AUTHOR_SLUG: "m9abot"
     steps:
-      # 显式检出默认分支。`pull_request` 事件下 checkout 默认给的是 PR 的 merge ref，而这个 job 会执行
-      # 工作树里的 `tools/bot/*`（`review-lines.awk`、`open-threads.sh`）—— 也就是让它拿着 App 的写
-      # token 去跑 PR 能改的脚本。这个 job 只需要工具，不需要 PR 的内容（diff 一律走 `gh`）。
+      # 这里**不**指定 ref，保持 checkout 的默认行为。曾经想显式检出默认分支，好让这个 job 执行的
+      # `tools/bot/*`（`review-lines.awk`、`open-threads.sh`）不是 PR 能改的那份 —— 但那既没用也有害：
+      # `pull_request` 事件下 workflow 文件本身就取自 merge ref，同仓库 PR 的作者本来就控制着整条流程，
+      # 只挡住 checkout 不构成屏障；而 `issue_comment`（fork 那条路）下 checkout 本来就是默认分支，改动
+      # 在那里是 no-op。有害的部分是它连新的 `tools/bot/*` 都拿不到 —— 文件还没合并进默认分支。
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.repository.default_branch }}
 
       # installation token 一小时后过期，而分析允许跑得比这更久。只在负责发帖的 job 里现签，token 的
       # 寿命就与 agent 跑了多久无关。
