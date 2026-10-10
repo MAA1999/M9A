@@ -5,7 +5,7 @@ set -euo pipefail
 
 cfg=tools/bot/setup.json
 
-while read -r key name spec binary; do
+while read -r key name binary; do
     want="$(awk -v k="$key" '$1 == k {print $2}' "$RUNNER_TEMP/versions.txt")"
     # 缺条目就报错，不要落进下面那条「看起来已经装好」的路径：`want` 空、`got` 也空时两者相等，
     # 会静默跳过安装，之后每个调用方都在缺二进制的情况下继续跑。
@@ -19,9 +19,12 @@ while read -r key name spec binary; do
     if [ "$got" = "$want" ]; then
         echo "$binary $want already present"
     else
-        npm install --global "$name@$spec"
+        # 按解析出的版本装，不按 `setup.json` 里的浮动标签再解析一次：标签要是在 resolve 和 install
+        # 之间移动，装进来的版本就和缓存键上那一段对不上 —— 缓存会拿旧版本的键保存一棵新版本的树，
+        # 下一次运行算出的键对不上它，只能重新冷装。
+        npm install --global "$name@$want"
     fi
-done < <(jq -r '.packages[] | "\(.key) \(.name) \(.spec) \(.binary)"' "$cfg")
+done < <(jq -r '.packages[] | "\(.key) \(.name) \(.binary)"' "$cfg")
 
 while read -r binary; do echo "$binary $("$binary" --version)"; done \
     < <(jq -r '.packages[].binary' "$cfg")

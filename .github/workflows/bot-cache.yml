@@ -32,11 +32,10 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  # 故意不加 `actions: write`：能不能写这份缓存由**触发器**决定，缓存走的是本次运行的 runtime token，
+  # 与 `GITHUB_TOKEN` 的 scope 无关 —— PR #957 的 analyze job 只有只读权限，照样把同一把键存进了
+  # `refs/pull/957/merge`。加上它只会让这个要跑 `npm install` 的 job 多带一个用不上的可写 scope。
   contents: read
-  # 白名单触发器本身已经允许写这份缓存，这个 `actions: write` 是照着被拒时那句话补的：报错原文把
-  # 「可写 scope」也列为条件。这个 job 不吃任何不可信输入（只装 `setup.json` 里钉住的包），所以给它
-  # 一个可写 scope 不会动摇 `analyze` 那套只读设计。
-  actions: write
 
 jobs:
   warm:
@@ -44,7 +43,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      # 这个 job 的全部工作就是跑 `npm install`（等价于执行第三方 postinstall），之后不再碰 git ——
+      # checkout 默认把 token 写进 `.git/config`，没有理由把它留在那里。
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v7
         with:
