@@ -133,6 +133,9 @@ jobs:
       # 仓库上的 sentry / CodeRabbit / Sourcery 一起命中，而它们在更晚的 commit 上留过 review 时，增量
       # 基线会被推到那个 commit，我们没看过的改动就被跳过了 —— 重复审可以接受，漏审不行。
       REVIEW_AUTHOR: "m9abot[bot]"
+      # GraphQL 的 `author.login` 对 App 只给 slug，不带 `[bot]` 后缀（REST 的 `user.login` 才带）——
+      # 同一个身份在两个接口里是两个名字，所以两个都要有。混用会让过滤永远匹配不到，而且是静默的。
+      REVIEW_AUTHOR_SLUG: "m9abot"
     steps:
       # 故意拉全量历史。浅克隆照样能取到某个 tag 的文件内容，但取不到两个 tag 之间的区间 —— 而且它给
       # `git log <old>..<new>` 返回的是一个看起来合理的孤立 commit 而不是报错，这是错误答案里最糟的形态。
@@ -323,6 +326,40 @@ jobs:
           echo "REVIEW_BASE=$base" >> "$GITHUB_ENV"
           echo "last reviewed commit: ${base:-<none>}"
 
+          # 上一轮我们自己留下、还没被收起的行内意见。agent 据此判断这次增量修掉了哪些，post 再按它的
+          # 结论去 resolve —— 机械地「发了新 review 就全 resolve」会把仍然成立的意见一起藏掉。
+          #
+          # 只取 `author.login == $REVIEW_AUTHOR` 的 thread：这是 agent 唯一被允许 resolve 的集合，
+          # post 侧会拿这份文件当白名单。
+          mkdir -p "$ANALYSIS_DIR"
+          if ! gh api graphql \
+              -F owner="${GITHUB_REPOSITORY%%/*}" -F name="${GITHUB_REPOSITORY##*/}" -F number="$TARGET" \
+              -f query='
+                query($owner: String!, $name: String!, $number: Int!) {
+                  repository(owner: $owner, name: $name) {
+                    pullRequest(number: $number) {
+                      reviewThreads(first: 100) {
+                        nodes {
+                          id
+                          isResolved
+                          path
+                          line
+                          comments(first: 1) { nodes { author { login } body } }
+                        }
+                      }
+                    }
+                  }
+                }' \
+              --jq '[.data.repository.pullRequest.reviewThreads.nodes[]
+                     | select(.isResolved == false)
+                     | select(.comments.nodes[0].author.login == env.REVIEW_AUTHOR_SLUG)
+                     | {id, path, line, body: (.comments.nodes[0].body[0:300])}]' \
+              > "$ANALYSIS_DIR/open-threads.json"; then
+            echo "::warning::could not read the open review threads"
+            echo '[]' > "$ANALYSIS_DIR/open-threads.json"
+          fi
+          echo "our open threads: $(jq 'length' "$ANALYSIS_DIR/open-threads.json")"
+
       - name: Analyze
         env:
           # 模型由 tools/bot/dsh-patch.yml 选定，那里把 command-code provider 指向这个环境变量名。
@@ -465,6 +502,28 @@ jobs:
             jq -n --rawfile body "$answer" '{event: "COMMENT", body: $body, comments: []}' \
               > "$RUNNER_TEMP/review.json"
             gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" --input "$RUNNER_TEMP/review.json"
+          fi
+
+          # 收起 agent 确认已经修掉的旧意见。放在发完 review 之后：先让这一轮的结论可见，再动旧的。
+          #
+          # `open-threads.json` 是白名单 —— agent 只能 resolve 我们从 GitHub 取回来的那些 id，否则它写错
+          # 一个 id 就可能把别人的对话收起来。resolve 失败只告警：这一轮的 review 已经发出去了，没有理由
+          # 因为它把整步判失败，让读者再收到一条「分析未完成」。
+          open="$ANALYSIS_DIR/open-threads.json"
+          if [ -s "$open" ]; then
+            resolved="$(jq -r --slurpfile open "$open" \
+              '(.resolved // [])[] as $want | select($open[0] | any(.id == $want)) | $want' \
+              "$ANALYSIS_DIR/review.json" 2>/dev/null || true)"
+            for id in $resolved; do
+              if gh api graphql \
+                  -f query='mutation($id: ID!) { resolveReviewThread(input: { threadId: $id }) { thread { isResolved } } }' \
+                  -F id="$id" > /dev/null 2>&1; then
+                echo "resolved $id"
+              else
+                echo "::warning::could not resolve $id"
+              fi
+            done
+            echo "resolved $(printf '%s' "$resolved" | grep -c . || true) of $(jq 'length' "$open") open threads"
           fi
 
       # 没有这一步，一次已经过了 gate 却中途失败的运行就是沉默的：提问者什么都看不到，也分不清 bot 是
