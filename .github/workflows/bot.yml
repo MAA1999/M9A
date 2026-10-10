@@ -343,17 +343,30 @@ jobs:
           # 于是基准不动、区间一直长。那次运行自己记得最后分析到哪 —— 上一次成功跑完这个 PR 的运行，它的
           # `head_sha` 就是最后一颗真正分析过的提交。
           #
-          # 只认 `success`：失败的运行（例如产物没到、`dsh` 中途挂掉）没有完成分析，那些提交必须在下一轮
-          # 重来 —— 这也正是失败能自愈的原因。取消的运行同理。
+          # 只认「那次运行的 `Analyze` job 真的跑成功过」，不能只看运行结论：`gate` 是唯一没有 `if` 的
+          # job，**任何触发都会执行并成功**，而 `run=false` 时（草稿 PR、fork PR、bot 提的 PR）`analyze`
+          # 被挡成 skipped —— 「success + skipped」的运行结论仍然是 `success`。把那种运行的 head_sha 当
+          # 基准，会让草稿转正式、以及 fork PR 被召唤时增量为空，整个 PR 一次都不审。
           #
-          # **前提：绿色确实代表分析完成。** PR #957 上就有两轮是绿色但 review 被 artifact 层级问题静默
-          # 丢弃的 —— 所以这个前提不是白来的，它由 `post` 里那两道闸门守着（`ANALYZE_RESULT`、产物没到即
-          # 判失败）。谁把闸门改松，这里就会开始跳过没审过的提交，而且是静默的。
-          analyzed="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/bot.yml/runs?status=success&per_page=60" \
-            --jq "[.workflow_runs[] | select(any(.pull_requests[]?; .number == $TARGET))] | .[0].head_sha // \"\"" 2>/dev/null || true)"
+          # 逐个候选查 analyze 的结论，取第一个真跑成功的。取消 / 失败的运行也不是基准 —— 那些提交必须
+          # 重来，失败能自愈靠的就是这个。
+          #
+          # 内层 gh 要 `< /dev/null`：它会读 stdin，而这里的 stdin 正是循环的来源。
+          analyzed=""
+          while read -r run_id sha; do
+            [ -n "$run_id" ] || continue
+            job="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id/jobs" \
+              --jq '[.jobs[] | select(.name == "Analyze")][0].conclusion // ""' < /dev/null 2>/dev/null || true)"
+            if [ "$job" = "success" ]; then
+              analyzed="$sha"
+              break
+            fi
+          done < <(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/bot.yml/runs?status=success&per_page=60" \
+            --jq "[.workflow_runs[] | select(any(.pull_requests[]?; .number == $TARGET))] | .[0:6][] | \"\(.id) \(.head_sha)\"" 2>/dev/null || true)
+
           if [ -n "$analyzed" ] && git cat-file -e "${analyzed}^{commit}" 2>/dev/null \
              && { [ -z "$base" ] || git merge-base --is-ancestor "$base" "$analyzed"; }; then
-            # 只有当那次运行确实比最后一次发言更靠后时才采用它。
+            # 只有当那次分析确实比最后一次发言更靠后时才采用它。
             if [ "$analyzed" != "$base" ]; then
               echo "last analysed commit: $analyzed (newer than the last review)"
             fi
