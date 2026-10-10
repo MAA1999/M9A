@@ -185,6 +185,8 @@ class _PlanHarness:
         monkeypatch.setattr(depot_maintain, "load_catalog", lambda path=None: build_catalog(sample, source="unit-test"))
         monkeypatch.setattr(depot_maintain, "request_combat_stop", self._record_stop)
         monkeypatch.setattr(depot_maintain, "battles_done", lambda: self.battles)
+        # 账号解析要有主界面才能做，与本脚手架驱动的流程无关；单独有用例覆盖它
+        monkeypatch.setattr(depot_maintain, "_ensure_account_id", lambda _context: True)
         DepotMaintainInit().run(self.context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
 
     def set_battles(self, count: int) -> None:
@@ -657,7 +659,7 @@ def test_currency_read_writes_snapshot_and_returns_home(monkeypatch: pytest.Monk
     snapshot.write_text(json.dumps({"updated_at": "2026-10-08 00:00:00", "counts": {}}), encoding="utf-8")
     monkeypatch.setattr(depot_maintain, "SNAPSHOT_PATH", snapshot)
 
-    context = _FakeContext(ocr_texts={"CI_DustNumber": "9792K", "CI_CoinNumber": "3969K"})
+    context = _FakeContext(ocr_texts={"CI_PanelReady": "Lv", "CI_DustNumber": "9792K", "CI_CoinNumber": "3969K"})
     result = DepotCurrencyRead().run(context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
 
     assert result.success
@@ -696,13 +698,71 @@ def test_currency_read_keeps_timestamp_when_reading_incomplete(monkeypatch: pyte
     monkeypatch.setattr(depot_maintain, "SNAPSHOT_PATH", snapshot)
     monkeypatch.setattr(depot_maintain._state, "required_currency", ["205", "203"])
 
-    context = _FakeContext(ocr_texts={"CI_DustNumber": "9792K"})  # 只读到微尘
+    context = _FakeContext(ocr_texts={"CI_PanelReady": "Lv", "CI_DustNumber": "9792K"})  # 只读到微尘
     result = DepotCurrencyRead().run(context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
 
     assert result.success
     data = _bucket(snapshot)
     assert data["counts"] == {"203": 1, "205": 9_792_000}  # 读到的照常合并，旧值保留
     assert data["currency_updated_at"] == "2026-10-01 00:00:00"  # 时间戳不刷新 → 下次重试
+
+
+def test_currency_read_skips_when_panel_not_ready(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """面板没就位就不许读：导航链中途卡住时 `run_task` 照样报成功。
+
+    实测那次游戏停在征集页，顶栏恰好也有数字，OCR 就把 402 / 22 当成微尘 / 利齿子儿写进了快照。
+    """
+    snapshot = tmp_path / "warehouse_inventory.json"
+    snapshot.write_text(json.dumps({"updated_at": "2026-10-08 00:00:00", "counts": {}}), encoding="utf-8")
+    monkeypatch.setattr(depot_maintain, "SNAPSHOT_PATH", snapshot)
+
+    # 两个数字都读得到，但 CI_PanelReady 没命中 → 当前不在升级面板上
+    context = _FakeContext(ocr_texts={"CI_DustNumber": "402", "CI_CoinNumber": "22"})
+    result = DepotCurrencyRead().run(context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
+
+    assert not result.success
+    assert context.run_tasks == [depot_maintain.CURRENCY_NAV_ENTRY, depot_maintain.HOME_ENTRY]
+    assert snapshot_counts(depot_maintain.read_snapshot(snapshot)) == {}  # 一个都不许写
+
+
+def test_ensure_account_id_skips_home_when_already_known(monkeypatch: pytest.MonkeyPatch) -> None:
+    """已有账号 id 就不必回主界面。"""
+    monkeypatch.setattr(depot_maintain, "current_account_id", lambda: "103889857")
+    context = _FakeContext()
+
+    assert depot_maintain._ensure_account_id(context)
+    assert context.run_tasks == []
+
+
+def test_ensure_account_id_reads_account_via_home(monkeypatch: pytest.MonkeyPatch) -> None:
+    """账号 id 为空时先回主界面读出来 —— 到家后 HomeFlagCloseReturnMain → RecordId 会顺带跑。"""
+    account = {"id": ""}
+    context = _FakeContext()
+    monkeypatch.setattr(depot_maintain, "current_account_id", lambda: account["id"])
+
+    def _run_task(entry: str, *args: Any, **kwargs: Any) -> Any:
+        context.run_tasks.append(entry)
+        if entry == depot_maintain.HOME_ENTRY:
+            account["id"] = "103889857"
+        return types.SimpleNamespace(status=types.SimpleNamespace(failed=False))
+
+    monkeypatch.setattr(context, "run_task", _run_task)
+
+    assert depot_maintain._ensure_account_id(context)
+    assert context.run_tasks == [depot_maintain.HOME_ENTRY]
+
+
+def test_plan_falls_back_when_account_id_unreadable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """读不到账号就退回原有均衡流程：否则快照落默认桶、与后续按账号桶的读写错位。"""
+    monkeypatch.setattr(depot_maintain, "current_account_id", lambda: "")
+    context = _FakeContext()
+    DepotMaintainInit().run(context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
+
+    result = DepotMaintainPlan().run(context, _argv('{"target_110103": "100"}'))  # pyright: ignore[reportArgumentType]
+
+    assert result.success
+    assert context.run_tasks == [depot_maintain.HOME_ENTRY, depot_maintain.RECORD_ID_ENTRY]
+    assert context.next_overrides == [[depot_maintain.LEGACY_ENTRY_NODE, "[JumpBack]ReturnMain"]]
 
 
 def test_refresh_runs_currency_scan_for_character_items(monkeypatch: pytest.MonkeyPatch) -> None:

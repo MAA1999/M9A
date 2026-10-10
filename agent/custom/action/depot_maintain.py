@@ -95,9 +95,13 @@ CURRENCY_SCAN_ENTRY = "DepotCurrencyInspect"
 # 复用「信任奖励领取」的角色页入口链：沿用它的「先回主界面」守卫（[JumpBack]ReturnMain）
 CURRENCY_NAV_ENTRY = "DepotCurrencyNav"
 CURRENCY_NUMBER_NODES: Mapping[str, str] = {"205": "CI_DustNumber", "203": "CI_CoinNumber"}
+# 升级面板就绪标志：读数前必须先确认它命中（见 DepotCurrencyRead）
+CURRENCY_PANEL_NODE = "CI_PanelReady"
 # 回主界面统一走共享的 ReturnMain（startup.json）；它到家后会用 DisableNode 把自己关掉，
 # 所以二次使用必须经 ResetReturnMain 重新启用——与 warehouse_inventory.json 的 WI_AtMain 同一形状
 HOME_ENTRY = "ResetReturnMain"
+# 账号 id 的读取节点：自带主界面 HomeFlag 模板识别，只在主界面才触发
+RECORD_ID_ENTRY = "RecordId"
 # ReturnMain 在 startup.json 里 max_hit 只有 2，而命中计数在整个 task run 内按节点名累计、
 # 只有 post_task 才清零；ResetReturnMain 又只重置 enabled、不管计数。库存保持整轮要多次回主界面
 # （每换一种材料一次 + 收尾一次），不自己把上限抬起来就会被 run_next 静默跳过、空转到超时。
@@ -212,6 +216,31 @@ def parse_target(value: Any) -> int | None:
 def current_account_id() -> str:
     """当前账号 id（`RecordID` 没跑过时为空，落盘时归入默认桶）。"""
     return RecordID.current_account_id()
+
+
+def _ensure_account_id(context: Context) -> bool:
+    """确保拿得到账号 id —— 快照按账号分桶，读不到就无法保证同一轮里读写落在同一个桶。
+
+    账号 id 是 `RecordID` 的**进程内缓存**：agent 重启后为空，要等 `RecordId` 节点在主界面跑过才有值。
+    为空时快照落 `__default__` 桶，等 `RecordId` 跑出账号后又切到真实账号桶 —— 同一轮里就会读写错位
+    （实测：角色页读数写进 `__default__`，规划读真实账号桶拿到旧值，把缺口算成 160 万、白刷一整轮）。
+
+    所以碰快照之前先回主界面把账号读出来。`ReturnMain` 本就是「任务开始前使用」的回家链，
+    到家后 `HomeFlagCloseReturnMain → RecordId` 会顺带跑一次。
+    """
+    if current_account_id():
+        return True
+
+    detail = context.run_task(HOME_ENTRY)
+    if detail is None or detail.status.failed:
+        logger.warning("读取账号信息前未能回到主界面")
+    if not current_account_id():
+        context.run_task(RECORD_ID_ENTRY)
+    if not current_account_id():
+        logger.warning("未能读到账号信息")
+        return False
+    logger.debug(f"已读到账号信息: {current_account_id()}")
+    return True
 
 
 def read_snapshot(path: Path | None = None) -> dict[str, Any] | None:
@@ -720,6 +749,12 @@ class DepotMaintainPlan(CustomAction):
             context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE, "[JumpBack]ReturnMain"])
             return CustomAction.RunResult(success=True)
 
+        # 读不到账号就退回原有流程：否则快照会落默认桶，与后续按账号桶的读写错位
+        if not _ensure_account_id(context):
+            logger.error("未能读取账号信息，库存快照无法与账号对应，本轮按原有均衡逻辑刷取")
+            context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE, "[JumpBack]ReturnMain"])
+            return CustomAction.RunResult(success=True)
+
         try:
             catalog = load_catalog()
         except CatalogError as exc:
@@ -939,15 +974,22 @@ class DepotCurrencyRead(CustomAction):
         updates: dict[str, int] = {}
         if nav is not None and not nav.status.failed:
             img = context.tasker.controller.post_screencap().wait().get()
-            for item_id, node_name in CURRENCY_NUMBER_NODES.items():
-                detail = context.run_recognition(node_name, img)
-                text = ocr_text(detail)
-                value = parse_abbreviated_number(text)
-                if value is None:
-                    logger.warning(f"未读到 {material_label(item_id, catalog)} 的数量")
-                    logger.debug(f"{item_id} 面板识别结果: {text!r}")
-                    continue
-                updates[item_id] = value
+            # `run_task` 的 status 不足以证明面板已经打开：导航链中途卡住时它照样报成功
+            # （实测在征集页上 EnterCharacter 误命中、FlagInCharacter 连失败 8 次、
+            # CI_LevelPlus / CI_PanelReady 从未执行，任务仍然成功）。不确认就会在别的界面上
+            # 把顶栏那些无关数字当成货币数量写进快照。
+            if not is_hit(context.run_recognition(CURRENCY_PANEL_NODE, img)):
+                logger.warning("未进入角色升级面板，本次跳过微尘 / 利齿子儿")
+            else:
+                for item_id, node_name in CURRENCY_NUMBER_NODES.items():
+                    detail = context.run_recognition(node_name, img)
+                    text = ocr_text(detail)
+                    value = parse_abbreviated_number(text)
+                    if value is None:
+                        logger.warning(f"未读到 {material_label(item_id, catalog)} 的数量")
+                        logger.debug(f"{item_id} 面板识别结果: {text!r}")
+                        continue
+                    updates[item_id] = value
 
         if updates:
             summary = "、".join(
