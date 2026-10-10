@@ -1,0 +1,84 @@
+name: Bot Cache
+
+# `bot.yml` 那份工具链缓存只能 restore，不能 save：它由 `issue_comment` / `issues` 触发，属于低信任
+# 事件，GitHub 只给这类运行签**默认分支作用域的只读**缓存 token，保存会以
+# `cache write denied: token has no writable scopes` 收场。run 不会失败，只留一条 warning，但缓存
+# 永远是空的 —— 于是每次分析都退回 193 s / 685 MB 的冷装。
+#
+# 能写默认分支缓存的触发器只有 push / workflow_dispatch / repository_dispatch / delete /
+# registry_package / page_build / schedule，所以保存这半边搬到这里，用其中三个。
+#
+# key 由 `tools/bot/resolve-packages.sh` 拼，与 `bot.yml` 共用同一份：两边各拼一遍的话，一处格式不
+# 一致就会让这里存下的树永远对不上 bot 要找的键，而那种失败是静默的（评论照发，只是每次都冷装）。
+#
+# 不做 `github.repository` 守卫（本仓库另外几条定时任务都有）：这个 job 只写自己仓库的缓存，
+# fork 上跑一次也就把自己的缓存在那儿填好，没有对外副作用。
+
+on:
+  push:
+    branches: [main]
+    # 这个文件是 key 的唯一输入；其余改动（包括 `bot.yml` 里缓存路径的变化）由下面的 schedule 兜。
+    paths:
+      - tools/bot/setup.json
+  # `next` / `latest` 会在没有任何 push 的情况下移动，而缓存 7 天没人访问就被清掉。这条每周一次把
+  # 两种情况一起覆盖：版本动了就重装重存，没动就只做一次 lookup —— 不下载，也不安装。
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  # 周任务正好撞上一次 push 时，两次温存只会白跑一遍 685 MB 的下载和上传。
+  group: bot-cache
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  # 白名单触发器本身已经允许写这份缓存，这个 `actions: write` 是照着被拒时那句话补的：报错原文把
+  # 「可写 scope」也列为条件。这个 job 不吃任何不可信输入（只装 `setup.json` 里钉住的包），所以给它
+  # 一个可写 scope 不会动摇 `analyze` 那套只读设计。
+  actions: write
+
+jobs:
+  warm:
+    name: Warm the toolchain cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # 前缀必须和 `bot.yml` 落在同一个目录，否则这里装好的东西 restore 回去也用不上。
+      - name: Point npm globals at a writable prefix
+        run: |
+          set -euo pipefail
+          npm config set prefix "$HOME/.npm-global"
+          echo "$HOME/.npm-global/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve packages
+        id: pkgs
+        env:
+          SETUP_HASH: ${{ hashFiles('tools/bot/setup.json') }}
+        run: bash tools/bot/resolve-packages.sh
+
+      # 只查不下载：命中说明这棵树已经是对的，再拉 685 MB 下来确认一遍没有意义。
+      - name: Look up the toolchain cache
+        id: cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.npm-global
+          key: ${{ steps.pkgs.outputs.cache_key }}
+          lookup-only: true
+
+      - name: Install toolchain
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: bash tools/bot/install-toolchain.sh
+
+      - name: Save the toolchain cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/.npm-global
+          key: ${{ steps.pkgs.outputs.cache_key }}
