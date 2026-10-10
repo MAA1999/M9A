@@ -36,6 +36,14 @@
                     "name": "使用兑换码"
                 },
                 {
+                    "name": "局外演绎：黄昏的音序",
+                    "enabled": false
+                },
+                {
+                    "name": "局外演绎：无声综合征",
+                    "enabled": false
+                },
+                {
                     "name": "关闭游戏"
                 }
             ]

@@ -6,14 +6,6 @@
             "description": "$Preset.MiniGames.desc",
             "task": [
                 {
-                    "name": "局外演绎：黄昏的音序",
-                    "enabled": false
-                },
-                {
-                    "name": "局外演绎：无声综合征",
-                    "enabled": false
-                },
-                {
                     "name": "复刻活动推图",
                     "enabled": false
                 },
