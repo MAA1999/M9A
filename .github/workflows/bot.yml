@@ -13,6 +13,9 @@ name: Bot
 # 发帖身份是 GitHub App，所以 `@M9ABot` 是一个真实账号：评论里 @ 它会被自动补全、渲染成链接
 # （App 的 slug 是小写的，触发匹配特意不区分大小写）。installation token 只有 1 小时有效期，
 # 所以它只在 `post` 里现签 —— agent 跑多久都不影响它。
+#
+# 工具链缓存写不进去与 `analyze` 的权限无关，是触发器决定的：低信任事件只拿到默认分支作用域的只读
+# 缓存 token，所以那份缓存由 `.github/workflows/bot-cache.yml`（push / schedule / workflow_dispatch）喂。
 
 on:
   issues:
@@ -209,54 +212,37 @@ jobs:
 
       # 包声明在 tools/bot/setup.json 里，改版本或加工具是改那个文件，不是改这里。
       #
-      # `cache_tag` 由标了 `cacheKey` 的包拼成 —— 这些包贵到一旦升版本就该让整棵缓存树失效。小包不该
-      # 放进去：它升个版本会把 launcher 一起丢掉，而 `Install toolchain` 里的版本检查本来只会重装
-      # 那一个包。
+      # 版本解析和缓存键都交给 `tools/bot/resolve-packages.sh`：`.github/workflows/bot-cache.yml` 必须
+      # 算出逐字节相同的键，各写一遍就等于把「一处格式不一致」变成常态，而那种失败是静默的。
       - name: Resolve packages
         id: pkgs
-        run: |
-          set -euo pipefail
-          tag=""
-          : > "$RUNNER_TEMP/versions.txt"
-          while read -r key name spec inKey; do
-            version="$(npm view "$name@$spec" version)"
-            echo "$key=$version" >> "$GITHUB_OUTPUT"
-            echo "$key $version" >> "$RUNNER_TEMP/versions.txt"
-            echo "  $name@$spec -> $version"
-            [ "$inKey" = "true" ] && tag="$tag$key-$version-"
-          done < <(jq -r '.packages[] | "\(.key) \(.name) \(.spec) \(.cacheKey // false)"' tools/bot/setup.json)
-          echo "cache_tag=${tag%-}" >> "$GITHUB_OUTPUT"
+        env:
+          SETUP_HASH: ${{ hashFiles('tools/bot/setup.json') }}
+        run: bash tools/bot/resolve-packages.sh
 
       # 有两样东西会让缓存树失效，原因各不相同。配置哈希：改名或删包会在 bin 里留下残留，下一次安装会
       # 因 EEXIST 直接失败 —— 而一个永不变化的 key 意味着这条缓存永不刷新，之后每次运行都会同样失败。
-      # `cache_tag`：`next` 移动时，交回来的树里应当已经带着新的 launcher。
+      # `cacheKey` 那一段版本号：`next` 移动时，交回来的树里应当已经带着新的 launcher。
+      #
+      # 这里只 restore，不 save：`issue_comment` / `issues` 是低信任触发器，GitHub 只给这类运行签默认
+      # 分支作用域的**只读**缓存 token，保存必然以 `cache write denied: token has no writable scopes`
+      # 收场 —— run 不失败，只留一条 warning，缓存却永远是空的。保存那半边在
+      # `.github/workflows/bot-cache.yml`，那边由 push / schedule / workflow_dispatch 触发，也就是能写
+      # 默认分支作用域的那批事件。
       #
       # Linux 实测：npm 缓存为空时冷装这三个包要 193 s，其中 165 s 是 685 MB 的下载，其余是解包。
-      # 在已装好的树上重装是 22 s，而 `Install toolchain` 里的版本检查只要 0.1 s。
-      - uses: actions/cache@v6
+      # 在已装好的树上重装是 22 s，而 `Install toolchain` 里的版本检查只要 0.1 s —— 那 0.1 s 成为常态的
+      # 前提，正是有人先把 `~/.npm-global` 填进缓存。
+      #
+      # 不缓存 `$DSH_HOME/profiles/headless`：76 KB、首启动 3.3 s 就能重建，而 warm 那个 job 里没有模型
+      # 凭证，不该为了这点体积让它把 dsh 整个跑一遍。
+      - uses: actions/cache/restore@v6
         with:
-          path: |
-            ~/.npm-global
-            ${{ env.DSH_HOME }}/profiles/headless
-          key: bot-${{ runner.os }}-${{ hashFiles('tools/bot/setup.json') }}-${{ steps.pkgs.outputs.cache_tag }}
+          path: ~/.npm-global
+          key: ${{ steps.pkgs.outputs.cache_key }}
 
       - name: Install toolchain
-        run: |
-          set -euo pipefail
-          while read -r key name spec binary; do
-            want="$(awk -v k="$key" '$1 == k {print $2}' "$RUNNER_TEMP/versions.txt")"
-            # 各二进制的版本打印格式不同 —— dsh 只打 `0.2.0-rc.2`，maafw-live 打
-            # `@windsland52/maafw-live 0.3.0` —— 所以取第一个长得像版本的 token 来比对。
-            got="$("$binary" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+[^ ]*' | head -1 || true)"
-            if [ "$got" = "$want" ]; then
-              echo "$binary $want already present"
-            else
-              npm install --global "$name@$spec"
-            fi
-          done < <(jq -r '.packages[] | "\(.key) \(.name) \(.spec) \(.binary)"' tools/bot/setup.json)
-
-          while read -r binary; do echo "$binary $("$binary" --version)"; done \
-            < <(jq -r '.packages[].binary' tools/bot/setup.json)
+        run: bash tools/bot/install-toolchain.sh
 
       # agent 能拿到哪些 skill 由 tools/bot/setup.json 决定，每个来源都要声明它的 skill 怎么落地：
       # `committed` 已经在本仓库里，`package` 随某个 npm 包发布、由该包自己的 CLI 安装，`skills-cli`
