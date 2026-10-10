@@ -326,39 +326,14 @@ jobs:
           echo "REVIEW_BASE=$base" >> "$GITHUB_ENV"
           echo "last reviewed commit: ${base:-<none>}"
 
-          # 上一轮我们自己留下、还没被收起的行内意见。agent 据此判断这次增量修掉了哪些，post 再按它的
-          # 结论去 resolve —— 机械地「发了新 review 就全 resolve」会把仍然成立的意见一起藏掉。
-          #
-          # 只取 `author.login == $REVIEW_AUTHOR` 的 thread：这是 agent 唯一被允许 resolve 的集合，
-          # post 侧会拿这份文件当白名单。
+          # 上一轮我们自己留下、还没被收起的行内意见，交给 agent 判断这次增量修掉了哪些。这份文件只是
+          # **给 agent 读**的：它对 $ANALYSIS_DIR 有写权限，所以 post 侧不认这份，自己重新取一遍当白名单。
           mkdir -p "$ANALYSIS_DIR"
-          if ! gh api graphql \
-              -F owner="${GITHUB_REPOSITORY%%/*}" -F name="${GITHUB_REPOSITORY##*/}" -F number="$TARGET" \
-              -f query='
-                query($owner: String!, $name: String!, $number: Int!) {
-                  repository(owner: $owner, name: $name) {
-                    pullRequest(number: $number) {
-                      reviewThreads(first: 100) {
-                        nodes {
-                          id
-                          isResolved
-                          path
-                          line
-                          comments(first: 1) { nodes { author { login } body } }
-                        }
-                      }
-                    }
-                  }
-                }' \
-              --jq '[.data.repository.pullRequest.reviewThreads.nodes[]
-                     | select(.isResolved == false)
-                     | select(.comments.nodes[0].author.login == env.REVIEW_AUTHOR_SLUG)
-                     | {id, path, line, body: (.comments.nodes[0].body[0:300])}]' \
-              > "$ANALYSIS_DIR/open-threads.json"; then
+          if ! bash tools/bot/open-threads.sh > "$ANALYSIS_DIR/open-threads.json"; then
             echo "::warning::could not read the open review threads"
             echo '[]' > "$ANALYSIS_DIR/open-threads.json"
           fi
-          echo "our open threads: $(jq 'length' "$ANALYSIS_DIR/open-threads.json")"
+          echo "our open threads: $(jq 'length' "$ANALYSIS_DIR/open-threads.json" 2>/dev/null || echo '?')"
 
       - name: Analyze
         env:
@@ -427,8 +402,16 @@ jobs:
       # 这个 job 必须跑起来才能发出失败通知，所以它不能靠 `if` 去挡失败的 analyze —— 于是把结果传进来，
       # 由发布步骤自己判。少了这个，`dsh` 中途失败但 answer.md 已写了一半时，半成品会被当成正常结论发出。
       ANALYZE_RESULT: ${{ needs.analyze.result }}
+      # `open-threads.sh` 要用它过滤出我们自己的 thread。GraphQL 的 author.login 只给 slug（见
+      # analyze 那边同名变量的注释）。
+      REVIEW_AUTHOR_SLUG: "m9abot"
     steps:
+      # 显式检出默认分支。`pull_request` 事件下 checkout 默认给的是 PR 的 merge ref，而这个 job 会执行
+      # 工作树里的 `tools/bot/*`（`review-lines.awk`、`open-threads.sh`）—— 也就是让它拿着 App 的写
+      # token 去跑 PR 能改的脚本。这个 job 只需要工具，不需要 PR 的内容（diff 一律走 `gh`）。
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
 
       # installation token 一小时后过期，而分析允许跑得比这更久。只在负责发帖的 job 里现签，token 的
       # 寿命就与 agent 跑了多久无关。
@@ -506,11 +489,14 @@ jobs:
 
           # 收起 agent 确认已经修掉的旧意见。放在发完 review 之后：先让这一轮的结论可见，再动旧的。
           #
-          # `open-threads.json` 是白名单 —— agent 只能 resolve 我们从 GitHub 取回来的那些 id，否则它写错
-          # 一个 id 就可能把别人的对话收起来。resolve 失败只告警：这一轮的 review 已经发出去了，没有理由
-          # 因为它把整步判失败，让读者再收到一条「分析未完成」。
-          open="$ANALYSIS_DIR/open-threads.json"
-          if [ -s "$open" ]; then
+          # 白名单**在这里重新取**，不读 artifact 里那份：agent 对 $ANALYSIS_DIR 有写权限（沙箱根就是
+          # 仓库根），它能改写 analyze 留下的那份来放宽约束，而伪造的 id 用只读 token 就查得到。取不到
+          # 就整段跳过 —— 宁可不收，也不收错。
+          #
+          # resolve 失败只告警：这一轮的 review 已经发出去了，没有理由因为它把整步判失败，让读者再收到
+          # 一条「分析未完成」。
+          open="$RUNNER_TEMP/open-threads.json"
+          if bash tools/bot/open-threads.sh > "$open" 2>/dev/null; then
             resolved="$(jq -r --slurpfile open "$open" \
               '(.resolved // [])[] as $want | select($open[0] | any(.id == $want)) | $want' \
               "$ANALYSIS_DIR/review.json" 2>/dev/null || true)"
@@ -523,7 +509,9 @@ jobs:
                 echo "::warning::could not resolve $id"
               fi
             done
-            echo "resolved $(printf '%s' "$resolved" | grep -c . || true) of $(jq 'length' "$open") open threads"
+            echo "resolved $(printf '%s' "$resolved" | grep -c . || true) of $(jq 'length' "$open" 2>/dev/null || echo '?') open threads"
+          else
+            echo "::warning::could not read our open threads, resolving nothing"
           fi
 
       # 没有这一步，一次已经过了 gate 却中途失败的运行就是沉默的：提问者什么都看不到，也分不清 bot 是
