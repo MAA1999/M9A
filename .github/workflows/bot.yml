@@ -337,8 +337,31 @@ jobs:
           base="$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" \
             | jq -r --arg who "$REVIEW_AUTHOR" '.[] | select(.user.login == $who) | .commit_id' | tail -1)" \
             || { echo "::warning::could not read the last review, reviewing the whole pull request"; base=""; }
-          echo "REVIEW_BASE=$base" >> "$GITHUB_ENV"
           echo "last reviewed commit: ${base:-<none>}"
+
+          # 光看 review 会把**已经判过、只是没说话**的提交重判一遍：沉默的轮次和失败的轮次都不留 review，
+          # 于是基准不动、区间一直长。那次运行自己记得最后分析到哪 —— 上一次成功跑完这个 PR 的运行，它的
+          # `head_sha` 就是最后一颗真正分析过的提交。
+          #
+          # 只认 `success`：失败的运行（例如产物没到、`dsh` 中途挂掉）没有完成分析，那些提交必须在下一轮
+          # 重来 —— 这也正是失败能自愈的原因。取消的运行同理。
+          #
+          # **前提：绿色确实代表分析完成。** PR #957 上就有两轮是绿色但 review 被 artifact 层级问题静默
+          # 丢弃的 —— 所以这个前提不是白来的，它由 `post` 里那两道闸门守着（`ANALYZE_RESULT`、产物没到即
+          # 判失败）。谁把闸门改松，这里就会开始跳过没审过的提交，而且是静默的。
+          analyzed="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/bot.yml/runs?status=success&per_page=60" \
+            --jq "[.workflow_runs[] | select(any(.pull_requests[]?; .number == $TARGET))] | .[0].head_sha // \"\"" 2>/dev/null || true)"
+          if [ -n "$analyzed" ] && git cat-file -e "${analyzed}^{commit}" 2>/dev/null \
+             && { [ -z "$base" ] || git merge-base --is-ancestor "$base" "$analyzed"; }; then
+            # 只有当那次运行确实比最后一次发言更靠后时才采用它。
+            if [ "$analyzed" != "$base" ]; then
+              echo "last analysed commit: $analyzed (newer than the last review)"
+            fi
+            base="$analyzed"
+          fi
+
+          echo "REVIEW_BASE=$base" >> "$GITHUB_ENV"
+          echo "base=$base"
 
           # 上一轮我们自己留下、还没被收起的行内意见，交给 agent 判断这次增量修掉了哪些。这份文件只是
           # **给 agent 读**的：它对 $ANALYSIS_DIR 有写权限，所以 post 侧不认这份，自己重新取一遍当白名单。
