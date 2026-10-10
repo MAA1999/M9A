@@ -514,14 +514,55 @@ jobs:
             exit 1
           fi
 
-          # 空答案 = 没什么值得说的。自动触发下就此安静退出，一条都不发；被点名时不能沉默，那是有人
-          # 在等回答，所以判失败、交给下面那一步说明。
+          # 收起 agent 确认已经修掉的旧意见。定义成函数是因为它有**两个**调用点：发完 review 之后，
+          # 以及沉默轮 —— 沉默轮往往正是「只修掉了旧意见」的那一轮，prompt 让那种轮次留空 `answer.md`、
+          # 只把 `resolved` 写进 `review.json`；少了沉默分支那一次调用，这件事永远不会发生。
+          #
+          # 白名单**在这里重新取**，不读 artifact 里那份：agent 对 $ANALYSIS_DIR 有写权限（沙箱根就是
+          # 仓库根），它能改写 analyze 留下的那份来放宽约束，而伪造的 id 用只读 token 就查得到。取不到
+          # 就整段跳过 —— 宁可不收，也不收错。
+          #
+          # stderr 不重定向：这里失败过一轮而现场被丢进 /dev/null，只能回头翻代码猜。
+          #
+          # `resolveReviewThread` 要求 App installation token 带 `contents: write`（只有
+          # `pull-requests: write` 会拿到 `Resource not accessible by integration`），所以上面签 token 时
+          # 请求了它 —— 那份权限的代价与前提记在那一处。
+          #
+          # resolve 失败只告警：这一轮的 review 已经发出去了（或本来就该沉默），没有理由因为它把整步
+          # 判失败，让读者再收到一条「分析未完成」。
+          resolve_threads() {
+            local open="$RUNNER_TEMP/open-threads.json"
+            if bash tools/bot/open-threads.sh > "$open"; then
+              local resolved attempted=0 done_count=0
+              resolved="$(jq -r --slurpfile open "$open" \
+                '(.resolved // [])[] as $want | select($open[0] | any(.id == $want)) | $want' \
+                "$ANALYSIS_DIR/review.json" 2>/dev/null || true)"
+              for id in $resolved; do
+                attempted=$((attempted + 1))
+                if gh api graphql \
+                    -f query='mutation($id: ID!) { resolveReviewThread(input: { threadId: $id }) { thread { isResolved } } }' \
+                    -F id="$id" > /dev/null; then
+                  echo "resolved $id"
+                  done_count=$((done_count + 1))
+                else
+                  echo "::warning::could not resolve $id"
+                fi
+              done
+              echo "resolved $done_count of $attempted proposed, out of $(jq 'length' "$open" 2>/dev/null || echo '?') open threads"
+            else
+              echo "::warning::could not read our open threads, resolving nothing"
+            fi
+          }
+
+          # 空答案 = 没什么值得说的。自动触发下安静退出，一条都不发；被点名时不能沉默，那是有人在等
+          # 回答，所以判失败、交给下面那一步说明。
           if [ ! -s "$answer" ]; then
             if [ "$MANUAL" = "true" ]; then
               echo "::error::no answer to publish, but someone asked for one"
               exit 1
             fi
             echo "nothing worth saying — not posting"
+            resolve_threads
             exit 0
           fi
 
@@ -537,7 +578,9 @@ jobs:
           # 每条 jq 都会因文件不存在退出，整篇 review 变成一条「分析未完成」。
           review="$ANALYSIS_DIR/review.json"
           [ -f "$review" ] || echo '{"comments": []}' > "$review"
-          gh pr diff "$TARGET" | awk -f tools/bot/review-lines.awk | sort -u > "$RUNNER_TEMP/lines.txt"
+          # `LC_ALL=C` 是必须的：`review-lines.awk` 要把 git 的八进制转义还原成原始字节，而 UTF-8
+          # locale 下 `printf "%c", 228` 输出的是 U+00E4 的多字节编码，不是那个字节 —— 路径就还是对不上。
+          gh pr diff "$TARGET" | LC_ALL=C awk -f tools/bot/review-lines.awk | sort -u > "$RUNNER_TEMP/lines.txt"
           total="$(jq '.comments | length' "$review")"
           if ! jq --rawfile valid "$RUNNER_TEMP/lines.txt" '
             ($valid | split("\n") | map(select(length > 0)) | reduce .[] as $l ({}; .[$l] = true)) as $ok
@@ -564,38 +607,8 @@ jobs:
           fi
 
           # 收起 agent 确认已经修掉的旧意见。放在发完 review 之后：先让这一轮的结论可见，再动旧的。
-          #
-          # 白名单**在这里重新取**，不读 artifact 里那份：agent 对 $ANALYSIS_DIR 有写权限（沙箱根就是
-          # 仓库根），它能改写 analyze 留下的那份来放宽约束，而伪造的 id 用只读 token 就查得到。取不到
-          # 就整段跳过 —— 宁可不收，也不收错。
-          #
-          # stderr 不重定向：这里失败过一轮而现场被我自己丢进 /dev/null，只能回头翻代码猜。
-          #
-          # `resolveReviewThread` 要求 App installation token 带 `contents: write`（只有
-          # `pull-requests: write` 会拿到 `Resource not accessible by integration`），所以上面签 token 时
-          # 请求了它 —— 那份权限的代价与前提记在那一处。
-          open="$RUNNER_TEMP/open-threads.json"
-          if bash tools/bot/open-threads.sh > "$open"; then
-            resolved="$(jq -r --slurpfile open "$open" \
-              '(.resolved // [])[] as $want | select($open[0] | any(.id == $want)) | $want' \
-              "$ANALYSIS_DIR/review.json" 2>/dev/null || true)"
-            attempted=0
-            done_count=0
-            for id in $resolved; do
-              attempted=$((attempted + 1))
-              if gh api graphql \
-                  -f query='mutation($id: ID!) { resolveReviewThread(input: { threadId: $id }) { thread { isResolved } } }' \
-                  -F id="$id" > /dev/null; then
-                echo "resolved $id"
-                done_count=$((done_count + 1))
-              else
-                echo "::warning::could not resolve $id"
-              fi
-            done
-            echo "resolved $done_count of $attempted proposed, out of $(jq 'length' "$open" 2>/dev/null || echo '?') open threads"
-          else
-            echo "::warning::could not read our open threads, resolving nothing"
-          fi
+          # （另一个调用点在上面沉默分支里 —— 那正是「只修掉了旧意见」的轮次会走的路。）
+          resolve_threads
 
       # 没有这一步，一次已经过了 gate 却中途失败的运行就是沉默的：提问者什么都看不到，也分不清 bot 是
       # 死了还是压根没跑。token 回退到 Actions 那个，这样连 App 配错也至少能出一句话。
