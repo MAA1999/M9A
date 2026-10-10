@@ -138,26 +138,42 @@ jobs:
       # `git log <old>..<new>` 返回的是一个看起来合理的孤立 commit 而不是报错，这是错误答案里最糟的形态。
       # 定位修复 commit、进而得出「升级到 >= x」，都依赖那个区间。实测：14 s / 188 MB，对比 3.5 s / 26 MB。
       #
-      # `ref` 让 PR 任务检出 PR 自己的 head 而不是默认分支：`issue_comment` 事件下 checkout 本来落在默认
-      # 分支上，PR 的 diff 就不在工作树里 —— 而 agent 的 shell 里没有 `gh`（见下面那步），那条路会因此
-      # 拿不到 diff。切成 head 之后 `git diff` 就够了，自动、手动、fork 三条路一致。issue 任务的 `ref`
-      # 求值为空串，等同于不传，仍然是默认分支。
+      # 工作树**刻意留在默认分支**，不切成 PR head。这份工作树里有三样东西是被执行的：`setup.json` 决定
+      # npm 装什么（postinstall 就是任意代码）、`dsh-patch.yml` 决定 provider 指向哪（能带走
+      # COMMAND_CODE_API_KEY）、`prompt.md` 直接就是 agent 的指令。而 `@M9ABot` 召唤那条路没有身份门槛，
+      # 谁都能在自己的 fork PR 里改掉这三个文件再召唤 —— 切成 head 等于把执行路径交给对方。PR 的内容
+      # 只以 ref 的形式取进来，见下面那步。
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          ref: ${{ needs.gate.outputs.kind == 'pr' && format('refs/pull/{0}/head', needs.gate.outputs.target) || '' }}
+
+      # PR 的 head 取成 ref 而不是工作树：`git diff` 直接可用，而上面那三个文件仍是默认分支的版本。
+      # 自动（pull_request）、手动召唤、fork 三条路都靠这一步，`git fetch pull/<n>/head` 对三者同样成立。
+      - name: Fetch the pull request head
+        if: needs.gate.outputs.kind == 'pr'
+        run: |
+          set -euo pipefail
+          git fetch --quiet origin "pull/$TARGET/head:refs/remotes/bot/pr-head"
+          git log -1 --format='  pr head %h %s' refs/remotes/bot/pr-head
 
       # dsh 的 shell 环境是构造出来的、不是继承的（`dsh-shell-env` 只注册 `DSH_*` 事实，配置项只有
       # `dshHome`），所以 job 级 env 里的 `GH_TOKEN` 到不了 agent 手上。那个隔离本身是好事 —— 它同时让
       # agent 读不到自己正在烧的 `COMMAND_CODE_API_KEY`。但 issue 分析要读正文、评论和日志附件，还要对照
-      # 历史 issue，`git` 给不了这些，所以把只读的 GITHUB_TOKEN 放到 agent 能读到的地方，由它自己认证。
+      # 历史 issue，`git` 给不了这些。
       #
-      # 放仓库根而不是 `$ANALYSIS_DIR`：后者会被 upload-artifact 打进去。
-      - name: Leave a read-only token for gh
+      # 认证放在这里而不是让 agent 自己 `gh auth login`：agent 的 shell 跑在 workspace-write 沙箱里，
+      # 写不了 `~/.config/gh`（实测 `mkdir /home/runner/.config/gh: permission denied`）。工作流自己的
+      # shell 不受这个限制，凭证落进去之后 agent 只读它就行 —— 所以 prompt 里不必再教认证。
+      #
+      # `.gh-token` 留在仓库根是给 agent 的退路（沙箱若连读都拦，就用 `GH_TOKEN="$(cat .gh-token)" gh ...`）。
+      # 放仓库根而不是 `$ANALYSIS_DIR`：后者会被 upload-artifact 连 token 一起打进去。
+      - name: Authenticate gh with a read-only token
         run: |
           set -euo pipefail
           printf '%s' "$GH_TOKEN" > .gh-token
           chmod 600 .gh-token
+          gh auth login --with-token < .gh-token
+          gh auth status
 
       # npm 是这个 job 唯一需要的包管理器。全新的 headless profile 只有 76 KB，自身不声明任何 bundle
       # 依赖；dsh 只在确实有东西要装时才去调包管理器 —— 实测首次启动，PATH 里有 pnpm 时 13.6 s，
