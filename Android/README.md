@@ -36,6 +36,8 @@ build.debugAbi=arm64-v8a
 
 改 `interface.json`、`tasks/`、`agent/` 后重新 `installDebug` 即可，不必再指外部路径。换了 `requirements.txt` 再跑一遍 `build_agent_bundle.py`。本地出 release 包时 `setup_maa_framework.py` 要用 `--abi all`、`build_agent_bundle.py` 要加 `--abi x86_64`，否则 x86_64 上会缺运行时。
 
+掉落识别核心（drop_core）的 Android 模块只在 CI 里从私有 release 下（`PRIVATE_REPO_TOKEN`，见 `.github/workflows/android-build.yml`）。本地出包不带它，agent 会退回结算页自读掉落，功能可用、精度略差。
+
 升外壳：
 
 ```bash

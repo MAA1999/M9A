@@ -150,6 +150,25 @@ jobs:
           python scripts/setup_maa_framework.py --abi arm64-v8a $TAG_ARG
           python scripts/setup_maa_framework.py --abi x86_64 $TAG_ARG
 
+      # Android 的 drop_core 走私有 release（与桌面同一批资产，模块名带 ABI 后缀）。
+      # 没有 token（fork PR）就跳过：agent 侧本来就会退回结算页自读
+      - name: Download drop_core
+        if: steps.maafw.outputs.has_agent == 'true'
+        env:
+          PRIVATE_REPO_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
+        run: |
+          if [ -z "$PRIVATE_REPO_TOKEN" ]; then
+            echo "[INFO] PRIVATE_REPO_TOKEN 未配置，跳过 drop_core（agent 退回结算页自读）"
+            exit 0
+          fi
+          # debug 只出 arm64（build.debugAbi）；release 的 universal 包两个 ABI 都要，
+          # 模块靠自己的 ABI 后缀共存于同一份 payload
+          ABIS="arm64-v8a"
+          if [ "$ASSEMBLE" = "release" ]; then ABIS="arm64-v8a x86_64"; fi
+          for abi in $ABIS; do
+            python tools/ci/download_drop_core.py --os android --arch "$abi"
+          done
+
       - name: Build agent runtime
         if: steps.maafw.outputs.has_agent == 'true'
         working-directory: Android/MaaFwApp
@@ -342,6 +361,18 @@ jobs:
             TAG_ARG="--tag $MAAFW_TAG"
           fi
           python scripts/setup_maa_framework.py --abi "$ABI" $TAG_ARG
+
+      - name: Download drop_core
+        if: steps.maafw.outputs.has_agent == 'true'
+        env:
+          PRIVATE_REPO_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
+        run: |
+          if [ -z "$PRIVATE_REPO_TOKEN" ]; then
+            echo "[INFO] PRIVATE_REPO_TOKEN 未配置，跳过 drop_core（agent 退回结算页自读）"
+            exit 0
+          fi
+          # 单 ABI 包只放本机那份模块
+          python tools/ci/download_drop_core.py --os android --arch "$ABI"
 
       - name: Build agent runtime
         if: steps.maafw.outputs.has_agent == 'true'

@@ -1,4 +1,8 @@
-"""从私有 release 下载并验证目标平台的 drop_core 模块。"""
+"""从私有 release 下载并验证目标平台的 drop_core 模块。
+
+Android 用 ABI 名（arm64-v8a / x86_64）而不是桌面架构名，模块名带 ABI 后缀，
+一个 payload 里可以同时放两份（universal 包）。
+"""
 
 from __future__ import annotations
 
@@ -17,7 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 PRIVATE_REPO = "MAA1999/drop-upload-sign"
-RELEASE_TAG = "v1.3.2"
+RELEASE_TAG = "v1.3.3"
 DEST_DIR = Path("agent/libs")
 REQUEST_TIMEOUT = 30
 MAX_MODULE_SIZE = 50 * 1024 * 1024
@@ -27,6 +31,21 @@ ARCH_MAPPING = {
     "x86_64": "x64",
     "arm64": "arm64",
     "aarch64": "arm64",
+}
+
+# Android modules are named after the ABI, not the desktop arch, and are
+# imported by a Chaquopy CPython on the device.
+ANDROID_TRIPLES = {
+    "arm64-v8a": "aarch64-linux-android",
+    "x86_64": "x86_64-linux-android",
+}
+ANDROID_ABI_ALIASES = {
+    "arm64-v8a": "arm64-v8a",
+    "arm64_v8a": "arm64-v8a",
+    "aarch64": "arm64-v8a",
+    "arm64": "arm64-v8a",
+    "x86_64": "x86_64",
+    "x86-64": "x86_64",
 }
 
 
@@ -45,8 +64,18 @@ def normalize_arch(value: str) -> str:
     return normalized
 
 
+def normalize_android_abi(value: str) -> str:
+    abi = ANDROID_ABI_ALIASES.get(value.strip().lower())
+    if not abi:
+        raise ValueError(f"Unsupported Android ABI: {value}")
+    return abi
+
+
 def target_platform(os_type: str, arch: str) -> tuple[str, str]:
     normalized_os = os_type.lower()
+    if normalized_os == "android":
+        abi = normalize_android_abi(arch)
+        return abi, f"android-{abi}"
     normalized_arch = normalize_arch(arch)
     if normalized_os == "windows":
         return normalized_arch, f"win-{normalized_arch}"
@@ -124,6 +153,8 @@ def download_asset(asset: ReleaseAsset, dest_path: Path, token: str) -> None:
 
 
 def expected_module_name(os_type: str, arch: str) -> str:
+    if os_type.lower() == "android":
+        return f"drop_core.cpython-313-{ANDROID_TRIPLES[normalize_android_abi(arch)]}.so"
     normalized_arch = normalize_arch(arch)
     if os_type == "windows":
         platform_arch = "win_amd64" if normalized_arch == "x64" else "win_arm64"
@@ -134,6 +165,10 @@ def expected_module_name(os_type: str, arch: str) -> str:
     if os_type == "darwin":
         return "drop_core.cpython-313-darwin.so"
     raise ValueError(f"Unsupported target OS: {os_type}")
+
+
+def is_android_module(name: str) -> bool:
+    return name.startswith("drop_core") and name.endswith("-linux-android.so")
 
 
 def extract_module(archive_path: Path, dest_dir: Path, module_name: str) -> Path:
@@ -158,8 +193,13 @@ def extract_module(archive_path: Path, dest_dir: Path, module_name: str) -> Path
 
         for pattern in ("drop_core*.pyd", "drop_core*.so"):
             for existing in dest_dir.glob(pattern):
-                if existing != target_path:
-                    existing.unlink()
+                if existing == target_path:
+                    continue
+                # Android modules carry the ABI in their own suffix and never shadow
+                # each other, so a universal APK can ship one per ABI in one payload.
+                if is_android_module(module_name) and is_android_module(existing.name):
+                    continue
+                existing.unlink()
         os.replace(temp_path, target_path)
         return target_path
     finally:
@@ -167,6 +207,12 @@ def extract_module(archive_path: Path, dest_dir: Path, module_name: str) -> Path
 
 
 def smoke_import(os_type: str | None = None, arch: str | None = None) -> None:
+    if (os_type or "").lower() == "android":
+        # An Android module only loads inside the device runtime; the APK build is
+        # the verification step for that target.
+        print("Skip smoke import: Android modules cannot be imported on the runner")
+        return
+
     env = os.environ.copy()
     agent_dir = str(DEST_DIR.parent.resolve())
     python_bin = find_runtime_python(os_type, arch) or sys.executable
@@ -208,8 +254,8 @@ def find_runtime_python(os_type: str | None, arch: str | None) -> str | None:
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Download and verify the target drop_core module")
-    parser.add_argument("--os", choices=("windows", "linux", "darwin"), help="Target OS")
-    parser.add_argument("--arch", help="Target architecture")
+    parser.add_argument("--os", choices=("windows", "linux", "darwin", "android"), help="Target OS")
+    parser.add_argument("--arch", help="Target architecture (x64/arm64, or an Android ABI)")
     parser.add_argument("--smoke-import", action="store_true", help="Import the extracted module on this runner")
     args = parser.parse_args(argv)
     if bool(args.os) != bool(args.arch):
@@ -226,7 +272,7 @@ def main(argv: Sequence[str] | None = None) -> bool:
 
     if args.os and args.arch:
         os_type = args.os
-        arch = normalize_arch(args.arch)
+        arch = args.arch
     else:
         os_type, arch = detect_platform()
 

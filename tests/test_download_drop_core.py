@@ -24,6 +24,8 @@ class FakeHTTPResponse(io.BytesIO):
         ("linux", "arm64", "linux-arm64", "drop_core.cpython-313-aarch64-linux-gnu.so"),
         ("darwin", "x64", "macos-x86_64", "drop_core.cpython-313-darwin.so"),
         ("darwin", "arm64", "macos-aarch64", "drop_core.cpython-313-darwin.so"),
+        ("android", "arm64-v8a", "android-arm64-v8a", "drop_core.cpython-313-aarch64-linux-android.so"),
+        ("android", "x86_64", "android-x86_64", "drop_core.cpython-313-x86_64-linux-android.so"),
     ],
 )
 def test_target_artifact_and_module_names(
@@ -36,9 +38,24 @@ def test_target_artifact_and_module_names(
     assert download_drop_core.expected_module_name(os_type, arch) == module_name
 
 
+@pytest.mark.parametrize("alias", ["arm64-v8a", "arm64_v8a", "aarch64", "arm64"])
+def test_android_abi_aliases_normalize_to_arm64(alias: str) -> None:
+    """安卓 ABI 只有 arm64-v8a / x86_64 两种，别名统一到规范名。"""
+    assert download_drop_core.target_platform("android", alias) == (
+        "arm64-v8a",
+        "android-arm64-v8a",
+    )
+    assert download_drop_core.expected_module_name("android", alias) == "drop_core.cpython-313-aarch64-linux-android.so"
+
+
 def test_rejects_unsupported_architecture() -> None:
     with pytest.raises(ValueError, match="Unsupported target architecture"):
         download_drop_core.target_platform("linux", "riscv64")
+
+
+def test_rejects_unsupported_android_abi() -> None:
+    with pytest.raises(ValueError, match="Unsupported Android ABI"):
+        download_drop_core.target_platform("android", "riscv64")
 
 
 def test_extract_module_accepts_only_expected_root_file(tmp_path: Path) -> None:
@@ -55,6 +72,33 @@ def test_extract_module_accepts_only_expected_root_file(tmp_path: Path) -> None:
 
     assert module_path.read_bytes() == b"verified-module"
     assert not stale_module.exists()
+
+
+def test_extract_module_keeps_the_other_abi_android_module(tmp_path: Path) -> None:
+    """universal 包里两份安卓模块靠 ABI 后缀共存，桌面侧的旧模块仍要清掉。"""
+    module_name = "drop_core.cpython-313-aarch64-linux-android.so"
+    archive_path = tmp_path / "drop_core.zip"
+    dest_dir = tmp_path / "libs"
+    dest_dir.mkdir()
+    other_abi = dest_dir / "drop_core.cpython-313-x86_64-linux-android.so"
+    other_abi.write_bytes(b"arm sibling")
+    stale_desktop = dest_dir / "drop_core.cpython-313-x86_64-linux-gnu.so"
+    stale_desktop.write_bytes(b"stale")
+    with zipfile.ZipFile(archive_path, "w") as archive:
+        archive.writestr(module_name, b"verified-module")
+
+    module_path = download_drop_core.extract_module(archive_path, dest_dir, module_name)
+
+    assert module_path.read_bytes() == b"verified-module"
+    assert other_abi.read_bytes() == b"arm sibling"
+    assert not stale_desktop.exists()
+
+
+def test_smoke_import_skips_android(capsys: Any) -> None:
+    """安卓模块只能在设备运行时里加载，runner 上跳过而不是报错。"""
+    download_drop_core.smoke_import(os_type="android", arch="arm64-v8a")
+
+    assert "Android modules cannot be imported on the runner" in capsys.readouterr().out
 
 
 def test_extract_module_rejects_unexpected_archive_contents(tmp_path: Path) -> None:
