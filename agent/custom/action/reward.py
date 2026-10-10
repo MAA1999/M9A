@@ -37,8 +37,10 @@ class RewardHandler(CustomAction):
                     continue
                 text_items.append(text)
             # filtered_results 已按顺序返回，直接拼接即可。
+            # 必须单行输出：MFAAvalonia 的控制台格式是 `{level_short}:{message}`，
+            # 多行消息只有首行带前缀，后续行会被 GUI 当作原始 stderr 丢弃。
             merged_text = "".join(text_items)
-            logger.info(f"签到日历文本:\n{merged_text}")
+            logger.info(f"签到日历文本: {merged_text}")
         else:
             logger.info("未识别到签到日历文本")
         return
