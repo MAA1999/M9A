@@ -35,7 +35,10 @@ PR 的 head 已经取成 `refs/remotes/bot/pr-head`。**工作树刻意留在默
 - 增量（`$REVIEW_BASE` 非空）：说明这个 PR 之前已经审过一轮，**只审那之后的增量**，别重复上一轮已经说过的东西（除非它这次变得更糟）：
 
     head="$(gh pr view "$TARGET" --json headRefOid --jq .headRefOid)"
-    gh api "repos/$GITHUB_REPOSITORY/compare/$REVIEW_BASE...$head" --jq '.files[] | "\(.filename)\n\(.patch // "")"'
+    gh api "repos/$GITHUB_REPOSITORY/compare/$REVIEW_BASE...$head" > "$ANALYSIS_DIR/compare.json"
+    jq -r '.files[] | "\(.filename)\n\(.patch // "")"' "$ANALYSIS_DIR/compare.json"
+
+    **`jq '.files | length'` 恰好等于 300 就说明被截断了**（Compare API 的硬上限），超出的文件不会出现在响应里 —— 别当成审完了，改用本地 `git diff "$REVIEW_BASE" refs/remotes/bot/pr-head`。
 
     同一件事的本地写法是 `git diff "$REVIEW_BASE" refs/remotes/bot/pr-head`。
 
