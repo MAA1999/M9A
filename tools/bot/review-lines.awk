@@ -7,8 +7,10 @@
 # Reads a unified diff on stdin. Prints added and context lines; deleted lines have no new-side number.
 /^\+\+\+ / {
     rest = substr($0, 5)
-    sub(/^b\//, "", rest)
+    # 引号要先剥。git 对含非 ASCII、引号或控制字符的路径会写成 `+++ "b/…"`（`core.quotePath` 默认开），
+    # 若先剥 `b/` 就匹配不上 —— 前缀留着，发布时和 review.json 的路径对不上，那条行内评论被静默丢弃。
     gsub(/^"|"$/, "", rest)
+    sub(/^b\//, "", rest)
     path = (rest == "/dev/null") ? "" : rest
     next
 }
