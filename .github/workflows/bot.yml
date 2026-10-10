@@ -50,6 +50,9 @@ jobs:
       run: ${{ steps.decide.outputs.run }}
       target: ${{ steps.decide.outputs.target }}
       kind: ${{ steps.decide.outputs.kind }}
+      # 有人在等回答（`@M9ABot` 召唤、或手动派发）时为 true —— 那时「没什么要说的」必须说出来，
+      # 不像自动触发那样可以沉默。
+      manual: ${{ steps.decide.outputs.manual }}
     steps:
       - id: decide
         env:
@@ -61,12 +64,14 @@ jobs:
           run=false
           target=""
           kind=""
+          manual=false
 
           case "$GITHUB_EVENT_NAME" in
             workflow_dispatch)
               run=true
               target="$DISPATCH_NUMBER"
               kind="$DISPATCH_KIND"
+              manual=true
               ;;
             issues)
               target="$(jq -r '.issue.number' "$GITHUB_EVENT_PATH")"
@@ -86,6 +91,7 @@ jobs:
               author="$(jq -r '.comment.user.type // ""' "$GITHUB_EVENT_PATH")"
               if printf '%s' "$body" | grep -qiF "$TRIGGER" && [ "$author" != "Bot" ]; then
                 run=true
+                manual=true
               fi
               ;;
             pull_request)
@@ -106,7 +112,8 @@ jobs:
           echo "run=$run" >> "$GITHUB_OUTPUT"
           echo "target=$target" >> "$GITHUB_OUTPUT"
           echo "kind=$kind" >> "$GITHUB_OUTPUT"
-          echo "event=$GITHUB_EVENT_NAME target=$target kind=$kind run=$run"
+          echo "manual=$manual" >> "$GITHUB_OUTPUT"
+          echo "event=$GITHUB_EVENT_NAME target=$target kind=$kind run=$run manual=$manual"
 
   analyze:
     name: Analyze
@@ -136,6 +143,9 @@ jobs:
       # GraphQL 的 `author.login` 对 App 只给 slug，不带 `[bot]` 后缀（REST 的 `user.login` 才带）——
       # 同一个身份在两个接口里是两个名字，所以两个都要有。混用会让过滤永远匹配不到，而且是静默的。
       REVIEW_AUTHOR_SLUG: "m9abot"
+      # 有人在等回答时为 true。自动触发（新 bug、PR 推送）可以一条都不发 —— 每推一次就回一句
+      # 「本轮无问题」只是噪音；被点名时不行，那是在等人回答，沉默等于没响应。
+      MANUAL: ${{ needs.gate.outputs.manual }}
     steps:
       # 故意拉全量历史。浅克隆照样能取到某个 tag 的文件内容，但取不到两个 tag 之间的区间 —— 而且它给
       # `git log <old>..<new>` 返回的是一个看起来合理的孤立 commit 而不是报错，这是错误答案里最糟的形态。
@@ -358,9 +368,16 @@ jobs:
         run: |
           set -euo pipefail
           answer="$ANALYSIS_DIR/answer.md"
+          # 空答案在自动触发下是**合法结果**：没什么值得说的就不说话。`dsh` 失败走的是另一条路
+          # （Analyze 步骤自己会失败，`post` 因此拿不到 success），所以这里空着不等于出错。
+          # 被点名时不行 —— 有人在等回答。
           if [ ! -s "$answer" ]; then
-            echo "::error::agent produced no answer"
-            exit 1
+            if [ "$MANUAL" = "true" ]; then
+              echo "::error::agent produced no answer, but someone asked for one"
+              exit 1
+            fi
+            echo "nothing worth saying — staying silent"
+            exit 0
           fi
           if [ "$KIND" != "pr" ]; then
             exit 0
@@ -422,6 +439,8 @@ jobs:
       # 这个 job 必须跑起来才能发出失败通知，所以它不能靠 `if` 去挡失败的 analyze —— 于是把结果传进来，
       # 由发布步骤自己判。少了这个，`dsh` 中途失败但 answer.md 已写了一半时，半成品会被当成正常结论发出。
       ANALYZE_RESULT: ${{ needs.analyze.result }}
+      # 与 analyze 侧同一个来源：空答案是合法结果，只有被点名时才必须出声。
+      MANUAL: ${{ needs.gate.outputs.manual }}
       # `open-threads.sh` 要用它过滤出我们自己的 thread。GraphQL 的 author.login 只给 slug（见
       # analyze 那边同名变量的注释）。
       REVIEW_AUTHOR_SLUG: "m9abot"
@@ -475,9 +494,15 @@ jobs:
             exit 1
           fi
 
+          # 空答案 = 没什么值得说的。自动触发下就此安静退出，一条都不发；被点名时不能沉默，那是有人
+          # 在等回答，所以判失败、交给下面那一步说明。
           if [ ! -s "$answer" ]; then
-            echo "::error::no answer to publish"
-            exit 1
+            if [ "$MANUAL" = "true" ]; then
+              echo "::error::no answer to publish, but someone asked for one"
+              exit 1
+            fi
+            echo "nothing worth saying — not posting"
+            exit 0
           fi
 
           if [ "$KIND" != "pr" ]; then
