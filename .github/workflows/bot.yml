@@ -178,7 +178,9 @@ jobs:
           # `gh auth login --with-token` 在 `GH_TOKEN` 已设时会拒绝落凭证，而 job 级 env 里就有它 ——
           # 所以只给这一条命令摘掉。落进 ~/.config/gh 之后，agent 那个没有 GH_TOKEN 的 shell 才用得上。
           env -u GH_TOKEN gh auth login --with-token < .gh-token
-          gh auth status
+          # 这一条同样要摘掉 `GH_TOKEN`：带着它跑，`gh auth status` 报的是 job 级 env 里那份，并不证明
+          # 凭证真的落进了 `~/.config/gh` —— 而 agent 靠的正是后者。摘掉之后它才是在验证这件事。
+          env -u GH_TOKEN gh auth status
 
       # npm 是这个 job 唯一需要的包管理器。全新的 headless profile 只有 76 KB，自身不声明任何 bundle
       # 依赖；dsh 只在确实有东西要装时才去调包管理器 —— 实测首次启动，PATH 里有 pnpm 时 13.6 s，
