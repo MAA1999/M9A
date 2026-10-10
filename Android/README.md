@@ -70,7 +70,7 @@ MaaFW 版本与桌面**同源固定**，发版不用改 yml：
 
 - agent 项目看 `requirements.txt` 的 `maafw==X`（`uv` / Dependabot bump 即全线跟进）；纯 pipeline 项目看 `maa-project.json` 的 `maafw` 字段
 - Android 的 Python 绑定只随内核（MaaAgentCoreAndroid）发布（公开索引没有 Android 版 `maafw` 轮子，`build_agent_bundle.py` 会按 `core ships …` 丢弃 requirements 的 `maafw==X`），所以 resolver 按固定版本 X 去内核 repo 挑 `*-maafwX` 配对 release，client 原生库（`jniLibs/*.so`）铺同版本 MaaFramework，保证 APK 里前后端同版本
-- 内核还没出 `maafwX` 配对时 CI 明确报错并列出现有配对——等内核 release 即可，不用改任何配置；救急可用 `AGENT_CORE_TAG` 环境变量钉别的内核 release（client 原生库会跟着内核走、偏离固定版本，出包前记得撤）
+- 内核还没出 `maafwX` 配对时自动降级到不高于 X 的最高配对（`::warning::` 打出降级前后版本，构建摘要的 `core fallback` 也留痕）——绑定与原生库仍同版本，只是比固定版本旧，内核发版后降级自动消失，不用改任何配置；固定版本比内核全部配对都旧（多半是版本写错）才报错并列出现有配对。救急可用 `AGENT_CORE_TAG` 环境变量钉别的内核 release（client 原生库会跟着内核走、偏离固定版本，出包前记得撤）
 - `maa-project.json` 钉了具体版本且与 requirements 不一致时打 warning（GUI 运行时与 agent 绑定的漂移，PC 侧同样存在）
 - 手动跑 workflow 时 `maafw_tag` 仍可覆盖（会破坏前后一致，一般不用）
 

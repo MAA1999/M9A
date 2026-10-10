@@ -5,7 +5,8 @@
  *    maafw.version（须精确）> 纯 pipeline 项目按 maafw.channel 取最新。agent 项目必须拿到精确
  *    版本：Android 的 Python 绑定只随内核（MaaAgentCoreAndroid）发布（公开索引没有 Android 版
  *    maafw 轮子），按 X 去内核 repo 挑 `*-maafwX` 配对的 release，client 原生库（jniLibs）铺同
- *    版本 MaaFramework，保证 APK 里前后端一致；
+ *    版本 MaaFramework，保证 APK 里前后端一致；上游发了补丁版而内核还没跟上时降级到不高于 X 的
+ *    最高配对（打 warning 并给出降级前后版本）——前后端仍同版本，漂移的只是与固定版本的差距；
  * 2. release 资产前缀：取 maa-project.json 的显示名（不可用时退回 slug）。非 ASCII / 带空白的
  *    显示名会退回 slug——桌面资产名保留 Unicode，这里是刻意分叉：应用内更新按资产名选包，
  *    前缀必须 ASCII；
@@ -160,25 +161,70 @@ function availablePairings(coreTags) {
         const match = CORE_MAAFW_PATTERN.exec(tag);
         if (match !== null) versions.add(match[2]);
     }
-    return [...versions].sort(compareVersions).reverse();
+    return [...versions].sort(compareMaafwVersions).reverse();
 }
 
-/** 挑 maafwX 的配对内核：绑定与原生库必须同版本，只收精确配对，同配对取最新内核 */
-function pickPairedCore(coreTags, maafwVersion) {
+/** MaaFW 版本拆成「数字段 + 后缀」：数字段决定发布线（5.14.3 / 5.13.0b6 / 5.15.0-beta.1），
+ *  后缀只在同一条线内比先后。解析不了的（不以数字开头）返回 undefined */
+function parseMaafwVersion(text) {
+    const match = /^(\d+(?:\.\d+)*)(.*)$/.exec(text.trim());
+    if (match === null) return undefined;
+    return {release: match[1].split(".").map(Number), suffix: match[2].replace(/^[-.]/, "")};
+}
+
+/** 同一条线内无后缀（正式版）大于带后缀（预发布），后缀之间按字符串比；解析不了退回纯数字比较 */
+function compareMaafwVersions(left, right) {
+    const a = parseMaafwVersion(left);
+    const b = parseMaafwVersion(right);
+    if (a === undefined || b === undefined) return compareVersions(left, right);
+    const release = compareVersions(a.release.join("."), b.release.join("."));
+    if (release !== 0) return release;
+    if (a.suffix === b.suffix) return 0;
+    if (a.suffix === "") return 1;
+    if (b.suffix === "") return -1;
+    return a.suffix < b.suffix ? -1 : 1;
+}
+
+/** candidate 的发布线不高于 pin：`5.13.0b6` 与 `5.13.0` 算同一条线，固定预发布版时同线正式版可用 */
+function releaseAtMost(candidate, pin) {
+    const a = parseMaafwVersion(candidate);
+    const b = parseMaafwVersion(pin);
+    if (a === undefined || b === undefined) return false;
+    return compareVersions(a.release.join("."), b.release.join(".")) <= 0;
+}
+
+/** 某个 maafw 配对下的内核 tag：tag 第一段是 CPython 版本，同配对有多个 CPython 线时取最高的 */
+function coreTagFor(coreTags, maafwVersion) {
     const pattern = new RegExp(`^(\\d[\\w.]*)-maafw${escapeRegExp(maafwVersion)}$`);
-    const candidates = coreTags
+    return coreTags
         .map((tag) => pattern.exec(tag))
         .filter((match) => match !== null)
         .map((match) => match[1])
-        .sort(compareVersions);
-    if (candidates.length === 0) {
+        .sort(compareVersions)
+        .at(-1);
+}
+
+/** 挑可用的配对内核：绑定与原生库必须同版本，所以 client 原生库总跟着选中的绑定走。
+ *  优先精确配对；内核还没跟上上游补丁（requirements 已 bump、配对还没发）时降级到不高于固定
+ *  版本的最高配对——APK 里前后端仍同版本，漂移的只是相对 requirements 的版本差。固定版本比内核
+ *  全部配对都旧时不做「升级」猜测（那多半是版本写错了），仍报错并列出现有配对 */
+function pickPackagingCore(coreTags, requested) {
+    const pairings = availablePairings(coreTags);
+    const eligible = pairings.filter((version) => releaseAtMost(version, requested)).sort(compareMaafwVersions);
+    const chosen = pairings.includes(requested) ? requested : eligible.at(-1);
+    if (chosen === undefined) {
         throw new Error(
-            `内核（${CORE_REPO}）还没有 maafw${maafwVersion} 配对的 release；` +
-                `现有配对：${availablePairings(coreTags).join("、") || "无"}。` +
-                `等内核发布即可，救急可用 ${CORE_TAG_ENV} 指定别的内核 release`,
+            `内核（${CORE_REPO}）没有不高于 maafw${requested} 的配对 release；` +
+                `现有配对：${pairings.join("、") || "无"}。` +
+                `确认 requirements.txt / maa-project.json 里的版本没写错，` +
+                `或等内核发布即可，救急可用 ${CORE_TAG_ENV} 指定别的内核 release`,
         );
     }
-    return `${candidates[candidates.length - 1]}-maafw${maafwVersion}`;
+    return {
+        coreTag: `${coreTagFor(coreTags, chosen)}-maafw${chosen}`,
+        maafwVersion: chosen,
+        degraded: chosen !== requested,
+    };
 }
 
 function declaredSection(project) {
@@ -386,6 +432,7 @@ async function resolvePackaging(root) {
 
     // 内核（绑定载体）只在 agent 项目里用；纯 pipeline 项目 client 库直接从 MaaFramework release 铺
     let coreTag = "";
+    let coreFallback = "";
     if (hasAgent) {
         const override = envTrim(CORE_TAG_ENV);
         if (override !== "") {
@@ -402,7 +449,17 @@ async function resolvePackaging(root) {
                 maafwVersion = match[2];
             }
         } else {
-            coreTag = pickPairedCore(await fetchCoreTags(), maafwVersion);
+            const picked = pickPackagingCore(await fetchCoreTags(), maafwVersion);
+            coreTag = picked.coreTag;
+            if (picked.degraded) {
+                coreFallback = `maafw${maafwVersion} → maafw${picked.maafwVersion}`;
+                warnings.push(
+                    `内核（${CORE_REPO}）还没出 maafw${maafwVersion} 配对的 release，降级到最高可用配对 ` +
+                        `maafw${picked.maafwVersion}；APK 里绑定与原生库仍同版本，只是比 requirements 固定的版本旧。` +
+                        `内核发版后这次降级会自动消失`,
+                );
+                maafwVersion = picked.maafwVersion;
+            }
         }
     }
 
@@ -415,6 +472,7 @@ async function resolvePackaging(root) {
 
     return {
         coreTag,
+        coreFallback,
         maafwTag: `v${maafwVersion}`,
         artifactPrefix: prefix,
         requirementPin,
@@ -457,6 +515,7 @@ async function main() {
     for (const warning of packaging.warnings) console.log(`::warning::${warning}`);
 
     console.log(`agent core tag   : ${packaging.coreTag || "（纯 pipeline，无内核）"}`);
+    console.log(`core fallback    : ${packaging.coreFallback || "（未降级）"}`);
     console.log(`client MaaFW tag : ${packaging.maafwTag}`);
     console.log(`artifact prefix  : ${packaging.artifactPrefix}`);
     console.log(`maa-project.json : ${packaging.declaredTarget}`);

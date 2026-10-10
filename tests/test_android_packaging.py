@@ -113,6 +113,7 @@ def test_agent_project_picks_paired_core(tmp_path: Path) -> None:
     # 同一 maafw 配对取最新内核，client 原生库与绑定同版本
     assert "core_tag=3.13.15-maafw5.12.3" in written
     assert "maafw_tag=v5.12.3" in written
+    assert "core fallback    : （未降级）" in result.stdout
     assert "artifact_prefix=M9A" in written
     assert "has_agent=true" in written
     # fixture 的 maa-project.json 没有 ocr 段、requirements 没有 pillow
@@ -134,15 +135,54 @@ def test_requirements_bump_drives_maafw_tag(tmp_path: Path) -> None:
     assert "::warning::" not in result.stdout
 
 
-def test_missing_paired_core_fails_loudly(tmp_path: Path) -> None:
+def test_core_behind_pin_degrades_to_newest_pairing(tmp_path: Path) -> None:
+    # 内核还没跟上上游补丁（requirements 5.14.0，配对最高 5.13.1）时降级出包而不卡 CI：
+    # client 原生库跟着降级后的内核走，APK 里前后端仍同版本，只是比固定版本旧
     write_repo(tmp_path, pin="5.14.0")
+    output = tmp_path / "github_output"
+
+    result = run_resolver(tmp_path, output)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    written = output.read_text(encoding="utf-8")
+    assert "core_tag=3.13.15-maafw5.13.1" in written
+    assert "maafw_tag=v5.13.1" in written
+    assert "core fallback    : maafw5.14.0 → maafw5.13.1" in result.stdout
+    # 降级必须留痕：warning 里点出被降级的固定版本
+    assert "::warning::" in result.stdout
+    assert "maafw5.14.0" in result.stdout
+
+
+def test_pin_older_than_every_pairing_fails_loudly(tmp_path: Path) -> None:
+    # 固定版本比内核全部配对都旧 = 方向反了（多半是版本写错），不做「升级」猜测
+    write_repo(tmp_path, pin="5.10.0")
 
     result = run_resolver(tmp_path)
 
     assert result.returncode == 1
     assert "::error::" in result.stdout
-    assert "maafw5.14.0" in result.stdout
+    assert "maafw5.10.0" in result.stdout
     assert "5.13.1" in result.stdout  # 报错里列出现有配对
+
+
+def test_prerelease_pin_uses_same_release_line(tmp_path: Path) -> None:
+    # 历史上有过 maafw==5.13.0b6 这类预发布钉版：同线的正式版配对算可用，不能缩到 5.12.3
+    write_repo(tmp_path, pin="5.13.0b6")
+    write_releases(
+        tmp_path,
+        core=[
+            "3.13.15-maafw5.13.1",
+            "3.13.15-maafw5.13.0",
+            "3.13.15-maafw5.12.3",
+        ],
+    )
+
+    result = run_resolver(tmp_path)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "agent core tag   : 3.13.15-maafw5.13.0" in result.stdout
+    assert "client MaaFW tag : v5.13.0" in result.stdout
+    assert "::warning::" in result.stdout
 
 
 def test_agent_core_tag_override_wins(tmp_path: Path) -> None:

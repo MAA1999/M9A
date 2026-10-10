@@ -120,7 +120,8 @@ jobs:
       # 纯 pipeline 项目不引入 Python，同一份脚本要能给它们用）：
       # maafw 版本由 requirements.txt / maa-project.json 固定（与桌面同源）；Android 的
       # Python 绑定只随内核（MaaAgentCoreAndroid）发布，resolver 按固定版本挑 *-maafwX
-      # 配对的内核 release，client 原生库铺同版本，保证 APK 里前后端一致
+      # 配对的内核 release，client 原生库铺同版本，保证 APK 里前后端一致；内核还没出该配对
+      # 时降级到不高于固定版本的最近配对并打 warning，原生库与绑定仍同版本
       - name: Resolve Android packaging
         id: maafw
         env:
@@ -333,7 +334,8 @@ jobs:
       # 纯 pipeline 项目不引入 Python，同一份脚本要能给它们用）：
       # maafw 版本由 requirements.txt / maa-project.json 固定（与桌面同源）；Android 的
       # Python 绑定只随内核（MaaAgentCoreAndroid）发布，resolver 按固定版本挑 *-maafwX
-      # 配对的内核 release，client 原生库铺同版本，保证 APK 里前后端一致
+      # 配对的内核 release，client 原生库铺同版本，保证 APK 里前后端一致；内核还没出该配对
+      # 时降级到不高于固定版本的最近配对并打 warning，原生库与绑定仍同版本
       - name: Resolve Android packaging
         id: maafw
         env:
