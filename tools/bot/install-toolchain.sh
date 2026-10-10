@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# 按 `setup.json` 装工具链。版本已经对上的包直接跳过（0.1 s），所以这一步能不能整段免掉冷装的
-# 193 s，取决于 `~/.npm-global` 是否已经被 `.github/workflows/bot-cache.yml` 填进缓存。
+# 按 `setup.json` 装工具链。版本已经对上的包直接跳过（0.1 s），所以这一步能不能整段免掉冷装
+# （实测 31–193 s，看网络），取决于 `~/.npm-global` 是否已经被 `.github/workflows/bot-cache.yml`
+# 填进缓存。
 set -euo pipefail
 
 cfg=tools/bot/setup.json

@@ -4,6 +4,9 @@
 
 Please keep the change focused and fill in the sections that apply.
 
+> fork 提交的 PR 不会被 Bot 自动审查 —— `pull_request` 在 fork 上拿不到 secret，agent 连不上模型。需要审查时在评论里 `@M9ABot`。
+> Fork PRs are not reviewed automatically: `pull_request` runs from a fork do not receive repository secrets, so the agent cannot reach the model. To request a review, comment `@M9ABot`.
+
 ## 关联 Issue / Related Issue
 
 <!-- Closes #123 / Fixes #123 / Related #123。没有 Issue 时请说明需求来源。 -->
