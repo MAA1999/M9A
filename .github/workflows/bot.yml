@@ -375,12 +375,30 @@ jobs:
           fi
           echo "inline comments proposed: $(jq '.comments | length' "$ANALYSIS_DIR/review.json" 2>/dev/null || echo 0)"
 
+      # 会话日志里有每步的 token 用量（`assistant/chunk` 的 `type: usage`），但它在 `$DSH_HOME` 下、
+      # 是 zstd 多帧、而且没有任何 CLI 出口 —— 不导出就无从查起。这一步把用量汇总成 `usage.json` 落进
+      # artifact，同时打到运行日志里，省得每次都去解压几万个 frame。
+      #
+      # `if: always()`：`dsh` 中途失败时，已经烧掉的量正是最需要看到的。
+      #
+      # 数据源在 agent 可写的目录里，所以它是**观测**而不是账单 —— 能反映用量，但不能当审计依据。
+      - name: Summarize token usage
+        if: always()
+        run: |
+          set -euo pipefail
+          node tools/bot/session-usage.mjs "$DSH_HOME/sessions" "$ANALYSIS_DIR/usage.json"
+
       # 只有校验过的产物会离开这个 job；能写的 token 在下一个 job 里。
+      #
+      # 会话日志一并带走：它是唯一记录 agent 每一步做了什么的地方（工具调用、结果、用量），
+      # 而 `agent.stderr` 只有推理文本。
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: bot-output
-          path: ${{ env.ANALYSIS_DIR }}
+          path: |
+            ${{ env.ANALYSIS_DIR }}
+            ${{ env.DSH_HOME }}/sessions
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 7
