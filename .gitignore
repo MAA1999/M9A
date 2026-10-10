@@ -12,6 +12,8 @@ libs/
 plugins/
 # END create-maa-project
 
+.live/
+
 # skills CLI 每次 add 都会在仓库根写出它，bot 每轮重新解析、不读它
 skills-lock.json
 
