@@ -508,10 +508,9 @@ jobs:
           #
           # stderr 不重定向：这里失败过一轮而现场被我自己丢进 /dev/null，只能回头翻代码猜。
           #
-          # **已知：这个 mutation 目前会失败。** `resolveReviewThread` 对 App installation token 要求
-          # `contents: write`，只给 `pull-requests: write` 会拿到 `Resource not accessible by
-          # integration`（实测：同一个 id 用维护者的 token 能收，用 App token 不能）。加那个权限等于让
-          # bot 能推仓库，是个需要单独拍板的决定，所以先留着告警、不改权限。
+          # `resolveReviewThread` 要求 App installation token 带 `contents: write`（只有
+          # `pull-requests: write` 会拿到 `Resource not accessible by integration`），所以上面签 token 时
+          # 请求了它 —— 那份权限的代价与前提记在那一处。
           open="$RUNNER_TEMP/open-threads.json"
           if bash tools/bot/open-threads.sh > "$open"; then
             resolved="$(jq -r --slurpfile open "$open" \
