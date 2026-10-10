@@ -39,7 +39,7 @@ WarehouseInventory (entry)
 
 ### Data Source & Template Filtering
 
-- Data source: `data/combat/items.json` (gold/yellow/purple/blue/green, 46 farmable materials)
+- Data source: `data/combat/items.json` (gold/yellow/purple/blue/green, 58 farmable materials)
 - Material IDs are enumerated from `data/combat/items.json` first, then filtered by template
   availability: a material is scanned only if `resource/base/image/Warehouse/Item-<id>.png`
   exists. Missing templates are skipped and recorded — **adding a new material requires
@@ -86,15 +86,21 @@ correction:
 
 ```jsonc
 {
-    "updated_at": "2026-08-06 15:12:18", // scan completion time
-    "counts": {
-        "110101": 81, // material id → count
-        "110102": 60,
-    },
-    "skipped": [], // ids with icon found but count OCR failed
-    "materials": {
-        // material metadata (id → name/rarity)
-        "110101": {"name": "颤颤之齿", "rarity": "green"},
+    "snapshots": {
+        // one bucket per account (id comes from RecordID; falls back to __default__ if it never ran)
+        "1234567": {
+            "updated_at": "2026-08-06 15:12:18", // warehouse full-scan completion time
+            "counts": {
+                "110101": 81, // material id → count
+                "110102": 60,
+            },
+            "skipped": [], // ids with icon found but count OCR failed
+            "materials": {
+                // material metadata (id → name/rarity)
+                "110101": {"name": "颤颤之齿", "rarity": "green"},
+            },
+            "currency_updated_at": "2026-10-08 03:14:00", // character-page reading time (written by depot maintain)
+        },
     },
 }
 ```
@@ -103,6 +109,10 @@ correction:
 - Materials whose icons are found but whose count was never read successfully are
   **omitted** from `counts` and listed in `skipped`; they must NOT be treated as 0 —
   manual confirmation required
+- A full rewrite only covers the materials in this scan; **readings outside that scope**
+  (e.g. Dust/Sharpodonty from the character page) keep their previous values and timestamps
+- The snapshot is **bucketed per account**: each account keeps its own readings, and a legacy
+  flat file is moved into the current account's bucket on first read
 - This file is a runtime artifact and is gitignored
 
 ## Maintenance Guide

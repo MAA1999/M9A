@@ -1,14 +1,23 @@
 import json
 import types
 from pathlib import Path
+from typing import Any
 
 import pytest
 from maa.custom_action import CustomAction
 
 from agent.custom.action.warehouse_inventory import WarehouseInventoryScan, parse_count_from_text
+from agent.utils.account_store import DEFAULT_ACCOUNT_KEY
+from agent.utils.warehouse_snapshot import SNAPSHOT_KEY
 
 # run() 未使用 argv，测试用最小构造
 _FAKE_ARGV = CustomAction.RunArg(None, "", "", "", None, None)  # pyright: ignore[reportArgumentType]
+
+
+def _bucket(path: Path) -> dict[str, Any]:
+    """读出快照文件里当前账号桶的内容（测试里账号 id 为空 → 落到默认桶）。"""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return data[SNAPSHOT_KEY][DEFAULT_ACCOUNT_KEY]
 
 
 class _FakeController:
@@ -98,8 +107,25 @@ def test_write_snapshot_atomic(tmp_path: Path) -> None:
     scan._write_snapshot(output)
 
     target = tmp_path / "out" / "snapshot.json"
-    assert json.loads(target.read_text(encoding="utf-8")) == output
+    assert _bucket(target) == output
     assert list((tmp_path / "out").glob("*.tmp")) == []
+
+
+def test_write_snapshot_keeps_other_accounts(tmp_path: Path) -> None:
+    """同一文件里其他账号的桶原样保留（多账号不互相覆盖）。"""
+    scan = WarehouseInventoryScan.__new__(WarehouseInventoryScan)
+    scan._OUTPUT_PATH = str(tmp_path / "snapshot.json")
+    target = tmp_path / "snapshot.json"
+    target.write_text(
+        json.dumps({SNAPSHOT_KEY: {"other-account": {"counts": {"110101": 7}}}}),
+        encoding="utf-8",
+    )
+
+    scan._write_snapshot({"counts": {"110101": 81}})
+
+    data = json.loads(target.read_text(encoding="utf-8"))
+    assert data[SNAPSHOT_KEY]["other-account"] == {"counts": {"110101": 7}}
+    assert data[SNAPSHOT_KEY][DEFAULT_ACCOUNT_KEY] == {"counts": {"110101": 81}}
 
 
 def test_write_snapshot_failure_cleans_tmp(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -115,7 +141,7 @@ def test_write_snapshot_failure_cleans_tmp(tmp_path: Path, monkeypatch: pytest.M
     def boom(src: str, dst: str) -> None:
         raise OSError("disk full")
 
-    monkeypatch.setattr("agent.custom.action.warehouse_inventory.os.replace", boom)
+    monkeypatch.setattr("agent.utils.warehouse_snapshot.os.replace", boom)
 
     with pytest.raises(OSError):
         scan._write_snapshot({"counts": {}})
@@ -146,13 +172,41 @@ def test_run_fails_when_no_templates_found(tmp_path: Path, monkeypatch: pytest.M
     assert result.success is False
 
 
+def test_run_preserves_foreign_readings(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """仓库扫描整表重写时，保留自己没扫的读数（角色页读数）与其时间戳。"""
+    scan = _make_scan(tmp_path, {"gold": {"111004": {"name": "分别善恶之果"}}})
+    (tmp_path / "out.json").write_text(
+        json.dumps(
+            {
+                "updated_at": "2026-08-08 19:14:23",
+                "counts": {"203": 3974000},
+                "currency_updated_at": "2026-10-08 03:14:00",
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("agent.custom.action.warehouse_inventory.time.sleep", lambda s: None)
+    monkeypatch.setattr(scan, "_has_template", lambda item_id: True)
+    monkeypatch.setattr(scan, "_recognize_item", lambda context, img, item_id, name="": (True, 5))
+
+    assert scan.run(_FakeContext(), _FAKE_ARGV).success  # pyright: ignore[reportArgumentType]
+
+    output = _bucket(tmp_path / "out.json")
+    assert output["counts"]["203"] == 3974000  # 未扫到的既有读数保留
+    assert output["counts"]["111004"] == 5  # 本次扫描结果
+    assert output["currency_updated_at"] == "2026-10-08 03:14:00"
+
+
 def test_run_fails_when_no_counts_produced(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """run() 在没有任何材料读到数量时返回 success=False。"""
     scan = _make_scan(tmp_path, {"gold": {"111004": {"name": "分别善恶之果"}}})
     monkeypatch.setattr("agent.custom.action.warehouse_inventory.time.sleep", lambda s: None)
     monkeypatch.setattr(scan, "_has_template", lambda item_id: True)
 
-    def icon_found_but_unreadable(context: _FakeContext, img: object, item_id: str) -> tuple[bool, int | None]:
+    def icon_found_but_unreadable(
+        context: _FakeContext, img: object, item_id: str, name: str = ""
+    ) -> tuple[bool, int | None]:
         return True, None
 
     monkeypatch.setattr(scan, "_recognize_item", icon_found_but_unreadable)
@@ -173,7 +227,7 @@ def test_run_separates_counts_skipped_and_writes_output(tmp_path: Path, monkeypa
     monkeypatch.setattr("agent.custom.action.warehouse_inventory.time.sleep", lambda s: None)
     monkeypatch.setattr(scan, "_has_template", lambda item_id: True)
 
-    def fake_recognize(context: _FakeContext, img: object, item_id: str) -> tuple[bool, int | None]:
+    def fake_recognize(context: _FakeContext, img: object, item_id: str, name: str = "") -> tuple[bool, int | None]:
         if item_id == "111004":
             return True, 5  # 正常读到数量
         if item_id == "110104":
@@ -185,7 +239,7 @@ def test_run_separates_counts_skipped_and_writes_output(tmp_path: Path, monkeypa
     result = scan.run(_FakeContext(), _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
 
     assert result.success is True
-    output = json.loads((tmp_path / "out.json").read_text(encoding="utf-8"))
+    output = _bucket(tmp_path / "out.json")
     assert isinstance(output["updated_at"], str)
     # 顺序与 items.json 一致（按稀有度）
     assert list(output["counts"].keys()) == ["111004", "110102"]

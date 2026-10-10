@@ -35,6 +35,12 @@
                 "TargetCountCandyRoute",
                 "StartReplayCandyRoute",
                 "BalancedFarmingAnalyze",
+                "DepotMaintainInit",
+                "DepotMaintainPlan",
+                "DepotMaintainRefresh",
+                "DepotMaintainDone",
+                "DepotMaintainAccumulate",
+                "DepotCurrencyRead",
                 "JudgeDepthsOfMythWeekly",
                 "ResetEatCandyFlag",
                 "CombatActivityOverride",
@@ -168,6 +174,21 @@
             "$ref": "#/$defs/BalancedFarmingAnalyze"
         },
         {
+            "$ref": "#/$defs/DepotMaintainInit"
+        },
+        {
+            "$ref": "#/$defs/DepotMaintainPlan"
+        },
+        {
+            "$ref": "#/$defs/DepotMaintainRefresh"
+        },
+        {
+            "$ref": "#/$defs/DepotMaintainDone"
+        },
+        {
+            "$ref": "#/$defs/DepotMaintainAccumulate"
+        },
+        {
             "$ref": "#/$defs/JudgeDepthsOfMythWeekly"
         },
         {
@@ -274,6 +295,9 @@
         },
         {
             "$ref": "#/$defs/WarehouseInventoryScan"
+        },
+        {
+            "$ref": "#/$defs/DepotCurrencyRead"
         }
     ],
     "$defs": {
@@ -904,6 +928,69 @@
                 "custom_action": {
                     "const": "BalancedFarmingAnalyze",
                     "description": "识别仓库紫色主线材料数量，选择最少的一种并覆盖作战关卡参数。"
+                }
+            }
+        },
+        "DepotMaintainInit": {
+            "properties": {
+                "custom_action": {
+                    "const": "DepotMaintainInit",
+                    "description": "库存保持任务入口：重置规划状态（每次任务只允许一次仓库全量扫描）。"
+                }
+            }
+        },
+        "DepotMaintainPlan": {
+            "properties": {
+                "custom_action": {
+                    "const": "DepotMaintainPlan",
+                    "description": "库存保持规划：读仓库快照与 GUI 逐材料目标库存，挑缺口最大的材料并覆盖作战关卡与刷取次数；未开启或没有任何目标时退回原有均衡逻辑。"
+                },
+                "custom_action_param": {
+                    "type": "object",
+                    "properties": {
+                        "depot_disabled": {
+                            "type": "boolean",
+                            "description": "「库存保持」总开关关闭时为 true，直接退回原有均衡逻辑"
+                        }
+                    },
+                    "patternProperties": {
+                        "^(target|candy)_\\d+$": {
+                            "type": "string"
+                        }
+                    },
+                    "unevaluatedProperties": false
+                }
+            }
+        },
+        "DepotMaintainRefresh": {
+            "properties": {
+                "custom_action": {
+                    "const": "DepotMaintainRefresh",
+                    "description": "库存保持：触发仓库全量扫描以刷新快照。"
+                }
+            }
+        },
+        "DepotMaintainDone": {
+            "properties": {
+                "custom_action": {
+                    "const": "DepotMaintainDone",
+                    "description": "库存保持收尾：输出本次规划结果。"
+                }
+            }
+        },
+        "DepotMaintainAccumulate": {
+            "properties": {
+                "custom_action": {
+                    "const": "DepotMaintainAccumulate",
+                    "description": "结算页累计本局掉落（优先 drop_core 累计，缺失时自读结算页），达标后当前批次收尾。"
+                }
+            }
+        },
+        "DepotCurrencyRead": {
+            "properties": {
+                "custom_action": {
+                    "const": "DepotCurrencyRead",
+                    "description": "库存保持：读角色升级面板右上角的微尘/利齿子儿数量，写回快照后返回主界面。"
                 }
             }
         },

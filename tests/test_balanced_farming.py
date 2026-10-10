@@ -1,7 +1,10 @@
+from types import SimpleNamespace
+
 import numpy as np
 from maa.define import BoxAndScoreResult, OCRResult, RecognitionDetail, Rect
 
-from agent.custom.action.balanced_farming import BalancedFarmingAnalyze
+from agent.custom.action.balanced_farming import BalancedFarmingAnalyze, warehouse_materials
+from agent.utils.material_catalog import build_catalog, load_catalog
 
 
 def _icon_detail(box: tuple[int, int, int, int] | None) -> RecognitionDetail:
@@ -60,6 +63,46 @@ def _analyze() -> BalancedFarmingAnalyze:
     return BalancedFarmingAnalyze.__new__(BalancedFarmingAnalyze)
 
 
+def test_warehouse_materials_skips_character_source() -> None:
+    """货币类材料（source=character）不在仓库页，旧流程不能把它们算进「取最少」。"""
+    raw = {
+        "110103": {"name": "啮咬盒", "stage": "7-26", "level": "Hard"},
+        "205": {"name": "微尘", "stage": "LP-06", "level": "None", "source": "character"},
+        "203": {"name": "利齿子儿", "stage": "MA-06", "level": "None", "source": "character"},
+    }
+    catalog = build_catalog(raw, source="unit-test")
+    assert set(warehouse_materials(catalog)) == {"110103"}
+
+    assert warehouse_materials({}) == {}
+
+
+def test_warehouse_materials_resolves_name_from_items_json() -> None:
+    """目录不写 name 时名称回退到 items.json —— 旧流程靠这一条拿到显示名。"""
+    raw = {"110103": {"stage": "7-26", "level": "Hard"}}
+    catalog = build_catalog(raw, source="unit-test", names={"110103": "啮咬盒"})
+
+    entry = warehouse_materials(catalog)["110103"]
+    assert (entry.name, entry.stage.code, entry.level) == ("啮咬盒", "7-26", "Hard")
+
+
+def test_shipped_catalog_has_resolvable_names() -> None:
+    """回归：随仓库发布的目录里，仓库材料的名称/关卡必须都解析得出来。
+
+    目录里的 24 条仓库材料已经不写 `name`（单一来源是 items.json）。旧「均衡取最少」流程
+    若绕过 `load_catalog()` 直接读原始 JSON，就会在第一次取 `name` 时 KeyError ——
+    而它是「库存保持」总开关关闭时的默认路径，没开新功能的用户全都会中招。
+    """
+    materials = warehouse_materials(load_catalog())
+
+    assert materials, "随仓库发布的目录里不应没有仓库材料"
+    for item_id, entry in materials.items():
+        assert entry.name, f"{item_id} 没有可解析的显示名"
+        assert entry.stage.code and entry.level, f"{item_id} 缺关卡信息"
+    # 货币（source=character）走角色升级页，不在仓库页，旧流程必须排除掉
+    assert "203" not in materials
+    assert "205" not in materials
+
+
 def test_count_roi_is_middle_half_anchored_to_icon_bottom() -> None:
     """回归：数量 ROI 取图标中部一半、贴图标底边 30px 高。
 
@@ -102,3 +145,54 @@ def test_recognize_item_returns_not_found_when_icon_missing() -> None:
 
     assert _analyze()._recognize_item(context, None, "110403") == (False, None)
     assert context.count_rois == []
+
+
+class _FakeController:
+    """`post_screencap` / `post_swipe` 都返回自身，`wait().get()` 给个占位图。"""
+
+    def post_screencap(self) -> "_FakeController":
+        return self
+
+    def post_swipe(self, *_args: object) -> "_FakeController":
+        return self
+
+    def wait(self) -> "_FakeController":
+        return self
+
+    def get(self) -> object:
+        return object()
+
+
+class _AnalyzeContext:
+    """驱动 `BalancedFarmingAnalyze.run` 的最小桩：图标全命中、数量都读成 5。"""
+
+    def __init__(self) -> None:
+        self.tasker = SimpleNamespace(controller=_FakeController())
+        self.pipeline_overrides: list[dict] = []
+
+    def run_recognition(self, name: str, image: object, override: dict) -> RecognitionDetail:
+        if name == "BF_ItemIcon":
+            return _icon_detail((100, 200, 87, 79))
+        roi = override[name]["recognition"]["param"]["roi"]
+        return _count_detail("5", roi)
+
+    def override_pipeline(self, pipeline: dict) -> None:
+        self.pipeline_overrides.append(pipeline)
+
+
+def test_analyze_reads_shipped_catalog_without_name_field() -> None:
+    """回归：旧「均衡取最少」流程直接吃随仓库发布的目录。
+
+    目录里的仓库材料已经不再写 `name`（单一来源是 items.json）。旧实现用 `json.load` 读原始
+    JSON 后直接取 `materials[item_id]["name"]`，会在这里 KeyError —— 而它是「库存保持」总开关
+    关闭时的默认路径，未开启新功能的用户全都会中招。
+    """
+    context = _AnalyzeContext()
+
+    result = _analyze().run(context, None)  # pyright: ignore[reportArgumentType]
+
+    assert result.success
+    override = context.pipeline_overrides[-1]["SelectCombatStage"]
+    # 所有材料读数相同 → 取 id 最小的一种（110103 啮咬盒，7-26 Hard）
+    assert override["action"]["param"]["custom_action_param"]["stage"] == "7-26"
+    assert override["attach"]["level"] == "Hard"

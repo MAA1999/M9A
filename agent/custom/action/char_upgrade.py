@@ -79,21 +79,6 @@ class CUBStartAllIn(CustomAction):
                         "TargetCountVictoryClick",
                     ],
                 },
-                "TargetCountVictoryClick": {
-                    "recognition": {
-                        "type": "OCR",
-                        "param": {
-                            "roi": [678, 10, 473, 240],
-                            "expected": ["战斗", "胜利"],
-                        },
-                    },
-                    "action": {"type": "Click"},
-                    "next": [
-                        "TargetCountWaitReplay",
-                        "[JumpBack]CombatEntering",
-                        "TargetCountVictoryClick",
-                    ],
-                },
             },
         )
         return True

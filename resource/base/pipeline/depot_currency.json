@@ -1,0 +1,112 @@
+{
+    "DepotCurrencyInspect": {
+        "desc": "库存保持：进角色升级面板读微尘/利齿子儿（这两个不在仓库页，读数后合并进仓库快照）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DepotCurrencyRead"
+            }
+        }
+    },
+    "DepotCurrencyNav": {
+        "desc": "回主界面后复用「信任奖励领取」的角色页入口链（DepotCurrencyRead 覆写沿途节点的 next）",
+        "next": [
+            "EnterCharacter",
+            "[JumpBack]ReturnMain"
+        ]
+    },
+    "CI_LevelPlus": {
+        "desc": "角色详情页点开「等级 +」升级面板",
+        "max_hit": 3,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    820,
+                    105,
+                    210,
+                    40
+                ],
+                "expected": [
+                    "等级"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    986,
+                    140
+                ]
+            }
+        },
+        // 面板开启动画落在「等级」行与面板「Lv」之间，等画面停下来再让 CI_PanelReady 识别
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                820,
+                105,
+                420,
+                245
+            ]
+        },
+        "next": [
+            "CI_PanelReady",
+            "CI_LevelPlus"
+        ]
+    },
+    "CI_PanelReady": {
+        "desc": "升级面板已打开（右上角是微尘/利齿子儿计数）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1010,
+                    300,
+                    130,
+                    50
+                ],
+                "expected": [
+                    "Lv"
+                ]
+            }
+        }
+    },
+    "CI_DustNumber": {
+        "desc": "供 DepotCurrencyRead 调用：升级面板右上角微尘数量（游戏缩写值，如 9792K）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    966,
+                    20,
+                    96,
+                    26
+                ],
+                "expected": [
+                    "[\\d.]+[KkMm]?"
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "CI_CoinNumber": {
+        "desc": "供 DepotCurrencyRead 调用：升级面板右上角利齿子儿数量（游戏缩写值，如 3969K）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1122,
+                    20,
+                    96,
+                    26
+                ],
+                "expected": [
+                    "[\\d.]+[KkMm]?"
+                ],
+                "only_rec": true
+            }
+        }
+    }
+}

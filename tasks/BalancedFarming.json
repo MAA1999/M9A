@@ -5,14 +5,1017 @@
             "label": "$Task.BalancedFarming",
             "entry": "BalancedFarming",
             "description": "$Task.BalancedFarming.desc",
-            "group": [
-                "daily"
-            ],
+            "group": ["daily"],
             "option": [
+                "库存保持",
                 "吃糖",
                 "自定义作战次数",
                 "掉落统计上报"
             ]
         }
-    ]
+    ],
+    "option": {
+        "库存保持": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.DepotMaintain",
+            "description": "$Option.BalancedFarming.DepotMaintain.desc",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "BF_Plan": {"action": {"param": {"custom_action_param": {"depot_disabled": true}}}}
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "option": [
+                        "利齿子儿",
+                        "微尘",
+                        "啮咬盒",
+                        "盐封曼德拉",
+                        "双头形骨架",
+                        "祝圣秘银",
+                        "百灵百验鸟",
+                        "翼造门匙",
+                        "弯曲鹅颈",
+                        "金草焚香",
+                        "红漆泥板",
+                        "金爪灵摆",
+                        "砂金甲虫",
+                        "真心彩蛋",
+                        "岩中典残篇",
+                        "岩中典孤卷",
+                        "岩中典全章",
+                        "星升典残篇",
+                        "星升典孤卷",
+                        "星升典全章",
+                        "木娑典残篇",
+                        "木娑典孤卷",
+                        "木娑典全章",
+                        "兽涎典残篇",
+                        "兽涎典孤卷",
+                        "兽涎典全章"
+                    ]
+                }
+            ]
+        },
+        "利齿子儿": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.203",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["利齿子儿·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_203": true}}}
+                }
+            ]
+        },
+        "微尘": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.205",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["微尘·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_205": true}}}
+                }
+            ]
+        },
+        "啮咬盒": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.110103",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["啮咬盒·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110103": true}}}
+                }
+            ]
+        },
+        "盐封曼德拉": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.110203",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["盐封曼德拉·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110203": true}}}
+                }
+            ]
+        },
+        "双头形骨架": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.110303",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["双头形骨架·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110303": true}}}
+                }
+            ]
+        },
+        "祝圣秘银": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.110403",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["祝圣秘银·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110403": true}}}
+                }
+            ]
+        },
+        "百灵百验鸟": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.110503",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["百灵百验鸟·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110503": true}}}
+                }
+            ]
+        },
+        "翼造门匙": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.110603",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["翼造门匙·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110603": true}}}
+                }
+            ]
+        },
+        "弯曲鹅颈": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.110703",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["弯曲鹅颈·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110703": true}}}
+                }
+            ]
+        },
+        "金草焚香": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.110803",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["金草焚香·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110803": true}}}
+                }
+            ]
+        },
+        "红漆泥板": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.110903",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["红漆泥板·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_110903": true}}}
+                }
+            ]
+        },
+        "金爪灵摆": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.111002",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["金爪灵摆·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_111002": true}}}
+                }
+            ]
+        },
+        "砂金甲虫": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.111012",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["砂金甲虫·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_111012": true}}}
+                }
+            ]
+        },
+        "真心彩蛋": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.111103",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["真心彩蛋·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_111103": true}}}
+                }
+            ]
+        },
+        "岩中典残篇": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.115011",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["岩中典残篇·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115011": true}}}
+                }
+            ]
+        },
+        "岩中典孤卷": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.115012",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["岩中典孤卷·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115012": true}}}
+                }
+            ]
+        },
+        "岩中典全章": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.115013",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["岩中典全章·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115013": true}}}
+                }
+            ]
+        },
+        "星升典残篇": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.115021",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["星升典残篇·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115021": true}}}
+                }
+            ]
+        },
+        "星升典孤卷": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.115022",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["星升典孤卷·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115022": true}}}
+                }
+            ]
+        },
+        "星升典全章": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.115023",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["星升典全章·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115023": true}}}
+                }
+            ]
+        },
+        "木娑典残篇": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.115031",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["木娑典残篇·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115031": true}}}
+                }
+            ]
+        },
+        "木娑典孤卷": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.115032",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["木娑典孤卷·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115032": true}}}
+                }
+            ]
+        },
+        "木娑典全章": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.115033",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["木娑典全章·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115033": true}}}
+                }
+            ]
+        },
+        "兽涎典残篇": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.115041",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["兽涎典残篇·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115041": true}}}
+                }
+            ]
+        },
+        "兽涎典孤卷": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.115042",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["兽涎典孤卷·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115042": true}}}
+                }
+            ]
+        },
+        "兽涎典全章": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.Material.115043",
+            "cases": [
+                {"name": "No"},
+                {
+                    "name": "Yes",
+                    "option": ["兽涎典全章·设置"],
+                    "pipeline_override": {"BF_Plan": {"attach": {"mat_115043": true}}}
+                }
+            ]
+        },
+        "利齿子儿·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_203",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.TargetCurrency.desc",
+                    "default": "1616830",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*[KkMm]?$"
+                },
+                {
+                    "name": "candy_203",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {"BF_Plan": {"attach": {"target_203": "{target_203}", "candy_203": "{candy_203}"}}}
+        },
+        "微尘·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_205",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.TargetCurrency.desc",
+                    "default": "1352100",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*[KkMm]?$"
+                },
+                {
+                    "name": "candy_205",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {"BF_Plan": {"attach": {"target_205": "{target_205}", "candy_205": "{candy_205}"}}}
+        },
+        "啮咬盒·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_110103",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "12",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_110103",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_110103": "{target_110103}", "candy_110103": "{candy_110103}"}}
+            }
+        },
+        "盐封曼德拉·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_110203",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "3",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_110203",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_110203": "{target_110203}", "candy_110203": "{candy_110203}"}}
+            }
+        },
+        "双头形骨架·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_110303",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "14",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_110303",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_110303": "{target_110303}", "candy_110303": "{candy_110303}"}}
+            }
+        },
+        "祝圣秘银·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_110403",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "15",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_110403",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_110403": "{target_110403}", "candy_110403": "{candy_110403}"}}
+            }
+        },
+        "百灵百验鸟·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_110503",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "15",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_110503",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_110503": "{target_110503}", "candy_110503": "{candy_110503}"}}
+            }
+        },
+        "翼造门匙·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_110603",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "12",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_110603",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_110603": "{target_110603}", "candy_110603": "{candy_110603}"}}
+            }
+        },
+        "弯曲鹅颈·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_110703",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "10",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_110703",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_110703": "{target_110703}", "candy_110703": "{candy_110703}"}}
+            }
+        },
+        "金草焚香·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_110803",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "18",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_110803",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_110803": "{target_110803}", "candy_110803": "{candy_110803}"}}
+            }
+        },
+        "红漆泥板·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_110903",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "9",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_110903",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_110903": "{target_110903}", "candy_110903": "{candy_110903}"}}
+            }
+        },
+        "金爪灵摆·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_111002",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "11",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_111002",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_111002": "{target_111002}", "candy_111002": "{candy_111002}"}}
+            }
+        },
+        "砂金甲虫·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_111012",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "9",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_111012",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_111012": "{target_111012}", "candy_111012": "{candy_111012}"}}
+            }
+        },
+        "真心彩蛋·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_111103",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "10",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_111103",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_111103": "{target_111103}", "candy_111103": "{candy_111103}"}}
+            }
+        },
+        "岩中典残篇·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_115011",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "6",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_115011",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_115011": "{target_115011}", "candy_115011": "{candy_115011}"}}
+            }
+        },
+        "岩中典孤卷·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_115012",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "10",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_115012",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_115012": "{target_115012}", "candy_115012": "{candy_115012}"}}
+            }
+        },
+        "岩中典全章·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_115013",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "16",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_115013",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_115013": "{target_115013}", "candy_115013": "{candy_115013}"}}
+            }
+        },
+        "星升典残篇·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_115021",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "6",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_115021",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_115021": "{target_115021}", "candy_115021": "{candy_115021}"}}
+            }
+        },
+        "星升典孤卷·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_115022",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "10",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_115022",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_115022": "{target_115022}", "candy_115022": "{candy_115022}"}}
+            }
+        },
+        "星升典全章·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_115023",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "16",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_115023",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_115023": "{target_115023}", "candy_115023": "{candy_115023}"}}
+            }
+        },
+        "木娑典残篇·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_115031",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "6",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_115031",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_115031": "{target_115031}", "candy_115031": "{candy_115031}"}}
+            }
+        },
+        "木娑典孤卷·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_115032",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "10",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_115032",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_115032": "{target_115032}", "candy_115032": "{candy_115032}"}}
+            }
+        },
+        "木娑典全章·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_115033",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "16",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_115033",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_115033": "{target_115033}", "candy_115033": "{candy_115033}"}}
+            }
+        },
+        "兽涎典残篇·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_115041",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "6",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_115041",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_115041": "{target_115041}", "candy_115041": "{candy_115041}"}}
+            }
+        },
+        "兽涎典孤卷·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_115042",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "10",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_115042",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_115042": "{target_115042}", "candy_115042": "{candy_115042}"}}
+            }
+        },
+        "兽涎典全章·设置": {
+            "type": "input",
+            "label": "$Option.BalancedFarming.Material.Settings",
+            "inputs": [
+                {
+                    "name": "target_115043",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "description": "$Option.BalancedFarming.Material.Target.desc",
+                    "default": "16",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                },
+                {
+                    "name": "candy_115043",
+                    "label": "$Option.BalancedFarming.Material.Candy",
+                    "description": "$Option.BalancedFarming.Material.Candy.desc",
+                    "default": "",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*$"
+                }
+            ],
+            "pipeline_override": {
+                "BF_Plan": {"attach": {"target_115043": "{target_115043}", "candy_115043": "{candy_115043}"}}
+            }
+        }
+    }
 }

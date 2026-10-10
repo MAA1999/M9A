@@ -7,6 +7,7 @@ ACTION_MODULES = (
     "bank",
     "char_upgrade",
     "combat",
+    "depot_maintain",
     "lucidscape",
     "wilderness",
     "outside_deduction",

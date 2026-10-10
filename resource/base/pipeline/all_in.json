@@ -174,6 +174,50 @@
             "[JumpBack]CombatEntering"
         ]
     },
+    "TargetCountVictoryClick": {
+        "desc": "点击胜利横幅直到关卡页的复现按钮出现（掉落识别 / 库存保持累计的后继）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    240
+                ],
+                "expected": [
+                    "战斗",
+                    "胜利"
+                ]
+            }
+        },
+        "pre_wait_freezes": {
+            "time": 500,
+            "target": [
+                614,
+                457,
+                666,
+                263
+            ]
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                614,
+                457,
+                666,
+                263
+            ]
+        },
+        "next": [
+            "TargetCountWaitReplay",
+            "[JumpBack]CombatEntering",
+            "TargetCountVictoryClick"
+        ]
+    },
     "TargetCountWaitReplay": {
         "recognition": {
             "type": "OCR",

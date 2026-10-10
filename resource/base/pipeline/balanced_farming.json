@@ -1,8 +1,81 @@
 {
     "BalancedFarming": {
+        "desc": "任务入口：重置库存保持规划状态",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DepotMaintainInit"
+            }
+        },
+        "next": [
+            "BF_Plan"
+        ]
+    },
+    "BF_Plan": {
+        "desc": "库存保持规划：读仓库快照与目标库存，决定刷取目标、刷新快照或退回原有流程",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DepotMaintainPlan"
+            }
+        },
         "next": [
             "BF_EnterWarehouse",
             "[JumpBack]ReturnMain"
+        ]
+    },
+    "BF_Refresh": {
+        "desc": "库存保持：快照过期或缺失时执行一次仓库全量扫描",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DepotMaintainRefresh"
+            }
+        },
+        "next": [
+            "BF_Plan"
+        ]
+    },
+    "BF_Done": {
+        "desc": "库存保持：全部达标，直接收尾",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DepotMaintainDone"
+            }
+        }
+    },
+    "BF_DepotAccumulate": {
+        "desc": "库存保持：结算页累计本局掉落，达标后当前批次收尾（由 SelectCombatStage 按 attach.depot_accumulate 挂进胜利链）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    678,
+                    10,
+                    473,
+                    240
+                ],
+                "expected": [
+                    "战斗",
+                    "胜利"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "DepotMaintainAccumulate"
+            }
+        },
+        // 动作成功时由内部覆写成 TargetCountVictoryClick（见 DepotMaintainAccumulate）；
+        // 动作**失败**时接管的是 on_error 而不是 next（引擎语义）—— 累计抛异常会显式返回失败，
+        // 由这里把结算页点掉，TargetCountVictoryClick 识别命中即解除异常状态。
+        // next 保持空：父列表 TargetCountVictory.next 里本节点后面就是 TargetCountVictoryClick，
+        // 不需要再写一份（写了会被 maa-tools 判成重复路由）。
+        "next": [],
+        "on_error": [
+            "TargetCountVictoryClick"
         ]
     },
     "BF_EnterWarehouse": {
@@ -115,7 +188,9 @@
                     630
                 ],
                 "template": "Warehouse/Item-110103.png",
-                "threshold": 0.9
+                "green_mask": true,
+                "threshold": 0.9,
+                "order_by": "Score"
             }
         }
     },

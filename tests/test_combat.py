@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
@@ -14,6 +16,7 @@ from agent.custom.action.combat import (
     TargetCountCandyRoute,
     TargetCountDetermine,
     TargetCountEatCandy,
+    TargetCountProgress,
     TargetCountSelectTimes,
     _TargetCountPage,
     _TargetCountState,
@@ -49,16 +52,27 @@ class _ScreenshotRequest:
 
 
 class _RecognitionContext:
-    def __init__(self, results: dict[str, RecognitionDetail | None], eat_candy_enabled: bool = True) -> None:
+    def __init__(
+        self,
+        results: dict[str, RecognitionDetail | None],
+        eat_candy_enabled: bool = True,
+        attach: dict[str, object] | None = None,
+    ) -> None:
         self.results = results
         self.calls: list[str] = []
         self.eat_candy_enabled = eat_candy_enabled
+        self.attach = attach or {}
         self.override: tuple[str, list[str]] | None = None
         self.tasker = SimpleNamespace(controller=SimpleNamespace(post_screencap=lambda: _ScreenshotRequest()))
 
     def run_recognition(self, name: str, _image: object) -> RecognitionDetail | None:
         self.calls.append(name)
         return self.results.get(name)
+
+    def get_node_object(self, name: str) -> object | None:
+        if name != "SelectCombatStage":
+            return None
+        return SimpleNamespace(attach=self.attach)
 
     def get_node_data(self, name: str) -> dict[str, object] | None:
         if name != "EatCandy":
@@ -248,6 +262,51 @@ def test_determine_keeps_eat_candy_next_when_enabled(monkeypatch: pytest.MonkeyP
     assert context.override == ("TargetCountDetermine", ["TargetCountEatCandy"])
 
 
+def test_determine_routes_depot_batch_end_to_plan(monkeypatch: pytest.MonkeyPatch) -> None:
+    """库存保持：批次达标后留在关卡页交回规划节点，不回主界面。"""
+    _reset_target_count_state(monkeypatch)
+    monkeypatch.setattr(_TargetCountState, "already_count", 10)
+    context = _RecognitionContext({}, attach={"depot_accumulate": 1})
+
+    result = TargetCountDetermine().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountDetermine", ["BF_Plan"])
+
+
+def test_determine_finishes_when_depot_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
+    """未开启库存保持时批次达标仍回主界面收尾。"""
+    _reset_target_count_state(monkeypatch)
+    monkeypatch.setattr(_TargetCountState, "already_count", 10)
+    context = _RecognitionContext({})
+
+    result = TargetCountDetermine().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountDetermine", ["TargetCountFinish"])
+
+
+def test_progress_routes_depot_batch_end_to_plan(monkeypatch: pytest.MonkeyPatch) -> None:
+    _reset_target_count_state(monkeypatch)
+    monkeypatch.setattr(_TargetCountState, "already_count", 10)
+    context = _RecognitionContext({}, attach={"depot_accumulate": 1})
+
+    result = TargetCountProgress().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountProgress", ["BF_Plan"])
+
+
+def test_progress_continues_in_stage_without_depot(monkeypatch: pytest.MonkeyPatch) -> None:
+    _reset_target_count_state(monkeypatch)
+    context = _RecognitionContext({})
+
+    result = TargetCountProgress().run(context, None)  # type: ignore[arg-type]
+
+    assert result.success
+    assert context.override == ("TargetCountProgress", ["TargetCountDetermine"])
+
+
 def test_ss_reopen_stops_when_initial_availability_is_unknown(monkeypatch: pytest.MonkeyPatch) -> None:
     context = _SSActionContext()
     unknown = combat_module._TargetCountAvailability(page=_TargetCountPage.UNKNOWN)
@@ -347,6 +406,88 @@ def test_select_combat_stage_resets_free_used(monkeypatch: pytest.MonkeyPatch) -
     assert result.success
     assert _TargetCountState.free_used is False
     assert _TargetCountState.candy_page_hits == 0
+
+
+def test_select_combat_stage_wires_accumulate_for_resource_stage() -> None:
+    """资源本 + 库存保持：胜利链挂上 BF_DepotAccumulate 与胜利点击节点。"""
+    captured: dict[str, object] = {}
+    context = SimpleNamespace(
+        get_node_object=lambda _name: SimpleNamespace(attach={"level": None, "depot_accumulate": 1}),
+        override_pipeline=lambda pipeline: captured.update(pipeline),
+    )
+    argv = SimpleNamespace(custom_action_param='{"stage": "MA-06"}')
+
+    result = SelectCombatStage().run(context, argv)  # type: ignore[arg-type]
+
+    assert result.success
+    victory = captured["TargetCountVictory"]
+    assert isinstance(victory, dict)
+    assert victory["next"] == ["BF_DepotAccumulate", "TargetCountVictoryClick"]
+    # 胜利横幅点击节点在 all_in.json 里定义一次，运行时只引用、不重写
+    assert "TargetCountVictoryClick" not in captured
+
+
+def test_target_count_victory_click_is_defined_once_in_all_in() -> None:
+    """胜利横幅点击节点是 all_in.json 的共享节点（combat / char_upgrade 只覆写 next）。"""
+    pipeline = json.loads(Path("resource/base/pipeline/all_in.json").read_text(encoding="utf-8"))
+
+    node = pipeline["TargetCountVictoryClick"]
+
+    assert node["action"] == {"type": "Click"}
+    assert node["recognition"]["param"]["roi"] == [678, 10, 473, 240]
+    assert node["next"] == ["TargetCountWaitReplay", "[JumpBack]CombatEntering", "TargetCountVictoryClick"]
+
+
+def test_select_combat_stage_wires_accumulate_after_drop_recognition() -> None:
+    """主线 + 库存保持：掉落识别命中后也经过累计节点（否则会被它的 next 绕过）。"""
+    captured: dict[str, object] = {}
+    context = SimpleNamespace(
+        get_node_object=lambda _name: SimpleNamespace(attach={"level": None, "depot_accumulate": 1}),
+        override_pipeline=lambda pipeline: captured.update(pipeline),
+    )
+    argv = SimpleNamespace(custom_action_param='{"stage": "7-7"}')
+
+    result = SelectCombatStage().run(context, argv)  # type: ignore[arg-type]
+
+    assert result.success
+    drop = captured["DropRecognition"]
+    assert isinstance(drop, dict)
+    assert drop["next"] == ["BF_DepotAccumulate", "TargetCountVictoryClick"]
+    victory = captured["TargetCountVictory"]
+    assert isinstance(victory, dict)
+    assert victory["next"] == ["DropRecognition", "BF_DepotAccumulate", "TargetCountVictoryClick"]
+
+
+def test_select_combat_stage_keeps_main_story_chain_without_depot() -> None:
+    """未开启库存保持时主线胜利链保持原样（掉落后直接点掉）。"""
+    captured: dict[str, object] = {}
+    context = SimpleNamespace(
+        get_node_object=lambda _name: SimpleNamespace(attach={"level": None}),
+        override_pipeline=lambda pipeline: captured.update(pipeline),
+    )
+    argv = SimpleNamespace(custom_action_param='{"stage": "7-7"}')
+
+    result = SelectCombatStage().run(context, argv)  # type: ignore[arg-type]
+
+    assert result.success
+    drop = captured["DropRecognition"]
+    assert isinstance(drop, dict)
+    assert drop["next"] == ["TargetCountVictoryClick"]
+
+
+def test_select_combat_stage_keeps_resource_victory_chain_without_depot() -> None:
+    """未开启库存保持时资源本流程不覆写胜利链。"""
+    captured: dict[str, object] = {}
+    context = SimpleNamespace(
+        get_node_object=lambda _name: SimpleNamespace(attach={"level": None}),
+        override_pipeline=lambda pipeline: captured.update(pipeline),
+    )
+    argv = SimpleNamespace(custom_action_param='{"stage": "MA-06"}')
+
+    result = SelectCombatStage().run(context, argv)  # type: ignore[arg-type]
+
+    assert result.success
+    assert "TargetCountVictory" not in captured
 
 
 def test_determine_psychube_keeps_fixed_times_when_free_attempts_remain(
