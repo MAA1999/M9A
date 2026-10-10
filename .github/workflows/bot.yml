@@ -33,12 +33,6 @@ on:
         type: choice
         options: [issue, pr]
 
-concurrency:
-  group: bot-${{ github.event.issue.number || github.event.pull_request.number || inputs.number }}
-  # 最新的一次请求获胜。若上一次还在跑时有人再次召唤，排队会把整套分析跑两遍；被取消的 `analyze`
-  # 不会发布任何内容 —— 活下来的那次运行负责回答。
-  cancel-in-progress: true
-
 permissions:
   contents: read
 
@@ -121,6 +115,14 @@ jobs:
     if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # 并发放在这个 job 上，**不放 workflow 级** —— 那是 Sentry 在 PR #957 上指出的一条真 bug：
+    # workflow 级的组会让「任意一条普通评论」起的运行也进来。它 gate 判成 run=false，自己什么都不做，
+    # 却因为 `cancel-in-progress` 把正在跑的那一轮掐掉，于是那次召唤被静默丢弃。
+    # 放在这里之后，run=false 的运行被上面的 `if` 直接跳过、从不排队，也就不会取消任何人；
+    # 而重复召唤（两次 gate 都是 true）仍然是「最新那轮赢」。
+    concurrency:
+      group: bot-${{ github.event.issue.number || github.event.pull_request.number || inputs.number }}
+      cancel-in-progress: true
     # 故意只给读权限：agent 处理的 Issue 正文和 diff 都不可信，所以它没有任何写 GitHub 的途径。
     # 对外的发布全部走 `post`，那个 job 在发帖前一刻才签出自己的 App token。
     permissions:
@@ -355,8 +357,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$ANALYSIS_DIR"
+          # 最终回复写到 `agent.out` 而不是 `answer.md`：两者都写同一个文件会有两个写者（shell 的重定向
+          # 在步骤开始时就打开了 fd，agent 又在运行中改这个文件），谁后写谁赢 —— 而且它会让「沉默」失效，
+          # 因为 dsh 的回复总会把 answer.md 填上。分开之后 answer.md 恰好是 agent 选择留下的全部内容：
+          # 空 = 没什么值得说的。
           dsh --profile headless --patch tools/bot/dsh-patch.yml - < tools/bot/prompt.md \
-            > "$ANALYSIS_DIR/answer.md" 2> "$ANALYSIS_DIR/agent.stderr"
+            > "$ANALYSIS_DIR/agent.out" 2> "$ANALYSIS_DIR/agent.stderr"
+          echo "--- agent stdout (tail) ---"
+          tail -n 10 "$ANALYSIS_DIR/agent.out" || true
           echo "--- agent stderr (tail) ---"
           tail -n 40 "$ANALYSIS_DIR/agent.stderr" || true
 
