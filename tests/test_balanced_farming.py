@@ -4,7 +4,7 @@ import numpy as np
 from maa.define import BoxAndScoreResult, OCRResult, RecognitionDetail, Rect
 
 from agent.custom.action.balanced_farming import BalancedFarmingAnalyze, warehouse_materials
-from agent.utils.material_catalog import build_catalog, load_catalog
+from agent.utils.material_catalog import build_catalog, load_catalog, parse_stage_code
 
 
 def _icon_detail(box: tuple[int, int, int, int] | None) -> RecognitionDetail:
@@ -63,10 +63,17 @@ def _analyze() -> BalancedFarmingAnalyze:
     return BalancedFarmingAnalyze.__new__(BalancedFarmingAnalyze)
 
 
-def test_warehouse_materials_skips_character_source() -> None:
-    """货币类材料（source=character）不在仓库页，旧流程不能把它们算进「取最少」。"""
+def test_warehouse_materials_skips_character_and_insight() -> None:
+    """旧「均衡取最少」不参与均衡的两类材料。
+
+    货币（source=character）不在仓库页、扫不到；洞悉本（ME/SL/SS/BW）单局体力消耗高，
+    只在「库存保持」里按逐材料目标刷 —— 不开库存保持时参与均衡的话，「谁最少刷谁」会一直往
+    洞悉本上撞。
+    """
     raw = {
         "110103": {"name": "啮咬盒", "stage": "7-26", "level": "Hard"},
+        "115011": {"name": "岩中典残篇", "stage": "ME-02", "level": "None"},
+        "115042": {"name": "兽涎典孤卷", "stage": "BW-04", "level": "None"},
         "205": {"name": "微尘", "stage": "LP-06", "level": "None", "source": "character"},
         "203": {"name": "利齿子儿", "stage": "MA-06", "level": "None", "source": "character"},
     }
@@ -74,6 +81,14 @@ def test_warehouse_materials_skips_character_source() -> None:
     assert set(warehouse_materials(catalog)) == {"110103"}
 
     assert warehouse_materials({}) == {}
+
+
+def test_stage_family_insight_flag() -> None:
+    """洞悉本关卡族（ME/SL/SS/BW）标记为 insight，主线与其他族不是。"""
+    for code in ("ME-02", "SL-04", "SS-06", "BW-04"):
+        assert parse_stage_code(code).is_insight, code
+    for code in ("7-26", "MA-06", "LP-06", "Psychube-01"):
+        assert not parse_stage_code(code).is_insight, code
 
 
 def test_warehouse_materials_resolves_name_from_items_json() -> None:
@@ -101,6 +116,8 @@ def test_shipped_catalog_has_resolvable_names() -> None:
     # 货币（source=character）走角色升级页，不在仓库页，旧流程必须排除掉
     assert "203" not in materials
     assert "205" not in materials
+    # 洞悉本（ME/SL/SS/BW）只在「库存保持」里按逐材料目标刷，旧流程必须排除掉
+    assert not [item_id for item_id, entry in materials.items() if entry.stage.is_insight]
 
 
 def test_count_roi_is_middle_half_anchored_to_icon_bottom() -> None:

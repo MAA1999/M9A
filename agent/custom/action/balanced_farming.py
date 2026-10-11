@@ -13,12 +13,21 @@ from utils.material_catalog import SOURCE_WAREHOUSE, CatalogError, MaterialEntry
 
 
 def warehouse_materials(catalog: Mapping[str, MaterialEntry]) -> dict[str, MaterialEntry]:
-    """只保留仓库页能扫到的材料：货币类材料（source=character）不在仓库里，旧流程要跳过。
+    """只保留旧「均衡取最少」流程要参与均衡的材料。
+
+    两类排除：
+    - 货币类材料（source=character）不在仓库页，扫不到；
+    - **洞悉本材料**（stage.is_insight，ME/SL/SS/BW）单局体力消耗高，只在「库存保持」里按
+      逐材料目标刷取；不开库存保持时不参与均衡，否则「谁最少刷谁」会一直往洞悉本上撞。
 
     入参必须是 `load_catalog()` 的产物而不是原始 JSON —— 目录里的仓库材料已经不写 `name`
     （显示名的单一来源是 items.json），只有经过目录构建才拿得到名称。
     """
-    return {item_id: entry for item_id, entry in catalog.items() if entry.source == SOURCE_WAREHOUSE}
+    return {
+        item_id: entry
+        for item_id, entry in catalog.items()
+        if entry.source == SOURCE_WAREHOUSE and not entry.stage.is_insight
+    }
 
 
 @AgentServer.custom_action("BalancedFarmingAnalyze")
@@ -41,12 +50,16 @@ class BalancedFarmingAnalyze(CustomAction):
     ) -> CustomAction.RunResult:
 
         try:
-            materials = warehouse_materials(load_catalog(Path(self._DATA_PATH)))
+            catalog = load_catalog(Path(self._DATA_PATH))
         except CatalogError as e:
             logger.error(f"读取材料映射表失败: {self._DATA_PATH}, {e}")
             return CustomAction.RunResult(success=False)
+        materials = warehouse_materials(catalog)
+        insight = [e.name for e in catalog.values() if e.source == SOURCE_WAREHOUSE and e.stage.is_insight]
+        if insight:
+            logger.info(f"均衡刷取不包含洞悉本材料（{len(insight)} 种）: {'、'.join(insight)}")
         if not materials:
-            logger.error(f"材料映射表里没有仓库材料: {self._DATA_PATH}")
+            logger.error(f"材料映射表里没有可均衡刷取的材料: {self._DATA_PATH}")
             return CustomAction.RunResult(success=False)
 
         # 每页都对全部材料做匹配，收集多次读数；
