@@ -57,20 +57,23 @@ def _resolve_console_stream():
     return sys.stderr
 
 
-def _resolve_console_format() -> str:
-    if _is_mfaa_client():
-        return "{extra[mfaa_message]}"
-    if _is_mxu_client():
-        return "{extra[mxu_html_message]}"
-    return "{extra[level_color]}{message}{extra[color_reset]}"
-
-
 def _short_level_name(level_name: str) -> str:
     return LEVEL_SHORT_NAMES.get(level_name, level_name.lower())
 
 
 def _ansi_level_color(level_name: str) -> str:
     return ANSI_LEVEL_COLORS.get(level_name, "")
+
+
+def _split_lines(message: str) -> list[str]:
+    """按行拆分，丢掉结尾换行造成的空尾行。
+
+    MFAAvalonia 把裸的 "info:" 也当作一条合法日志，尾行不丢会多出一条空日志条目。
+    """
+    lines = message.split("\n")
+    if lines[-1] == "":
+        lines.pop()
+    return lines
 
 
 # MXU 的日志面板按 HTML 渲染。消息整体转义后只还原 material_catalog.colorize_name
@@ -85,27 +88,26 @@ def _restore_font_markup(escaped: str) -> str:
 def _format_mxu_html_message(level_name: str, message: str) -> str:
     color = HTML_LEVEL_COLORS.get(level_name, "inherit")
     escaped = _restore_font_markup(html.escape(message))
-    lines = escaped.split("\n")
-    wrapped = [f'<span style="color:{color};">{line}</span>' for line in lines]
-    return "\n".join(wrapped)
+    return "\n".join(f'<span style="color:{color};">{line}</span>' for line in _split_lines(escaped))
 
 
 # MFAAvalonia 逐行解析 agent 输出，只认带 level 前缀的行，没有前缀的行会被它丢进自己的内部
 # 日志、不进任务面板。多行消息因此必须逐行补前缀，否则第二行起在 GUI 里看不到。
 def _format_mfaa_message(level_name: str, message: str) -> str:
     short = _short_level_name(level_name)
-    return "\n".join(f"{short}:{line}" for line in message.split("\n"))
+    return "\n".join(f"{short}:{line}" for line in _split_lines(message))
 
 
-def _enrich_record(record: Any) -> bool:
-    level_name = record["level"].name
+def _format_console_message(level_name: str, message: str) -> str:
+    """控制台日志的唯一渲染分支，loguru 与标准 logging 两条路径共用。"""
+    if _is_mfaa_client():
+        return _format_mfaa_message(level_name, message)
+    if _is_mxu_client():
+        return _format_mxu_html_message(level_name, message)
+
     level_color = _ansi_level_color(level_name)
-
-    record["extra"]["level_color"] = level_color
-    record["extra"]["color_reset"] = "\033[0m" if level_color else ""
-    record["extra"]["mfaa_message"] = _format_mfaa_message(level_name, str(record["message"]))
-    record["extra"]["mxu_html_message"] = _format_mxu_html_message(level_name, str(record["message"]))
-    return True
+    color_reset = "\033[0m" if level_color else ""
+    return f"{level_color}{message}{color_reset}"
 
 
 _has_loguru = False
@@ -121,18 +123,21 @@ except ImportError:
 
 
 class _ConsoleFormatter(logging.Formatter):
+    """无 loguru 时的标准 logging 回退路径。"""
+
     def format(self, record: Any):
-        level_name = record.levelname
-        message = record.getMessage()
+        return _format_console_message(record.levelname, record.getMessage())
 
-        if _is_mfaa_client():
-            return _format_mfaa_message(level_name, message)
-        if _is_mxu_client():
-            return _format_mxu_html_message(level_name, message)
 
-        level_color = _ansi_level_color(level_name)
-        color_reset = "\033[0m" if level_color else ""
-        return f"{level_color}{message}{color_reset}"
+# loguru 的格式串只取这一个字段。渲染结果必须走字段值，不能改成 callable format：
+# loguru 会把 callable 的返回值再当格式串解析颜色标记（MXU 的 <span> 会直接抛错），
+# 且 callable 路径不会补结尾换行。字段值在解析之后才代入，两个坑都不会踩到。
+_CONSOLE_FORMAT = "{extra[console_message]}"
+
+
+def _enrich_console_message(record: Any) -> bool:
+    record["extra"]["console_message"] = _format_console_message(record["level"].name, str(record["message"]))
+    return True
 
 
 _FILE_FORMAT = logging.Formatter("%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)d | %(message)s")
@@ -151,10 +156,10 @@ def _setup_loguru_logger(log_dir: str = "debug/custom", console_level: str = "IN
 
     _loguru_logger.add(
         _resolve_console_stream(),
-        format=_resolve_console_format(),
+        format=_CONSOLE_FORMAT,
         colorize=False,
         level=console_level,
-        filter=_enrich_record,
+        filter=_enrich_console_message,
     )
     _loguru_logger.add(
         f"{log_dir}/{{time:YYYY-MM-DD}}.log",
@@ -167,7 +172,6 @@ def _setup_loguru_logger(log_dir: str = "debug/custom", console_level: str = "IN
         enqueue=True,
         backtrace=True,
         diagnose=True,
-        filter=_enrich_record,
     )
     return _loguru_logger
 
