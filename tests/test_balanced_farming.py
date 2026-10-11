@@ -180,18 +180,30 @@ class _FakeController:
         return object()
 
 
+# 目录里的一条洞悉本材料（岩中典残篇，ME-02）：run 级用例用它验证洞悉本被排除
+_INSIGHT_ITEM_ID = "115011"
+
+
 class _AnalyzeContext:
-    """驱动 `BalancedFarmingAnalyze.run` 的最小桩：图标全命中、数量都读成 5。"""
+    """驱动 `BalancedFarmingAnalyze.run` 的最小桩：图标全命中，数量读成固定值。
+
+    洞悉本材料（`_INSIGHT_ITEM_ID`）故意读成更小的 1、其余读成 5 —— 若读数相同，
+    `min(sorted(...))` 会挑 id 最小的 110103，洞悉本即使被错误纳入候选也看不出来；
+    给它更小的数量，混入时它才会成为「最少」被选中，让 run 级断言真的失败。
+    """
 
     def __init__(self) -> None:
         self.tasker = SimpleNamespace(controller=_FakeController())
         self.pipeline_overrides: list[dict] = []
+        self._item_id = ""
 
     def run_recognition(self, name: str, image: object, override: dict) -> RecognitionDetail:
         if name == "BF_ItemIcon":
+            template = override[name]["recognition"]["param"]["template"]
+            self._item_id = template.removeprefix("Warehouse/Item-").removesuffix(".png")
             return _icon_detail((100, 200, 87, 79))
         roi = override[name]["recognition"]["param"]["roi"]
-        return _count_detail("5", roi)
+        return _count_detail("1" if self._item_id == _INSIGHT_ITEM_ID else "5", roi)
 
     def override_pipeline(self, pipeline: dict) -> None:
         self.pipeline_overrides.append(pipeline)
@@ -210,6 +222,7 @@ def test_analyze_reads_shipped_catalog_without_name_field() -> None:
 
     assert result.success
     override = context.pipeline_overrides[-1]["SelectCombatStage"]
-    # 所有材料读数相同 → 取 id 最小的一种（110103 啮咬盒，7-26 Hard）
+    # 主线材料读数都是 5 → 取 id 最小的 110103（啮咬盒，7-26 Hard）；
+    # 洞悉本读数更小（1），一旦被错误纳入候选就会顶掉它 —— 这正是本用例要拦的回归。
     assert override["action"]["param"]["custom_action_param"]["stage"] == "7-26"
     assert override["attach"]["level"] == "Hard"
