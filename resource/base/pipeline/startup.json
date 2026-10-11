@@ -729,7 +729,6 @@
                         }
                     },
                     {
-                        // 标题是金色花体，入场动画裁掉右侧时末位 D 会被读成 L
                         "recognition": {
                             "type": "OCR",
                             "param": {
@@ -739,7 +738,7 @@
                                     211,
                                     73
                                 ],
-                                "expected": "^REWAR[DL]$"
+                                "expected": "^REWARD$"
                             }
                         }
                     }
