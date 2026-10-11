@@ -31,7 +31,7 @@ Farm daily free Will Analysis attempts, including the following options:
 
 ## Smart Balanced Material Farming
 
-Farm materials: with "Depot maintain" enabled it tops up each material to its target amount; otherwise it farms whichever material you have the least of. Options include:
+Farm materials: with "Depot maintain" enabled it tops up each material to its target amount; otherwise it farms whichever material you have the least of (insight stages excluded). Options include:
 
 - **Depot maintain**: master switch (off by default); the two settings below appear only when enabled
     - **Participating materials**: tick the materials to top up and fill in each one's target amount and candy uses
