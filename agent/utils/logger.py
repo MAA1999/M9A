@@ -59,7 +59,7 @@ def _resolve_console_stream():
 
 def _resolve_console_format() -> str:
     if _is_mfaa_client():
-        return "{extra[level_short]}:{message}"
+        return "{extra[mfaa_message]}"
     if _is_mxu_client():
         return "{extra[mxu_html_message]}"
     return "{extra[level_color]}{message}{extra[color_reset]}"
@@ -90,13 +90,20 @@ def _format_mxu_html_message(level_name: str, message: str) -> str:
     return "\n".join(wrapped)
 
 
+# MFAAvalonia 逐行解析 agent 输出，只认带 level 前缀的行，没有前缀的行会被它丢进自己的内部
+# 日志、不进任务面板。多行消息因此必须逐行补前缀，否则第二行起在 GUI 里看不到。
+def _format_mfaa_message(level_name: str, message: str) -> str:
+    short = _short_level_name(level_name)
+    return "\n".join(f"{short}:{line}" for line in message.split("\n"))
+
+
 def _enrich_record(record: Any) -> bool:
     level_name = record["level"].name
     level_color = _ansi_level_color(level_name)
 
-    record["extra"]["level_short"] = _short_level_name(level_name)
     record["extra"]["level_color"] = level_color
     record["extra"]["color_reset"] = "\033[0m" if level_color else ""
+    record["extra"]["mfaa_message"] = _format_mfaa_message(level_name, str(record["message"]))
     record["extra"]["mxu_html_message"] = _format_mxu_html_message(level_name, str(record["message"]))
     return True
 
@@ -119,7 +126,7 @@ class _ConsoleFormatter(logging.Formatter):
         message = record.getMessage()
 
         if _is_mfaa_client():
-            return f"{_short_level_name(level_name)}:{message}"
+            return _format_mfaa_message(level_name, message)
         if _is_mxu_client():
             return _format_mxu_html_message(level_name, message)
 
