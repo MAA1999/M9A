@@ -34,10 +34,10 @@ class FamilySpec:
     entry_node: str
     label: str
     templates: tuple[str, ...] = ()
-    # 旧「均衡取最少」流程（`BalancedFarmingAnalyze`）是否刷取该族 —— 这是**产品策略**，
-    # 不是族的固有性质。洞悉本单局体力消耗高，只在「库存保持」里按逐材料目标刷，故显式置 False；
-    # 新增关卡族时请一并确认这一项（默认 True = 旧流程也会刷）。
-    legacy: bool = True
+    # 该关卡族是否参与旧「均衡取最少」流程（`BalancedFarmingAnalyze`）—— 这是**产品策略**，
+    # 不是族的固有性质。**默认 False：新增关卡族必须显式置 True 才会被旧流程刷取**，
+    # 免得将来出现「体力贵但不是洞悉本」的族被默默纳入均衡（洞悉本正因此天然被排除）。
+    legacy: bool = False
 
 
 # 资源关卡族：族代码 → 关卡入口节点与识别模板（templates 为空表示该族用 OCR 识别章节标签）。
@@ -45,10 +45,10 @@ class FamilySpec:
 STAGE_FAMILIES: Mapping[str, FamilySpec] = {
     "LP": FamilySpec("ResourceChapter_LP", "尘埃运动", ("Combat/ResourceChapter_LPEnter.png",)),
     "MA": FamilySpec("ResourceChapter_MA", "铸币美学"),
-    "ME": FamilySpec("ResourceChapter_ME", "群山之声", ("Combat/Insight/MEEnter.png",), legacy=False),
-    "SL": FamilySpec("ResourceChapter_SL", "星陨之所", ("Combat/Insight/SLEnter.png",), legacy=False),
-    "SS": FamilySpec("ResourceChapter_SS", "深林之形", ("Combat/Insight/SSEnter.png",), legacy=False),
-    "BW": FamilySpec("ResourceChapter_BW", "荒兽之野", ("Combat/Insight/BWEnter.png",), legacy=False),
+    "ME": FamilySpec("ResourceChapter_ME", "群山之声", ("Combat/Insight/MEEnter.png",)),
+    "SL": FamilySpec("ResourceChapter_SL", "星陨之所", ("Combat/Insight/SLEnter.png",)),
+    "SS": FamilySpec("ResourceChapter_SS", "深林之形", ("Combat/Insight/SSEnter.png",)),
+    "BW": FamilySpec("ResourceChapter_BW", "荒兽之野", ("Combat/Insight/BWEnter.png",)),
     "Psychube": FamilySpec("ResourceChapter_Psychube", "意志解析", ("Psychube/FreePsychubeStages.png",)),
 }
 

@@ -4,7 +4,7 @@ import numpy as np
 from maa.define import BoxAndScoreResult, OCRResult, RecognitionDetail, Rect
 
 from agent.custom.action.balanced_farming import BalancedFarmingAnalyze, balanced_candidates
-from agent.utils.material_catalog import build_catalog, load_catalog, parse_stage_code
+from agent.utils.material_catalog import FamilySpec, build_catalog, load_catalog, parse_stage_code
 
 
 def _icon_detail(box: tuple[int, int, int, int] | None) -> RecognitionDetail:
@@ -83,11 +83,19 @@ def test_balanced_candidates_skips_character_and_insight() -> None:
 
 
 def test_stage_family_legacy_flag() -> None:
-    """只有洞悉本族（ME/SL/SS/BW）标了 `legacy=False`，主线与其他族仍参与旧流程。"""
-    for code in ("ME-02", "SL-04", "SS-06", "BW-04"):
+    """资源关卡族默认不参与旧流程；主线（没有 family）恒参与。"""
+    for code in ("ME-02", "SL-04", "SS-06", "BW-04", "MA-06", "LP-06", "Psychube-01"):
         assert not parse_stage_code(code).is_legacy_farmable, code
-    for code in ("7-26", "MA-06", "LP-06", "Psychube-01"):
-        assert parse_stage_code(code).is_legacy_farmable, code
+    assert parse_stage_code("7-26").is_legacy_farmable
+
+
+def test_new_family_defaults_to_not_legacy_farmable() -> None:
+    """新增关卡族默认 `legacy=False` —— 必须显式置 True 才会被旧流程刷取。
+
+    这样将来出现「体力贵但不是洞悉本」的族时，不会被默默纳入均衡；洞悉本正因此天然被排除。
+    """
+    assert not FamilySpec("ResourceChapter_NEW", "新族").legacy
+    assert FamilySpec("ResourceChapter_NEW", "新族", legacy=True).legacy
 
 
 def test_balanced_candidates_resolves_name_from_items_json() -> None:

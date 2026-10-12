@@ -17,8 +17,11 @@ def balanced_candidates(catalog: Mapping[str, MaterialEntry]) -> dict[str, Mater
 
     两类排除：
     - 货币类材料（source=character）不在仓库页，扫不到；
-    - 标了 `legacy=False` 的关卡族（当前是洞悉本 ME/SL/SS/BW）单局体力消耗高，只在
-      「库存保持」里按逐材料目标刷取；不排除的话「谁最少刷谁」会一直往洞悉本上撞。
+    - **关卡族默认不参与**（`FamilySpec.legacy` 默认 False，必须显式置 True 才进候选）——
+      洞悉本（ME/SL/SS/BW）等资源关卡族因此被整体跳过，它们只在「库存保持」里按逐材料目标刷；
+      不排除的话「谁最少刷谁」会一直往洞悉本上撞。
+
+    当前候选只剩主线材料（主线没有 family，恒参与）。
 
     入参必须是 `load_catalog()` 的产物而不是原始 JSON —— 目录里的仓库材料已经不写 `name`
     （显示名的单一来源是 items.json），只有经过目录构建才拿得到名称。
