@@ -138,6 +138,8 @@ jobs:
           path: Android/MaaFwApp/.maafw
           key: maa-agent-core-${{ runner.os }}-${{ env.CACHE_SCOPE }}-${{ steps.maafw.outputs.core_tag }}-${{ hashFiles('Android/MaaFwApp/scripts/build_agent_bundle.py') }}
 
+      # debug 只铺 arm64（build.debugAbi），release 的 universal 包两个 ABI 都要；
+      # setup 脚本一次只下载 --abi 指定的那份 zip，别为用不上的架构多下一次
       - name: Download and deploy MaaFramework
         working-directory: Android/MaaFwApp
         env:
@@ -148,8 +150,11 @@ jobs:
           if [ -n "$MAAFW_TAG" ] && [ "$MAAFW_TAG" != "latest" ]; then
             TAG_ARG="--tag $MAAFW_TAG"
           fi
-          python scripts/setup_maa_framework.py --abi arm64-v8a $TAG_ARG
-          python scripts/setup_maa_framework.py --abi x86_64 $TAG_ARG
+          ABIS="arm64-v8a"
+          if [ "$ASSEMBLE" = "release" ]; then ABIS="arm64-v8a x86_64"; fi
+          for abi in $ABIS; do
+            python scripts/setup_maa_framework.py --abi "$abi" $TAG_ARG
+          done
 
       # Android 的 drop_core 走私有 release（与桌面同一批资产，模块名带 ABI 后缀）。
       # 没有 token（fork PR）就跳过：agent 侧本来就会退回结算页自读
@@ -207,11 +212,27 @@ jobs:
             fi
           } > local.properties
 
+      # 缺 KEYSTORE_BASE64 时别再往构建里塞一个 0 字节 jks：外壳只在 KEYSTORE_PATH 非空时
+      # 才配签名（AndroidApplicationConventionPlugin），路径留空即出未签名包，比一路拖到
+      # apksigner 才炸清楚。tag 发版例外——未签名 APK 装不上、也进不了应用内更新，
+      # 正式发版缺签名材料就该当场失败
       - name: Decode keystore
+        id: keystore
         if: env.ASSEMBLE == 'release'
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        run: echo "$KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/release.jks
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+              echo "::error::tag（${GITHUB_REF_NAME}）缺 KEYSTORE_BASE64：未签名 APK 装不上也进不了应用内更新"
+              exit 1
+            fi
+            echo "::warning::未配置 KEYSTORE_BASE64，release 包不签名（工件仍可下载，只是不能上线）"
+            exit 0
+          fi
+          JKS="${{ github.workspace }}/release.jks"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$JKS"
+          echo "path=$JKS" >> "$GITHUB_OUTPUT"
 
       - name: Build Debug APK
         if: env.ASSEMBLE != 'release'
@@ -224,7 +245,7 @@ jobs:
         if: env.ASSEMBLE == 'release'
         working-directory: Android/MaaFwApp
         env:
-          KEYSTORE_PATH: ${{ github.workspace }}/release.jks
+          KEYSTORE_PATH: ${{ steps.keystore.outputs.path }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -233,6 +254,7 @@ jobs:
           ./gradlew clean assembleRelease
 
       - name: Rename Release APK
+        id: rename
         if: env.ASSEMBLE == 'release'
         env:
           LABEL: universal
@@ -249,6 +271,31 @@ jobs:
           # universal 包不能被误认成单 ABI 包：应用内更新按 asset 名选包
           # （GitHubUpdate.selectAsset），带 ABI 标记就会绕过 universal 回退
           mv ./*.apk "${{ steps.maafw.outputs.artifact_prefix }}-android-${LABEL}-${TAG}.apk"
+          # 落成 step 输出：下面的自检要拼出同一个文件名，而 / 已被换成 -
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      # 少铺一个 .so 不会让打包失败，要到设备上才发现起不来。外壳声明"缺了这些库 native 侧
+      # 起不来"的三个库无条件校验；libMaaAgentServer.so 是 agent 子进程 dlopen 的，agent
+      # 项目必带。universal 包按它宣称的两个 ABI 逐个查
+      - name: Check APK native libraries
+        if: env.ASSEMBLE == 'release'
+        env:
+          APK: Android/MaaFwApp/app/build/outputs/apk/release/${{ steps.maafw.outputs.artifact_prefix }}-android-universal-${{ steps.rename.outputs.tag }}.apk
+        run: |
+          LIBS="libMaaFramework.so libMaaUtils.so libMaaAndroidNativeControlUnit.so"
+          if [ "${{ steps.maafw.outputs.has_agent }}" = "true" ]; then
+            LIBS="$LIBS libMaaAgentServer.so"
+          fi
+          listing=$(unzip -l "$APK")
+          for abi in arm64-v8a x86_64; do
+            for lib in $LIBS; do
+              if ! printf '%s\n' "$listing" | grep -q "lib/$abi/$lib"; then
+                echo "::error::$APK 缺少 lib/$abi/$lib"
+                exit 1
+              fi
+            done
+          done
+          echo "[OK] native 自检通过：$APK"
 
       - name: Upload Debug APK
         if: env.ASSEMBLE != 'release'
@@ -402,15 +449,28 @@ jobs:
             echo "build.releaseAbi=${ABI}"
           } > local.properties
 
+      # 同 build job：缺 KEYSTORE_BASE64 时让 KEYSTORE_PATH 留空出未签名包，tag 上仍然失败
       - name: Decode keystore
+        id: keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        run: echo "$KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/release.jks
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+              echo "::error::tag（${GITHUB_REF_NAME}）缺 KEYSTORE_BASE64：未签名 APK 装不上也进不了应用内更新"
+              exit 1
+            fi
+            echo "::warning::未配置 KEYSTORE_BASE64，release 包不签名（工件仍可下载，只是不能上线）"
+            exit 0
+          fi
+          JKS="${{ github.workspace }}/release.jks"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$JKS"
+          echo "path=$JKS" >> "$GITHUB_OUTPUT"
 
       - name: Build Release APK
         working-directory: Android/MaaFwApp
         env:
-          KEYSTORE_PATH: ${{ github.workspace }}/release.jks
+          KEYSTORE_PATH: ${{ steps.keystore.outputs.path }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -419,6 +479,7 @@ jobs:
           ./gradlew clean assembleRelease
 
       - name: Rename Release APK
+        id: rename
         run: |
           cd Android/MaaFwApp/app/build/outputs/apk/release
           TAG="${GITHUB_REF_NAME:-dev}"
@@ -431,6 +492,26 @@ jobs:
           # 命名与桌面资产同段序：prefix-平台-架构-tag
           # 单 ABI 包必须带本机 ABI 标记，应用内更新才会优先选它
           mv ./*.apk "${{ steps.maafw.outputs.artifact_prefix }}-android-${ABI}-${TAG}.apk"
+          # 落成 step 输出：下面的自检要拼出同一个文件名，而 / 已被换成 -
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      # 同 build job：这里只有本机 ABI，就只查这一个架构
+      - name: Check APK native libraries
+        env:
+          APK: Android/MaaFwApp/app/build/outputs/apk/release/${{ steps.maafw.outputs.artifact_prefix }}-android-${{ matrix.abi }}-${{ steps.rename.outputs.tag }}.apk
+        run: |
+          LIBS="libMaaFramework.so libMaaUtils.so libMaaAndroidNativeControlUnit.so"
+          if [ "${{ steps.maafw.outputs.has_agent }}" = "true" ]; then
+            LIBS="$LIBS libMaaAgentServer.so"
+          fi
+          listing=$(unzip -l "$APK")
+          for lib in $LIBS; do
+            if ! printf '%s\n' "$listing" | grep -q "lib/$ABI/$lib"; then
+              echo "::error::$APK 缺少 lib/$ABI/$lib"
+              exit 1
+            fi
+          done
+          echo "[OK] native 自检通过：$APK"
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v7
