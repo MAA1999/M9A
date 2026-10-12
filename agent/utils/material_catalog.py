@@ -8,7 +8,8 @@
   货币）才需要在本目录写 `name`。不在仓库页的材料写 "source": "character"，
   改从角色升级页读取，不需要仓库图标。
 - 新增关卡族：先按 combat pipeline 既有结构补 ResourceChapter_<族> 入口节点与识别模板，
-  再登记到本模块 STAGE_FAMILIES。
+  再登记到本模块 STAGE_FAMILIES。资源关卡族默认 `legacy=False`，**不参与旧「均衡取最少」
+  流程**（洞悉本正因此天然被排除）；要让新族进旧流程，登记时显式写 `legacy=True`。
 
 维护清单见 docs/zh_cn/develop/depot-catalog.md；tests/test_depot_maintain.py 会核对本目录
 登记的材料图标、章节模板与入口节点是否齐全。

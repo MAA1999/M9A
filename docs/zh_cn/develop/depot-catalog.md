@@ -95,7 +95,7 @@ icon: material-symbols:inventory-2-outline-rounded
 ## 新增一个关卡族
 
 1. 在 `resource/base/pipeline/combat.json` 仿照现有族补入口节点：`ResourceChapter_<族>` → `ResourceChapter_<族>Enter`，识别该族的章节标签（模板或 OCR）
-2. 在 `agent/utils/material_catalog.py` 的 `STAGE_FAMILIES` 登记：族代码 → 入口节点 / 显示名 / 识别模板
+2. 在 `agent/utils/material_catalog.py` 的 `STAGE_FAMILIES` 登记：族代码 → 入口节点 / 显示名 / 识别模板。资源关卡族默认 `legacy=False`、不参与旧「均衡取最少」流程；若该族要进旧流程，显式写 `legacy=True`
 3. 同上跑 `-k shipped` 校验
 
 `SelectCombatStage` 会把「族-关卡」拆成族代码与关卡序号（序号补零到两位）后交给对应 Enter 节点，因此 Python 侧不需要为新族写代码。

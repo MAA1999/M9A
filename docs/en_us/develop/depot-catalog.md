@@ -95,7 +95,7 @@ The four insight families drop per difficulty tier (checked 2026-10-07):
 ## Adding a stage family
 
 1. Add the entry nodes to `resource/base/pipeline/combat.json` following the existing families: `ResourceChapter_<family>` → `ResourceChapter_<family>Enter`, recognizing the chapter label of that family (template or OCR)
-2. Register the family in `STAGE_FAMILIES` in `agent/utils/material_catalog.py`: family code → entry node / display name / recognition templates
+2. Register the family in `STAGE_FAMILIES` in `agent/utils/material_catalog.py`: family code → entry node / display name / recognition templates. Resource families default to `legacy=False` and stay out of the old "farm the least" flow; write `legacy=True` explicitly if the family should join it
 3. Run the same `-k shipped` validation
 
 `SelectCombatStage` splits `family-stage` into the family code and the stage number (zero-padded to two digits) and hands it to the matching Enter node, so no Python code is needed for a new family.
