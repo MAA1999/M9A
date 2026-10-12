@@ -1,7 +1,8 @@
 name: Build Android APK
 
 # 可复用的 Android 出包流水线：
-# - android.yml 在 push / PR / 手动触发时调用，出 debug 包（手动也可选 release，只出签名工件）
+# - android.yml 在 push / PR / 手动触发时调用，出 debug 包（手动也可选 release，
+#   出 APK 工件、不发布；缺 KEYSTORE_BASE64 时为未签名包）
 # - release.yml 在 v* tag 上调用，出正式三包（universal + 双 ABI 单包）
 # Release 创建与 Mirror酱 上传不在这里发生：统一由 release.yml 等所有产物就绪后收口，
 # 保证 Release 页面不会出现"桌面包已就位、APK 还在构建"的窗口期。
@@ -286,10 +287,12 @@ jobs:
           if [ "${{ steps.maafw.outputs.has_agent }}" = "true" ]; then
             LIBS="$LIBS libMaaAgentServer.so"
           fi
-          listing=$(unzip -l "$APK")
+          # unzip -Z1 只列条目名，grep -Fx 整行全名匹配：不受 . 当通配符 / 子串命中的影响，
+          # 也不走管道——本仓其他脚本有 set -euo pipefail 的习惯，管道会让 grep 提前退出时误报缺库
+          entries=$(unzip -Z1 "$APK")
           for abi in arm64-v8a x86_64; do
             for lib in $LIBS; do
-              if ! printf '%s\n' "$listing" | grep -q "lib/$abi/$lib"; then
+              if ! grep -Fxq "lib/$abi/$lib" <<< "$entries"; then
                 echo "::error::$APK 缺少 lib/$abi/$lib"
                 exit 1
               fi
@@ -504,9 +507,10 @@ jobs:
           if [ "${{ steps.maafw.outputs.has_agent }}" = "true" ]; then
             LIBS="$LIBS libMaaAgentServer.so"
           fi
-          listing=$(unzip -l "$APK")
+          # 同 build job：整行全名匹配、不走管道
+          entries=$(unzip -Z1 "$APK")
           for lib in $LIBS; do
-            if ! printf '%s\n' "$listing" | grep -q "lib/$ABI/$lib"; then
+            if ! grep -Fxq "lib/$ABI/$lib" <<< "$entries"; then
               echo "::error::$APK 缺少 lib/$ABI/$lib"
               exit 1
             fi

@@ -1,8 +1,9 @@
 name: Build Android APK
 
-# 日常 debug 出包：push / PR 自动触发，手动 dispatch 可选 release（只出签名 APK
-# 工件，不建 Release、不上传 Mirror酱）。正式发布统一由 release.yml 在 v* tag 上
-# 调 android-build.yml 出三包，并等桌面包就绪后一起建 Release、一起传 Mirror酱。
+# 日常 debug 出包：push / PR 自动触发，手动 dispatch 可选 release（出 APK 工件，
+# 不建 Release、不上传 Mirror酱；缺 KEYSTORE_BASE64 时为未签名包）。正式发布统一
+# 由 release.yml 在 v* tag 上调 android-build.yml 出三包，并等桌面包就绪后一起
+# 建 Release、一起传 Mirror酱。
 
 on:
   push:
@@ -18,6 +19,7 @@ on:
       - "requirements.txt"
       - "interface.json"
       - "maa-project.json"
+      - "MaaCommonAssets"
       - "logo.ico"
       - "CONTACT"
       - "LICENSE"
@@ -37,6 +39,7 @@ on:
       - "requirements.txt"
       - "interface.json"
       - "maa-project.json"
+      - "MaaCommonAssets"
       - "logo.ico"
       - "CONTACT"
       - "LICENSE"
@@ -47,7 +50,7 @@ on:
   workflow_dispatch:
     inputs:
       assemble:
-        description: "debug 或 release（release 仅出签名工件，不发布）"
+        description: "debug 或 release（release 出 APK 工件、不发布；缺 KEYSTORE_BASE64 时为未签名包）"
         type: choice
         options:
           - debug
