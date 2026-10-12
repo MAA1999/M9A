@@ -9,7 +9,7 @@ icon: material-symbols:inventory-2-outline-rounded
 
 ## 数据流
 
-1. `data/combat/balanced_farming.json` —— 材料目录：材料 id → 关卡 / 难度（可选每局掉落量 / 读数来源）；显示名默认取自 `data/combat/items.json`，只有不在表里的材料（货币）才在本目录写 `name`。同一份目录也被原有「智能均衡刷材料」（`BalancedFarmingAnalyze`）读取：它只扫仓库，会跳过 `source: "character"` 的条目与**洞悉本材料**（`ME`/`SL`/`SS`/`BW`，见 `FamilySpec.insight`）——后者单局体力消耗高，只在「库存保持」里按逐材料目标刷取
+1. `data/combat/balanced_farming.json` —— 材料目录：材料 id → 关卡 / 难度（可选每局掉落量 / 读数来源）；显示名默认取自 `data/combat/items.json`，只有不在表里的材料（货币）才在本目录写 `name`。同一份目录也被原有「智能均衡刷材料」（`BalancedFarmingAnalyze`）读取：它只扫仓库，会跳过 `source: "character"` 的条目与**洞悉本材料**（`ME`/`SL`/`SS`/`BW`，在 `STAGE_FAMILIES` 里标为 `legacy=False`）——后者单局体力消耗高，只在「库存保持」里按逐材料目标刷取
 2. 目标库存 —— GUI「库存保持」总开关 + 每件材料一个开关，开关自己的「目标数量 / 吃糖次数」（唯一入口，没有配置文件）
 3. `config/warehouse_inventory.json` —— 材料快照：仓库材料由 `WarehouseInventory`（仓库材料识别）落盘，微尘/利齿子儿由 `DepotCurrencyInspect`（角色升级页读数）合并
 4. `DepotMaintainPlan`（pipeline 节点 `BF_Plan`）读上述三者，挑缺口最大的材料，覆盖 `SelectCombatStage`、`AllIn`、本轮吃糖与上报设置后进入战斗
@@ -77,7 +77,7 @@ icon: material-symbols:inventory-2-outline-rounded
 | 木娑典（`SS`，深林之形） | 残篇 | 孤卷 | 全章 |
 | 兽涎典（`BW`，荒兽之野） | 残篇 | 孤卷 | 全章 |
 
-- **不参与旧「均衡取最少」流程**：这四族在 `STAGE_FAMILIES` 里标记为 `insight=True`，`BalancedFarmingAnalyze` 选材时会整体跳过（否则「谁最少刷谁」会一直往体力消耗更高的洞悉本上撞）；它们只在「库存保持」里按逐材料目标刷取。
+- **不参与旧「均衡取最少」流程**：这四族在 `STAGE_FAMILIES` 里标记为 `legacy=False`，`BalancedFarmingAnalyze` 选材时会整体跳过（否则「谁最少刷谁」会一直往体力消耗更高的洞悉本上撞）；它们只在「库存保持」里按逐材料目标刷取。
 - 关卡代码写作 `ME-02` / `SS-04` / `BW-06` 这样，`level` 用 `None`；这与 `tasks/Combat.json` 的「作战关卡(岩/星/木/兽)」选项完全一致（它们同样用 `ME-02` + `TargetStageName_OCR.expected: ["02"]`），导航复用既有资源关卡流程，无需新代码。
 - 掉落量按**难度奇偶**分档：**偶数档（02/04/06）每局 2 个，奇数档（01/03/05）每局 1 个**；奇数档虽然体力消耗略低，但只有 1 个，性价比不如偶数档 —— 所以目录一律只写偶数档、`per_run` 一律写 2 —— 即使掉落模板缺失，`ceil(缺口 / 2)` 的估算也是精确的。给奇数档建条目时才写 `per_run: 1`（且通常没必要建）。
 - 目录固定用最高档（全章 = 06）；账号尚未解锁该档时关卡导航会失败，这是面向终局账号的取舍。

@@ -12,13 +12,13 @@ from utils.maa_types import best_box, ocr_text
 from utils.material_catalog import SOURCE_WAREHOUSE, CatalogError, MaterialEntry, load_catalog
 
 
-def warehouse_materials(catalog: Mapping[str, MaterialEntry]) -> dict[str, MaterialEntry]:
-    """只保留旧「均衡取最少」流程要参与均衡的材料。
+def balanced_candidates(catalog: Mapping[str, MaterialEntry]) -> dict[str, MaterialEntry]:
+    """旧「均衡取最少」流程（`BalancedFarmingAnalyze`）的候选材料。
 
     两类排除：
     - 货币类材料（source=character）不在仓库页，扫不到；
-    - **洞悉本材料**（stage.is_insight，ME/SL/SS/BW）单局体力消耗高，只在「库存保持」里按
-      逐材料目标刷取；不开库存保持时不参与均衡，否则「谁最少刷谁」会一直往洞悉本上撞。
+    - 标了 `legacy=False` 的关卡族（当前是洞悉本 ME/SL/SS/BW）单局体力消耗高，只在
+      「库存保持」里按逐材料目标刷取；不排除的话「谁最少刷谁」会一直往洞悉本上撞。
 
     入参必须是 `load_catalog()` 的产物而不是原始 JSON —— 目录里的仓库材料已经不写 `name`
     （显示名的单一来源是 items.json），只有经过目录构建才拿得到名称。
@@ -26,7 +26,7 @@ def warehouse_materials(catalog: Mapping[str, MaterialEntry]) -> dict[str, Mater
     return {
         item_id: entry
         for item_id, entry in catalog.items()
-        if entry.source == SOURCE_WAREHOUSE and not entry.stage.is_insight
+        if entry.source == SOURCE_WAREHOUSE and entry.stage.is_legacy_farmable
     }
 
 
@@ -54,10 +54,15 @@ class BalancedFarmingAnalyze(CustomAction):
         except CatalogError as e:
             logger.error(f"读取材料映射表失败: {self._DATA_PATH}, {e}")
             return CustomAction.RunResult(success=False)
-        materials = warehouse_materials(catalog)
-        insight = [e.name for e in catalog.values() if e.source == SOURCE_WAREHOUSE and e.stage.is_insight]
-        if insight:
-            logger.info(f"均衡刷取不包含洞悉本材料（{len(insight)} 种）: {'、'.join(insight)}")
+        materials = balanced_candidates(catalog)
+        # 被排除的材料由同一份策略推导，日志与实际过滤结果不会脱节
+        skipped = [
+            entry.name
+            for item_id, entry in catalog.items()
+            if entry.source == SOURCE_WAREHOUSE and item_id not in materials
+        ]
+        if skipped:
+            logger.info(f"均衡刷取不包含以下材料（请在「库存保持」里按目标刷取）: {'、'.join(skipped)}")
         if not materials:
             logger.error(f"材料映射表里没有可均衡刷取的材料: {self._DATA_PATH}")
             return CustomAction.RunResult(success=False)

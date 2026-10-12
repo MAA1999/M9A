@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import numpy as np
 from maa.define import BoxAndScoreResult, OCRResult, RecognitionDetail, Rect
 
-from agent.custom.action.balanced_farming import BalancedFarmingAnalyze, warehouse_materials
+from agent.custom.action.balanced_farming import BalancedFarmingAnalyze, balanced_candidates
 from agent.utils.material_catalog import build_catalog, load_catalog, parse_stage_code
 
 
@@ -63,12 +63,11 @@ def _analyze() -> BalancedFarmingAnalyze:
     return BalancedFarmingAnalyze.__new__(BalancedFarmingAnalyze)
 
 
-def test_warehouse_materials_skips_character_and_insight() -> None:
+def test_balanced_candidates_skips_character_and_insight() -> None:
     """旧「均衡取最少」不参与均衡的两类材料。
 
     货币（source=character）不在仓库页、扫不到；洞悉本（ME/SL/SS/BW）单局体力消耗高，
-    只在「库存保持」里按逐材料目标刷 —— 不开库存保持时参与均衡的话，「谁最少刷谁」会一直往
-    洞悉本上撞。
+    只在「库存保持」里按逐材料目标刷 —— 不排除的话，「谁最少刷谁」会一直往洞悉本上撞。
     """
     raw = {
         "110103": {"name": "啮咬盒", "stage": "7-26", "level": "Hard"},
@@ -78,25 +77,25 @@ def test_warehouse_materials_skips_character_and_insight() -> None:
         "203": {"name": "利齿子儿", "stage": "MA-06", "level": "None", "source": "character"},
     }
     catalog = build_catalog(raw, source="unit-test")
-    assert set(warehouse_materials(catalog)) == {"110103"}
+    assert set(balanced_candidates(catalog)) == {"110103"}
 
-    assert warehouse_materials({}) == {}
+    assert balanced_candidates({}) == {}
 
 
-def test_stage_family_insight_flag() -> None:
-    """洞悉本关卡族（ME/SL/SS/BW）标记为 insight，主线与其他族不是。"""
+def test_stage_family_legacy_flag() -> None:
+    """只有洞悉本族（ME/SL/SS/BW）标了 `legacy=False`，主线与其他族仍参与旧流程。"""
     for code in ("ME-02", "SL-04", "SS-06", "BW-04"):
-        assert parse_stage_code(code).is_insight, code
+        assert not parse_stage_code(code).is_legacy_farmable, code
     for code in ("7-26", "MA-06", "LP-06", "Psychube-01"):
-        assert not parse_stage_code(code).is_insight, code
+        assert parse_stage_code(code).is_legacy_farmable, code
 
 
-def test_warehouse_materials_resolves_name_from_items_json() -> None:
+def test_balanced_candidates_resolves_name_from_items_json() -> None:
     """目录不写 name 时名称回退到 items.json —— 旧流程靠这一条拿到显示名。"""
     raw = {"110103": {"stage": "7-26", "level": "Hard"}}
     catalog = build_catalog(raw, source="unit-test", names={"110103": "啮咬盒"})
 
-    entry = warehouse_materials(catalog)["110103"]
+    entry = balanced_candidates(catalog)["110103"]
     assert (entry.name, entry.stage.code, entry.level) == ("啮咬盒", "7-26", "Hard")
 
 
@@ -107,7 +106,7 @@ def test_shipped_catalog_has_resolvable_names() -> None:
     若绕过 `load_catalog()` 直接读原始 JSON，就会在第一次取 `name` 时 KeyError ——
     而它是「库存保持」总开关关闭时的默认路径，没开新功能的用户全都会中招。
     """
-    materials = warehouse_materials(load_catalog())
+    materials = balanced_candidates(load_catalog())
 
     assert materials, "随仓库发布的目录里不应没有仓库材料"
     for item_id, entry in materials.items():
@@ -117,7 +116,7 @@ def test_shipped_catalog_has_resolvable_names() -> None:
     assert "203" not in materials
     assert "205" not in materials
     # 洞悉本（ME/SL/SS/BW）只在「库存保持」里按逐材料目标刷，旧流程必须排除掉
-    assert not [item_id for item_id, entry in materials.items() if entry.stage.is_insight]
+    assert not [item_id for item_id, entry in materials.items() if not entry.stage.is_legacy_farmable]
 
 
 def test_count_roi_is_middle_half_anchored_to_icon_bottom() -> None:
