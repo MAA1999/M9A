@@ -4,8 +4,8 @@
 
 Please keep the change focused and fill in the sections that apply.
 
-> fork 提交的 PR 不会被 Bot 自动审查 —— `pull_request` 在 fork 上拿不到 secret，agent 连不上模型。需要审查时在评论里 `@M9ABot`。
-> Fork PRs are not reviewed automatically: `pull_request` runs from a fork do not receive repository secrets, so the agent cannot reach the model. To request a review, comment `@M9ABot`.
+> fork 提交的 PR 会被自动审查：开 PR 时、以及转为正式时各跑一轮，之后新推的提交不会自动审 —— 需要在某个修订上再审时，在评论里 `@M9ABot`（它收到后会先在那条评论上点一个 👀）。
+> Fork PRs are reviewed automatically when opened and once more when marked ready for review; later pushes are not reviewed automatically. To review a specific revision, comment `@M9ABot` (it reacts with 👀 on that comment first).
 
 ## 关联 Issue / Related Issue
 
