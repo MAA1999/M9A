@@ -41,6 +41,10 @@
             "maatutorial": {
                 "type": "skills-cli",
                 "repo": "https://github.com/Windsland52/MaaTutorial"
+            },
+            "maallmwiki": {
+                "type": "skills-cli",
+                "repo": "https://github.com/Windsland52/MaaLLMWiki"
             }
         },
         "list": [
@@ -67,6 +71,10 @@
             {
                 "name": "maafw-debug",
                 "source": "maatutorial"
+            },
+            {
+                "name": "maallmwiki",
+                "source": "maallmwiki"
             },
             {
                 "name": "maafw-live",
