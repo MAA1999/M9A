@@ -1,0 +1,401 @@
+{
+    // 光影栖身处 · 刮卡（活动页左侧的格子板）
+    //
+    // 入口链路（实测）：首页顶排最右的活动入口（竖琴+音符图标）→ 活动枢纽页「三干零一声」
+    //      → 枢纽页底部中间「光影栖身处」卡片 → 活动页右侧任务列表里可领的「领取」→ 刮卡。
+    // 「领取」领到的是「折射下的具象」，它**就是**底部计数条上的「可折射次数」
+    // （实测：领奖前 ×0，领奖后 ×3）——所以进活动页先领奖，才有格子可翻。
+    //
+    // 三段导航写成**线性链**：每个点击节点只把「目标界面的锚点」放进自己的 next。
+    // 点完的节点不再是候选，结构上就不可能「页面还没切完又点一次」；页面切换的等待由本节点的
+    // timeout（缺省 20s；实测切换后 2.06~3.04s 出现目标界面）承担，**不需要 post_delay，也不需要 post_wait_freezes**。
+    // 起跑位置不限：入口按 next 顺序三选一识别，已在活动页就直接去领奖。
+    //
+    // 一轮刮卡的链路：AOI_FlipRound（扫出未开格、随机挑一个点它）
+    //      → AOI_ObtainedAwards（识别翻牌后弹出的「获得物品」全屏页，识别到就点掉）
+    //      → 回到 AOI_FlipRound 接着翻下一格
+    // 另有两条兜底出口：误点已翻开的格子会弹详情面板，由 AOI_PanelCloseItem /
+    // AOI_PanelCloseCollection 各关一种（详见这两个节点的注释）。
+    // **棋盘有两幕布**：本页翻完而计数条还有次数时，由自定义动作 override_next 到 AOI_PageSwitch
+    // 去点棋盘边上的「>」翻到另一幕布接着翻（详见那一组的注释）。
+    // 等不到「获得物品」也没弹面板，就是「可折射次数已用完」，由 AOI_FlipRound 的 on_error 收尾。
+    // 领奖同理是线性环：AOI_OnActivityPage → AOI_ClaimDaily → AOI_ClaimPopup → 回到 AOI_OnActivityPage；
+    // 出口是「识别不到领取按钮」（识别门控），另配 max_hit 限次兜底。
+    //
+    // 失败路径：入口链路任一环节等不到目标界面 → AOI_Failed；异常态下 on_error 链走空即**任务失败**，
+    // 不会被兜成一次假成功。
+    "ArtOfIllumination": {
+        "desc": "光影栖身处刮卡（入口：首页 → 活动枢纽 → 光影栖身处 → 领奖 → 刮卡）",
+        // 三选一按 next 顺序识别：在首页点活动入口、在枢纽页点「光影栖身处」卡片、已在活动页直接去领奖。
+        // 三条都不命中（停在别的界面，例如仓库/银行/别的活动页）时，由最后一条 [JumpBack]ReturnMain
+        // 兜底回主界面；回跳后重新按顺序识别 → 命中首页那条，接上导航。
+        // ReturnMain 自带 max_hit: 2、且到达主界面后会用 DisableNode 关掉自己，
+        // 所以这条兜底有限、不会变成自回环（M9A 的 AP_NavLoop 也是这么用的）。
+        "next": [
+            "AOI_NavHomeEntry",
+            "AOI_NavActivityEntry",
+            "AOI_OnActivityPage",
+            "[JumpBack]ReturnMain"
+        ]
+    },
+    "AOI_NavHomeEntry": {
+        "desc": "首页顶排最右的活动入口（竖琴+音符图标）→ 活动枢纽页",
+        // 模板只含图标线稿，**刻意避开右上角那个红点角标**（角标是「有新内容」提示、会消失；
+        // 避开后角标在不在都能命中）。实测：首页两帧均命中，枢纽页最高置信度 0.13、活动页 0.237。
+        // roi 右边界必须 ≥ 630：模板在全帧上的落点是 x=604..630，宽 130 时右边界 629
+        // **差 1 像素**装不下，分数直接塌到 0（不是 0.56 那种「差一点」，是完全不命中）。
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    500,
+                    10,
+                    140,
+                    110
+                ],
+                "template": [
+                    "ArtOfIllumination/NavHomeHubIcon.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AOI_NavActivityEntry"
+        ],
+        "on_error": [
+            "AOI_Failed"
+        ]
+    },
+    "AOI_NavActivityEntry": {
+        "desc": "活动枢纽页底部中间的「光影栖身处」卡片 → 活动页",
+        // OCR 把游戏里的「光影栖身处」读成「光影栖息处」（身→息），所以 expected 只取前三个字。
+        // 实测：枢纽页 0.997 命中；活动页该 roi 内虽有 0.977 的其它文本但不含该串（不命中）；首页无文本（不命中）。
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    690,
+                    610,
+                    230,
+                    55
+                ],
+                "expected": "光影栖"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AOI_OnActivityPage"
+        ],
+        "on_error": [
+            "AOI_Failed"
+        ]
+    },
+    "AOI_OnActivityPage": {
+        "desc": "已在光影栖身处页面：先领掉右侧可领的奖励，没有可领的了就开始刮卡",
+        // 页面锚点取底部计数条左侧那截丝带（静态，帧间差 0.00）。实测：
+        //   活动页 score 1.0、「获得物品」全屏页不命中、道具详情面板 0.216
+        // —— 它同时就是「我还在活动页吗」的探针：页面一盖上来就识别不到。
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    330,
+                    645,
+                    300,
+                    70
+                ],
+                "template": [
+                    "ArtOfIllumination/FlagInScratchCard.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        // 出口二选一：有「领取」先领，没有就直接刮卡。AOI_ClaimDaily 的动作就是消掉自己的触发条件
+        // （领取按钮），识别不到即退出；AOI_FlipRound 的锚点与本节点相同，所以只要还在活动页就必有出口命中，
+        // 轮询不会空转到超时。
+        "next": [
+            "AOI_ClaimDaily",
+            "AOI_FlipRound"
+        ],
+        "on_error": [
+            "AOI_Failed"
+        ]
+    },
+    "AOI_ClaimDaily": {
+        "desc": "活动页右侧任务列表里可领的「领取」按钮（领到的是「折射下的具象」，即可折射次数）",
+        // 实测：未领帧命中、已领帧（按钮变 ✓ 或整行消失）不命中。
+        // max_hit 是兜底限次：正常靠「动作消掉自己的触发条件」退出，它防的是按钮点了不消失。
+        "max_hit": 5,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1050,
+                    250,
+                    230,
+                    115
+                ],
+                "expected": "领取"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        // 出口只等「获得物品」页：**不把 AOI_OnActivityPage 并列在这里**——领奖页实测要 ~0.7s 才浮上来，
+        // 这中间的空档会被当成「页已干净」而提前去刮卡。
+        // 点空了（页没浮上来）走 on_error 回调度节点重新判断，由 max_hit 封顶。
+        "timeout": 10000,
+        "next": [
+            "AOI_ClaimPopup"
+        ],
+        "on_error": [
+            "AOI_OnActivityPage"
+        ]
+    },
+    "AOI_ClaimPopup": {
+        "desc": "领奖后弹出的「获得物品」全屏页（显示「折射下的具象 ×N」）：识别到就点掉，然后回调度节点",
+        // 识别参数与 AOI_ObtainedAwards 相同。差异面：本节点由领奖环调用，next 回 AOI_OnActivityPage；
+        // AOI_ObtainedAwards 由刮卡环调用，next 回 AOI_FlipRound。
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    524,
+                    62,
+                    232,
+                    158
+                ],
+                "template": [
+                    "Awards/ObtainedAwards.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AOI_OnActivityPage"
+        ]
+    },
+    // 刮卡循环体：页面标识与 AOI_OnActivityPage 同源（详见它的注释）。
+    "AOI_FlipRound": {
+        "desc": "扫出未开格、随机点一个；每轮都显式重设本节点的 next（点击分支重设回下面三选一）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    330,
+                    645,
+                    300,
+                    70
+                ],
+                "template": [
+                    "ArtOfIllumination/FlagInScratchCard.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            // 判据、三层终止条件与计数条 ROI 的实测出处见
+            // agent/custom/action/art_of_illumination.py 的模块 docstring。
+            "type": "Custom",
+            "param": {
+                "custom_action": "ArtOfIlluminationScratch"
+            }
+        },
+        "timeout": 10000,
+        // 出口三选一：正常翻牌后弹「获得物品」页；万一点了已翻开的格子则弹详情面板
+        // （两种面板、两个 ✕ 位置）——两条路都各有自己的关闭节点，都有出口。
+        // **这一串在自定义动作里有一份副本（ROUND_NEXT）**：override_next 写的是持久补丁，翻页 /
+        // 收尾分支改过 next 之后不会自己还原，所以点击分支每轮都要把这份列表显式盖回去；
+        // 漏掉的话翻过一次页后就永久停在 AOI_PageSwitch，弹窗与面板的兜底全部失效。
+        "next": [
+            "AOI_ObtainedAwards",
+            "AOI_PanelCloseItem",
+            "AOI_PanelCloseCollection"
+        ],
+        "on_error": [
+            "AOI_ScratchCardDone"
+        ]
+    },
+    // 翻牌后弹出的「获得物品」全屏页。识别参数与 awards.json 的 ObtainedAwards 一致
+    // （实测：本页帧 score 0.992 命中、活动页帧 0.241 不命中）；本节点只比它多一个 next：
+    // 点掉之后回到翻牌节点接着翻，而不是像 [JumpBack] 用法那样回到调用方的 next 列表。
+    "AOI_ObtainedAwards": {
+        "desc": "「获得物品」全屏页：识别到就点掉，然后回到翻牌节点",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    524,
+                    62,
+                    232,
+                    158
+                ],
+                "template": [
+                    "Awards/ObtainedAwards.png"
+                ],
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AOI_FlipRound"
+        ]
+    },
+    // 点在**已翻开**的格子上会弹面板（不消耗折射次数），而面板不是「获得物品」页，
+    // 所以必须有自己的出口。实测两种面板、两个 ✕ 位置：
+    //   道具详情（米色卡）✕ 在 (1065,180)；藏品详情（粉米色卡、大插画）✕ 在 (1129,113)。
+    // 两个模板都在**同类面板上跨物品**命中（道具模板在银锭面板与古籍面板上都得 1.0），
+    // 在另一种面板与干净棋盘上都不命中（≤0.28 / ≤0.16）。ROI 收紧到各自 ✕ 附近，两者互斥。
+    // 根因（已修）是扫描判据：修好后不该再点中已翻开的格子，这两个节点是兜底出口。
+    "AOI_PanelCloseItem": {
+        "desc": "道具详情面板（误点已翻开的格子弹出来的）→ 点右上角 ✕ 关掉，回刮卡",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1040,
+                    150,
+                    60,
+                    50
+                ],
+                "template": [
+                    "ArtOfIllumination/ItemPanelClose.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AOI_FlipRound"
+        ]
+    },
+    "AOI_PanelCloseCollection": {
+        "desc": "藏品详情面板（同上，另一种面板）→ 点右上角 ✕ 关掉，回刮卡",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1105,
+                    85,
+                    60,
+                    55
+                ],
+                "template": [
+                    "ArtOfIllumination/PanelCloseCollection.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AOI_FlipRound"
+        ]
+    },
+    // ---- 翻幕布（两页棋盘） ----
+    // 棋盘有两幕布：I 与 II，各是一块全新 6×6、共用同一个计数条。翻页就是点棋盘边上的「>」——
+    // 幕布 I 时它在棋盘**右侧**（→ 幕布 II），幕布 II 时它在棋盘**左侧**（→ 幕布 I）。
+    // 两个「>」尺寸不同（85×96 / 59×93），各自 ROI 收紧到棋盘那一侧，互不误命中
+    // （实测矩阵：页 I 三帧 PageNext 全中、PagePrev 全不中；页 II 反之；预览页与主界面都不中）。
+    // 幕布 II 由「获得大奖」解锁（游戏原文：通过折射观测到大奖的任意一角即可获得大奖，
+    // 获得大奖后解锁多格光影幕布 II）——这里**不判断解锁与否**，只在「本页翻完、计数条还有次数」时
+    // 由自定义动作 override_next 到 AOI_PageSwitch：切得动就接着翻下一页，切不动（认不到「>」，
+    // 或候选 max_hit 用尽）就正常收尾。
+    "AOI_PageSwitch": {
+        "desc": "本页翻完了但还有折射次数：往哪边能翻就翻哪边（两个「>」各一个候选）",
+        "timeout": 5000,
+        "next": [
+            "AOI_PageNext",
+            "AOI_PagePrev"
+        ],
+        "on_error": [
+            "AOI_ScratchCardDone"
+        ]
+    },
+    "AOI_PageNext": {
+        "desc": "翻到下一幕布：点棋盘右侧的「>」（幕布 I → II）",
+        "max_hit": 2,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    675,
+                    325,
+                    120,
+                    130
+                ],
+                "template": [
+                    "ArtOfIllumination/PageNext.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AOI_FlipRound"
+        ]
+    },
+    "AOI_PagePrev": {
+        "desc": "翻回上一幕布：点棋盘左侧的「>」（幕布 II → I）",
+        "max_hit": 2,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    40,
+                    330,
+                    95,
+                    120
+                ],
+                "template": [
+                    "ArtOfIllumination/PagePrev.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "AOI_FlipRound"
+        ]
+    },
+    "AOI_ScratchCardDone": {
+        // 收尾：什么都不点，任务正常结束（停在活动页面）。
+        // 翻了几格、还剩几格、计数条读数都写在运行日志里。
+        "desc": "刮卡收尾",
+        "action": {
+            "type": "DoNothing"
+        }
+    },
+    "AOI_Failed": {
+        // 入口导航/领奖链路的兜底：DirectHit 恒命中、next 为空 → 异常态下链走空即任务失败，
+        // 不会被兜成一次假成功（这正是上一版把 on_error 挂在入口上的教训）。
+        // 出错截图由框架 SaveOnError 自动存到 debug/on_error，不必自写截图。
+        "desc": "入口导航或领奖失败兜底",
+        "focus": {
+            "Node.Action.Starting": {
+                "content": "已尝试回到游戏主界面，但仍没走到「光影栖身处」活动页（入口导航或领奖环节卡住），任务结束。请确认当期活动入口可见后重试；出错截图见 debug/on_error。",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
+        }
+    }
+}

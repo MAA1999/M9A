@@ -21,6 +21,7 @@ ACTION_MODULES = (
     "complete_induction",
     "eight_bit",
     "warehouse_inventory",
+    "art_of_illumination",
 )
 
 

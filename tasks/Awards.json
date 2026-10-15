@@ -12,7 +12,8 @@
                 "领取任务奖励",
                 "领取吼吼点唱机",
                 "活动盒子奖励",
-                "迷思海周扫荡奖励"
+                "迷思海周扫荡奖励",
+                "光影栖身处刮卡"
             ]
         }
     ],
@@ -275,6 +276,28 @@
                     "name": "No",
                     "pipeline_override": {
                         "AwardReveriesInTheRain": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        },
+        "光影栖身处刮卡": {
+            "type": "switch",
+            "label": "$Option.Awards.ArtOfIllumination",
+            "cases": [
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "AwardArtOfIllumination": {
+                            "enabled": true
+                        }
+                    }
+                },
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "AwardArtOfIllumination": {
                             "enabled": false
                         }
                     }

@@ -38,11 +38,42 @@
             "[JumpBack]Sub_JukeboxBadge_CarnivalAlbum",
             "[JumpBack]AwardBox",
             "[JumpBack]AwardReveriesInTheRain",
+            "[JumpBack]AwardArtOfIllumination",
             "HomeFlag",
             "[JumpBack]HomeButton",
             "[JumpBack]BackButton",
             "[JumpBack]ObtainedAwards",
             "[JumpBack]ClosePage"
+        ]
+    },
+    // 活动·光影栖身处（当期活动「三干零一声」的刮卡页），与 AwardReveriesInTheRain 同形：
+    // 本节点不展开链路，只把控制交给 activity/ArtOfIllumination.json 的入口 ArtOfIllumination。
+    // **靠识别门控**：首页顶排那个活动入口图标不在了就自动跳过（与其它活动奖励同一套思路，
+    // 不依赖版本数据）。**默认打开**（与其它活动奖励一致，不写 enabled 字段）：跑「领取奖励」
+    // 时顺带把当期可折射次数用掉——它会真的花掉次数，不想花就在选项「光影栖身处刮卡」里选 No。
+    // max_hit: 1 防重复进门——那个图标不像红点领完就消失，不封顶的话每轮回主页都会再进一次。
+    // roi 右边界必须 ≥ 630（模板落点 x=604..630）：宽 130 时右边界 629 差 1 像素装不下，
+    // 识别直接不命中、整个入口静默跳过；ArtOfIllumination.json 的 AOI_NavHomeEntry 是同一处 roi。
+    "AwardArtOfIllumination": {
+        "desc": "活动·光影栖身处：交给 ArtOfIllumination 走完整套（领奖 + 刮完，会消耗可折射次数）",
+        "max_hit": 1,
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    500,
+                    10,
+                    140,
+                    110
+                ],
+                "template": [
+                    "ArtOfIllumination/NavHomeHubIcon.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "next": [
+            "ArtOfIllumination"
         ]
     },
     "Sub_MailBadge": {
