@@ -122,6 +122,12 @@
                     32
                 ],
                 "expected": "2-1",
+                "replace": [
+                    [
+                        "21",
+                        "2-1"
+                    ]
+                ],
                 "only_rec": true
             }
         },
@@ -260,6 +266,12 @@
                     32
                 ],
                 "expected": "1-1",
+                "replace": [
+                    [
+                        "11",
+                        "1-1"
+                    ]
+                ],
                 "only_rec": true
             }
         },
@@ -399,6 +411,12 @@
                     32
                 ],
                 "expected": "1-3",
+                "replace": [
+                    [
+                        "13",
+                        "1-3"
+                    ]
+                ],
                 "only_rec": true
             }
         },
@@ -423,10 +441,10 @@
             "type": "OCR",
             "param": {
                 "roi": [
-                    64,
-                    143,
-                    136,
-                    51
+                    782,
+                    390,
+                    108,
+                    37
                 ],
                 "expected": "敌方评级",
                 "only_rec": true
@@ -436,7 +454,8 @@
             "[JumpBack]Colosseum_CombatTutorial",
             "Colosseum_PVPAddPeopleStart",
             "[JumpBack]Colosseum_AutoColosseum",
-            "Colosseum_StartBattle"
+            "Colosseum_StartBattle",
+            "[JumpBack]Colosseum_EnterEvent"
         ]
     },
     "Colosseum_CombatTutorial": {
@@ -667,6 +686,12 @@
                     32
                 ],
                 "expected": "1-5",
+                "replace": [
+                    [
+                        "15",
+                        "1-5"
+                    ]
+                ],
                 "only_rec": true
             }
         },
