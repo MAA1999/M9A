@@ -236,7 +236,10 @@ jobs:
     needs: gate
     if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # 真正给分析定预算的是 Analyze 一步里的 `timeout`（45 min），这一条只是兜底。job 级超时记录成
+    # `cancelled`，而 `post` 的 if 把 `cancelled` 排除在外（那是「被同号更新的一轮顶掉」的语义，拿它
+    # 发通知会误伤），所以预算必须在步内收口 —— 见那一步。留 50 是给它自己前置安装步骤的余量。
+    timeout-minutes: 50
     # 并发放在这个 job 上，**不放 workflow 级** —— 那是 Sentry 在 PR #957 上指出的一条真 bug：
     # workflow 级的组会让「任意一条普通评论」起的运行也进来。它 gate 判成 run=false，自己什么都不做，
     # 却因为 `cancel-in-progress` 把正在跑的那一轮掐掉，于是那次召唤被静默丢弃。
@@ -506,12 +509,26 @@ jobs:
           # 在步骤开始时就打开了 fd，agent 又在运行中改这个文件），谁后写谁赢 —— 而且它会让「沉默」失效，
           # 因为 dsh 的回复总会把 answer.md 填上。分开之后 answer.md 恰好是 agent 选择留下的全部内容：
           # 空 = 没什么值得说的。
-          dsh --profile headless --patch tools/bot/dsh-patch.yml - < tools/bot/prompt.md \
+          #
+          # 预算在这里自己收口（`timeout` 45 min），不留给 job 级 `timeout-minutes`：后者记录成
+          # `cancelled`，而 `post` 的 if 恰好排除 `cancelled`（见上面 job 那处注释），于是超时的运行
+          # **完全静默**。run 38742593402 就是这么没的：45 min 到点被取消，133 步、10.8M cache-read
+          # 烧在取不到的网盘日志上，`answer.md` 空，issue 只剩一个永远不变的 👀。
+          # `timeout` 的 124/137 是一次普通失败，会走 `post` 里那条已经写好的失败通知。
+          set +e
+          timeout --signal=TERM --kill-after=30 45m \
+            dsh --profile headless --patch tools/bot/dsh-patch.yml - < tools/bot/prompt.md \
             > "$ANALYSIS_DIR/agent.out" 2> "$ANALYSIS_DIR/agent.stderr"
+          status=$?
+          set -e
           echo "--- agent stdout (tail) ---"
           tail -n 10 "$ANALYSIS_DIR/agent.out" || true
           echo "--- agent stderr (tail) ---"
           tail -n 40 "$ANALYSIS_DIR/agent.stderr" || true
+          if [ "$status" -eq 124 ] || [ "$status" -eq 137 ]; then
+            echo "::error::the analysis hit its 45-minute budget without finishing"
+          fi
+          exit "$status"
 
       # 发布前仍设关卡的是 review 的载荷形状。Issue 分析原样发出：MEK 的证据纪律活在 agent 读的 Skill
       # 里，而在这里数证据 ID 是个很差的代理指标 —— 它的失效形态是「什么都不发」，比它想防的那段话更糟。
