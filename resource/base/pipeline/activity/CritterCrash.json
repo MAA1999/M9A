@@ -1,39 +1,208 @@
 {
-    // 翻斗棋
-    "CritterCrash": {
+    // 翻斗棋（4.0 适配）
+    // 入口链路（实机实测 2026-10-15，1280x720）：主页「神秘箱中遨游」banner → 畅游摩卢旁卡页
+    //   →「参与游戏」→ 翻斗棋主菜单 →「箱中对决」→ 本次奇遇弹窗（下一步）→ 选择领队（全屏 3 卡）
+    //   →「进入战斗」→ 对局页。
+    // 对局页之后的节点沿用 3.5 的实测结论（Empty 0.987 / StartCombat 0.993）；
+    // 卡牌模板也沿用（Cards/Deer.png 在 4.0 实战截图上 0.991，即鹿蜀美术未变）。
+    //
+    // 素材目录：全部平铺在 `CritterCrash/` 下（不再有版本子目录）—— 本项目只支持 4.0 界面，
+    // 3.5 专用且无人引用的旧图（Start / ToDo / JiuNiangzi / Peoples/ 等）已删除。
+    //
+    // 判定方式约定（为 i18n 铺路）：
+    //   · **带文字的按钮/标签一律走 OCR**：主菜单「翻斗历程」「箱中对决」、对局页「怪物粘贴处」、
+    //     奇遇「下一步」、选领队「进入战斗」、入口页「参与游戏」。`expected` 写成数组，
+    //     以后加语言就是往数组里加字符串，不用重新裁图。
+    //   · 模板只留给**美术/图标/印章**（没有可读文字，换语言也不变）：Cards/ 棋子美术、Award/、
+    //     Empty、Lv3 满级角标、Blank/、StartCombat/ 的 Battle 印章、SkipCombat / Spirit / Stop 图标、
+    //     LeaderSelected 勾选圈、Leaders_<id> 棋手立绘。
+    //
+    // 两段式入口（重要）：
+    //   · CritterCrashEntry = 任务入口，收「任意翻斗棋界面」（主菜单 / 对局页 / 选领队页），
+    //     这样用户从对局中间启动也能接上（3.5 只认主菜单，从对局页启动会 status 4000 秒失败）。
+    //   · CritterCrash      = 主菜单锚点，保持 3.5 语义（只认主菜单的「翻斗历程」），
+    //     它被 CCFlagInCombatMain.next 当作「是否已回到主菜单」的判据使用。
+    //   ⚠️ 不要把对局页判据并进 CritterCrash：那样会与 CCFlagInCombatMain.next 里的
+    //      CritterCrash 形成 Entry→CCResetData→CCFlagInCombatMain→CritterCrash 死循环（已实测踩过）。
+    //
+    // 两条实测行为（2026-10-16，决定了下面的 next 排布）：
+    //   1. 选领队页「进入战斗」在**没有选中领队时是禁用态**，点了不响应 —— 死等会让任务在
+    //      这一页终结（status 4000）。所以 CCSelectPeople4p0 必须兜底选人，见 CCPickLeaderRec。
+    //   2. **对局一旦建立就会续局**：退到主菜单再点「箱中对决」直接回到同一局（不再走奇遇/选领队），
+    //      且已消耗 1 次次数。因此 CCStart.next 首项要能认对局页，否则续局时会死端。
+    "CritterCrashEntry": {
+        "desc": "任务入口：任意翻斗棋界面（主菜单「翻斗历程」/ 对局页「怪物粘贴处」/ 选领队「进入战斗」/ 奇遇「下一步」/ 入口页「参与游戏」）—— 五路都是文字 OCR 判定",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "Or",
             "param": {
-                "roi": [
-                    1076,
-                    26,
-                    132,
-                    44
-                ],
-                "template": [
-                    "CritterCrash/History.png"
+                "any_of": [
+                    "CritterCrash",
+                    "CCFlagInCombatMain",
+                    "CCEnterBattle",
+                    "CCPlay",
+                    "CCNext"
                 ]
             }
         },
         "next": [
+            "CCPlay",
             "CCResetData"
+        ]
+    },
+    // 活动入口页（畅游摩卢旁卡）的「参与游戏」，点它进翻斗棋主菜单。
+    // 放在 CCResetData 之前：在入口页时它先命中；在其它界面它不命中，由 CCResetData 兜底。
+    "CCPlay": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1000,
+                    555,
+                    270,
+                    90
+                ],
+                "expected": ["参与游戏"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 2000,
+        "next": [
+            "CritterCrash",
+            "CCStart",
+            "CCResetData"
+        ]
+    },
+    "CritterCrash": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1000,
+                    15,
+                    240,
+                    58
+                ],
+                "expected": ["翻斗历程"],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "CCRerollConfirm",
+            "CCStart",
+            "[JumpBack]CCConfirm",
+            "[JumpBack]CCClickBlank"
         ]
     },
     "CCResetData": {
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "CCResetData"
+                "custom_action": "CCResetData",
+                "custom_action_param": {
+                    "strategy_file": "data/critter_crash/strategy-4.0.json"
+                }
             }
         },
         "next": [
             "CCFlagInCombatMain",
-            "[JumpBack]CCStop",
+            "CCFlagInSelectPeople",
+            // 入口启动时也可能正压着「放弃对战」确认框：先清框，再决定去哪
+            "CCRerollConfirm",
+            // 停在一页「本次奇遇」弹窗上时：先按名字门控，再翻页（主菜单上它不命中，不会抢 CCStart 的道）
+            "CCEncounterAccept",
+            "CCNext",
             "CCStart",
+            "[JumpBack]CCStop",
             "[JumpBack]CCConfirm",
             "[JumpBack]CCClickBlank"
         ]
     },
+    // 4.0 主菜单右下角「箱中对决」是当期唯一开局入口（3.5 的 Start.png 实测 0.184 已失效）
+    "CCStart": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1030,
+                    555,
+                    250,
+                    110
+                ],
+                "expected": ["箱中对决"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "CCFlagInCombatMain",
+            "CCEncounterAccept",
+            "CCNext",
+            "CCSelectPeople4p0",
+            "CCEnterBattle",
+            "CCRerollConfirm",
+            "CCStart"
+        ]
+    }, // 4.0 新增：开局前的「本次奇遇」弹窗。用「下一步」按钮作门控（该按钮只存在于奇遇弹窗），
+    // 不依赖 OCR —— 本机 OCR 实测在本资源包下返回 0 结果，无法离线验证，故避开 OCR。
+    "CCNext": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1010,
+                    612,
+                    226,
+                    50
+                ],
+                "expected": ["下一步"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 800,
+        "next": [
+            "CCNext",
+            "CCSelectPeople4p0",
+            "CCEnterBattle",
+            "CCFlagInSelectPeople",
+            "CCFlagInCombatMain"
+        ]
+    },
+    // 4.0 新增：选择领队页右下角「进入战斗」（kf 0021 实测置信度 1.0）
+    "CCEnterBattle": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1000,
+                    590,
+                    255,
+                    85
+                ],
+                "expected": ["进入战斗"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "CCFlagInCombatMain",
+            "CCStartCombat",
+            "CCEnterBattle"
+        ]
+    },
+    // 说明：4.0 的「返回主菜单」兜底未纳入 —— 返回箭头模板未实机裁剪，
+    // 按仓库规范（未见过的状态不落笔）不写占位节点。
     "CCStop": {
         "recognition": {
             "type": "TemplateMatch",
@@ -92,124 +261,16 @@
             "type": "Click"
         }
     },
-    "CCStart": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    1024,
-                    569,
-                    188,
-                    69
-                ],
-                "template": [
-                    "CritterCrash/Start.png"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "post_delay": 1500,
-        "next": [
-            "CCFlagInList",
-            "CCStart"
-        ]
-    },
-    "CCFlagInList": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    593,
-                    36,
-                    187,
-                    49
-                ],
-                "expected": [
-                    "守卫名单"
-                ],
-                "only_rec": true
-            }
-        },
-        "next": [
-            "CCFlagInMakePlan",
-            "[JumpBack]CCToDo"
-        ]
-    },
-    "CCToDo": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    1043,
-                    610,
-                    147,
-                    50
-                ],
-                "template": [
-                    "CritterCrash/ToDo.png"
-                ],
-                "method": 10001,
-                "threshold": 0.9
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "post_delay": 1500
-    },
-    "CCFlagInMakePlan": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    593,
-                    36,
-                    187,
-                    49
-                ],
-                "expected": [
-                    "制定计划"
-                ],
-                "only_rec": true
-            }
-        },
-        "next": [
-            "CCFlagInSelectPeople",
-            "[JumpBack]CCToDo",
-            "[JumpBack]CCSelectPlan"
-        ]
-    },
-    "CCSelectPlan": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    8,
-                    137,
-                    1254,
-                    290
-                ],
-                "template": [
-                    // "CritterCrash/NewBabel.png" // 3.2 制定计划 新巴别塔 工具采购
-                    "CritterCrash/JiuNiangzi.png" // 3.5 制定计划 曲娘 勤学苦练
-                ]
-            }
-        },
-        "action": {
-            "type": "Click"
-        }
-    },
     "CCFlagInSelectPeople": {
+        "desc": "4.0 选择领队页：标题 OCR（实测标题在 y≈72..117；旧的 [593,36,187,49] 落在标题上方，置信度 0 恒失配）",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
-                    593,
-                    36,
-                    187,
-                    49
+                    550,
+                    72,
+                    220,
+                    45
                 ],
                 "expected": [
                     "选择领队"
@@ -218,124 +279,151 @@
             }
         },
         "next": [
-            "CritterCrash",
-            "CCFlagInCombatMain",
-            "[JumpBack]CCToDo",
-            // "[JumpBack]CCSelectPeople1",
-            // "[JumpBack]CCSelectPeople2",
-            // "[JumpBack]CCSelectPeople3",
-            "[JumpBack]CCSelectPeople3p5",
-            "[JumpBack]CCRefreshPeople",
-            "[JumpBack]BackButton"
+            // 顺序要紧：没选领队时「进入战斗」是禁用态，先选人再点按钮。
+            // 已经选过时 CCPickLeaderRec 会靠「已选中」角标返回 miss，直接落到 CCEnterBattle。
+            "[JumpBack]CCSelectPeople4p0",
+            "CCEnterBattle",
+            "CCFlagInCombatMain"
+            // 这里不再挂 [JumpBack]BackButton：返回键现在由 CCPickLeaderRec 显式点击（带额度），
+            // 而泛化的 BackButton 会在选领队页反复命中（左上角就是返回箭头）→ 点返回的死环。
         ]
     },
-    "CCRefreshPeople": {
+    // 4.0 选领队：优先策略表指定的棋手（小叶尼塞 30027）；没摇到就点左上返回退出去重摇
+    // （有上限，见 strategy-4.0.json 的 people.max_reroll），额度用尽才兜底点卡位 0。
+    // 重摇必需：领队→卡包→棋子池，随机兜底可能整局买不到鹿蜀。
+    // 点返回后回到主菜单，故 next 里补 CritterCrash/CCStart 把「再进箱中对决」接上。
+    "CCSelectPeople4p0": {
+        "desc": "4.0 选领队：优先小叶尼塞（30027），没摇到则退出重摇，最后兜底点卡位 0",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "Custom",
             "param": {
-                "roi": [
-                    1066,
-                    124,
-                    57,
-                    57
-                ],
-                "template": [
-                    "CritterCrash/Peoples/RefreshPeople.png"
-                ]
+                "custom_recognition": "CCPickLeaderRec"
             }
         },
         "action": {
             "type": "Click"
+        },
+        "post_delay": 800,
+        "next": [
+            "CCEnterBattle",
+            "CCFlagInSelectPeople",
+            "CritterCrash",
+            "CCRerollConfirm",
+            "CCStart"
+        ]
+    },
+    // CCPickLeaderRec 的取材节点：优先棋手立绘（模板路径按 Leaders_<id>.png 约定拼）。
+    "CCPickLeader_Template": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    180,
+                    1280,
+                    420
+                ],
+                "template": [
+                    "CritterCrash/Leaders_30027.png"
+                ],
+                "threshold": 0.85
+            }
         }
     },
-    "CCSelectPeople1": {
+    // CCPickLeaderRec 的取材节点：「已被选中」角标。roi 由识别侧按卡位逐个覆盖。
+    "CCLeaderSelected_Template": {
         "recognition": {
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    184,
-                    194,
-                    936,
-                    325
+                    45,
+                    460,
+                    140,
+                    70
                 ],
                 "template": [
-                    "CritterCrash/Peoples/People1.png",
-                    "CritterCrash/Peoples/People2.png",
-                    "CritterCrash/Peoples/People3.png"
+                    "CritterCrash/LeaderSelected.png"
                 ]
             }
-        },
-        "action": {
-            "type": "Click"
         }
     },
-    "CCSelectPeople2": {
+    // 「此时放弃对战评分不变，是否确认？」弹窗 —— 退出重摇（点返回）和「箱中对决」都可能弹它。
+    // 用「放弃对战」当 OCR 锚点（比泛化的「确认」精确得多，不会在别的界面假阳性），
+    // 命中后直接点右侧的「确认」按钮。不点掉它，后面的节点全被它盖住 → 20s 超时 → 任务 4000。
+    "CCRerollConfirm": {
+        "desc": "退出重摇的「放弃对战」确认框 → 点确认",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
                 "roi": [
-                    184,
-                    194,
-                    936,
-                    325
+                    420,
+                    295,
+                    440,
+                    42
                 ],
-                "template": [
-                    "CritterCrash/Peoples/People4.png",
-                    "CritterCrash/Peoples/People5.png"
-                ]
+                "expected": [
+                    "放弃对战"
+                ],
+                "only_rec": true
             }
         },
         "action": {
-            "type": "Click"
-        }
+            "type": "Click",
+            "param": {
+                "target": [
+                    760,
+                    400,
+                    90,
+                    50
+                ]
+            }
+        },
+        "post_delay": 800,
+        "next": [
+            "CritterCrash",
+            "CCStart"
+        ]
     },
-    "CCSelectPeople3": {
+    // 「本次奇遇」弹窗的名字门控：名字不在策略表白名单里就点返回退出去重摇。
+    // 依据：棋子池由「奇遇 → 卡包」决定（领队只影响技能）；实测按领队重摇 15 次才中 1 次，
+    // 而奇遇名是弹窗上的大号文字，OCR 稳定。名字可接受时返回 miss，交给 CCNext 翻页。
+    "CCEncounterAccept": {
+        "desc": "奇遇弹窗：名字不在白名单就退出重摇（判定见 CCPickEncounterRec）",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "Custom",
             "param": {
-                "roi": [
-                    184,
-                    194,
-                    936,
-                    325
-                ],
-                "template": [
-                    "CritterCrash/Peoples/People6.png"
-                ]
+                "custom_recognition": "CCPickEncounterRec"
             }
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "post_delay": 800,
+        "next": [
+            "CCRerollConfirm",
+            "CritterCrash",
+            "CCStart",
+            "CCNext"
+        ]
     },
-    "CCSelectPeople3p5": {
-        "desc": "3.5版本选择角色",
+    // CCPickEncounterRec 的取材节点：奇遇名（弹窗中部的大字，实测 [520,392,240,50] 命中率 3/3）
+    "CCEncounterNameRec": {
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
                 "roi": [
-                    184,
-                    194,
-                    936,
-                    325
+                    520,
+                    392,
+                    240,
+                    50
                 ],
-                "template": [
-                    "CritterCrash/Peoples/People2.png", // 玛尔纱
-                    "CritterCrash/Peoples/People3.png", // 37
-                    "CritterCrash/Peoples/People4.png", // 6
-                    "CritterCrash/Peoples/People5.png", // 诺谛卡
-                    "CritterCrash/Peoples/People7.png", // 梁月
-                    "CritterCrash/Peoples/People8.png" // 小叶尼塞
-                ]
+                "only_rec": true
             }
-        },
-        "action": {
-            "type": "Click"
         }
     },
     "CCFlagInCombatMain": {
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
                 "roi": [
                     221,
@@ -343,9 +431,8 @@
                     177,
                     54
                 ],
-                "template": [
-                    "CritterCrash/Paste.png"
-                ]
+                "expected": ["怪物粘贴处"],
+                "only_rec": true
             }
         },
         "action": {
@@ -489,34 +576,15 @@
                     257
                 ],
                 "template": [
-                    "CritterCrash/Award/Deer.png",
-                    "CritterCrash/Award/Man.png",
-                    "CritterCrash/Award/Shiva.png"
+                    "CritterCrash/Award/32123.png",
+                    "CritterCrash/Award/32126.png",
+                    "CritterCrash/Award/32607.png"
                 ]
             }
         },
         "next": [
             "CCSelectAwardCard_Option"
         ]
-    },
-    "CCSelectAwardCard_NoMore": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    153,
-                    638,
-                    195,
-                    70
-                ],
-                "expected": [
-                    "选择"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click"
-        }
     },
     "CCSelectAwardCard_NoMore3p5": {
         "recognition": {
@@ -648,20 +716,6 @@
                     124
                 ],
                 "template": "CritterCrash/Cards"
-            }
-        }
-    },
-    "CCBuyCardAwardTypeRec_Template": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    125,
-                    663,
-                    68,
-                    57
-                ],
-                "template": "CritterCrash/Unknown2.png"
             }
         }
     },
@@ -900,36 +954,9 @@
             }
         }
     },
-    "CCSellCards": {
-        "action": {
-            "type": "Swipe",
-            "param": {
-                "end": [
-                    690,
-                    630,
-                    84,
-                    56
-                ],
-                "duration": 500
-            }
-        },
-        "post_delay": 1000,
-        "next": [
-            "CCSellCardsFinished",
-            "CCSellCards"
-        ]
-    },
-    "CCSellCardsFinished": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "template": [
-                    "CritterCrash/10.png",
-                    "CritterCrash/20.png"
-                ]
-            }
-        }
-    },
+    // 说明：3.5 的「卖出」（CCSellCards / CCSellCardsFinished，靠拖到底部丢弃区 + 10/20 飘字确认）
+    // 已删除。4.0 实测奖励区的卡片拖不动（同形态拖商店卡会立刻回「缪斯币不足」，拖奖励卡零反应），
+    // 原来的「拖上棋盘 → 再卖掉」只会在 CCSellCards 上自环空转。认不出的奖励卡现在直接跳过。
     "CCSpirit": {
         "recognition": {
             "type": "TemplateMatch",
@@ -961,23 +988,6 @@
                 ],
                 "expected": [
                     "^[1-6]/"
-                ],
-                "only_rec": true
-            }
-        }
-    },
-    "CCRoundPost": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    1172,
-                    419,
-                    77,
-                    30
-                ],
-                "expected": [
-                    "^(1[0-2]|[7-9])/"
                 ],
                 "only_rec": true
             }

@@ -277,13 +277,13 @@ Automatically clear main-story / event stage maps, including the following optio
 
 ### Critter Crash Fast Farm
 
-Quick farming in the Critter Crash interface.
+Auto-plays "Challenge Mode" for rewards: prefers 小叶尼塞 as leader, fills the board with 鹿蜀, then upgrades; uses only free refreshes each round.
 
 ::: warning
 
-- Start in Critter Crash interface
-- Supports CN server version 3.5
-- Please play two rounds manually first to raise alert level to 3 before using
+- Start at any of: the event entry page "参与游戏" / the Critter Crash main menu / an ongoing match
+- Supports CN server version 4.0
+- If 小叶尼塞 is not offered, it picks from the available slots and still plays
   :::
 
 ### Pre-Storm Protocol
