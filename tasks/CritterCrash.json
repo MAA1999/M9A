@@ -3,7 +3,7 @@
         {
             "name": "翻斗棋速刷",
             "label": "$Task.CritterCrash",
-            "entry": "CritterCrash",
+            "entry": "CritterCrashEntry",
             "description": "$Task.CritterCrash.desc",
             "group": [
                 "standalone"
