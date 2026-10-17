@@ -117,6 +117,17 @@ jobs:
         with:
           node-version: 24
 
+      # resolver 从 requirements.txt 读 maafw 钉版；Dependabot 的 uv 更新只动 uv.lock，
+      # 不先按 lock 重导出，APK 会拿旧钉版去配对内核
+      - uses: astral-sh/setup-uv@v10.2.0
+        if: hashFiles('pyproject.toml') != ''
+
+      - name: Re-export Python requirements from uv.lock
+        if: hashFiles('pyproject.toml') != ''
+        run: >-
+          uv export --frozen --format requirements-txt --no-hashes --no-emit-project
+          --no-group dev --no-annotate --output-file requirements.txt
+
       # MaaFW 版本与资产前缀由 tools/android-packaging.mjs 解析（Node 而不是 Python：
       # 纯 pipeline 项目不引入 Python，同一份脚本要能给它们用）：
       # maafw 版本由 requirements.txt / maa-project.json 固定（与桌面同源）；Android 的
@@ -379,6 +390,17 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+
+      # resolver 从 requirements.txt 读 maafw 钉版；Dependabot 的 uv 更新只动 uv.lock，
+      # 不先按 lock 重导出，APK 会拿旧钉版去配对内核
+      - uses: astral-sh/setup-uv@v10.2.0
+        if: hashFiles('pyproject.toml') != ''
+
+      - name: Re-export Python requirements from uv.lock
+        if: hashFiles('pyproject.toml') != ''
+        run: >-
+          uv export --frozen --format requirements-txt --no-hashes --no-emit-project
+          --no-group dev --no-annotate --output-file requirements.txt
 
       # MaaFW 版本与资产前缀由 tools/android-packaging.mjs 解析（Node 而不是 Python：
       # 纯 pipeline 项目不引入 Python，同一份脚本要能给它们用）：

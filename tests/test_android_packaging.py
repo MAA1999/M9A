@@ -185,6 +185,84 @@ def test_prerelease_pin_uses_same_release_line(tmp_path: Path) -> None:
     assert "::warning::" in result.stdout
 
 
+def test_beta_pin_pairs_with_prerelease_kernel_tag(tmp_path: Path) -> None:
+    # uv 导出的 PEP 440 归一形式（5.15.0b1）与内核 tag 的发布原文（-beta.1）是同一个版本，
+    # 配对要认得出，不能当成「内核还没发配对」降级回正式版
+    write_repo(tmp_path, pin="5.15.0b1")
+    write_releases(
+        tmp_path,
+        core=[
+            "3.13.15-maafw5.13.0",
+            "3.13.15-maafw5.15.0-beta.1",
+        ],
+        maafw=[{"tag": "v5.15.0-beta.1", "prerelease": True}],
+    )
+    output = tmp_path / "github_output"
+
+    result = run_resolver(tmp_path, output)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    written = output.read_text(encoding="utf-8")
+    assert "core_tag=3.13.15-maafw5.15.0-beta.1" in written
+    # 下载地址取 release 原文：GitHub 上只有 v5.15.0-beta.1，没有 v5.15.0b1
+    assert "maafw_tag=v5.15.0-beta.1" in written
+    assert "::warning::" not in result.stdout
+
+
+def test_beta_pin_in_release_spelling_is_accepted(tmp_path: Path) -> None:
+    # requirements 手写成发布原文（5.15.0-beta.1）时同样要能配对并解析出下载 tag
+    write_repo(tmp_path, pin="5.15.0-beta.1")
+    write_releases(
+        tmp_path,
+        core=["3.13.15-maafw5.15.0-beta.1"],
+        maafw=[{"tag": "v5.15.0-beta.1", "prerelease": True}],
+    )
+    output = tmp_path / "github_output"
+
+    result = run_resolver(tmp_path, output)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    written = output.read_text(encoding="utf-8")
+    assert "core_tag=3.13.15-maafw5.15.0-beta.1" in written
+    assert "maafw_tag=v5.15.0-beta.1" in written
+    assert "::warning::" not in result.stdout
+
+
+def test_beta_spelling_mismatch_between_files_does_not_warn(tmp_path: Path) -> None:
+    # maa-project.json 与 requirements.txt 用两种拼写写同一个 beta 版，不该报不一致
+    write_repo(tmp_path, pin="5.15.0b1", declared_version="5.15.0-beta.1")
+    write_releases(
+        tmp_path,
+        core=["3.13.15-maafw5.15.0-beta.1"],
+        maafw=[{"tag": "v5.15.0-beta.1", "prerelease": True}],
+    )
+
+    result = run_resolver(tmp_path)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "agent core tag   : 3.13.15-maafw5.15.0-beta.1" in result.stdout
+    assert "::warning::" not in result.stdout
+
+
+def test_beta_core_override_matches_normalized_pin(tmp_path: Path) -> None:
+    # 应急钉内核的 tag 是发布原文，与 requirements 的归一形式同版本时不算偏离
+    write_repo(tmp_path, pin="5.15.0b1")
+    write_releases(
+        tmp_path,
+        core=["3.13.15-maafw5.15.0-beta.1"],
+        maafw=[{"tag": "v5.15.0-beta.1", "prerelease": True}],
+    )
+    output = tmp_path / "github_output"
+
+    result = run_resolver(tmp_path, output, core_tag_env="3.13.15-maafw5.15.0-beta.1")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    written = output.read_text(encoding="utf-8")
+    assert "core_tag=3.13.15-maafw5.15.0-beta.1" in written
+    assert "maafw_tag=v5.15.0-beta.1" in written
+    assert "::warning::" not in result.stdout
+
+
 def test_agent_core_tag_override_wins(tmp_path: Path) -> None:
     write_repo(tmp_path, pin="5.14.0")
     output = tmp_path / "github_output"

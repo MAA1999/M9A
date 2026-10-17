@@ -93,6 +93,13 @@ jobs:
       - run: pnpm check
       - run: pnpm check:py
         if: hashFiles('pyproject.toml') != ''
+      # Dependabot 的 uv 更新只动 uv.lock，而打出的桌面包装的是导出的 requirements.txt：
+      # 先按 lock 重导出，合并锁文件更新后不必再手工跑 --update python-deps 才能发版
+      - name: Re-export Python requirements from uv.lock
+        if: hashFiles('pyproject.toml') != ''
+        run: >-
+          uv export --frozen --format requirements-txt --no-hashes --no-emit-project
+          --no-group dev --no-annotate --output-file requirements.txt
       - run: pnpm release:dry-run
         if: github.event_name == 'workflow_dispatch'
       - run: pnpm sync:runtime
