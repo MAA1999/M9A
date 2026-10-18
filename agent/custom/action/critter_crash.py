@@ -178,9 +178,13 @@ class StickerSpec:
     - 贴纸按角色独有：小叶尼塞 = 第 open_round 回合可用。
     """
 
-    # 参考回合数（仅作日志提示，不作门控）：贴纸品质越高开箱所需回合越长，
-    # 实测同一角色不同局有 2 与 5 两种，故真正的门控是「盒子模板是否还在画面上」。
+    # 开箱所需回合数（**按角色固定**：赠送的贴纸与角色绑定，不同角色回合数不同）。
+    # 小叶尼塞 = 第 2 回合。仅作日志提示，不作硬门控 —— 真正的门控是
+    # 「盒子模板是否还在画面上」+ 下面的 leader 匹配：回合没到就点，只会弹道具面板。
     open_round: int | None = None
+    # 贴纸归属的领队 id。贴纸按角色独有，只有选到这位领队才该开箱；
+    # None 表示不门控（任何领队都开）。
+    leader: str | None = None
     # 盒子点击点（控制器坐标）；None 表示用 DEFAULT_STICKER_BOX_POINT
     box_point: tuple[int, int] | None = None
     # 贴纸优先落点（棋盘 row/col）；None 表示只用 positions
@@ -445,7 +449,15 @@ def _parse_sticker(raw: Any, label: str, problems: list[str]) -> StickerSpec | N
                 if slot is not None:
                     positions.append(slot)
 
-    return StickerSpec(open_round=parsed_round, box_point=box_point, positions=tuple(positions))
+    leader: str | None = None
+    raw_leader = raw.get("leader")
+    if raw_leader is not None:
+        if not isinstance(raw_leader, str) or not raw_leader:
+            problems.append(f"{label}.leader: 应为非空字符串（领队 id，如 \"30027\"）")
+        else:
+            leader = raw_leader
+
+    return StickerSpec(open_round=parsed_round, leader=leader, box_point=box_point, positions=tuple(positions))
 
 
 def parse_strategy(raw: Any, *, source: str = str(STRATEGY_PATH)) -> StrategySpec:
@@ -614,6 +626,11 @@ class CCChessboard(CustomAction):
     # 每次开任务 / 每进入一局都由 reset_rerolls() 清零。
     rerolls_used: dict[str, int] = {}
 
+    # 本局选中的领队 id；None = 未知或兜底选了一位非优先棋手。
+    # 贴纸是角色专属的（小叶尼塞 = 30027），兜底选了别人就不该开箱 ——
+    # 否则会把「别人的贴纸」塞进按小叶尼塞配置的贴纸位。
+    leader_id: str | None = None
+
     @classmethod
     def apply_strategy(cls, strategy: StrategySpec) -> None:
         """切换到指定策略，并清空棋盘（尺寸/ROI/棋子白名单一起换）。"""
@@ -628,6 +645,14 @@ class CCChessboard(CustomAction):
     def reset_rerolls(cls) -> None:
         """清空重摇记账（开任务 / 进入新一局时调用）。"""
         cls.rerolls_used = {}
+        # 领队也是按局算的：新一局要重新确认，别沿用上一局的判断
+        cls.leader_id = None
+
+    @classmethod
+    def set_leader(cls, leader_id: str | None) -> None:
+        """记录本局选中的领队（None = 兜底选了非优先棋手或未知）。"""
+        cls.leader_id = leader_id
+        logger.debug(f"本局领队记为 {leader_id or '未知（兜底/非优先棋手）'}")
 
     @classmethod
     def consume_reroll(cls, group: str, budget: int) -> bool:
@@ -1080,6 +1105,16 @@ class CCSticker(CustomAction):
             logger.debug("本局贴纸箱已开过，跳过")
             return CustomAction.RunResult(success=False)
 
+        # 贴纸按角色独有：只有本局领队就是配置的那位才开。兜底选了别人时
+        # CCChessboard.leader_id 为 None，这里直接跳过。
+        if sticker.leader and CCChessboard.leader_id != sticker.leader:
+            logger.debug(
+                f"本局领队是 {CCChessboard.leader_id or '未知/兜底'}，"
+                f"不是贴纸归属的小叶尼塞 {sticker.leader}，不开箱"
+            )
+            CCSticker._opened = True   # 本局不再反复检查
+            return CustomAction.RunResult(success=False)
+
         # 门控：盒子还在才处理。盒子开掉后该格变成三角格，模板不再命中——
         # 这条比「第 N 回合」可靠：面板自己写着「品质越高，开启所需回合越长」，
         # 实测同一角色不同局有 2 回合与 5 回合两种，写死回合数必错。
@@ -1118,7 +1153,9 @@ class CCSticker(CustomAction):
         if is_hit(box_after):
             # 盒子还在：还没到可开回合，弹的是道具面板——关掉它。
             # 记下回合号，本回合内不再重试；贴纸是可选项，失败也不让任务失败。
-            logger.debug(f"贴纸箱未开（第 {current_round} 回合还开不了），关闭面板")
+            logger.debug(
+                f"贴纸箱未开（第 {current_round} 回合 / 该领队需第 {sticker.open_round} 回合），关闭面板"
+            )
             context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
             time.sleep(0.5)
             CCSticker._failed_round = current_round

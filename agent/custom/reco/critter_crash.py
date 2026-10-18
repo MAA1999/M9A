@@ -51,6 +51,7 @@ class CCPickLeaderRec(CustomRecognition):
             )
             if is_hit(reco):
                 logger.debug(f"选领队：命中优先棋手 {leader_id}")
+                CCChessboard.set_leader(str(leader_id))
                 return CustomRecognition.AnalyzeResult(box=reco.box, detail={"leader": leader_id})
 
         # 门 3：已经选好了就别再动
@@ -77,6 +78,8 @@ class CCPickLeaderRec(CustomRecognition):
         if point is None:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
         logger.debug(f"选领队：重摇额度用尽，兜底点卡位 0 {point}")
+        # 兜底 = 不是优先棋手。贴纸按角色专属，领队不对就不能开箱，故显式清空。
+        CCChessboard.set_leader(None)
         # box 的中心就是点击点，故用 10x10 的小框包住该点
         return CustomRecognition.AnalyzeResult(box=[point[0] - 5, point[1] - 5, 10, 10], detail={"fallback": True})
 

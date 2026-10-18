@@ -1411,3 +1411,64 @@ class TestRerollAbandonsBeforeRestart:
         x, y, w, h = self.pipeline["CCRerollConfirm"]["action"]["param"]["target"]
         assert x <= 800 <= x + w, f"落点 {[x, y, w, h]} 没罩住实机「确认」x=800"
         assert y <= 427 <= y + h, f"落点 {[x, y, w, h]} 没罩住实机「确认」y=427"
+
+
+class TestStickerSpec:
+    """专属贴纸箱的配置解析（贴纸按角色独有，leader 决定「领队不对就不开箱」）。"""
+
+    def test_sticker_parses_leader_open_round_and_positions(self) -> None:
+        raw = _minimal_raw(
+            sticker={"leader": "30027", "open_round": 2, "positions": [[0, 0]]},
+        )
+        strategy = parse_strategy(raw)
+        assert strategy.sticker is not None
+        assert strategy.sticker.leader == "30027"
+        assert strategy.sticker.open_round == 2
+        assert strategy.sticker.positions == ((0, 0),)
+
+    def test_sticker_without_leader_means_no_gating(self) -> None:
+        """不给 leader = 不门控，任何领队都开（保持向后兼容）。"""
+        strategy = parse_strategy(_minimal_raw(sticker={"open_round": 2}))
+        assert strategy.sticker is not None
+        assert strategy.sticker.leader is None
+
+    def test_sticker_rejects_empty_leader(self) -> None:
+        with pytest.raises(StrategyError, match="sticker.leader"):
+            parse_strategy(_minimal_raw(sticker={"leader": "", "open_round": 2}))
+
+    def test_sticker_positions_out_of_board_rejected(self) -> None:
+        with pytest.raises(StrategyError, match="sticker"):
+            parse_strategy(_minimal_raw(sticker={"open_round": 2, "positions": [[5, 5]]}))
+
+    def test_shipped_strategy_gates_sticker_on_xiao_ye_ni_sai(self) -> None:
+        """随包的 4.0 策略表必须把贴纸绑定到 30027（小叶尼塞）。"""
+        strategy = load_strategy(PROJECT_ROOT / STRATEGY_4_0_PATH)
+        assert strategy.sticker is not None
+        assert strategy.sticker.leader == "30027"
+
+
+class TestLeaderState:
+    """本局领队的记账：贴纸门控依赖它，且必须按局复位。"""
+
+    def teardown_method(self) -> None:
+        CCChessboard.apply_strategy(BASE_STRATEGY)
+
+    def test_default_is_unknown(self) -> None:
+        CCChessboard.apply_strategy(BASE_STRATEGY)
+        assert CCChessboard.leader_id is None
+
+    def test_set_leader_records_id(self) -> None:
+        CCChessboard.set_leader("30027")
+        assert CCChessboard.leader_id == "30027"
+
+    def test_fallback_clears_leader(self) -> None:
+        """兜底选了非优先棋手时必须清空 —— 否则会拿上一局的领队去开箱。"""
+        CCChessboard.set_leader("30027")
+        CCChessboard.set_leader(None)
+        assert CCChessboard.leader_id is None
+
+    def test_new_round_clears_leader(self) -> None:
+        """领队按局算：进新一局要重新确认。"""
+        CCChessboard.set_leader("30027")
+        CCChessboard.reset_rerolls()
+        assert CCChessboard.leader_id is None
