@@ -21,13 +21,14 @@ from custom.action.critter_crash import (
     DEFAULT_LEVEL_BADGE_OFFSET,
     MATCH_SCOPED_HIT_NODES,
     STRATEGY_PATH,
+    CCBuyCard,
     CCChessboard,
     StrategyError,
     load_strategy,
     parse_strategy,
 )
 from custom.reco.critter_crash import CCBuyCardRec, CCPickEncounterRec, CCPickLeaderRec
-from maa.define import BoxAndScoreResult, OCRResult, RecognitionDetail, Rect
+from maa.define import BoxAndScoreResult, MaaStatusEnum, OCRResult, RecognitionDetail, Rect, Status, TaskDetail
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 # 4.0 是独立策略表，默认不加载；只有 CCResetData 显式指定 strategy_file 才启用
@@ -445,6 +446,12 @@ class _ScriptedContext:
         self.templates: list[str] = []
         self.rois: list[tuple[str, tuple[int, ...]]] = []
         self.tasks: list[str] = []
+        # run_task 收到的 pipeline_override（断言「begin/end 是否指向目标格」用）
+        self.task_overrides: list[dict[str, Any]] = []
+        # 按节点名脚本化任务结局；缺省成功
+        self.task_statuses: dict[str, MaaStatusEnum] = {}
+        self.overridden_images: list[str] = []
+        self.cleared_hits: list[str] = []
 
     def run_recognition(self, name: str, _image: Any, override: dict[str, Any] | None = None) -> RecognitionDetail:
         self.asked.append(name)
@@ -466,8 +473,46 @@ class _ScriptedContext:
         scripted = self.answers.get(name, _miss())
         return scripted if isinstance(scripted, RecognitionDetail) else scripted[0]
 
-    def run_task(self, name: str) -> None:
+    # --- tasker.controller：动作里会取帧、清命中计数、覆盖图片 ---
+    class _Controller:
+        def post_screencap(self) -> Any:
+            return self
+
+        def wait(self) -> Any:
+            return self
+
+        def get(self) -> np.ndarray:
+            # 任意非空帧即可：动作只用它裁 ROI，不解释内容
+            return np.zeros((720, 1280, 3), dtype=np.uint8)
+
+    def __init_tasker(self) -> None:
+        pass
+
+    @property
+    def tasker(self) -> Any:
+        if not hasattr(self, "_tasker"):
+            ctrl = self._Controller()
+            self._tasker = type("Tasker", (), {"controller": ctrl})()
+        return self._tasker
+
+    def override_image(self, name: str, image: Any) -> None:
+        self.overridden_images.append(name)
+
+    def clear_hit_count(self, node_name: str) -> None:
+        self.cleared_hits.append(node_name)
+
+    def run_task(self, name: str, pipeline_override: dict[str, Any] | None = None) -> TaskDetail:
+        """与生产调用同签名：Context.run_task(entry, pipeline_override) -> TaskDetail。
+
+        以前这里只收 1 个参数、返回 None，于是任何走到 run_task 的测试都会 TypeError，
+        也就没人写出「部署成败判定」的用例 —— 而 .ok / .status 恰好在那里出过两次错。
+        """
         self.tasks.append(name)
+        self.task_overrides.append(pipeline_override or {})
+        raw = self.task_statuses.get(name, MaaStatusEnum.succeeded)
+        # TaskDetail.status 期望 Status 对象（.succeeded/.failed 是它的属性），
+        # 直接塞 MaaStatusEnum 会让生产代码的 .status.succeeded 判断恒为 False。
+        return TaskDetail(task_id=len(self.tasks), entry=name, node_id_list=[], status=Status(raw))
 
 
 def _ocr_hit(text: str, box: tuple[int, int, int, int] = (520, 392, 240, 50)) -> RecognitionDetail:
@@ -493,6 +538,20 @@ def _analyze_buy_card(context: _ScriptedContext) -> Any:
     reco = CCBuyCardRec.__new__(CCBuyCardRec)
     argv = type("Argv", (), {"image": np.zeros((1, 1, 3), dtype=np.uint8)})()
     return reco.analyze(context, argv)  # pyright: ignore[reportArgumentType]
+
+
+def _run_buy_card(
+    context: _ScriptedContext,
+    detail: dict[str, Any],
+    box: tuple[int, int, int, int],
+) -> Any:
+    """直接跑 CCBuyCard.run —— 覆盖「部署/升级的成败判定」与 run_task 的 override。"""
+    actor = CCBuyCard.__new__(CCBuyCard)
+    # 生产的取值路径是 raw_detail["best"]["detail"]，两段都是字典下标
+    raw_detail = {"best": {"detail": detail}}
+    reco_detail = type("RecoDetail", (), {"raw_detail": raw_detail})()
+    argv = type("Argv", (), {"reco_detail": reco_detail, "box": box, "custom_action_param": None})()
+    return actor.run(context, argv)  # pyright: ignore[reportArgumentType]
 
 
 class TestBuyCardPriority:
@@ -1472,3 +1531,45 @@ class TestLeaderState:
         CCChessboard.set_leader("30027")
         CCChessboard.reset_rerolls()
         assert CCChessboard.leader_id is None
+
+
+class TestDeployResultHandling:
+    """run_task 的返回值必须真的看：TaskDetail.status.succeeded，不是 .ok（那是 Node 绑定）。"""
+
+    def setup_method(self) -> None:
+        CCChessboard.apply_strategy(load_strategy(PROJECT_ROOT / STRATEGY_4_0_PATH))
+
+    def teardown_method(self) -> None:
+        CCChessboard.apply_strategy(BASE_STRATEGY)
+
+    def _buy_ctx(self, status: MaaStatusEnum) -> _ScriptedContext:
+        ctx = _ScriptedContext({"32123": _hit((60, 620, 90, 100))})
+        ctx.task_statuses["CCDeploy"] = status
+        return ctx
+
+    def test_failed_deploy_marks_cell_and_reports_failure(self) -> None:
+        """CCDeploy 失败 → 该格占位（否则下一轮又拖同一格）+ 返回失败。"""
+        ctx = self._buy_ctx(MaaStatusEnum.failed)
+        detail = {"type": 0, "action": 0, "name": "32123"}
+        result = _run_buy_card(ctx, detail, box=(60, 620, 90, 100))
+        assert result.success is False
+        assert ctx.tasks == ["CCDeploy"]
+        # 目标格已被占位，find_empty_position 不再返回它
+        assert CCChessboard.find_empty_position("32123") != (0, 5)
+
+    def test_successful_deploy_places_chess(self) -> None:
+        ctx = self._buy_ctx(MaaStatusEnum.succeeded)
+        detail = {"type": 0, "action": 0, "name": "32123"}
+        result = _run_buy_card(ctx, detail, box=(60, 620, 90, 100))
+        assert result.success is True
+        assert CCChessboard.board[0][5] is not None
+
+    def test_deploy_override_points_at_target_cell(self) -> None:
+        """run_task 的 override 必须把 begin 指向卡位、end 指向目标格。"""
+        ctx = self._buy_ctx(MaaStatusEnum.succeeded)
+        detail = {"type": 0, "action": 0, "name": "32123"}
+        _run_buy_card(ctx, detail, box=(60, 620, 90, 100))
+        override = ctx.task_overrides[0]
+        assert override["CCDeploy"]["begin"] == [60, 620, 90, 100]
+        target = CCChessboard.board_rois[0][5]
+        assert override["CCDeploy"]["end"] == target

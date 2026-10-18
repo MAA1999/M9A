@@ -900,7 +900,8 @@ class CCBuyCard(CustomAction):
                     "CCDeployFinished": {"roi": target_roi},
                 },
             )
-            if not deploy_result or not deploy_result.ok:
+            # run_task 返回 Optional[TaskDetail]；成败看 .status.succeeded（失败返回 None）
+            if not deploy_result or not deploy_result.status.succeeded:
                 # 失败也要占住这个位置：否则 find_empty_position 下一轮还返回同一格，
                 # 拖拽又失败 —— 形成「一直拖同一格」的死循环（实测卡满整局）。
                 # 占位只影响本局内的决策，真实棋盘下次 CCResetData 会重建。
@@ -959,7 +960,7 @@ class CCBuyCard(CustomAction):
                             "CCUpdateFinished": {"roi": list(box)},
                         },
                     )
-                    if not update_result or not update_result.ok:
+                    if not update_result or not update_result.status.succeeded:
                         # 升级失败同样要记一笔：否则 can_upgrade_existing 下一轮还返回 True，
                         # 就会一直去拖同一个满级/拖不动的棋子（实测卡满整局）。
                         # 记成满级，让它从升级候选里退出。
