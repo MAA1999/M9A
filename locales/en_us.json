@@ -346,7 +346,7 @@
     "Task.CompleteInduction": "Complete Induction",
     "Task.CompleteInduction.desc": "Play one full round manually to finish the tutorial first, then start the task on the screen with the mini-game's \"Start Research\" button.",
     "Task.CritterCrash": "Critter Crash Fast Farm",
-    "Task.CritterCrash.desc": "<span style=\"color:tomato;font-size:15px\">Adapted for CN 4.0 \"Challenge Mode\". Start from the event entry page, the Critter Crash main menu, or an ongoing match.</span><br>Picks the leader automatically (prefers 小叶尼塞, otherwise falls back to any of the three so \"Enter Battle\" becomes clickable) and fills the board with 鹿蜀.<br>![CCMain](tasks/images/CCMain.png)",
+    "Task.CritterCrash.desc": "<span style=\"color:tomato;font-size:15px\">Adapted for CN 4.0 \"Challenge Mode\". Start from the event entry page, the Critter Crash main menu, or an ongoing match (an unfinished run left on the main menu is forfeited first — otherwise the task would only resume it and never reroll the encounter).</span><br>Picks the leader automatically (prefers 小叶尼塞, otherwise falls back to any of the three so \"Enter Battle\" becomes clickable) and fills the board with 鹿蜀.<br>![CCMain](tasks/images/CCMain.png)",
     "Task.EightBitArcade": "8-bit Arcade Show",
     "Task.EightBitArcade.desc": "Farm tokens in the 8-bit Arcade Show. Start the task from the game's main screen.",
     "Task.Limbo": "Auto Deep Sleep",

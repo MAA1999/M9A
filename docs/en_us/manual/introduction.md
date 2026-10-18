@@ -284,6 +284,8 @@ Auto-plays "Challenge Mode" for rewards: prefers 小叶尼塞 as leader, fills t
 - Start at any of: the event entry page "参与游戏" / the Critter Crash main menu / an ongoing match
 - Supports CN server version 4.0
 - If 小叶尼塞 is not offered, it picks from the available slots and still plays
+- If the encounter (which decides the shop pool) is not on the whitelist (杻阳有兽 / 大大大礼帽 / 库存盘点 / 装修计划), it **forfeits the run and starts over** to reroll, up to 15 times; forfeiting does not affect your rating (in-game prompt: "此时放弃对战评分不变")
+- When started from the main menu with an unfinished run (the ✕ next to "箱中对决" is still there), the task forfeits that run first and starts a new one — otherwise it would only resume the old run and never reroll the encounter. Starting from an ongoing match keeps playing that match instead
   :::
 
 ### Pre-Storm Protocol

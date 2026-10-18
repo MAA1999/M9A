@@ -5,6 +5,7 @@
 """
 
 import json
+import re
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -1288,3 +1289,101 @@ class TestEncounterConfig:
     def test_rejects_malformed_back_button(self) -> None:
         with pytest.raises(StrategyError, match="encounters.back_button"):
             parse_strategy(_minimal_raw(encounters={"accept": ["甲"], "back_button": [1]}))
+
+
+# 重摇链路回归：这次修复的**全部**内容就是 pipeline 里的顺序与 CCStop 的出口链 ——
+# 把 CCStop 排到 CCStart 之后（4.0 改写就是这么写的），表现与「完全不放弃」一模一样：
+# 实机连摇 4 次都是同名奇遇「大鱼吃小鱼」。顺序漂移不会让任何加载期校验报错，
+# 所以拿用例把它钉住。
+CC_PIPELINE_PATH = Path("resource/base/pipeline/activity/CritterCrash.json")
+
+# pipeline 是 JSONC：行首、行尾都可能带 // 注释，而字符串里也有 "//." 这类内容
+_JSONC_TOKEN = re.compile(r'"(?:\\.|[^"\\])*"|//[^\n]*')
+
+
+def _load_cc_pipeline() -> dict[str, Any]:
+    raw = (PROJECT_ROOT / CC_PIPELINE_PATH).read_text(encoding="utf-8")
+    text = _JSONC_TOKEN.sub(lambda match: match.group(0) if match.group(0).startswith('"') else "", raw)
+    data = json.loads(text)
+    assert isinstance(data, dict)
+    return data
+
+
+class TestRerollAbandonsBeforeRestart:
+    """重摇奇遇必须「先放弃、再开始」，而且放弃这一步要保持原子（2026-10-17 实机）。
+
+    `CCStop` = 主菜单「箱中对决」招牌右上角的橙底 ✕（只在有未完成对局时出现）：点它才弹
+    「此时放弃对战评分不变，是否确认？」，确认后 ✕ 消失、再点「箱中对决」才是新奇遇
+    （实测：新科学委托 → 大大大礼帽；端到端 5 轮 5 个不同奇遇、≈7.5 s/轮）。顺序反了 =
+    永远先点「箱中对决」续局，额度白烧 —— 这就是用户报的「光退到界面没用」。
+
+    结构约定：`CCStop` 只有识别 + 点击、**没有 next**，别处一律 `[JumpBack]CCStop` 引用
+    （[JumpBack] 只回父列表重新识别、不重跑父 action）。第一版写成「点 ✕ → 清框 → 开局」的
+    复合节点、又让 `CritterCrash.next` 指回它，长出 `CCStop ↔ CritterCrash` 互指环 ——
+    下面两条用例把这个坑封住。
+    """
+
+    def setup_method(self) -> None:
+        self.pipeline = _load_cc_pipeline()
+
+    def test_shortcut_nodes_are_atomic(self) -> None:
+        """「点一下就走」的节点（CCStop / CCRerollConfirm）必须原子：只有识别 + 点击，没有 next。
+
+        它们的 next 原本写的是**调用方的续程**（`→ CritterCrash → CCStart`）：一来和主菜单锚点
+        互指成环（`CritterCrash ↔ CCStop`、`CritterCrash ↔ CCRerollConfirm`），二来会硬路由、
+        跳过调用方列表里的状态判断（入口路径上「先放弃残局」就是被这么跳掉的）。
+        """
+        for leaf in ("CCStop", "CCRerollConfirm"):
+            assert "next" not in self.pipeline[leaf], f"{leaf} 必须原子（无 next）"
+
+    def test_shortcut_nodes_are_only_referenced_as_jumpback(self) -> None:
+        """全图扫描：这两个节点只能以 `[JumpBack]X` 引用（原子节点的唯一引用形式）。"""
+        offenders = [
+            f"{name}.next[{entry!r}]"
+            for name, node in self.pipeline.items()
+            if isinstance(node, dict) and isinstance(node.get("next"), list)
+            for entry in node["next"]
+            if isinstance(entry, str)
+            and entry.endswith(("CCStop", "CCRerollConfirm"))
+            and not entry.startswith("[JumpBack]")
+        ]
+        assert offenders == [], f"只能以 [JumpBack]X 引用（[JumpBack] 不重跑父 action），违规：{offenders}"
+
+    def test_entry_chain_abandons_before_start(self) -> None:
+        """入口链（任务直接就停在主菜单）里 CCStop 必须排在 CCStart 之前（3.5 就是这个顺序）。"""
+        nxt = self.pipeline["CCResetData"]["next"]
+        assert "[JumpBack]CCStop" in nxt
+        assert nxt.index("[JumpBack]CCStop") < nxt.index("CCStart")
+
+    def test_main_menu_anchor_abandons_before_restart(self) -> None:
+        """主菜单锚点是唯一的放弃决策点；清框那一项要排在放弃之前。
+
+        点完 ✕ / 清完框都会 [JumpBack] 回本列表重新识别，所以顺序就是执行顺序：
+        先 CCRerollConfirm 收拾「放弃对战」框，再 CCStop 放弃残局，最后 CCStart 开局。
+        """
+        nxt = self.pipeline["CritterCrash"]["next"]
+        assert "[JumpBack]CCStop" in nxt
+        assert nxt.index("[JumpBack]CCRerollConfirm") < nxt.index("[JumpBack]CCStop")
+        assert nxt.index("[JumpBack]CCStop") < nxt.index("CCStart")
+
+    def test_reroll_and_leader_paths_route_through_the_anchor(self) -> None:
+        """两条「返回主菜单重摇」的路径都经主菜单锚点统一放弃，不各自挂一份 CCStop。"""
+        for name in ("CCEncounterAccept", "CCSelectPeople4p0"):
+            nxt = self.pipeline[name]["next"]
+            assert "CritterCrash" in nxt, f"{name}.next 必须经主菜单锚点"
+            assert nxt.index("CritterCrash") < nxt.index("CCStart")
+
+    def test_stop_matches_the_measured_close_button(self) -> None:
+        """✕ 的资产与 ROI 都是实机量出来的：模板要在资源包里，ROI 要罩住徽章圆心。"""
+        param = self.pipeline["CCStop"]["recognition"]["param"]
+        assert param["template"] == ["CritterCrash/Stop.png"]
+        x, y, w, h = param["roi"]
+        assert x <= 1231 <= x + w, f"ROI {param['roi']} 没罩住实机 ✕ 圆心 x=1231"
+        assert y <= 576 <= y + h, f"ROI {param['roi']} 没罩住实机 ✕ 圆心 y=576"
+        assert (PROJECT_ROOT / "resource/base/image" / param["template"][0]).is_file()
+
+    def test_confirm_target_covers_the_measured_button(self) -> None:
+        """放弃框「确认」实机圆心 (800,427)：CCRerollConfirm 的固定落点要罩得住它。"""
+        x, y, w, h = self.pipeline["CCRerollConfirm"]["action"]["param"]["target"]
+        assert x <= 800 <= x + w, f"落点 {[x, y, w, h]} 没罩住实机「确认」x=800"
+        assert y <= 427 <= y + h, f"落点 {[x, y, w, h]} 没罩住实机「确认」y=427"

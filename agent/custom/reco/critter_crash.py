@@ -16,7 +16,8 @@ class CCPickLeaderRec(CustomRecognition):
     为什么不能只兜底：领队决定**卡包**，卡包决定商店的棋子池（`auto_chess_master_library`
     → `auto_chess_cardpack.chessPool`）；鹿蜀流整套（32121–32126）只在部分卡包里，
     随机兜底一选就可能整局买不到鹿蜀，机器人只能空转刷新（实测一局 240s 里刷了 38 次）。
-    而**选领队页退出重进会重新摇**，所以在没摇到优先棋手时可以退出去再摇。
+    而**选领队页返回 + 放弃这一局**会重新摇（返回本身没用，放弃那步由 pipeline 的 CCStop 承担，
+    见 CritterCrash.json 文件头第 3 条），所以在没摇到优先棋手时可以退出去再摇。
 
     四道门，任一不成立就返回 miss（交由 pipeline 的 next 继续）：
       1. 策略表有 people 段（3.5 流程不读）；
@@ -82,16 +83,22 @@ class CCPickLeaderRec(CustomRecognition):
 
 @AgentServer.custom_recognition("CCPickEncounterRec")
 class CCPickEncounterRec(CustomRecognition):
-    """「本次奇遇」弹窗：名字不在白名单就点左上返回，退出去重摇。
+    """「本次奇遇」弹窗：名字不在白名单就点左上返回，再由 pipeline 放弃这局重开。
 
     为什么要按奇遇门控：**棋子池由「奇遇 → 卡包」决定**（`auto_chess_master_library`
     → `auto_chess_cardpack.chessPool`），领队只影响技能。实机 20 分钟实测：按「领队=30027」
     重摇 15 次只中 1 次（~7%）；而非目标奇遇的对局是纯浪费 —— 白名单卡一张都不出，
     机器人只能刷新+开战，4 分钟打空场。奇遇名是弹窗上的大号文字，OCR 3/3 命中、负对照 miss。
 
+    重摇是**两步**（2026-10-17 实机修正）：这里点返回只是回到主菜单，**这一局还压着** ——
+    再点「箱中对决」会原样回到同一局同名奇遇（连摇 4 次都是「大鱼吃小鱼」）。真正换奇遇
+    要靠 pipeline 里的 CCStop：点「箱中对决」右上角的 ✕ 放弃这局 → 清确认框 → 再点「箱中对决」。
+    所以这个识别只负责「点返回」，放弃与重开由 pipeline 的 next 链接着走（CCStop → CCRerollConfirm
+    → CCStart）。
+
     返回约定：命中优先棋手那种「要点了才有进展」的语义不适用于这里 ——
       · 名字可接受 / 不在门控范围 / 不在奇遇弹窗 → 返回 miss（交给 pipeline 的 CCNext 翻页）；
-      · 名字不可接受且还有额度 → 返回返回键的 box（Click 点它退出去重摇）；
+      · 名字不可接受且还有额度 → 返回返回键的 box（Click 点它回主菜单，pipeline 接着放弃重开）；
       · 额度用尽 → 返回 miss（认了，直接开打）。
     """
 

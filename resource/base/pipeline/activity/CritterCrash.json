@@ -25,11 +25,30 @@
     //   ⚠️ 不要把对局页判据并进 CritterCrash：那样会与 CCFlagInCombatMain.next 里的
     //      CritterCrash 形成 Entry→CCResetData→CCFlagInCombatMain→CritterCrash 死循环（已实测踩过）。
     //
-    // 两条实测行为（2026-10-16，决定了下面的 next 排布）：
+    // 三条实测行为（2026-10-16 / 10-17，决定了下面的 next 排布）：
     //   1. 选领队页「进入战斗」在**没有选中领队时是禁用态**，点了不响应 —— 死等会让任务在
     //      这一页终结（status 4000）。所以 CCSelectPeople4p0 必须兜底选人，见 CCPickLeaderRec。
     //   2. **对局一旦建立就会续局**：退到主菜单再点「箱中对决」直接回到同一局（不再走奇遇/选领队），
     //      且已消耗 1 次次数。因此 CCStart.next 首项要能认对局页，否则续局时会死端。
+    //   3. **换奇遇要靠「放弃」，光返回没用**（2026-10-17 实机）：奇遇弹窗/选领队页点左上返回只是回到
+    //      主菜单，这一局还压着 —— 再点「箱中对决」原样回到同一局（同名奇遇：连摇 4 次都是「大鱼吃小鱼」，
+    //      额度全白烧，这就是「重开流程不对」的根因）。真正的重摇是两步：
+    //        返回回主菜单（CCPickEncounterRec 点的）→ 点「箱中对决」招牌右上角的 **✕（CCStop）**
+    //        → 清掉「此时放弃对战评分不变，是否确认？」（CCRerollConfirm）→ 再点「箱中对决」。
+    //      实测这样能摇到新奇遇（大鱼吃小鱼 → 天外飞箱），且 ✕ 放弃后立刻消失（它是条件出现的，
+    //      「有未完成对局」才有，所以没局时 CCStop 自然 miss，不会误点）。
+    //      ⚠️ 所以在每一处「准备开局」的 next 里，`[JumpBack]CCStop` 都必须排在 CCStart **之前** ——
+    //      3.5 就是这个顺序，4.0 改写时把它排到了 CCStart 后面，于是永远轮不到它，主菜单上只会
+    //      点「箱中对决」续局。
+    //      结构约定（别改回复合节点）：**「点一下就走」的节点保持原子** —— `CCStop`（点 ✕ 放弃）
+    //      与 `CCRerollConfirm`（点确认清框）都只有识别 + 点击、没有 next，调用方一律用
+    //      `[JumpBack]X` 引用：点完回**调用方自己的列表**重新识别，后续决策（还要不要放弃、
+    //      现在到底在哪一页、要不要开局）留在列表里。把 `→ CritterCrash → CCStart` 这种
+    //      调用方续程写进被调节点的 next，会立刻和主菜单锚点互指成环（`CritterCrash ↔ CCStop`、
+    //      `CritterCrash ↔ CCRerollConfirm`），还会硬路由跳过列表里的状态判断 —— 本轮第一版
+    //      就是这么踩的；3.5 的 `[JumpBack]CCConfirm` 本来就是叶子写法。
+    //      挂 `[JumpBack]CCStop` 的只有两处：主菜单锚点 `CritterCrash`（覆盖重摇 / 领队重摇 /
+    //      活动入口页启动）与 `CCResetData`（任务入口直接就停在主菜单时）。
     "CritterCrashEntry": {
         "desc": "任务入口：任意翻斗棋界面（主菜单「翻斗历程」/ 对局页「怪物粘贴处」/ 选领队「进入战斗」/ 奇遇「下一步」/ 入口页「参与游戏」）—— 五路都是文字 OCR 判定",
         "recognition": {
@@ -90,7 +109,13 @@
             }
         },
         "next": [
-            "CCRerollConfirm",
+            // 主菜单锚点 = 「我在主菜单」时的唯一决策点：先清放弃框 → 还压着一局就先放弃 → 再开局。
+            // 从活动入口页「参与游戏」进来走的就是这里（CCPlay.next 第 1 项），绕开了 CCResetData，
+            // 所以「先放弃」这一刀必须挂在这儿，否则那条路径又会「点箱中对决续旧局」（原 bug 复现）。
+            // CCStop 是原子节点（只认 ✕ + 点掉，没有 next），用 [JumpBack] 引用：点完回到本列表重新识别，
+            // 下一轮由 CCRerollConfirm 清框 —— 这样 CCStop 不会和本节点互指成环。
+            "[JumpBack]CCRerollConfirm",
+            "[JumpBack]CCStop",
             "CCStart",
             "[JumpBack]CCConfirm",
             "[JumpBack]CCClickBlank"
@@ -110,12 +135,16 @@
             "CCFlagInCombatMain",
             "CCFlagInSelectPeople",
             // 入口启动时也可能正压着「放弃对战」确认框：先清框，再决定去哪
-            "CCRerollConfirm",
+            "[JumpBack]CCRerollConfirm",
             // 停在一页「本次奇遇」弹窗上时：先按名字门控，再翻页（主菜单上它不命中，不会抢 CCStart 的道）
             "CCEncounterAccept",
             "CCNext",
-            "CCStart",
+            // 主菜单上还压着一局（「箱中对决」右上角有 ✕）就先放弃：不放弃的话下面 CCStart 只会续局，
+            // 永远摇不到新奇遇。✕ 只在有未完成对局时出现，没局时这一项自然 miss。
+            // 用 [JumpBack] 而不是裸引用：点完 ✕ 回到本列表重新识别，由上面的 CCRerollConfirm 清框 ——
+            // 既不用给 CCStop 挂 next（那是 3.5 的写法），也不会让它的 action 被反复重跑。
             "[JumpBack]CCStop",
+            "CCStart",
             "[JumpBack]CCConfirm",
             "[JumpBack]CCClickBlank"
         ]
@@ -145,7 +174,7 @@
             "CCNext",
             "CCSelectPeople4p0",
             "CCEnterBattle",
-            "CCRerollConfirm",
+            "[JumpBack]CCRerollConfirm",
             "CCStart"
         ]
     }, // 4.0 新增：开局前的「本次奇遇」弹窗。用「下一步」按钮作门控（该按钮只存在于奇遇弹窗），
@@ -201,9 +230,22 @@
             "CCEnterBattle"
         ]
     },
-    // 说明：4.0 的「返回主菜单」兜底未纳入 —— 返回箭头模板未实机裁剪，
-    // 按仓库规范（未见过的状态不落笔）不写占位节点。
+    // 主菜单「箱中对决」招牌右上角的橙底 ✕ = **放弃当前这一局**（不是「退出小游戏」，也不是常驻按钮：
+    // 实测只在有未完成对局时出现，放弃后立刻消失；棋盘页/选领队页/奇遇弹窗上都没有它，不会在对局中误触发）。
+    // 实测链路（2026-10-17，1280x720）：点 ✕(1231,576) → 弹「此时放弃对战评分不变，是否确认？」
+    // →「确认」(800,427) → 主菜单（✕ 消失）→ 再点「箱中对决」= **新奇遇**。
+    // 点击落点用识别框中心即可：✕ 圆心 (1231,576) 落在 ROI [1207,553,52,53] 中间；
+    // 「确认」落在 CCRerollConfirm 既有 target [760,400,90,50] 内 —— 两处几何都不用改。
+    //
+    // **本节点刻意保持原子：只有识别 + 点击，没有 next**（沿用 3.5 的写法）。
+    // 需要「先放弃再开局」的列表用 `[JumpBack]CCStop` 引用它：点完回父列表重新识别，
+    // 由列表里排在 CCStart 之前的 CCRerollConfirm 清掉放弃框。反过来若给它挂 next
+    // （点 ✕ → 清框 → 开局）并让别的节点再指回来，就会长出 CCStop ↔ CritterCrash 那种互指环。
+    // 这里也**不挂泛化 `CCConfirm`（OCR「确认」）当兜底**：它在选领队页/主菜单实测 0.87/0.767
+    // 相似度（阈值 0.3）会误命中并点掉 [766,404,70,34]；专用锚点「放弃对战」在真弹框上引擎实测
+    // 0.979~0.9998，本来就不需要兜底。
     "CCStop": {
+        "desc": "主菜单「箱中对决」右上角 ✕ = 放弃当前这局（只在有未完成对局时出现；原子节点，无 next）",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -307,8 +349,11 @@
         "next": [
             "CCEnterBattle",
             "CCFlagInSelectPeople",
+            // 「没摇到优先棋手就退出重摇」（people.max_reroll > 0 才走得到）也是两步：上面点返回回主菜单后，
+            // 由主菜单锚点 CritterCrash 的 [JumpBack]CCStop 放弃这一局才算真重摇 —— 否则又回到同一局、
+            // 同样 3 张卡。这里不重复挂 CCStop。
             "CritterCrash",
-            "CCRerollConfirm",
+            "[JumpBack]CCRerollConfirm",
             "CCStart"
         ]
     },
@@ -348,10 +393,18 @@
         }
     },
     // 「此时放弃对战评分不变，是否确认？」弹窗 —— 退出重摇（点返回）和「箱中对决」都可能弹它。
-    // 用「放弃对战」当 OCR 锚点（比泛化的「确认」精确得多，不会在别的界面假阳性），
-    // 命中后直接点右侧的「确认」按钮。不点掉它，后面的节点全被它盖住 → 20s 超时 → 任务 4000。
+    // 用「放弃对战」当 OCR 锚点（比泛化的「确认」精确得多，不会在别的界面假阳性 —— 泛化那个
+    // 在选领队页/主菜单实测 0.87/0.767 相似度会误命中），命中后直接点右侧的「确认」按钮。
+    // 不点掉它，后面的节点全被它盖住 → 20s 超时 → 任务 4000。
+    //
+    // **本节点也保持原子：只有识别 + 点击，没有 next**（与 CCStop 同一条约定，3.5 的
+    // `[JumpBack]CCConfirm` 就是这么写的）。调用方一律 `[JumpBack]CCRerollConfirm`：
+    // 点完回调用方列表重新识别。理由不是洁癖 —— 清框之后该干什么**是调用方的决定**：
+    // 主菜单锚点要接着判「还有没有残局要放弃」，入口列表要重新判「当前到底在哪一页」。
+    // 把 `→ CritterCrash → CCStart` 写死在这里，就等于让每条调用链都硬跳过这些判断
+    // （4.0 原来就是这么写的，于是和 CritterCrash 互指成环，且在入口路径上会跳过「先放弃」）。
     "CCRerollConfirm": {
-        "desc": "退出重摇的「放弃对战」确认框 → 点确认",
+        "desc": "退出重摇的「放弃对战」确认框 → 点确认（原子节点，无 next，调用方用 [JumpBack] 引用）",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -378,15 +431,13 @@
                 ]
             }
         },
-        "post_delay": 800,
-        "next": [
-            "CritterCrash",
-            "CCStart"
-        ]
+        "post_delay": 800
     },
     // 「本次奇遇」弹窗的名字门控：名字不在策略表白名单里就点返回退出去重摇。
     // 依据：棋子池由「奇遇 → 卡包」决定（领队只影响技能）；实测按领队重摇 15 次才中 1 次，
     // 而奇遇名是弹窗上的大号文字，OCR 稳定。名字可接受时返回 miss，交给 CCNext 翻页。
+    // 重摇是**两步**（见文件头第 3 条）：这里的点击只是「返回主菜单」，返回本身不换奇遇 ——
+    // 所以 next 里必须紧跟 CCStop（点 ✕ 放弃这局）再回 CCStart 重开，否则又回到同一局同名奇遇。
     "CCEncounterAccept": {
         "desc": "奇遇弹窗：名字不在白名单就退出重摇（判定见 CCPickEncounterRec）",
         "recognition": {
@@ -400,7 +451,9 @@
         },
         "post_delay": 800,
         "next": [
-            "CCRerollConfirm",
+            // 返回后落在主菜单 → 交给主菜单锚点：它会先按 [JumpBack]CCStop 放弃这一局，再重开
+            // （见 CritterCrash.next 的注释）。这里不直接挂 CCStop，避免多入口各挂一份、语义漂移。
+            "[JumpBack]CCRerollConfirm",
             "CritterCrash",
             "CCStart",
             "CCNext"
