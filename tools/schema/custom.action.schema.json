@@ -55,6 +55,7 @@
                 "CCChessboard",
                 "CCLevelUp",
                 "CCBuyCard",
+                "CCSticker",
                 "SOSSelectNoise",
                 "SOSSelectInstrument",
                 "SOSSelectNode",
@@ -233,6 +234,9 @@
         },
         {
             "$ref": "#/$defs/CCBuyCard"
+        },
+        {
+            "$ref": "#/$defs/CCSticker"
         },
         {
             "$ref": "#/$defs/SOSSelectNoise"
@@ -1408,6 +1412,14 @@
                 "custom_action": {
                     "const": "ArtOfIlluminationScratch",
                     "description": "光影栖身处刮卡：按「盖着的格子有动画、已翻开的静止」这一**相对**判据扫出未开格并**随机**挑一个点开，直到折射次数用完或没有可翻的格子；翻牌后的「获得物品」页与两种详情面板各有专门节点关闭，本页翻完而次数还有剩时由 AOI_PageSwitch 翻到另一幕布接着翻。无参数。"
+                }
+            }
+        },
+        "CCSticker": {
+            "properties": {
+                "custom_action": {
+                    "const": "CCSticker",
+                    "description": "翻斗棋：专属贴纸箱（点开箱子并把贴纸拖到空位）"
                 }
             }
         }

@@ -264,6 +264,33 @@
             "type": "Click"
         }
     },
+    "CCAwardClearConfirm": {
+        "desc": "4.0：奖励区有卡时点「挑战」会弹「奖励区的棋子…是否确认？」（实测 .live/acc/t18-round3.png）。点「取消」保留卡牌，交回主循环去拖卡。",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    220,
+                    215,
+                    840,
+                    45
+                ],
+                "expected": [
+                    "奖励区的棋子"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    400,
+                    422
+                ]
+            }
+        }
+    },
     "CCConfirm": {
         "recognition": {
             "type": "OCR",
@@ -506,7 +533,9 @@
             "[JumpBack]CCRefreshCard_pre",
             "[JumpBack]CCRefreshCard_post",
             "[JumpBack]CCSelectAwardCard",
-            "[JumpBack]CCStartCombat"
+            "[JumpBack]CCAwardClearConfirm",
+            "[JumpBack]CCStartCombat",
+            "[JumpBack]CCSticker"
         ]
     },
     "CCCombatEnd": {
@@ -693,6 +722,53 @@
         },
         "action": {
             "type": "Click"
+        }
+    },
+    "CCRoundRec": {
+        "desc": "对局页右侧回合数 n（来自 n/12，实测 roi 1160,415,120,50）。贴纸箱的开箱回合随品质变，需要读实际回合数做去重。",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1160,
+                    415,
+                    120,
+                    50
+                ],
+                "expected": [
+                    "^[0-9]{1,2}\\/12$"
+                ],
+                "replace": [
+                    [
+                        "//.*",
+                        ""
+                    ]
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "CCSticker": {
+        "desc": "4.0 专属贴纸箱：识别左列上格的盒子模板（开掉后变三角格即不再命中）。挂在主循环末尾、且 action 侧用「同回合只试一次」去重，避免未到回合时每轮空转。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    280,
+                    120,
+                    200,
+                    200
+                ],
+                "template": [
+                    "CritterCrash/StickerBox.png"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CCSticker"
+            }
         }
     },
     "CCBuyCard": {
@@ -920,7 +996,7 @@
         }
     },
     "CCDeploy": {
-        "max_hit": 5,
+        "desc": "拖拽棋子到目标格。不设 max_hit：它是按任务累计的，而清零动作挂在 CCDeployFinished.next（只有成功才走到），一旦某次失败就永久卡死；终止由 timeout + next 自环保证。",
         "action": {
             "type": "Swipe",
             "param": {

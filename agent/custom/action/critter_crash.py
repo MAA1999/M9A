@@ -48,6 +48,18 @@ DEFAULT_LEADER_BADGE_OFFSET = (-170, 105, 140, 70)
 # 需要「退出去重摇」时靠它离开当前这一步。
 DEFAULT_BACK_BUTTON = (46, 43)
 
+# 专属贴纸箱的点击点（4.0 实测：左列上格，即棋盘 (0,0)）。
+# 盒子只在每局开局存在；点一下弹道具面板，面板写明还需几回合才能开。
+DEFAULT_STICKER_BOX_POINT = (354, 201)
+
+# 奖励区**只有一格**（4.0 实测，1280x720）：roi 42,580,128,124，中心 (106, 642)。
+# 底部那条 4-5 张卡是「待购物区」（商店），roi 214,520,1066,200 —— 两者不是一回事。
+# 贴纸开箱后落在这唯一的一格里。
+AWARD_SLOT_CENTER = (106, 642)
+
+# 关掉道具面板的点击点（4.0 实测：面板外的空白处）。
+DEFAULT_PANEL_CLOSE_POINT = (1150, 650)
+
 # 「每局只用一次」的节点：它们的 max_hit 是按**任务**计的，打几局就会耗尽，
 # 之后再也认不出来 → 必然死端。所以每局开始（回到对局页）时把命中计数清零。
 # 实测：第 3 局起 CCNext（奇遇「下一步」）不再命中 → CCStart 卡 20s 超时 → 任务报 4000。
@@ -157,6 +169,29 @@ class EncounterSpec:
 
 
 @dataclass(frozen=True)
+class StickerSpec:
+    """专属贴纸箱（4.0 每局一个，位置固定在左列上格）。
+
+    实测（.live/acc/STICKER-FINDINGS.md）：
+    - 盒子在第 (0,0)，点一下弹道具面板，面板写明「N 回合后可开箱」，N = open_round - 当前回合；
+    - 开箱后贴纸进奖励区最左槽，拖到空位即上场；
+    - 贴纸按角色独有：小叶尼塞 = 第 open_round 回合可用。
+    """
+
+    # 参考回合数（仅作日志提示，不作门控）：贴纸品质越高开箱所需回合越长，
+    # 实测同一角色不同局有 2 与 5 两种，故真正的门控是「盒子模板是否还在画面上」。
+    open_round: int | None = None
+    # 盒子点击点（控制器坐标）；None 表示用 DEFAULT_STICKER_BOX_POINT
+    box_point: tuple[int, int] | None = None
+    # 贴纸优先落点（棋盘 row/col）；None 表示只用 positions
+    positions: tuple[tuple[int, int], ...] = ()
+
+    def point(self) -> tuple[int, int]:
+        """盒子的点击点。"""
+        return self.box_point or DEFAULT_STICKER_BOX_POINT
+
+
+@dataclass(frozen=True)
 class StrategySpec:
     """一套完整的翻斗棋策略。"""
 
@@ -173,6 +208,8 @@ class StrategySpec:
     encounters: EncounterSpec | None = None
     # 满级角标相对棋盘格的 ROI 偏移；None 表示用 DEFAULT_LEVEL_BADGE_OFFSET
     level_badge_offset: tuple[int, int, int, int] | None = None
+    # 专属贴纸箱；None 表示该策略不处理贴纸
+    sticker: StickerSpec | None = None
 
     def badge_offset(self) -> tuple[int, int, int, int]:
         """满级角标的 ROI 偏移（相对棋盘格）。"""
@@ -376,6 +413,41 @@ def _parse_encounters(raw: Any, problems: list[str]) -> EncounterSpec | None:
     return EncounterSpec(accept=tuple(accept), max_reroll=max_reroll, back_button=back_button)
 
 
+def _parse_sticker(raw: Any, label: str, problems: list[str]) -> StickerSpec | None:
+    """解析专属贴纸箱配置；字段全缺时返回 None（该策略不处理贴纸）。"""
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        problems.append(f"{label}: 应为对象")
+        return None
+
+    parsed_round: int | None = None
+    open_round = raw.get("open_round")
+    if open_round is not None:
+        parsed_round = _parse_int(open_round, f"{label}.open_round", problems)
+        if parsed_round is None or parsed_round < 1:
+            problems.append(f"{label}.open_round: 应 >= 1")
+            return None
+
+    box_point = None
+    raw_point = raw.get("box_point")
+    if raw_point is not None:
+        box_point = _parse_slot(raw_point, f"{label}.box_point", problems)
+
+    positions: list[tuple[int, int]] = []
+    raw_positions = raw.get("positions")
+    if raw_positions is not None:
+        if isinstance(raw_positions, (str, bytes)) or not isinstance(raw_positions, Sequence):
+            problems.append(f"{label}.positions: 应为数组")
+        else:
+            for index, item in enumerate(raw_positions):
+                slot = _parse_slot(item, f"{label}.positions[{index}]", problems)
+                if slot is not None:
+                    positions.append(slot)
+
+    return StickerSpec(open_round=parsed_round, box_point=box_point, positions=tuple(positions))
+
+
 def parse_strategy(raw: Any, *, source: str = str(STRATEGY_PATH)) -> StrategySpec:
     """校验并构建策略表；一次性报出全部问题，便于维护时逐条修。"""
     if not isinstance(raw, dict):
@@ -438,6 +510,7 @@ def parse_strategy(raw: Any, *, source: str = str(STRATEGY_PATH)) -> StrategySpe
 
     people = _parse_people(raw.get("people"), problems)
     encounters = _parse_encounters(raw.get("encounters"), problems)
+    sticker = _parse_sticker(raw.get("sticker"), "sticker", problems)
 
     level_badge_offset: tuple[int, int, int, int] | None = None
     raw_badge = raw.get("level_badge_offset")
@@ -455,6 +528,10 @@ def parse_strategy(raw: Any, *, source: str = str(STRATEGY_PATH)) -> StrategySpe
             for row, col in card.positions:
                 if out_of_board((row, col)):
                     problems.append(f"cards: {card.name} 的位置 [{row}, {col}] 超出 {rows}×{cols} 棋盘")
+        if sticker is not None:
+            for row, col in sticker.positions:
+                if out_of_board((row, col)):
+                    problems.append(f"sticker: 位置 [{row}, {col}] 超出 {rows}×{cols} 棋盘")
 
     if problems:
         raise StrategyError(f"{source} 有 {len(problems)} 处问题: " + "；".join(problems))
@@ -473,6 +550,7 @@ def parse_strategy(raw: Any, *, source: str = str(STRATEGY_PATH)) -> StrategySpe
         people=people,
         encounters=encounters,
         level_badge_offset=level_badge_offset,
+        sticker=sticker,
     )
 
 
@@ -680,6 +758,25 @@ class CCChessboard(CustomAction):
         return 0 <= row < len(cls.board) and 0 <= col < len(cls.board[0])
 
     @classmethod
+    def find_sticker_position(cls) -> tuple[int, int] | None:
+        """贴纸的空位：先按策略表给的优先位，再按行优先扫全盘。
+
+        贴纸不走 find_empty_position —— 它的落点与具体卡名无关，
+        而且优先位是「(1,1) 这种棋盘中部」，不是卡牌白名单的顺序。
+        """
+        strategy = cls.strategy
+        sticker = strategy.sticker
+        preferred: tuple[tuple[int, int], ...] = sticker.positions if sticker is not None else ()
+        for row, col in preferred:
+            if cls._is_valid_position(row, col) and cls.board[row][col] is None:
+                return (row, col)
+        for row in range(len(cls.board)):
+            for col in range(len(cls.board[0])):
+                if cls.board[row][col] is None:
+                    return (row, col)
+        return None
+
+    @classmethod
     def can_upgrade_existing(cls, card_name: str) -> bool:
         """检查是否有现有棋子可以升级"""
         chess_info = cls.get_chess_info(card_name)
@@ -748,15 +845,27 @@ class CCBuyCard(CustomAction):
             row, col = empty_pos
             target_roi = CCChessboard.board_rois[row][col]
 
-            # 执行拖拽操作，先滑动再更新内部棋盘状态以避免状态不一致
-            img = context.tasker.controller.cached_image
-            # 用 np 截取目标区域图片
+            # 执行拖拽操作，先滑动再更新内部棋盘状态以避免状态不一致。
+            # 必须现抓一帧：cached_image 是上一轮识别的缓存，拿它当"拖拽前空位"
+            # 会在拖拽后仍然命中自己，CCDeployFinished 的 inverse 永远不成立 → 子任务空转超时。
+            img = context.tasker.controller.post_screencap().wait().get()
             roi_array = img[
                 target_roi[1] : target_roi[1] + target_roi[3],
                 target_roi[0] : target_roi[0] + target_roi[2],
             ]
             context.override_image("ccdeploy", roi_array)
-            context.run_task(
+            # CCDeploy 的 max_hit=5 是**按任务累计**的，而清零动作挂在
+            # CCDeployFinished.next 上——只有成功才会走到。一旦某次失败，
+            # 计数再也不会归零，第 6 次起 CCDeploy 直接被跳过（实测 seq=216 起
+            # 连续 25 次 10s 超时）。所以每次调用前主动清零，不依赖子任务出口。
+            try:
+                context.clear_hit_count("CCDeploy")
+            except Exception as e:  # noqa: BLE001 - 清零失败不该中断放置
+                logger.debug(f"清零 CCDeploy 命中计数失败（{e}），继续")
+            # 子任务的成败必须看返回值：以前丢弃它、只按内存棋盘判成功，
+            # 结果「拖到非法格 → 拖拽没生效 → 子任务超时 fail」仍被记成成功放置，
+            # 内部棋盘与真实棋盘从此分叉（实测 32607 拖到中间行即此形态，卡 17s）。
+            deploy_result = context.run_task(
                 "CCDeploy",
                 {
                     "CCDeploy": {
@@ -766,6 +875,13 @@ class CCBuyCard(CustomAction):
                     "CCDeployFinished": {"roi": target_roi},
                 },
             )
+            if not deploy_result or not deploy_result.ok:
+                # 失败也要占住这个位置：否则 find_empty_position 下一轮还返回同一格，
+                # 拖拽又失败 —— 形成「一直拖同一格」的死循环（实测卡满整局）。
+                # 占位只影响本局内的决策，真实棋盘下次 CCResetData 会重建。
+                CCChessboard.board[row][col] = {"name": card_name, "level": 0, "failed": True}
+                logger.debug(f"放置 {card_name} 到 ({row}, {col}) 失败：CCDeploy 子任务未成功，本局不再尝试该格")
+                return CustomAction.RunResult(success=False)
             # 尝试更新内部棋盘状态
             if CCChessboard.place_chess(row, col, card_name):
                 logger.debug(f"成功放置 {card_name} 到位置 ({row}, {col})")
@@ -782,9 +898,8 @@ class CCBuyCard(CustomAction):
                     # 计算拖拽终点（棋盘位置中心）
                     target_roi = CCChessboard.board_rois[row][col]
 
-                    # 执行拖拽操作，先滑动再更新内部棋盘状态以避免状态不一致
-                    img = context.tasker.controller.cached_image
-                    # 用 np 截取目标区域图片
+                    # 同部署分支：必须现抓一帧，不能用 cached_image 当"拖拽前"基准
+                    img = context.tasker.controller.post_screencap().wait().get()
                     roi_array = img[
                         box[1] : box[1] + box[3],
                         box[0] : box[0] + box[2],
@@ -809,7 +924,7 @@ class CCBuyCard(CustomAction):
                         logger.debug(f"{card_name} 在位置 ({row}, {col}) 已满级，跳过升级")
                         return CustomAction.RunResult(success=True)
                     context.override_image("ccupdate", roi_array)
-                    context.run_task(
+                    update_result = context.run_task(
                         "CCUpdate",
                         {
                             "CCUpdate": {
@@ -819,6 +934,16 @@ class CCBuyCard(CustomAction):
                             "CCUpdateFinished": {"roi": list(box)},
                         },
                     )
+                    if not update_result or not update_result.ok:
+                        # 升级失败同样要记一笔：否则 can_upgrade_existing 下一轮还返回 True，
+                        # 就会一直去拖同一个满级/拖不动的棋子（实测卡满整局）。
+                        # 记成满级，让它从升级候选里退出。
+                        max_level = CCChessboard.get_chess_info(card_name).get("max_level", 1)
+                        chess["level"] = max_level
+                        if CCChessboard.board[row][col] is not None:
+                            CCChessboard.board[row][col]["level"] = max_level
+                        logger.debug(f"升级 {card_name} 于 ({row}, {col}) 失败：CCUpdate 未成功，按满级处理不再重试")
+                        return CustomAction.RunResult(success=True)
                     if CCChessboard.upgrade_chess(row, col):
                         logger.debug(f"成功升级 {card_name} 在位置 ({row}, {col})")
                         return CustomAction.RunResult(success=True)
@@ -910,5 +1035,190 @@ class CCResetData(CustomAction):
             logger.error(f"翻斗棋策略表不可用: {path}: {e}")
             return CustomAction.RunResult(success=False)
         CCLevelUp.reset_level()
+        CCSticker.reset()
 
         return CustomAction.RunResult(success=True)
+
+
+@AgentServer.custom_action("CCSticker")
+class CCSticker(CustomAction):
+    """
+    翻斗棋：专属贴纸箱（4.0 每局一个，位置固定在左列上格）。
+
+    实测规则（.live/acc/STICKER-FINDINGS.md）：
+    - 盒子在棋盘 (0,0)，点一下弹道具面板；面板写「N 回合后可开箱」，
+      实测 N = open_round - 当前回合，即当前回合 >= open_round 才点得开；
+    - 开箱后贴纸进奖励区最左槽，拖到空位即上场；
+    - 贴纸按角色独有，小叶尼塞第 open_round 回合可用。
+
+    本 action 只做「开箱 + 拖到空位」，不判断回合——回合门槛由 pipeline 的
+    识别节点（CCStickerReady）保证；这里再兜一层：点开后若弹的是道具面板
+    （说明还没到回合），关掉面板并如实返回 False，不假装成功。
+    """
+
+    # 本局是否已经开过箱（开过就不再重复点，避免每回合空转）
+    _opened = False
+    # 上次确认"开不了"的回合号；同一回合内不再重复点盒子
+    _failed_round: int | None = None
+
+    def run(
+        self,
+        context: Context,
+        argv: CustomAction.RunArg,
+    ) -> CustomAction.RunResult:
+
+        strategy = CCChessboard.strategy
+        sticker = strategy.sticker
+        if sticker is None:
+            logger.debug("策略表未启用贴纸流程，跳过")
+            return CustomAction.RunResult(success=True)
+
+        if CCSticker._opened:
+            # 返回 False 而不是 True：本节点以 [JumpBack] 挂在主循环上，
+            # action 成功 = 节点算走完，主循环每轮都会再进来一次（实测空转 484 次，
+            # 把 CCDeploy 挤到 0 次）。失败让 [JumpBack] 立刻回父列表，交还控制权。
+            logger.debug("本局贴纸箱已开过，跳过")
+            return CustomAction.RunResult(success=False)
+
+        # 门控：盒子还在才处理。盒子开掉后该格变成三角格，模板不再命中——
+        # 这条比「第 N 回合」可靠：面板自己写着「品质越高，开启所需回合越长」，
+        # 实测同一角色不同局有 2 回合与 5 回合两种，写死回合数必错。
+        img_now = context.tasker.controller.post_screencap().wait().get()
+        box_reco = context.run_recognition(
+            "CCStickerBoxRec",
+            img_now,
+            {"CCStickerBoxRec": {"template": "CritterCrash/StickerBox.png", "roi": [280, 120, 200, 200]}},
+        )
+        if not is_hit(box_reco):
+            logger.debug("贴纸箱不在（本局已开过或尚未出现），跳过")
+            CCSticker._opened = True
+            return CustomAction.RunResult(success=False)
+
+        # 同一个回合里只尝试一次：还没到可开回合时点盒子只会弹道具面板，
+        # 而主循环每轮都会走到这里 —— 不设防就会每回合点一遍，把买卡挤掉（实测 CCDeploy=0）。
+        current_round = self._read_round(context, img_now)
+        if current_round is not None and CCSticker._failed_round == current_round:
+            logger.debug(f"第 {current_round} 回合已确认开不了贴纸箱，本回合不再尝试")
+            return CustomAction.RunResult(success=True)
+
+        point = sticker.point()
+        context.tasker.controller.post_click(point[0], point[1]).wait()
+        time.sleep(0.8)
+
+        # 点完必须重新截图再判：cached_image 是上一轮的缓存，
+        # 不等 post_* 完成就取会拿到点之前的画面（实测踩过：误判成"没开箱"）。
+        # 判据只看**盒子模板是否消失** —— 不能用「奖励区是否为空」：
+        # 开箱前奖励区本来就可能有别的卡（实测有两张黑猫），那条判据会误判成已开。
+        img = context.tasker.controller.post_screencap().wait().get()
+        box_after = context.run_recognition(
+            "CCStickerBoxRec",
+            img,
+            {"CCStickerBoxRec": {"template": "CritterCrash/StickerBox.png", "roi": [280, 120, 200, 200]}},
+        )
+        if is_hit(box_after):
+            # 盒子还在：还没到可开回合，弹的是道具面板——关掉它。
+            # 记下回合号，本回合内不再重试；贴纸是可选项，失败也不让任务失败。
+            logger.debug(f"贴纸箱未开（第 {current_round} 回合还开不了），关闭面板")
+            context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
+            time.sleep(0.5)
+            CCSticker._failed_round = current_round
+            return CustomAction.RunResult(success=True)
+
+        CCSticker._opened = True
+        logger.debug("贴纸箱已开，贴纸进入奖励区")
+
+        # 找空位：先按策略表给的优先位，再按棋盘从左到右、从上到下扫
+        target = CCChessboard.find_sticker_position()
+        if target is None:
+            logger.debug("没有空位可放贴纸")
+            return CustomAction.RunResult(success=False)
+
+        row, col = target
+        target_roi = CCChessboard.board_rois[row][col]
+        # 贴纸落在奖励区某个非空槽。优先用识别到的 box 中心（槽位是「空框/卡」交替，
+        # 写死槽号会错），识别不到才退回槽位表。
+        src = self._sticker_source_point(context)
+        context.tasker.controller.post_swipe(
+            src[0],
+            src[1],
+            target_roi[0] + target_roi[2] // 2,
+            target_roi[1] + target_roi[3] // 2,
+            300,
+        ).wait()
+        time.sleep(0.8)
+
+        # 判据：拖完后奖励区变空 = 贴纸已上场。
+        # 不往 board 里登记 —— 贴纸不是可购买棋子，没有 max_level / positions，
+        # 登记进去会让 find_empty_position / can_upgrade_existing 把它当普通卡处理。
+        img_after = context.tasker.controller.post_screencap().wait().get()
+        still_there = context.run_recognition("CCBuyCardAwardEmptyRec", img_after)
+        if is_hit(still_there):
+            logger.debug(f"贴纸已放置到 ({row}, {col})（奖励区已空）")
+            return CustomAction.RunResult(success=True)
+
+        logger.debug(f"贴纸仍留在奖励区，放置到 ({row}, {col}) 未生效")
+        # 贴纸是可选收益：放不上也不该让整个任务失败
+        return CustomAction.RunResult(success=True)
+
+    @staticmethod
+    def _read_round(context: Context, img: Any) -> int | None:
+        """读对局页右侧的回合数「n/12」（roi 实测 1160,415,120,50），返回 n。
+
+        之前用 CCRemainMoney_rec_refresh 是错的 —— 那读的是**金币**（roi 669,29 左上角），
+        拿它当回合数会让守卫恒为 None，于是每轮都重点一次盒子（实测空转 122 次）。
+        """
+        try:
+            detail = context.run_recognition(
+                "CCRoundRec",
+                img,
+                {"CCRoundRec": {"roi": [1160, 415, 120, 50]}},
+            )
+        except Exception:  # noqa: BLE001 - 回合数只用于去重，读不到不算失败
+            return None
+        if not is_hit(detail):
+            return None
+        text = ocr_text(detail)
+        # OCR 结果形如 "1/12"：取斜杠前的第一个连续数字
+        head = text.split("/")[0]
+        digits = "".join(ch for ch in head if ch.isdigit())
+        return int(digits) if digits else None
+
+    @staticmethod
+    def _sticker_source_point(context: Context) -> tuple[int, int]:
+        """奖励区里贴纸卡的点击点。
+
+        奖励区只有一格（roi 42,580,128,124），贴纸就落在那里 —— 直接取格中心。
+        """
+        return AWARD_SLOT_CENTER
+
+    @staticmethod
+    def _award_slots(context: Context) -> int:
+        """数奖励区当前有几张卡（用于区分「开箱前就有卡」与「开箱后多了一张」）。
+
+        做法：按策略表的卡名逐个模板匹配奖励区 ROI，命中即算一张。
+        只用于「开箱是否生效」的相对判断，不作为业务状态来源。
+        """
+        try:
+            img = context.tasker.controller.post_screencap().wait().get()
+        except Exception as e:  # noqa: BLE001 - 截图失败不该让 action 抛出去
+            logger.debug(f"贴纸：取奖励区截图失败（{e}），按 0 张处理")
+            return 0
+        count = 0
+        for name in CCChessboard.strategy.card_names():
+            try:
+                detail = context.run_recognition(
+                    "CCBuyCardAwardRec_Template",
+                    img,
+                    {"CCBuyCardAwardRec_Template": {"template": f"CritterCrash/Cards/{name}.png"}},
+                )
+            except Exception:  # noqa: BLE001 - 识别异常不阻断贴纸流程
+                continue
+            if is_hit(detail):
+                count += 1
+        return count
+
+    @classmethod
+    def reset(cls) -> None:
+        """每局开始重置「已开箱」标记。"""
+        cls._opened = False
+        cls._failed_round = None

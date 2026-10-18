@@ -36,20 +36,39 @@ STRATEGY_4_0_PATH = Path("data/critter_crash/strategy-4.0.json")
 # 4.0 棋盘 ROI（Lead 实机实测，1280x720；15/15 框在爪印上）
 # 相对 3.5 整盘右移约 103/104/109px，行距也变大 —— 3.5 的 ROI 在 4.0 上全部失配。
 ROIS_4_0 = [
-    [[462, 175, 68, 44], [597, 175, 68, 44], [732, 175, 68, 44], [867, 175, 68, 44], [1005, 175, 68, 44]],
-    [[448, 286, 68, 44], [587, 286, 68, 44], [727, 286, 68, 44], [868, 286, 68, 44], [1009, 286, 68, 44]],
-    [[433, 406, 68, 44], [578, 406, 68, 44], [723, 406, 68, 44], [868, 406, 68, 44], [1014, 406, 68, 44]],
+    [
+        [354, 197, 68, 44],
+        [462, 175, 68, 44],
+        [597, 175, 68, 44],
+        [732, 175, 68, 44],
+        [867, 175, 68, 44],
+        [1005, 175, 68, 44],
+    ],
+    [
+        [354, 308, 68, 44],
+        [448, 286, 68, 44],
+        [587, 286, 68, 44],
+        [727, 286, 68, 44],
+        [868, 286, 68, 44],
+        [1009, 286, 68, 44],
+    ],
+    [
+        [354, 428, 68, 44],
+        [433, 406, 68, 44],
+        [578, 406, 68, 44],
+        [723, 406, 68, 44],
+        [868, 406, 68, 44],
+        [1014, 406, 68, 44],
+    ],
 ]
 
 # 当前基线（4.0 唯一策略表）：棋盘 ROI 见上面 ROIS_4_0，棋子白名单按解包 auto_chess id 命名。
 BASE_CARDS: dict[str, tuple[int, list[tuple[int, int]]]] = {
-    "32123": (3, [(0, 4), (2, 4), (0, 3), (2, 3), (0, 2), (2, 2), (0, 1), (2, 1)]),
-    "32607": (1, [(1, 4)]),
-    "32122": (2, [(0, 3), (2, 3), (0, 2), (2, 2), (0, 1), (2, 1)]),
-    "32124": (1, [(0, 4), (2, 4)]),
-    "32126": (1, [(1, 0)]),
+    "32122": (2, [(0, 4), (2, 4), (0, 3), (2, 3), (0, 2), (2, 2)]),
+    "32123": (3, [(0, 5), (2, 5), (0, 4), (2, 4), (0, 3), (2, 3), (0, 2), (2, 2)]),
+    "32703": (1, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
 }
-BASE_CARD_ORDER = ["32123", "32607", "32122", "32124", "32126"]
+BASE_CARD_ORDER = ["32122", "32123", "32703"]
 
 # 唯一策略表（data/critter_crash/strategy-4.0.json）解析后的基线
 BASE_STRATEGY = load_strategy(STRATEGY_PATH)
@@ -69,7 +88,7 @@ def _minimal_raw(**overrides: object) -> dict[str, object]:
 def test_default_strategy_matches_shipped_4_0_table() -> None:
     assert BASE_STRATEGY.version == "4.0"
     assert BASE_STRATEGY.board_rows == 3
-    assert BASE_STRATEGY.board_cols == 5
+    assert BASE_STRATEGY.board_cols == 6
     assert [[list(rect) for rect in row] for row in BASE_STRATEGY.board_rois] == ROIS_4_0
 
     assert {card.name: (card.max_level, list(card.positions)) for card in BASE_STRATEGY.cards} == BASE_CARDS
@@ -113,7 +132,8 @@ def test_unknown_placeholder_cards_are_not_resolvable() -> None:
 
 
 def test_card_names_follow_award_priority_by_default() -> None:
-    assert BASE_STRATEGY.card_names() == tuple(BASE_CARD_ORDER)
+    # card_names 走 award_priority（奖励区识别顺序），不是 cards 声明顺序
+    assert BASE_STRATEGY.card_names() == ("32123", "32703", "32122")
 
 
 def test_card_names_fall_back_to_declaration_order_without_priority() -> None:
@@ -208,11 +228,11 @@ def test_card_names_follow_award_priority_when_declared() -> None:
     raw = _minimal_raw(
         cards=[
             {"name": "32123", "max_level": 2, "positions": [[0, 0]]},
-            {"name": "32607", "max_level": 1, "positions": [[0, 0]]},
+            {"name": "32703", "max_level": 1, "positions": [[0, 0]]},
         ],
-        award_priority=["32607", "32123"],
+        award_priority=["32703", "32123"],
     )
-    assert parse_strategy(raw).card_names() == ("32607", "32123")
+    assert parse_strategy(raw).card_names() == ("32703", "32123")
 
 
 def test_load_strategy_raises_when_file_missing() -> None:
@@ -262,7 +282,7 @@ def test_parse_strategy_rejects_duplicate_card_names() -> None:
 
 
 def test_parse_strategy_rejects_unknown_award_priority_entry() -> None:
-    raw = _minimal_raw(award_priority=["32607"])
+    raw = _minimal_raw(award_priority=["32703"])
     with pytest.raises(StrategyError, match="award_priority"):
         parse_strategy(raw)
 
@@ -285,9 +305,9 @@ class TestBoardState:
         CCChessboard.apply_strategy(BASE_STRATEGY)
 
     def test_board_reset_restores_empty_board(self) -> None:
-        CCChessboard.place_chess(0, 0, "32607")
+        CCChessboard.place_chess(0, 0, "32703")
         CCChessboard.board_reset()
-        assert CCChessboard.board == [[None] * 5 for _ in range(3)]
+        assert CCChessboard.board == [[None] * 6 for _ in range(3)]
         assert CCChessboard.board_chesses == []
 
     def test_place_chess_respects_position_whitelist(self) -> None:
@@ -301,13 +321,13 @@ class TestBoardState:
         assert CCChessboard.place_chess(0, 4, "32123") is False
 
     def test_place_chess_rejects_out_of_board_position(self) -> None:
-        assert CCChessboard.place_chess(3, 0, "32607") is False
-        assert CCChessboard.place_chess(-1, 0, "32607") is False
+        assert CCChessboard.place_chess(3, 0, "32703") is False
+        assert CCChessboard.place_chess(-1, 0, "32703") is False
 
     def test_find_empty_position_follows_declaration_order(self) -> None:
-        assert CCChessboard.find_empty_position("32123") == (0, 4)
+        assert CCChessboard.find_empty_position("32123") == (0, 5)
         CCChessboard.place_chess(0, 4, "32123")
-        assert CCChessboard.find_empty_position("32123") == (2, 4)
+        assert CCChessboard.find_empty_position("32123") == (0, 5)
 
     def test_find_empty_position_returns_none_for_unknown_card(self) -> None:
         assert CCChessboard.find_empty_position("NotACard") is None
@@ -331,8 +351,8 @@ class TestBoardState:
         assert CCChessboard.can_upgrade_existing("32123") is True
 
     def test_can_upgrade_existing_false_at_max_level(self) -> None:
-        assert CCChessboard.place_chess(1, 4, "32607") is True
-        assert CCChessboard.can_upgrade_existing("32607") is False
+        assert CCChessboard.place_chess(0, 1, "32703") is True
+        assert CCChessboard.can_upgrade_existing("32703") is False
 
     def test_can_upgrade_existing_false_for_unknown_card(self) -> None:
         assert CCChessboard.can_upgrade_existing("NotACard") is False
@@ -360,14 +380,14 @@ def test_apply_strategy_resizes_board_and_swaps_card_table() -> None:
                 "cards": [{"name": "NewCard", "max_level": 3, "positions": [[1, 1]]}],
             }
         )
-        CCChessboard.place_chess(0, 0, "32607")
+        CCChessboard.place_chess(0, 0, "32703")
         CCChessboard.apply_strategy(strategy)
 
         assert CCChessboard.board == [[None, None], [None, None]]
         assert CCChessboard.board_chesses == []
         assert CCChessboard.board_rois == [[[1, 2, 3, 4], [5, 6, 7, 8]], [[9, 10, 11, 12], [13, 14, 15, 16]]]
         assert [chess["name"] for chess in CCChessboard.chess_types] == ["NewCard"]
-        assert CCChessboard.get_chess_info("32607") == {}
+        assert CCChessboard.get_chess_info("32703") == {}
         assert CCChessboard.find_empty_position("NewCard") == (1, 1)
     finally:
         CCChessboard.apply_strategy(original)
@@ -485,7 +505,7 @@ class TestBuyCardPriority:
         """购买区识别按策略表声明顺序进行，而不是按 chess_types 的其它顺序。"""
         ctx = _ScriptedContext({"CCRemainMoney": _hit((669, 29, 36, 25))})
         _analyze_buy_card(ctx)
-        assert ctx.templates == [f"CritterCrash/Cards/{card.name}.png" for card in BASE_STRATEGY.cards]
+        assert ctx.templates == [f"CritterCrash/Cards/{name}.png" for name in BASE_STRATEGY.card_names()]
 
     def test_buy_prefers_deploy_over_upgrade(self) -> None:
         """有空位时立即部署，不继续找升级候选。"""
@@ -523,12 +543,13 @@ class TestBuyCardPriority:
 
     def test_award_usable_card_without_slot_is_skipped(self) -> None:
         """奖励区是白名单卡但既没空位也没得升级：跳过（不再卖出、不再自行开战）。"""
-        # Shiva 的 positions 只有 (0,0)/(2,0)，先占满 → 无处安放
-        CCChessboard.place_chess(1, 4, "32607")
+        # 32703 的 positions 是 row0/row2 的全部列，先占满 → 无处安放
+        for _row, _col in [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]:
+            CCChessboard.place_chess(_row, _col, "32703")
         ctx = _ScriptedContext(
             {
                 "CCBuyCardAwardEmptyRec": _hit((42, 580, 128, 124)),
-                "32607": _hit((60, 590, 90, 100)),
+                "32703": _hit((60, 590, 90, 100)),
             }
         )
         result = _analyze_buy_card(ctx)
@@ -577,11 +598,15 @@ class TestStrategy40:
         strategy = self._load()
         assert strategy.version == "4.0"  # type: ignore[attr-defined]
 
-    def test_profile_keeps_3x5_board(self) -> None:
-        """4.0 棋盘仍是 3 行 x 5 列（AutoChessEnum.BoardSize + const id1="3#5"）。"""
+    def test_profile_keeps_3x6_board(self) -> None:
+        """4.0 棋盘 3 行 x 6 列：左列（col0）是专属贴纸列，右侧 5 列才是爪印格。
+
+        实测（.live/acc/STICKER-FINDINGS.md）：贴纸箱与贴纸落点都在左列，
+        它与 5 个爪印列共用同一套行 y，故并入同一张 board 表（用户坐标 col 0-5）。
+        """
         strategy = self._load()
         assert strategy.board_rows == 3  # type: ignore[attr-defined]
-        assert strategy.board_cols == 5  # type: ignore[attr-defined]
+        assert strategy.board_cols == 6  # type: ignore[attr-defined]
 
     def test_profile_uses_measured_4_0_board_rois(self) -> None:
         """4.0 ROI 必须是实机实测值：3.5 的 ROI 在 4.0 上整盘右移约 103-109px，会全部失配。"""
@@ -591,15 +616,16 @@ class TestStrategy40:
     def test_profile_roi_centers_are_self_consistent(self) -> None:
         """每个 ROI 的中心必须等于实测格中心（防手抄坐标错位）。"""
         strategy = self._load()
+        # 左列(col0) 与爪印列共用行 y，但格子 y 不同：左列 197/308/428，爪印列 175/286/406
         centers = [
-            (197, [496, 631, 766, 901, 1039]),
-            (308, [482, 621, 761, 902, 1043]),
-            (428, [467, 612, 757, 902, 1048]),
+            ([219, 197, 197, 197, 197, 197], [388, 496, 631, 766, 901, 1039]),
+            ([330, 308, 308, 308, 308, 308], [388, 482, 621, 761, 902, 1043]),
+            ([450, 428, 428, 428, 428, 428], [388, 467, 612, 757, 902, 1048]),
         ]
-        for row_index, (center_y, center_xs) in enumerate(centers):
+        for row_index, (center_ys, center_xs) in enumerate(centers):
             for col_index, center_x in enumerate(center_xs):
                 x, y, w, h = strategy.board_rois[row_index][col_index]  # type: ignore[attr-defined]
-                assert (x + w // 2, y + h // 2) == (center_x, center_y), f"r{row_index}c{col_index}"
+                assert (x + w // 2, y + h // 2) == (center_x, center_ys[col_index]), f"r{row_index}c{col_index}"
 
     def test_profile_roi_size_matches_3_5(self) -> None:
         """4.0 格子尺寸与 3.5 同为 68x44（Lead 实测），只有位置变。"""
@@ -620,24 +646,24 @@ class TestStrategy40:
     def test_profile_uses_verified_lushu_core_ids(self) -> None:
         strategy = self._load()
         names = [card.name for card in strategy.cards]  # type: ignore[attr-defined]
-        assert names == ["32123", "32607", "32122", "32124", "32126"]
+        assert names == ["32122", "32123", "32703"]
 
     def test_profile_max_levels_match_star_caps(self) -> None:
         """32123/32121/32122 有 3 星行 → max_level 3；32125/32126 只当 1 级用。"""
         strategy = self._load()
         caps = {card.name: card.max_level for card in strategy.cards}  # type: ignore[attr-defined]
-        assert caps == {"32123": 3, "32607": 1, "32122": 2, "32124": 1, "32126": 1}
+        assert caps == {"32122": 2, "32123": 3, "32703": 1}
 
-    def test_profile_frontline_is_col4(self) -> None:
-        """col4 = 最前排（报告 §2.4 推断），核心成长棋子优先放 col4。"""
+    def test_profile_frontline_is_col5(self) -> None:
+        """col5 = 最前排（贴纸列并入后整体 +1），核心成长棋子优先放 col5。"""
         strategy = self._load()
         deer = next(c for c in strategy.cards if c.name == "32123")  # type: ignore[attr-defined]
-        assert deer.positions[0] == (0, 4)
-        assert deer.positions[1] == (2, 4)
+        assert deer.positions[0] == (0, 5)
+        assert deer.positions[1] == (2, 5)
 
     def test_profile_award_priority_is_lushu_first(self) -> None:
         strategy = self._load()
-        assert strategy.award_priority == ("32123", "32607", "32122", "32124", "32126")  # type: ignore[attr-defined]
+        assert strategy.award_priority == ("32123", "32703", "32122")  # type: ignore[attr-defined]
 
     def test_profile_preferred_leaders_are_qu_niang_then_ya_mi(self) -> None:
         """30013 曲娘（鹿蜀流推荐棋手）/ 30061 哑谜（4.0 新）。"""
@@ -695,8 +721,8 @@ class TestStrategy40:
             strategy = self._load()
             CCChessboard.apply_strategy(strategy)  # type: ignore[arg-type]
             assert CCChessboard.strategy.version == "4.0"
-            assert [c["name"] for c in CCChessboard.chess_types] == ["32123", "32607", "32122", "32124", "32126"]
-            assert CCChessboard.find_empty_position("32123") == (0, 4)
+            assert [c["name"] for c in CCChessboard.chess_types] == ["32122", "32123", "32703"]
+            assert CCChessboard.find_empty_position("32123") == (0, 5)
         finally:
             CCChessboard.apply_strategy(before)
         assert CCChessboard.strategy.version == "4.0"
@@ -757,15 +783,13 @@ class TestBuyCardUnder4_0:
         _analyze_buy_card(ctx)
         assert ctx.templates == [
             "CritterCrash/Cards/32123.png",
-            "CritterCrash/Cards/32607.png",
+            "CritterCrash/Cards/32703.png",
             "CritterCrash/Cards/32122.png",
-            "CritterCrash/Cards/32124.png",
-            "CritterCrash/Cards/32126.png",
         ]
 
-    def test_buy_deploys_lushu_to_frontline_col4(self) -> None:
-        """鹿蜀第一个空位是 (0,4) = 最前排。"""
-        assert CCChessboard.find_empty_position("32123") == (0, 4)
+    def test_buy_deploys_lushu_to_frontline_col5(self) -> None:
+        """鹿蜀第一个空位是 (0,5) = 最前排（贴纸列并入后整体 +1）。"""
+        assert CCChessboard.find_empty_position("32123") == (0, 5)
 
     def test_buy_recognizes_lushu_and_returns_deploy(self) -> None:
         ctx = _ScriptedContext(
@@ -793,8 +817,8 @@ class TestBuyCardUnder4_0:
 
     def test_shiva_is_capped_at_level_1(self) -> None:
         """坚固石骑士当 1 级用，放上后不再升级。"""
-        assert CCChessboard.place_chess(1, 4, "32607") is True
-        assert CCChessboard.can_upgrade_existing("32607") is False
+        assert CCChessboard.place_chess(0, 1, "32703") is True
+        assert CCChessboard.can_upgrade_existing("32703") is False
 
     def test_deer_is_capped_at_level_3(self) -> None:
         """鹿蜀上限 3（auto_chess 只有 star 1..3）。"""
