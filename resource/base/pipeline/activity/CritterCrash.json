@@ -61,7 +61,7 @@
                     "CCPlay",
                     "CCNext",
                     "CCEntryCombatEnd",
-                    "CCSelectPeople4p0"
+                    "CCEntrySelectPeople"
                 ]
             }
         },
@@ -71,6 +71,30 @@
             "CCPlay",
             "CCResetData"
         ]
+    },
+    // 入口兜底：上一轮任务可能停在「选择领队」页。
+    // 必须是**纯 OCR** —— 把 Custom 节点（CCSelectPeople4p0）直接放进 Or.any_of 命中不了
+    // （实测 st5.png：CCFlagInSelectPeople 单独 OCR 命中、而 Or 里的 Custom 分支返回 miss）。
+    // 这里只负责「认出这页」，真正的选人交给 next 里的 CCSelectPeople4p0。
+    "CCEntrySelectPeople": {
+        "desc": "入口兜底：认出「选择领队」页（纯 OCR）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    550,
+                    72,
+                    220,
+                    45
+                ],
+                "expected": ["选择领队"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": ["CCSelectPeople4p0"]
     },
     // 入口兜底：上一轮任务可能停在「对战结束」结算页（这页没有任何按钮，点一下才继续）。
     // 不在入口识别它的话，从该页启动任务会 1 个节点就 4000（实测 04:5x、05:0x 各一次）。
