@@ -996,7 +996,8 @@
         }
     },
     "CCDeploy": {
-        "desc": "拖拽棋子到目标格。不设 max_hit：它是按任务累计的，而清零动作挂在 CCDeployFinished.next（只有成功才走到），一旦某次失败就永久卡死；终止由 timeout + next 自环保证。",
+        "desc": "拖拽棋子到目标格。max_hit 必须留：next 是 [CCDeployFinished, CCDeploy] 自环，没有 max_hit 就永远不退出（实测一次 run_task 烧掉整轮 300s、217 次 CCDeploy，日志停在第一条部署决策）。清零由 CCBuyCard 在每次 run_task 前主动 clear_hit_count 保证，所以不会重现以前那种「一次失败永久卡死」。",
+        "max_hit": 5,
         "action": {
             "type": "Swipe",
             "param": {
@@ -1042,7 +1043,8 @@
         "post_delay": 1500
     },
     "CCUpdate": {
-        "max_hit": 2,
+        "desc": "拖拽升级。on_error 指回主循环（不能是 Stop，否则满级拖不动会终结整个任务，实测 11 次循环）；max_hit 必须留（next 自环，不留就永不退出），清零由 CCBuyCard 每次 run_task 前主动 clear_hit_count 保证。",
+        "max_hit": 5,
         "action": {
             "type": "Swipe",
             "param": {
@@ -1055,7 +1057,7 @@
             "CCUpdate"
         ],
         "on_error": [
-            "Stop"
+            "CCFlagInCombatMain"
         ]
     },
     "CCUpdateFinished": {

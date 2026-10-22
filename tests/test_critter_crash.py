@@ -68,9 +68,9 @@ ROIS_4_0 = [
 BASE_CARDS: dict[str, tuple[int, list[tuple[int, int]]]] = {
     "32122": (2, [(0, 4), (2, 4), (0, 3), (2, 3), (0, 2), (2, 2)]),
     "32123": (3, [(0, 5), (2, 5), (0, 4), (2, 4), (0, 3), (2, 3), (0, 2), (2, 2)]),
-    "32703": (1, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
-    "32124": (3, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
-    "32126": (3, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
+    "32703": (1, [(0, 2), (0, 3), (0, 4), (0, 5), (2, 2), (2, 3), (2, 4), (2, 5)]),
+    "32124": (3, [(0, 2), (0, 3), (0, 4), (0, 5), (2, 2), (2, 3), (2, 4), (2, 5)]),
+    "32126": (3, [(0, 2), (0, 3), (0, 4), (0, 5), (2, 2), (2, 3), (2, 4), (2, 5)]),
 }
 BASE_CARD_ORDER = ["32122", "32123", "32703"]
 # 4.0 购买表：鹿蜀系四张 + 石骑士（32124/32126 的模板早已在 Cards/ 下，)
@@ -362,7 +362,7 @@ class TestBoardState:
         assert CCChessboard.can_upgrade_existing("32123") is True
 
     def test_can_upgrade_existing_false_at_max_level(self) -> None:
-        assert CCChessboard.place_chess(0, 1, "32703") is True
+        assert CCChessboard.place_chess(0, 2, "32703") is True
         assert CCChessboard.can_upgrade_existing("32703") is False
 
     def test_can_upgrade_existing_false_for_unknown_card(self) -> None:
@@ -461,6 +461,8 @@ class _ScriptedContext:
         # 按节点名脚本化任务结局；缺省成功
         self.task_statuses: dict[str, MaaStatusEnum] = {}
         self.overridden_images: list[str] = []
+        self.clicks: list[tuple[int, int]] = []
+        self.swipes: list[tuple[int, int, int, int, int]] = []
         self.cleared_hits: list[str] = []
 
     def run_recognition(self, name: str, _image: Any, override: dict[str, Any] | None = None) -> RecognitionDetail:
@@ -483,9 +485,20 @@ class _ScriptedContext:
         scripted = self.answers.get(name, _miss())
         return scripted if isinstance(scripted, RecognitionDetail) else scripted[0]
 
-    # --- tasker.controller：动作里会取帧、清命中计数、覆盖图片 ---
+    # --- tasker.controller：动作里会取帧、点击、拖拽、覆盖图片 ---
     class _Controller:
+        def __init__(self, owner: "_ScriptedContext") -> None:
+            self._owner = owner
+
         def post_screencap(self) -> Any:
+            return self
+
+        def post_click(self, x: int, y: int) -> Any:
+            self._owner.clicks.append((x, y))
+            return self
+
+        def post_swipe(self, x1: int, y1: int, x2: int, y2: int, duration: int) -> Any:
+            self._owner.swipes.append((x1, y1, x2, y2, duration))
             return self
 
         def wait(self) -> Any:
@@ -501,7 +514,7 @@ class _ScriptedContext:
     @property
     def tasker(self) -> Any:
         if not hasattr(self, "_tasker"):
-            ctrl = self._Controller()
+            ctrl = self._Controller(self)
             self._tasker = type("Tasker", (), {"controller": ctrl})()
         return self._tasker
 
@@ -613,7 +626,7 @@ class TestBuyCardPriority:
     def test_award_usable_card_without_slot_is_skipped(self) -> None:
         """奖励区是白名单卡但既没空位也没得升级：跳过（不再卖出、不再自行开战）。"""
         # 32703 的 positions 是 row0/row2 的全部列，先占满 → 无处安放
-        for _row, _col in [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]:
+        for _row, _col in [(0, 2), (0, 3), (0, 4), (0, 5), (2, 2), (2, 3), (2, 4), (2, 5)]:
             CCChessboard.place_chess(_row, _col, "32703")
         ctx = _ScriptedContext(
             {
@@ -884,7 +897,7 @@ class TestBuyCardUnder4_0:
 
     def test_shiva_is_capped_at_level_1(self) -> None:
         """坚固石骑士当 1 级用，放上后不再升级。"""
-        assert CCChessboard.place_chess(0, 1, "32703") is True
+        assert CCChessboard.place_chess(0, 2, "32703") is True
         assert CCChessboard.can_upgrade_existing("32703") is False
 
     def test_deer_is_capped_at_level_3(self) -> None:
@@ -1552,7 +1565,12 @@ class TestLeaderState:
 
 
 class TestDeployResultHandling:
-    """run_task 的返回值必须真的看：TaskDetail.status.succeeded，不是 .ok（那是 Node 绑定）。"""
+    """部署走 Python 直拖 + 卡牌模板验证落点。
+
+    不再用 pipeline 的 CCDeploy：它的 CCDeployFinished 拿「拖拽前空格截图」当模板反相匹配，
+    棋子落下后仍会命中，于是永远判不成功 —— 子任务在自环里烧到 max_hit 耗尽，
+    一次部署决策能烧掉 17s 并让整局 4000（实测 02:35）。
+    """
 
     def setup_method(self) -> None:
         CCChessboard.apply_strategy(load_strategy(PROJECT_ROOT / STRATEGY_4_0_PATH))
@@ -1560,37 +1578,33 @@ class TestDeployResultHandling:
     def teardown_method(self) -> None:
         CCChessboard.apply_strategy(BASE_STRATEGY)
 
-    def _buy_ctx(self, status: MaaStatusEnum) -> _ScriptedContext:
-        ctx = _ScriptedContext({"32123": _hit((60, 620, 90, 100))})
-        ctx.task_statuses["CCDeploy"] = status
-        return ctx
-
-    def test_failed_deploy_marks_cell_and_reports_failure(self) -> None:
-        """CCDeploy 失败 → 该格占位（否则下一轮又拖同一格）+ 返回失败。"""
-        ctx = self._buy_ctx(MaaStatusEnum.failed)
-        detail = {"type": 0, "action": 0, "name": "32123"}
-        result = _run_buy_card(ctx, detail, box=(60, 620, 90, 100))
-        assert result.success is False
-        assert ctx.tasks == ["CCDeploy"]
-        # 目标格已被占位，find_empty_position 不再返回它
-        assert CCChessboard.find_empty_position("32123") != (0, 5)
-
-    def test_successful_deploy_places_chess(self) -> None:
-        ctx = self._buy_ctx(MaaStatusEnum.succeeded)
-        detail = {"type": 0, "action": 0, "name": "32123"}
-        result = _run_buy_card(ctx, detail, box=(60, 620, 90, 100))
+    def test_landed_card_is_recorded(self) -> None:
+        """目标格识别到该卡模板 → 记入棋盘并返回成功。"""
+        ctx = _ScriptedContext({"32123": _hit((732, 175, 68, 44))})
+        result = _run_buy_card(ctx, {"type": 0, "action": 0, "name": "32123"}, box=(60, 620, 90, 100))
         assert result.success is True
-        assert CCChessboard.board[0][5] is not None
+        assert ctx.swipes, "必须发生一次拖拽"
+        entry = CCChessboard.board[0][5]
+        assert entry is not None
+        assert entry["name"] == "32123"
 
-    def test_deploy_override_points_at_target_cell(self) -> None:
-        """run_task 的 override 必须把 begin 指向卡位、end 指向目标格。"""
-        ctx = self._buy_ctx(MaaStatusEnum.succeeded)
-        detail = {"type": 0, "action": 0, "name": "32123"}
-        _run_buy_card(ctx, detail, box=(60, 620, 90, 100))
-        override = ctx.task_overrides[0]
-        assert override["CCDeploy"]["begin"] == [60, 620, 90, 100]
+    def test_failed_deploy_marks_cell_and_retries(self) -> None:
+        """始终识别不到 → 重试到上限后占位并返回失败，避免反复拖同一格。"""
+        ctx = _ScriptedContext({})  # 全部 miss
+        result = _run_buy_card(ctx, {"type": 0, "action": 0, "name": "32123"}, box=(60, 620, 90, 100))
+        assert result.success is False
+        assert len(ctx.swipes) == CCBuyCard._DEPLOY_ATTEMPTS
+        entry = CCChessboard.board[0][5]
+        assert entry is not None and entry.get("failed") is True
+
+    def test_deploy_drag_goes_from_card_to_target_cell(self) -> None:
+        """拖拽起点=卡位中心，终点=目标格中心（否则拖到别处）。"""
+        ctx = _ScriptedContext({"32123": _hit((732, 175, 68, 44))})
+        _run_buy_card(ctx, {"type": 0, "action": 0, "name": "32123"}, box=(60, 620, 90, 100))
+        x1, y1, x2, y2, _dur = ctx.swipes[0]
+        assert (x1, y1) == (60 + 90 // 2, 620 + 100 // 2)
         target = CCChessboard.board_rois[0][5]
-        assert override["CCDeploy"]["end"] == target
+        assert (x2, y2) == (target[0] + target[2] // 2, target[1] + target[3] // 2)
 
 
 class TestJumpBackActionMustNotFail:

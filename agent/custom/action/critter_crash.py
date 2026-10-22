@@ -890,6 +890,10 @@ class CCBuyCard(CustomAction):
     翻斗棋：购买卡牌
     """
 
+    # 部署拖拽的重试次数与落地等待（秒）
+    _DEPLOY_ATTEMPTS = 2
+    _DEPLOY_SETTLE = 1.0
+
     def run(
         self,
         context: Context,
@@ -917,55 +921,48 @@ class CCBuyCard(CustomAction):
                 return CustomAction.RunResult(success=False)
 
             row, col = empty_pos
+            occupied = sum(1 for r in CCChessboard.board for cell in r if cell is not None)
+            logger.debug(f"部署决策 {card_name} → ({row}, {col})，内部棋盘已占 {occupied} 格")
             target_roi = CCChessboard.board_rois[row][col]
 
-            # 执行拖拽操作，先滑动再更新内部棋盘状态以避免状态不一致。
-            # 必须现抓一帧：cached_image 是上一轮识别的缓存，拿它当"拖拽前空位"
-            # 会在拖拽后仍然命中自己，CCDeployFinished 的 inverse 永远不成立 → 子任务空转超时。
-            img = context.tasker.controller.post_screencap().wait().get()
-            roi_array = img[
-                target_roi[1] : target_roi[1] + target_roi[3],
-                target_roi[0] : target_roi[0] + target_roi[2],
-            ]
-            context.override_image("ccdeploy", roi_array)
-            # CCDeploy 的 max_hit=5 是**按任务累计**的，而清零动作挂在
-            # CCDeployFinished.next 上——只有成功才会走到。一旦某次失败，
-            # 计数再也不会归零，第 6 次起 CCDeploy 直接被跳过（实测 seq=216 起
-            # 连续 25 次 10s 超时）。所以每次调用前主动清零，不依赖子任务出口。
-            try:
-                context.clear_hit_count("CCDeploy")
-            except Exception as e:  # noqa: BLE001 - 清零失败不该中断放置
-                logger.debug(f"清零 CCDeploy 命中计数失败（{e}），继续")
-            # 子任务的成败必须看返回值：以前丢弃它、只按内存棋盘判成功，
-            # 结果「拖到非法格 → 拖拽没生效 → 子任务超时 fail」仍被记成成功放置，
-            # 内部棋盘与真实棋盘从此分叉（实测 32607 拖到中间行即此形态，卡 17s）。
-            deploy_result = context.run_task(
-                "CCDeploy",
-                {
-                    "CCDeploy": {
-                        "begin": list(box),
-                        "end": target_roi,
-                    },
-                    "CCDeployFinished": {"roi": target_roi},
-                },
-            )
-            # run_task 返回 Optional[TaskDetail]；成败看 .status.succeeded（失败返回 None）
-            if not deploy_result or not deploy_result.status.succeeded:
-                # 失败也要占住这个位置：否则 find_empty_position 下一轮还返回同一格，
-                # 拖拽又失败 —— 形成「一直拖同一格」的死循环（实测卡满整局）。
-                # 占位只影响本局内的决策，真实棋盘下次 CCResetData 会重建。
+            # 拖拽在 Python 侧直接做，判据用「目标格里有没有这张卡的模板」。
+            #
+            # 不用 pipeline 的 CCDeploy：它的 CCDeployFinished 是「拿拖拽前的空格截图当模板、
+            # inverse 反相匹配」。棋子落下后那格仍会命中（空格底纹相似），于是永远判不成功 ——
+            # 子任务在 CCDeploy↔CCDeployFinished 自环里烧到 max_hit 耗尽，整轮卡死
+            # （实测一次部署决策烧掉 17s、6 次 CCDeploy，任务以 4000 收场）。
+            card_template = f"CritterCrash/Cards/{card_name}.png"
+            begin = (box[0] + box[2] // 2, box[1] + box[3] // 2)
+            end = (target_roi[0] + target_roi[2] // 2, target_roi[1] + target_roi[3] // 2)
+
+            placed = False
+            for attempt in range(1, self._DEPLOY_ATTEMPTS + 1):
+                context.tasker.controller.post_swipe(begin[0], begin[1], end[0], end[1], 600).wait()
+                time.sleep(self._DEPLOY_SETTLE)
+                img = context.tasker.controller.post_screencap().wait().get()
+                landed = context.run_recognition(
+                    "CCBuyCardRec_Template",
+                    img,
+                    {"CCBuyCardRec_Template": {"template": card_template, "roi": target_roi}},
+                )
+                if is_hit(landed):
+                    placed = True
+                    break
+                logger.debug(f"第 {attempt} 次拖拽 {card_name} → ({row}, {col}) 未落地，重试")
+
+            if not placed:
+                # 失败也要占住这个位置：否则 find_empty_position 下一轮还返回同一格。
                 CCChessboard.board[row][col] = {
                     "name": card_name, "level": 0, "failed": True, "row": row, "col": col,
                 }
-                logger.debug(f"放置 {card_name} 到 ({row}, {col}) 失败：CCDeploy 子任务未成功，本局不再尝试该格")
+                logger.debug(f"放置 {card_name} 到 ({row}, {col}) 失败：目标格始终没出现该卡，本局不再尝试该格")
                 return CustomAction.RunResult(success=False)
-            # 尝试更新内部棋盘状态
+
             if CCChessboard.place_chess(row, col, card_name):
                 logger.debug(f"成功放置 {card_name} 到位置 ({row}, {col})")
                 return CustomAction.RunResult(success=True)
-            else:
-                logger.debug(f"放置 {card_name} 失败（滑动已执行），请检查界面或识别结果")
-                return CustomAction.RunResult(success=False)
+            logger.debug(f"放置 {card_name} 到 ({row}, {col}) 时内部记账失败（位置不在该卡合法表内）")
+            return CustomAction.RunResult(success=False)
 
         elif action == 1:  # 升级
             # 找到一个可以升级的位置
@@ -1001,6 +998,12 @@ class CCBuyCard(CustomAction):
                         logger.debug(f"{card_name} 在位置 ({row}, {col}) 已满级，跳过升级")
                         return CustomAction.RunResult(success=True)
                     context.override_image("ccupdate", roi_array)
+                    # 同 CCDeploy：CCUpdate 的 next 也是自环，靠 max_hit 退出；
+                    # 计数按任务累计，必须在每次调用前主动清零，否则第二次起直接被跳过。
+                    try:
+                        context.clear_hit_count("CCUpdate")
+                    except Exception as e:  # noqa: BLE001 - 清零失败不该中断升级
+                        logger.debug(f"清零 CCUpdate 命中计数失败（{e}），继续")
                     update_result = context.run_task(
                         "CCUpdate",
                         {
