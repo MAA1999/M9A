@@ -935,7 +935,10 @@ class CCChessboard(CustomAction):
             type(self).board_reset()
             type(self)._buy_skip = {}
             type(self).reset_rerolls()
-            type(self).reset_leader()
+            # 不要清领队：领队是玩家账号级的选择，新开一局通常沿用同一位，
+            # 而「选领队」页不一定每次都出现（实测连续几局都没有该页 → leader_id 恒 None
+            # → 贴纸被门控挡住，日志刷「本局领队是 未知/兜底」）。
+            # 只有任务入口（CCResetData）才复位，跨局沿用上一次确认到的领队。
             CCSticker.reset()
         type(self)._last_round = current_round
 
