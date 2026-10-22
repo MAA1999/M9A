@@ -646,6 +646,7 @@ class CCChessboard(CustomAction):
         cls.board = [[None] * strategy.board_cols for _ in range(strategy.board_rows)]
         cls.board_chesses = []
         cls._last_round = None
+        cls._buy_skip = {}
         cls.reset_rerolls()
 
     @classmethod
@@ -657,6 +658,24 @@ class CCChessboard(CustomAction):
         领队只在真正开新局时由 reset_leader() 复位。
         """
         cls.rerolls_used = {}
+
+    # 本回合确认买不动的卡（钱不够/棋盘满/状态分叉）→ 卡名: 回合号
+    _buy_skip: dict[str, int] = {}
+
+    @classmethod
+    def skip_buy(cls, card_name: str) -> None:
+        """标记本回合别再尝试这张卡（下回合自动失效）。"""
+        cls._buy_skip[card_name] = cls._last_round if cls._last_round is not None else -1
+
+    @classmethod
+    def is_buy_skipped(cls, card_name: str) -> bool:
+        """本回合是否已确认买不动这张卡。"""
+        if card_name not in cls._buy_skip:
+            return False
+        # 回合变了就自动解除（_last_round 为 None 时按永不过期处理，等新局重置）
+        if cls._last_round is None:
+            return True
+        return cls._buy_skip[card_name] == cls._last_round
 
     @classmethod
     def reset_leader(cls) -> None:
@@ -881,6 +900,7 @@ class CCChessboard(CustomAction):
         if last_round is not None and current_round < last_round:
             logger.debug(f"检测到新对局（回合 {last_round} → {current_round}），清空内部棋盘")
             type(self).board_reset()
+            type(self)._buy_skip = {}
             type(self).reset_rerolls()
             type(self).reset_leader()
             CCSticker.reset()
@@ -995,15 +1015,33 @@ class CCBuyCard(CustomAction):
             img = context.tasker.controller.post_screencap().wait().get()
             landed_at = self._diff_new_piece(pre, img)
             if landed_at is None:
-                logger.debug(f"购买 {card_name} 后棋盘没有任何格子发生变化（钱不够 / 进了奖励区 / 面板没买到）")
-                return CustomAction.RunResult(success=False)
+                # 钱不够 / 棋盘满 / 面板没买到：本回合别再试这张卡。
+                # 不能返回 False —— 本节点是 [JumpBack]，动作失败会走 on_error、next 为空，
+                # 整个任务以 4000 收场（实测 03:29:44 就是这么死的）。
+                logger.debug(f"购买 {card_name} 后棋盘没有任何格子发生变化，本回合跳过该卡")
+                CCChessboard.skip_buy(card_name)
+                return CustomAction.RunResult(success=True)
 
             row, col = landed_at
+            existing = CCChessboard.board[row][col]
+            if existing is not None:
+                # 同一格又变了、且还是同一张卡 → 游戏把重复购买的卡合到原棋子上（升级），
+                # 不是状态分叉。实测连买两次 32123 都落在 (0,1)，第二次就是升级。
+                if existing.get("name") == card_name:
+                    existing["level"] = int(existing.get("level", 1)) + 1
+                    logger.debug(f"买入 {card_name} 合到 ({row}, {col})，升到 {existing['level']} 级")
+                    return CustomAction.RunResult(success=True)
+                logger.debug(
+                    f"买入 {card_name} 落到 ({row}, {col})，但该格内部记的是 {existing.get('name')}，本回合跳过该卡"
+                )
+                CCChessboard.skip_buy(card_name)
+                return CustomAction.RunResult(success=True)
+
             if CCChessboard.record_chess(row, col, card_name):
                 logger.debug(f"买入 {card_name}，游戏落子到 ({row}, {col})")
                 return CustomAction.RunResult(success=True)
-            logger.debug(f"买入 {card_name} 落到 ({row}, {col})，但该格在内部棋盘已被占（状态分叉），按失败处理")
-            return CustomAction.RunResult(success=False)
+            CCChessboard.skip_buy(card_name)
+            return CustomAction.RunResult(success=True)
 
         elif action == 1:  # 升级
             # 找到一个可以升级的位置

@@ -189,6 +189,10 @@ class CCBuyCardRec(CustomRecognition):
             # 钱够了，先动态识别所有可能的卡牌，然后根据优先级选择
             upgrade_candidates = []
             for card_name in CCChessboard.strategy.card_names():
+                # 本回合已确认买不动的卡（钱不够/棋盘满/状态分叉）别再反复命中：
+                # CCBuyCard 是 [JumpBack]，它每轮都会命中一次，不跳过就会一直空转。
+                if CCChessboard.is_buy_skipped(card_name):
+                    continue
                 # 动态识别当前卡牌
                 reco_detail = context.run_recognition(
                     "CCBuyCardRec_Template",

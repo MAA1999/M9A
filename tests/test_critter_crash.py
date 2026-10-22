@@ -1619,12 +1619,17 @@ class TestBuyCardFlow:
         entry = CCChessboard.board[0][5]
         assert entry is not None and entry["name"] == "32123"
 
-    def test_card_not_found_on_board_returns_failure(self) -> None:
-        """买完棋盘上没有该卡（钱不够/进了奖励区）→ 失败，不瞎记账。"""
+    def test_card_not_found_marks_skip_but_keeps_task_alive(self) -> None:
+        """买完棋盘上没有变化（钱不够/棋盘满）→ 本回合跳过该卡，但不返回失败。
+
+        返回失败会让 [JumpBack] 走 on_error、next 为空，整个任务 4000 收场
+        （实测 03:29:44 就是这么死的）。
+        """
         ctx = _ScriptedContext({})
         result = self._buy(ctx, piece_cell=None)
-        assert result.success is False
+        assert result.success is True
         assert CCChessboard.board_chesses == []
+        assert CCChessboard.is_buy_skipped("32123") is True
 
 
 class TestJumpBackActionMustNotFail:
