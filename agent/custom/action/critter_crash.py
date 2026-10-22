@@ -631,6 +631,11 @@ class CCChessboard(CustomAction):
     # 否则会把「别人的贴纸」塞进按小叶尼塞配置的贴纸位。
     leader_id: str | None = None
 
+    # 上一轮看到的回合数。回合数变小 = 开了新一局，据此清空内部棋盘。
+    # 不清的话一局打完棋盘状态还留着：第二局起 find_empty_position 对所有卡都返回 None，
+    # 买卡全部 miss，只剩刷新把好卡一张张刷掉（实测第 13 回合起买卡/部署/升级全为 0）。
+    _last_round: int | None = None
+
     @classmethod
     def apply_strategy(cls, strategy: StrategySpec) -> None:
         """切换到指定策略，并清空棋盘（尺寸/ROI/棋子白名单一起换）。"""
@@ -639,18 +644,36 @@ class CCChessboard(CustomAction):
         cls.chess_types = _chess_types_from(strategy)
         cls.board = [[None] * strategy.board_cols for _ in range(strategy.board_rows)]
         cls.board_chesses = []
+        cls._last_round = None
         cls.reset_rerolls()
 
     @classmethod
     def reset_rerolls(cls) -> None:
-        """清空重摇记账（开任务 / 进入新一局时调用）。"""
+        """清空重摇记账（开任务 / 进入新一局时调用）。
+
+        注意：**不要**在这里清 leader_id —— CCChessboard.run 每轮主循环都会调本方法，
+        清掉会让「本局领队」每轮归零，贴纸永远等不到匹配（实测 21:41 那次）。
+        领队只在真正开新局时由 reset_leader() 复位。
+        """
         cls.rerolls_used = {}
-        # 领队也是按局算的：新一局要重新确认，别沿用上一局的判断
+
+    @classmethod
+    def reset_leader(cls) -> None:
+        """进入新一局时复位领队（由 CCResetData / 开局流程调用）。"""
         cls.leader_id = None
 
     @classmethod
     def set_leader(cls, leader_id: str | None) -> None:
-        """记录本局选中的领队（None = 兜底选了非优先棋手或未知）。"""
+        """记录本局选中的领队（None = 兜底选了非优先棋手或未知）。
+
+        只在**还没确定**时才写：一旦记到具体的领队 id，就不再被后续的
+        「兜底 / 已选中」判定覆盖 —— 那些分支每轮都会重新问一次，
+        反复覆写会让 leader_id 在同一秒内横跳（实测 21:12:55 连写 11 次）。
+        """
+        if leader_id is None and cls.leader_id is not None:
+            return
+        if cls.leader_id == leader_id:
+            return
         cls.leader_id = leader_id
         logger.debug(f"本局领队记为 {leader_id or '未知（兜底/非优先棋手）'}")
 
@@ -713,8 +736,11 @@ class CCChessboard(CustomAction):
         if cls.board[row][col] is not None:
             return False
 
-        cls.board[row][col] = {"name": name, "level": level}
-        cls.board_chesses.append({"row": row, "col": col, "name": name, "level": level})
+        # board 与 board_chesses 必须共享同一个 dict：两处各造一个会让 level 分叉，
+        # 表现为「升级成功后 can_upgrade_existing 仍为真」→ 反复升级同一格（实测连升 11 次）。
+        entry: dict[str, Any] = {"name": name, "level": level, "row": row, "col": col}
+        cls.board[row][col] = entry
+        cls.board_chesses.append(entry)
         return True
 
     @classmethod
@@ -736,13 +762,7 @@ class CCChessboard(CustomAction):
             return False  # 已达最高等级
 
         chess["level"] += 1  # pyright: ignore[reportOperatorIssue]
-
-        # 更新board_chesses中的记录
-        for item in cls.board_chesses:
-            if item["row"] == row and item["col"] == col:
-                item["level"] = chess["level"]
-                break
-
+        # board_chesses 与 board 共享同一 dict（见 place_chess），无需再同步
         return True
 
     @classmethod
@@ -814,6 +834,32 @@ class CCChessboard(CustomAction):
                 return True
         return False
 
+    def _reset_if_new_game(self, context: Context) -> None:
+        """回合数变小 = 开了新一局 → 清空内部棋盘与按局状态。
+
+        一局最多 12 回合；打完或阵亡后游戏会自动开下一局，回合数重新从 1 起。
+        内部棋盘只在任务入口（CCResetData）清过一次，跨局残留会让
+        find_empty_position 对所有卡都返回 None —— 表现就是整局不买卡、只刷商店。
+        """
+        try:
+            img = context.tasker.controller.post_screencap().wait().get()
+        except Exception as e:  # noqa: BLE001 - 取帧失败不该拖垮主循环
+            logger.warning(f"新局检测取帧失败: {e}")
+            return
+
+        current_round = CCSticker._read_round(context, img)
+        if current_round is None:
+            return
+
+        last_round = type(self)._last_round
+        if last_round is not None and current_round < last_round:
+            logger.debug(f"检测到新对局（回合 {last_round} → {current_round}），清空内部棋盘")
+            type(self).board_reset()
+            type(self).reset_rerolls()
+            type(self).reset_leader()
+            CCSticker.reset()
+        type(self)._last_round = current_round
+
     def run(
         self,
         context: Context,
@@ -826,6 +872,9 @@ class CCChessboard(CustomAction):
         #    实测打完 7 轮会自动开下一局，不复位的话第二局起就只能兜底）。
         #    重摇环走在 选领队/主菜单/奇遇，不会经过这里，所以额度不会被中途刷掉。
         # 2) 清 MATCH_SCOPED_HIT_NODES 的命中计数 —— 见上面常量注释。
+        # 3) 检测新对局：回合数变小就清空内部棋盘（详见 _last_round 注释）。
+        self._reset_if_new_game(context)
+
         type(self).reset_rerolls()
         for node_name in MATCH_SCOPED_HIT_NODES:
             try:
@@ -905,7 +954,9 @@ class CCBuyCard(CustomAction):
                 # 失败也要占住这个位置：否则 find_empty_position 下一轮还返回同一格，
                 # 拖拽又失败 —— 形成「一直拖同一格」的死循环（实测卡满整局）。
                 # 占位只影响本局内的决策，真实棋盘下次 CCResetData 会重建。
-                CCChessboard.board[row][col] = {"name": card_name, "level": 0, "failed": True}
+                CCChessboard.board[row][col] = {
+                    "name": card_name, "level": 0, "failed": True, "row": row, "col": col,
+                }
                 logger.debug(f"放置 {card_name} 到 ({row}, {col}) 失败：CCDeploy 子任务未成功，本局不再尝试该格")
                 return CustomAction.RunResult(success=False)
             # 尝试更新内部棋盘状态
@@ -1062,6 +1113,7 @@ class CCResetData(CustomAction):
             return CustomAction.RunResult(success=False)
         CCLevelUp.reset_level()
         CCSticker.reset()
+        CCChessboard.reset_leader()
 
         return CustomAction.RunResult(success=True)
 
@@ -1081,6 +1133,10 @@ class CCSticker(CustomAction):
     识别节点（CCStickerReady）保证；这里再兜一层：点开后若弹的是道具面板
     （说明还没到回合），关掉面板并如实返回 False，不假装成功。
     """
+
+    # 开箱后轮询盒子是否消失：面板动画期间单帧仍会命中，必须多等几帧
+    _OPEN_POLL_TIMES = 8
+    _OPEN_POLL_INTERVAL = 0.4
 
     # 本局是否已经开过箱（开过就不再重复点，避免每回合空转）
     _opened = False
@@ -1115,7 +1171,9 @@ class CCSticker(CustomAction):
                 f"本局领队是 {CCChessboard.leader_id or '未知/兜底'}，"
                 f"不是贴纸归属的小叶尼塞 {sticker.leader}，不开箱"
             )
-            CCSticker._opened = True   # 本局不再反复检查
+            # 不要置 _opened：那表示「已经开过箱」。这里只是「这次领队不对」，
+            # 领队一旦被记成 30027 还得能继续开（实测：误置 _opened 后整局都不开箱）。
+            # 也不记 _failed_round —— 那是「回合没到」的去重，与领队无关。
             return CustomAction.RunResult(success=True)   # 失败会终结任务，见上方注释
 
         # 门控：盒子还在才处理。盒子开掉后该格变成三角格，模板不再命中——
@@ -1147,13 +1205,24 @@ class CCSticker(CustomAction):
         # 不等 post_* 完成就取会拿到点之前的画面（实测踩过：误判成"没开箱"）。
         # 判据只看**盒子模板是否消失** —— 不能用「奖励区是否为空」：
         # 开箱前奖励区本来就可能有别的卡（实测有两张黑猫），那条判据会误判成已开。
-        img = context.tasker.controller.post_screencap().wait().get()
-        box_after = context.run_recognition(
-            "CCStickerBoxRec",
-            img,
-            {"CCStickerBoxRec": {"template": "CritterCrash/StickerBox.png", "roi": [280, 120, 200, 200]}},
-        )
-        if is_hit(box_after):
+        #
+        # 但**不能只看一帧**：开箱后面板弹出有动画，单帧截图里盒子模板仍会命中，
+        # 于是误判成「回合没到」→ 关面板走人，而盒子其实已经开了、贴纸留在奖励区
+        # （实测 01:25:54 就是这样：日志说没开，两分钟后画面里 (0,0) 早变成三角格、
+        #  奖励区躺着一张鸟形贴纸）。改成轮询等它消失。
+        opened = False
+        for _ in range(self._OPEN_POLL_TIMES):
+            img = context.tasker.controller.post_screencap().wait().get()
+            box_after = context.run_recognition(
+                "CCStickerBoxRec",
+                img,
+                {"CCStickerBoxRec": {"template": "CritterCrash/StickerBox.png", "roi": [280, 120, 200, 200]}},
+            )
+            if not is_hit(box_after):
+                opened = True
+                break
+            time.sleep(self._OPEN_POLL_INTERVAL)
+        if not opened:
             # 盒子还在：还没到可开回合，弹的是道具面板——关掉它。
             # 记下回合号，本回合内不再重试；贴纸是可选项，失败也不让任务失败。
             logger.debug(
@@ -1166,6 +1235,11 @@ class CCSticker(CustomAction):
 
         CCSticker._opened = True
         logger.debug("贴纸箱已开，贴纸进入奖励区")
+
+        # 开箱会弹道具面板，挡住奖励区 —— 先关掉再拖，否则拖拽起点落在面板上。
+        # 面板已自动收起时点这里也是空白处，无副作用。
+        context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
+        time.sleep(0.5)
 
         # 找空位：先按策略表给的优先位，再按棋盘从左到右、从上到下扫
         target = CCChessboard.find_sticker_position()
