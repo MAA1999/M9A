@@ -60,12 +60,14 @@
                     "CCEnterBattle",
                     "CCPlay",
                     "CCNext",
-                    "CCEntryCombatEnd"
+                    "CCEntryCombatEnd",
+                    "CCSelectPeople4p0"
                 ]
             }
         },
         "next": [
             "CCEntryCombatEnd",
+            "CCSelectPeople4p0",
             "CCPlay",
             "CCResetData"
         ]
