@@ -1081,12 +1081,17 @@ class TestPickLeader:
         # 三个卡位都查过「已选中」角标
         assert [name for name, _roi in ctx.rois] == ["CCLeaderSelected_Template"] * 3
 
-    def test_skips_when_slot_already_selected(self) -> None:
-        """已经选好了就别再点一次（重复点可能取消选中）。"""
+    def test_already_selected_still_hits_so_next_runs(self) -> None:
+        """已选中的卡位要返回有效 box，不能返回 None。
+
+        返回 None 等于识别 miss，父节点的 next 不被求值 —— 点完领队没人去点「进入战斗」，
+        节点在 20s 超时里空转（实测新开第二局 CCSelectPeople4p0 吃满 20188ms，任务 4000）。
+        返回该卡位小框：重复点同一已选卡位是幂等的。
+        """
         ctx = _ScriptedContext({"CCFlagInSelectPeople": _hit((550, 72, 220, 45))})
         ctx.roi_answers[(895, 460, 140, 70)] = _hit((941, 469, 52, 52))
         result = _pick_leader(ctx)
-        assert result.box is None
+        assert result.box is not None
         assert result.detail == {"selected": 2}
 
     def test_misses_without_people_block(self) -> None:

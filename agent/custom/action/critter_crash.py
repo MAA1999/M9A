@@ -1073,8 +1073,10 @@ class CCBuyCard(CustomAction):
                 # 同一格又变了、且还是同一张卡 → 游戏把重复购买的卡合到原棋子上（升级），
                 # 不是状态分叉。实测连买两次 32123 都落在 (0,1)，第二次就是升级。
                 if existing.get("name") == card_name:
-                    existing["level"] = int(existing.get("level", 1)) + 1
-                    logger.debug(f"买入 {card_name} 合到 ({row}, {col})，升到 {existing['level']} 级")
+                    cap = int(CCChessboard.get_chess_info(card_name).get("max_level", 3))
+                    new_level = min(int(existing.get("level", 1)) + 1, cap)
+                    existing["level"] = new_level
+                    logger.debug(f"买入 {card_name} 合到 ({row}, {col})，{new_level}/{cap} 级")
                     return CustomAction.RunResult(success=True)
                 logger.debug(
                     f"买入 {card_name} 落到 ({row}, {col})，但该格内部记的是 {existing.get('name')}，本回合跳过该卡"

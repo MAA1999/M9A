@@ -65,7 +65,16 @@ class CCPickLeaderRec(CustomRecognition):
                 {"CCLeaderSelected_Template": {"roi": badge_roi}},
             )
             if is_hit(reco):
-                logger.debug(f"选领队：卡位 {index} 已选中，跳过")
+                # 不能返回 box=None：那是「识别 miss」，父节点的 next 根本不会被求值，
+                # 于是点完领队后没人去点「进入战斗」，节点在 20s 超时里空转
+                # （实测新开第二局时 CCSelectPeople4p0 连续两次，第二次吃满 20s，任务 4000）。
+                # 返回该卡位的小框：再点一次同一个已选中的卡位是幂等的，然后就能走到 CCEnterBattle。
+                slot = people.click_point(index)
+                if slot is not None:
+                    logger.debug(f"选领队：卡位 {index} 已选中，交给 CCEnterBattle")
+                    return CustomRecognition.AnalyzeResult(
+                        box=[slot[0] - 5, slot[1] - 5, 10, 10], detail={"selected": index}
+                    )
                 return CustomRecognition.AnalyzeResult(box=None, detail={"selected": index})
 
         # 门 4b：没摇到优先棋手 —— 还有额度就退出去重摇（返回键），否则兜底点第一个卡位
