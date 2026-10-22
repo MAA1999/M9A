@@ -1100,11 +1100,13 @@ class CCSticker(CustomAction):
             return CustomAction.RunResult(success=True)
 
         if CCSticker._opened:
-            # 返回 False 而不是 True：本节点以 [JumpBack] 挂在主循环上，
-            # action 成功 = 节点算走完，主循环每轮都会再进来一次（实测空转 484 次，
-            # 把 CCDeploy 挤到 0 次）。失败让 [JumpBack] 立刻回父列表，交还控制权。
+            # 必须返回 True。框架语义（PipelineTask.cpp:68-75）是：
+            #   动作成功 → 轮询 node.next；动作失败 → 走 node.on_error（**不**回溯父列表）。
+            # 本节点以 [JumpBack] 挂载且没有 on_error，返回 False 会让 next 为空、
+            # 任务直接以 4000 收场（实测：贴纸跳过那一步就成了最后一个节点）。
+            # 防空转靠识别层：盒子开掉后模板不再命中，本节点自然 miss。
             logger.debug("本局贴纸箱已开过，跳过")
-            return CustomAction.RunResult(success=False)
+            return CustomAction.RunResult(success=True)
 
         # 贴纸按角色独有：只有本局领队就是配置的那位才开。兜底选了别人时
         # CCChessboard.leader_id 为 None，这里直接跳过。
@@ -1114,7 +1116,7 @@ class CCSticker(CustomAction):
                 f"不是贴纸归属的小叶尼塞 {sticker.leader}，不开箱"
             )
             CCSticker._opened = True   # 本局不再反复检查
-            return CustomAction.RunResult(success=False)
+            return CustomAction.RunResult(success=True)   # 失败会终结任务，见上方注释
 
         # 门控：盒子还在才处理。盒子开掉后该格变成三角格，模板不再命中——
         # 这条比「第 N 回合」可靠：面板自己写着「品质越高，开启所需回合越长」，
@@ -1128,7 +1130,7 @@ class CCSticker(CustomAction):
         if not is_hit(box_reco):
             logger.debug("贴纸箱不在（本局已开过或尚未出现），跳过")
             CCSticker._opened = True
-            return CustomAction.RunResult(success=False)
+            return CustomAction.RunResult(success=True)
 
         # 同一个回合里只尝试一次：还没到可开回合时点盒子只会弹道具面板，
         # 而主循环每轮都会走到这里 —— 不设防就会每回合点一遍，把买卡挤掉（实测 CCDeploy=0）。
@@ -1168,8 +1170,8 @@ class CCSticker(CustomAction):
         # 找空位：先按策略表给的优先位，再按棋盘从左到右、从上到下扫
         target = CCChessboard.find_sticker_position()
         if target is None:
-            logger.debug("没有空位可放贴纸")
-            return CustomAction.RunResult(success=False)
+            logger.debug("没有空位可放贴纸（贴纸留在奖励区，进战斗会被清掉，但不影响本局胜负）")
+            return CustomAction.RunResult(success=True)
 
         row, col = target
         target_roi = CCChessboard.board_rois[row][col]

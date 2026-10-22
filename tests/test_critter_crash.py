@@ -23,6 +23,7 @@ from custom.action.critter_crash import (
     STRATEGY_PATH,
     CCBuyCard,
     CCChessboard,
+    CCSticker,
     StrategyError,
     load_strategy,
     parse_strategy,
@@ -1573,3 +1574,29 @@ class TestDeployResultHandling:
         assert override["CCDeploy"]["begin"] == [60, 620, 90, 100]
         target = CCChessboard.board_rois[0][5]
         assert override["CCDeploy"]["end"] == target
+
+
+class TestJumpBackActionMustNotFail:
+    """以 [JumpBack] 挂载、且父列表末尾的 action 不许返回失败。
+
+    框架语义（PipelineTask.cpp:68-75）：动作成功 → 轮询 node.next；
+    动作失败 → 走 node.on_error。本节点没有 on_error，一旦失败 next 为空、
+    任务直接以 4000 收场 —— 实测「贴纸跳过」那一步就成了最后一个节点。
+    """
+
+    def test_sticker_action_never_returns_failure(self) -> None:
+        """CCSticker 的每个提前返回都必须是 success=True。"""
+        import inspect
+
+        source = inspect.getsource(CCSticker.run)
+        assert "success=False" not in source, (
+            "CCSticker 以 [JumpBack] 挂载且没有 on_error，返回 False 会让任务 4000 终止"
+        )
+
+    def test_sticker_is_last_in_main_loop(self) -> None:
+        """确认它确实挂在主循环末尾 —— 这条是上面那条限制成立的前提。"""
+        # JSONC 解析交给项目工具；这里只做文本级检查，避免引入解析器
+        text = (PROJECT_ROOT / "resource/base/pipeline/activity/CritterCrash.json").read_text(encoding="utf-8")
+        assert '"[JumpBack]CCSticker"' in text
+        # 主循环 next 列表里它排在 CCStartCombat 之后（= 父列表最后一位）
+        assert text.index('"[JumpBack]CCStartCombat"') < text.index('"[JumpBack]CCSticker"')
