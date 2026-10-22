@@ -462,6 +462,8 @@ class _ScriptedContext:
         self.task_statuses: dict[str, MaaStatusEnum] = {}
         self.overridden_images: list[str] = []
         self.clicks: list[tuple[int, int]] = []
+        self.bought = False
+        self.piece_cell: tuple[int, int] | None = None
         self.swipes: list[tuple[int, int, int, int, int]] = []
         self.cleared_hits: list[str] = []
 
@@ -495,6 +497,8 @@ class _ScriptedContext:
 
         def post_click(self, x: int, y: int) -> Any:
             self._owner.clicks.append((x, y))
+            if (x, y) == CCBuyCard._BUY_BUTTON_POINT:
+                self._owner.bought = True
             return self
 
         def post_swipe(self, x1: int, y1: int, x2: int, y2: int, duration: int) -> Any:
@@ -505,8 +509,13 @@ class _ScriptedContext:
             return self
 
         def get(self) -> np.ndarray:
-            # 任意非空帧即可：动作只用它裁 ROI，不解释内容
-            return np.zeros((720, 1280, 3), dtype=np.uint8)
+            frame = np.zeros((720, 1280, 3), dtype=np.uint8)
+            # 模拟「买完游戏自动落子」：在指定格画一块亮区，供差分检出
+            if self._owner.bought and self._owner.piece_cell is not None:
+                r, c = self._owner.piece_cell
+                roi = CCChessboard.board_rois[r][c]
+                frame[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]] = 200
+            return frame
 
     def __init_tasker(self) -> None:
         pass
@@ -1583,7 +1592,9 @@ class TestBuyCardFlow:
         ctx: _ScriptedContext,
         name: str = "32123",
         box: tuple[int, int, int, int] = (60, 620, 90, 100),
+        piece_cell: tuple[int, int] | None = (0, 5),
     ) -> Any:
+        ctx.piece_cell = piece_cell
         return _run_buy_card(ctx, {"type": 0, "action": 0, "name": name}, box=box)
 
     def test_clicks_card_then_buy_button(self) -> None:
@@ -1605,14 +1616,13 @@ class TestBuyCardFlow:
         ctx = _ScriptedContext({"32123": _hit((732, 175, 68, 44))})
         result = self._buy(ctx)
         assert result.success is True
-        # 行优先扫描 → 第一格 (0,0) 就命中
-        entry = CCChessboard.board[0][0]
+        entry = CCChessboard.board[0][5]
         assert entry is not None and entry["name"] == "32123"
 
     def test_card_not_found_on_board_returns_failure(self) -> None:
         """买完棋盘上没有该卡（钱不够/进了奖励区）→ 失败，不瞎记账。"""
-        ctx = _ScriptedContext({})  # 全 miss
-        result = self._buy(ctx)
+        ctx = _ScriptedContext({})
+        result = self._buy(ctx, piece_cell=None)
         assert result.success is False
         assert CCChessboard.board_chesses == []
 

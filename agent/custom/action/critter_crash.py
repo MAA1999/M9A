@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
@@ -921,28 +922,38 @@ class CCBuyCard(CustomAction):
     _BUY_SETTLE = 1.2
     # 详情面板里「购买」按钮的位置（实测 940,568；面板居中、布局固定）
     _BUY_BUTTON_POINT = (940, 568)
+    # 买卡前后「落子格」的最小平均像素差；空位底纹会有轻微抖动，取 6 足够区分
+    _PIECE_DIFF_MIN = 6.0
 
     @staticmethod
-    def _locate_card_on_board(context: Context, img: Any, card_template: str) -> tuple[int, int] | None:
-        """在棋盘里找某张卡落在哪一格。
+    def _diff_new_piece(pre: Any, post: Any) -> tuple[int, int] | None:
+        """对比买卡前后两帧，找出棋盘上变化最大的那一格 —— 就是游戏落子的位置。
 
-        买卡由游戏自动落子，落点不确定（不受策略表 positions 约束），只能识别回来。
-        按行优先扫全盘，命中即返回 —— 单格 ROI 很小，18 格全扫也就几十毫秒。
+        为什么不用模板匹配：商店卡图和棋盘上的棋子渲染尺寸/叠加角标都不一样，
+        Cards/<id>.png 在棋盘格 ROI 上命中率极低（实测三格全 miss）。
+        差分只要求「那一格变了」，与渲染差异无关。
         """
         board = CCChessboard.board
         rois = CCChessboard.board_rois
+        best: tuple[float, int, int] | None = None
         for row in range(len(board)):
             for col in range(len(board[row])):
                 if row >= len(rois) or col >= len(rois[row]):
                     continue
-                detail = context.run_recognition(
-                    "CCBuyCardRec_Template",
-                    img,
-                    {"CCBuyCardRec_Template": {"template": card_template, "roi": rois[row][col]}},
-                )
-                if is_hit(detail):
-                    return (row, col)
-        return None
+                x, y, w, h = rois[row][col]
+                try:
+                    a = pre[y : y + h, x : x + w]
+                    b = post[y : y + h, x : x + w]
+                except Exception:  # noqa: BLE001 - 帧尺寸异常时跳过该格
+                    continue
+                if a.shape != b.shape or a.size == 0:
+                    continue
+                diff = float(np.abs(a.astype(np.int16) - b.astype(np.int16)).mean())
+                if best is None or diff > best[0]:
+                    best = (diff, row, col)
+        if best is None or best[0] < CCBuyCard._PIECE_DIFF_MIN:
+            return None
+        return (best[1], best[2])
 
     def run(
         self,
@@ -971,19 +982,20 @@ class CCBuyCard(CustomAction):
             # 不存在「从商店拖到棋盘」这回事：无论 post_swipe 还是带 --via 的按住拖拽，
             # 卡都不会动（实测两次都只换来一次无关的点击）。以前那条拖拽路径是在
             # 幻想一个不存在的交互 —— 它既没买到卡，也把 CCDeploy 的自环烧穿。
-            card_template = f"CritterCrash/Cards/{card_name}.png"
             card_center = (box[0] + box[2] // 2, box[1] + box[3] // 2)
+
+            # 买之前先留一帧底板，买完用差分找落点
+            pre = context.tasker.controller.post_screencap().wait().get()
 
             context.tasker.controller.post_click(card_center[0], card_center[1]).wait()
             time.sleep(self._BUY_PANEL_WAIT)
             context.tasker.controller.post_click(*self._BUY_BUTTON_POINT).wait()
             time.sleep(self._BUY_SETTLE)
 
-            # 扫棋盘找它落在哪：先在「消费后仍空着」的格子里找，再看全盘
             img = context.tasker.controller.post_screencap().wait().get()
-            landed_at = self._locate_card_on_board(context, img, card_template)
+            landed_at = self._diff_new_piece(pre, img)
             if landed_at is None:
-                logger.debug(f"购买 {card_name} 后棋盘上没有出现该卡（可能进了奖励区或钱不够）")
+                logger.debug(f"购买 {card_name} 后棋盘没有任何格子发生变化（钱不够 / 进了奖励区 / 面板没买到）")
                 return CustomAction.RunResult(success=False)
 
             row, col = landed_at
