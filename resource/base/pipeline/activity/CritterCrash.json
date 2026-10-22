@@ -61,16 +61,39 @@
                     "CCPlay",
                     "CCNext",
                     "CCEntryCombatEnd",
-                    "CCEntrySelectPeople"
+                    "CCEntrySelectPeople",
+                    "CCEntryStickerBook"
                 ]
             }
         },
         "next": [
             "CCEntryCombatEnd",
+            "CCEntryStickerBook",
             "CCSelectPeople4p0",
             "CCPlay",
             "CCResetData"
         ]
+    },
+    // 入口兜底：上一轮任务可能停在「贴纸册 / 卡包详情」页（右侧一排卡牌分类、右上角白色 X）。
+    // 这页是误点卡包图标进去的，必须关掉才能继续；模板取自该页右上角的 X（命中 1.0）。
+    "CCEntryStickerBook": {
+        "desc": "入口兜底：关掉误开的贴纸册/卡包页（右上角 X）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    1150,
+                    20,
+                    130,
+                    110
+                ],
+                "template": ["CritterCrash/StickerBookClose.png"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": ["CCResetData"]
     },
     // 入口兜底：上一轮任务可能停在「选择领队」页。
     // 必须是**纯 OCR** —— 把 Custom 节点（CCSelectPeople4p0）直接放进 Or.any_of 命中不了
