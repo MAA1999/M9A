@@ -1329,9 +1329,16 @@ class CCSticker(CustomAction):
             logger.debug(f"第 {current_round} 回合已确认开不了贴纸箱，本回合不再尝试")
             return CustomAction.RunResult(success=True)
 
-        point = sticker.point()
+        # 点识别到的盒子中心，而不是策略表里的固定点：盒子模板命中框实测 [323,148,90,85]，
+        # 固定点 (354,201) 虽在框内但靠近上沿，界面有轻微位移时容易点到框外。
+        box = box_reco.box
+        if box is not None:
+            point = (int(box.x + box.w // 2), int(box.y + box.h // 2))
+        else:
+            point = sticker.point()
+        logger.debug(f"点贴纸箱 {point}")
         context.tasker.controller.post_click(point[0], point[1]).wait()
-        time.sleep(0.8)
+        time.sleep(0.9)
 
         # 点完必须重新截图再判：cached_image 是上一轮的缓存，
         # 不等 post_* 完成就取会拿到点之前的画面（实测踩过：误判成"没开箱"）。
