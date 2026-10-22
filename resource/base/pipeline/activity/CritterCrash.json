@@ -59,14 +59,38 @@
                     "CCFlagInCombatMain",
                     "CCEnterBattle",
                     "CCPlay",
-                    "CCNext"
+                    "CCNext",
+                    "CCEntryCombatEnd"
                 ]
             }
         },
         "next": [
+            "CCEntryCombatEnd",
             "CCPlay",
             "CCResetData"
         ]
+    },
+    // 入口兜底：上一轮任务可能停在「对战结束」结算页（这页没有任何按钮，点一下才继续）。
+    // 不在入口识别它的话，从该页启动任务会 1 个节点就 4000（实测 04:5x、05:0x 各一次）。
+    "CCEntryCombatEnd": {
+        "desc": "入口兜底：卡在「对战结束」结算页时点一下继续",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    537,
+                    121,
+                    203,
+                    59
+                ],
+                "expected": ["对战结束"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": ["CCResetData"]
     },
     // 活动入口页（畅游摩卢旁卡）的「参与游戏」，点它进翻斗棋主菜单。
     // 放在 CCResetData 之前：在入口页时它先命中；在其它界面它不命中，由 CCResetData 兜底。
