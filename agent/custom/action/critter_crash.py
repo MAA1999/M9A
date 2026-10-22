@@ -632,6 +632,9 @@ class CCChessboard(CustomAction):
     # 否则会把「别人的贴纸」塞进按小叶尼塞配置的贴纸位。
     leader_id: str | None = None
 
+    # 空格（爪印底纹）的像素标准差上限；占用格因为叠了棋子会明显更高
+    _EMPTY_CELL_STD = 18.0
+
     # 上一轮看到的回合数。回合数变小 = 开了新一局，据此清空内部棋盘。
     # 不清的话一局打完棋盘状态还留着：第二局起 find_empty_position 对所有卡都返回 None，
     # 买卡全部 miss，只剩刷新把好卡一张张刷掉（实测第 13 回合起买卡/部署/升级全为 0）。
@@ -737,6 +740,36 @@ class CCChessboard(CustomAction):
             if chess["name"] == name:
                 return chess
         return {}
+
+    @classmethod
+    def drop_cells_if_now_empty(cls, context: Context, img: Any, cells: list[tuple[int, int]]) -> int:
+        """把「模型里有棋子、实际已经空了」的格清掉，返回清掉的格数。
+
+        合成/升级时棋子会离开原来的格子：差分只能看到「这些格变了」，
+        但分不清是「变空」还是「换了个棋子」。这里用「格子里是否还有非背景像素」
+        做一次廉价判定 —— 空格是统一的爪印底纹，占用格会明显更亮/更杂。
+        判不准时保留原状（宁可多留一条错误记录，也不要把真棋子删掉）。
+        """
+        removed = 0
+        for row, col in cells:
+            if not cls._is_valid_position(row, col):
+                continue
+            if cls.board[row][col] is None:
+                continue
+            roi = cls.board_rois[row][col]
+            try:
+                patch = img[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]]
+            except Exception:  # noqa: BLE001 - 帧异常时保留原记录
+                continue
+            if patch.size == 0:
+                continue
+            if float(patch.std()) < cls._EMPTY_CELL_STD:
+                cls.board[row][col] = None
+                cls.board_chesses = [
+                    item for item in cls.board_chesses if not (item["row"] == row and item["col"] == col)
+                ]
+                removed += 1
+        return removed
 
     @classmethod
     def record_chess(cls, row: int, col: int, name: str, level: int = 1) -> bool:
@@ -946,16 +979,20 @@ class CCBuyCard(CustomAction):
     _PIECE_DIFF_MIN = 6.0
 
     @staticmethod
-    def _diff_new_piece(pre: Any, post: Any) -> tuple[int, int] | None:
-        """对比买卡前后两帧，找出棋盘上变化最大的那一格 —— 就是游戏落子的位置。
+    def _diff_changed_cells(pre: Any, post: Any) -> list[tuple[float, int, int]]:
+        """买卡前后两帧里所有发生变化的棋盘格，按变化量降序。
 
-        为什么不用模板匹配：商店卡图和棋盘上的棋子渲染尺寸/叠加角标都不一样，
-        Cards/<id>.png 在棋盘格 ROI 上命中率极低（实测三格全 miss）。
+        为什么用差分而不是模板匹配：商店卡图和棋盘上的棋子渲染尺寸、叠加的 LV 角标
+        都不一样，Cards/<id>.png 在棋盘格 ROI 上命中率极低（实测三格全 miss）。
         差分只要求「那一格变了」，与渲染差异无关。
+
+        返回**全部**变化格而不是只取最大的一格：合成/升级会把棋子从一格挪走并抬高另一格，
+        一次购买可能同时改动 2~3 格，只看一格会让内部棋盘越走越偏
+        （实测出现「买入 32123 落到 (0,2)，但该格记的是 32122」这种分叉）。
         """
         board = CCChessboard.board
         rois = CCChessboard.board_rois
-        best: tuple[float, int, int] | None = None
+        changed: list[tuple[float, int, int]] = []
         for row in range(len(board)):
             for col in range(len(board[row])):
                 if row >= len(rois) or col >= len(rois[row]):
@@ -969,11 +1006,10 @@ class CCBuyCard(CustomAction):
                 if a.shape != b.shape or a.size == 0:
                     continue
                 diff = float(np.abs(a.astype(np.int16) - b.astype(np.int16)).mean())
-                if best is None or diff > best[0]:
-                    best = (diff, row, col)
-        if best is None or best[0] < CCBuyCard._PIECE_DIFF_MIN:
-            return None
-        return (best[1], best[2])
+                if diff >= CCBuyCard._PIECE_DIFF_MIN:
+                    changed.append((diff, row, col))
+        changed.sort(reverse=True)
+        return changed
 
     def run(
         self,
@@ -1013,8 +1049,8 @@ class CCBuyCard(CustomAction):
             time.sleep(self._BUY_SETTLE)
 
             img = context.tasker.controller.post_screencap().wait().get()
-            landed_at = self._diff_new_piece(pre, img)
-            if landed_at is None:
+            changed = self._diff_changed_cells(pre, img)
+            if not changed:
                 # 钱不够 / 棋盘满 / 面板没买到：本回合别再试这张卡。
                 # 不能返回 False —— 本节点是 [JumpBack]，动作失败会走 on_error、next 为空，
                 # 整个任务以 4000 收场（实测 03:29:44 就是这么死的）。
@@ -1022,7 +1058,16 @@ class CCBuyCard(CustomAction):
                 CCChessboard.skip_buy(card_name)
                 return CustomAction.RunResult(success=True)
 
-            row, col = landed_at
+            # 变化格多于一个 = 合成/升级把棋子挪了位：把「变回空格」的那几格从模型里删掉，
+            # 否则模型会一直以为那里还有棋子（实测状态分叉的根源）。
+            if len(changed) > 1:
+                removed = CCChessboard.drop_cells_if_now_empty(
+                    context, img, [(r, c) for _, r, c in changed[1:]]
+                )
+                if removed:
+                    logger.debug(f"买入 {card_name} 触发合成，清掉内部棋盘上 {removed} 个已空掉的格")
+
+            _, row, col = changed[0]
             existing = CCChessboard.board[row][col]
             if existing is not None:
                 # 同一格又变了、且还是同一张卡 → 游戏把重复购买的卡合到原棋子上（升级），
