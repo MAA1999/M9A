@@ -719,6 +719,31 @@ class CCChessboard(CustomAction):
         return {}
 
     @classmethod
+    def record_chess(cls, row: int, col: int, name: str, level: int = 1) -> bool:
+        """按实机看到的落点记账（不校验 positions）。
+
+        4.0 买卡是「点开详情 → 点购买」，棋子由**游戏自己**落到第一个空位，
+        落点不受策略表的 positions 约束（实测 32124 直接落到 row1，而 positions 里只有 row0/2）。
+        所以这里只校验格子合法性，不做白名单校验。
+        """
+        if not cls._is_valid_position(row, col) or cls.board[row][col] is not None:
+            return False
+        entry: dict[str, Any] = {"name": name, "level": level, "row": row, "col": col}
+        cls.board[row][col] = entry
+        cls.board_chesses.append(entry)
+        return True
+
+    @classmethod
+    def find_card_on_board(cls, name: str) -> tuple[int, int] | None:
+        """内部棋盘里找该卡的位置（用于升级目标）。"""
+        for row in range(len(cls.board)):
+            for col in range(len(cls.board[row])):
+                cell = cls.board[row][col]
+                if cell is not None and cell.get("name") == name:
+                    return (row, col)
+        return None
+
+    @classmethod
     def place_chess(cls, row: int, col: int, name: str, level: int = 1) -> bool:
         """在指定位置放置棋子"""
         if not cls._is_valid_position(row, col):
@@ -890,9 +915,34 @@ class CCBuyCard(CustomAction):
     翻斗棋：购买卡牌
     """
 
-    # 部署拖拽的重试次数与落地等待（秒）
-    _DEPLOY_ATTEMPTS = 2
-    _DEPLOY_SETTLE = 1.0
+    # 点开卡片到详情面板出现的等待（秒）
+    _BUY_PANEL_WAIT = 0.9
+    # 点「购买」后落子动画/结算的等待（秒）
+    _BUY_SETTLE = 1.2
+    # 详情面板里「购买」按钮的位置（实测 940,568；面板居中、布局固定）
+    _BUY_BUTTON_POINT = (940, 568)
+
+    @staticmethod
+    def _locate_card_on_board(context: Context, img: Any, card_template: str) -> tuple[int, int] | None:
+        """在棋盘里找某张卡落在哪一格。
+
+        买卡由游戏自动落子，落点不确定（不受策略表 positions 约束），只能识别回来。
+        按行优先扫全盘，命中即返回 —— 单格 ROI 很小，18 格全扫也就几十毫秒。
+        """
+        board = CCChessboard.board
+        rois = CCChessboard.board_rois
+        for row in range(len(board)):
+            for col in range(len(board[row])):
+                if row >= len(rois) or col >= len(rois[row]):
+                    continue
+                detail = context.run_recognition(
+                    "CCBuyCardRec_Template",
+                    img,
+                    {"CCBuyCardRec_Template": {"template": card_template, "roi": rois[row][col]}},
+                )
+                if is_hit(detail):
+                    return (row, col)
+        return None
 
     def run(
         self,
@@ -914,54 +964,33 @@ class CCBuyCard(CustomAction):
             logger.debug("detail中没有name")
             return CustomAction.RunResult(success=False)
 
-        if action == 0:  # 部署
-            empty_pos = CCChessboard.find_empty_position(card_name)
-            if not empty_pos:
-                logger.debug(f"没有空位置放置 {card_name}")
-                return CustomAction.RunResult(success=False)
-
-            row, col = empty_pos
-            occupied = sum(1 for r in CCChessboard.board for cell in r if cell is not None)
-            logger.debug(f"部署决策 {card_name} → ({row}, {col})，内部棋盘已占 {occupied} 格")
-            target_roi = CCChessboard.board_rois[row][col]
-
-            # 拖拽在 Python 侧直接做，判据用「目标格里有没有这张卡的模板」。
+        if action == 0:  # 买卡（游戏自己落子）
+            # 4.0 的真实交互：点商店卡 → 弹出详情面板 → 点面板里的「购买」→
+            # **棋子由游戏自动落到第一个空位**（实测 32124 落到 row1，金币 30→10）。
             #
-            # 不用 pipeline 的 CCDeploy：它的 CCDeployFinished 是「拿拖拽前的空格截图当模板、
-            # inverse 反相匹配」。棋子落下后那格仍会命中（空格底纹相似），于是永远判不成功 ——
-            # 子任务在 CCDeploy↔CCDeployFinished 自环里烧到 max_hit 耗尽，整轮卡死
-            # （实测一次部署决策烧掉 17s、6 次 CCDeploy，任务以 4000 收场）。
+            # 不存在「从商店拖到棋盘」这回事：无论 post_swipe 还是带 --via 的按住拖拽，
+            # 卡都不会动（实测两次都只换来一次无关的点击）。以前那条拖拽路径是在
+            # 幻想一个不存在的交互 —— 它既没买到卡，也把 CCDeploy 的自环烧穿。
             card_template = f"CritterCrash/Cards/{card_name}.png"
-            begin = (box[0] + box[2] // 2, box[1] + box[3] // 2)
-            end = (target_roi[0] + target_roi[2] // 2, target_roi[1] + target_roi[3] // 2)
+            card_center = (box[0] + box[2] // 2, box[1] + box[3] // 2)
 
-            placed = False
-            for attempt in range(1, self._DEPLOY_ATTEMPTS + 1):
-                context.tasker.controller.post_swipe(begin[0], begin[1], end[0], end[1], 600).wait()
-                time.sleep(self._DEPLOY_SETTLE)
-                img = context.tasker.controller.post_screencap().wait().get()
-                landed = context.run_recognition(
-                    "CCBuyCardRec_Template",
-                    img,
-                    {"CCBuyCardRec_Template": {"template": card_template, "roi": target_roi}},
-                )
-                if is_hit(landed):
-                    placed = True
-                    break
-                logger.debug(f"第 {attempt} 次拖拽 {card_name} → ({row}, {col}) 未落地，重试")
+            context.tasker.controller.post_click(card_center[0], card_center[1]).wait()
+            time.sleep(self._BUY_PANEL_WAIT)
+            context.tasker.controller.post_click(*self._BUY_BUTTON_POINT).wait()
+            time.sleep(self._BUY_SETTLE)
 
-            if not placed:
-                # 失败也要占住这个位置：否则 find_empty_position 下一轮还返回同一格。
-                CCChessboard.board[row][col] = {
-                    "name": card_name, "level": 0, "failed": True, "row": row, "col": col,
-                }
-                logger.debug(f"放置 {card_name} 到 ({row}, {col}) 失败：目标格始终没出现该卡，本局不再尝试该格")
+            # 扫棋盘找它落在哪：先在「消费后仍空着」的格子里找，再看全盘
+            img = context.tasker.controller.post_screencap().wait().get()
+            landed_at = self._locate_card_on_board(context, img, card_template)
+            if landed_at is None:
+                logger.debug(f"购买 {card_name} 后棋盘上没有出现该卡（可能进了奖励区或钱不够）")
                 return CustomAction.RunResult(success=False)
 
-            if CCChessboard.place_chess(row, col, card_name):
-                logger.debug(f"成功放置 {card_name} 到位置 ({row}, {col})")
+            row, col = landed_at
+            if CCChessboard.record_chess(row, col, card_name):
+                logger.debug(f"买入 {card_name}，游戏落子到 ({row}, {col})")
                 return CustomAction.RunResult(success=True)
-            logger.debug(f"放置 {card_name} 到 ({row}, {col}) 时内部记账失败（位置不在该卡合法表内）")
+            logger.debug(f"买入 {card_name} 落到 ({row}, {col})，但该格在内部棋盘已被占（状态分叉），按失败处理")
             return CustomAction.RunResult(success=False)
 
         elif action == 1:  # 升级

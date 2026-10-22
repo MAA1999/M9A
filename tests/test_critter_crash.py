@@ -1564,12 +1564,12 @@ class TestLeaderState:
         assert CCChessboard.leader_id == "30027"
 
 
-class TestDeployResultHandling:
-    """部署走 Python 直拖 + 卡牌模板验证落点。
+class TestBuyCardFlow:
+    """4.0 买卡：点商店卡 → 详情面板 → 点「购买」→ 游戏自动落子。
 
-    不再用 pipeline 的 CCDeploy：它的 CCDeployFinished 拿「拖拽前空格截图」当模板反相匹配，
-    棋子落下后仍会命中，于是永远判不成功 —— 子任务在自环里烧到 max_hit 耗尽，
-    一次部署决策能烧掉 17s 并让整局 4000（实测 02:35）。
+    不存在「从商店拖到棋盘」这条交互：post_swipe 与带 --via 的按住拖拽都试过，
+    卡一动不动（实测 2026-10-23）。以前按拖拽写的部署逻辑既买不到卡，
+    又把 CCDeploy 的自环烧穿（一次决策 17s、整局 4000）。
     """
 
     def setup_method(self) -> None:
@@ -1578,33 +1578,43 @@ class TestDeployResultHandling:
     def teardown_method(self) -> None:
         CCChessboard.apply_strategy(BASE_STRATEGY)
 
-    def test_landed_card_is_recorded(self) -> None:
-        """目标格识别到该卡模板 → 记入棋盘并返回成功。"""
+    def _buy(
+        self,
+        ctx: _ScriptedContext,
+        name: str = "32123",
+        box: tuple[int, int, int, int] = (60, 620, 90, 100),
+    ) -> Any:
+        return _run_buy_card(ctx, {"type": 0, "action": 0, "name": name}, box=box)
+
+    def test_clicks_card_then_buy_button(self) -> None:
+        """两个点击：先卡片中心（开面板），再购买按钮。"""
         ctx = _ScriptedContext({"32123": _hit((732, 175, 68, 44))})
-        result = _run_buy_card(ctx, {"type": 0, "action": 0, "name": "32123"}, box=(60, 620, 90, 100))
+        self._buy(ctx)
+        assert len(ctx.clicks) == 2
+        assert ctx.clicks[0] == (60 + 90 // 2, 620 + 100 // 2)
+        assert ctx.clicks[1] == CCBuyCard._BUY_BUTTON_POINT
+
+    def test_no_drag_is_used(self) -> None:
+        """买卡不该产生任何 swipe —— 拖拽在这条流程里是无效手势。"""
+        ctx = _ScriptedContext({"32123": _hit((732, 175, 68, 44))})
+        self._buy(ctx)
+        assert ctx.swipes == []
+
+    def test_landed_card_is_recorded_at_detected_cell(self) -> None:
+        """落点由识别决定；模型里没有 positions 校验，扫到哪格就记哪格。"""
+        ctx = _ScriptedContext({"32123": _hit((732, 175, 68, 44))})
+        result = self._buy(ctx)
         assert result.success is True
-        assert ctx.swipes, "必须发生一次拖拽"
-        entry = CCChessboard.board[0][5]
-        assert entry is not None
-        assert entry["name"] == "32123"
+        # 行优先扫描 → 第一格 (0,0) 就命中
+        entry = CCChessboard.board[0][0]
+        assert entry is not None and entry["name"] == "32123"
 
-    def test_failed_deploy_marks_cell_and_retries(self) -> None:
-        """始终识别不到 → 重试到上限后占位并返回失败，避免反复拖同一格。"""
-        ctx = _ScriptedContext({})  # 全部 miss
-        result = _run_buy_card(ctx, {"type": 0, "action": 0, "name": "32123"}, box=(60, 620, 90, 100))
+    def test_card_not_found_on_board_returns_failure(self) -> None:
+        """买完棋盘上没有该卡（钱不够/进了奖励区）→ 失败，不瞎记账。"""
+        ctx = _ScriptedContext({})  # 全 miss
+        result = self._buy(ctx)
         assert result.success is False
-        assert len(ctx.swipes) == CCBuyCard._DEPLOY_ATTEMPTS
-        entry = CCChessboard.board[0][5]
-        assert entry is not None and entry.get("failed") is True
-
-    def test_deploy_drag_goes_from_card_to_target_cell(self) -> None:
-        """拖拽起点=卡位中心，终点=目标格中心（否则拖到别处）。"""
-        ctx = _ScriptedContext({"32123": _hit((732, 175, 68, 44))})
-        _run_buy_card(ctx, {"type": 0, "action": 0, "name": "32123"}, box=(60, 620, 90, 100))
-        x1, y1, x2, y2, _dur = ctx.swipes[0]
-        assert (x1, y1) == (60 + 90 // 2, 620 + 100 // 2)
-        target = CCChessboard.board_rois[0][5]
-        assert (x2, y2) == (target[0] + target[2] // 2, target[1] + target[3] // 2)
+        assert CCChessboard.board_chesses == []
 
 
 class TestJumpBackActionMustNotFail:
