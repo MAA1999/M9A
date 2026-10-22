@@ -1365,42 +1365,27 @@ class CCSticker(CustomAction):
         CCSticker._opened = True
         logger.debug("贴纸箱已开，贴纸进入奖励区")
 
-        # 开箱会弹道具面板，挡住奖励区 —— 先关掉再拖，否则拖拽起点落在面板上。
-        # 面板已自动收起时点这里也是空白处，无副作用。
-        context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
-        time.sleep(0.5)
-
-        # 找空位：先按策略表给的优先位，再按棋盘从左到右、从上到下扫
-        target = CCChessboard.find_sticker_position()
-        if target is None:
-            logger.debug("没有空位可放贴纸（贴纸留在奖励区，进战斗会被清掉，但不影响本局胜负）")
-            return CustomAction.RunResult(success=True)
-
-        row, col = target
-        target_roi = CCChessboard.board_rois[row][col]
-        # 贴纸落在奖励区某个非空槽。优先用识别到的 box 中心（槽位是「空框/卡」交替，
-        # 写死槽号会错），识别不到才退回槽位表。
+        # 贴纸的上场方式与买卡一致：**点奖励区里的贴纸 → 弹详情面板 → 点右下角按钮**
+        # （贴纸显示「免费」）→ 游戏自动落到棋盘空位。
+        # 拖拽（post_swipe / 带 --via 的按住拖）实测都无效：奖励区那张卡纹丝不动，
+        # 只有点开面板再点按钮才会真的上场（实测 2026-10-23 04:2x）。
         src = self._sticker_source_point(context)
-        context.tasker.controller.post_swipe(
-            src[0],
-            src[1],
-            target_roi[0] + target_roi[2] // 2,
-            target_roi[1] + target_roi[3] // 2,
-            300,
-        ).wait()
-        time.sleep(0.8)
+        context.tasker.controller.post_click(src[0], src[1]).wait()
+        time.sleep(CCBuyCard._BUY_PANEL_WAIT)
+        context.tasker.controller.post_click(*CCBuyCard._BUY_BUTTON_POINT).wait()
+        time.sleep(CCBuyCard._BUY_SETTLE)
 
-        # 判据：拖完后奖励区变空 = 贴纸已上场。
-        # 不往 board 里登记 —— 贴纸不是可购买棋子，没有 max_level / positions，
-        # 登记进去会让 find_empty_position / can_upgrade_existing 把它当普通卡处理。
+        # 判据：奖励区变空 = 贴纸上场（面板按钮点成功后贴纸就离开奖励区）
         img_after = context.tasker.controller.post_screencap().wait().get()
         still_there = context.run_recognition("CCBuyCardAwardEmptyRec", img_after)
         if is_hit(still_there):
-            logger.debug(f"贴纸已放置到 ({row}, {col})（奖励区已空）")
+            logger.debug("贴纸已上场（奖励区已空）")
             return CustomAction.RunResult(success=True)
 
-        logger.debug(f"贴纸仍留在奖励区，放置到 ({row}, {col}) 未生效")
-        # 贴纸是可选收益：放不上也不该让整个任务失败
+        # 面板可能没点中：关掉它，贴纸留给下一轮
+        context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
+        time.sleep(0.4)
+        logger.debug("贴纸点击后仍在奖励区，关闭面板，下一轮再试")
         return CustomAction.RunResult(success=True)
 
     @staticmethod
