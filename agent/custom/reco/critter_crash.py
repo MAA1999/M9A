@@ -88,7 +88,8 @@ class CCPickLeaderRec(CustomRecognition):
             return CustomRecognition.AnalyzeResult(box=None, detail={})
         logger.debug(f"选领队：重摇额度用尽，兜底点卡位 0 {point}")
         # 兜底 = 不是优先棋手。贴纸按角色专属，领队不对就不能开箱，故显式清空。
-        CCChessboard.set_leader(None)
+        # 必须用 clear_leader：set_leader(None) 有粘性保护，上一局记过 30027 时会被忽略。
+        CCChessboard.clear_leader()
         # box 的中心就是点击点，故用 10x10 的小框包住该点
         return CustomRecognition.AnalyzeResult(box=[point[0] - 5, point[1] - 5, 10, 10], detail={"fallback": True})
 
@@ -215,12 +216,13 @@ class CCBuyCardRec(CustomRecognition):
                         logger.debug(f"找到有空位的卡牌: {card_name}")
                         detail = {"type": 0, "action": 0, "name": card_name}
                         return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=detail)
-                    # 没有空位，检查是否能升级
+                    # 没有空位，检查是否能升级。
+                    # 4.0 的升级就是再买一张同名卡让游戏自动合成，所以这里仍然走 action=0
+                    # （点卡 → 购买）；action=1 只是让 action 侧打不同的日志。
                     elif CCChessboard.can_upgrade_existing(card_name):
-                        # 能升级，记录为候选
                         upgrade_candidates.append((reco_detail, card_name))
 
-            # 如果有升级候选，返回第一个
+            # 如果有升级候选，返回第一个（action=1：升级语义，实际交互与买卡相同）
             if upgrade_candidates:
                 reco_detail, card_name = upgrade_candidates[0]
                 logger.debug(f"选择能升级的卡牌: {card_name}")

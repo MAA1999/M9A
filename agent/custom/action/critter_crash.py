@@ -701,6 +701,18 @@ class CCChessboard(CustomAction):
         logger.debug(f"本局领队记为 {leader_id or '未知（兜底/非优先棋手）'}")
 
     @classmethod
+    def clear_leader(cls) -> None:
+        """无条件清空领队记录（兜底选了别人时必须走这里）。
+
+        set_leader(None) 有粘性保护（防止每轮重复判定把已知领队冲掉），
+        所以「这一局真的兜底选了非优先棋手」需要显式清空 —— 否则会沿用上一局的
+        30027 去开箱，把别人的贴纸塞进按小叶尼塞配置的贴纸位。
+        """
+        if cls.leader_id is not None:
+            logger.debug(f"清空领队记录（原为 {cls.leader_id}）")
+        cls.leader_id = None
+
+    @classmethod
     def consume_reroll(cls, group: str, budget: int) -> bool:
         """按用途记账地消耗一次重摇额度；用完返回 False。
 
@@ -1093,72 +1105,45 @@ class CCBuyCard(CustomAction):
             CCChessboard.skip_buy(card_name)
             return CustomAction.RunResult(success=True)
 
-        elif action == 1:  # 升级
-            # 找到一个可以升级的位置
-            for chess in CCChessboard.board_chesses:
-                if chess["name"] == card_name and chess["level"] < CCChessboard.get_chess_info(card_name)["max_level"]:
-                    row, col = chess["row"], chess["col"]
-                    # 计算拖拽终点（棋盘位置中心）
-                    target_roi = CCChessboard.board_rois[row][col]
+        elif action == 1:  # 升级（= 再买一张同名卡，让游戏自动合成）
+            # 4.0 没有「拖一张卡到已有棋子上」的升级交互：拖商店卡不会动（实测），
+            # 拖棋盘上的棋子也只会挪位置。真正的升级就是**再买一张同名卡**，
+            # 游戏会把它合到已有棋子上并抬等级（实测连买 32123 三次，等级 1→2→3）。
+            #
+            # 所以这里直接复用买卡流程：点卡片 → 点购买 → 差分看哪格变了。
+            # 变化格是「已有同名棋子」→ 升一级；是空格 → 新棋子落位。
+            # 以前那条拖拽升级（CCUpdate + CCUpdateFinished）在 4.0 下必然假成功或假失败：
+            # CCUpdateFinished 的模板是拖拽前的卡图、ROI 在商店原位，拖拽无效时它首次就命中，
+            # 子任务假成功、内部等级凭空 +1。
+            card_center = (box[0] + box[2] // 2, box[1] + box[3] // 2)
+            pre = context.tasker.controller.post_screencap().wait().get()
 
-                    # 同部署分支：必须现抓一帧，不能用 cached_image 当"拖拽前"基准
-                    img = context.tasker.controller.post_screencap().wait().get()
-                    roi_array = img[
-                        box[1] : box[1] + box[3],
-                        box[0] : box[0] + box[2],
-                    ]
-                    offset = list(CCChessboard.strategy.badge_offset())
-                    roi_max = [
-                        target_roi[0] + offset[0],
-                        target_roi[1] + offset[1],
-                        target_roi[2] + offset[2],
-                        target_roi[3] + offset[3],
-                    ]
-                    level_max_reco = context.run_recognition(
-                        "CCLevelMax",
-                        img,
-                        pipeline_override={"CCLevelMax": {"roi": roi_max}},
-                    )
-                    if is_hit(level_max_reco):
-                        max_level = CCChessboard.get_chess_info(card_name).get("max_level", 1)
-                        chess["level"] = max_level
-                        if CCChessboard.board[row][col] is not None:
-                            CCChessboard.board[row][col]["level"] = max_level
-                        logger.debug(f"{card_name} 在位置 ({row}, {col}) 已满级，跳过升级")
-                        return CustomAction.RunResult(success=True)
-                    context.override_image("ccupdate", roi_array)
-                    # 同 CCDeploy：CCUpdate 的 next 也是自环，靠 max_hit 退出；
-                    # 计数按任务累计，必须在每次调用前主动清零，否则第二次起直接被跳过。
-                    try:
-                        context.clear_hit_count("CCUpdate")
-                    except Exception as e:  # noqa: BLE001 - 清零失败不该中断升级
-                        logger.debug(f"清零 CCUpdate 命中计数失败（{e}），继续")
-                    update_result = context.run_task(
-                        "CCUpdate",
-                        {
-                            "CCUpdate": {
-                                "begin": list(box),
-                                "end": target_roi,
-                            },
-                            "CCUpdateFinished": {"roi": list(box)},
-                        },
-                    )
-                    if not update_result or not update_result.status.succeeded:
-                        # 升级失败同样要记一笔：否则 can_upgrade_existing 下一轮还返回 True，
-                        # 就会一直去拖同一个满级/拖不动的棋子（实测卡满整局）。
-                        # 记成满级，让它从升级候选里退出。
-                        max_level = CCChessboard.get_chess_info(card_name).get("max_level", 1)
-                        chess["level"] = max_level
-                        if CCChessboard.board[row][col] is not None:
-                            CCChessboard.board[row][col]["level"] = max_level
-                        logger.debug(f"升级 {card_name} 于 ({row}, {col}) 失败：CCUpdate 未成功，按满级处理不再重试")
-                        return CustomAction.RunResult(success=True)
-                    if CCChessboard.upgrade_chess(row, col):
-                        logger.debug(f"成功升级 {card_name} 在位置 ({row}, {col})")
-                        return CustomAction.RunResult(success=True)
+            context.tasker.controller.post_click(card_center[0], card_center[1]).wait()
+            time.sleep(self._BUY_PANEL_WAIT)
+            context.tasker.controller.post_click(*self._BUY_BUTTON_POINT).wait()
+            time.sleep(self._BUY_SETTLE)
 
-            logger.debug(f"没有可以升级的 {card_name}")
-            return CustomAction.RunResult(success=False)
+            img = context.tasker.controller.post_screencap().wait().get()
+            changed = self._diff_changed_cells(pre, img)
+            if not changed:
+                logger.debug(f"升级 {card_name}：购买后棋盘没有变化，本回合跳过该卡")
+                CCChessboard.skip_buy(card_name)
+                return CustomAction.RunResult(success=True)
+
+            _, row, col = changed[0]
+            existing = CCChessboard.board[row][col]
+            if existing is not None and existing.get("name") == card_name:
+                cap = int(CCChessboard.get_chess_info(card_name).get("max_level", 3))
+                new_level = min(int(existing.get("level", 1)) + 1, cap)
+                existing["level"] = new_level
+                logger.debug(f"升级 {card_name} 于 ({row}, {col}) → {new_level}/{cap} 级")
+                return CustomAction.RunResult(success=True)
+            if existing is None and CCChessboard.record_chess(row, col, card_name):
+                logger.debug(f"升级 {card_name}：棋盘还有空位，游戏改为落子到 ({row}, {col})")
+                return CustomAction.RunResult(success=True)
+            logger.debug(f"升级 {card_name} 后 ({row}, {col}) 记的是别的棋子，本回合跳过该卡")
+            CCChessboard.skip_buy(card_name)
+            return CustomAction.RunResult(success=True)
 
         else:
             logger.debug(f"未知action: {action}")
@@ -1385,10 +1370,14 @@ class CCSticker(CustomAction):
         context.tasker.controller.post_click(*CCBuyCard._BUY_BUTTON_POINT).wait()
         time.sleep(CCBuyCard._BUY_SETTLE)
 
-        # 判据：奖励区变空 = 贴纸上场（面板按钮点成功后贴纸就离开奖励区）
+        # 判据：奖励区变空 = 贴纸上场。
+        #
+        # 注意 CCBuyCardAwardEmptyRec 的语义是 **NOT 空模板 AND 在对局页**，
+        # 即「命中 = 奖励区**有卡**」（CCBuyCardRec.analyze 也是这么用的）。
+        # 所以上场成功对应的是 **not is_hit**，写成 is_hit 会把成功当失败。
         img_after = context.tasker.controller.post_screencap().wait().get()
-        still_there = context.run_recognition("CCBuyCardAwardEmptyRec", img_after)
-        if is_hit(still_there):
+        has_award = context.run_recognition("CCBuyCardAwardEmptyRec", img_after)
+        if not is_hit(has_award):
             logger.debug("贴纸已上场（奖励区已空）")
             return CustomAction.RunResult(success=True)
 

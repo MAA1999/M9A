@@ -216,11 +216,10 @@
             // 停在一页「本次奇遇」弹窗上时：先按名字门控，再翻页（主菜单上它不命中，不会抢 CCStart 的道）
             "CCEncounterAccept",
             "CCNext",
-            // 主菜单上还压着一局（「箱中对决」右上角有 ✕）就先放弃：不放弃的话下面 CCStart 只会续局，
-            // 永远摇不到新奇遇。✕ 只在有未完成对局时出现，没局时这一项自然 miss。
-            // 用 [JumpBack] 而不是裸引用：点完 ✕ 回到本列表重新识别，由上面的 CCRerollConfirm 清框 ——
-            // 既不用给 CCStop 挂 next（那是 3.5 的写法），也不会让它的 action 被反复重跑。
-            "[JumpBack]CCStop",
+            // 这里**不放弃残局**：从主菜单启动时要继续当前对局（用户的实际用法）。
+            // 放弃只在「奇遇不在白名单 → 要换牌」那条路径上做（CCEncounterAccept.next）。
+            // 以前这里挂了 [JumpBack]CCStop，导致每次从主菜单启动都把玩家正在打的局丢掉
+            // （实测 seq=37→39：CritterCrash ok → CCStop ok → CritterCrash 卡 20s，任务 4000）。
             "CCStart",
             "[JumpBack]CCConfirm",
             "[JumpBack]CCClickBlank"
@@ -1120,49 +1119,6 @@
             }
         },
         "post_delay": 1500
-    },
-    "CCUpdate": {
-        "desc": "拖拽升级。on_error 指回主循环（不能是 Stop，否则满级拖不动会终结整个任务，实测 11 次循环）；max_hit 必须留（next 自环，不留就永不退出），清零由 CCBuyCard 每次 run_task 前主动 clear_hit_count 保证。",
-        "max_hit": 5,
-        "action": {
-            "type": "Swipe",
-            "param": {
-                "duration": 500
-            }
-        },
-        "timeout": 3000,
-        "next": [
-            "CCUpdateFinished",
-            "CCUpdate"
-        ],
-        "on_error": [
-            "CCFlagInCombatMain"
-        ]
-    },
-    "CCUpdateFinished": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "template": "ccupdate"
-            }
-        },
-        "inverse": true,
-        "next": [
-            "CCResetCCUpdateCount"
-        ]
-    },
-    "CCResetCCUpdateCount": {
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "ResetCount",
-                "custom_action_param": {
-                    "nodes": [
-                        "CCUpdate"
-                    ]
-                }
-            }
-        }
     },
     // 说明：3.5 的「卖出」（CCSellCards / CCSellCardsFinished，靠拖到底部丢弃区 + 10/20 飘字确认）
     // 已删除。4.0 实测奖励区的卡片拖不动（同形态拖商店卡会立刻回「缪斯币不足」，拖奖励卡零反应），
