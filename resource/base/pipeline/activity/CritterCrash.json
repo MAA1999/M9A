@@ -188,7 +188,11 @@
             // CCStop 是原子节点（只认 ✕ + 点掉，没有 next），用 [JumpBack] 引用：点完回到本列表重新识别，
             // 下一轮由 CCRerollConfirm 清框 —— 这样 CCStop 不会和本节点互指成环。
             "[JumpBack]CCRerollConfirm",
-            "[JumpBack]CCStop",
+            // CCStop（放弃当前局）**不能**无条件挂在主菜单上：只要主菜单露出「箱中对决」的 ✕，
+            // 它就会把玩家正在打的那局丢掉。实测 seq=37→39：打完一局回主菜单，CCStop 直接放弃，
+            // 然后 CritterCrash 卡 20s、任务 4000。
+            // 真正的重摇需求由「奇遇不在白名单」那条路径驱动（CCPickEncounterRec 先返回重摇意图），
+            // 这里只在**确实要换局**时通过 CCRerollConfirm 的 next 走到 CCStop。
             "CCStart",
             "[JumpBack]CCConfirm",
             "[JumpBack]CCClickBlank"
@@ -551,10 +555,12 @@
         },
         "post_delay": 800,
         "next": [
-            // 返回后落在主菜单 → 交给主菜单锚点：它会先按 [JumpBack]CCStop 放弃这一局，再重开
-            // （见 CritterCrash.next 的注释）。这里不直接挂 CCStop，避免多入口各挂一份、语义漂移。
+            // 重摇是两步：点返回回主菜单 → 点 ✕ 放弃这一局 → 再点「箱中对决」才是新牌。
+            // 放弃这一步**只挂在这里**（不再挂在主菜单锚点上）：主菜单无条件放弃会把
+            // 玩家正在打的那局丢掉（实测 seq=37→39 打完一局回主菜单就 4000）。
             "[JumpBack]CCRerollConfirm",
             "CritterCrash",
+            "CCStop",
             "CCStart",
             "CCNext"
         ]
