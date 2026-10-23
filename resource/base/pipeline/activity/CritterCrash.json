@@ -188,11 +188,10 @@
             // CCStop 是原子节点（只认 ✕ + 点掉，没有 next），用 [JumpBack] 引用：点完回到本列表重新识别，
             // 下一轮由 CCRerollConfirm 清框 —— 这样 CCStop 不会和本节点互指成环。
             "[JumpBack]CCRerollConfirm",
-            // CCStop（放弃当前局）**不能**无条件挂在主菜单上：只要主菜单露出「箱中对决」的 ✕，
-            // 它就会把玩家正在打的那局丢掉。实测 seq=37→39：打完一局回主菜单，CCStop 直接放弃，
-            // 然后 CritterCrash 卡 20s、任务 4000。
-            // 真正的重摇需求由「奇遇不在白名单」那条路径驱动（CCPickEncounterRec 先返回重摇意图），
-            // 这里只在**确实要换局**时通过 CCRerollConfirm 的 next 走到 CCStop。
+            // 主菜单上还压着一局（「箱中对决」右上角有 ✕）就先放弃再开新局。
+            // 脚本连打时必须这么做：不放弃就会带着上一局的棋盘/血量/商店状态接着打，
+            // 内部棋盘模型和真实棋盘立刻分叉（✕ 只在有未完成对局时出现，没局时自然 miss）。
+            "[JumpBack]CCStop",
             "CCStart",
             "[JumpBack]CCConfirm",
             "[JumpBack]CCClickBlank"
@@ -216,10 +215,8 @@
             // 停在一页「本次奇遇」弹窗上时：先按名字门控，再翻页（主菜单上它不命中，不会抢 CCStart 的道）
             "CCEncounterAccept",
             "CCNext",
-            // 这里**不放弃残局**：从主菜单启动时要继续当前对局（用户的实际用法）。
-            // 放弃只在「奇遇不在白名单 → 要换牌」那条路径上做（CCEncounterAccept.next）。
-            // 以前这里挂了 [JumpBack]CCStop，导致每次从主菜单启动都把玩家正在打的局丢掉
-            // （实测 seq=37→39：CritterCrash ok → CCStop ok → CritterCrash 卡 20s，任务 4000）。
+            // 从入口启动时同样要先放弃残局：脚本每轮都从干净状态开打。
+            "[JumpBack]CCStop",
             "CCStart",
             "[JumpBack]CCConfirm",
             "[JumpBack]CCClickBlank"
@@ -559,7 +556,7 @@
             // 玩家正在打的那局丢掉（实测 seq=37→39 打完一局回主菜单就 4000）。
             "[JumpBack]CCRerollConfirm",
             "CritterCrash",
-            "CCStop",
+            "[JumpBack]CCStop",
             "CCStart",
             "CCNext"
         ]

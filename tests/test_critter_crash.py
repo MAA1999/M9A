@@ -1466,31 +1466,27 @@ class TestRerollAbandonsBeforeRestart:
             if isinstance(entry, str)
             and entry.endswith(("CCStop", "CCRerollConfirm"))
             and not entry.startswith("[JumpBack]")
-            and not (name == "CCEncounterAccept" and entry == "CCStop")
         ]
         assert offenders == [], f"只能以 [JumpBack]X 引用（[JumpBack] 不重跑父 action），违规：{offenders}"
 
-    def test_entry_chain_does_not_abandon_current_game(self) -> None:
-        """入口链**不能**放弃残局：从主菜单启动要接着打当前那局。
+    def test_entry_chain_abandons_before_start(self) -> None:
+        """入口链必须先放弃残局再开局：脚本每轮都要从干净状态开打。
 
-        以前这里挂了 [JumpBack]CCStop，每次启动都把玩家正在打的局丢掉
-        （实测 seq=37→39：CritterCrash ok → CCStop ok → CritterCrash 卡 20s，任务 4000）。
-        放弃只在「奇遇不在白名单 → 换牌」那条路径上做。
+        不放弃就会带着上一局的棋盘/血量/商店状态接着打，内部棋盘模型与真实棋盘立刻分叉。
         """
         nxt = self.pipeline["CCResetData"]["next"]
-        assert "[JumpBack]CCStop" not in nxt
-        assert "CCStart" in nxt
+        assert "[JumpBack]CCStop" in nxt
+        assert nxt.index("[JumpBack]CCStop") < nxt.index("CCStart")
 
-    def test_main_menu_anchor_does_not_abandon(self) -> None:
-        """主菜单锚点不放弃残局 —— 那会把玩家正在打的局丢掉（实测 seq=37→39 任务 4000）。
+    def test_main_menu_anchor_abandons_before_restart(self) -> None:
+        """主菜单锚点必须先放弃残局再开局；清框那一项排在放弃之前。
 
-        放弃只挂在 CCEncounterAccept.next（奇遇不在白名单 → 换牌那条路径）。
+        点完 ✕ / 清完框都会 [JumpBack] 回本列表重新识别，所以顺序就是执行顺序：
+        先 CCRerollConfirm 收拾「放弃对战」框，再 CCStop 放弃残局，最后 CCStart 开局。
         """
         nxt = self.pipeline["CritterCrash"]["next"]
-        assert "[JumpBack]CCStop" not in nxt
-        enc = self.pipeline["CCEncounterAccept"]["next"]
-        assert "CCStop" in enc, "重摇路径必须保留放弃残局这一步"
-        assert enc.index("CCStop") < enc.index("CCStart")
+        assert "[JumpBack]CCStop" in nxt
+        assert nxt.index("[JumpBack]CCRerollConfirm") < nxt.index("[JumpBack]CCStop")
 
     def test_reroll_and_leader_paths_route_through_the_anchor(self) -> None:
         """两条「返回主菜单重摇」的路径都经主菜单锚点统一放弃，不各自挂一份 CCStop。"""
