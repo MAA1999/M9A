@@ -1332,13 +1332,23 @@ class CCBuyCard(CustomAction):
                 CCChessboard.skip_buy(card_name)
                 return CustomAction.RunResult(success=True)
             existing = CCChessboard.board[got_row][got_col]
-            if actual is not None and (existing is None or existing.get("name") != actual):
-                logger.debug(
-                    f"({got_row}, {got_col}) 内部记的是 {existing.get('name') if existing else '空'}"
-                    f"，实际识别为 {actual}，按实际校正"
-                )
+
+            # 认出来了就**一律按实际校正**内部记录（不管认出的卡是不是我们要拖的那张）。
+            # 之前只在「认出的 ≠ 内部记的」时才校正，于是 actual == card_name 时不动内部记录 ——
+            # 而内部记录可能是错的（记着别的卡），后面 existing.get("name") == card_name 就不成立，
+            # 走「落到但该格记的是 X，跳过」，既没记成功也没记失败，日志里看不出发生了什么
+            # （实测 6 次拖拽只有 1 次有后续日志）。
+            if actual is not None:
+                level = 1
+                if existing is not None and existing.get("name") == actual:
+                    level = int(existing.get("level", 1))
+                if existing is None or existing.get("name") != actual:
+                    logger.debug(
+                        f"({got_row}, {got_col}) 内部记的是 {existing.get('name') if existing else '空'}"
+                        f"，实际识别为 {actual}，按实际校正"
+                    )
                 CCChessboard.board[got_row][got_col] = {
-                    "name": actual, "level": 1, "row": got_row, "col": got_col,
+                    "name": actual, "level": level, "row": got_row, "col": got_col,
                 }
                 CCChessboard.board_chesses = [
                     x for x in CCChessboard.board_chesses
