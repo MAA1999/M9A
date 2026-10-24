@@ -1188,7 +1188,15 @@ class CCBuyCard(CustomAction):
             # 变化最大的常常是 (0,0) 而不是真正的落点 ——
             # 实测拖到 (0,1)、棋子确实落在 (0,1)（ROI 叠加核对过），
             # 但差分包报「拖入到 (0,0)」，导致内部棋盘与实际分叉。
-            if not CCChessboard.is_cell_occupied(context, img, row, col):
+            # 拖拽后棋子可能还在落位动画里：连判两次（间隔 0.6s），两次都占用才算真的落下。
+            # 只判一次会把「拖拽失败但棋子短暂悬停」误判成成功 ——
+            # 实测日志说拖入 (0,3)/(0,4)/(0,5)，实际那三格全空，内部棋盘与实际分叉。
+            occupied = CCChessboard.is_cell_occupied(context, img, row, col)
+            if occupied:
+                time.sleep(0.6)
+                img2 = context.tasker.controller.post_screencap().wait().get()
+                occupied = CCChessboard.is_cell_occupied(context, img2, row, col)
+            if not occupied:
                 logger.debug(f"拖拽 {card_name} 到 ({row}, {col}) 后该格仍为空，本回合跳过该卡")
                 CCChessboard.skip_buy(card_name)
                 return CustomAction.RunResult(success=True)
