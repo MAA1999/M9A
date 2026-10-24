@@ -781,7 +781,7 @@ class CCChessboard(CustomAction):
         """
         removed = 0
         for row, col in cells:
-            if not cls._is_valid_position(row, col):
+            if not CCChessboard._is_valid_position(row, col):
                 continue
             if cls.board[row][col] is None:
                 continue
@@ -901,7 +901,7 @@ class CCChessboard(CustomAction):
     @classmethod
     def place_chess(cls, row: int, col: int, name: str, level: int = 1) -> bool:
         """在指定位置放置棋子"""
-        if not cls._is_valid_position(row, col):
+        if not CCChessboard._is_valid_position(row, col):
             return False
 
         chess_info = cls.get_chess_info(name)
@@ -926,7 +926,7 @@ class CCChessboard(CustomAction):
     @classmethod
     def upgrade_chess(cls, row: int, col: int) -> bool:
         """升级指定位置的棋子"""
-        if not cls._is_valid_position(row, col):
+        if not CCChessboard._is_valid_position(row, col):
             return False
 
         chess = cls.board[row][col]
@@ -948,7 +948,7 @@ class CCChessboard(CustomAction):
     @classmethod
     def remove_chess(cls, row: int, col: int) -> bool:
         """移除指定位置的棋子"""
-        if not cls._is_valid_position(row, col):
+        if not CCChessboard._is_valid_position(row, col):
             return False
 
         if cls.board[row][col] is None:
@@ -971,7 +971,7 @@ class CCChessboard(CustomAction):
         for row, col in chess_info["positions"]:
             # 策略表越界已在 parse_strategy 拦下；这里再兜一层，避免手工注入的
             # chess_types（测试/热改）把 IndexError 抛进识别回调。
-            if not cls._is_valid_position(row, col):
+            if not CCChessboard._is_valid_position(row, col):
                 continue
             if cls.board[row][col] is None:
                 return (row, col)
@@ -1116,16 +1116,28 @@ class CCBuyCard(CustomAction):
         except Exception:  # noqa: BLE001 - 复查失败不影响主流程
             pass
 
-    @staticmethod
-    def _pick_target_cell(card_name: str, *, upgrade: bool = False) -> tuple[int, int]:
+    @classmethod
+    def _pick_target_cell(
+        cls,
+        card_name: str,
+        context: Context,
+        img: Any,
+        *,
+        upgrade: bool = False,
+    ) -> tuple[int, int]:
         """选落点。策略（用户 2026-10-24 明确）：
 
         **优先占地盘，占满对应可占的格之后才升级。**
 
-        - positions 按「row0 → row2 交替」排列；石骑士的 (0,1)/(2,1) 专属位排在它自己最前，
-          其它卡的 positions 里根本不含这两个格，所以不会被占。
+        - 巡城兵与鹿蜀位置一致（row0 → row2 交替）；石骑士专属位 (0,1)/(2,1) 不在其它卡的
+          positions 里，所以不会被占。
         - upgrade=True 时**先试空格**：只要这张卡还有可占的空格，就继续铺新棋子。
         - 只有空格全占完，才找「已有同名棋子且未满级」的格去合成升级。
+
+        **空格判定必须看实际画面，不能只信内部棋盘。**
+        内部记录是从「买到什么」推出来的，一次假成功就永久分叉 ——
+        实测 (0,2) 明明有鹿蜀、内部却记成空，于是巡城兵连续十几次都拖到 (0,2)，
+        游戏弹「棋子放置到错误区域」（巡城兵不能放到鹿蜀上）。
 
         为什么不能直接点购买：游戏会自动落到第一个空位，不看这张卡该占哪，
         会把石骑士的专属位也占掉；而且满盘后无法再点购买升级。拖拽能精确控制落点。
@@ -1133,10 +1145,14 @@ class CCBuyCard(CustomAction):
         info = CCChessboard.get_chess_info(card_name)
         cap = int(info.get("max_level", 3))
 
-        # 1) 先占地盘：positions 里第一个空格
+        # 1) 先占地盘：positions 里第一个**实际为空**的格
         for row, col in info.get("positions", []):
-            if CCChessboard._is_valid_position(row, col) and CCChessboard.board[row][col] is None:
-                return (row, col)
+            if not CCChessboard._is_valid_position(row, col):
+                continue
+            if CCChessboard.is_cell_occupied(context, img, row, col):
+                # 实际有棋子（可能是别的卡）→ 跳过，别往上面拖
+                continue
+            return (row, col)
 
         # 2) 地盘占满了才升级：找已有同名且未满级的格
         if upgrade:
@@ -1211,7 +1227,8 @@ class CCBuyCard(CustomAction):
             #
             # 手势要点：必须带中途路径点（--via 等价物）。纯两点 swipe 不会触发拖拽
             # （之前「拖拽无效」的结论就是漏了这一步）。
-            row, col = self._pick_target_cell(card_name, upgrade=(action == 1))
+            pick_img = context.tasker.controller.post_screencap().wait().get()
+            row, col = self._pick_target_cell(card_name, context, pick_img, upgrade=(action == 1))
             if (row, col) == (-1, -1):
                 logger.debug(f"买入 {card_name}：没有可放置格，本局跳过")
                 CCChessboard.skip_buy(card_name)
@@ -1280,11 +1297,20 @@ class CCBuyCard(CustomAction):
                 return CustomAction.RunResult(success=True)
 
             got_row, got_col = row, col
-            # 拖拽前该格的真实卡种要**现认**，不能只信内部记录：
-            # 内部棋盘是从「买到什么」推出来的，与实际会分叉 ——
-            # 实测日志说「32124 合到 (0,2) 3/3 级」，而画面里 (0,2) 是鹿蜀 LV.1，
-            # 内部记的卡种一旦错，后面所有合成判定都跟着错（等级凭空涨、真卡种被覆盖）。
-            actual = CCChessboard._recognize_cell_card(context, img, got_row, got_col)
+            # 拖拽后**必须确认这一格里的卡种就是拖进去的那张**。
+            #
+            # 只判「画面变了」不够：拖巡城兵到已有鹿蜀的格上时，游戏可能合成/拒绝，
+            # 画面确实变了、但那格里不是巡城兵 —— 实测 32122 连续 4 次拖到 (0,2)
+            # 都报成功，而画面里 (0,2) 一直是鹿蜀 LV.2。
+            actual = CCChessboard._recognize_cell_card(context, img2, got_row, got_col)
+            if actual is not None and actual != card_name:
+                # 允许「合到同名棋子」：目标是同名卡时，拖进去本来就该是它
+                logger.debug(
+                    f"拖拽 {card_name} 到 ({got_row}, {got_col}) 后该格实际是 {actual}，"
+                    f"不是目标卡，判定拖拽未生效"
+                )
+                CCChessboard.skip_buy(card_name)
+                return CustomAction.RunResult(success=True)
             existing = CCChessboard.board[got_row][got_col]
             if actual is not None and (existing is None or existing.get("name") != actual):
                 logger.debug(

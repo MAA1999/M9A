@@ -469,6 +469,8 @@ class _ScriptedContext:
         self.piece_cell: tuple[int, int] | None = None
         # 合成时额外变化的格（模拟「同时改动多格」）
         self.extra_changed: list[tuple[int, int]] = []
+        # 所有格子都画成高对比（模拟棋盘全满）
+        self.all_occupied = False
         self.swipes: list[tuple[int, int, int, int, int]] = []
         self.keys: list[int] = []
         self.touches: list[tuple[str, int, int]] = []
@@ -540,10 +542,21 @@ class _ScriptedContext:
             return self
 
         def get(self) -> np.ndarray:
-            # 空格底纹：低幅噪声（std≈29，对应实机爪印底纹）
+            # 空格底纹：**极低**噪声（std≈2），确保被判定为空格。
+            # 实机空格 std≈29，但测试里只要低于 _OCCUPIED_STD(45) 即可；
+            # 用更低的噪声能避免随机波动导致误判占用。
             rng = np.random.default_rng(0)
-            frame = rng.integers(180, 210, (720, 1280, 3), dtype=np.uint8)
+            frame = rng.integers(195, 199, (720, 1280, 3), dtype=np.uint8)
             # 买完后在指定格画一块高对比棋子（std≈68，对应实机占用格）
+            if self._owner.all_occupied:
+                for rr in range(len(CCChessboard.board)):
+                    for cc in range(len(CCChessboard.board[rr])):
+                        if rr >= len(CCChessboard.board_rois) or cc >= len(CCChessboard.board_rois[rr]):
+                            continue
+                        roi = CCChessboard.board_rois[rr][cc]
+                        patch = rng.integers(0, 255, (roi[3], roi[2], 3), dtype=np.uint8)
+                        frame[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]] = patch
+                return frame
             if self._owner.bought and self._owner.piece_cell is not None:
                 r, c = self._owner.piece_cell
                 roi = CCChessboard.board_rois[r][c]
@@ -1714,24 +1727,36 @@ class TestUpgradePath:
         kinds = [k for k, _, _ in ctx.touches]
         assert kinds[0] == "down" and kinds[-1] == "up"
 
-    def test_upgrade_only_after_all_cells_taken(self) -> None:
-        """先占地盘：只要还有空格就继续铺，全部占满后才升级。"""
-        CCChessboard.place_chess(0, 2, "32123")
-        # 还有空格 → 即使 action=1 也应该选空格
-        row, col = CCBuyCard._pick_target_cell("32123", upgrade=True)
-        assert (row, col) == (2, 2)
+    def test_picks_first_actually_empty_cell(self) -> None:
+        """空格判定看**实际画面**：桩里画面全空 → 返回 positions 第一格 (0,2)。
 
-    def test_upgrade_when_board_full(self) -> None:
-        """空格全占完 → 才去合成升级。"""
-        for r, c in [(0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]:
-            CCChessboard.board[r][c] = {"name": "32123", "level": 1, "row": r, "col": c}
-        row, col = CCBuyCard._pick_target_cell("32123", upgrade=True)
-        assert (row, col) == (0, 2)
+        不能只看内部棋盘：内部记录一次假成功就会永久分叉，导致反复拖同一格
+        （实测巡城兵连续十几次拖到已有鹿蜀的 (0,2)，游戏弹「棋子放置到错误区域」）。
+        """
+        CCChessboard.place_chess(0, 2, "32123")   # 只改内部记录，画面仍是空的
+        ctx = _ScriptedContext({})
+        img = ctx.tasker.controller.get()
+        row, col = CCBuyCard._pick_target_cell("32123", ctx, img, upgrade=True)
+        assert (row, col) == (0, 2), "画面里 (0,2) 是空的，就该选它（内部记录不算数）"
+
+    def test_skips_cell_occupied_in_image(self) -> None:
+        """画面里该格有棋子 → 跳过它，选下一格。"""
         ctx = _ScriptedContext({})
         ctx.piece_cell = (0, 2)
-        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
-        entry = CCChessboard.board[0][2]
-        assert entry is not None and entry["level"] == 2
+        ctx.bought = True          # 让桩在 (0,2) 画出高对比棋子
+        img = ctx.tasker.controller.get()
+        row, col = CCBuyCard._pick_target_cell("32123", ctx, img, upgrade=True)
+        assert (row, col) == (2, 2), "画面里 (0,2) 有棋子，应跳到 (2,2)"
+
+    def test_upgrade_targets_existing_card_when_full(self) -> None:
+        """棋盘全满（画面里所有格都有棋子）→ 才返回已有同名棋子的格去升级。"""
+        for r, c in [(0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]:
+            CCChessboard.board[r][c] = {"name": "32123", "level": 1, "row": r, "col": c}
+        ctx = _ScriptedContext({})
+        ctx.all_occupied = True   # 画面里所有格都有棋子
+        img = ctx.tasker.controller.get()
+        row, col = CCBuyCard._pick_target_cell("32123", ctx, img, upgrade=True)
+        assert (row, col) == (0, 2), "全满时应返回第一个可升级的同名棋子格"
 
     def test_upgrade_keeps_target_cell_record(self) -> None:
         """落点判据只看目标格，不受画面其它变化干扰。"""
