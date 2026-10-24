@@ -66,11 +66,11 @@ ROIS_4_0 = [
 
 # 当前基线（4.0 唯一策略表）：棋盘 ROI 见上面 ROIS_4_0，棋子白名单按解包 auto_chess id 命名。
 BASE_CARDS: dict[str, tuple[int, list[tuple[int, int]]]] = {
-    "32122": (3, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
-    "32123": (3, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
-    "32703": (3, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
-    "32124": (3, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
-    "32126": (3, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
+    "32122": (3, [(0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]),
+    "32123": (3, [(0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]),
+    "32703": (3, [(0, 1), (2, 1), (0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]),
+    "32124": (3, [(0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]),
+    "32126": (3, [(0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]),
 }
 BASE_CARD_ORDER = ["32122", "32123", "32703"]
 # 4.0 购买表：鹿蜀系四张 + 石骑士（32124/32126 的模板早已在 Cards/ 下，)
@@ -335,9 +335,9 @@ class TestBoardState:
 
     def test_find_empty_position_follows_declaration_order(self) -> None:
         """positions 现在是全部可放置格，按声明顺序取第一个空位。"""
-        assert CCChessboard.find_empty_position("32123") == (0, 1)
-        CCChessboard.place_chess(0, 1, "32123")
         assert CCChessboard.find_empty_position("32123") == (0, 2)
+        CCChessboard.place_chess(0, 2, "32123")
+        assert CCChessboard.find_empty_position("32123") == (2, 2)
 
     def test_find_empty_position_returns_none_for_unknown_card(self) -> None:
         assert CCChessboard.find_empty_position("NotACard") is None
@@ -788,8 +788,10 @@ class TestStrategy40:
         """
         strategy = self._load()
         deer = next(c for c in strategy.cards if c.name == "32123")  # type: ignore[attr-defined]
-        assert len(deer.positions) == 10
-        assert (0, 1) in deer.positions and (2, 5) in deer.positions
+        # 石骑士专属位 (0,1)/(2,1) 不在其它卡的 positions 里
+        assert len(deer.positions) == 8
+        assert (0, 1) not in deer.positions and (2, 1) not in deer.positions
+        assert deer.positions[0] == (0, 2) and deer.positions[1] == (2, 2)
 
     def test_profile_award_priority_is_lushu_first(self) -> None:
         strategy = self._load()
@@ -852,7 +854,7 @@ class TestStrategy40:
             CCChessboard.apply_strategy(strategy)  # type: ignore[arg-type]
             assert CCChessboard.strategy.version == "4.0"
             assert [c["name"] for c in CCChessboard.chess_types] == STRATEGY_4_0_CARD_ORDER
-            assert CCChessboard.find_empty_position("32123") == (0, 1)
+            assert CCChessboard.find_empty_position("32123") == (0, 2)
         finally:
             CCChessboard.apply_strategy(before)
         assert CCChessboard.strategy.version == "4.0"
@@ -917,7 +919,7 @@ class TestBuyCardUnder4_0:
 
     def test_buy_deploys_lushu_to_first_placeable_cell(self) -> None:
         """positions 现在是全部可放置格，第一个空位是 (0,1)（col0 是贴纸列，不参与）。"""
-        assert CCChessboard.find_empty_position("32123") == (0, 1)
+        assert CCChessboard.find_empty_position("32123") == (0, 2)
 
     def test_buy_recognizes_lushu_and_returns_deploy(self) -> None:
         ctx = _ScriptedContext(
@@ -1673,7 +1675,7 @@ class TestBuyCardFlow:
         down = next(t for t in ctx.touches if t[0] == "down")
         assert (down[1], down[2]) == (60 + 90 // 2, 620 + 100 // 2)
         moves = [t for t in ctx.touches if t[0] == "move"]
-        target = CCChessboard.board_rois[0][1]   # positions 第一个格是 (0,1)
+        target = CCChessboard.board_rois[0][2]   # positions 第一个格是 (0,2)（(0,1) 留给石骑士）
         assert (moves[-1][1], moves[-1][2]) == (
             target[0] + target[2] // 2,
             target[1] + target[3] // 2,
@@ -1681,9 +1683,9 @@ class TestBuyCardFlow:
 
     def test_landed_card_is_recorded_at_detected_cell(self) -> None:
         ctx = _ScriptedContext({"32123": _hit((732, 175, 68, 44))})
-        result = self._buy(ctx, piece_cell=(0, 1))
+        result = self._buy(ctx, piece_cell=(0, 2))
         assert result.success is True
-        entry = CCChessboard.board[0][1]
+        entry = CCChessboard.board[0][2]
         assert entry is not None and entry["name"] == "32123"
 
     def test_card_not_found_marks_skip_but_keeps_task_alive(self) -> None:
@@ -1710,35 +1712,34 @@ class TestUpgradePath:
         kinds = [k for k, _, _ in ctx.touches]
         assert kinds[0] == "down" and kinds[-1] == "up"
 
-    def test_upgrade_merges_into_existing_piece(self) -> None:
-        """拖到已有同名棋子上 → 等级 +1，不新增棋子。
+    def test_upgrade_only_after_all_cells_taken(self) -> None:
+        """先占地盘：只要还有空格就继续铺，全部占满后才升级。"""
+        CCChessboard.place_chess(0, 2, "32123")
+        # 还有空格 → 即使 action=1 也应该选空格
+        row, col = CCBuyCard._pick_target_cell("32123", upgrade=True)
+        assert (row, col) == (2, 2)
 
-        升级场景里目标格**本来就该有棋子**，所以 _pick_target_cell 会跳过它、
-        返回下一个空格 —— 这不符合升级意图。升级时应直接拖到已有棋子那格，
-        因此这里把其余格都占满，逼它只能落在 (0,1)。
-        """
-        CCChessboard.place_chess(0, 1, "32123")
-        for r, c in [(0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]:
-            CCChessboard.board[r][c] = {"name": "other", "level": 1, "row": r, "col": c}
+    def test_upgrade_when_board_full(self) -> None:
+        """空格全占完 → 才去合成升级。"""
+        for r, c in [(0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]:
+            CCChessboard.board[r][c] = {"name": "32123", "level": 1, "row": r, "col": c}
+        row, col = CCBuyCard._pick_target_cell("32123", upgrade=True)
+        assert (row, col) == (0, 2)
         ctx = _ScriptedContext({})
-        ctx.piece_cell = (0, 1)
+        ctx.piece_cell = (0, 2)
         _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
-        entry = CCChessboard.board[0][1]
-        assert entry is not None
-        assert entry["name"] == "32123"
-        assert entry["level"] == 2
+        entry = CCChessboard.board[0][2]
+        assert entry is not None and entry["level"] == 2
 
-    def test_upgrade_also_cleans_extra_changed_cells(self) -> None:
-        """合成会同时改动多格：升级路径同样要清掉已空的幻影棋子。"""
-        CCChessboard.place_chess(0, 1, "32123")
-        for r, c in [(0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]:
-            CCChessboard.board[r][c] = {"name": "other", "level": 1, "row": r, "col": c}
+    def test_upgrade_keeps_target_cell_record(self) -> None:
+        """落点判据只看目标格，不受画面其它变化干扰。"""
+        for r, c in [(0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]:
+            CCChessboard.board[r][c] = {"name": "32123", "level": 1, "row": r, "col": c}
         ctx = _ScriptedContext({})
-        ctx.piece_cell = (0, 1)
+        ctx.piece_cell = (0, 2)
         ctx.extra_changed = [(2, 5)]
         _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
-        # extra_changed 只是「画面变了」，内部记账仍以目标格为准
-        assert CCChessboard.board[0][1] is not None
+        assert CCChessboard.board[0][2] is not None
 
 
 class TestJumpBackActionMustNotFail:

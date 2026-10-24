@@ -1068,17 +1068,27 @@ class CCBuyCard(CustomAction):
 
     @staticmethod
     def _pick_target_cell(card_name: str, *, upgrade: bool = False) -> tuple[int, int]:
-        """选落点。
+        """选落点。策略（用户 2026-10-24 明确）：
 
-        upgrade=True（action==1）：优先找**已有同名棋子且未满级**的格 —— 拖上去就是合成升级。
-        否则找该卡 positions 里第一个空格。
+        **优先占地盘，占满对应可占的格之后才升级。**
 
-        为什么要自己选而不是直接点购买：直接购买由游戏自动落到第一个空位，
-        会把棋盘从左往右填满、占掉石骑士该占的位置，而且满盘后无法再点购买升级。
-        拖拽能精确控制落点。
+        - positions 按「row0 → row2 交替」排列；石骑士的 (0,1)/(2,1) 专属位排在它自己最前，
+          其它卡的 positions 里根本不含这两个格，所以不会被占。
+        - upgrade=True 时**先试空格**：只要这张卡还有可占的空格，就继续铺新棋子。
+        - 只有空格全占完，才找「已有同名棋子且未满级」的格去合成升级。
+
+        为什么不能直接点购买：游戏会自动落到第一个空位，不看这张卡该占哪，
+        会把石骑士的专属位也占掉；而且满盘后无法再点购买升级。拖拽能精确控制落点。
         """
         info = CCChessboard.get_chess_info(card_name)
         cap = int(info.get("max_level", 3))
+
+        # 1) 先占地盘：positions 里第一个空格
+        for row, col in info.get("positions", []):
+            if CCChessboard._is_valid_position(row, col) and CCChessboard.board[row][col] is None:
+                return (row, col)
+
+        # 2) 地盘占满了才升级：找已有同名且未满级的格
         if upgrade:
             for row, col in info.get("positions", []):
                 if not CCChessboard._is_valid_position(row, col):
@@ -1086,9 +1096,6 @@ class CCBuyCard(CustomAction):
                 cell = CCChessboard.board[row][col]
                 if cell is not None and cell.get("name") == card_name and int(cell.get("level", 1)) < cap:
                     return (row, col)
-        for row, col in info.get("positions", []):
-            if CCChessboard._is_valid_position(row, col) and CCChessboard.board[row][col] is None:
-                return (row, col)
         return (-1, -1)
 
     @staticmethod
@@ -1379,9 +1386,9 @@ class CCSticker(CustomAction):
         # 实测同一角色不同局有 2 回合与 5 回合两种，写死回合数必错。
         img_now = context.tasker.controller.post_screencap().wait().get()
         box_reco = context.run_recognition(
-            "CCStickerBoxRec",
+            "CCStickerBoxTemplate",
             img_now,
-            {"CCStickerBoxRec": {"template": "CritterCrash/StickerBox.png", "roi": [280, 120, 200, 200]}},
+            {"CCStickerBoxTemplate": {"template": "CritterCrash/StickerBox.png", "roi": [280, 120, 200, 200]}},
         )
         if not is_hit(box_reco):
             logger.debug("贴纸箱不在（本局已开过或尚未出现），跳过")
@@ -1401,9 +1408,9 @@ class CCSticker(CustomAction):
         # 偏 20px 正好在边缘外，点了等于没点 —— 这就是「贴纸箱未开」反复出现的真因）。
         img_click = context.tasker.controller.post_screencap().wait().get()
         box_now = context.run_recognition(
-            "CCStickerBoxRec",
+            "CCStickerBoxTemplate",
             img_click,
-            {"CCStickerBoxRec": {"template": "CritterCrash/StickerBox.png", "roi": [280, 120, 200, 200]}},
+            {"CCStickerBoxTemplate": {"template": "CritterCrash/StickerBox.png", "roi": [280, 120, 200, 200]}},
         )
         box = box_now.box if is_hit(box_now) else box_reco.box
         if box is not None:
@@ -1427,9 +1434,9 @@ class CCSticker(CustomAction):
         for _ in range(self._OPEN_POLL_TIMES):
             img = context.tasker.controller.post_screencap().wait().get()
             box_after = context.run_recognition(
-                "CCStickerBoxRec",
+                "CCStickerBoxTemplate",
                 img,
-                {"CCStickerBoxRec": {"template": "CritterCrash/StickerBox.png", "roi": [280, 120, 200, 200]}},
+                {"CCStickerBoxTemplate": {"template": "CritterCrash/StickerBox.png", "roi": [280, 120, 200, 200]}},
             )
             if not is_hit(box_after):
                 opened = True
