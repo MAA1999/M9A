@@ -217,11 +217,21 @@ class CCBuyCardRec(CustomRecognition):
                 # CCBuyCard 是 [JumpBack]，它每轮都会命中一次，不跳过就会一直空转。
                 if CCChessboard.is_buy_skipped(card_name):
                     continue
-                # 动态识别当前卡牌
+                # 动态识别当前卡牌。
+                #
+                # **必须限定 ROI 到商店区**（x≥214）：不限定会扫全屏，把左下角奖励区
+                # 那张「已拥有的棋子」也认成可买的卡 —— 从那儿拖会把它拖到棋盘上，
+                # 游戏提示「棋子放置到错误区域」（实测第一轮鹿蜀被拖到 (1,1) 贴纸位）。
+                # 商店区实测 x 214~1280、y 520~720；奖励区在 x 42~170，不在其内。
                 reco_detail = context.run_recognition(
                     "CCBuyCardRec_Template",
                     argv.image,
-                    {"CCBuyCardRec_Template": {"template": f"CritterCrash/Cards/{card_name}.png"}},
+                    {
+                        "CCBuyCardRec_Template": {
+                            "template": f"CritterCrash/Cards/{card_name}.png",
+                            "roi": [214, 520, 1066, 200],
+                        }
+                    },
                 )
                 if is_hit(reco_detail):
                     # 识别成功，检查是否有空位
