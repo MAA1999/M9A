@@ -470,6 +470,7 @@ class _ScriptedContext:
         self.extra_changed: list[tuple[int, int]] = []
         self.swipes: list[tuple[int, int, int, int, int]] = []
         self.keys: list[int] = []
+        self.touches: list[tuple[str, int, int]] = []
         self.cleared_hits: list[str] = []
 
     def run_recognition(self, name: str, _image: Any, override: dict[str, Any] | None = None) -> RecognitionDetail:
@@ -512,6 +513,19 @@ class _ScriptedContext:
 
         def post_click_key(self, code: int) -> Any:
             self._owner.keys.append(code)
+            return self
+
+        def post_touch_down(self, x: int, y: int) -> Any:
+            self._owner.touches.append(("down", x, y))
+            return self
+
+        def post_touch_move(self, x: int, y: int) -> Any:
+            self._owner.touches.append(("move", x, y))
+            return self
+
+        def post_touch_up(self) -> Any:
+            self._owner.touches.append(("up", 0, 0))
+            self._owner.bought = True
             return self
 
         def post_key_down(self, code: int) -> Any:
@@ -1611,11 +1625,12 @@ class TestLeaderState:
 
 
 class TestBuyCardFlow:
-    """4.0 买卡：点商店卡 → 详情面板 → 点「购买」→ 游戏自动落子。
+    """4.0 买卡：从商店拖到目标格（不是点购买）。
 
-    不存在「从商店拖到棋盘」这条交互：post_swipe 与带 --via 的按住拖拽都试过，
-    卡一动不动（实测 2026-10-23）。以前按拖拽写的部署逻辑既买不到卡，
-    又把 CCDeploy 的自环烧穿（一次决策 17s、整局 4000）。
+    点购买也能买到，但棋子由游戏自动落到第一个空位 —— 会把棋盘从左往右填满、
+    占掉石骑士该占的位置，且满盘后无法再点购买升级。
+    拖拽可精确控制落点（实测从商店卡拖到 (0,1)，卡精确落在那里）。
+    手势必须用 touch_down → touch_move → touch_up；纯两点 swipe 不会触发拖拽。
     """
 
     def setup_method(self) -> None:
@@ -1634,40 +1649,77 @@ class TestBuyCardFlow:
         ctx.piece_cell = piece_cell
         return _run_buy_card(ctx, {"type": 0, "action": 0, "name": name}, box=box)
 
-    def test_clicks_card_then_buy_button(self) -> None:
-        """两个点击：先卡片中心（开面板），再购买按钮；随后发 ESC 关面板。"""
+    def test_uses_touch_sequence_not_swipe(self) -> None:
+        """拖拽必须走 touch_down/move/up；post_swipe 两点手势不会触发拖拽。"""
         ctx = _ScriptedContext({"32123": _hit((732, 175, 68, 44))})
         self._buy(ctx)
-        assert ctx.clicks[0] == (60 + 90 // 2, 620 + 100 // 2)
-        assert ctx.clicks[1] == CCBuyCard._BUY_BUTTON_POINT
-        # 买完必须关面板，否则面板遮挡会让后续识别全 miss
-        assert ctx.keys == [111]
+        assert ctx.swipes == [], "不能用 post_swipe（两点手势无效）"
+        kinds = [k for k, _, _ in ctx.touches]
+        assert kinds[0] == "down" and kinds[-1] == "up"
+        assert kinds.count("move") >= 2, "必须有中途移动点"
 
-    def test_no_drag_is_used(self) -> None:
-        """买卡不该产生任何 swipe —— 拖拽在这条流程里是无效手势。"""
+    def test_drag_starts_from_card_and_ends_at_target_cell(self) -> None:
         ctx = _ScriptedContext({"32123": _hit((732, 175, 68, 44))})
         self._buy(ctx)
-        assert ctx.swipes == []
+        down = next(t for t in ctx.touches if t[0] == "down")
+        assert (down[1], down[2]) == (60 + 90 // 2, 620 + 100 // 2)
+        moves = [t for t in ctx.touches if t[0] == "move"]
+        target = CCChessboard.board_rois[0][1]   # positions 第一个格是 (0,1)
+        assert (moves[-1][1], moves[-1][2]) == (
+            target[0] + target[2] // 2,
+            target[1] + target[3] // 2,
+        )
 
     def test_landed_card_is_recorded_at_detected_cell(self) -> None:
-        """落点由识别决定；模型里没有 positions 校验，扫到哪格就记哪格。"""
         ctx = _ScriptedContext({"32123": _hit((732, 175, 68, 44))})
-        result = self._buy(ctx)
+        result = self._buy(ctx, piece_cell=(0, 1))
         assert result.success is True
-        entry = CCChessboard.board[0][5]
+        entry = CCChessboard.board[0][1]
         assert entry is not None and entry["name"] == "32123"
 
     def test_card_not_found_marks_skip_but_keeps_task_alive(self) -> None:
-        """买完棋盘上没有变化（钱不够/棋盘满）→ 本回合跳过该卡，但不返回失败。
-
-        返回失败会让 [JumpBack] 走 on_error、next 为空，整个任务 4000 收场
-        （实测 03:29:44 就是这么死的）。
-        """
+        """拖完棋盘没变化 → 本回合跳过该卡，但不返回失败（[JumpBack] 失败会终结任务）。"""
         ctx = _ScriptedContext({})
         result = self._buy(ctx, piece_cell=None)
         assert result.success is True
-        assert CCChessboard.board_chesses == []
         assert CCChessboard.is_buy_skipped("32123") is True
+
+
+class TestUpgradePath:
+    """action==1（升级）与 action==0 共用同一套拖拽流程。"""
+
+    def setup_method(self) -> None:
+        CCChessboard.apply_strategy(load_strategy(PROJECT_ROOT / STRATEGY_4_0_PATH))
+
+    def teardown_method(self) -> None:
+        CCChessboard.apply_strategy(BASE_STRATEGY)
+
+    def test_upgrade_uses_same_touch_sequence(self) -> None:
+        ctx = _ScriptedContext({})
+        ctx.piece_cell = (0, 5)
+        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
+        kinds = [k for k, _, _ in ctx.touches]
+        assert kinds[0] == "down" and kinds[-1] == "up"
+
+    def test_upgrade_merges_into_existing_piece(self) -> None:
+        """拖到已有同名棋子上 → 等级 +1，不新增棋子。"""
+        CCChessboard.place_chess(0, 1, "32123")
+        ctx = _ScriptedContext({})
+        ctx.piece_cell = (0, 1)
+        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
+        entry = CCChessboard.board[0][1]
+        assert entry is not None
+        assert entry["level"] == 2
+        assert len(CCChessboard.board_chesses) == 1
+
+    def test_upgrade_also_cleans_extra_changed_cells(self) -> None:
+        CCChessboard.place_chess(0, 1, "32123")
+        ctx = _ScriptedContext({})
+        ctx.piece_cell = (0, 1)
+        ctx.extra_changed = [(2, 5)]
+        CCChessboard.board[2][5] = {"name": "32123", "level": 1, "row": 2, "col": 5}
+        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
+        assert CCChessboard.board[2][5] is None
 
 
 class TestJumpBackActionMustNotFail:
@@ -1770,47 +1822,6 @@ class TestNewGameReset:
         CCChessboard._last_round = 9
         CCChessboard.apply_strategy(load_strategy(PROJECT_ROOT / STRATEGY_4_0_PATH))
         assert CCChessboard._last_round is None
-
-
-class TestUpgradePath:
-    """action == 1（升级）与 action == 0（买卡）共用同一段点击+差分流程。
-
-    4.0 的升级就是再买一张同名卡让游戏自动合成，所以两者只有日志文案不同；
-    之前 action == 1 是复制出来的一份实现，漏了多格清理（合成会同时改动 2~3 格）。
-    """
-
-    def setup_method(self) -> None:
-        CCChessboard.apply_strategy(load_strategy(PROJECT_ROOT / STRATEGY_4_0_PATH))
-
-    def teardown_method(self) -> None:
-        CCChessboard.apply_strategy(BASE_STRATEGY)
-
-    def test_upgrade_clicks_card_then_buy_button(self) -> None:
-        ctx = _ScriptedContext({})
-        ctx.piece_cell = (0, 5)
-        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
-        assert ctx.clicks[1] == CCBuyCard._BUY_BUTTON_POINT
-        assert ctx.keys == [111]
-
-    def test_upgrade_merges_into_existing_piece(self) -> None:
-        """目标格已有同名棋子 → 等级 +1，不新增棋子。"""
-        CCChessboard.place_chess(0, 2, "32123")
-        ctx = _ScriptedContext({})
-        ctx.piece_cell = (0, 2)
-        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
-        entry = CCChessboard.board[0][2]
-        assert entry is not None
-        assert entry["level"] == 2
-        assert len(CCChessboard.board_chesses) == 1
-
-    def test_upgrade_also_cleans_extra_changed_cells(self) -> None:
-        """合成会同时改动多格：升级路径同样要清掉已空的幻影棋子。"""
-        CCChessboard.place_chess(0, 2, "32123")
-        ctx = _ScriptedContext({})
-        ctx.piece_cell = (0, 2)
-        ctx.extra_changed = [(2, 5)]
-        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
-        assert CCChessboard.board[2][5] is None
 
 
 class TestClearLeader:

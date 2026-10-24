@@ -1049,6 +1049,20 @@ class CCBuyCard(CustomAction):
             pass
 
     @staticmethod
+    def _pick_target_cell(card_name: str) -> tuple[int, int]:
+        """选落点：该卡 positions 里第一个空格；没有则返回 (-1, -1)。
+
+        为什么要自己选而不是直接点购买：直接购买由游戏自动落到第一个空位，
+        会把棋盘从左往右填满、占掉石骑士该占的位置，而且满盘后无法再点购买升级。
+        拖拽能精确控制落点。
+        """
+        info = CCChessboard.get_chess_info(card_name)
+        for row, col in info.get("positions", []):
+            if CCChessboard._is_valid_position(row, col) and CCChessboard.board[row][col] is None:
+                return (row, col)
+        return (-1, -1)
+
+    @staticmethod
     def _diff_changed_cells(pre: Any, post: Any) -> list[tuple[float, int, int]]:
         """买卡前后两帧里所有发生变化的棋盘格，按变化量降序。
 
@@ -1102,91 +1116,73 @@ class CCBuyCard(CustomAction):
             return CustomAction.RunResult(success=False)
 
         if action in (0, 1):
-            # 4.0 的买卡与升级是**同一套交互**：点商店卡 → 详情面板 → 点「购买」→
-            # 棋子由游戏自动落子。区别只在游戏怎么处理：
-            #   action=0（有空位）→ 落到空位；
-            #   action=1（无空位/可升级）→ 合到同名棋子上，抬一级。
-            # 所以两条分支共用这段代码，只有日志文案按 action 区分。
+            # 4.0 买卡：**从商店拖到目标格**（不是点购买）。
             #
-            # 不存在「从商店拖到棋盘」这回事：post_swipe 与带 --via 的按住拖拽实测都无效
-            # （卡一动不动）。以前那条拖拽路径是在幻想一个不存在的交互 —— 它既没买到卡，
-            # 也把 CCDeploy 的自环烧穿。
-            verb = "买入" if action == 0 else "升级"
-            # 棋盘满时详情面板会显示「可摆放区域位置不足」且购买按钮变灰，点购买无效。
-            # 那行字是红底小字，OCR 实测识别不出（roi 600,450,500,120 只读回 "M1"），
-            # 所以改用**行为判据**：点完购买后详情面板还在 = 没买到。
-            # 此时必须把面板关掉，否则它会一直挡住后续所有识别、任务卡到 4000（实测 12:25/12:33）。
-            card_center = (box[0] + box[2] // 2, box[1] + box[3] // 2)
+            # 直接点「购买」也能买到，但棋子由游戏自动落到第一个空位 ——
+            # 那会把棋盘从左到右填满、占掉石骑士该占的位置，且满盘后无法再点购买升级。
+            # 拖拽可以精确控制落点：实测从商店卡 (430,640) 拖到棋盘 (0,1) 中心 (496,197)，
+            # 卡精确落在 (0,1)、金币 3→0、商店那张消失。
+            #
+            # 手势要点：必须带中途路径点（--via 等价物）。纯两点 swipe 不会触发拖拽
+            # （之前「拖拽无效」的结论就是漏了这一步）。
+            row, col = self._pick_target_cell(card_name)
+            if (row, col) == (-1, -1):
+                logger.debug(f"买入 {card_name}：没有可放置格，本局跳过")
+                CCChessboard.skip_buy(card_name)
+                return CustomAction.RunResult(success=True)
 
-            # 买之前先留一帧底板，买完用差分找落点
+            target_roi = CCChessboard.board_rois[row][col]
+            tx = target_roi[0] + target_roi[2] // 2
+            ty = target_roi[1] + target_roi[3] // 2
+            sx = box[0] + box[2] // 2
+            sy = box[1] + box[3] // 2
+            logger.debug(f"拖拽 {card_name} 从 ({sx},{sy}) 到 ({row},{col}) 中心 ({tx},{ty})")
+
             pre = context.tasker.controller.post_screencap().wait().get()
-
-            context.tasker.controller.post_click(card_center[0], card_center[1]).wait()
-            time.sleep(self._BUY_PANEL_WAIT)
-            context.tasker.controller.post_click(*self._BUY_BUTTON_POINT).wait()
+            # 必须用 touch_down → 多次 touch_move → touch_up：
+            # Controller.post_swipe 只支持两点，纯两点手势不会触发游戏里的拖拽
+            # （实测卡一动不动）。带中途点的按下-移动-抬起才有效。
+            ctrl = context.tasker.controller
+            ctrl.post_touch_down(sx, sy).wait()
+            time.sleep(0.15)
+            for step in range(1, 5):
+                mx = sx + (tx - sx) * step // 4
+                my = sy + (ty - sy) * step // 4
+                ctrl.post_touch_move(mx, my).wait()
+                time.sleep(0.08)
+            ctrl.post_touch_up().wait()
             time.sleep(self._BUY_SETTLE)
-
-            # **必须先把详情面板关掉再截图差分**：
-            # 买成功时游戏会关面板回棋盘；买不动时（棋盘满/钱不够）面板留在屏幕上，
-            # 那一屏跟 pre 差得很大，差分会把面板区域误判成「落子」——
-            # 实测 12:40 就报「买入 32123，落子到 (0,0)」，而 (0,0) 其实是箱子格，
-            # 之后所有识别都因面板遮挡而 miss，任务卡到 4000。
-            self._close_card_panel(context)
 
             img = context.tasker.controller.post_screencap().wait().get()
             changed = self._diff_changed_cells(pre, img)
             if not changed:
-                # 钱不够 / 棋盘满 / 面板没买到：本回合别再试这张卡。
-                # 不能返回 False —— 本节点是 [JumpBack]，动作失败会走 on_error、next 为空，
-                # 整个任务以 4000 收场（实测 03:29:44 就是这么死的）。
-                #
-                # 必须**关掉详情面板**：买不动时面板会一直挂着，挡住后续所有识别，
-                # 任务卡到 4000（实测 12:25/12:33/12:4x 各一次，最后 20 个节点全是 fail）。
-                # 关法实测：点 (1150,650) 关不掉（那只是面板外的空白，点了没反应）；
-                # Android KEYCODE_ESCAPE(111) 能关（实测一次生效）。
-                self._close_card_panel(context)
-                logger.debug(f"{verb} {card_name}：棋盘没有任何格子发生变化，关面板并本回合跳过该卡")
+                logger.debug(f"拖拽 {card_name} 到 ({row}, {col}) 后棋盘无变化，本回合跳过该卡")
                 CCChessboard.skip_buy(card_name)
                 return CustomAction.RunResult(success=True)
 
-            # 变化格多于一个 = 合成/升级把棋子挪了位：把「变回空格」的那几格从模型里删掉，
-            # 否则模型会一直以为那里还有棋子（实测状态分叉的根源）。
-            # 买卡与升级都会触发合成，两条路径必须共用这段清理。
+            # 合成会同时改动多格：把「变回空格」的那几格从模型里删掉
             if len(changed) > 1:
                 removed = CCChessboard.drop_cells_if_now_empty(
                     context, img, [(r, c) for _, r, c in changed[1:]]
                 )
                 if removed:
-                    logger.debug(f"{verb} {card_name} 触发合成，清掉内部棋盘上 {removed} 个已空掉的格")
+                    logger.debug(f"拖拽 {card_name} 触发合成，清掉 {removed} 个已空的格")
 
-            _, row, col = changed[0]
-            existing = CCChessboard.board[row][col]
+            _, got_row, got_col = changed[0]
+            existing = CCChessboard.board[got_row][got_col]
             if existing is not None:
-                # 同一格又变了、且还是同一张卡 → 游戏把重复购买的卡合到原棋子上（升级），
-                # 不是状态分叉。实测连买两次 32123 都落在 (0,1)，第二次就是升级。
                 if existing.get("name") == card_name:
                     cap = int(CCChessboard.get_chess_info(card_name).get("max_level", 3))
                     new_level = min(int(existing.get("level", 1)) + 1, cap)
                     existing["level"] = new_level
-                    logger.debug(f"{verb} {card_name} 合到 ({row}, {col})，{new_level}/{cap} 级")
-                    # 连续合到已有棋子 = 没有新格可落，累计到阈值就认为真实棋盘已满
-                    CCChessboard.merge_streak += 1
-                    if CCChessboard.merge_streak >= CCChessboard._MERGE_STREAK_FULL:
-                        CCChessboard.board_full = True
-                        logger.debug(
-                            f"连续 {CCChessboard.merge_streak} 次买卡都只能合成，判定棋盘已满，本局停止买卡"
-                        )
+                    logger.debug(f"{card_name} 合到 ({got_row}, {got_col})，{new_level}/{cap} 级")
                     return CustomAction.RunResult(success=True)
-                logger.debug(
-                    f"{verb} {card_name} 落到 ({row}, {col})，但该格内部记的是 "
-                    f"{existing.get('name')}，本回合跳过该卡"
-                )
+                logger.debug(f"{card_name} 落到 ({got_row}, {got_col})，但该格记的是 {existing.get('name')}，跳过")
                 CCChessboard.skip_buy(card_name)
                 return CustomAction.RunResult(success=True)
 
-            if CCChessboard.record_chess(row, col, card_name):
-                CCChessboard.merge_streak = 0   # 有新格落下，说明还没满
-                logger.debug(f"{verb} {card_name}，游戏落子到 ({row}, {col})")
+            if CCChessboard.record_chess(got_row, got_col, card_name):
+                logger.debug(f"拖入 {card_name} 到 ({got_row}, {got_col})")
                 return CustomAction.RunResult(success=True)
             CCChessboard.skip_buy(card_name)
             return CustomAction.RunResult(success=True)
