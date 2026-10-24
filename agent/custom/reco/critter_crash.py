@@ -238,16 +238,26 @@ class CCBuyCardRec(CustomRecognition):
                 )
                 if is_hit(reco_detail):
                     # 识别成功，检查是否有空位
-                    if CCChessboard.find_empty_position_on_image(context, argv.image, card_name):
+                    free = CCChessboard.find_empty_position_on_image(context, argv.image, card_name)
+                    if free:
                         # 有空位，直接返回
-                        logger.debug(f"找到有空位的卡牌: {card_name}")
+                        logger.debug(f"找到有空位的卡牌: {card_name} → {free}")
                         detail = {"type": 0, "action": 0, "name": card_name}
                         return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=detail)
                     # 没有空位，检查是否能升级。
                     # 4.0 的升级就是再买一张同名卡让游戏自动合成，所以这里仍然走 action=0
                     # （点卡 → 购买）；action=1 只是让 action 侧打不同的日志。
-                    elif CCChessboard.can_upgrade_existing(card_name):
+                    if CCChessboard.can_upgrade_existing(card_name):
                         upgrade_candidates.append((reco_detail, card_name))
+                    else:
+                        # 识别到但用不上时必须留痕：否则「明明看到商店有这张卡却没买」
+                        # 在日志里查不到任何线索（实测 22:29:20 木头妇孺命中模板却被跳过，
+                        # 只能靠排查画面才知道是它唯一的位置被贴纸占了）。
+                        positions = CCChessboard.get_chess_info(card_name).get("positions", [])
+                        logger.debug(
+                            f"{card_name} 识别到了但用不上：positions={list(positions)} "
+                            f"全部无空位、也没有可升级的同名棋子 → 跳过"
+                        )
 
             # 如果有升级候选，返回第一个（action=1：升级语义，实际交互与买卡相同）
             if upgrade_candidates:
