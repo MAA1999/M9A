@@ -1297,7 +1297,16 @@ class TestPickLeaderReroll:
         assert strategy.people.max_reroll == 0
         assert strategy.encounters is not None
         assert strategy.encounters.max_reroll == 15
-        assert strategy.encounters.accept == ("杻阳有兽", "大大大礼帽", "库存盘点", "装修计划")
+        # 2026-10-24 扩名单：原 4 个「6/6 鹿蜀」命中率只有 13%，实测连摇 22 次一次没中。
+        # 补入 40024/40030（覆盖 5/6，只缺 32126 这张 5 费辅助卡），命中率提到 19%。
+        assert strategy.encounters.accept == (
+            "杻阳有兽",
+            "大大大礼帽",
+            "库存盘点",
+            "装修计划",
+            "毛绒利率",
+            "工厂广播",
+        )
 
 
 class TestPeopleRerollConfig:
