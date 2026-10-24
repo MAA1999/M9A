@@ -552,8 +552,9 @@
         "post_delay": 800,
         "next": [
             // 重摇是两步：点返回回主菜单 → 点 ✕ 放弃这一局 → 再点「箱中对决」才是新牌。
-            // 放弃这一步**只挂在这里**（不再挂在主菜单锚点上）：主菜单无条件放弃会把
-            // 玩家正在打的那局丢掉（实测 seq=37→39 打完一局回主菜单就 4000）。
+            // CCStop 只认「箱中对决」招牌右上角那个 ✕（有未完成对局时才出现），识别不到就自然
+            // miss，不会误点别处；所以主菜单锚点与 CCResetData.next 也各挂了一份
+            // [JumpBack]CCStop，脚本每轮都从干净状态开打。
             "[JumpBack]CCRerollConfirm",
             "CritterCrash",
             "[JumpBack]CCStop",

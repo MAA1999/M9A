@@ -1046,13 +1046,17 @@ class CCBuyCard(CustomAction):
             logger.debug("detail中没有name")
             return CustomAction.RunResult(success=False)
 
-        if action == 0:  # 买卡（游戏自己落子）
-            # 4.0 的真实交互：点商店卡 → 弹出详情面板 → 点面板里的「购买」→
-            # **棋子由游戏自动落到第一个空位**（实测 32124 落到 row1，金币 30→10）。
+        if action in (0, 1):
+            # 4.0 的买卡与升级是**同一套交互**：点商店卡 → 详情面板 → 点「购买」→
+            # 棋子由游戏自动落子。区别只在游戏怎么处理：
+            #   action=0（有空位）→ 落到空位；
+            #   action=1（无空位/可升级）→ 合到同名棋子上，抬一级。
+            # 所以两条分支共用这段代码，只有日志文案按 action 区分。
             #
-            # 不存在「从商店拖到棋盘」这回事：无论 post_swipe 还是带 --via 的按住拖拽，
-            # 卡都不会动（实测两次都只换来一次无关的点击）。以前那条拖拽路径是在
-            # 幻想一个不存在的交互 —— 它既没买到卡，也把 CCDeploy 的自环烧穿。
+            # 不存在「从商店拖到棋盘」这回事：post_swipe 与带 --via 的按住拖拽实测都无效
+            # （卡一动不动）。以前那条拖拽路径是在幻想一个不存在的交互 —— 它既没买到卡，
+            # 也把 CCDeploy 的自环烧穿。
+            verb = "买入" if action == 0 else "升级"
             card_center = (box[0] + box[2] // 2, box[1] + box[3] // 2)
 
             # 买之前先留一帧底板，买完用差分找落点
@@ -1069,18 +1073,19 @@ class CCBuyCard(CustomAction):
                 # 钱不够 / 棋盘满 / 面板没买到：本回合别再试这张卡。
                 # 不能返回 False —— 本节点是 [JumpBack]，动作失败会走 on_error、next 为空，
                 # 整个任务以 4000 收场（实测 03:29:44 就是这么死的）。
-                logger.debug(f"购买 {card_name} 后棋盘没有任何格子发生变化，本回合跳过该卡")
+                logger.debug(f"{verb} {card_name}：棋盘没有任何格子发生变化，本回合跳过该卡")
                 CCChessboard.skip_buy(card_name)
                 return CustomAction.RunResult(success=True)
 
             # 变化格多于一个 = 合成/升级把棋子挪了位：把「变回空格」的那几格从模型里删掉，
             # 否则模型会一直以为那里还有棋子（实测状态分叉的根源）。
+            # 买卡与升级都会触发合成，两条路径必须共用这段清理。
             if len(changed) > 1:
                 removed = CCChessboard.drop_cells_if_now_empty(
                     context, img, [(r, c) for _, r, c in changed[1:]]
                 )
                 if removed:
-                    logger.debug(f"买入 {card_name} 触发合成，清掉内部棋盘上 {removed} 个已空掉的格")
+                    logger.debug(f"{verb} {card_name} 触发合成，清掉内部棋盘上 {removed} 个已空掉的格")
 
             _, row, col = changed[0]
             existing = CCChessboard.board[row][col]
@@ -1091,57 +1096,18 @@ class CCBuyCard(CustomAction):
                     cap = int(CCChessboard.get_chess_info(card_name).get("max_level", 3))
                     new_level = min(int(existing.get("level", 1)) + 1, cap)
                     existing["level"] = new_level
-                    logger.debug(f"买入 {card_name} 合到 ({row}, {col})，{new_level}/{cap} 级")
+                    logger.debug(f"{verb} {card_name} 合到 ({row}, {col})，{new_level}/{cap} 级")
                     return CustomAction.RunResult(success=True)
                 logger.debug(
-                    f"买入 {card_name} 落到 ({row}, {col})，但该格内部记的是 {existing.get('name')}，本回合跳过该卡"
+                    f"{verb} {card_name} 落到 ({row}, {col})，但该格内部记的是 "
+                    f"{existing.get('name')}，本回合跳过该卡"
                 )
                 CCChessboard.skip_buy(card_name)
                 return CustomAction.RunResult(success=True)
 
             if CCChessboard.record_chess(row, col, card_name):
-                logger.debug(f"买入 {card_name}，游戏落子到 ({row}, {col})")
+                logger.debug(f"{verb} {card_name}，游戏落子到 ({row}, {col})")
                 return CustomAction.RunResult(success=True)
-            CCChessboard.skip_buy(card_name)
-            return CustomAction.RunResult(success=True)
-
-        elif action == 1:  # 升级（= 再买一张同名卡，让游戏自动合成）
-            # 4.0 没有「拖一张卡到已有棋子上」的升级交互：拖商店卡不会动（实测），
-            # 拖棋盘上的棋子也只会挪位置。真正的升级就是**再买一张同名卡**，
-            # 游戏会把它合到已有棋子上并抬等级（实测连买 32123 三次，等级 1→2→3）。
-            #
-            # 所以这里直接复用买卡流程：点卡片 → 点购买 → 差分看哪格变了。
-            # 变化格是「已有同名棋子」→ 升一级；是空格 → 新棋子落位。
-            # 以前那条拖拽升级（CCUpdate + CCUpdateFinished）在 4.0 下必然假成功或假失败：
-            # CCUpdateFinished 的模板是拖拽前的卡图、ROI 在商店原位，拖拽无效时它首次就命中，
-            # 子任务假成功、内部等级凭空 +1。
-            card_center = (box[0] + box[2] // 2, box[1] + box[3] // 2)
-            pre = context.tasker.controller.post_screencap().wait().get()
-
-            context.tasker.controller.post_click(card_center[0], card_center[1]).wait()
-            time.sleep(self._BUY_PANEL_WAIT)
-            context.tasker.controller.post_click(*self._BUY_BUTTON_POINT).wait()
-            time.sleep(self._BUY_SETTLE)
-
-            img = context.tasker.controller.post_screencap().wait().get()
-            changed = self._diff_changed_cells(pre, img)
-            if not changed:
-                logger.debug(f"升级 {card_name}：购买后棋盘没有变化，本回合跳过该卡")
-                CCChessboard.skip_buy(card_name)
-                return CustomAction.RunResult(success=True)
-
-            _, row, col = changed[0]
-            existing = CCChessboard.board[row][col]
-            if existing is not None and existing.get("name") == card_name:
-                cap = int(CCChessboard.get_chess_info(card_name).get("max_level", 3))
-                new_level = min(int(existing.get("level", 1)) + 1, cap)
-                existing["level"] = new_level
-                logger.debug(f"升级 {card_name} 于 ({row}, {col}) → {new_level}/{cap} 级")
-                return CustomAction.RunResult(success=True)
-            if existing is None and CCChessboard.record_chess(row, col, card_name):
-                logger.debug(f"升级 {card_name}：棋盘还有空位，游戏改为落子到 ({row}, {col})")
-                return CustomAction.RunResult(success=True)
-            logger.debug(f"升级 {card_name} 后 ({row}, {col}) 记的是别的棋子，本回合跳过该卡")
             CCChessboard.skip_buy(card_name)
             return CustomAction.RunResult(success=True)
 

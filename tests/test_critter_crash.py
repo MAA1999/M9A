@@ -464,6 +464,8 @@ class _ScriptedContext:
         self.clicks: list[tuple[int, int]] = []
         self.bought = False
         self.piece_cell: tuple[int, int] | None = None
+        # 合成时额外变化的格（模拟「同时改动多格」）
+        self.extra_changed: list[tuple[int, int]] = []
         self.swipes: list[tuple[int, int, int, int, int]] = []
         self.cleared_hits: list[str] = []
 
@@ -515,6 +517,9 @@ class _ScriptedContext:
                 r, c = self._owner.piece_cell
                 roi = CCChessboard.board_rois[r][c]
                 frame[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]] = 200
+                for er, ec in self._owner.extra_changed:
+                    eroi = CCChessboard.board_rois[er][ec]
+                    frame[eroi[1] : eroi[1] + eroi[3], eroi[0] : eroi[0] + eroi[2]] = 120
             return frame
 
     def __init_tasker(self) -> None:
@@ -1487,6 +1492,8 @@ class TestRerollAbandonsBeforeRestart:
         nxt = self.pipeline["CritterCrash"]["next"]
         assert "[JumpBack]CCStop" in nxt
         assert nxt.index("[JumpBack]CCRerollConfirm") < nxt.index("[JumpBack]CCStop")
+        # 顺序本身是不变量：CCStart 若排到 CCStop 前面，就会「续旧局」而不是放弃重开。
+        assert nxt.index("[JumpBack]CCStop") < nxt.index("CCStart")
 
     def test_reroll_and_leader_paths_route_through_the_anchor(self) -> None:
         """两条「返回主菜单重摇」的路径都经主菜单锚点统一放弃，不各自挂一份 CCStop。"""
@@ -1736,3 +1743,58 @@ class TestNewGameReset:
         CCChessboard._last_round = 9
         CCChessboard.apply_strategy(load_strategy(PROJECT_ROOT / STRATEGY_4_0_PATH))
         assert CCChessboard._last_round is None
+
+
+class TestUpgradePath:
+    """action == 1（升级）与 action == 0（买卡）共用同一段点击+差分流程。
+
+    4.0 的升级就是再买一张同名卡让游戏自动合成，所以两者只有日志文案不同；
+    之前 action == 1 是复制出来的一份实现，漏了多格清理（合成会同时改动 2~3 格）。
+    """
+
+    def setup_method(self) -> None:
+        CCChessboard.apply_strategy(load_strategy(PROJECT_ROOT / STRATEGY_4_0_PATH))
+
+    def teardown_method(self) -> None:
+        CCChessboard.apply_strategy(BASE_STRATEGY)
+
+    def test_upgrade_clicks_card_then_buy_button(self) -> None:
+        ctx = _ScriptedContext({})
+        ctx.piece_cell = (0, 5)
+        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
+        assert len(ctx.clicks) == 2
+        assert ctx.clicks[1] == CCBuyCard._BUY_BUTTON_POINT
+
+    def test_upgrade_merges_into_existing_piece(self) -> None:
+        """目标格已有同名棋子 → 等级 +1，不新增棋子。"""
+        CCChessboard.place_chess(0, 2, "32123")
+        ctx = _ScriptedContext({})
+        ctx.piece_cell = (0, 2)
+        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
+        entry = CCChessboard.board[0][2]
+        assert entry is not None
+        assert entry["level"] == 2
+        assert len(CCChessboard.board_chesses) == 1
+
+    def test_upgrade_also_cleans_extra_changed_cells(self) -> None:
+        """合成会同时改动多格：升级路径同样要清掉已空的幻影棋子。"""
+        CCChessboard.place_chess(0, 2, "32123")
+        ctx = _ScriptedContext({})
+        ctx.piece_cell = (0, 2)
+        ctx.extra_changed = [(2, 5)]
+        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
+        assert CCChessboard.board[2][5] is None
+
+
+class TestClearLeader:
+    """兜底选领队必须能真正清空 leader_id（set_leader(None) 有粘性保护）。"""
+
+    def teardown_method(self) -> None:
+        CCChessboard.apply_strategy(BASE_STRATEGY)
+
+    def test_clear_leader_bypasses_stickiness(self) -> None:
+        CCChessboard.set_leader("30027")
+        CCChessboard.set_leader(None)      # 被粘性保护挡住
+        assert CCChessboard.leader_id == "30027"
+        CCChessboard.clear_leader()        # 显式清空
+        assert CCChessboard.leader_id is None
