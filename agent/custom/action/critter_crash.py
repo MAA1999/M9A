@@ -1083,9 +1083,15 @@ class CCBuyCard(CustomAction):
                 # 整个任务以 4000 收场（实测 03:29:44 就是这么死的）。
                 #
                 # 必须**关掉详情面板**：买不动时面板会一直挂着，挡住后续所有识别，
-                # 任务卡到 4000（实测 12:25 与 12:33 各一次，最后 20 个节点全是 fail）。
-                context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
-                time.sleep(0.4)
+                # 任务卡到 4000（实测 12:25/12:33/12:4x 各一次，最后 20 个节点全是 fail）。
+                # 关法实测：点 (1150,650) 关不掉（那只是面板外的空白，点了没反应）；
+                # Android KEYCODE_ESCAPE(111) 能关（实测 12:47 一次生效）。
+                try:
+                    context.tasker.controller.post_key(111).wait()
+                except Exception as e:  # noqa: BLE001 - 关面板失败不该中断买卡流程
+                    logger.debug(f"发 ESC 关面板失败（{e}），改用点击兜底")
+                    context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
+                time.sleep(0.5)
                 logger.debug(f"{verb} {card_name}：棋盘没有任何格子发生变化，关面板并本回合跳过该卡")
                 CCChessboard.skip_buy(card_name)
                 return CustomAction.RunResult(success=True)
