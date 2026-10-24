@@ -285,3 +285,49 @@ class CCRemainMoney(CustomRecognition):
             if int(money) >= 3:
                 return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=reco_detail.raw_detail)
         return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+
+@AgentServer.custom_recognition("CCStickerBoxRec")
+class CCStickerBoxRec(CustomRecognition):
+    """贴纸箱识别：盒子在 AND 本局未开 AND 领队匹配。
+
+    为什么识别层也要带门控：只用 TemplateMatch 看「箱子在不在」时，箱子未开就会每轮命中，
+    而 action 侧一旦判定「领队不对 / 本局已开」只返回 True 不做动作 ——
+    主循环于是反复选中本节点，实测 300s 空转 306 次，买卡与开战全被挤掉。
+    """
+
+    def analyze(
+        self,
+        context: Context,
+        argv: CustomRecognition.AnalyzeArg,
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
+
+        strategy = CCChessboard.strategy
+        sticker = strategy.sticker
+        if sticker is None:
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+        # 本局已开过 / 已确认开不了 → 不再命中
+        from custom.action.critter_crash import CCSticker
+
+        if CCSticker._opened:
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+        # 领队不匹配 → 不开（贴纸按角色独有）
+        if sticker.leader and CCChessboard.leader_id != sticker.leader:
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+        # 盒子还在画面上才算命中
+        detail = context.run_recognition(
+            "CCStickerBoxTemplate",
+            argv.image,
+            {
+                "CCStickerBoxTemplate": {
+                    "template": "CritterCrash/StickerBox.png",
+                    "roi": [280, 120, 200, 200],
+                }
+            },
+        )
+        if is_hit(detail):
+            return CustomRecognition.AnalyzeResult(box=detail.box, detail=detail.raw_detail)
+        return CustomRecognition.AnalyzeResult(box=None, detail={})

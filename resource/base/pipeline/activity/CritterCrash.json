@@ -792,6 +792,9 @@
                     257
                 ],
                 "template": [
+                    // 奖励商店的卡图比商店里的更大（Award/32703 是 62x131，Cards/32703 是 59x112），
+                    // 必须用 Award 下的模板。32703 坚固石骑士是这里的主要收益来源（用户实测）。
+                    "CritterCrash/Award/32703.png",
                     "CritterCrash/Award/32123.png",
                     "CritterCrash/Award/32126.png",
                     "CritterCrash/Award/32607.png"
@@ -885,6 +888,25 @@
     "CCSticker": {
         "desc": "4.0 专属贴纸箱：识别左列上格的盒子模板（开掉后变三角格即不再命中）。挂在主循环末尾、且 action 侧用「同回合只试一次」去重，避免未到回合时每轮空转。",
         "recognition": {
+            // 识别层必须带门控：只看「箱子在不在」会让本节点在箱子未开时每轮都命中，
+            // 而 action 侧一旦判定「领队不对/本局已开」就只返回 True 不做动作 ——
+            // 主循环于是反复选中它，实测 300s 空转 306 次，买卡/开战全被挤掉。
+            // CCStickerBoxRec 里同时判：盒子在 AND 本局未开 AND 领队匹配。
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CCStickerBoxRec"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CCSticker"
+            }
+        }
+    },
+    "CCStickerBoxTemplate": {
+        "desc": "贴纸箱模板节点（供 CCStickerBoxRec 在 custom 里复用）",
+        "recognition": {
             "type": "TemplateMatch",
             "param": {
                 "roi": [
@@ -893,15 +915,7 @@
                     200,
                     200
                 ],
-                "template": [
-                    "CritterCrash/StickerBox.png"
-                ]
-            }
-        },
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "CCSticker"
+                "template": ["CritterCrash/StickerBox.png"]
             }
         }
     },

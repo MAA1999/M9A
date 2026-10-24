@@ -28,7 +28,8 @@
                 "ATTrailAnalyze",
                 "APCardFinder",
                 "CompareNumbers",
-                "HuaweiCloseAd"
+                "HuaweiCloseAd",
+                "CCStickerBoxRec"
             ]
         }
     },
@@ -74,6 +75,9 @@
         },
         {
             "$ref": "#/$defs/CCPickEncounterRec"
+        },
+        {
+            "$ref": "#/$defs/CCStickerBoxRec"
         },
         {
             "$ref": "#/$defs/APPhaseGate"
@@ -1207,6 +1211,14 @@
                         }
                     },
                     "additionalProperties": false
+                }
+            }
+        },
+        "CCStickerBoxRec": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "CCStickerBoxRec",
+                    "description": "翻斗棋：贴纸箱识别（盒子在 AND 本局未开 AND 领队匹配）"
                 }
             }
         }
