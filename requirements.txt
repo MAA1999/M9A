@@ -9,7 +9,7 @@ loguru==0.7.3
 maaagentbinary==1.0.1
 maafw==5.14.3
 numpy==2.5.3
-pillow==12.3.0
+pillow==13.0.0
 pytz==2026.5
 requests==2.34.2
 strenum==0.4.15
