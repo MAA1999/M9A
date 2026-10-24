@@ -692,6 +692,13 @@ class CCChessboard(CustomAction):
     merge_streak: int = 0
     # 连续合成多少次判定棋盘已满（实测满盘后每轮都是合成）
     _MERGE_STREAK_FULL: int = 4
+    # 升 1 级要累计几次合成。
+    #
+    # 实测（用户 2026-10-24 观察）：(0,1)/(1,1)/(2,1) 三格各合成 1 次后都还是 LV.1，
+    # 只差一次才到 LV.2 领奖励；只有 (2,2) 合成了 2 次才真的升到 LV.2。
+    # 也就是说**两次合成升一级**，不是一次。之前按「一次合成 +1 级」记账，
+    # 内部以为已经 LV.2、游戏里还是 LV.1，于是不再合成 → 永远升不上去、领不到奖励。
+    _MERGES_PER_LEVEL: int = 2
 
     @classmethod
     def skip_buy(cls, card_name: str) -> None:
@@ -960,12 +967,26 @@ class CCChessboard(CustomAction):
             return False
 
         chess_info = cls.get_chess_info(name)
-        if chess["level"] >= chess_info.get("max_level", 1):
+        cap = int(chess_info.get("max_level", 1))
+        if int(chess["level"]) >= cap:
             return False  # 已达最高等级
 
-        chess["level"] += 1  # pyright: ignore[reportOperatorIssue]
+        cls.apply_merge(chess)
         # board_chesses 与 board 共享同一 dict（见 place_chess），无需再同步
         return True
+
+    @classmethod
+    def apply_merge(cls, chess: dict[str, Any]) -> int:
+        """记一次合成，返回合成后的等级。
+
+        **两次合成升一级**（见 _MERGES_PER_LEVEL 注释）。merges 存在棋子 dict 里，
+        跨回合保留；level 由 merges 推出来，不单独累加，避免两者分叉。
+        """
+        cap = int(cls.get_chess_info(str(chess["name"])).get("max_level", 1))
+        merges = int(chess.get("merges", 0)) + 1
+        chess["merges"] = merges
+        chess["level"] = min(1 + merges // cls._MERGES_PER_LEVEL, cap)
+        return int(chess["level"])
 
     @classmethod
     def remove_chess(cls, row: int, col: int) -> bool:
@@ -1052,7 +1073,10 @@ class CCChessboard(CustomAction):
 
         max_level = chess_info["max_level"]
         for chess in cls.board_chesses:
-            if chess["name"] == card_name and chess["level"] < max_level:
+            if chess["name"] != card_name:
+                continue
+            merges = int(chess.get("merges", 0))
+            if 1 + merges // cls._MERGES_PER_LEVEL < max_level:
                 return True
         return False
 
@@ -1397,9 +1421,12 @@ class CCBuyCard(CustomAction):
             if existing is not None:
                 if existing.get("name") == card_name:
                     cap = int(CCChessboard.get_chess_info(card_name).get("max_level", 3))
-                    new_level = min(int(existing.get("level", 1)) + 1, cap)
-                    existing["level"] = new_level
-                    logger.debug(f"{card_name} 合到 ({got_row}, {got_col})，{new_level}/{cap} 级")
+                    new_level = CCChessboard.apply_merge(existing)
+                    merges = int(existing.get("merges", 0))
+                    logger.debug(
+                        f"{card_name} 合到 ({got_row}, {got_col})，"
+                        f"累计 {merges} 次合成 → {new_level}/{cap} 级"
+                    )
                     return CustomAction.RunResult(success=True)
                 logger.debug(f"{card_name} 落到 ({got_row}, {got_col})，但该格记的是 {existing.get('name')}，跳过")
                 CCChessboard.skip_buy(card_name)

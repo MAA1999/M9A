@@ -70,8 +70,8 @@ BASE_CARDS: dict[str, tuple[int, list[tuple[int, int]]]] = {
     "32123": (3, [(0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]),
     "32703": (3, [(0, 1), (2, 1), (0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]),
     # 32124 木头妇孺放**棋盘中间行 row1**（用户明确），其它卡放 row0/row2 交替
-    "32124": (3, [(1, 1), (1, 2), (1, 3), (1, 4), (1, 5)]),
-    "32126": (3, [(0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]),
+    "32124": (3, [(1, 1)]),
+    "32126": (3, [(1, 2)]),
 }
 BASE_CARD_ORDER = ["32122", "32123", "32703"]
 # 4.0 购买表：鹿蜀系四张 + 石骑士（32124/32126 的模板早已在 Cards/ 下，)
@@ -344,17 +344,27 @@ class TestBoardState:
         assert CCChessboard.find_empty_position("NotACard") is None
 
     def test_upgrade_chess_stops_at_max_level(self) -> None:
-        """4.0 的鹿蜀(32123)上限 3 星：再升就不动了。"""
+        """鹿蜀上限 3 星；**两次合成升一级**，到 3 级要累计 4 次合成。"""
         assert CCChessboard.place_chess(0, 4, "32123") is True
-        for _ in range(2):
+        for _ in range(4):
             assert CCChessboard.upgrade_chess(0, 4) is True
         entry = CCChessboard.board[0][4]
         assert entry is not None
         assert (entry["name"], entry["level"]) == ("32123", 3)
         assert CCChessboard.upgrade_chess(0, 4) is False
 
+    def test_one_merge_does_not_level_up(self) -> None:
+        """合成 1 次还是 LV.1（用户实测：01/11/21 各合一次都差一次才 LV.2）。"""
+        assert CCChessboard.place_chess(0, 4, "32123") is True
+        assert CCChessboard.upgrade_chess(0, 4) is True
+        entry = CCChessboard.board[0][4]
+        assert entry is not None
+        assert entry["level"] == 1
+        assert entry["merges"] == 1
+
     def test_upgrade_chess_keeps_board_chesses_in_sync(self) -> None:
         CCChessboard.place_chess(0, 4, "32123")
+        CCChessboard.upgrade_chess(0, 4)
         CCChessboard.upgrade_chess(0, 4)
         assert CCChessboard.board_chesses[0]["level"] == 2
 
@@ -702,8 +712,9 @@ class TestBuyCardPriority:
         # 把 32703 摆满所有可放置格并全部升到 3 级 → 既无处安放也无从升级
         for _row, _col in [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]:
             CCChessboard.place_chess(_row, _col, "32703")
-            CCChessboard.upgrade_chess(_row, _col)
-            CCChessboard.upgrade_chess(_row, _col)
+            # 两次合成升一级 → 升到 3 级要 4 次
+            while CCChessboard.upgrade_chess(_row, _col):
+                pass
         # 现在「有没有空位」看实际画面，桩要同步：让所有格都判占用
         # （通过把棋盘内部状态与画面一起造出来）
         ctx = _ScriptedContext(
@@ -984,14 +995,14 @@ class TestBuyCardUnder4_0:
         """坚固石骑士同样是星 1..3，靠合成升级（用户明确：鹿蜀/石骑士都靠合成升级）。"""
         assert CCChessboard.place_chess(0, 2, "32703") is True
         assert CCChessboard.can_upgrade_existing("32703") is True
-        assert CCChessboard.upgrade_chess(0, 2) is True
-        assert CCChessboard.upgrade_chess(0, 2) is True
+        for _ in range(4):   # 两次合成升一级，到 3 级要 4 次
+            assert CCChessboard.upgrade_chess(0, 2) is True
         assert CCChessboard.upgrade_chess(0, 2) is False
 
     def test_deer_is_capped_at_level_3(self) -> None:
         """鹿蜀上限 3（auto_chess 只有 star 1..3）。"""
         CCChessboard.place_chess(0, 4, "32123")
-        for _ in range(2):
+        for _ in range(4):
             assert CCChessboard.upgrade_chess(0, 4) is True
         assert CCChessboard.upgrade_chess(0, 4) is False
         entry = CCChessboard.board[0][4]
@@ -1863,6 +1874,7 @@ class TestBoardDataConsistency:
 
     def test_upgrade_reflected_in_board_chesses(self) -> None:
         assert CCChessboard.place_chess(0, 2, "32123") is True
+        assert CCChessboard.upgrade_chess(0, 2) is True
         assert CCChessboard.upgrade_chess(0, 2) is True
         item = next(i for i in CCChessboard.board_chesses if i["row"] == 0 and i["col"] == 2)
         assert item["level"] == 2, "升级后 board_chesses 里的 level 必须同步（共享对象）"
