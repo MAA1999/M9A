@@ -1102,6 +1102,9 @@ class CCBuyCard(CustomAction):
     _BUY_SETTLE = 1.2
     # 详情面板里「购买」按钮的位置（实测 940,568；面板居中、布局固定）
     _BUY_BUTTON_POINT = (940, 568)
+    # 商店区的最小坐标（奖励区在 x<214 一带，y≈580~710）
+    _SHOP_MIN_X = 214
+    _SHOP_MIN_Y = 520
     # 买卡前后「落子格」的最小平均像素差；空位底纹会有轻微抖动，取 6 足够区分
     _PIECE_DIFF_MIN = 6.0
 
@@ -1259,6 +1262,19 @@ class CCBuyCard(CustomAction):
             ty = target_roi[1] + target_roi[3] // 2
             sx = box[0] + box[2] // 2
             sy = box[1] + box[3] // 2
+
+            # **起点必须在商店区**（y ≥ 520）。
+            # 奖励区在左下角 y≈580~710、x≈0~600，商店在 y≈520~720 但 x≥214；
+            # 识别框落在奖励区时说明命中的是奖励区那张卡，从那儿拖会把它拖到棋盘上
+            # （实测第一轮把鹿蜀拖到 (1,1) 贴纸位，游戏提示「棋子放置到错误区域」）。
+            if sy < self._SHOP_MIN_Y or sx < self._SHOP_MIN_X:
+                logger.warning(
+                    f"识别框 ({sx},{sy}) 不在商店区（x≥{self._SHOP_MIN_X}, y≥{self._SHOP_MIN_Y}），"
+                    f"疑似命中奖励区，本回合跳过 {card_name}"
+                )
+                CCChessboard.skip_buy(card_name)
+                return CustomAction.RunResult(success=True)
+
             logger.debug(f"拖拽 {card_name} 从 ({sx},{sy}) 到 ({row},{col}) 中心 ({tx},{ty})")
 
             # 拖拽**前**先记下目标格是否已有棋子：
@@ -1371,6 +1387,12 @@ class CCBuyCard(CustomAction):
             if CCChessboard.record_chess(got_row, got_col, card_name):
                 logger.debug(f"拖入 {card_name} 到 ({got_row}, {got_col})")
                 return CustomAction.RunResult(success=True)
+            # 以前这里是静默 return，导致「拖拽了但什么都没发生」在日志里查不到 ——
+            # 实测 5 次拖拽有 4 次完全没有后续日志。
+            logger.warning(
+                f"拖拽 {card_name} 到 ({got_row}, {got_col})：画面已占用但内部记录为空/非法，"
+                f"record_chess 失败（actual={actual}, existing={existing}）"
+            )
             CCChessboard.skip_buy(card_name)
             return CustomAction.RunResult(success=True)
 

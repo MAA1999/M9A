@@ -1689,7 +1689,8 @@ class TestBuyCardFlow:
         self,
         ctx: _ScriptedContext,
         name: str = "32123",
-        box: tuple[int, int, int, int] = (60, 620, 90, 100),
+        # 必须落在商店区（x≥214）：奖励区在 x<214，从那儿拖会把奖励卡拖到棋盘上
+        box: tuple[int, int, int, int] = (300, 620, 90, 100),
         piece_cell: tuple[int, int] | None = (0, 5),
     ) -> Any:
         ctx.piece_cell = piece_cell
@@ -1708,7 +1709,7 @@ class TestBuyCardFlow:
         ctx = _ScriptedContext({"32123": _hit((732, 175, 68, 44))})
         self._buy(ctx)
         down = next(t for t in ctx.touches if t[0] == "down")
-        assert (down[1], down[2]) == (60 + 90 // 2, 620 + 100 // 2)
+        assert (down[1], down[2]) == (300 + 90 // 2, 620 + 100 // 2)
         moves = [t for t in ctx.touches if t[0] == "move"]
         target = CCChessboard.board_rois[0][2]   # positions 第一个格是 (0,2)（(0,1) 留给石骑士）
         assert (moves[-1][1], moves[-1][2]) == (
@@ -1743,7 +1744,7 @@ class TestUpgradePath:
     def test_upgrade_uses_same_touch_sequence(self) -> None:
         ctx = _ScriptedContext({})
         ctx.piece_cell = (0, 5)
-        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
+        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(300, 620, 90, 100))
         kinds = [k for k, _, _ in ctx.touches]
         assert kinds[0] == "down" and kinds[-1] == "up"
 
@@ -1785,7 +1786,7 @@ class TestUpgradePath:
         ctx = _ScriptedContext({})
         ctx.piece_cell = (0, 2)
         ctx.extra_changed = [(2, 5)]
-        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
+        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(300, 620, 90, 100))
         assert CCChessboard.board[0][2] is not None
 
 
