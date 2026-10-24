@@ -636,6 +636,8 @@ class CCChessboard(CustomAction):
     _EMPTY_CELL_STD = 18.0
     # 占用格的像素标准差下限（实测空格 ≈29、有棋子 ≈68）
     _OCCUPIED_STD = 45.0
+    # 棋盘上识别卡种的最低分（渲染与商店卡图尺寸不同，命中率不高）
+    _CELL_CARD_MIN = 0.55
 
     # 上一轮看到的回合数。回合数变小 = 开了新一局，据此清空内部棋盘。
     # 不清的话一局打完棋盘状态还留着：第二局起 find_empty_position 对所有卡都返回 None，
@@ -812,6 +814,30 @@ class CCChessboard(CustomAction):
         cls.board[row][col] = entry
         cls.board_chesses.append(entry)
         return True
+
+    @classmethod
+    def _recognize_cell_card(cls, context: Context, img: Any, row: int, col: int) -> str | None:
+        """识别某格里的棋子是哪张卡（用 Cards/<id>.png 逐个试）。
+
+        棋盘上的棋子渲染与商店卡图尺寸不同，命中率不高，所以阈值放到 0.55；
+        都认不出就返回 None，调用方沿用内部记录。
+        """
+        roi = cls.board_rois[row][col]
+        best: tuple[float, str] | None = None
+        for name in cls.strategy.card_names():
+            try:
+                detail = context.run_recognition(
+                    "CCBuyCardRec_Template",
+                    img,
+                    {"CCBuyCardRec_Template": {"template": f"CritterCrash/Cards/{name}.png", "roi": roi}},
+                )
+            except Exception:  # noqa: BLE001 - 识别异常按认不出处理
+                continue
+            if is_hit(detail) and detail.best_result is not None:
+                score = float(detail.best_result.score)
+                if best is None or score > best[0]:
+                    best = (score, name)
+        return best[1] if best is not None and best[0] >= cls._CELL_CARD_MIN else None
 
     @classmethod
     def is_cell_occupied(cls, context: Context, img: Any, row: int, col: int) -> bool:
@@ -1209,7 +1235,27 @@ class CCBuyCard(CustomAction):
                 return CustomAction.RunResult(success=True)
 
             got_row, got_col = row, col
+            # 拖拽前该格的真实卡种要**现认**，不能只信内部记录：
+            # 内部棋盘是从「买到什么」推出来的，与实际会分叉 ——
+            # 实测日志说「32124 合到 (0,2) 3/3 级」，而画面里 (0,2) 是鹿蜀 LV.1，
+            # 内部记的卡种一旦错，后面所有合成判定都跟着错（等级凭空涨、真卡种被覆盖）。
+            actual = CCChessboard._recognize_cell_card(context, img, got_row, got_col)
             existing = CCChessboard.board[got_row][got_col]
+            if actual is not None and (existing is None or existing.get("name") != actual):
+                logger.debug(
+                    f"({got_row}, {got_col}) 内部记的是 {existing.get('name') if existing else '空'}"
+                    f"，实际识别为 {actual}，按实际校正"
+                )
+                CCChessboard.board[got_row][got_col] = {
+                    "name": actual, "level": 1, "row": got_row, "col": got_col,
+                }
+                CCChessboard.board_chesses = [
+                    x for x in CCChessboard.board_chesses
+                    if not (x["row"] == got_row and x["col"] == got_col)
+                ]
+                CCChessboard.board_chesses.append(CCChessboard.board[got_row][got_col])
+                existing = CCChessboard.board[got_row][got_col]
+
             if existing is not None:
                 if existing.get("name") == card_name:
                     cap = int(CCChessboard.get_chess_info(card_name).get("max_level", 3))
