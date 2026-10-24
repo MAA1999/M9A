@@ -197,22 +197,6 @@
             "[JumpBack]CCClickBlank"
         ]
     },
-    "CCNoSpaceRec": {
-        "desc": "卡牌详情面板上的「可摆放区域位置不足」提示：棋盘满了，买不了新卡。OCR 命中即视为本局不再尝试买卡。",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    700,
-                    480,
-                    340,
-                    60
-                ],
-                "expected": ["可摆放区域位置不足"],
-                "only_rec": true
-            }
-        }
-    },
     "CCResetData": {
         "action": {
             "type": "Custom",

@@ -1061,18 +1061,10 @@ class CCBuyCard(CustomAction):
             # （卡一动不动）。以前那条拖拽路径是在幻想一个不存在的交互 —— 它既没买到卡，
             # 也把 CCDeploy 的自环烧穿。
             verb = "买入" if action == 0 else "升级"
-            # 棋盘满时详情面板会显示「可摆放区域位置不足」且购买按钮变灰。此时点购买无效，
-            # 面板还会一直挂着 —— 后续所有识别都 miss，任务卡到 4000（实测 12:25 那次）。
-            # 先探一次这个提示，命中就直接关面板、本局不再买卡。
-            no_space = context.run_recognition(
-                "CCNoSpaceRec", context.tasker.controller.post_screencap().wait().get()
-            )
-            if is_hit(no_space):
-                logger.debug(f"{verb} {card_name}：面板提示「可摆放区域位置不足」，棋盘已满，本局不再买卡")
-                context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
-                time.sleep(0.4)
-                CCChessboard.board_full = True
-                return CustomAction.RunResult(success=True)
+            # 棋盘满时详情面板会显示「可摆放区域位置不足」且购买按钮变灰，点购买无效。
+            # 那行字是红底小字，OCR 实测识别不出（roi 600,450,500,120 只读回 "M1"），
+            # 所以改用**行为判据**：点完购买后详情面板还在 = 没买到。
+            # 此时必须把面板关掉，否则它会一直挡住后续所有识别、任务卡到 4000（实测 12:25/12:33）。
             card_center = (box[0] + box[2] // 2, box[1] + box[3] // 2)
 
             # 买之前先留一帧底板，买完用差分找落点
@@ -1089,7 +1081,12 @@ class CCBuyCard(CustomAction):
                 # 钱不够 / 棋盘满 / 面板没买到：本回合别再试这张卡。
                 # 不能返回 False —— 本节点是 [JumpBack]，动作失败会走 on_error、next 为空，
                 # 整个任务以 4000 收场（实测 03:29:44 就是这么死的）。
-                logger.debug(f"{verb} {card_name}：棋盘没有任何格子发生变化，本回合跳过该卡")
+                #
+                # 必须**关掉详情面板**：买不动时面板会一直挂着，挡住后续所有识别，
+                # 任务卡到 4000（实测 12:25 与 12:33 各一次，最后 20 个节点全是 fail）。
+                context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
+                time.sleep(0.4)
+                logger.debug(f"{verb} {card_name}：棋盘没有任何格子发生变化，关面板并本回合跳过该卡")
                 CCChessboard.skip_buy(card_name)
                 return CustomAction.RunResult(success=True)
 
