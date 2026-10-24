@@ -237,11 +237,17 @@ class CCBuyCardRec(CustomRecognition):
                     },
                 )
                 if is_hit(reco_detail):
+                    # **只要商店里出现任意一张白名单卡，就说明卡池是对的** —— 立刻清零。
+                    #
+                    # 不能等「买成功」才清：拖拽会失败（实测 01:06 连续三次
+                    # 「该格仍为空」后第四次才成功），那期间计数照样在累加，
+                    # 结果明明刷到鹿蜀、也合成了，却因为 streak 到 5 被判「卡池不符」直接开战。
+                    CCChessboard.no_card_streak = 0
+
                     # 识别成功，检查是否有空位
                     free = CCChessboard.find_empty_position_on_image(context, argv.image, card_name)
                     if free:
                         # 有空位，直接返回
-                        CCChessboard.no_card_streak = 0
                         logger.debug(f"找到有空位的卡牌: {card_name} → {free}")
                         detail = {"type": 0, "action": 0, "name": card_name}
                         return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=detail)
@@ -263,7 +269,6 @@ class CCBuyCardRec(CustomRecognition):
             # 如果有升级候选，返回第一个（action=1：升级语义，实际交互与买卡相同）
             if upgrade_candidates:
                 reco_detail, card_name = upgrade_candidates[0]
-                CCChessboard.no_card_streak = 0
                 logger.debug(f"选择能升级的卡牌: {card_name}")
                 detail = {"type": 0, "action": 1, "name": card_name}
                 return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=detail)

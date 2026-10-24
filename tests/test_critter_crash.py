@@ -1344,7 +1344,9 @@ class TestPickLeaderReroll:
         assert strategy.people is not None
         assert strategy.people.max_reroll == 0
         assert strategy.encounters is not None
-        assert strategy.encounters.max_reroll == 15
+        # 2026-10-25 用户决定取消奇遇重摇：15 次 × 约 7s = 105s，实测凌晨那轮摇了 84 次全白费。
+        # 改为进局就打，卡池不对由局内的 CCBuyCardGiveUp 快速开战。
+        assert strategy.encounters.max_reroll == 0
         # 2026-10-24 扩名单：原 4 个「6/6 鹿蜀」命中率只有 13%，实测连摇 22 次一次没中。
         # 补入 40024/40030（覆盖 5/6，只缺 32126 这张 5 费辅助卡），命中率提到 19%。
         assert strategy.encounters.accept == (
@@ -1422,11 +1424,12 @@ class TestEncounterGate:
         result = _pick_encounter(self._ctx("杻阳 有兽"))
         assert result.detail.get("accepted") is True
 
-    def test_rerolls_unlisted_encounter(self) -> None:
+    def test_unlisted_encounter_plays_anyway_when_budget_zero(self) -> None:
+        """额度为 0（用户 2026-10-25 定的不重刷）→ 名字不在名单也直接开打。"""
         result = _pick_encounter(self._ctx("大口护盾"))
-        assert result.detail == {"reroll": True}
-        assert result.box == [41, 38, 10, 10]
-        assert CCChessboard.rerolls_used.get("encounter", 0) == 1
+        assert result.box is None
+        assert result.detail == {"encounter": "大口护盾", "accepted": False}
+        assert CCChessboard.rerolls_used.get("encounter", 0) == 0
 
     def test_budget_exhausted_plays_anyway(self) -> None:
         """摇满额度后必须认了直接开打（否则会一直退出去，一个对局也开不了）。"""
@@ -1446,9 +1449,11 @@ class TestEncounterGate:
         assert ctx.asked == ["CCNext"]
 
     def test_ocr_miss_is_treated_as_unlisted(self) -> None:
+        """OCR 认不出名字 → 当作不在名单，额度 0 时直接开打。"""
         ctx = _ScriptedContext({"CCNext": _hit((1010, 612, 226, 50))})
         result = _pick_encounter(ctx)
-        assert result.detail == {"reroll": True}
+        assert result.box is None
+        assert result.detail == {"encounter": "", "accepted": False}
 
     def test_no_gate_without_encounters_block(self) -> None:
         CCChessboard.apply_strategy(replace(load_strategy(PROJECT_ROOT / STRATEGY_4_0_PATH), encounters=None))
@@ -1465,8 +1470,8 @@ class TestEncounterGate:
         assert ctx.asked == []
 
     def test_encounter_budget_resets_per_match(self) -> None:
-        assert _pick_encounter(self._ctx("大口护盾")).detail == {"reroll": True}
-        assert CCChessboard.rerolls_used.get("encounter", 0) == 1
+        """额度按局复位（即使现在配成 0，复位逻辑本身仍要能工作）。"""
+        CCChessboard.rerolls_used["encounter"] = 3
 
         class _Ctx:
             def clear_hit_count(self, _node: str) -> bool:
