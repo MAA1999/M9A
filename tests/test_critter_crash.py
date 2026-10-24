@@ -1807,3 +1807,22 @@ class TestClearLeader:
         assert CCChessboard.leader_id == "30027"
         CCChessboard.clear_leader()        # 显式清空
         assert CCChessboard.leader_id is None
+
+
+class TestBoardFullShortCircuit:
+    """棋盘满时买卡识别必须短路，否则详情面板反复弹出挡住后续识别。"""
+
+    def setup_method(self) -> None:
+        CCChessboard.apply_strategy(load_strategy(PROJECT_ROOT / STRATEGY_4_0_PATH))
+
+    def teardown_method(self) -> None:
+        CCChessboard.apply_strategy(BASE_STRATEGY)
+
+    def test_has_no_empty_cell_false_when_empty(self) -> None:
+        assert CCChessboard.has_no_empty_cell() is False
+
+    def test_has_no_empty_cell_true_when_all_filled(self) -> None:
+        for row in range(len(CCChessboard.board)):
+            for col in range(len(CCChessboard.board[row])):
+                CCChessboard.board[row][col] = {"name": "32123", "level": 1, "row": row, "col": col}
+        assert CCChessboard.has_no_empty_cell() is True

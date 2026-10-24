@@ -802,6 +802,15 @@ class CCChessboard(CustomAction):
         return True
 
     @classmethod
+    def has_no_empty_cell(cls) -> bool:
+        """内部棋盘是否一格空位都没有。
+
+        棋盘满时继续买卡会让详情面板反复弹出又关不掉，挡住后续所有识别
+        （实测 2026-10-24 多次卡到 4000）。买卡识别用它提前短路。
+        """
+        return all(cell is not None for row in cls.board for cell in row)
+
+    @classmethod
     def find_card_on_board(cls, name: str) -> tuple[int, int] | None:
         """内部棋盘里找该卡的位置（用于升级目标）。"""
         for row in range(len(cls.board)):

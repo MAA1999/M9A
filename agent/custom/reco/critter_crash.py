@@ -196,10 +196,14 @@ class CCBuyCardRec(CustomRecognition):
                 # 不够，退出
                 logger.debug("当前剩余缪斯币不足")
                 return CustomRecognition.AnalyzeResult(box=None, detail={})
-            # 棋盘已满（面板提示「可摆放区域位置不足」）→ 本局不再买卡。
-            # 否则会反复点开详情面板、面板挂着挡住后续所有识别，任务卡到 4000
-            # （实测 2026-10-24 12:25）。
-            if CCChessboard.board_full:
+            # 棋盘已满 → 本局不再买卡。
+            #
+            # 判据用**内部棋盘是否还有空格**，不靠面板文字：
+            # 「可摆放区域位置不足」那行红底小字 OCR 识别不出（实测只读回 "M1"）。
+            # 而棋盘满时继续买卡会反复点开详情面板、面板挂着挡住后续所有识别，
+            # 任务卡到 4000（实测 12:25/12:33/12:52/13:00 多次，每次都 20s 后失败）。
+            if CCChessboard.board_full or CCChessboard.has_no_empty_cell():
+                CCChessboard.board_full = True
                 logger.debug("棋盘已满，本局不再买卡")
                 return CustomRecognition.AnalyzeResult(box=None, detail={})
 
