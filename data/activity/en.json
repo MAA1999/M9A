@@ -837,5 +837,21 @@
                 "end_time": 1793613599000
             }
         }
+    },
+    "3.9": {
+        "version_name": "Rekindled! Games of the Summer-Gold Sea",
+        "start_time": 1793890800000,
+        "end_time": 1797501599000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1793890800000,
+                "end_time": 1797242399000
+            },
+            "re-release": {
+                "start_time": 1796378400000,
+                "end_time": 1797242399000
+            }
+        }
     }
 }

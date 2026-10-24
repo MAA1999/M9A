@@ -839,5 +839,21 @@
                 "end_time": 1793563199000
             }
         }
+    },
+    "3.9": {
+        "version_name": "再燃！流金の海にて",
+        "start_time": 1793840400000,
+        "end_time": 1797451199000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1793840400000,
+                "end_time": 1797191999000
+            },
+            "re-release": {
+                "start_time": 1796328000000,
+                "end_time": 1797191999000
+            }
+        }
     }
 }
