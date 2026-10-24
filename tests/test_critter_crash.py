@@ -66,11 +66,11 @@ ROIS_4_0 = [
 
 # 当前基线（4.0 唯一策略表）：棋盘 ROI 见上面 ROIS_4_0，棋子白名单按解包 auto_chess id 命名。
 BASE_CARDS: dict[str, tuple[int, list[tuple[int, int]]]] = {
-    "32122": (2, [(0, 4), (2, 4), (0, 3), (2, 3), (0, 2), (2, 2)]),
-    "32123": (3, [(0, 5), (2, 5), (0, 4), (2, 4), (0, 3), (2, 3), (0, 2), (2, 2)]),
-    "32703": (1, [(0, 2), (0, 3), (0, 4), (0, 5), (2, 2), (2, 3), (2, 4), (2, 5)]),
-    "32124": (3, [(0, 2), (0, 3), (0, 4), (0, 5), (2, 2), (2, 3), (2, 4), (2, 5)]),
-    "32126": (3, [(0, 2), (0, 3), (0, 4), (0, 5), (2, 2), (2, 3), (2, 4), (2, 5)]),
+    "32122": (3, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
+    "32123": (3, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
+    "32703": (3, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
+    "32124": (3, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
+    "32126": (3, [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]),
 }
 BASE_CARD_ORDER = ["32122", "32123", "32703"]
 # 4.0 购买表：鹿蜀系四张 + 石骑士（32124/32126 的模板早已在 Cards/ 下，)
@@ -334,9 +334,10 @@ class TestBoardState:
         assert CCChessboard.place_chess(-1, 0, "32703") is False
 
     def test_find_empty_position_follows_declaration_order(self) -> None:
-        assert CCChessboard.find_empty_position("32123") == (0, 5)
-        CCChessboard.place_chess(0, 4, "32123")
-        assert CCChessboard.find_empty_position("32123") == (0, 5)
+        """positions 现在是全部可放置格，按声明顺序取第一个空位。"""
+        assert CCChessboard.find_empty_position("32123") == (0, 1)
+        CCChessboard.place_chess(0, 1, "32123")
+        assert CCChessboard.find_empty_position("32123") == (0, 2)
 
     def test_find_empty_position_returns_none_for_unknown_card(self) -> None:
         assert CCChessboard.find_empty_position("NotACard") is None
@@ -361,9 +362,10 @@ class TestBoardState:
         CCChessboard.place_chess(0, 4, "32123")
         assert CCChessboard.can_upgrade_existing("32123") is True
 
-    def test_can_upgrade_existing_false_at_max_level(self) -> None:
+    def test_can_upgrade_existing_true_below_max_level(self) -> None:
+        """32703 也是星 1..3：刚放上去是 1 级，可以继续合成升级。"""
         assert CCChessboard.place_chess(0, 2, "32703") is True
-        assert CCChessboard.can_upgrade_existing("32703") is False
+        assert CCChessboard.can_upgrade_existing("32703") is True
 
     def test_can_upgrade_existing_false_for_unknown_card(self) -> None:
         assert CCChessboard.can_upgrade_existing("NotACard") is False
@@ -650,10 +652,12 @@ class TestBuyCardPriority:
         assert ctx.templates == []
 
     def test_award_usable_card_without_slot_is_skipped(self) -> None:
-        """奖励区是白名单卡但既没空位也没得升级：跳过（不再卖出、不再自行开战）。"""
-        # 32703 的 positions 是 row0/row2 的全部列，先占满 → 无处安放
-        for _row, _col in [(0, 2), (0, 3), (0, 4), (0, 5), (2, 2), (2, 3), (2, 4), (2, 5)]:
+        """奖励区是白名单卡但既没空位、所有同名棋子也都满级：跳过。"""
+        # 把 32703 摆满所有可放置格并全部升到 3 级 → 既无处安放也无从升级
+        for _row, _col in [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]:
             CCChessboard.place_chess(_row, _col, "32703")
+            CCChessboard.upgrade_chess(_row, _col)
+            CCChessboard.upgrade_chess(_row, _col)
         ctx = _ScriptedContext(
             {
                 "CCBuyCardAwardEmptyRec": _hit((42, 580, 128, 124)),
@@ -760,14 +764,18 @@ class TestStrategy40:
         """32123/32121/32122 有 3 星行 → max_level 3；32125/32126 只当 1 级用。"""
         strategy = self._load()
         caps = {card.name: card.max_level for card in strategy.cards}  # type: ignore[attr-defined]
-        assert caps == {"32122": 2, "32123": 3, "32703": 1, "32124": 3, "32126": 3}
+        assert caps == {"32122": 3, "32123": 3, "32703": 3, "32124": 3, "32126": 3}
 
-    def test_profile_frontline_is_col5(self) -> None:
-        """col5 = 最前排（贴纸列并入后整体 +1），核心成长棋子优先放 col5。"""
+    def test_profile_positions_cover_all_placeable_cells(self) -> None:
+        """positions 是**全部可放置格**（row 0/2 × col 1..5），不再是优先位子集。
+
+        4.0 买卡是「点卡→购买，游戏自动落子」，落点由游戏决定；positions 只用于
+        find_empty_position 判断还有没有空位。只写 8 格会让 col 1 白白空着、更早满盘。
+        """
         strategy = self._load()
         deer = next(c for c in strategy.cards if c.name == "32123")  # type: ignore[attr-defined]
-        assert deer.positions[0] == (0, 5)
-        assert deer.positions[1] == (2, 5)
+        assert len(deer.positions) == 10
+        assert (0, 1) in deer.positions and (2, 5) in deer.positions
 
     def test_profile_award_priority_is_lushu_first(self) -> None:
         strategy = self._load()
@@ -830,7 +838,7 @@ class TestStrategy40:
             CCChessboard.apply_strategy(strategy)  # type: ignore[arg-type]
             assert CCChessboard.strategy.version == "4.0"
             assert [c["name"] for c in CCChessboard.chess_types] == STRATEGY_4_0_CARD_ORDER
-            assert CCChessboard.find_empty_position("32123") == (0, 5)
+            assert CCChessboard.find_empty_position("32123") == (0, 1)
         finally:
             CCChessboard.apply_strategy(before)
         assert CCChessboard.strategy.version == "4.0"
@@ -893,9 +901,9 @@ class TestBuyCardUnder4_0:
             f"CritterCrash/Cards/{name}.png" for name in STRATEGY_4_0_AWARD_ORDER
         ]
 
-    def test_buy_deploys_lushu_to_frontline_col5(self) -> None:
-        """鹿蜀第一个空位是 (0,5) = 最前排（贴纸列并入后整体 +1）。"""
-        assert CCChessboard.find_empty_position("32123") == (0, 5)
+    def test_buy_deploys_lushu_to_first_placeable_cell(self) -> None:
+        """positions 现在是全部可放置格，第一个空位是 (0,1)（col0 是贴纸列，不参与）。"""
+        assert CCChessboard.find_empty_position("32123") == (0, 1)
 
     def test_buy_recognizes_lushu_and_returns_deploy(self) -> None:
         ctx = _ScriptedContext(
@@ -921,10 +929,13 @@ class TestBuyCardUnder4_0:
         result = _analyze_buy_card(ctx)
         assert result.detail == {"type": 0, "action": 1, "name": "32123"}
 
-    def test_shiva_is_capped_at_level_1(self) -> None:
-        """坚固石骑士当 1 级用，放上后不再升级。"""
+    def test_knight_can_upgrade_to_level_3(self) -> None:
+        """坚固石骑士同样是星 1..3，靠合成升级（用户明确：鹿蜀/石骑士都靠合成升级）。"""
         assert CCChessboard.place_chess(0, 2, "32703") is True
-        assert CCChessboard.can_upgrade_existing("32703") is False
+        assert CCChessboard.can_upgrade_existing("32703") is True
+        assert CCChessboard.upgrade_chess(0, 2) is True
+        assert CCChessboard.upgrade_chess(0, 2) is True
+        assert CCChessboard.upgrade_chess(0, 2) is False
 
     def test_deer_is_capped_at_level_3(self) -> None:
         """鹿蜀上限 3（auto_chess 只有 star 1..3）。"""
