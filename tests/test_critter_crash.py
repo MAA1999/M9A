@@ -70,8 +70,8 @@ BASE_CARDS: dict[str, tuple[int, list[tuple[int, int]]]] = {
     "32123": (3, [(0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]),
     "32703": (3, [(0, 1), (2, 1), (0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]),
     # 32124 木头妇孺放**棋盘中间行 row1**（用户明确），其它卡放 row0/row2 交替
-    "32124": (3, [(1, 1)]),
-    "32126": (3, [(1, 2)]),
+    "32124": (3, [(1, 2), (1, 3), (1, 4), (1, 5)]),
+    "32126": (3, [(1, 3), (1, 4), (1, 5), (1, 2)]),
 }
 BASE_CARD_ORDER = ["32122", "32123", "32703"]
 # 4.0 购买表：鹿蜀系四张 + 石骑士（32124/32126 的模板早已在 Cards/ 下，)
@@ -1734,6 +1734,29 @@ class TestBuyCardFlow:
         assert result.success is True
         entry = CCChessboard.board[0][2]
         assert entry is not None and entry["name"] == "32123"
+
+    def test_single_slot_card_upgrades_instead_of_taking_new_cell(self) -> None:
+        """辅助卡（single_slot）在棋盘上只留 1 个：有同名棋子时直接去升级，不再占新格。
+
+        用户明确「木头妇孺就升级就行了，没必要占俩位置」。
+        但它唯一的位置可能被贴纸占着，所以 positions 要给多个备选 ——
+        实测 22:29 (1,1) 被小叶尼塞的鸟形贴纸占着，
+        商店里 32124 识别分数 0.998 却一直买不进来。
+        """
+        assert CCChessboard.place_chess(1, 2, "32124") is True
+        ctx = _ScriptedContext({})
+        img = ctx.tasker.controller.get()
+        row, col = CCBuyCard._pick_target_cell("32124", ctx, img, upgrade=True)
+        assert (row, col) == (1, 2), "已有 32124 时应回同一格升级，而不是去占 (1,3)"
+        assert CCChessboard.is_cell_occupied(ctx, img, 1, 3) is False
+
+    def test_single_slot_card_skips_occupied_first_choice(self) -> None:
+        """首选位被别的棋子占着时，辅助卡要顺延到下一个空格。"""
+        CCChessboard.board[1][2] = {"name": "sticker", "level": 1, "row": 1, "col": 2}
+        ctx = _ScriptedContext({})
+        img = ctx.tasker.controller.get()
+        row, col = CCBuyCard._pick_target_cell("32124", ctx, img)
+        assert (row, col) == (1, 3)
 
     def test_skip_expires_after_a_few_attempts(self) -> None:
         """skip 是**有限次数**，不是整回合拉黑。

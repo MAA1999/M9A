@@ -35,6 +35,12 @@ class CardSpec:
     max_level: int
     # 可放置格白名单；顺序即 find_empty_position 的优先级
     positions: tuple[tuple[int, int], ...]
+    # 棋盘上最多只放 1 个（辅助卡）。之后每次购买都只用于合成升级，不再占新格。
+    #
+    # positions 仍然要给多个备选：唯一的位置可能被贴纸/别的棋子占着，
+    # 那时如果只写一格就彻底买不进来（实测 22:29 (1,1) 被贴纸占着，
+    # 商店里 32124 识别分数 0.998 却一直买不了）。
+    single_slot: bool = False
 
 
 # 满级角标（CritterCrash/Lv3.png）相对棋盘格的 ROI 偏移。
@@ -286,7 +292,12 @@ def _parse_card(value: Any, label: str, problems: list[str]) -> CardSpec | None:
         if slot is None:
             return None
         positions.append(slot)
-    return CardSpec(name=name, max_level=max_level, positions=tuple(positions))
+    return CardSpec(
+        name=name,
+        max_level=max_level,
+        positions=tuple(positions),
+        single_slot=bool(value.get("single_slot", False)),
+    )
 
 
 def _parse_cards(raw: Any, label: str, problems: list[str]) -> tuple[CardSpec, ...]:
@@ -598,7 +609,14 @@ def load_strategy(path: Path = STRATEGY_PATH) -> StrategySpec:
 def _chess_types_from(strategy: StrategySpec) -> list[dict[str, Any]]:
     """策略表 → 既有 chess_types 结构（positions 保持 tuple，供 `(row, col) in positions` 判等）。"""
     return [
-        {"name": card.name, "max_level": card.max_level, "positions": list(card.positions)} for card in strategy.cards
+        {
+            "name": card.name,
+            "max_level": card.max_level,
+            "positions": list(card.positions),
+            # 辅助卡只留 1 个（见 CardSpec.single_slot）
+            "single_slot": card.single_slot,
+        }
+        for card in strategy.cards
     ]
 
 
@@ -1210,6 +1228,17 @@ class CCBuyCard(CustomAction):
         """
         info = CCChessboard.get_chess_info(card_name)
         cap = int(info.get("max_level", 3))
+
+        # 辅助卡（single_slot）：棋盘上只留 1 个，之后一律拖到它身上合成升级。
+        # 必须**先判已有同名棋子**再找空格，否则会把第二张放到新格上、
+        # 变成占两格（用户明确「没必要占俩位置」）。
+        if info.get("single_slot"):
+            for row, col in info.get("positions", []):
+                if not CCChessboard._is_valid_position(row, col):
+                    continue
+                cell = CCChessboard.board[row][col]
+                if cell is not None and cell.get("name") == card_name and int(cell.get("level", 1)) < cap:
+                    return (row, col)
 
         # 1) 先占地盘：positions 里第一个**实际为空**的格
         for row, col in info.get("positions", []):
