@@ -1336,9 +1336,13 @@ class CCSticker(CustomAction):
                 f"本局领队是 {CCChessboard.leader_id or '未知/兜底'}，"
                 f"不是贴纸归属的小叶尼塞 {sticker.leader}，不开箱"
             )
-            # 不要置 _opened：那表示「已经开过箱」。这里只是「这次领队不对」，
-            # 领队一旦被记成 30027 还得能继续开（实测：误置 _opened 后整局都不开箱）。
-            # 也不记 _failed_round —— 那是「回合没到」的去重，与领队无关。
+            # 置 _opened：本局不再检查。
+            #
+            # 之前不置位是想「领队后来变对了还能开」，但领队一旦在本局定了就不会变，
+            # 而不置位的后果是 —— 箱子还在画面上，识别每轮都命中，主循环反复选中本节点，
+            # 实测 300s 内空转 312 次，把买卡/开战全挤掉了（14:03 那轮买入 0 次）。
+            # 新局由 _reset_if_new_game 复位，不影响下一局。
+            CCSticker._opened = True
             return CustomAction.RunResult(success=True)   # 失败会终结任务，见上方注释
 
         # 门控：盒子还在才处理。盒子开掉后该格变成三角格，模板不再命中——
