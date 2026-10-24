@@ -64,7 +64,8 @@
                     "CCEntrySelectPeople",
                     "CCEntryStickerBook",
                     "CCEntryCardPanel",
-                    "CCCloseCardPanel"
+                    "CCCloseCardPanel",
+                    "CCEntrySaveTeam"
                 ]
             }
         },
@@ -73,6 +74,7 @@
             "CCEntryStickerBook",
             "CCEntryCardPanel",
             "CCCloseCardPanel",
+            "CCEntrySaveTeam",
             "CCSelectPeople4p0",
             "CCPlay",
             "CCResetData"
@@ -97,6 +99,37 @@
         "action": {
             "type": "Click"
         },
+        "next": ["CCResetData"]
+    },
+    // 入口兜底：对局结束后弹的「是否保存队伍？」对话框（点空白处关闭）。
+    // 这页不属于入口 any_of 时，任务会 1 节点 4000。
+    "CCEntrySaveTeam": {
+        "desc": "入口兜底：关掉对局结束的「是否保存队伍？」弹窗",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    640,
+                    300,
+                    320,
+                    60
+                ],
+                "expected": ["是否保存队伍"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    640,
+                    690,
+                    20,
+                    20
+                ]
+            }
+        },
+        "post_delay": 600,
         "next": ["CCResetData"]
     },
     // 入口兜底：上一轮任务停在卡牌详情面板（点开商店卡后没关掉）。
