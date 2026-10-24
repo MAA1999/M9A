@@ -962,8 +962,28 @@ class CCChessboard(CustomAction):
         return True
 
     @classmethod
+    def find_empty_position_on_image(
+        cls, context: Context, img: Any, name: str
+    ) -> tuple[int, int] | None:
+        """按**实际画面**为指定棋子找一个空位置。
+
+        为什么不复用 find_empty_position：那个只看内部棋盘，一次拖拽假成功就永久分叉 ——
+        实测棋盘已满（所有格 std≈78）时它仍返回「有空位」，导致 CCBuyCardRec 每轮都命中、
+        300s 内空转 173 次「买入 32123：没有可放置格」。
+        """
+        chess_info = cls.get_chess_info(name)
+        if not chess_info:
+            return None
+        for row, col in chess_info.get("positions", []):
+            if not cls._is_valid_position(row, col):
+                continue
+            if not cls.is_cell_occupied(context, img, row, col):
+                return (row, col)
+        return None
+
+    @classmethod
     def find_empty_position(cls, name: str) -> tuple[int, int] | None:
-        """为指定棋子找到一个空位置"""
+        """为指定棋子找到一个空位置（**只看内部棋盘**，供单测/纯逻辑使用）"""
         chess_info = cls.get_chess_info(name)
         if not chess_info:
             return None

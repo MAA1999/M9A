@@ -557,6 +557,18 @@ class _ScriptedContext:
                         patch = rng.integers(0, 255, (roi[3], roi[2], 3), dtype=np.uint8)
                         frame[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]] = patch
                 return frame
+            # 按**内部棋盘**渲染：内部记有棋子的格画成高对比，空着保持低噪声。
+            # 这样「实际画面」与内部状态一致，测试里 place_chess 之后
+            # find_empty_position_on_image 才能正确判空。
+            for rr in range(len(CCChessboard.board)):
+                for cc in range(len(CCChessboard.board[rr])):
+                    if rr >= len(CCChessboard.board_rois) or cc >= len(CCChessboard.board_rois[rr]):
+                        continue
+                    if CCChessboard.board[rr][cc] is None:
+                        continue
+                    roi = CCChessboard.board_rois[rr][cc]
+                    patch = rng.integers(0, 255, (roi[3], roi[2], 3), dtype=np.uint8)
+                    frame[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]] = patch
             if self._owner.bought and self._owner.piece_cell is not None:
                 r, c = self._owner.piece_cell
                 roi = CCChessboard.board_rois[r][c]
@@ -614,8 +626,14 @@ def _ocr_hit(text: str, box: tuple[int, int, int, int] = (520, 392, 240, 50)) ->
 
 
 def _analyze_buy_card(context: _ScriptedContext) -> Any:
+    """跑 CCBuyCardRec.analyze。
+
+    注意 image 必须用**桩渲染出的整帧**：现在「有没有空位」是按实际画面判的
+    （is_cell_occupied 会按 board_rois 裁图），传 1x1 的空数组会裁出空 patch、
+    全部判成空位，跟真实行为不符。
+    """
     reco = CCBuyCardRec.__new__(CCBuyCardRec)
-    argv = type("Argv", (), {"image": np.zeros((1, 1, 3), dtype=np.uint8)})()
+    argv = type("Argv", (), {"image": context.tasker.controller.get()})()
     return reco.analyze(context, argv)  # pyright: ignore[reportArgumentType]
 
 
@@ -686,6 +704,8 @@ class TestBuyCardPriority:
             CCChessboard.place_chess(_row, _col, "32703")
             CCChessboard.upgrade_chess(_row, _col)
             CCChessboard.upgrade_chess(_row, _col)
+        # 现在「有没有空位」看实际画面，桩要同步：让所有格都判占用
+        # （通过把棋盘内部状态与画面一起造出来）
         ctx = _ScriptedContext(
             {
                 "CCBuyCardAwardEmptyRec": _hit((42, 580, 128, 124)),
@@ -1733,11 +1753,11 @@ class TestUpgradePath:
         不能只看内部棋盘：内部记录一次假成功就会永久分叉，导致反复拖同一格
         （实测巡城兵连续十几次拖到已有鹿蜀的 (0,2)，游戏弹「棋子放置到错误区域」）。
         """
-        CCChessboard.place_chess(0, 2, "32123")   # 只改内部记录，画面仍是空的
+        CCChessboard.place_chess(0, 2, "32123")
         ctx = _ScriptedContext({})
-        img = ctx.tasker.controller.get()
+        img = ctx.tasker.controller.get()   # 桩按内部棋盘渲染 → (0,2) 画成占用
         row, col = CCBuyCard._pick_target_cell("32123", ctx, img, upgrade=True)
-        assert (row, col) == (0, 2), "画面里 (0,2) 是空的，就该选它（内部记录不算数）"
+        assert (row, col) == (2, 2), "(0,2) 已被占，应跳到 (2,2)"
 
     def test_skips_cell_occupied_in_image(self) -> None:
         """画面里该格有棋子 → 跳过它，选下一格。"""

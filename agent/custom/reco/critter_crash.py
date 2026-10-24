@@ -180,7 +180,7 @@ class CCBuyCardRec(CustomRecognition):
                 )
                 if is_hit(reco_detail1):
                     # 识别到目标卡片，查询是否可部署/能升级的棋子，有则进行
-                    if CCChessboard.find_empty_position(card_name):
+                    if CCChessboard.find_empty_position_on_image(context, argv.image, card_name):
                         detail = {"type": 1, "action": 0, "name": card_name}
                         return CustomRecognition.AnalyzeResult(box=reco_detail1.box, detail=detail)
                     elif CCChessboard.can_upgrade_existing(card_name):
@@ -225,7 +225,7 @@ class CCBuyCardRec(CustomRecognition):
                 )
                 if is_hit(reco_detail):
                     # 识别成功，检查是否有空位
-                    if CCChessboard.find_empty_position(card_name):
+                    if CCChessboard.find_empty_position_on_image(context, argv.image, card_name):
                         # 有空位，直接返回
                         logger.debug(f"找到有空位的卡牌: {card_name}")
                         detail = {"type": 0, "action": 0, "name": card_name}
