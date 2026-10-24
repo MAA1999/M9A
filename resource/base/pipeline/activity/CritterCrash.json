@@ -63,7 +63,8 @@
                     "CCEntryCombatEnd",
                     "CCEntrySelectPeople",
                     "CCEntryStickerBook",
-                    "CCEntryCardPanel"
+                    "CCEntryCardPanel",
+                    "CCCloseCardPanel"
                 ]
             }
         },
@@ -71,6 +72,7 @@
             "CCEntryCombatEnd",
             "CCEntryStickerBook",
             "CCEntryCardPanel",
+            "CCCloseCardPanel",
             "CCSelectPeople4p0",
             "CCPlay",
             "CCResetData"
@@ -226,6 +228,28 @@
             "[JumpBack]CCConfirm",
             "[JumpBack]CCClickBlank"
         ]
+    },
+    "CCCloseCardPanel": {
+        "desc": "用 ESC 关掉卡牌详情面板。pipeline 的 ClickKey 走框架原生按键路径；Python 侧 post_click_key / post_key_down 实测对该面板无效（发了 40 次面板 40 次都在）。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    980,
+                    250,
+                    120,
+                    100
+                ],
+                "template": ["CritterCrash/PanelArrow.png"]
+            }
+        },
+        "action": {
+            "type": "ClickKey",
+            "param": {
+                "key": 111
+            }
+        },
+        "post_delay": 600
     },
     "CCResetData": {
         "action": {
@@ -628,6 +652,8 @@
             }
         },
         "next": [
+            // 详情面板开着时什么都做不了（它会挡住后续所有识别），必须最先处理。
+            "[JumpBack]CCCloseCardPanel",
             "CritterCrash",
             "[JumpBack]CCSkipCombat",
             "[JumpBack]CCClickBlank",

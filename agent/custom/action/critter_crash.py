@@ -665,8 +665,18 @@ class CCChessboard(CustomAction):
     # 本回合确认买不动的卡（钱不够/棋盘满/状态分叉）→ 卡名: 回合号
     _buy_skip: dict[str, int] = {}
 
-    # 面板提示「可摆放区域位置不足」→ 棋盘已满，本局不再尝试买卡（新局复位）
+    # 棋盘已满 → 本局不再尝试买卡（新局复位）。
+    #
+    # 判据不靠内部棋盘的空格数：内部棋盘是从「买到什么」推出来的，与实际画面会分叉 ——
+    # 实测 13:22 那轮内部一直显示「落子到 (0,4)/(0,5)」，而画面上 18 格早满了，
+    # 于是每轮都买一次、每次点开详情面板又关不掉，卡到 4000。
+    # 改用**连续无新增落子**的计数：只要连着 N 次买卡都是「合到已有棋子」而没有新格，
+    # 就说明真实棋盘已满，置 board_full。
     board_full: bool = False
+    # 连续「合到已有棋子（无新格）」的次数
+    merge_streak: int = 0
+    # 连续合成多少次判定棋盘已满（实测满盘后每轮都是合成）
+    _MERGE_STREAK_FULL: int = 4
 
     @classmethod
     def skip_buy(cls, card_name: str) -> None:
@@ -959,6 +969,7 @@ class CCChessboard(CustomAction):
             type(self).board_reset()
             type(self)._buy_skip = {}
             type(self).board_full = False
+            type(self).merge_streak = 0
             type(self).reset_rerolls()
             # 不要清领队：领队是玩家账号级的选择，新开一局通常沿用同一位，
             # 而「选领队」页不一定每次都出现（实测连续几局都没有该页 → leader_id 恒 None
@@ -1013,12 +1024,29 @@ class CCBuyCard(CustomAction):
         Python binding 只有 post_click_key（没有 post_key）；写错会抛 AttributeError
         被吞掉，然后静默回退到无效的点击 —— 面板关不掉，后续识别全被遮挡。
         """
+        # post_click_key(111) 实测无效：发了 40 次、面板 40 次都还在（13:11 那轮日志）。
+        # 改用 key_down + key_up 的显式按下/抬起（Android 上更接近物理键）。
         try:
-            context.tasker.controller.post_click_key(111).wait()
+            context.tasker.controller.post_key_down(111).wait()
+            time.sleep(0.05)
+            context.tasker.controller.post_key_up(111).wait()
+            logger.debug("已发 ESC(111) 关面板")
         except Exception as e:  # noqa: BLE001 - 关面板失败不该中断买卡流程
             logger.warning(f"发 ESC 关面板失败（{e}），改用点击兜底")
             context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
-        time.sleep(0.5)
+        time.sleep(0.6)
+        # 关完复查：面板还在就说明 ESC 没生效，记录下来便于定位
+        try:
+            img = context.tasker.controller.post_screencap().wait().get()
+            still = context.run_recognition(
+                "CCPanelArrowRec",
+                img,
+                {"CCPanelArrowRec": {"template": "CritterCrash/PanelArrow.png", "roi": [980, 250, 120, 100]}},
+            )
+            if is_hit(still):
+                logger.warning("ESC 后卡牌详情面板仍在（PanelArrow 仍命中）")
+        except Exception:  # noqa: BLE001 - 复查失败不影响主流程
+            pass
 
     @staticmethod
     def _diff_changed_cells(pre: Any, post: Any) -> list[tuple[float, int, int]]:
@@ -1141,6 +1169,13 @@ class CCBuyCard(CustomAction):
                     new_level = min(int(existing.get("level", 1)) + 1, cap)
                     existing["level"] = new_level
                     logger.debug(f"{verb} {card_name} 合到 ({row}, {col})，{new_level}/{cap} 级")
+                    # 连续合到已有棋子 = 没有新格可落，累计到阈值就认为真实棋盘已满
+                    CCChessboard.merge_streak += 1
+                    if CCChessboard.merge_streak >= CCChessboard._MERGE_STREAK_FULL:
+                        CCChessboard.board_full = True
+                        logger.debug(
+                            f"连续 {CCChessboard.merge_streak} 次买卡都只能合成，判定棋盘已满，本局停止买卡"
+                        )
                     return CustomAction.RunResult(success=True)
                 logger.debug(
                     f"{verb} {card_name} 落到 ({row}, {col})，但该格内部记的是 "
@@ -1150,6 +1185,7 @@ class CCBuyCard(CustomAction):
                 return CustomAction.RunResult(success=True)
 
             if CCChessboard.record_chess(row, col, card_name):
+                CCChessboard.merge_streak = 0   # 有新格落下，说明还没满
                 logger.debug(f"{verb} {card_name}，游戏落子到 ({row}, {col})")
                 return CustomAction.RunResult(success=True)
             CCChessboard.skip_buy(card_name)

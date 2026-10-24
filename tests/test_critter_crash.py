@@ -512,6 +512,13 @@ class _ScriptedContext:
             self._owner.keys.append(code)
             return self
 
+        def post_key_down(self, code: int) -> Any:
+            self._owner.keys.append(code)
+            return self
+
+        def post_key_up(self, code: int) -> Any:
+            return self
+
         def wait(self) -> Any:
             return self
 
