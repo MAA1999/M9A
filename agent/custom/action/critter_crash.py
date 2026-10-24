@@ -858,9 +858,17 @@ class CCChessboard(CustomAction):
             except Exception:  # noqa: BLE001 - 识别异常按认不出处理
                 continue
             if is_hit(detail) and detail.best_result is not None:
-                score = float(detail.best_result.score)
-                if best is None or score > best[0]:
-                    best = (score, name)
+                # FeatureMatch 返回 BoxAndCountResult（只有 box / count），
+                # TemplateMatch 返回带 score 的类型 —— 两者字段不同，
+                # 直接取 .score 会 AttributeError（实测线上崩在 this line）。
+                # 统一取「可比较的强度」：有 score 用 score，否则用 count。
+                br = detail.best_result
+                raw = getattr(br, "score", None)
+                if raw is None:
+                    raw = getattr(br, "count", 0)
+                strength = float(raw)
+                if best is None or strength > best[0]:
+                    best = (strength, name)
         return best[1] if best is not None else None
 
     @classmethod
