@@ -1724,6 +1724,26 @@ class TestBuyCardFlow:
         entry = CCChessboard.board[0][2]
         assert entry is not None and entry["name"] == "32123"
 
+    def test_skip_expires_after_a_few_attempts(self) -> None:
+        """skip 是**有限次数**，不是整回合拉黑。
+
+        原来按回合号记录，一次偶发拖拽失败会把这张卡拉黑好几分钟 ——
+        实测 21:03:15 拖 32123 失败后，到 21:03:39 的 6 次识别里鹿蜀模板压根没被调用，
+        reco 一直返回「没有找到合适的卡牌」，pipeline 据此刷新商店把鹿蜀刷掉了。
+        """
+        CCChessboard.skip_buy("32123")
+        # 连续跳过 _SKIP_TIMES 次
+        assert [CCChessboard.is_buy_skipped("32123") for _ in range(CCChessboard._SKIP_TIMES)] == [
+            True
+        ] * CCChessboard._SKIP_TIMES
+        # 之后自动恢复，不再跳过
+        assert CCChessboard.is_buy_skipped("32123") is False
+        assert CCChessboard.is_buy_skipped("32123") is False
+
+    def test_skip_does_not_affect_other_cards(self) -> None:
+        CCChessboard.skip_buy("32123")
+        assert CCChessboard.is_buy_skipped("32124") is False
+
     def test_card_not_found_marks_skip_but_keeps_task_alive(self) -> None:
         """拖完棋盘没变化 → 本回合跳过该卡，但不返回失败（[JumpBack] 失败会终结任务）。"""
         ctx = _ScriptedContext({})

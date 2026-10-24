@@ -666,8 +666,19 @@ class CCChessboard(CustomAction):
         """
         cls.rerolls_used = {}
 
-    # 本回合确认买不动的卡（钱不够/棋盘满/状态分叉）→ 卡名: 回合号
+    # 暂时买不动的卡 → 卡名: 剩余跳过次数
+    #
+    # **不能按回合整段拉黑**：原来是 card_name -> 回合号，同回合内永久生效。
+    # 而一个回合能持续好几分钟，于是「一次偶发拖拽失败」会把这张卡拉黑整个回合 ——
+    # 实测 21:03:15 拖 32123 失败后 skip 生效，直到 21:03:39 的 6 次识别里
+    # 鹿蜀的模板根本没被调用（框架日志里 CCBuyCardRec_Template 只跑了 4 次，
+    # 独缺 96x60 那张），reco 一直返回「没有找到合适的卡牌」，
+    # pipeline 据此刷新商店，把鹿蜀刷掉了。
+    #
+    # 改成有限次数：跳过 _SKIP_TIMES 次后自动重试，既防空转也不会误杀。
     _buy_skip: dict[str, int] = {}
+    # 一次失败后连续跳过多少次（每次 CCBuyCardRec 调用算一次）
+    _SKIP_TIMES: int = 3
 
     # 棋盘已满 → 本局不再尝试买卡（新局复位）。
     #
@@ -684,18 +695,21 @@ class CCChessboard(CustomAction):
 
     @classmethod
     def skip_buy(cls, card_name: str) -> None:
-        """标记本回合别再尝试这张卡（下回合自动失效）。"""
-        cls._buy_skip[card_name] = cls._last_round if cls._last_round is not None else -1
+        """这张卡暂时别再试（连续跳过 _SKIP_TIMES 次后自动重试）。
+
+        不用「记回合号」是因为回合太长（几分钟），一次偶发失败会把整张卡拉黑到
+        商店刷新、把好卡刷掉。有限次数既不空转也能很快恢复。
+        """
+        cls._buy_skip[card_name] = cls._SKIP_TIMES
 
     @classmethod
     def is_buy_skipped(cls, card_name: str) -> bool:
-        """本回合是否已确认买不动这张卡。"""
-        if card_name not in cls._buy_skip:
+        """是否还要跳过这张卡；返回 True 时消耗一次额度。"""
+        left = cls._buy_skip.get(card_name)
+        if left is None or left <= 0:
             return False
-        # 回合变了就自动解除（_last_round 为 None 时按永不过期处理，等新局重置）
-        if cls._last_round is None:
-            return True
-        return cls._buy_skip[card_name] == cls._last_round
+        cls._buy_skip[card_name] = left - 1
+        return True
 
     @classmethod
     def reset_leader(cls) -> None:
