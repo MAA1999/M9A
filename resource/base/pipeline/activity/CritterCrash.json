@@ -62,13 +62,15 @@
                     "CCNext",
                     "CCEntryCombatEnd",
                     "CCEntrySelectPeople",
-                    "CCEntryStickerBook"
+                    "CCEntryStickerBook",
+                    "CCEntryCardPanel"
                 ]
             }
         },
         "next": [
             "CCEntryCombatEnd",
             "CCEntryStickerBook",
+            "CCEntryCardPanel",
             "CCSelectPeople4p0",
             "CCPlay",
             "CCResetData"
@@ -93,6 +95,34 @@
         "action": {
             "type": "Click"
         },
+        "next": ["CCResetData"]
+    },
+    // 入口兜底：上一轮任务停在卡牌详情面板（点开商店卡后没关掉）。
+    // 这页会挡住后续所有识别，任务 1 节点就 4000（实测 12:25/12:33/12:52 多次）。
+    // 判据用面板右侧的翻页箭头（模板 PanelArrow.png，实测命中 0.866）——
+    // 「可摆放区域位置不足」那行红底小字 OCR 识别不出（roi 600,450,500,120 只读回 "M1"）。
+    // 关闭方式：Android KEYCODE_ESCAPE(111)，实测有效。
+    "CCEntryCardPanel": {
+        "desc": "入口兜底：ESC 关掉卡牌详情面板",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    980,
+                    250,
+                    120,
+                    100
+                ],
+                "template": ["CritterCrash/PanelArrow.png"]
+            }
+        },
+        "action": {
+            "type": "ClickKey",
+            "param": {
+                "key": 111
+            }
+        },
+        "post_delay": 500,
         "next": ["CCResetData"]
     },
     // 入口兜底：上一轮任务可能停在「选择领队」页。
