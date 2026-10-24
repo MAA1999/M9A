@@ -241,6 +241,7 @@ class CCBuyCardRec(CustomRecognition):
                     free = CCChessboard.find_empty_position_on_image(context, argv.image, card_name)
                     if free:
                         # 有空位，直接返回
+                        CCChessboard.no_card_streak = 0
                         logger.debug(f"找到有空位的卡牌: {card_name} → {free}")
                         detail = {"type": 0, "action": 0, "name": card_name}
                         return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=detail)
@@ -262,12 +263,21 @@ class CCBuyCardRec(CustomRecognition):
             # 如果有升级候选，返回第一个（action=1：升级语义，实际交互与买卡相同）
             if upgrade_candidates:
                 reco_detail, card_name = upgrade_candidates[0]
+                CCChessboard.no_card_streak = 0
                 logger.debug(f"选择能升级的卡牌: {card_name}")
                 detail = {"type": 0, "action": 1, "name": card_name}
                 return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=detail)
 
-            # 没有找到合适的卡牌
-            logger.debug("没有找到合适的卡牌")
+            # 没有找到合适的卡牌。
+            #
+            # 这里只统计「钱够、但一张白名单卡都没有」的连续轮数 —— 钱不够的分支
+            # 在上面就 return 了，不计入。连续够多次说明这个卡池里根本没有我们要的卡
+            # （奇遇/卡包决定棋子池），由 CCBuyCardGiveUp 直接开战，别再刷商店白烧时间。
+            CCChessboard.no_card_streak += 1
+            logger.debug(
+                f"没有找到合适的卡牌（连续 {CCChessboard.no_card_streak}/"
+                f"{CCChessboard._POOL_GIVE_UP_AFTER} 轮，达到后直接开战）"
+            )
             return CustomRecognition.AnalyzeResult(box=None, detail={})
 
 
@@ -371,3 +381,35 @@ class CCStickerBoxRec(CustomRecognition):
         if is_hit(detail):
             return CustomRecognition.AnalyzeResult(box=detail.box, detail=detail.raw_detail)
         return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+
+@AgentServer.custom_recognition("CCPoolBadRec")
+class CCPoolBadRec(CustomRecognition):
+    """卡池不符判定：连续多轮「钱够但一张白名单卡都没有」→ 命中，让 pipeline 直接开战。
+
+    为什么不在选领队页判断：查过解包 auto_chess_cardpack，**卡包图标无法判断** ——
+    同一个图标（如 movingchess_handbook_package_10）既可能对应含鹿蜀的卡包、
+    也可能对应不含的（同名「工具采购」就有 14 个变体，棋子池 39~50 不等）。
+    只有在局内看商店实际出了什么卡才可靠。
+
+    钱不够的轮次不计入（CCBuyCardRec 在那之前就 return 了），所以本判据只反映
+    「商店里确实没有想要的卡」，不会因为穷而误判。
+    """
+
+    def analyze(
+        self,
+        context: Context,
+        argv: CustomRecognition.AnalyzeArg,
+    ) -> CustomRecognition.AnalyzeResult | RectType | None:
+
+        streak = CCChessboard.no_card_streak
+        if streak < CCChessboard._POOL_GIVE_UP_AFTER:
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+        # 命中：给一个合法的 box（点在开始战斗按钮上），action 用 DoNothing + next 走 CCStartCombat
+        logger.debug(
+            f"连续 {streak} 轮没有任何白名单卡 → 判定卡池不符，停止刷商店，直接开战"
+        )
+        return CustomRecognition.AnalyzeResult(
+            box=[1146, 294, 104, 98], detail={"pool_bad": True, "streak": streak}
+        )

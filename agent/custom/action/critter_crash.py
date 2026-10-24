@@ -708,6 +708,15 @@ class CCChessboard(CustomAction):
     board_full: bool = False
     # 连续「合到已有棋子（无新格）」的次数
     merge_streak: int = 0
+
+    # 连续多少轮「钱够、但商店里没有一张白名单卡」。
+    #
+    # 用来判定**卡池不符**：奇遇/卡包决定了商店棋子池，池子里没有鹿蜀时
+    # 机器人只会「刷新 → 还是没有 → 再刷新」，白烧一整局（实测一局 240s 刷 38 次）。
+    # 达到阈值就由 pipeline 的 CCBuyCardGiveUp 直接点开始战斗，不再刷商店。
+    no_card_streak: int = 0
+    # 连续多少轮无卡就判定卡池不符（用户 2026-10-25 定：5 次）
+    _POOL_GIVE_UP_AFTER: int = 5
     # 连续合成多少次判定棋盘已满（实测满盘后每轮都是合成）
     _MERGE_STREAK_FULL: int = 4
     # 升 1 级要累计几次合成。
@@ -1122,6 +1131,7 @@ class CCChessboard(CustomAction):
             type(self)._buy_skip = {}
             type(self).board_full = False
             type(self).merge_streak = 0
+            type(self).no_card_streak = 0
             type(self).reset_rerolls()
             # 不要清领队：领队是玩家账号级的选择，新开一局通常沿用同一位，
             # 而「选领队」页不一定每次都出现（实测连续几局都没有该页 → leader_id 恒 None

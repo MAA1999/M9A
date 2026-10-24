@@ -1758,6 +1758,35 @@ class TestBuyCardFlow:
         row, col = CCBuyCard._pick_target_cell("32124", ctx, img)
         assert (row, col) == (1, 3)
 
+    def test_pool_bad_only_after_five_empty_rounds(self) -> None:
+        """连续 5 轮「钱够但没有白名单卡」才判定卡池不符。
+
+        卡包图标判断不了（解包 auto_chess_cardpack 里同一个图标既对应含鹿蜀的卡包、
+        也对应不含的，「工具采购」一名 14 个变体），所以只能在局内看商店实际出了什么。
+        """
+        from custom.reco.critter_crash import CCPoolBadRec
+
+        reco = CCPoolBadRec.__new__(CCPoolBadRec)
+        argv = type("Argv", (), {"image": np.zeros((720, 1280, 3), dtype=np.uint8)})()
+        for i in range(CCChessboard._POOL_GIVE_UP_AFTER - 1):
+            CCChessboard.no_card_streak = i
+            assert reco.analyze(_ScriptedContext({}), argv).box is None, f"第 {i} 轮不该判定"
+        CCChessboard.no_card_streak = CCChessboard._POOL_GIVE_UP_AFTER
+        result = reco.analyze(_ScriptedContext({}), argv)
+        assert result.box is not None, "达到阈值应命中，交给 pipeline 点开始战斗"
+
+    def test_finding_a_card_resets_pool_bad_streak(self) -> None:
+        """只要刷出一张白名单卡就清零，避免「偶尔刷到但没买成」被误判成卡池不符。"""
+        CCChessboard.no_card_streak = 4
+        ctx = _ScriptedContext(
+            {
+                "CCRemainMoney": _hit((669, 29, 36, 25)),
+                "32123": _hit((300, 560, 80, 90)),
+            }
+        )
+        _analyze_buy_card(ctx)
+        assert CCChessboard.no_card_streak == 0
+
     def test_skip_expires_after_a_few_attempts(self) -> None:
         """skip 是**有限次数**，不是整回合拉黑。
 
