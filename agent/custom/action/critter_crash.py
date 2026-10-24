@@ -1287,14 +1287,28 @@ class CCBuyCard(CustomAction):
             # 必须用 touch_down → 多次 touch_move → touch_up：
             # Controller.post_swipe 只支持两点，纯两点手势不会触发游戏里的拖拽
             # （实测卡一动不动）。带中途点的按下-移动-抬起才有效。
+            # 手势时序要足够慢、插值要足够密：
+            #
+            # 原来只有 4 步、每步 80ms。从商店 (600,620) 拖到 (496,197) 时，
+            # step3 = (522,302) 距 (1,1) 中心 (482,308) 只有 40px ——
+            # 一旦这一步的 touch_move 没被游戏采样到、或者提前松手，
+            # 卡就落到 (1,1) 而不是目标格（实测出现过「第一轮拖 (0,1) 落到 (1,1)」）。
+            #
+            # 现在：16 步 × 25ms ≈ 400ms 连续移动 + 到点后停留 200ms 再抬手。
             ctrl = context.tasker.controller
             ctrl.post_touch_down(sx, sy).wait()
-            time.sleep(0.15)
-            for step in range(1, 5):
-                mx = sx + (tx - sx) * step // 4
-                my = sy + (ty - sy) * step // 4
+            time.sleep(0.20)
+
+            steps = 16
+            for step in range(1, steps + 1):
+                mx = sx + (tx - sx) * step // steps
+                my = sy + (ty - sy) * step // steps
                 ctrl.post_touch_move(mx, my).wait()
-                time.sleep(0.08)
+                time.sleep(0.025)
+
+            # 到点后**停留一下再抬手**：让游戏确认落点，
+            # 否则最后一帧还没渲染完就松手，会判定成上一步的位置。
+            time.sleep(0.20)
             ctrl.post_touch_up().wait()
             time.sleep(self._BUY_SETTLE)
 
