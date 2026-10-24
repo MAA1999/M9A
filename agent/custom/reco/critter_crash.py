@@ -313,6 +313,20 @@ class CCStickerBoxRec(CustomRecognition):
         if CCSticker._opened:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
 
+        # 本回合已确认开不了（回合没到）→ 识别层必须一起 miss。
+        #
+        # 只在 action 里判断会死循环：识别继续命中 → 主循环反复选中本节点 →
+        # action 走「本回合不再尝试」返回 True → 立刻又被选中，卡死在这里（用户手动跑时遇到）。
+        #
+        # 但门控只对本回合有效：_failed_round 记的是「上次确认开不了的回合号」，
+        # 回合推进后要重新尝试（open_round 只是下限，实测同一领队不同局有 2 与 5 两种）。
+        if CCSticker._failed_round is not None:
+            current = CCSticker._read_round(context, argv.image)
+            if current is None or current == CCSticker._failed_round:
+                return CustomRecognition.AnalyzeResult(box=None, detail={})
+            # 回合变了：解除门控，允许重试
+            CCSticker._failed_round = None
+
         # 领队不匹配 → 不开（贴纸按角色独有）
         if sticker.leader and CCChessboard.leader_id != sticker.leader:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
