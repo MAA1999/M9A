@@ -998,6 +998,20 @@ class CCBuyCard(CustomAction):
     _PIECE_DIFF_MIN = 6.0
 
     @staticmethod
+    def _close_card_panel(context: Context) -> None:
+        """关掉卡牌详情面板（ESC 优先，失败回退点击）。
+
+        Python binding 只有 post_click_key（没有 post_key）；写错会抛 AttributeError
+        被吞掉，然后静默回退到无效的点击 —— 面板关不掉，后续识别全被遮挡。
+        """
+        try:
+            context.tasker.controller.post_click_key(111).wait()
+        except Exception as e:  # noqa: BLE001 - 关面板失败不该中断买卡流程
+            logger.warning(f"发 ESC 关面板失败（{e}），改用点击兜底")
+            context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
+        time.sleep(0.5)
+
+    @staticmethod
     def _diff_changed_cells(pre: Any, post: Any) -> list[tuple[float, int, int]]:
         """买卡前后两帧里所有发生变化的棋盘格，按变化量降序。
 
@@ -1075,6 +1089,13 @@ class CCBuyCard(CustomAction):
             context.tasker.controller.post_click(*self._BUY_BUTTON_POINT).wait()
             time.sleep(self._BUY_SETTLE)
 
+            # **必须先把详情面板关掉再截图差分**：
+            # 买成功时游戏会关面板回棋盘；买不动时（棋盘满/钱不够）面板留在屏幕上，
+            # 那一屏跟 pre 差得很大，差分会把面板区域误判成「落子」——
+            # 实测 12:40 就报「买入 32123，落子到 (0,0)」，而 (0,0) 其实是箱子格，
+            # 之后所有识别都因面板遮挡而 miss，任务卡到 4000。
+            self._close_card_panel(context)
+
             img = context.tasker.controller.post_screencap().wait().get()
             changed = self._diff_changed_cells(pre, img)
             if not changed:
@@ -1085,17 +1106,8 @@ class CCBuyCard(CustomAction):
                 # 必须**关掉详情面板**：买不动时面板会一直挂着，挡住后续所有识别，
                 # 任务卡到 4000（实测 12:25/12:33/12:4x 各一次，最后 20 个节点全是 fail）。
                 # 关法实测：点 (1150,650) 关不掉（那只是面板外的空白，点了没反应）；
-                # Android KEYCODE_ESCAPE(111) 能关（实测 12:47 一次生效）。
-                # Python binding 的方法名是 post_click_key（没有 post_key）——
-                # 写错会抛 AttributeError 被下面的 except 吞掉，然后静默回退到无效的点击，
-                # 表现为「ESC 明明手动有效，代码里却关不掉」（实测 12:38 卡死）。
-                try:
-                    context.tasker.controller.post_click_key(111).wait()
-                    logger.debug("已发 ESC 关闭卡牌详情面板")
-                except Exception as e:  # noqa: BLE001 - 关面板失败不该中断买卡流程
-                    logger.warning(f"发 ESC 关面板失败（{e}），改用点击兜底")
-                    context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
-                time.sleep(0.5)
+                # Android KEYCODE_ESCAPE(111) 能关（实测一次生效）。
+                self._close_card_panel(context)
                 logger.debug(f"{verb} {card_name}：棋盘没有任何格子发生变化，关面板并本回合跳过该卡")
                 CCChessboard.skip_buy(card_name)
                 return CustomAction.RunResult(success=True)

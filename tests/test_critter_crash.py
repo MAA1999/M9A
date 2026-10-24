@@ -467,6 +467,7 @@ class _ScriptedContext:
         # 合成时额外变化的格（模拟「同时改动多格」）
         self.extra_changed: list[tuple[int, int]] = []
         self.swipes: list[tuple[int, int, int, int, int]] = []
+        self.keys: list[int] = []
         self.cleared_hits: list[str] = []
 
     def run_recognition(self, name: str, _image: Any, override: dict[str, Any] | None = None) -> RecognitionDetail:
@@ -505,6 +506,10 @@ class _ScriptedContext:
 
         def post_swipe(self, x1: int, y1: int, x2: int, y2: int, duration: int) -> Any:
             self._owner.swipes.append((x1, y1, x2, y2, duration))
+            return self
+
+        def post_click_key(self, code: int) -> Any:
+            self._owner.keys.append(code)
             return self
 
         def wait(self) -> Any:
@@ -1612,12 +1617,13 @@ class TestBuyCardFlow:
         return _run_buy_card(ctx, {"type": 0, "action": 0, "name": name}, box=box)
 
     def test_clicks_card_then_buy_button(self) -> None:
-        """两个点击：先卡片中心（开面板），再购买按钮。"""
+        """两个点击：先卡片中心（开面板），再购买按钮；随后发 ESC 关面板。"""
         ctx = _ScriptedContext({"32123": _hit((732, 175, 68, 44))})
         self._buy(ctx)
-        assert len(ctx.clicks) == 2
         assert ctx.clicks[0] == (60 + 90 // 2, 620 + 100 // 2)
         assert ctx.clicks[1] == CCBuyCard._BUY_BUTTON_POINT
+        # 买完必须关面板，否则面板遮挡会让后续识别全 miss
+        assert ctx.keys == [111]
 
     def test_no_drag_is_used(self) -> None:
         """买卡不该产生任何 swipe —— 拖拽在这条流程里是无效手势。"""
@@ -1762,8 +1768,8 @@ class TestUpgradePath:
         ctx = _ScriptedContext({})
         ctx.piece_cell = (0, 5)
         _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
-        assert len(ctx.clicks) == 2
         assert ctx.clicks[1] == CCBuyCard._BUY_BUTTON_POINT
+        assert ctx.keys == [111]
 
     def test_upgrade_merges_into_existing_piece(self) -> None:
         """目标格已有同名棋子 → 等级 +1，不新增棋子。"""
