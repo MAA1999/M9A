@@ -1086,10 +1086,14 @@ class CCBuyCard(CustomAction):
                 # 任务卡到 4000（实测 12:25/12:33/12:4x 各一次，最后 20 个节点全是 fail）。
                 # 关法实测：点 (1150,650) 关不掉（那只是面板外的空白，点了没反应）；
                 # Android KEYCODE_ESCAPE(111) 能关（实测 12:47 一次生效）。
+                # Python binding 的方法名是 post_click_key（没有 post_key）——
+                # 写错会抛 AttributeError 被下面的 except 吞掉，然后静默回退到无效的点击，
+                # 表现为「ESC 明明手动有效，代码里却关不掉」（实测 12:38 卡死）。
                 try:
-                    context.tasker.controller.post_key(111).wait()
+                    context.tasker.controller.post_click_key(111).wait()
+                    logger.debug("已发 ESC 关闭卡牌详情面板")
                 except Exception as e:  # noqa: BLE001 - 关面板失败不该中断买卡流程
-                    logger.debug(f"发 ESC 关面板失败（{e}），改用点击兜底")
+                    logger.warning(f"发 ESC 关面板失败（{e}），改用点击兜底")
                     context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
                 time.sleep(0.5)
                 logger.debug(f"{verb} {card_name}：棋盘没有任何格子发生变化，关面板并本回合跳过该卡")
