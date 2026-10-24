@@ -605,13 +605,15 @@
             "[JumpBack]CCCombatEnd",
             "[JumpBack]CCSpirit",
             "[JumpBack]CCConfirm",
+            // 贴纸箱必须排在买卡之前：买卡几乎每轮都命中（实测一轮 70 次），
+            // 挂在最后就永远轮不到 —— 贴纸一次都没开过。
+            "[JumpBack]CCSticker",
             "[JumpBack]CCBuyCard",
             "[JumpBack]CCRefreshCard_pre",
             "[JumpBack]CCRefreshCard_post",
             "[JumpBack]CCSelectAwardCard",
             "[JumpBack]CCAwardClearConfirm",
-            "[JumpBack]CCStartCombat",
-            "[JumpBack]CCSticker"
+            "[JumpBack]CCStartCombat"
         ]
     },
     "CCCombatEnd": {

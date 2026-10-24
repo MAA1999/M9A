@@ -1669,13 +1669,16 @@ class TestJumpBackActionMustNotFail:
             "CCSticker 以 [JumpBack] 挂载且没有 on_error，返回 False 会让任务 4000 终止"
         )
 
-    def test_sticker_is_last_in_main_loop(self) -> None:
-        """确认它确实挂在主循环末尾 —— 这条是上面那条限制成立的前提。"""
-        # JSONC 解析交给项目工具；这里只做文本级检查，避免引入解析器
+    def test_sticker_runs_before_buy_card(self) -> None:
+        """贴纸箱必须排在买卡**之前**。
+
+        买卡几乎每轮都命中（实测一轮 70 次），贴纸挂在它后面就永远轮不到 ——
+        表现为「贴纸一次都没开过」（实测 12:44 那轮 CCSticker 节点 0 次）。
+        这条锁定顺序，防止回退。
+        """
         text = (PROJECT_ROOT / "resource/base/pipeline/activity/CritterCrash.json").read_text(encoding="utf-8")
         assert '"[JumpBack]CCSticker"' in text
-        # 主循环 next 列表里它排在 CCStartCombat 之后（= 父列表最后一位）
-        assert text.index('"[JumpBack]CCStartCombat"') < text.index('"[JumpBack]CCSticker"')
+        assert text.index('"[JumpBack]CCSticker"') < text.index('"[JumpBack]CCBuyCard"')
 
 
 class TestBoardDataConsistency:
