@@ -1402,6 +1402,17 @@ class CCSticker(CustomAction):
             logger.debug(f"第 {current_round} 回合已确认开不了贴纸箱，本回合不再尝试")
             return CustomAction.RunResult(success=True)
 
+        # 回合门控：open_round 是**已知下限**（小叶尼塞固定第 2 回合），
+        # 回合没到就别点 —— 点了只会弹「N 回合后可开箱」面板，然后白轮询 6 秒确认没开，
+        # 实测第 1 回合那次点了箱子后卡 8.2 秒（17:44:43 → 17:44:51）。
+        # 领队换人时 open_round 会变（实测另一角色是 5），但配置里写的就是当前领队的值。
+        if sticker.open_round and current_round is not None and current_round < sticker.open_round:
+            logger.debug(
+                f"第 {current_round} 回合，贴纸箱要第 {sticker.open_round} 回合才开，本回合不点"
+            )
+            CCSticker._failed_round = current_round
+            return CustomAction.RunResult(success=True)
+
         # 点盒子中心，但**必须用点击前那一刻的识别框**：
         # 上面的 box_reco 是几秒前（读回合数、算 ROI 期间）识别的，界面在这期间会轻微位移，
         # 拿旧框中心点下去会落到箱子外（实测旧框中心 (380,220) vs 实际中心 (360,202)，
