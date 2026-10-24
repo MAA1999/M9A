@@ -346,7 +346,7 @@
     "Task.CompleteInduction": "完全归纳法",
     "Task.CompleteInduction.desc": "请先手动打一轮过教程，然后在小游戏“开始研究”按钮所在界面开始任务",
     "Task.CritterCrash": "翻斗棋速刷",
-    "Task.CritterCrash.desc": "<span style=\"color:tomato;font-size:15px\">在如下翻斗棋界面启动，已支持国服3.5版本！</span><br>![CCMain](tasks/images/CCMain.png)",
+    "Task.CritterCrash.desc": "<span style=\"color:tomato;font-size:15px\">已适配国服 4.0「箱中对决」，可在活动入口页 / 翻斗棋主菜单 / 对局页启动！（主菜单上若还压着一局没打完，会先放弃它再开新的，否则只会续旧局、摇不到新奇遇）</span><br>自动选领队（优先小叶尼塞，没有她也会兜底选一个，保证「进入战斗」可点）→ 买鹿蜀铺场 → 满场后升级，每回合只用免费刷新。<br>![CCMain](tasks/images/CCMain.png)",
     "Task.EightBitArcade": "8-bit 街机秀",
     "Task.EightBitArcade.desc": "8-bit 街机秀刷代币，请到游戏主界面开始任务",
     "Task.Limbo": "自动深眠",

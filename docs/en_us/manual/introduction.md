@@ -277,13 +277,15 @@ Automatically clear main-story / event stage maps, including the following optio
 
 ### Critter Crash Fast Farm
 
-Quick farming in the Critter Crash interface.
+Auto-plays "Challenge Mode" for rewards: prefers 小叶尼塞 as leader, fills the board with 鹿蜀, then upgrades; uses only free refreshes each round.
 
 ::: warning
 
-- Start in Critter Crash interface
-- Supports CN server version 3.5
-- Please play two rounds manually first to raise alert level to 3 before using
+- Start at any of: the event entry page "参与游戏" / the Critter Crash main menu / an ongoing match
+- Supports CN server version 4.0
+- If 小叶尼塞 is not offered, it picks from the available slots and still plays
+- If the encounter (which decides the shop pool) is not on the whitelist (杻阳有兽 / 大大大礼帽 / 库存盘点 / 装修计划), it **forfeits the run and starts over** to reroll, up to 15 times; forfeiting does not affect your rating (in-game prompt: "此时放弃对战评分不变")
+- When started from the main menu with an unfinished run (the ✕ next to "箱中对决" is still there), the task forfeits that run first and starts a new one — otherwise it would only resume the old run and never reroll the encounter. Starting from an ongoing match keeps playing that match instead
   :::
 
 ### Pre-Storm Protocol
