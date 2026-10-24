@@ -196,6 +196,13 @@ class CCBuyCardRec(CustomRecognition):
                 # 不够，退出
                 logger.debug("当前剩余缪斯币不足")
                 return CustomRecognition.AnalyzeResult(box=None, detail={})
+            # 棋盘已满（面板提示「可摆放区域位置不足」）→ 本局不再买卡。
+            # 否则会反复点开详情面板、面板挂着挡住后续所有识别，任务卡到 4000
+            # （实测 2026-10-24 12:25）。
+            if CCChessboard.board_full:
+                logger.debug("棋盘已满，本局不再买卡")
+                return CustomRecognition.AnalyzeResult(box=None, detail={})
+
             # 钱够了，先动态识别所有可能的卡牌，然后根据优先级选择
             upgrade_candidates = []
             for card_name in CCChessboard.strategy.card_names():

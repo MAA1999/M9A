@@ -665,6 +665,9 @@ class CCChessboard(CustomAction):
     # 本回合确认买不动的卡（钱不够/棋盘满/状态分叉）→ 卡名: 回合号
     _buy_skip: dict[str, int] = {}
 
+    # 面板提示「可摆放区域位置不足」→ 棋盘已满，本局不再尝试买卡（新局复位）
+    board_full: bool = False
+
     @classmethod
     def skip_buy(cls, card_name: str) -> None:
         """标记本回合别再尝试这张卡（下回合自动失效）。"""
@@ -946,6 +949,7 @@ class CCChessboard(CustomAction):
             logger.debug(f"检测到新对局（回合 {last_round} → {current_round}），清空内部棋盘")
             type(self).board_reset()
             type(self)._buy_skip = {}
+            type(self).board_full = False
             type(self).reset_rerolls()
             # 不要清领队：领队是玩家账号级的选择，新开一局通常沿用同一位，
             # 而「选领队」页不一定每次都出现（实测连续几局都没有该页 → leader_id 恒 None
@@ -1057,6 +1061,18 @@ class CCBuyCard(CustomAction):
             # （卡一动不动）。以前那条拖拽路径是在幻想一个不存在的交互 —— 它既没买到卡，
             # 也把 CCDeploy 的自环烧穿。
             verb = "买入" if action == 0 else "升级"
+            # 棋盘满时详情面板会显示「可摆放区域位置不足」且购买按钮变灰。此时点购买无效，
+            # 面板还会一直挂着 —— 后续所有识别都 miss，任务卡到 4000（实测 12:25 那次）。
+            # 先探一次这个提示，命中就直接关面板、本局不再买卡。
+            no_space = context.run_recognition(
+                "CCNoSpaceRec", context.tasker.controller.post_screencap().wait().get()
+            )
+            if is_hit(no_space):
+                logger.debug(f"{verb} {card_name}：面板提示「可摆放区域位置不足」，棋盘已满，本局不再买卡")
+                context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
+                time.sleep(0.4)
+                CCChessboard.board_full = True
+                return CustomAction.RunResult(success=True)
             card_center = (box[0] + box[2] // 2, box[1] + box[3] // 2)
 
             # 买之前先留一帧底板，买完用差分找落点
@@ -1217,9 +1233,11 @@ class CCSticker(CustomAction):
     （说明还没到回合），关掉面板并如实返回 False，不假装成功。
     """
 
-    # 开箱后轮询盒子是否消失：面板动画期间单帧仍会命中，必须多等几帧
-    _OPEN_POLL_TIMES = 8
-    _OPEN_POLL_INTERVAL = 0.4
+    # 开箱后轮询盒子是否消失：面板动画期间单帧仍会命中，必须多等几帧。
+    # 实测 3.2s 不够（12:08:55 判成「未开」，但当时箱子其实已开、画面里 (0,0) 已是三角格），
+    # 放宽到 12 × 0.5s = 6s。
+    _OPEN_POLL_TIMES = 12
+    _OPEN_POLL_INTERVAL = 0.5
 
     # 本局是否已经开过箱（开过就不再重复点，避免每回合空转）
     _opened = False
@@ -1280,14 +1298,22 @@ class CCSticker(CustomAction):
             logger.debug(f"第 {current_round} 回合已确认开不了贴纸箱，本回合不再尝试")
             return CustomAction.RunResult(success=True)
 
-        # 点识别到的盒子中心，而不是策略表里的固定点：盒子模板命中框实测 [323,148,90,85]，
-        # 固定点 (354,201) 虽在框内但靠近上沿，界面有轻微位移时容易点到框外。
-        box = box_reco.box
+        # 点盒子中心，但**必须用点击前那一刻的识别框**：
+        # 上面的 box_reco 是几秒前（读回合数、算 ROI 期间）识别的，界面在这期间会轻微位移，
+        # 拿旧框中心点下去会落到箱子外（实测旧框中心 (380,220) vs 实际中心 (360,202)，
+        # 偏 20px 正好在边缘外，点了等于没点 —— 这就是「贴纸箱未开」反复出现的真因）。
+        img_click = context.tasker.controller.post_screencap().wait().get()
+        box_now = context.run_recognition(
+            "CCStickerBoxRec",
+            img_click,
+            {"CCStickerBoxRec": {"template": "CritterCrash/StickerBox.png", "roi": [280, 120, 200, 200]}},
+        )
+        box = box_now.box if is_hit(box_now) else box_reco.box
         if box is not None:
             point = (int(box.x + box.w // 2), int(box.y + box.h // 2))
         else:
             point = sticker.point()
-        logger.debug(f"点贴纸箱 {point}")
+        logger.debug(f"点贴纸箱 {point}（识别框 {box}）")
         context.tasker.controller.post_click(point[0], point[1]).wait()
         time.sleep(0.9)
 
@@ -1314,7 +1340,8 @@ class CCSticker(CustomAction):
             time.sleep(self._OPEN_POLL_INTERVAL)
         if not opened:
             # 盒子还在：还没到可开回合，弹的是道具面板——关掉它。
-            # 记下回合号，本回合内不再重试；贴纸是可选项，失败也不让任务失败。
+            # 只记「本回合」已确认开不了，**下一回合还要再试**：open_round 是下限，
+            # 不是精确值（实测同一领队不同局有 2 与 5 两种）。
             logger.debug(
                 f"贴纸箱未开（第 {current_round} 回合 / 该领队需第 {sticker.open_round} 回合），关闭面板"
             )
