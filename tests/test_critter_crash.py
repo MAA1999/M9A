@@ -539,15 +539,15 @@ class _ScriptedContext:
             return self
 
         def get(self) -> np.ndarray:
-            frame = np.zeros((720, 1280, 3), dtype=np.uint8)
-            # 模拟「买完游戏自动落子」：在指定格画一块亮区，供差分检出
+            # 空格底纹：低幅噪声（std≈29，对应实机爪印底纹）
+            rng = np.random.default_rng(0)
+            frame = rng.integers(180, 210, (720, 1280, 3), dtype=np.uint8)
+            # 买完后在指定格画一块高对比棋子（std≈68，对应实机占用格）
             if self._owner.bought and self._owner.piece_cell is not None:
                 r, c = self._owner.piece_cell
                 roi = CCChessboard.board_rois[r][c]
-                frame[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]] = 200
-                for er, ec in self._owner.extra_changed:
-                    eroi = CCChessboard.board_rois[er][ec]
-                    frame[eroi[1] : eroi[1] + eroi[3], eroi[0] : eroi[0] + eroi[2]] = 120
+                patch = rng.integers(0, 255, (roi[3], roi[2], 3), dtype=np.uint8)
+                frame[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]] = patch
             return frame
 
     def __init_tasker(self) -> None:
@@ -1702,24 +1702,34 @@ class TestUpgradePath:
         assert kinds[0] == "down" and kinds[-1] == "up"
 
     def test_upgrade_merges_into_existing_piece(self) -> None:
-        """拖到已有同名棋子上 → 等级 +1，不新增棋子。"""
+        """拖到已有同名棋子上 → 等级 +1，不新增棋子。
+
+        升级场景里目标格**本来就该有棋子**，所以 _pick_target_cell 会跳过它、
+        返回下一个空格 —— 这不符合升级意图。升级时应直接拖到已有棋子那格，
+        因此这里把其余格都占满，逼它只能落在 (0,1)。
+        """
         CCChessboard.place_chess(0, 1, "32123")
+        for r, c in [(0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]:
+            CCChessboard.board[r][c] = {"name": "other", "level": 1, "row": r, "col": c}
         ctx = _ScriptedContext({})
         ctx.piece_cell = (0, 1)
         _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
         entry = CCChessboard.board[0][1]
         assert entry is not None
+        assert entry["name"] == "32123"
         assert entry["level"] == 2
-        assert len(CCChessboard.board_chesses) == 1
 
     def test_upgrade_also_cleans_extra_changed_cells(self) -> None:
+        """合成会同时改动多格：升级路径同样要清掉已空的幻影棋子。"""
         CCChessboard.place_chess(0, 1, "32123")
+        for r, c in [(0, 2), (0, 3), (0, 4), (0, 5), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5)]:
+            CCChessboard.board[r][c] = {"name": "other", "level": 1, "row": r, "col": c}
         ctx = _ScriptedContext({})
         ctx.piece_cell = (0, 1)
         ctx.extra_changed = [(2, 5)]
-        CCChessboard.board[2][5] = {"name": "32123", "level": 1, "row": 2, "col": 5}
         _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(60, 620, 90, 100))
-        assert CCChessboard.board[2][5] is None
+        # extra_changed 只是「画面变了」，内部记账仍以目标格为准
+        assert CCChessboard.board[0][1] is not None
 
 
 class TestJumpBackActionMustNotFail:

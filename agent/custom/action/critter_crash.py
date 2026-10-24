@@ -634,6 +634,8 @@ class CCChessboard(CustomAction):
 
     # 空格（爪印底纹）的像素标准差上限；占用格因为叠了棋子会明显更高
     _EMPTY_CELL_STD = 18.0
+    # 占用格的像素标准差下限（实测空格 ≈29、有棋子 ≈68）
+    _OCCUPIED_STD = 45.0
 
     # 上一轮看到的回合数。回合数变小 = 开了新一局，据此清空内部棋盘。
     # 不清的话一局打完棋盘状态还留着：第二局起 find_empty_position 对所有卡都返回 None，
@@ -810,6 +812,22 @@ class CCChessboard(CustomAction):
         cls.board[row][col] = entry
         cls.board_chesses.append(entry)
         return True
+
+    @classmethod
+    def is_cell_occupied(cls, context: Context, img: Any, row: int, col: int) -> bool:
+        """目标格里有没有棋子：用像素标准差判定。
+
+        空格是统一的爪印底纹（实测 std≈29），放了棋子后明显更杂（std≈68）。
+        阈值 45 取在两者中间，留足余量。
+        """
+        roi = cls.board_rois[row][col]
+        try:
+            patch = img[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]]
+        except Exception:  # noqa: BLE001 - 帧异常时保守判为空
+            return False
+        if patch.size == 0:
+            return False
+        return float(patch.std()) >= cls._OCCUPIED_STD
 
     @classmethod
     def has_no_empty_cell(cls) -> bool:
@@ -1049,14 +1067,25 @@ class CCBuyCard(CustomAction):
             pass
 
     @staticmethod
-    def _pick_target_cell(card_name: str) -> tuple[int, int]:
-        """选落点：该卡 positions 里第一个空格；没有则返回 (-1, -1)。
+    def _pick_target_cell(card_name: str, *, upgrade: bool = False) -> tuple[int, int]:
+        """选落点。
+
+        upgrade=True（action==1）：优先找**已有同名棋子且未满级**的格 —— 拖上去就是合成升级。
+        否则找该卡 positions 里第一个空格。
 
         为什么要自己选而不是直接点购买：直接购买由游戏自动落到第一个空位，
         会把棋盘从左往右填满、占掉石骑士该占的位置，而且满盘后无法再点购买升级。
         拖拽能精确控制落点。
         """
         info = CCChessboard.get_chess_info(card_name)
+        cap = int(info.get("max_level", 3))
+        if upgrade:
+            for row, col in info.get("positions", []):
+                if not CCChessboard._is_valid_position(row, col):
+                    continue
+                cell = CCChessboard.board[row][col]
+                if cell is not None and cell.get("name") == card_name and int(cell.get("level", 1)) < cap:
+                    return (row, col)
         for row, col in info.get("positions", []):
             if CCChessboard._is_valid_position(row, col) and CCChessboard.board[row][col] is None:
                 return (row, col)
@@ -1125,7 +1154,7 @@ class CCBuyCard(CustomAction):
             #
             # 手势要点：必须带中途路径点（--via 等价物）。纯两点 swipe 不会触发拖拽
             # （之前「拖拽无效」的结论就是漏了这一步）。
-            row, col = self._pick_target_cell(card_name)
+            row, col = self._pick_target_cell(card_name, upgrade=(action == 1))
             if (row, col) == (-1, -1):
                 logger.debug(f"买入 {card_name}：没有可放置格，本局跳过")
                 CCChessboard.skip_buy(card_name)
@@ -1138,7 +1167,6 @@ class CCBuyCard(CustomAction):
             sy = box[1] + box[3] // 2
             logger.debug(f"拖拽 {card_name} 从 ({sx},{sy}) 到 ({row},{col}) 中心 ({tx},{ty})")
 
-            pre = context.tasker.controller.post_screencap().wait().get()
             # 必须用 touch_down → 多次 touch_move → touch_up：
             # Controller.post_swipe 只支持两点，纯两点手势不会触发游戏里的拖拽
             # （实测卡一动不动）。带中途点的按下-移动-抬起才有效。
@@ -1154,21 +1182,18 @@ class CCBuyCard(CustomAction):
             time.sleep(self._BUY_SETTLE)
 
             img = context.tasker.controller.post_screencap().wait().get()
-            changed = self._diff_changed_cells(pre, img)
-            if not changed:
-                logger.debug(f"拖拽 {card_name} 到 ({row}, {col}) 后棋盘无变化，本回合跳过该卡")
+
+            # 落点判据：**只看我们拖向的那一格**，不用「变化最大格」猜。
+            # 差分在这张界面上不可靠：贴纸箱 (0,0) 有开箱动画、拖拽路径也会扫过棋盘，
+            # 变化最大的常常是 (0,0) 而不是真正的落点 ——
+            # 实测拖到 (0,1)、棋子确实落在 (0,1)（ROI 叠加核对过），
+            # 但差分包报「拖入到 (0,0)」，导致内部棋盘与实际分叉。
+            if not CCChessboard.is_cell_occupied(context, img, row, col):
+                logger.debug(f"拖拽 {card_name} 到 ({row}, {col}) 后该格仍为空，本回合跳过该卡")
                 CCChessboard.skip_buy(card_name)
                 return CustomAction.RunResult(success=True)
 
-            # 合成会同时改动多格：把「变回空格」的那几格从模型里删掉
-            if len(changed) > 1:
-                removed = CCChessboard.drop_cells_if_now_empty(
-                    context, img, [(r, c) for _, r, c in changed[1:]]
-                )
-                if removed:
-                    logger.debug(f"拖拽 {card_name} 触发合成，清掉 {removed} 个已空的格")
-
-            _, got_row, got_col = changed[0]
+            got_row, got_col = row, col
             existing = CCChessboard.board[got_row][got_col]
             if existing is not None:
                 if existing.get("name") == card_name:
