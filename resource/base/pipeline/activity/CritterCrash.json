@@ -937,6 +937,15 @@
             }
         }
     },
+    "CCCellCardFeature": {
+        "desc": "棋盘格里的棋子卡种识别（FeatureMatch，对尺度不敏感 —— 棋盘渲染比商店卡图大约 1.6 倍）",
+        "recognition": {
+            "type": "FeatureMatch",
+            "param": {
+                "template": "CritterCrash/Cards"
+            }
+        }
+    },
     "CCStickerBoxTemplate": {
         "desc": "贴纸箱模板节点（供 CCStickerBoxRec 在 custom 里复用）",
         "recognition": {

@@ -636,8 +636,8 @@ class CCChessboard(CustomAction):
     _EMPTY_CELL_STD = 18.0
     # 占用格的像素标准差下限（实测空格 ≈29、有棋子 ≈68）
     _OCCUPIED_STD = 45.0
-    # 棋盘上识别卡种的最低分（渲染与商店卡图尺寸不同，命中率不高）
-    _CELL_CARD_MIN = 0.55
+    # 拖拽后目标格的最小画面变化（低于此值视为拖拽没生效）
+    _CELL_CHANGE_MIN = 6.0
 
     # 上一轮看到的回合数。回合数变小 = 开了新一局，据此清空内部棋盘。
     # 不清的话一局打完棋盘状态还留着：第二局起 find_empty_position 对所有卡都返回 None，
@@ -816,10 +816,27 @@ class CCChessboard(CustomAction):
         return True
 
     @classmethod
-    def _recognize_cell_card(cls, context: Context, img: Any, row: int, col: int) -> str | None:
-        """识别某格里的棋子是哪张卡（用 Cards/<id>.png 逐个试）。
+    def cell_diff(cls, before: Any, after: Any, row: int, col: int) -> float:
+        """两帧之间某一格的平均像素差（用于判断拖拽是否真的生效）。"""
+        roi = cls.board_rois[row][col]
+        try:
+            a = before[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]]
+            b = after[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]]
+        except Exception:  # noqa: BLE001 - 帧异常按无变化处理
+            return 0.0
+        if a.shape != b.shape or a.size == 0:
+            return 0.0
+        return float(np.abs(a.astype(np.int16) - b.astype(np.int16)).mean())
 
-        棋盘上的棋子渲染与商店卡图尺寸不同，命中率不高，所以阈值放到 0.55；
+    @classmethod
+    def _recognize_cell_card(cls, context: Context, img: Any, row: int, col: int) -> str | None:
+        """识别某格里的棋子是哪张卡。
+
+        **用 FeatureMatch 而不是 TemplateMatch**：棋盘上的棋子渲染尺寸与商店卡图不同
+        （商店 83x65、棋盘约 1.6 倍），模板匹配对尺度敏感，调阈值救不了 ——
+        实测所有 Cards/ 模板在棋盘格上最高只有 0.34 分。
+        FeatureMatch 对尺度/旋转不敏感，正是这种场景该用的。
+
         都认不出就返回 None，调用方沿用内部记录。
         """
         roi = cls.board_rois[row][col]
@@ -827,9 +844,16 @@ class CCChessboard(CustomAction):
         for name in cls.strategy.card_names():
             try:
                 detail = context.run_recognition(
-                    "CCBuyCardRec_Template",
+                    "CCCellCardFeature",
                     img,
-                    {"CCBuyCardRec_Template": {"template": f"CritterCrash/Cards/{name}.png", "roi": roi}},
+                    {
+                        "CCCellCardFeature": {
+                            "template": f"CritterCrash/Cards/{name}.png",
+                            "roi": roi,
+                            "count": 1,
+                            "ratio": 0.6,
+                        }
+                    },
                 )
             except Exception:  # noqa: BLE001 - 识别异常按认不出处理
                 continue
@@ -837,7 +861,7 @@ class CCChessboard(CustomAction):
                 score = float(detail.best_result.score)
                 if best is None or score > best[0]:
                     best = (score, name)
-        return best[1] if best is not None and best[0] >= cls._CELL_CARD_MIN else None
+        return best[1] if best is not None else None
 
     @classmethod
     def is_cell_occupied(cls, context: Context, img: Any, row: int, col: int) -> bool:
@@ -1200,6 +1224,13 @@ class CCBuyCard(CustomAction):
             sy = box[1] + box[3] // 2
             logger.debug(f"拖拽 {card_name} 从 ({sx},{sy}) 到 ({row},{col}) 中心 ({tx},{ty})")
 
+            # 拖拽**前**先记下目标格是否已有棋子：
+            # 只判「拖完该格有棋子」是不够的 —— 那格本来就有别的棋子（比如鹿蜀）时，
+            # 会误判成「拖入成功」，把内部棋盘记成新卡、实际画面完全没变
+            # （实测 32124 拖了 8 次全报成功，画面里一次都没上去）。
+            pre_img = context.tasker.controller.post_screencap().wait().get()
+            was_occupied = CCChessboard.is_cell_occupied(context, pre_img, row, col)
+
             # 必须用 touch_down → 多次 touch_move → touch_up：
             # Controller.post_swipe 只支持两点，纯两点手势不会触发游戏里的拖拽
             # （实测卡一动不动）。带中途点的按下-移动-抬起才有效。
@@ -1225,10 +1256,24 @@ class CCBuyCard(CustomAction):
             # 只判一次会把「拖拽失败但棋子短暂悬停」误判成成功 ——
             # 实测日志说拖入 (0,3)/(0,4)/(0,5)，实际那三格全空，内部棋盘与实际分叉。
             occupied = CCChessboard.is_cell_occupied(context, img, row, col)
+            img2 = img
             if occupied:
                 time.sleep(0.6)
                 img2 = context.tasker.controller.post_screencap().wait().get()
                 occupied = CCChessboard.is_cell_occupied(context, img2, row, col)
+
+            # 目标格原本就有棋子时，拖拽成功必须体现为**画面变化**（卡种/等级变了）。
+            # 只判「有棋子」会把「拖拽完全没生效」也算成功 —— 这是 32124 连续 8 次
+            # 假成功、内部棋盘与画面彻底分叉的直接原因。
+            if was_occupied and occupied:
+                diff = CCChessboard.cell_diff(pre_img, img2, row, col)
+                if diff < CCChessboard._CELL_CHANGE_MIN:
+                    logger.debug(
+                        f"拖拽 {card_name} 到 ({row}, {col}) 后该格画面无变化（diff={diff:.1f}），判定拖拽未生效"
+                    )
+                    CCChessboard.skip_buy(card_name)
+                    return CustomAction.RunResult(success=True)
+
             if not occupied:
                 logger.debug(f"拖拽 {card_name} 到 ({row}, {col}) 后该格仍为空，本回合跳过该卡")
                 CCChessboard.skip_buy(card_name)

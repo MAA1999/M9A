@@ -168,7 +168,10 @@ class CCBuyCardRec(CustomRecognition):
         # 检查奖励框是否为空
         reco_detail = context.run_recognition("CCBuyCardAwardEmptyRec", argv.image)
         if is_hit(reco_detail):
-            # 识别到奖励框不为空，按策略表给定的优先级逐个试
+            # 识别到奖励框不为空，按策略表给定的优先级逐个试。
+            #
+            # 用 Cards/ 模板：**左下角奖励区**里放的卡与商店同尺寸；
+            # Award/ 是**升级后奖励商店**的卡图（更大，62x131 vs 59x112），两者不能混用。
             for card_name in CCChessboard.strategy.card_names():
                 reco_detail1 = context.run_recognition(
                     "CCBuyCardAwardRec_Template",
