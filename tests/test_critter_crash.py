@@ -1837,6 +1837,32 @@ class TestBuyCardFlow:
         result = reco.analyze(_ScriptedContext({}), argv)
         assert result.box is not None, "达到阈值应命中，交给 pipeline 点开始战斗"
 
+    def test_refresh_allows_low_money_but_buy_does_not(self) -> None:
+        """刷新的币门槛必须比买卡宽松。
+
+        type=0（买卡）最便宜的卡 3 费，要求 >=3；
+        type=1（刷新）只花刷新代币（0/1），币剩 2 个、刷新免费时本来能刷，
+        原先两处都卡 >=3/>=4，白白少刷一次。
+        """
+        from custom.reco.critter_crash import CCRemainMoney
+
+        reco = CCRemainMoney.__new__(CCRemainMoney)
+
+        def run(type_id: int) -> bool:
+            argv = type(
+                "Argv",
+                (),
+                {
+                    "image": np.zeros((720, 1280, 3), dtype=np.uint8),
+                    "custom_recognition_param": f'{{"type": {type_id}}}',
+                },
+            )()
+            ctx = _ScriptedContext({"CCRemainMoney_rec_refresh": _ocr_hit("2"), "CCRemainMoney_rec": _ocr_hit("2")})
+            return reco.analyze(ctx, argv).box is not None
+
+        assert run(1) is True, "刷新：币 2 也应当允许"
+        assert run(0) is False, "买卡：币 2 不够（最便宜 3 费）"
+
     def test_pool_bad_skips_refresh_a_finite_number_of_times(self) -> None:
         """判定卡池不符后只跳过有限次刷新，不锁死功能。
 

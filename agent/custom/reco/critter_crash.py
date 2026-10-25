@@ -361,7 +361,11 @@ class CCRemainMoney(CustomRecognition):
         if is_hit(reco_detail):
             money = ocr_text(reco_detail)
             logger.debug(f"识别到剩余缪斯币: {money}")
-            if int(money) >= 3:
+            # type=0 是买卡：最便宜的卡 3 费，要求 >= 3 合理。
+            # type=1 是刷新：只花**刷新代币**（0/1 之类，由 CCRefreshMoney_pre 单独把关），
+            # 跟 3 费没有关系 —— 币剩 2 个、刷新免费时本来能刷，卡在 >=3 就白白少刷一次。
+            need = 3 if type == 0 else 1
+            if int(money) >= need:
                 return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=reco_detail.raw_detail)
         return CustomRecognition.AnalyzeResult(box=None, detail={})
 
