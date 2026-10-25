@@ -559,11 +559,12 @@ class _ScriptedContext:
 
         def get(self) -> np.ndarray:
             self._owner._frame_calls += 1
-            # 空格底纹：**极低**噪声（std≈2），确保被判定为空格。
-            # 实机空格 std≈29，但测试里只要低于 _OCCUPIED_STD(45) 即可；
-            # 用更低的噪声能避免随机波动导致误判占用。
+            # 空格底纹：**std 必须贴合实机（≈29）**，不能画成 std≈1 ——
+            # 否则「判空阈值写错」这类回归测不出来（_EMPTY_CELL_STD 曾写成 18，
+            # 实机空格 29 永远不满足 < 18，而桩里 std≈1 让用例照常通过）。
+            # 固定种子：同一测试内多次 get() 完全一致，cell_diff 才有稳定基线。
             rng = np.random.default_rng(0)
-            frame = rng.integers(195, 199, (720, 1280, 3), dtype=np.uint8)
+            frame = rng.normal(192, 29, (720, 1280, 3)).clip(0, 255).astype(np.uint8)
             # 买完后在指定格画一块高对比棋子（std≈68，对应实机占用格）
             if self._owner.force_empty_frame:
                 return frame
