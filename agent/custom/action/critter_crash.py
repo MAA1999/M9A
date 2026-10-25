@@ -1292,8 +1292,16 @@ class CCBuyCard(CustomAction):
                 if not CCChessboard._is_valid_position(row, col):
                     continue
                 cell = CCChessboard.board[row][col]
-                if cell is not None and cell.get("name") == card_name and int(cell.get("level", 1)) < cap:
+                if cell is None or cell.get("name") != card_name:
+                    continue
+                # 已有同名棋子：没满级就拖上去合成，满了就**不再买**。
+                # 不能落到下面的「找空格」—— 那样棋盘上会出现第二个同名辅助卡，
+                # 和 single_slot「最多只放 1 个」的约定相反，还会挤掉别人的位置。
+                # （两个 review bot 独立指出了这一点。）
+                if int(cell.get("level", 1)) < cap:
                     return (row, col)
+                logger.debug(f"{card_name} 已满级（{cap}），single_slot 只留 1 个，本次不买")
+                return (-1, -1)
 
         # 1) 先占地盘：positions 里第一个**实际为空**的格
         for row, col in info.get("positions", []):

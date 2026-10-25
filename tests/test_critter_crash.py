@@ -1757,6 +1757,23 @@ class TestBuyCardFlow:
         assert (row, col) == (1, 2), "已有 32124 时应回同一格升级，而不是去占 (1,3)"
         assert CCChessboard.is_cell_occupied(ctx, img, 1, 3) is False
 
+    def test_single_slot_maxed_card_is_not_bought(self) -> None:
+        """辅助卡满级后不再买 —— 不许落到新格占第二个位置。
+
+        CodeRabbit 与 m9abot 独立指出了这一点：原逻辑只在「未满级」时复用原格，
+        满级后继续走「找空格」，棋盘上就会出现第二个 32124/32126，
+        和 single_slot「最多只放 1 个」相反。
+        """
+        CCChessboard.place_chess(1, 2, "32124")
+        for _ in range(4):   # 两次合成升一级，满级要 4 次
+            CCChessboard.upgrade_chess(1, 2)
+        entry = CCChessboard.board[1][2]
+        assert entry is not None and entry["level"] == 3, "先确保已满级"
+
+        ctx = _ScriptedContext({})
+        img = ctx.tasker.controller.get()
+        assert CCBuyCard._pick_target_cell("32124", ctx, img) == (-1, -1)
+
     def test_single_slot_card_skips_occupied_first_choice(self) -> None:
         """首选位被别的棋子占着时，辅助卡要顺延到下一个空格。"""
         CCChessboard.board[1][2] = {"name": "sticker", "level": 1, "row": 1, "col": 2}
