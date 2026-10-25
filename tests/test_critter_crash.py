@@ -1780,8 +1780,8 @@ class TestBuyCardFlow:
         result = reco.analyze(_ScriptedContext({}), argv)
         assert result.box is not None, "达到阈值应命中，交给 pipeline 点开始战斗"
 
-    def test_finding_a_card_resets_pool_bad_streak(self) -> None:
-        """只要刷出一张白名单卡就清零，避免「偶尔刷到但没买成」被误判成卡池不符。"""
+    def test_finding_a_card_sets_pool_ok(self) -> None:
+        """刷出一张白名单卡 → 清零连续计数 + 置本局 pool_ok。"""
         CCChessboard.no_card_streak = 4
         ctx = _ScriptedContext(
             {
@@ -1791,6 +1791,26 @@ class TestBuyCardFlow:
         )
         _analyze_buy_card(ctx)
         assert CCChessboard.no_card_streak == 0
+        assert CCChessboard.pool_ok is True
+
+    def test_pool_bad_never_fires_once_pool_ok(self) -> None:
+        """本局出现过鹿蜀后，即使之后连续 5 轮没卡，也不再判卡池不符（用户 2026-10-25 明确）。
+
+        不能只做「清零后重新累积」：一局好牌局中途连着几轮没刷到就会被打断。
+        """
+        from custom.reco.critter_crash import CCPoolBadRec
+
+        reco = CCPoolBadRec.__new__(CCPoolBadRec)
+        argv = type("Argv", (), {"image": np.zeros((720, 1280, 3), dtype=np.uint8)})()
+        CCChessboard.pool_ok = True
+        CCChessboard.no_card_streak = 99
+        assert reco.analyze(_ScriptedContext({}), argv).box is None
+
+    def test_new_match_resets_pool_ok(self) -> None:
+        """pool_ok 按局有效：新局必须复位，否则卡池不对的局永远提前结束不了。"""
+        CCChessboard.pool_ok = True
+        CCChessboard.board_reset()
+        assert CCChessboard.pool_ok is False
 
     def test_skip_expires_after_a_few_attempts(self) -> None:
         """skip 是**有限次数**，不是整回合拉黑。

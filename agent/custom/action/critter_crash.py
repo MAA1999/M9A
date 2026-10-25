@@ -668,8 +668,8 @@ class CCChessboard(CustomAction):
         cls.strategy = strategy
         cls.board_rois = _board_rois_from(strategy)
         cls.chess_types = _chess_types_from(strategy)
-        cls.board = [[None] * strategy.board_cols for _ in range(strategy.board_rows)]
-        cls.board_chesses = []
+        # 棋盘 + 全部按局状态（board_full / merge_streak / no_card_streak / pool_ok）一起清
+        cls.board_reset()
         cls._last_round = None
         cls._buy_skip = {}
         cls.reset_rerolls()
@@ -717,6 +717,13 @@ class CCChessboard(CustomAction):
     no_card_streak: int = 0
     # 连续多少轮无卡就判定卡池不符（用户 2026-10-25 定：5 次）
     _POOL_GIVE_UP_AFTER: int = 5
+
+    # 本局是否出现过白名单卡（一次性置位，新局才复位）。
+    #
+    # 用户 2026-10-25 明确：**只要本局刷出过一次鹿蜀，整局就不再判「卡池不符」** ——
+    # 不能「清零后重新累积」，否则中途连着 5 轮没刷到又会把一局好牌局提前结束
+    # （实测 01:06 就是这么被误杀的：拖拽失败几轮 + 后续没出卡 → streak 到 5 → 直接开战）。
+    pool_ok: bool = False
     # 连续合成多少次判定棋盘已满（实测满盘后每轮都是合成）
     _MERGE_STREAK_FULL: int = 4
     # 升 1 级要累计几次合成。
@@ -806,8 +813,17 @@ class CCChessboard(CustomAction):
 
     @classmethod
     def board_reset(cls) -> list[list[dict[str, str | int] | None]]:
+        """清空棋盘与**所有按局状态**（新对局时调用）。
+
+        盘点过一次就漏一次，所以按局状态统一在这里复位：
+        board_full / merge_streak / no_card_streak / pool_ok。
+        """
         cls.board = [[None] * cls.strategy.board_cols for _ in range(cls.strategy.board_rows)]
         cls.board_chesses = []
+        cls.board_full = False
+        cls.merge_streak = 0
+        cls.no_card_streak = 0
+        cls.pool_ok = False
         return cls.board
 
     @classmethod
@@ -1132,6 +1148,7 @@ class CCChessboard(CustomAction):
             type(self).board_full = False
             type(self).merge_streak = 0
             type(self).no_card_streak = 0
+            type(self).pool_ok = False
             type(self).reset_rerolls()
             # 不要清领队：领队是玩家账号级的选择，新开一局通常沿用同一位，
             # 而「选领队」页不一定每次都出现（实测连续几局都没有该页 → leader_id 恒 None

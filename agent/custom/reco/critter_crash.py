@@ -237,12 +237,19 @@ class CCBuyCardRec(CustomRecognition):
                     },
                 )
                 if is_hit(reco_detail):
-                    # **只要商店里出现任意一张白名单卡，就说明卡池是对的** —— 立刻清零。
+                    # **只要商店里出现任意一张白名单卡，就说明卡池是对的** ——
+                    # 置一次性标记 pool_ok（本局永久有效，新局才复位）+ 清零连续计数。
                     #
-                    # 不能等「买成功」才清：拖拽会失败（实测 01:06 连续三次
-                    # 「该格仍为空」后第四次才成功），那期间计数照样在累加，
+                    # 不能等「买成功」才置位：拖拽会失败（实测 01:06 连续三次
+                    # 「该格仍为空」后第四次才成功），那期间照样在累加，
                     # 结果明明刷到鹿蜀、也合成了，却因为 streak 到 5 被判「卡池不符」直接开战。
+                    #
+                    # 也不能只清零：用户 2026-10-25 要求「本局出现过鹿蜀就不再触发这条规则」——
+                    # 清零后如果后面连着 5 轮没出卡，又会把一局好牌局提前结束。
                     CCChessboard.no_card_streak = 0
+                    if not CCChessboard.pool_ok:
+                        logger.debug(f"本局已出现白名单卡 {card_name} → 本局不再判卡池不符")
+                    CCChessboard.pool_ok = True
 
                     # 识别成功，检查是否有空位
                     free = CCChessboard.find_empty_position_on_image(context, argv.image, card_name)
@@ -406,6 +413,10 @@ class CCPoolBadRec(CustomRecognition):
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
     ) -> CustomRecognition.AnalyzeResult | RectType | None:
+
+        # 本局出现过任意白名单卡 → 永不判卡池不符（用户 2026-10-25 明确）
+        if CCChessboard.pool_ok:
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
 
         streak = CCChessboard.no_card_streak
         if streak < CCChessboard._POOL_GIVE_UP_AFTER:
