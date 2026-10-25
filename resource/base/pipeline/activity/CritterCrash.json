@@ -1,40 +1,411 @@
 {
-    // 翻斗棋
-    "CritterCrash": {
+    // 翻斗棋（4.0 适配）
+    // 入口链路（实机实测 2026-10-15，1280x720）：主页「神秘箱中遨游」banner → 畅游摩卢旁卡页
+    //   →「参与游戏」→ 翻斗棋主菜单 →「箱中对决」→ 本次奇遇弹窗（下一步）→ 选择领队（全屏 3 卡）
+    //   →「进入战斗」→ 对局页。
+    // 对局页之后的节点沿用 3.5 的实测结论（Empty 0.987 / StartCombat 0.993）；
+    // 卡牌模板也沿用（Cards/Deer.png 在 4.0 实战截图上 0.991，即鹿蜀美术未变）。
+    //
+    // 素材目录：全部平铺在 `CritterCrash/` 下（不再有版本子目录）—— 本项目只支持 4.0 界面，
+    // 3.5 专用且无人引用的旧图（Start / ToDo / JiuNiangzi / Peoples/ 等）已删除。
+    //
+    // 判定方式约定（为 i18n 铺路）：
+    //   · **带文字的按钮/标签一律走 OCR**：主菜单「翻斗历程」「箱中对决」、对局页「怪物粘贴处」、
+    //     奇遇「下一步」、选领队「进入战斗」、入口页「参与游戏」。`expected` 写成数组，
+    //     以后加语言就是往数组里加字符串，不用重新裁图。
+    //   · 模板只留给**美术/图标/印章**（没有可读文字，换语言也不变）：Cards/ 棋子美术、Award/、
+    //     Empty、Lv3 满级角标、Blank/、StartCombat/ 的 Battle 印章、SkipCombat / Spirit / Stop 图标、
+    //     LeaderSelected 勾选圈、Leaders_<id> 棋手立绘。
+    //
+    // 两段式入口（重要）：
+    //   · CritterCrashEntry = 任务入口，收「任意翻斗棋界面」（主菜单 / 对局页 / 选领队页），
+    //     这样用户从对局中间启动也能接上（3.5 只认主菜单，从对局页启动会 status 4000 秒失败）。
+    //   · CritterCrash      = 主菜单锚点，保持 3.5 语义（只认主菜单的「翻斗历程」），
+    //     它被 CCFlagInCombatMain.next 当作「是否已回到主菜单」的判据使用。
+    //   ⚠️ 不要把对局页判据并进 CritterCrash：那样会与 CCFlagInCombatMain.next 里的
+    //      CritterCrash 形成 Entry→CCResetData→CCFlagInCombatMain→CritterCrash 死循环（已实测踩过）。
+    //
+    // 三条实测行为（2026-10-16 / 10-17，决定了下面的 next 排布）：
+    //   1. 选领队页「进入战斗」在**没有选中领队时是禁用态**，点了不响应 —— 死等会让任务在
+    //      这一页终结（status 4000）。所以 CCSelectPeople4p0 必须兜底选人，见 CCPickLeaderRec。
+    //   2. **对局一旦建立就会续局**：退到主菜单再点「箱中对决」直接回到同一局（不再走奇遇/选领队），
+    //      且已消耗 1 次次数。因此 CCStart.next 首项要能认对局页，否则续局时会死端。
+    //   3. **换奇遇要靠「放弃」，光返回没用**（2026-10-17 实机）：奇遇弹窗/选领队页点左上返回只是回到
+    //      主菜单，这一局还压着 —— 再点「箱中对决」原样回到同一局（同名奇遇：连摇 4 次都是「大鱼吃小鱼」，
+    //      额度全白烧，这就是「重开流程不对」的根因）。真正的重摇是两步：
+    //        返回回主菜单（CCPickEncounterRec 点的）→ 点「箱中对决」招牌右上角的 **✕（CCStop）**
+    //        → 清掉「此时放弃对战评分不变，是否确认？」（CCRerollConfirm）→ 再点「箱中对决」。
+    //      实测这样能摇到新奇遇（大鱼吃小鱼 → 天外飞箱），且 ✕ 放弃后立刻消失（它是条件出现的，
+    //      「有未完成对局」才有，所以没局时 CCStop 自然 miss，不会误点）。
+    //      ⚠️ 所以在每一处「准备开局」的 next 里，`[JumpBack]CCStop` 都必须排在 CCStart **之前** ——
+    //      3.5 就是这个顺序，4.0 改写时把它排到了 CCStart 后面，于是永远轮不到它，主菜单上只会
+    //      点「箱中对决」续局。
+    //      结构约定（别改回复合节点）：**「点一下就走」的节点保持原子** —— `CCStop`（点 ✕ 放弃）
+    //      与 `CCRerollConfirm`（点确认清框）都只有识别 + 点击、没有 next，调用方一律用
+    //      `[JumpBack]X` 引用：点完回**调用方自己的列表**重新识别，后续决策（还要不要放弃、
+    //      现在到底在哪一页、要不要开局）留在列表里。把 `→ CritterCrash → CCStart` 这种
+    //      调用方续程写进被调节点的 next，会立刻和主菜单锚点互指成环（`CritterCrash ↔ CCStop`、
+    //      `CritterCrash ↔ CCRerollConfirm`），还会硬路由跳过列表里的状态判断 —— 本轮第一版
+    //      就是这么踩的；3.5 的 `[JumpBack]CCConfirm` 本来就是叶子写法。
+    //      挂 `[JumpBack]CCStop` 的只有两处：主菜单锚点 `CritterCrash`（覆盖重摇 / 领队重摇 /
+    //      活动入口页启动）与 `CCResetData`（任务入口直接就停在主菜单时）。
+    "CritterCrashEntry": {
+        "desc": "任务入口：任意翻斗棋界面（主菜单「翻斗历程」/ 对局页「怪物粘贴处」/ 选领队「进入战斗」/ 奇遇「下一步」/ 入口页「参与游戏」）—— 五路都是文字 OCR 判定",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "Or",
             "param": {
-                "roi": [
-                    1076,
-                    26,
-                    132,
-                    44
-                ],
-                "template": [
-                    "CritterCrash/History.png"
+                "any_of": [
+                    "CritterCrash",
+                    "CCFlagInCombatMain",
+                    "CCEnterBattle",
+                    "CCPlay",
+                    "CCNext",
+                    "CCEntryCombatEnd",
+                    "CCEntrySelectPeople",
+                    "CCEntryStickerBook",
+                    "CCEntryCardPanel",
+                    "CCCloseCardPanel",
+                    "CCEntrySaveTeam"
                 ]
             }
         },
         "next": [
+            "CCEntryCombatEnd",
+            "CCEntryStickerBook",
+            "CCEntryCardPanel",
+            "CCCloseCardPanel",
+            "CCEntrySaveTeam",
+            "CCSelectPeople4p0",
+            "CCPlay",
             "CCResetData"
         ]
     },
-    "CCResetData": {
-        "action": {
-            "type": "Custom",
+    // 入口兜底：上一轮任务可能停在「贴纸册 / 卡包详情」页（右侧一排卡牌分类、右上角白色 X）。
+    // 这页是误点卡包图标进去的，必须关掉才能继续；模板取自该页右上角的 X（命中 1.0）。
+    "CCEntryStickerBook": {
+        "desc": "入口兜底：关掉误开的贴纸册/卡包页（右上角 X）",
+        "recognition": {
+            "type": "TemplateMatch",
             "param": {
-                "custom_action": "CCResetData"
+                "roi": [
+                    1150,
+                    20,
+                    130,
+                    110
+                ],
+                "template": ["CritterCrash/StickerBookClose.png"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": ["CCResetData"]
+    },
+    // 入口兜底：对局结束后弹的「是否保存队伍？」对话框（点空白处关闭）。
+    // 这页不属于入口 any_of 时，任务会 1 节点 4000。
+    "CCEntrySaveTeam": {
+        "desc": "入口兜底：关掉对局结束的「是否保存队伍？」弹窗",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    640,
+                    300,
+                    320,
+                    60
+                ],
+                "expected": ["是否保存队伍"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    640,
+                    690,
+                    20,
+                    20
+                ]
+            }
+        },
+        "post_delay": 600,
+        "next": ["CCResetData"]
+    },
+    // 入口兜底：上一轮任务停在卡牌详情面板（点开商店卡后没关掉）。
+    // 这页会挡住后续所有识别，任务 1 节点就 4000（实测 12:25/12:33/12:52 多次）。
+    // 判据用面板右侧的翻页箭头（模板 PanelArrow.png，实测命中 0.866）——
+    // 「可摆放区域位置不足」那行红底小字 OCR 识别不出（roi 600,450,500,120 只读回 "M1"）。
+    // 关闭方式：Android KEYCODE_ESCAPE(111)，实测有效。
+    "CCEntryCardPanel": {
+        "desc": "入口兜底：ESC 关掉卡牌详情面板",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    980,
+                    250,
+                    120,
+                    100
+                ],
+                "template": ["CritterCrash/PanelArrow.png"]
+            }
+        },
+        "action": {
+            "type": "ClickKey",
+            "param": {
+                "key": 111
+            }
+        },
+        "post_delay": 500,
+        "next": ["CCResetData"]
+    },
+    // 入口兜底：上一轮任务可能停在「选择领队」页。
+    // 必须是**纯 OCR** —— 把 Custom 节点（CCSelectPeople4p0）直接放进 Or.any_of 命中不了
+    // （实测 st5.png：CCFlagInSelectPeople 单独 OCR 命中、而 Or 里的 Custom 分支返回 miss）。
+    // 这里只负责「认出这页」，真正的选人交给 next 里的 CCSelectPeople4p0。
+    "CCEntrySelectPeople": {
+        "desc": "入口兜底：认出「选择领队」页（纯 OCR）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    550,
+                    72,
+                    220,
+                    45
+                ],
+                "expected": ["选择领队"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "DoNothing"
+        },
+        "next": ["CCSelectPeople4p0"]
+    },
+    // 入口兜底：上一轮任务可能停在「对战结束」结算页（这页没有任何按钮，点一下才继续）。
+    // 不在入口识别它的话，从该页启动任务会 1 个节点就 4000（实测 04:5x、05:0x 各一次）。
+    "CCEntryCombatEnd": {
+        "desc": "入口兜底：卡在「对战结束」结算页时点一下继续",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    537,
+                    121,
+                    203,
+                    59
+                ],
+                "expected": ["对战结束"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": ["CCResetData"]
+    },
+    // 活动入口页（畅游摩卢旁卡）的「参与游戏」，点它进翻斗棋主菜单。
+    // 放在 CCResetData 之前：在入口页时它先命中；在其它界面它不命中，由 CCResetData 兜底。
+    "CCPlay": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1000,
+                    555,
+                    270,
+                    90
+                ],
+                "expected": ["参与游戏"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 2000,
+        "next": [
+            "CritterCrash",
+            "CCStart",
+            "CCResetData"
+        ]
+    },
+    "CritterCrash": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1000,
+                    15,
+                    240,
+                    58
+                ],
+                "expected": ["翻斗历程"],
+                "only_rec": true
             }
         },
         "next": [
-            "CCFlagInCombatMain",
+            // 主菜单锚点 = 「我在主菜单」时的唯一决策点：先清放弃框 → 还压着一局就先放弃 → 再开局。
+            // 从活动入口页「参与游戏」进来走的就是这里（CCPlay.next 第 1 项），绕开了 CCResetData，
+            // 所以「先放弃」这一刀必须挂在这儿，否则那条路径又会「点箱中对决续旧局」（原 bug 复现）。
+            // CCStop 是原子节点（只认 ✕ + 点掉，没有 next），用 [JumpBack] 引用：点完回到本列表重新识别，
+            // 下一轮由 CCRerollConfirm 清框 —— 这样 CCStop 不会和本节点互指成环。
+            "[JumpBack]CCRerollConfirm",
+            // 主菜单上还压着一局（「箱中对决」右上角有 ✕）就先放弃再开新局。
+            // 脚本连打时必须这么做：不放弃就会带着上一局的棋盘/血量/商店状态接着打，
+            // 内部棋盘模型和真实棋盘立刻分叉（✕ 只在有未完成对局时出现，没局时自然 miss）。
             "[JumpBack]CCStop",
             "CCStart",
             "[JumpBack]CCConfirm",
             "[JumpBack]CCClickBlank"
         ]
     },
+    "CCCloseCardPanel": {
+        "desc": "用 ESC 关掉卡牌详情面板。pipeline 的 ClickKey 走框架原生按键路径；Python 侧 post_click_key / post_key_down 实测对该面板无效（发了 40 次面板 40 次都在）。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    980,
+                    250,
+                    120,
+                    100
+                ],
+                "template": ["CritterCrash/PanelArrow.png"]
+            }
+        },
+        "action": {
+            "type": "ClickKey",
+            "param": {
+                "key": 111
+            }
+        },
+        "post_delay": 600
+    },
+    "CCResetData": {
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CCResetData",
+                "custom_action_param": {
+                    "strategy_file": "data/critter_crash/strategy-4.0.json"
+                }
+            }
+        },
+        "next": [
+            "CCFlagInCombatMain",
+            "CCFlagInSelectPeople",
+            // 入口启动时也可能正压着「放弃对战」确认框：先清框，再决定去哪
+            "[JumpBack]CCRerollConfirm",
+            // 停在一页「本次奇遇」弹窗上时：先按名字门控，再翻页（主菜单上它不命中，不会抢 CCStart 的道）
+            "CCEncounterAccept",
+            "CCNext",
+            // 从入口启动时同样要先放弃残局：脚本每轮都从干净状态开打。
+            "[JumpBack]CCStop",
+            "CCStart",
+            "[JumpBack]CCConfirm",
+            "[JumpBack]CCClickBlank"
+        ]
+    },
+    // 4.0 主菜单右下角「箱中对决」是当期唯一开局入口（3.5 的 Start.png 实测 0.184 已失效）
+    "CCStart": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1030,
+                    555,
+                    250,
+                    110
+                ],
+                "expected": ["箱中对决"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "CCFlagInCombatMain",
+            "CCEncounterAccept",
+            "CCNext",
+            "CCSelectPeople4p0",
+            "CCEnterBattle",
+            "[JumpBack]CCRerollConfirm",
+            "CCStart"
+        ]
+    }, // 4.0 新增：开局前的「本次奇遇」弹窗。用「下一步」按钮作门控（该按钮只存在于奇遇弹窗），
+    // 不依赖 OCR —— 本机 OCR 实测在本资源包下返回 0 结果，无法离线验证，故避开 OCR。
+    "CCNext": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1010,
+                    612,
+                    226,
+                    50
+                ],
+                "expected": ["下一步"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 800,
+        "next": [
+            "CCNext",
+            "CCSelectPeople4p0",
+            "CCEnterBattle",
+            "CCFlagInSelectPeople",
+            "CCFlagInCombatMain"
+        ]
+    },
+    // 4.0 新增：选择领队页右下角「进入战斗」（kf 0021 实测置信度 1.0）
+    "CCEnterBattle": {
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1000,
+                    590,
+                    255,
+                    85
+                ],
+                "expected": ["进入战斗"],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 1500,
+        "next": [
+            "CCFlagInCombatMain",
+            "CCStartCombat",
+            "CCEnterBattle"
+        ]
+    },
+    // 主菜单「箱中对决」招牌右上角的橙底 ✕ = **放弃当前这一局**（不是「退出小游戏」，也不是常驻按钮：
+    // 实测只在有未完成对局时出现，放弃后立刻消失；棋盘页/选领队页/奇遇弹窗上都没有它，不会在对局中误触发）。
+    // 实测链路（2026-10-17，1280x720）：点 ✕(1231,576) → 弹「此时放弃对战评分不变，是否确认？」
+    // →「确认」(800,427) → 主菜单（✕ 消失）→ 再点「箱中对决」= **新奇遇**。
+    // 点击落点用识别框中心即可：✕ 圆心 (1231,576) 落在 ROI [1207,553,52,53] 中间；
+    // 「确认」落在 CCRerollConfirm 既有 target [760,400,90,50] 内 —— 两处几何都不用改。
+    //
+    // **本节点刻意保持原子：只有识别 + 点击，没有 next**（沿用 3.5 的写法）。
+    // 需要「先放弃再开局」的列表用 `[JumpBack]CCStop` 引用它：点完回父列表重新识别，
+    // 由列表里排在 CCStart 之前的 CCRerollConfirm 清掉放弃框。反过来若给它挂 next
+    // （点 ✕ → 清框 → 开局）并让别的节点再指回来，就会长出 CCStop ↔ CritterCrash 那种互指环。
+    // 这里也**不挂泛化 `CCConfirm`（OCR「确认」）当兜底**：它在选领队页/主菜单实测 0.87/0.767
+    // 相似度（阈值 0.3）会误命中并点掉 [766,404,70,34]；专用锚点「放弃对战」在真弹框上引擎实测
+    // 0.979~0.9998，本来就不需要兜底。
     "CCStop": {
+        "desc": "主菜单「箱中对决」右上角 ✕ = 放弃当前这局（只在有未完成对局时出现；原子节点，无 next）",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -51,6 +422,33 @@
         },
         "action": {
             "type": "Click"
+        }
+    },
+    "CCAwardClearConfirm": {
+        "desc": "4.0：奖励区有卡时点「挑战」会弹「奖励区的棋子…是否确认？」（实测 .live/acc/t18-round3.png）。点「取消」保留卡牌，交回主循环去拖卡。",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    220,
+                    215,
+                    840,
+                    45
+                ],
+                "expected": [
+                    "奖励区的棋子"
+                ],
+                "only_rec": true
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    400,
+                    422
+                ]
+            }
         }
     },
     "CCConfirm": {
@@ -92,124 +490,16 @@
             "type": "Click"
         }
     },
-    "CCStart": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    1024,
-                    569,
-                    188,
-                    69
-                ],
-                "template": [
-                    "CritterCrash/Start.png"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "post_delay": 1500,
-        "next": [
-            "CCFlagInList",
-            "CCStart"
-        ]
-    },
-    "CCFlagInList": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    593,
-                    36,
-                    187,
-                    49
-                ],
-                "expected": [
-                    "守卫名单"
-                ],
-                "only_rec": true
-            }
-        },
-        "next": [
-            "CCFlagInMakePlan",
-            "[JumpBack]CCToDo"
-        ]
-    },
-    "CCToDo": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    1043,
-                    610,
-                    147,
-                    50
-                ],
-                "template": [
-                    "CritterCrash/ToDo.png"
-                ],
-                "method": 10001,
-                "threshold": 0.9
-            }
-        },
-        "action": {
-            "type": "Click"
-        },
-        "post_delay": 1500
-    },
-    "CCFlagInMakePlan": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    593,
-                    36,
-                    187,
-                    49
-                ],
-                "expected": [
-                    "制定计划"
-                ],
-                "only_rec": true
-            }
-        },
-        "next": [
-            "CCFlagInSelectPeople",
-            "[JumpBack]CCToDo",
-            "[JumpBack]CCSelectPlan"
-        ]
-    },
-    "CCSelectPlan": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    8,
-                    137,
-                    1254,
-                    290
-                ],
-                "template": [
-                    // "CritterCrash/NewBabel.png" // 3.2 制定计划 新巴别塔 工具采购
-                    "CritterCrash/JiuNiangzi.png" // 3.5 制定计划 曲娘 勤学苦练
-                ]
-            }
-        },
-        "action": {
-            "type": "Click"
-        }
-    },
     "CCFlagInSelectPeople": {
+        "desc": "4.0 选择领队页：标题 OCR（实测标题在 y≈72..117；旧的 [593,36,187,49] 落在标题上方，置信度 0 恒失配）",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
-                    593,
-                    36,
-                    187,
-                    49
+                    550,
+                    72,
+                    220,
+                    45
                 ],
                 "expected": [
                     "选择领队"
@@ -218,124 +508,165 @@
             }
         },
         "next": [
-            "CritterCrash",
-            "CCFlagInCombatMain",
-            "[JumpBack]CCToDo",
-            // "[JumpBack]CCSelectPeople1",
-            // "[JumpBack]CCSelectPeople2",
-            // "[JumpBack]CCSelectPeople3",
-            "[JumpBack]CCSelectPeople3p5",
-            "[JumpBack]CCRefreshPeople",
-            "[JumpBack]BackButton"
+            // 顺序要紧：没选领队时「进入战斗」是禁用态，先选人再点按钮。
+            // 已经选过时 CCPickLeaderRec 会靠「已选中」角标返回 miss，直接落到 CCEnterBattle。
+            "[JumpBack]CCSelectPeople4p0",
+            "CCEnterBattle",
+            "CCFlagInCombatMain"
+            // 这里不再挂 [JumpBack]BackButton：返回键现在由 CCPickLeaderRec 显式点击（带额度），
+            // 而泛化的 BackButton 会在选领队页反复命中（左上角就是返回箭头）→ 点返回的死环。
         ]
     },
-    "CCRefreshPeople": {
+    // 4.0 选领队：优先策略表指定的棋手（小叶尼塞 30027）；没摇到就点左上返回退出去重摇
+    // （有上限，见 strategy-4.0.json 的 people.max_reroll），额度用尽才兜底点卡位 0。
+    // 重摇必需：领队→卡包→棋子池，随机兜底可能整局买不到鹿蜀。
+    // 点返回后回到主菜单，故 next 里补 CritterCrash/CCStart 把「再进箱中对决」接上。
+    "CCSelectPeople4p0": {
+        "desc": "4.0 选领队：优先小叶尼塞（30027），没摇到则退出重摇，最后兜底点卡位 0",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "Custom",
             "param": {
-                "roi": [
-                    1066,
-                    124,
-                    57,
-                    57
-                ],
-                "template": [
-                    "CritterCrash/Peoples/RefreshPeople.png"
-                ]
+                "custom_recognition": "CCPickLeaderRec"
             }
         },
         "action": {
             "type": "Click"
+        },
+        "post_delay": 800,
+        "next": [
+            "CCEnterBattle",
+            "CCFlagInSelectPeople",
+            // 「没摇到优先棋手就退出重摇」（people.max_reroll > 0 才走得到）也是两步：上面点返回回主菜单后，
+            // 由主菜单锚点 CritterCrash 的 [JumpBack]CCStop 放弃这一局才算真重摇 —— 否则又回到同一局、
+            // 同样 3 张卡。这里不重复挂 CCStop。
+            "CritterCrash",
+            "[JumpBack]CCRerollConfirm",
+            "CCStart"
+        ]
+    },
+    // CCPickLeaderRec 的取材节点：优先棋手立绘（模板路径按 Leaders_<id>.png 约定拼）。
+    "CCPickLeader_Template": {
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    0,
+                    180,
+                    1280,
+                    420
+                ],
+                "template": [
+                    "CritterCrash/Leaders_30027.png"
+                ],
+                "threshold": 0.85
+            }
         }
     },
-    "CCSelectPeople1": {
+    // CCPickLeaderRec 的取材节点：「已被选中」角标。roi 由识别侧按卡位逐个覆盖。
+    "CCLeaderSelected_Template": {
         "recognition": {
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    184,
-                    194,
-                    936,
-                    325
+                    45,
+                    460,
+                    140,
+                    70
                 ],
                 "template": [
-                    "CritterCrash/Peoples/People1.png",
-                    "CritterCrash/Peoples/People2.png",
-                    "CritterCrash/Peoples/People3.png"
+                    "CritterCrash/LeaderSelected.png"
                 ]
             }
-        },
-        "action": {
-            "type": "Click"
         }
     },
-    "CCSelectPeople2": {
+    // 「此时放弃对战评分不变，是否确认？」弹窗 —— 退出重摇（点返回）和「箱中对决」都可能弹它。
+    // 用「放弃对战」当 OCR 锚点（比泛化的「确认」精确得多，不会在别的界面假阳性 —— 泛化那个
+    // 在选领队页/主菜单实测 0.87/0.767 相似度会误命中），命中后直接点右侧的「确认」按钮。
+    // 不点掉它，后面的节点全被它盖住 → 20s 超时 → 任务 4000。
+    //
+    // **本节点也保持原子：只有识别 + 点击，没有 next**（与 CCStop 同一条约定，3.5 的
+    // `[JumpBack]CCConfirm` 就是这么写的）。调用方一律 `[JumpBack]CCRerollConfirm`：
+    // 点完回调用方列表重新识别。理由不是洁癖 —— 清框之后该干什么**是调用方的决定**：
+    // 主菜单锚点要接着判「还有没有残局要放弃」，入口列表要重新判「当前到底在哪一页」。
+    // 把 `→ CritterCrash → CCStart` 写死在这里，就等于让每条调用链都硬跳过这些判断
+    // （4.0 原来就是这么写的，于是和 CritterCrash 互指成环，且在入口路径上会跳过「先放弃」）。
+    "CCRerollConfirm": {
+        "desc": "退出重摇的「放弃对战」确认框 → 点确认（原子节点，无 next，调用方用 [JumpBack] 引用）",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
                 "roi": [
-                    184,
-                    194,
-                    936,
-                    325
+                    420,
+                    295,
+                    440,
+                    42
                 ],
-                "template": [
-                    "CritterCrash/Peoples/People4.png",
-                    "CritterCrash/Peoples/People5.png"
-                ]
+                "expected": [
+                    "放弃对战"
+                ],
+                "only_rec": true
             }
         },
         "action": {
-            "type": "Click"
-        }
+            "type": "Click",
+            "param": {
+                "target": [
+                    760,
+                    400,
+                    90,
+                    50
+                ]
+            }
+        },
+        "post_delay": 800
     },
-    "CCSelectPeople3": {
+    // 「本次奇遇」弹窗的名字门控：名字不在策略表白名单里就点返回退出去重摇。
+    // 依据：棋子池由「奇遇 → 卡包」决定（领队只影响技能）；实测按领队重摇 15 次才中 1 次，
+    // 而奇遇名是弹窗上的大号文字，OCR 稳定。名字可接受时返回 miss，交给 CCNext 翻页。
+    // 重摇是**两步**（见文件头第 3 条）：这里的点击只是「返回主菜单」，返回本身不换奇遇 ——
+    // 所以 next 里必须紧跟 CCStop（点 ✕ 放弃这局）再回 CCStart 重开，否则又回到同一局同名奇遇。
+    "CCEncounterAccept": {
+        "desc": "奇遇弹窗：名字不在白名单就退出重摇（判定见 CCPickEncounterRec）",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "Custom",
             "param": {
-                "roi": [
-                    184,
-                    194,
-                    936,
-                    325
-                ],
-                "template": [
-                    "CritterCrash/Peoples/People6.png"
-                ]
+                "custom_recognition": "CCPickEncounterRec"
             }
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "post_delay": 800,
+        "next": [
+            // 重摇是两步：点返回回主菜单 → 点 ✕ 放弃这一局 → 再点「箱中对决」才是新牌。
+            // CCStop 只认「箱中对决」招牌右上角那个 ✕（有未完成对局时才出现），识别不到就自然
+            // miss，不会误点别处；所以主菜单锚点与 CCResetData.next 也各挂了一份
+            // [JumpBack]CCStop，脚本每轮都从干净状态开打。
+            "[JumpBack]CCRerollConfirm",
+            "CritterCrash",
+            "[JumpBack]CCStop",
+            "CCStart",
+            "CCNext"
+        ]
     },
-    "CCSelectPeople3p5": {
-        "desc": "3.5版本选择角色",
+    // CCPickEncounterRec 的取材节点：奇遇名（弹窗中部的大字，实测 [520,392,240,50] 命中率 3/3）
+    "CCEncounterNameRec": {
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
                 "roi": [
-                    184,
-                    194,
-                    936,
-                    325
+                    520,
+                    392,
+                    240,
+                    50
                 ],
-                "template": [
-                    "CritterCrash/Peoples/People2.png", // 玛尔纱
-                    "CritterCrash/Peoples/People3.png", // 37
-                    "CritterCrash/Peoples/People4.png", // 6
-                    "CritterCrash/Peoples/People5.png", // 诺谛卡
-                    "CritterCrash/Peoples/People7.png", // 梁月
-                    "CritterCrash/Peoples/People8.png" // 小叶尼塞
-                ]
+                "only_rec": true
             }
-        },
-        "action": {
-            "type": "Click"
         }
     },
     "CCFlagInCombatMain": {
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
                 "roi": [
                     221,
@@ -343,9 +674,8 @@
                     177,
                     54
                 ],
-                "template": [
-                    "CritterCrash/Paste.png"
-                ]
+                "expected": ["怪物粘贴处"],
+                "only_rec": true
             }
         },
         "action": {
@@ -355,6 +685,8 @@
             }
         },
         "next": [
+            // 详情面板开着时什么都做不了（它会挡住后续所有识别），必须最先处理。
+            "[JumpBack]CCCloseCardPanel",
             "CritterCrash",
             "[JumpBack]CCSkipCombat",
             "[JumpBack]CCClickBlank",
@@ -362,10 +694,14 @@
             "[JumpBack]CCCombatEnd",
             "[JumpBack]CCSpirit",
             "[JumpBack]CCConfirm",
+            // 贴纸箱必须排在买卡之前：买卡几乎每轮都命中（实测一轮 70 次），
+            // 挂在最后就永远轮不到 —— 贴纸一次都没开过。
+            "[JumpBack]CCSticker",
             "[JumpBack]CCBuyCard",
             "[JumpBack]CCRefreshCard_pre",
             "[JumpBack]CCRefreshCard_post",
             "[JumpBack]CCSelectAwardCard",
+            "[JumpBack]CCAwardClearConfirm",
             "[JumpBack]CCStartCombat"
         ]
     },
@@ -418,6 +754,7 @@
         }
     },
     "CCStartCombat": {
+        "desc": "点右下角的 Battle 按钮开战。4.0 的按钮是白色猫头样式，旧模板（StartCombat.png~7）是 3.5 的图案，形状完全对不上 —— 实测最佳匹配仅 0.12，等于永远 miss，于是「卡池不符后跳过刷新」也没人能接着开战。已补 4.0 实机模板 StartCombat8.png（84x84，离线 NCC=1.0000）。阈值放到 0.75 容忍按钮呼吸动画。",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -429,7 +766,8 @@
                 ],
                 "template": [
                     "CritterCrash/StartCombat/"
-                ]
+                ],
+                "threshold": 0.75
             }
         },
         "action": {
@@ -472,11 +810,48 @@
         },
         "next": [
             "CCFlagInCombatMain",
+            // 石骑士优先：单独节点单独试，命中就先拿它
+            "[JumpBack]CCSelectAwardCard_Knight",
             "[JumpBack]CCSelectAwardCard_Template",
             // "[JumpBack]CCSelectAwardCard_NoMore" // 3.2 版本在无目标的时候会随便选个奖励棋子
             "[JumpBack]CCSelectAwardCard_NoMore3p5", // 3.5 版本在无目标的时候会选择放弃按钮
             "[JumpBack]CCSelectAwardCard_NoMore3p5Confirm"
         ]
+    },
+    "CCSelectAwardCard_Knight": {
+        "desc": "升级奖励商店：**优先拿坚固石骑士 32703**（用户实测的主要收益来源）。拆成独立节点单独先试，而不是塞进 CCSelectAwardCard_Template 的 template 列表 —— 多模板时到底按列表顺序还是按分数挑，MaaLLMWiki 的 source-map 没有对应主题（未验证）；拆节点在两种语义下都能保证石骑士优先。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    111,
+                    154,
+                    1063,
+                    257
+                ],
+                "template": ["CritterCrash/Award/32703.png"]
+            }
+        },
+        "next": ["CCSelectAwardCard_Knight_Option"]
+    },
+    "CCSelectAwardCard_Knight_Option": {
+        "desc": "点石骑士那张卡下面的「选择」按钮（roi 相对骑士识别框偏移）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "CCSelectAwardCard_Knight",
+                "roi_offset": [
+                    -150,
+                    361,
+                    272,
+                    146
+                ],
+                "expected": ["选择"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "CCSelectAwardCard_Template": {
         "recognition": {
@@ -489,34 +864,18 @@
                     257
                 ],
                 "template": [
-                    "CritterCrash/Award/Deer.png",
-                    "CritterCrash/Award/Man.png",
-                    "CritterCrash/Award/Shiva.png"
+                    // 奖励商店的卡图比商店里的更大（Award/32703 是 62x131，Cards/32703 是 59x112），
+                    // 必须用 Award 下的模板。
+                    // 32703 坚固石骑士不在这里 —— 它由 CCSelectAwardCard_Knight 单独优先处理。
+                    "CritterCrash/Award/32123.png",
+                    "CritterCrash/Award/32126.png",
+                    "CritterCrash/Award/32607.png"
                 ]
             }
         },
         "next": [
             "CCSelectAwardCard_Option"
         ]
-    },
-    "CCSelectAwardCard_NoMore": {
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    153,
-                    638,
-                    195,
-                    70
-                ],
-                "expected": [
-                    "选择"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click"
-        }
     },
     "CCSelectAwardCard_NoMore3p5": {
         "recognition": {
@@ -572,6 +931,74 @@
         },
         "action": {
             "type": "Click"
+        }
+    },
+    "CCRoundRec": {
+        "desc": "对局页右侧回合数 n（来自 n/12，实测 roi 1160,415,120,50）。贴纸箱的开箱回合随品质变，需要读实际回合数做去重。",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1160,
+                    415,
+                    120,
+                    50
+                ],
+                "expected": [
+                    "^[0-9]{1,2}$",
+                    "^[0-9]{1,2}/12$"
+                ],
+                "replace": [
+                    [
+                        "//.*",
+                        ""
+                    ]
+                ],
+                "only_rec": true
+            }
+        }
+    },
+    "CCSticker": {
+        "desc": "4.0 专属贴纸箱：识别左列上格的盒子模板（开掉后变三角格即不再命中）。挂在主循环末尾、且 action 侧用「同回合只试一次」去重，避免未到回合时每轮空转。",
+        "recognition": {
+            // 识别层必须带门控：只看「箱子在不在」会让本节点在箱子未开时每轮都命中，
+            // 而 action 侧一旦判定「领队不对/本局已开」就只返回 True 不做动作 ——
+            // 主循环于是反复选中它，实测 300s 空转 306 次，买卡/开战全被挤掉。
+            // CCStickerBoxRec 里同时判：盒子在 AND 本局未开 AND 领队匹配。
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CCStickerBoxRec"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CCSticker"
+            }
+        }
+    },
+    "CCCellCardFeature": {
+        "desc": "棋盘格里的棋子卡种识别（FeatureMatch，对尺度不敏感 —— 棋盘渲染比商店卡图大约 1.6 倍）",
+        "recognition": {
+            "type": "FeatureMatch",
+            "param": {
+                "template": "CritterCrash/Cards"
+            }
+        }
+    },
+    "CCStickerBoxTemplate": {
+        "desc": "贴纸箱模板节点（供 CCStickerBoxRec 在 custom 里复用）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    280,
+                    120,
+                    200,
+                    200
+                ],
+                "template": ["CritterCrash/StickerBox.png"]
+            }
         }
     },
     "CCBuyCard": {
@@ -648,20 +1075,6 @@
                     124
                 ],
                 "template": "CritterCrash/Cards"
-            }
-        }
-    },
-    "CCBuyCardAwardTypeRec_Template": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    125,
-                    663,
-                    68,
-                    57
-                ],
-                "template": "CritterCrash/Unknown2.png"
             }
         }
     },
@@ -748,6 +1161,7 @@
         }
     },
     "CCRemainMoney_rec_refresh": {
+        "desc": "刷新判定用的剩余币。要求 >= 3 —— 刷新的前提是刷完还买得起卡（最便宜的卡 3 费），钱不够刷了也白搭。原先 expected 写成 ^[4-9]（要求 >=4），币正好 3 的那帧识别层就没命中，才表现成「三次费时放弃刷新」。",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -758,7 +1172,7 @@
                     25
                 ],
                 "expected": [
-                    "^[4-9]|[12][0-9]$"
+                    "^[3-9]|[12][0-9]$"
                 ],
                 "replace": [
                     [
@@ -813,6 +1227,7 @@
         }
     },
     "CCDeploy": {
+        "desc": "拖拽棋子到目标格。max_hit 必须留：next 是 [CCDeployFinished, CCDeploy] 自环，没有 max_hit 就永远不退出（实测一次 run_task 烧掉整轮 300s、217 次 CCDeploy，日志停在第一条部署决策）。清零由 CCBuyCard 在每次 run_task 前主动 clear_hit_count 保证，所以不会重现以前那种「一次失败永久卡死」。",
         "max_hit": 5,
         "action": {
             "type": "Swipe",
@@ -858,78 +1273,9 @@
         },
         "post_delay": 1500
     },
-    "CCUpdate": {
-        "max_hit": 2,
-        "action": {
-            "type": "Swipe",
-            "param": {
-                "duration": 500
-            }
-        },
-        "timeout": 3000,
-        "next": [
-            "CCUpdateFinished",
-            "CCUpdate"
-        ],
-        "on_error": [
-            "Stop"
-        ]
-    },
-    "CCUpdateFinished": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "template": "ccupdate"
-            }
-        },
-        "inverse": true,
-        "next": [
-            "CCResetCCUpdateCount"
-        ]
-    },
-    "CCResetCCUpdateCount": {
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "ResetCount",
-                "custom_action_param": {
-                    "nodes": [
-                        "CCUpdate"
-                    ]
-                }
-            }
-        }
-    },
-    "CCSellCards": {
-        "action": {
-            "type": "Swipe",
-            "param": {
-                "end": [
-                    690,
-                    630,
-                    84,
-                    56
-                ],
-                "duration": 500
-            }
-        },
-        "post_delay": 1000,
-        "next": [
-            "CCSellCardsFinished",
-            "CCSellCards"
-        ]
-    },
-    "CCSellCardsFinished": {
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "template": [
-                    "CritterCrash/10.png",
-                    "CritterCrash/20.png"
-                ]
-            }
-        }
-    },
+    // 说明：3.5 的「卖出」（CCSellCards / CCSellCardsFinished，靠拖到底部丢弃区 + 10/20 飘字确认）
+    // 已删除。4.0 实测奖励区的卡片拖不动（同形态拖商店卡会立刻回「缪斯币不足」，拖奖励卡零反应），
+    // 原来的「拖上棋盘 → 再卖掉」只会在 CCSellCards 上自环空转。认不出的奖励卡现在直接跳过。
     "CCSpirit": {
         "recognition": {
             "type": "TemplateMatch",
@@ -950,35 +1296,36 @@
         }
     },
     "CCRoundPre": {
+        "desc": "购物回合数 n/12，用于「本回合还能刷新」判定。原先只认 ^[1-6]/（旧策略：前 6 回合才刷新），第 7 回合起即使刷新币为 0、身上还有钱也不刷新，直接开战 —— 实测 22:35 第 8 回合、币 5、刷新币 1 时 CCRefreshCard_pre 的 And 就因这一项失败。改为匹配全部 12 回合。",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
-                    1172,
-                    419,
-                    77,
-                    30
+                    1160,
+                    415,
+                    120,
+                    50
                 ],
                 "expected": [
-                    "^[1-6]/"
+                    "^[0-9]{1,2}$",
+                    "^[0-9]{1,2}/12$"
                 ],
                 "only_rec": true
             }
         }
     },
-    "CCRoundPost": {
+    "CCLevelMaxPopup": {
+        "desc": "拖拽合成被拒时游戏弹的「棋子等级已满」提示（右上角）。这是判满级最可靠的信号：Lv3.png 模板只认得出一种角标，棋盘上其它 LV.3 都匹配不上；而格子 roi 内合成前后像素差恒为 0（弹窗在 roi 外）。",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
-                    1172,
-                    419,
-                    77,
-                    30
+                    985,
+                    80,
+                    265,
+                    70
                 ],
-                "expected": [
-                    "^(1[0-2]|[7-9])/"
-                ],
+                "expected": ["棋子等级已满"],
                 "only_rec": true
             }
         }
