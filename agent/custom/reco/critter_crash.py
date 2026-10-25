@@ -254,8 +254,9 @@ class CCBuyCardRec(CustomRecognition):
                     # 不需要额外的「本局出现过」布尔标记（那种跨局状态一旦漏复位就会误伤）。
                     any_hit = True
                     CCChessboard.no_card_streak = 0
-                    # 商店里有卡了 → 之前的「跳过刷新」立刻解除，别让它拖到下一局
+                    # 商店里有白名单卡 → 之前的「卡池不符」判定立刻作废（万一是误判）
                     CCChessboard.refresh_skip_left = 0
+                    CCChessboard.pool_gave_up = False
 
                     # 识别成功，检查是否有空位
                     free = CCChessboard.find_empty_position_on_image(context, argv.image, card_name)
@@ -321,8 +322,11 @@ class CCRemainMoney(CustomRecognition):
         # 不需要在放弃节点里点任何东西，也不用给 next 堆兜底。
         # type=1 是刷新判定那一份：判定「卡池不符」后故意失败几次，
         # 让流程落到主循环末尾的 CCStartCombat 开战。用一次扣一次，自动恢复。
-        # 判定「卡池不符」后挡掉几次刷新，让流程落到主循环末尾的 CCStartCombat 开战。
-        # 用一次扣一次、归零自动恢复 —— 不做永久标记，避免把刷新锁死。
+        # 本局判定「卡池不符」→ 整局不再刷新，直接开战（新局由棋盘检测复位）
+        if type == 1 and CCChessboard.pool_gave_up:
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+        # 判定刚成立的头几次也挡掉，双保险
         if type == 1 and CCChessboard.refresh_skip_left > 0:
             CCChessboard.refresh_skip_left -= 1
             logger.debug(
@@ -445,13 +449,19 @@ class CCPoolBadRec(CustomRecognition):
         if streak < CCChessboard._POOL_GIVE_UP_AFTER:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
 
+        # 本局已经判定过 → 不再重复判定（整局生效，新局由棋盘检测复位）
+        if CCChessboard.pool_gave_up:
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
+
         # 判定成立后**必须清零 no_card_streak**，否则本节点每轮都命中：
         # 它是 [JumpBack] 挂在主循环 next 里的，动作（DoNothing）做完回父列表
         # **从头轮询**，于是又一次命中本节点 —— 死循环卡在这里，
         # 永远轮不到后面的 CCRefreshCard_pre / CCStartCombat。
         # 实测 09:14~09:15 卡池不符命中 27 次、跳过刷新 0 次，就是这个原因。
         CCChessboard.no_card_streak = 0
-        # 同时挡掉接下来几次刷新，让流程能落到主循环末尾的 CCStartCombat 开战。
+        # **整局不再刷新**：门控在 CCRemainMoney(type=1) 里，pool_gave_up 期间恒 miss，
+        # 于是 CCRefreshCard_pre/post 自己失败，流程每回合直接落到 CCStartCombat 开战。
+        CCChessboard.pool_gave_up = True
         CCChessboard.refresh_skip_left = CCChessboard._REFRESH_SKIP_AFTER_GIVE_UP
         logger.debug(
             f"连续 {streak} 轮没有任何白名单卡 → 判定卡池不符，停止刷商店，直接开战（本局只触发一次）"

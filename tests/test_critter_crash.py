@@ -481,6 +481,8 @@ class _ScriptedContext:
         self.extra_changed: list[tuple[int, int]] = []
         # 所有格子都画成高对比（模拟棋盘全满）
         self.all_occupied = False
+        # 画面强制全空（模拟新对局开始：内部还记着上一局的棋子，画面已经清空）
+        self.force_empty_frame = False
         self.swipes: list[tuple[int, int, int, int, int]] = []
         self.keys: list[int] = []
         self.touches: list[tuple[str, int, int]] = []
@@ -558,6 +560,8 @@ class _ScriptedContext:
             rng = np.random.default_rng(0)
             frame = rng.integers(195, 199, (720, 1280, 3), dtype=np.uint8)
             # 买完后在指定格画一块高对比棋子（std≈68，对应实机占用格）
+            if self._owner.force_empty_frame:
+                return frame
             if self._owner.all_occupied:
                 for rr in range(len(CCChessboard.board)):
                     for cc in range(len(CCChessboard.board[rr])):
@@ -1818,6 +1822,50 @@ class TestBuyCardFlow:
             result = reco.analyze(_ScriptedContext({}), argv)
             assert result.box is None, "还有跳过次数时应 miss"
             assert CCChessboard.refresh_skip_left == left
+
+    def test_new_match_detected_by_empty_board(self) -> None:
+        """内部有棋子 + 画面全空 = 新对局 → 清空所有按局状态。
+
+        不用回合数 OCR：实测 CCRoundRec 的 hit 恒为 false，全天「检测到新对局」0 次，
+        导致按局状态跨局残留。棋盘状态是可靠信号。
+        """
+        CCChessboard.board[0][2] = {"name": "32123", "level": 1, "row": 0, "col": 2}
+        CCChessboard.pool_gave_up = True
+        CCChessboard.no_card_streak = 4
+        CCChessboard.board_full = True
+
+        ctx = _ScriptedContext({})
+        ctx.force_empty_frame = True
+        CCChessboard.__new__(CCChessboard)._reset_if_new_game(ctx)
+
+        assert CCChessboard.board[0][2] is None, "内部棋盘应被清空"
+        assert CCChessboard.pool_gave_up is False, "按局标记必须复位"
+        assert CCChessboard.no_card_streak == 0
+        assert CCChessboard.board_full is False
+
+    def test_no_reset_when_board_still_has_pieces(self) -> None:
+        """画面里还有棋子 → 还是同一局，不许清状态。"""
+        CCChessboard.board[0][2] = {"name": "32123", "level": 1, "row": 0, "col": 2}
+        CCChessboard.pool_gave_up = True
+        ctx = _ScriptedContext({})   # 桩按内部棋盘渲染 → 画面里也有棋子
+        CCChessboard.__new__(CCChessboard)._reset_if_new_game(ctx)
+        assert CCChessboard.board[0][2] is not None
+        assert CCChessboard.pool_gave_up is True
+
+    def test_pool_gave_up_blocks_refresh_for_whole_match(self) -> None:
+        """判定卡池不符后整局不再刷新（新局才复位）。"""
+        from custom.reco.critter_crash import CCRemainMoney
+
+        reco = CCRemainMoney.__new__(CCRemainMoney)
+        argv = type(
+            "Argv",
+            (),
+            {"image": np.zeros((720, 1280, 3), dtype=np.uint8), "custom_recognition_param": '{"type": 1}'},
+        )()
+        CCChessboard.pool_gave_up = True
+        assert reco.analyze(_ScriptedContext({}), argv).box is None
+        # 反复问也一直 miss（不是扣次数那种）
+        assert reco.analyze(_ScriptedContext({}), argv).box is None
 
     def test_skip_expires_after_a_few_attempts(self) -> None:
         """skip 是**有限次数**，不是整回合拉黑。

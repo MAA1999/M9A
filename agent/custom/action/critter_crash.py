@@ -725,6 +725,13 @@ class CCChessboard(CustomAction):
     # 给 6 留出 3 轮余量。
     _REFRESH_SKIP_AFTER_GIVE_UP: int = 6
 
+    # 本局是否已判定「卡池不符」—— 判定后**整局都不再刷新**，直接开战。
+    #
+    # 之前不敢用「本局」标记，是因为新局检测（靠回合数 OCR）从来没成功过，
+    # 布尔标记会跨局残留、把下一局的刷新永久挡住。现在 _reset_if_new_game
+    # 改用棋盘状态判定（内部有棋子 + 画面全空 = 新局），复位可靠了，可以放心用。
+    pool_gave_up: bool = False
+
     # 判定「卡池不符」之后，还要跳过几次刷新才真正开战（用一次扣一次，归零即恢复）。
     #
     # **不用任何跨局布尔标记**：一局是否出现过白名单卡、是否已经放弃过，
@@ -833,6 +840,7 @@ class CCChessboard(CustomAction):
         cls.merge_streak = 0
         cls.no_card_streak = 0
         cls.refresh_skip_left = 0
+        cls.pool_gave_up = False
         return cls.board
 
     @classmethod
@@ -1133,11 +1141,15 @@ class CCChessboard(CustomAction):
         return False
 
     def _reset_if_new_game(self, context: Context) -> None:
-        """回合数变小 = 开了新一局 → 清空内部棋盘与按局状态。
+        """检测新对局并清空所有**按局状态**。
 
-        一局最多 12 回合；打完或阵亡后游戏会自动开下一局，回合数重新从 1 起。
-        内部棋盘只在任务入口（CCResetData）清过一次，跨局残留会让
-        find_empty_position 对所有卡都返回 None —— 表现就是整局不买卡、只刷商店。
+        **不用回合数**：CCRoundRec 的 OCR 实测读不到（框架日志里 hit 恒 false），
+        改 expected、改 roi 都没救回来 —— 全天日志里「检测到新对局」0 次，
+        于是 board_full / no_card_streak / refresh_skip_left 全部跨局残留，
+        表现为「新局第一轮不刷新」「无鹿蜀局反而不判卡池不符」。
+
+        **改用棋盘状态**：新一局开始时棋盘必定是空的，而内部棋盘还记着上一局的棋子。
+        「内部有棋子 + 画面全空」就是换局了，这个信号不依赖任何 OCR。
         """
         try:
             img = context.tasker.controller.post_screencap().wait().get()
@@ -1145,26 +1157,33 @@ class CCChessboard(CustomAction):
             logger.warning(f"新局检测取帧失败: {e}")
             return
 
-        current_round = CCSticker._read_round(context, img)
-        if current_round is None:
+        board = type(self).board
+        internal_has_piece = any(cell is not None for row in board for cell in row)
+        if not internal_has_piece:
+            # 内部本来就是空的，没有可清的
             return
 
-        last_round = type(self)._last_round
-        if last_round is not None and current_round < last_round:
-            logger.debug(f"检测到新对局（回合 {last_round} → {current_round}），清空内部棋盘")
+        actual_occupied = 0
+        for row in range(len(board)):
+            for col in range(len(board[row])):
+                if row >= len(type(self).board_rois) or col >= len(type(self).board_rois[row]):
+                    continue
+                if type(self).is_cell_occupied(context, img, row, col):
+                    actual_occupied += 1
+                    break
+            if actual_occupied:
+                break
+
+        if actual_occupied == 0:
+            logger.debug("内部棋盘有棋子但画面全空 → 检测到新对局，清空按局状态")
             type(self).board_reset()
             type(self)._buy_skip = {}
-            type(self).board_full = False
-            type(self).merge_streak = 0
-            type(self).no_card_streak = 0
-            type(self).pool_ok = False
             type(self).reset_rerolls()
             # 不要清领队：领队是玩家账号级的选择，新开一局通常沿用同一位，
             # 而「选领队」页不一定每次都出现（实测连续几局都没有该页 → leader_id 恒 None
             # → 贴纸被门控挡住，日志刷「本局领队是 未知/兜底」）。
             # 只有任务入口（CCResetData）才复位，跨局沿用上一次确认到的领队。
             CCSticker.reset()
-        type(self)._last_round = current_round
 
     def run(
         self,
