@@ -810,11 +810,48 @@
         },
         "next": [
             "CCFlagInCombatMain",
+            // 石骑士优先：单独节点单独试，命中就先拿它
+            "[JumpBack]CCSelectAwardCard_Knight",
             "[JumpBack]CCSelectAwardCard_Template",
             // "[JumpBack]CCSelectAwardCard_NoMore" // 3.2 版本在无目标的时候会随便选个奖励棋子
             "[JumpBack]CCSelectAwardCard_NoMore3p5", // 3.5 版本在无目标的时候会选择放弃按钮
             "[JumpBack]CCSelectAwardCard_NoMore3p5Confirm"
         ]
+    },
+    "CCSelectAwardCard_Knight": {
+        "desc": "升级奖励商店：**优先拿坚固石骑士 32703**（用户实测的主要收益来源）。拆成独立节点单独先试，而不是塞进 CCSelectAwardCard_Template 的 template 列表 —— 多模板时到底按列表顺序还是按分数挑，MaaLLMWiki 的 source-map 没有对应主题（未验证）；拆节点在两种语义下都能保证石骑士优先。",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    111,
+                    154,
+                    1063,
+                    257
+                ],
+                "template": ["CritterCrash/Award/32703.png"]
+            }
+        },
+        "next": ["CCSelectAwardCard_Knight_Option"]
+    },
+    "CCSelectAwardCard_Knight_Option": {
+        "desc": "点石骑士那张卡下面的「选择」按钮（roi 相对骑士识别框偏移）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": "CCSelectAwardCard_Knight",
+                "roi_offset": [
+                    -150,
+                    361,
+                    272,
+                    146
+                ],
+                "expected": ["选择"]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
     },
     "CCSelectAwardCard_Template": {
         "recognition": {
@@ -828,8 +865,8 @@
                 ],
                 "template": [
                     // 奖励商店的卡图比商店里的更大（Award/32703 是 62x131，Cards/32703 是 59x112），
-                    // 必须用 Award 下的模板。32703 坚固石骑士是这里的主要收益来源（用户实测）。
-                    "CritterCrash/Award/32703.png",
+                    // 必须用 Award 下的模板。
+                    // 32703 坚固石骑士不在这里 —— 它由 CCSelectAwardCard_Knight 单独优先处理。
                     "CritterCrash/Award/32123.png",
                     "CritterCrash/Award/32126.png",
                     "CritterCrash/Award/32607.png"
