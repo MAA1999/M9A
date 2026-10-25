@@ -698,9 +698,9 @@
             // 挂在最后就永远轮不到 —— 贴纸一次都没开过。
             "[JumpBack]CCSticker",
             "[JumpBack]CCBuyCard",
-            // 卡池不符（连续多轮钱够却没白名单卡）→ 直接开战，别再刷商店白烧时间。
-            // 必须排在 CCRefreshCard_pre 之前，否则会先刷新、永远轮不到放弃。
-            "[JumpBack]CCBuyCardGiveUp",
+            // 卡池不符判定（CCBuyCardGiveUp）已停用：局内判定始终不可靠，
+            // 2026-10-25 回滚为「开局重摇奇遇」的策略（encounters.max_reroll=15）。
+            // "[JumpBack]CCBuyCardGiveUp",
             "[JumpBack]CCRefreshCard_pre",
             "[JumpBack]CCRefreshCard_post",
             "[JumpBack]CCSelectAwardCard",
