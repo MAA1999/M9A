@@ -173,10 +173,6 @@ class CCBuyCardRec(CustomRecognition):
             # 用 Cards/ 模板：**左下角奖励区**里放的卡与商店同尺寸；
             # Award/ 是**升级后奖励商店**的卡图（更大，62x131 vs 59x112），两者不能混用。
             for card_name in CCChessboard.strategy.card_names():
-                # 与买卡分支同样要尊重 skip：奖励区的卡拖失败后必须安静几轮，
-                # 否则每轮都重试同一张，实测 11:06 卡在「32126 → (1,3)」上无限循环。
-                if CCChessboard.is_buy_skipped(card_name):
-                    continue
                 reco_detail1 = context.run_recognition(
                     "CCBuyCardAwardRec_Template",
                     argv.image,
@@ -184,7 +180,6 @@ class CCBuyCardRec(CustomRecognition):
                 )
                 if is_hit(reco_detail1):
                     # 奖励区的棋子**可以**拖到同名棋子上合成（用户实测：之前靠它升过很多级）。
-                    # 之前那次 diff=0 是「目标格已经 LV.3」，不是奖励区不能合成。
                     if CCChessboard.find_empty_position_on_image(context, argv.image, card_name):
                         detail = {"type": 1, "action": 0, "name": card_name}
                         return CustomRecognition.AnalyzeResult(box=reco_detail1.box, detail=detail)
@@ -192,123 +187,122 @@ class CCBuyCardRec(CustomRecognition):
                         detail = {"type": 1, "action": 1, "name": card_name}
                         return CustomRecognition.AnalyzeResult(box=reco_detail1.box, detail=detail)
                     logger.debug(f"奖励区的 {card_name} 既没空位也不能升级，跳过")
-            logger.debug("奖励区的卡认不出或无处安放，跳过（不卖卡）")
+            # **奖励区用不上时不能直接放弃**：奖励区常年躺着一张认不出/放不下的卡，
+            # 以前这里直接 return，结果整轮都不去买商店的卡 —— 表现就是「只刷新不买牌」
+            # （实测 11:31 币被刷新从 4 耗到 1，一张卡也没买）。
+            # 现在继续往下走买卡分支，奖励区那张等它自然消失即可。
+            logger.debug("奖励区的卡用不上，继续走买卡分支")
+
+        # 店里的卡（奖励区为空，或奖励区那张用不上）
+        reco_detail = context.run_recognition("CCRemainMoney", argv.image)
+        if not is_hit(reco_detail):
+            logger.debug("当前剩余缪斯币不足")
             return CustomRecognition.AnalyzeResult(box=None, detail={})
-        else:
-            # 奖励框为空，检查剩余缪斯币是否足够购买
-            reco_detail = context.run_recognition("CCRemainMoney", argv.image)
-            if is_hit(reco_detail):
-                # 钱够了
-                pass
-            else:
-                # 不够，退出
-                logger.debug("当前剩余缪斯币不足")
-                return CustomRecognition.AnalyzeResult(box=None, detail={})
-            # 棋盘已满 → 本局不再买卡。
+        # 棋盘已满 → 本局不再买卡。
+        #
+        # 判据用**内部棋盘是否还有空格**，不靠面板文字：
+        # 「可摆放区域位置不足」那行红底小字 OCR 识别不出（实测只读回 "M1"）。
+        # 而棋盘满时继续买卡会反复点开详情面板、面板挂着挡住后续所有识别，
+        # 任务卡到 4000（实测 12:25/12:33/12:52/13:00 多次，每次都 20s 后失败）。
+        if CCChessboard.board_full or CCChessboard.has_no_empty_cell():
+            CCChessboard.board_full = True
+            logger.debug("棋盘已满，本局不再买卡")
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+        # 钱够了，先动态识别所有可能的卡牌，然后根据优先级选择
+        upgrade_candidates = []
+        # 这一轮有没有任何白名单卡出现在商店里（不管能不能放 / 能不能升级）。
+        # 只有「一张都没出现」才可能是卡池不对；盘满导致的「用不上」不算。
+        any_hit = False
+        for card_name in CCChessboard.strategy.card_names():
+            # 本回合已确认买不动的卡（钱不够/棋盘满/状态分叉）别再反复命中：
+            # CCBuyCard 是 [JumpBack]，它每轮都会命中一次，不跳过就会一直空转。
+            if CCChessboard.is_buy_skipped(card_name):
+                continue
+            # 动态识别当前卡牌。
             #
-            # 判据用**内部棋盘是否还有空格**，不靠面板文字：
-            # 「可摆放区域位置不足」那行红底小字 OCR 识别不出（实测只读回 "M1"）。
-            # 而棋盘满时继续买卡会反复点开详情面板、面板挂着挡住后续所有识别，
-            # 任务卡到 4000（实测 12:25/12:33/12:52/13:00 多次，每次都 20s 后失败）。
-            if CCChessboard.board_full or CCChessboard.has_no_empty_cell():
-                CCChessboard.board_full = True
-                logger.debug("棋盘已满，本局不再买卡")
-                return CustomRecognition.AnalyzeResult(box=None, detail={})
-
-            # 钱够了，先动态识别所有可能的卡牌，然后根据优先级选择
-            upgrade_candidates = []
-            # 这一轮有没有任何白名单卡出现在商店里（不管能不能放 / 能不能升级）。
-            # 只有「一张都没出现」才可能是卡池不对；盘满导致的「用不上」不算。
-            any_hit = False
-            for card_name in CCChessboard.strategy.card_names():
-                # 本回合已确认买不动的卡（钱不够/棋盘满/状态分叉）别再反复命中：
-                # CCBuyCard 是 [JumpBack]，它每轮都会命中一次，不跳过就会一直空转。
-                if CCChessboard.is_buy_skipped(card_name):
-                    continue
-                # 动态识别当前卡牌。
-                #
-                # ROI 只排除**棋盘区**（y < 520）：不限定的话棋盘上已有的同名棋子
-                # 也会被以 0.69 分命中（实测 32123 在 (568,382)、(589,151) 都命中），
-                # 那样识别框落在棋盘上，拖拽起点也就落在棋盘上，拖出去必然出错。
-                #
-                # 奖励区（x≈42~170, y≈580~710）**保留在 ROI 内** ——
-                # 它就是「不花钱的商店区」，从那儿拖到棋盘完全合法，
-                # 不该被当成误识别跳过。
-                reco_detail = context.run_recognition(
-                    "CCBuyCardRec_Template",
-                    argv.image,
-                    {
-                        "CCBuyCardRec_Template": {
-                            "template": f"CritterCrash/Cards/{card_name}.png",
-                            "roi": [0, 520, 1280, 200],
-                        }
-                    },
-                )
-                if is_hit(reco_detail):
-                    # **只要商店里出现任意一张白名单卡，就说明卡池是对的** ——
-                    # 置一次性标记 pool_ok（本局永久有效，新局才复位）+ 清零连续计数。
-                    #
-                    # 不能等「买成功」才置位：拖拽会失败（实测 01:06 连续三次
-                    # 「该格仍为空」后第四次才成功），那期间照样在累加，
-                    # 结果明明刷到鹿蜀、也合成了，却因为 streak 到 5 被判「卡池不符」直接开战。
-                    #
-                    # 也不能只清零：用户 2026-10-25 要求「本局出现过鹿蜀就不再触发这条规则」——
-                    # 清零后如果后面连着 5 轮没出卡，又会把一局好牌局提前结束。
-                    # 商店里有我们要的卡 → 连续无卡计数清零。
-                    # 有鹿蜀的局不会连续 5 轮都刷不到，所以自然不会被判「卡池不符」，
-                    # 不需要额外的「本局出现过」布尔标记（那种跨局状态一旦漏复位就会误伤）。
-                    any_hit = True
-                    CCChessboard.no_card_streak = 0
-                    # 商店里有白名单卡 → 之前的「卡池不符」判定立刻作废（万一是误判）
-                    CCChessboard.refresh_skip_left = 0
-                    CCChessboard.pool_gave_up = False
-
-                    # 识别成功，检查是否有空位
-                    free = CCChessboard.find_empty_position_on_image(context, argv.image, card_name)
-                    if free:
-                        # 有空位，直接返回
-                        logger.debug(f"找到有空位的卡牌: {card_name} → {free}")
-                        detail = {"type": 0, "action": 0, "name": card_name}
-                        return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=detail)
-                    # 没有空位，检查是否能升级。
-                    # 4.0 的升级就是再买一张同名卡让游戏自动合成，所以这里仍然走 action=0
-                    # （点卡 → 购买）；action=1 只是让 action 侧打不同的日志。
-                    if CCChessboard.can_upgrade_existing(card_name):
-                        upgrade_candidates.append((reco_detail, card_name))
-                    else:
-                        # 识别到但用不上时必须留痕：否则「明明看到商店有这张卡却没买」
-                        # 在日志里查不到任何线索（实测 22:29:20 木头妇孺命中模板却被跳过，
-                        # 只能靠排查画面才知道是它唯一的位置被贴纸占了）。
-                        positions = CCChessboard.get_chess_info(card_name).get("positions", [])
-                        logger.debug(
-                            f"{card_name} 识别到了但用不上：positions={list(positions)} "
-                            f"全部无空位、也没有可升级的同名棋子 → 跳过"
-                        )
-
-            # 如果有升级候选，返回第一个（action=1：升级语义，实际交互与买卡相同）
-            if upgrade_candidates:
-                reco_detail, card_name = upgrade_candidates[0]
-                logger.debug(f"选择能升级的卡牌: {card_name}")
-                detail = {"type": 0, "action": 1, "name": card_name}
-                return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=detail)
-
-            # 没有可买的卡。
+            # ROI 只排除**棋盘区**（y < 520）：不限定的话棋盘上已有的同名棋子
+            # 也会被以 0.69 分命中（实测 32123 在 (568,382)、(589,151) 都命中），
+            # 那样识别框落在棋盘上，拖拽起点也就落在棋盘上，拖出去必然出错。
             #
-            # **只有这一轮一张白名单卡都没出现在商店里，才算「卡池没有」。**
-            # 棋盘满了的时候每张卡都「用不上」（实测 08:29:21 连续
-            # 「32122 识别到了但用不上：全部无空位」），那是没地方放、不是卡池不对，
-            # 计入的话必然把盘满的一局误判成卡池不符、然后把刷新永久锁死。
-            if any_hit:
-                # 商店里有我们的卡，只是这轮放不下 / 买不起 —— 不是卡池问题，不计数。
-                logger.debug("商店里有白名单卡但本轮买不成（位置/币/升级条件），不计入卡池判定")
-                return CustomRecognition.AnalyzeResult(box=None, detail={})
-
-            CCChessboard.no_card_streak += 1
-            logger.debug(
-                f"没有找到合适的卡牌（连续 {CCChessboard.no_card_streak}/"
-                f"{CCChessboard._POOL_GIVE_UP_AFTER} 轮，达到后直接开战）"
+            # 奖励区（x≈42~170, y≈580~710）**保留在 ROI 内** ——
+            # 它就是「不花钱的商店区」，从那儿拖到棋盘完全合法，
+            # 不该被当成误识别跳过。
+            reco_detail = context.run_recognition(
+                "CCBuyCardRec_Template",
+                argv.image,
+                {
+                    "CCBuyCardRec_Template": {
+                        "template": f"CritterCrash/Cards/{card_name}.png",
+                        "roi": [0, 520, 1280, 200],
+                    }
+                },
             )
+            if is_hit(reco_detail):
+                # **只要商店里出现任意一张白名单卡，就说明卡池是对的** ——
+                # 置一次性标记 pool_ok（本局永久有效，新局才复位）+ 清零连续计数。
+                #
+                # 不能等「买成功」才置位：拖拽会失败（实测 01:06 连续三次
+                # 「该格仍为空」后第四次才成功），那期间照样在累加，
+                # 结果明明刷到鹿蜀、也合成了，却因为 streak 到 5 被判「卡池不符」直接开战。
+                #
+                # 也不能只清零：用户 2026-10-25 要求「本局出现过鹿蜀就不再触发这条规则」——
+                # 清零后如果后面连着 5 轮没出卡，又会把一局好牌局提前结束。
+                # 商店里有我们要的卡 → 连续无卡计数清零。
+                # 有鹿蜀的局不会连续 5 轮都刷不到，所以自然不会被判「卡池不符」，
+                # 不需要额外的「本局出现过」布尔标记（那种跨局状态一旦漏复位就会误伤）。
+                any_hit = True
+                CCChessboard.no_card_streak = 0
+                # 商店里有白名单卡 → 之前的「卡池不符」判定立刻作废（万一是误判）
+                CCChessboard.refresh_skip_left = 0
+                CCChessboard.pool_gave_up = False
+
+                # 识别成功，检查是否有空位
+                free = CCChessboard.find_empty_position_on_image(context, argv.image, card_name)
+                if free:
+                    # 有空位，直接返回
+                    logger.debug(f"找到有空位的卡牌: {card_name} → {free}")
+                    detail = {"type": 0, "action": 0, "name": card_name}
+                    return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=detail)
+                # 没有空位，检查是否能升级。
+                # 4.0 的升级就是再买一张同名卡让游戏自动合成，所以这里仍然走 action=0
+                # （点卡 → 购买）；action=1 只是让 action 侧打不同的日志。
+                if CCChessboard.can_upgrade_existing(card_name):
+                    upgrade_candidates.append((reco_detail, card_name))
+                else:
+                    # 识别到但用不上时必须留痕：否则「明明看到商店有这张卡却没买」
+                    # 在日志里查不到任何线索（实测 22:29:20 木头妇孺命中模板却被跳过，
+                    # 只能靠排查画面才知道是它唯一的位置被贴纸占了）。
+                    positions = CCChessboard.get_chess_info(card_name).get("positions", [])
+                    logger.debug(
+                        f"{card_name} 识别到了但用不上：positions={list(positions)} "
+                        f"全部无空位、也没有可升级的同名棋子 → 跳过"
+                    )
+
+        # 如果有升级候选，返回第一个（action=1：升级语义，实际交互与买卡相同）
+        if upgrade_candidates:
+            reco_detail, card_name = upgrade_candidates[0]
+            logger.debug(f"选择能升级的卡牌: {card_name}")
+            detail = {"type": 0, "action": 1, "name": card_name}
+            return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=detail)
+
+        # 没有可买的卡。
+        #
+        # **只有这一轮一张白名单卡都没出现在商店里，才算「卡池没有」。**
+        # 棋盘满了的时候每张卡都「用不上」（实测 08:29:21 连续
+        # 「32122 识别到了但用不上：全部无空位」），那是没地方放、不是卡池不对，
+        # 计入的话必然把盘满的一局误判成卡池不符、然后把刷新永久锁死。
+        if any_hit:
+            # 商店里有我们的卡，只是这轮放不下 / 买不起 —— 不是卡池问题，不计数。
+            logger.debug("商店里有白名单卡但本轮买不成（位置/币/升级条件），不计入卡池判定")
             return CustomRecognition.AnalyzeResult(box=None, detail={})
+
+        CCChessboard.no_card_streak += 1
+        logger.debug(
+            f"没有找到合适的卡牌（连续 {CCChessboard.no_card_streak}/"
+            f"{CCChessboard._POOL_GIVE_UP_AFTER} 轮，达到后直接开战）"
+        )
+        return CustomRecognition.AnalyzeResult(box=None, detail={})
 
 
 @AgentServer.custom_recognition("CCRemainMoney")
