@@ -1491,24 +1491,28 @@ class CCBuyCard(CustomAction):
             # 而内部记录可能是错的（记着别的卡），后面 existing.get("name") == card_name 就不成立，
             # 走「落到但该格记的是 X，跳过」，既没记成功也没记失败，日志里看不出发生了什么
             # （实测 6 次拖拽只有 1 次有后续日志）。
-            if actual is not None:
-                level = 1
-                if existing is not None and existing.get("name") == actual:
-                    level = int(existing.get("level", 1))
-                if existing is None or existing.get("name") != actual:
-                    logger.debug(
-                        f"({got_row}, {got_col}) 内部记的是 {existing.get('name') if existing else '空'}"
-                        f"，实际识别为 {actual}，按实际校正"
-                    )
-                CCChessboard.board[got_row][got_col] = {
-                    "name": actual, "level": level, "row": got_row, "col": got_col,
+            # **同名同格时绝对不要重建 dict**：重建会把 merges 一起丢掉，
+            # 于是 apply_merge 每次都从 0 开始算 → 永远停在「累计 1 次合成 → 1/3 级」，
+            # 实测 10:37 连续 6 次合到 (0,2) 全部报「累计 1 次 → 1/3 级」，永远升不到 2 级。
+            if actual is not None and (existing is None or existing.get("name") != actual):
+                logger.debug(
+                    f"({got_row}, {got_col}) 内部记的是 {existing.get('name') if existing else '空'}"
+                    f"，实际识别为 {actual}，按实际校正"
+                )
+                entry: dict[str, Any] = {
+                    "name": actual,
+                    "level": 1,        # 不认识原来的等级，从 1 起算
+                    "merges": 0,       # 合成次数也跟着归零，避免拿别的卡的进度
+                    "row": got_row,
+                    "col": got_col,
                 }
+                CCChessboard.board[got_row][got_col] = entry
                 CCChessboard.board_chesses = [
                     x for x in CCChessboard.board_chesses
                     if not (x["row"] == got_row and x["col"] == got_col)
                 ]
-                CCChessboard.board_chesses.append(CCChessboard.board[got_row][got_col])
-                existing = CCChessboard.board[got_row][got_col]
+                CCChessboard.board_chesses.append(entry)
+                existing = entry
 
             if existing is not None:
                 if existing.get("name") == card_name:

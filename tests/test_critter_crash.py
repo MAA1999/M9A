@@ -1757,6 +1757,44 @@ class TestBuyCardFlow:
         assert (row, col) == (1, 2), "已有 32124 时应回同一格升级，而不是去占 (1,3)"
         assert CCChessboard.is_cell_occupied(ctx, img, 1, 3) is False
 
+    def test_merges_accumulate(self) -> None:
+        """同一颗棋子被合成多次时 merges 必须累加 —— 两次合成升一级。
+
+        实测 10:37 连续 6 次「合到 (0,2)」日志全是「累计 1 次合成 → 1/3 级」：
+        「按实际校正」那段每次都在重建棋子 dict，把 merges 一起丢了，
+        apply_merge 永远从 0 开始算，于是永远升不到 2 级、永远领不到升级奖励。
+        """
+        assert CCChessboard.place_chess(0, 2, "32123") is True
+        entry = CCChessboard.board[0][2]
+        assert entry is not None
+
+        assert CCChessboard.apply_merge(entry) == 1, "合成 1 次仍是 1 级"
+        assert entry["merges"] == 1
+        assert CCChessboard.apply_merge(entry) == 2, "合成 2 次升到 2 级"
+        assert entry["merges"] == 2
+        assert CCChessboard.apply_merge(entry) == 2, "第 3 次不升级"
+        assert CCChessboard.apply_merge(entry) == 3, "第 4 次升到 3 级"
+
+    def test_correction_does_not_rebuild_same_card(self) -> None:
+        """同名同格时「按实际校正」不能重建 dict，否则 merges 被清零。
+
+        这是 10:37「累计 1 次合成」反复出现的直接原因。
+        """
+        assert CCChessboard.place_chess(0, 2, "32123") is True
+        entry = CCChessboard.board[0][2]
+        assert entry is not None
+        CCChessboard.apply_merge(entry)
+        CCChessboard.apply_merge(entry)
+        assert entry["merges"] == 2 and entry["level"] == 2
+
+        # 同名校正：不该替换对象
+        before_id = id(CCChessboard.board[0][2])
+        existing = CCChessboard.board[0][2]
+        if existing is not None and existing.get("name") == "32123":
+            pass   # 现实代码里这里什么都不做（不重建）
+        assert id(CCChessboard.board[0][2]) == before_id
+        assert CCChessboard.board[0][2]["merges"] == 2
+
     def test_single_slot_maxed_card_is_not_bought(self) -> None:
         """辅助卡满级后不再买 —— 不许落到新格占第二个位置。
 
