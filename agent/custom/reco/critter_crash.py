@@ -303,6 +303,13 @@ class CCRemainMoney(CustomRecognition):
 
         type = parse_params(argv.custom_recognition_param, "type")["type"]
 
+        # type=1 是「刷新商店用」的那一份（CCRemainMoney_refresh）。
+        # 本局已判定卡池不符（CCPoolBadRec 置了 pool_gave_up）时直接 miss ——
+        # 这样 CCRefreshCard_pre 的 And 自己就失败，流程自然落到主循环末尾的 CCStartCombat，
+        # 不需要在放弃节点里点任何东西，也不用给 next 堆兜底。
+        if type == 1 and CCChessboard.pool_gave_up:
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
+
         img = argv.image
         # 定义目标颜色和颜色容差
         target_color = np.array([215, 241, 249])

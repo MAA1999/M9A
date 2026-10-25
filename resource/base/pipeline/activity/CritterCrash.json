@@ -1049,13 +1049,12 @@
                 "custom_recognition": "CCPoolBadRec"
             }
         },
-        // 直接点开始战斗按钮（CCPoolBadRec 返回的 box 就是它），
-        // 节点本身不挂 next —— 主循环那边以 [JumpBack]CCBuyCardGiveUp 引用，
-        // 动作做完就回父列表继续轮询。
+        // 只做标记（CCPoolBadRec 里置 pool_gave_up），不点任何东西 ——
+        // 点开战交给主循环末尾原来的 CCStartCombat。
+        // 节点不挂 next：主循环以 [JumpBack]CCBuyCardGiveUp 引用，做完即回父列表。
         "action": {
-            "type": "Click"
-        },
-        "post_delay": 800
+            "type": "DoNothing"
+        }
     },
     "CCRefreshCard_pre": {
         "recognition": {
