@@ -757,6 +757,7 @@
         }
     },
     "CCStartCombat": {
+        "desc": "点右下角的 Battle 按钮开战。4.0 的按钮是白色猫头样式，旧模板（StartCombat.png~7）是 3.5 的图案，形状完全对不上 —— 实测最佳匹配仅 0.12，等于永远 miss，于是「卡池不符后跳过刷新」也没人能接着开战。已补 4.0 实机模板 StartCombat8.png（84x84，离线 NCC=1.0000）。阈值放到 0.75 容忍按钮呼吸动画。",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -768,7 +769,8 @@
                 ],
                 "template": [
                     "CritterCrash/StartCombat/"
-                ]
+                ],
+                "threshold": 0.75
             }
         },
         "action": {
