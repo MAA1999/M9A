@@ -1794,8 +1794,11 @@ class TestBuyCardFlow:
         CCChessboard.refresh_skip_left = 0
 
         assert reco.analyze(_ScriptedContext({}), argv).box is not None, "达到阈值应命中"
-        assert CCChessboard.no_card_streak == 0, "命中后计数要清零，否则每轮都触发"
         assert CCChessboard.refresh_skip_left == CCChessboard._REFRESH_SKIP_AFTER_GIVE_UP
+        # 第二次不许把跳过次数重置回满（否则永远 = 3，刷新被永久挡住）
+        CCChessboard.refresh_skip_left = 1
+        reco.analyze(_ScriptedContext({}), argv)
+        assert CCChessboard.refresh_skip_left == 1, "已生效的跳过次数不能被重新拉满"
 
     def test_refresh_skip_expires(self) -> None:
         """跳过次数用一次扣一次，归零后刷新恢复（不能永久失效）。"""
