@@ -1210,5 +1210,17 @@
                 "end_time": 1793825999000
             }
         }
+    },
+    "4.1": {
+        "version_name": "亚特兰蒂斯谋杀案",
+        "start_time": 1793844000000,
+        "end_time": 1796849999000,
+        "activity": {
+            "combat": {
+                "event_type": "SideStory",
+                "start_time": 1793844000000,
+                "end_time": 1796590799000
+            }
+        }
     }
 }
