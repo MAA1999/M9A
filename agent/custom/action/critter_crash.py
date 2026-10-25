@@ -1162,8 +1162,11 @@ class CCChessboard(CustomAction):
         for chess in cls.board_chesses:
             if chess["name"] != card_name:
                 continue
-            merges = int(chess.get("merges", 0))
-            if 1 + merges // cls._MERGES_PER_LEVEL < max_level:
+            # **用 level 字段判断，和 _pick_target_cell 保持同一口径**。
+            # 之前这里用 merges 反推、那边用 level，一旦某个分支只更新了其中一个
+            # （比如满级检测只写 level），两边就会打架：reco 一直推这张卡、
+            # action 每次都说没位置 → 每秒一次的死循环。
+            if int(chess.get("level", 1)) < max_level:
                 return True
         return False
 
@@ -1315,20 +1318,25 @@ class CCBuyCard(CustomAction):
         # 必须**先判已有同名棋子**再找空格，否则会把第二张放到新格上、
         # 变成占两格（用户明确「没必要占俩位置」）。
         if info.get("single_slot"):
-            for row, col in info.get("positions", []):
-                if not CCChessboard._is_valid_position(row, col):
-                    continue
-                cell = CCChessboard.board[row][col]
-                if cell is None or cell.get("name") != card_name:
-                    continue
-                # 已有同名棋子：没满级就拖上去合成，满了就**不再买**。
-                # 不能落到下面的「找空格」—— 那样棋盘上会出现第二个同名辅助卡，
-                # 和 single_slot「最多只放 1 个」的约定相反，还会挤掉别人的位置。
-                # （两个 review bot 独立指出了这一点。）
-                if int(cell.get("level", 1)) < cap:
-                    return (row, col)
-                logger.debug(f"{card_name} 已满级（{cap}），single_slot 只留 1 个，本次不买")
-                return (-1, -1)
+            # 在**整个棋盘**上找同名棋子，不能只看 positions ——
+            # 棋子可能在 positions 之外（贴纸位、拖错位等），只看 positions 会找不到、
+            # 返回 (-1,-1)；而 reco 侧的 can_upgrade_existing 遍历的是 board_chesses，
+            # 于是两边判断打架：reco 一直推这张卡、action 每次都说没位置 →
+            # 每秒一次死循环（实测 11:53 连刷十几秒，日志只有两行反复出现）。
+            for row in range(len(CCChessboard.board)):
+                for col in range(len(CCChessboard.board[row])):
+                    if not CCChessboard._is_valid_position(row, col):
+                        continue
+                    cell = CCChessboard.board[row][col]
+                    if cell is None or cell.get("name") != card_name:
+                        continue
+                    # 找到同名棋子：没满级就拖上去合成，满了就**不再买**。
+                    # 不能落到下面的「找空格」—— 那样棋盘上会出现第二个同名辅助卡。
+                    # （两个 review bot 独立指出了这一点。）
+                    if int(cell.get("level", 1)) < cap:
+                        return (row, col)
+                    logger.debug(f"{card_name} 已满级（{cap}），single_slot 只留 1 个，本次不买")
+                    return (-1, -1)
 
         # 1) 先占地盘：positions 里第一个**实际为空**的格
         for row, col in info.get("positions", []):
@@ -1416,6 +1424,10 @@ class CCBuyCard(CustomAction):
             row, col = self._pick_target_cell(card_name, context, pick_img, upgrade=(action == 1))
             if (row, col) == (-1, -1):
                 logger.debug(f"买入 {card_name}：没有可放置格，本局跳过")
+                # **整局拉黑**，不能只 skip 几轮：reco 侧的判断如果和这里不一致，
+                # skip 恢复后又会把同一张卡推回来，变成每秒一次的死循环
+                # （实测 11:53 日志只有「已满级」+「没有可放置格」两行反复刷）。
+                CCChessboard.card_dead[card_name] = True
                 CCChessboard.skip_buy(card_name)
                 return CustomAction.RunResult(success=True)
 

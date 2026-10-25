@@ -1978,6 +1978,34 @@ class TestBuyCardFlow:
         target["merges"] = cap * CCChessboard._MERGES_PER_LEVEL
         assert CCChessboard.can_upgrade_existing("32123") is False, "判满级后不该再认为能升"
 
+    def test_single_slot_finds_card_outside_positions(self) -> None:
+        """辅助卡放在 positions 之外时也要能找到它。
+
+        实测 11:53 死循环：reco 侧 can_upgrade_existing 遍历整张棋盘、
+        action 侧 _pick_target_cell 只查 positions，两边判断打架 ——
+        reco 一直推这张卡、action 每次返回 (-1,-1)，每秒一次，日志只有两行反复刷。
+        """
+        # (1,5) 不在 32126 的 positions [[1,3],[1,4],[1,5],[1,2]] …… 换成不在列表里的格
+        CCChessboard.board[2][5] = {"name": "32126", "level": 1, "merges": 0, "row": 2, "col": 5}
+        CCChessboard.board_chesses.append(CCChessboard.board[2][5])
+        ctx = _ScriptedContext({})
+        img = ctx.tasker.controller.get()
+        row, col = CCBuyCard._pick_target_cell("32126", ctx, img, upgrade=True)
+        assert (row, col) == (2, 5), "positions 之外的辅助卡也必须能找到并升级"
+
+    def test_upgrade_check_and_picker_agree(self) -> None:
+        """can_upgrade_existing 与 _pick_target_cell 必须同一口径（都看 level）。
+
+        只要两处有一处用 merges 反推，某个分支只更新 level 时就会分叉，
+        进而演变成 reco / action 打架的死循环。
+        """
+        CCChessboard.board[1][3] = {"name": "32126", "level": 3, "merges": 0, "row": 1, "col": 3}
+        CCChessboard.board_chesses.append(CCChessboard.board[1][3])
+        assert CCChessboard.can_upgrade_existing("32126") is False, "level=3 就是满级"
+        ctx = _ScriptedContext({})
+        img = ctx.tasker.controller.get()
+        assert CCBuyCard._pick_target_cell("32126", ctx, img) == (-1, -1)
+
     def test_card_blacklisted_after_repeated_failures(self) -> None:
         """连续失败达到阈值 → 本局彻底放弃这张卡（死循环保底）。
 
