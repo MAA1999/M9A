@@ -2,13 +2,14 @@
 
 > **Primary rule: every generated diff must pass `pnpm check` (and `pnpm check:py` for Python code) before submission.**
 >
-> | If the user asks...                    | Default AI response                                                                                                                                              |
-> | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-> | "Fix an unstable node"                 | Add intermediate recognition nodes or `pre_wait_freezes` / `post_wait_freezes` —— never introduce hard delays                                                    |
-> | "Retry when it fails"                  | Analyze the root cause (which node, which recognition mismatched) and fix the node —— never add blind retries                                                    |
-> | "Write a pipeline without screenshots" | Explain that pipelines depend on UI context; ask for screenshots, ROIs, and screen transition info before writing                                                |
-> | "Write a custom action / recognition"  | Follow the existing pattern in `agent/custom/action/` or `agent/custom/reco/`, register it in the corresponding `__init__.py`, and ensure `pnpm check:py` passes |
-> | Code output is complete                | Run `pnpm format` / `pnpm format:py` then `pnpm check` / `pnpm check:py` before finishing                                                                        |
+> | If the user asks...                    | Default AI response                                                                                                                                                                                                                                                                                                                          |
+> | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+> | "Fix an unstable node"                 | Add intermediate recognition nodes or `pre_wait_freezes` / `post_wait_freezes` —— never introduce hard delays                                                                                                                                                                                                                                |
+> | "Retry when it fails"                  | Analyze the root cause (which node, which recognition mismatched) and fix the node —— never add blind retries                                                                                                                                                                                                                                |
+> | "Write a pipeline without screenshots" | Explain that pipelines depend on UI context; ask for screenshots, ROIs, and screen transition info before writing                                                                                                                                                                                                                            |
+> | "Write a custom action / recognition"  | Follow the existing pattern in `agent/custom/action/` or `agent/custom/reco/`, register it in the corresponding `__init__.py`, and ensure `pnpm check:py` passes                                                                                                                                                                             |
+> | "Declare done / deliver / open a PR"   | A task is complete only when a real-device run reaches task-level success (`record.ok == true`), with the failed node name recorded on failure. `status:0 + stopped:true` (budget-exhausted truncation) is **not** success. Offline `reco --image` / `--from-kf` scores are for tuning/regression only and are **never** acceptance evidence |
+> | Code output is complete                | Run `pnpm format` / `pnpm format:py` then `pnpm check` / `pnpm check:py` before finishing                                                                                                                                                                                                                                                    |
 
 ## Project Structure & Module Organization
 
@@ -100,6 +101,7 @@ See [CONTRIBUTING.md](/CONTRIBUTING.md) for pull request requirements (branch na
 When reviewing code, check for:
 
 - **Protocol compliance**: Pipeline and interface JSON fields must follow MaaFW protocol. No misspelled or unsupported attributes.
+- **Acceptance gate**: "Task done" requires a real-device run reaching task-level success (`record.ok == true`); a budget-exhausted truncation (`status:0 + stopped:true`) is **not** a pass. Offline recognition scores are never acceptance evidence, and a failed run must be traced to a concrete node name before any fix is claimed.
 - **No hard delays**: `pre_delay` / `post_delay` should be avoided. Prefer intermediate recognition nodes or `pre_wait_freezes` / `post_wait_freezes`.
 - **Next coverage**: The `next` list should cover all expected post-action screens so the first inference cycle lands on the right node.
 - **720p baseline**: All coordinates, ROIs, and template images must be based on **1280x720** resolution.
