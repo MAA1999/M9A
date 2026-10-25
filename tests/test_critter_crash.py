@@ -1835,12 +1835,12 @@ class TestBuyCardFlow:
         result = reco.analyze(_ScriptedContext({}), argv)
         assert result.box is not None, "达到阈值应命中，交给 pipeline 点开始战斗"
 
-    def test_refresh_allows_low_money_but_buy_does_not(self) -> None:
-        """刷新的币门槛必须比买卡宽松。
+    def test_refresh_also_requires_three_money(self) -> None:
+        """刷新的币门槛同样是 3。
 
-        type=0（买卡）最便宜的卡 3 费，要求 >=3；
-        type=1（刷新）只花刷新代币（0/1），币剩 2 个、刷新免费时本来能刷，
-        原先两处都卡 >=3/>=4，白白少刷一次。
+        刷新的前提是「刷完还买得起卡」（最便宜的卡 3 费），
+        币只有 2 时刷新会一路刷到 0、一张卡也买不了（实测）。
+        「币=3 时少刷一次」的真因是 OCR expected 写成 ^[4-9]，与这里的阈值无关。
         """
         from custom.reco.critter_crash import CCRemainMoney
 
@@ -1858,7 +1858,7 @@ class TestBuyCardFlow:
             ctx = _ScriptedContext({"CCRemainMoney_rec_refresh": _ocr_hit("2"), "CCRemainMoney_rec": _ocr_hit("2")})
             return reco.analyze(ctx, argv).box is not None
 
-        assert run(1) is True, "刷新：币 2 也应当允许"
+        assert run(1) is False, "刷新：币 2 不够（刷了也买不起卡）"
         assert run(0) is False, "买卡：币 2 不够（最便宜 3 费）"
 
     def test_pool_bad_skips_refresh_a_finite_number_of_times(self) -> None:

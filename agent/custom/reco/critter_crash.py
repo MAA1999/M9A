@@ -360,11 +360,13 @@ class CCRemainMoney(CustomRecognition):
         if is_hit(reco_detail):
             money = ocr_text(reco_detail)
             logger.debug(f"识别到剩余缪斯币: {money}")
-            # type=0 是买卡：最便宜的卡 3 费，要求 >= 3 合理。
-            # type=1 是刷新：只花**刷新代币**（0/1 之类，由 CCRefreshMoney_pre 单独把关），
-            # 跟 3 费没有关系 —— 币剩 2 个、刷新免费时本来能刷，卡在 >=3 就白白少刷一次。
-            need = 3 if type == 0 else 1
-            if int(money) >= need:
+            # 两个用途都要求币 >= 3：
+            #   · type=0 买卡：最便宜的卡 3 费；
+            #   · type=1 刷新：刷新的前提是**刷完还买得起卡**，钱不够刷了也白搭
+            #     （实测币剩 2、刷新免费时会一直刷到 0，一张卡也没买）。
+            # 之前「币=3 时少刷一次」的真因不在这里，而在 OCR 的 expected 写成了
+            # ^[4-9]（要求 >=4），币=3 那帧压根没命中识别层。
+            if int(money) >= 3:
                 return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=reco_detail.raw_detail)
         return CustomRecognition.AnalyzeResult(box=None, detail={})
 
