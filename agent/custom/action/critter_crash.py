@@ -717,8 +717,13 @@ class CCChessboard(CustomAction):
     no_card_streak: int = 0
     # 连续多少轮无卡就判定卡池不符（用户 2026-10-25 定：5 次）
     _POOL_GIVE_UP_AFTER: int = 5
-    # 判定成立后跳过几次刷新（每次刷新判定扣 1，归零自动恢复）
-    _REFRESH_SKIP_AFTER_GIVE_UP: int = 3
+    # 判定成立后跳过几次刷新判定（每调用一次扣 1，归零自动恢复）。
+    #
+    # 要按「调用次数」而不是「轮数」算：CCRefreshCard_pre 和 CCRefreshCard_post
+    # 的 And 里**都**引用了 CCRemainMoney_refresh，一次主循环会各扣一次 ——
+    # 所以 3 只够 1.5 轮，流程来不及走到 CCStartCombat 额度就没了。
+    # 给 6 留出 3 轮余量。
+    _REFRESH_SKIP_AFTER_GIVE_UP: int = 6
 
     # 判定「卡池不符」之后，还要跳过几次刷新才真正开战（用一次扣一次，归零即恢复）。
     #
