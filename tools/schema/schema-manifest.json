@@ -9,13 +9,13 @@
             "path": "tools/schema/interface.schema.json",
             "upstreamPath": "tools/interface.schema.json",
             "url": "https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/tools/interface.schema.json",
-            "sha256": "d55ea609dc240245f919d490b5186fc271ff345a2361add33353b96a51f3b22f"
+            "sha256": "bb6b375e3358b04a6335dfb6f409c131ba3f95ec7d7d3d3999bd350c34d565b8"
         },
         {
             "path": "tools/schema/interface_import.schema.json",
             "upstreamPath": "tools/interface_import.schema.json",
             "url": "https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/tools/interface_import.schema.json",
-            "sha256": "88afbf3903d2b8a14d2bb53775d56b3434d6bb72de1d2b09007c712a6e4490ff"
+            "sha256": "ec1e39b94806a9cb9887b68c846319189c9ef220f37a1fa09a650e4a417ca57d"
         },
         {
             "path": "tools/schema/interface_config.schema.json",
