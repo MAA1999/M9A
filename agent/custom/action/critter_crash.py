@@ -725,6 +725,17 @@ class CCChessboard(CustomAction):
     # 给 6 留出 3 轮余量。
     _REFRESH_SKIP_AFTER_GIVE_UP: int = 6
 
+    # 本局已确认「买不动」的卡（连续拖拽失败太多次）→ 卡名: True，新局复位。
+    #
+    # 这是死循环的保底：拖拽失败只会 skip_buy（安静 3 轮），之后又回来重试 →
+    # 再失败 → 再 skip，永远转圈。实测 11:06 卡在「32126 → (1,3)」上无限循环，
+    # 每 4 秒一次、持续几分钟。连续失败达到阈值就必须整局放弃这张卡。
+    card_dead: dict[str, bool] = {}
+    # 每张卡连续失败次数（成功一次即清零）
+    _buy_fails: dict[str, int] = {}
+    # 连续拖拽失败达到几次就整局拉黑这张卡
+    _CARD_DEAD_AFTER: int = 3
+
     # 本局是否已判定「卡池不符」—— 判定后**整局都不再刷新**，直接开战。
     #
     # 之前不敢用「本局」标记，是因为新局检测（靠回合数 OCR）从来没成功过，
@@ -742,26 +753,44 @@ class CCChessboard(CustomAction):
     refresh_skip_left: int = 0
     # 连续合成多少次判定棋盘已满（实测满盘后每轮都是合成）
     _MERGE_STREAK_FULL: int = 4
-    # 升 1 级要累计几次合成。
+    # 升 1 级要累计几次合成 = **1**。
     #
-    # 实测（用户 2026-10-24 观察）：(0,1)/(1,1)/(2,1) 三格各合成 1 次后都还是 LV.1，
-    # 只差一次才到 LV.2 领奖励；只有 (2,2) 合成了 2 次才真的升到 LV.2。
-    # 也就是说**两次合成升一级**，不是一次。之前按「一次合成 +1 级」记账，
-    # 内部以为已经 LV.2、游戏里还是 LV.1，于是不再合成 → 永远升不上去、领不到奖励。
-    _MERGES_PER_LEVEL: int = 2
+    # 2026-10-25 实机截图校正：棋盘 (0,1) 的石骑士明明显示 LV.2，日志却记
+    # 「累计 1 次合成 → 1/3 级」—— 内部永远比实际低一级，于是「还能升」的判断一直成立，
+    # 升到真正的 LV.3 之后还在拖着往上合，游戏弹「棋子等级已满」，形成死循环。
+    # 之前写成 2 是因为当时拖拽失败率高，一次点击失败就以为要合两次。
+    _MERGES_PER_LEVEL: int = 1
 
     @classmethod
     def skip_buy(cls, card_name: str) -> None:
-        """这张卡暂时别再试（连续跳过 _SKIP_TIMES 次后自动重试）。
+        """这张卡暂时别再试；连续失败太多次就**整局拉黑**。
 
-        不用「记回合号」是因为回合太长（几分钟），一次偶发失败会把整张卡拉黑到
-        商店刷新、把好卡刷掉。有限次数既不空转也能很快恢复。
+        短期跳过用 _buy_skip（安静几轮后重试），避免一次偶发失败把好卡刷掉；
+        但同一张卡反复失败说明状态确实对不上（典型：目标格已经 LV.3 而内部以为还能升），
+        这时再重试只会无限循环 —— 实测 11:06 卡在「32126 → (1,3)」上每 4 秒一次、
+        持续好几分钟。连续失败到 _CARD_DEAD_AFTER 就整局放弃它，新局复位。
         """
+        fails = cls._buy_fails.get(card_name, 0) + 1
+        cls._buy_fails[card_name] = fails
+        if fails >= cls._CARD_DEAD_AFTER:
+            if not cls.card_dead.get(card_name):
+                logger.warning(
+                    f"{card_name} 连续 {fails} 次买/升失败，本局不再尝试（防止死循环）"
+                )
+            cls.card_dead[card_name] = True
         cls._buy_skip[card_name] = cls._SKIP_TIMES
+
+    @classmethod
+    def clear_buy_fails(cls, card_name: str) -> None:
+        """这张卡成功了一次 → 失败计数与拉黑状态一起清掉。"""
+        cls._buy_fails.pop(card_name, None)
+        cls.card_dead.pop(card_name, None)
 
     @classmethod
     def is_buy_skipped(cls, card_name: str) -> bool:
         """是否还要跳过这张卡；返回 True 时消耗一次额度。"""
+        if cls.card_dead.get(card_name):
+            return True
         left = cls._buy_skip.get(card_name)
         if left is None or left <= 0:
             return False
@@ -841,6 +870,8 @@ class CCChessboard(CustomAction):
         cls.no_card_streak = 0
         cls.refresh_skip_left = 0
         cls.pool_gave_up = False
+        cls.card_dead = {}
+        cls._buy_fails = {}
         return cls.board
 
     @classmethod
@@ -1519,6 +1550,7 @@ class CCBuyCard(CustomAction):
                     cap = int(CCChessboard.get_chess_info(card_name).get("max_level", 3))
                     new_level = CCChessboard.apply_merge(existing)
                     merges = int(existing.get("merges", 0))
+                    CCChessboard.clear_buy_fails(card_name)
                     logger.debug(
                         f"{card_name} 合到 ({got_row}, {got_col})，"
                         f"累计 {merges} 次合成 → {new_level}/{cap} 级"
@@ -1529,6 +1561,7 @@ class CCBuyCard(CustomAction):
                 return CustomAction.RunResult(success=True)
 
             if CCChessboard.record_chess(got_row, got_col, card_name):
+                CCChessboard.clear_buy_fails(card_name)
                 logger.debug(f"拖入 {card_name} 到 ({got_row}, {got_col})")
                 return CustomAction.RunResult(success=True)
             # 以前这里是静默 return，导致「拖拽了但什么都没发生」在日志里查不到 ——

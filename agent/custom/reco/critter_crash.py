@@ -173,20 +173,25 @@ class CCBuyCardRec(CustomRecognition):
             # 用 Cards/ 模板：**左下角奖励区**里放的卡与商店同尺寸；
             # Award/ 是**升级后奖励商店**的卡图（更大，62x131 vs 59x112），两者不能混用。
             for card_name in CCChessboard.strategy.card_names():
+                # 与买卡分支同样要尊重 skip：奖励区的卡拖失败后必须安静几轮，
+                # 否则每轮都重试同一张，实测 11:06 卡在「32126 → (1,3)」上无限循环。
+                if CCChessboard.is_buy_skipped(card_name):
+                    continue
                 reco_detail1 = context.run_recognition(
                     "CCBuyCardAwardRec_Template",
                     argv.image,
                     {"CCBuyCardAwardRec_Template": {"template": f"CritterCrash/Cards/{card_name}.png"}},
                 )
                 if is_hit(reco_detail1):
-                    # 识别到目标卡片，查询是否可部署/能升级的棋子，有则进行
+                    # 奖励区的棋子**可以**拖到同名棋子上合成（用户实测：之前靠它升过很多级）。
+                    # 之前那次 diff=0 是「目标格已经 LV.3」，不是奖励区不能合成。
                     if CCChessboard.find_empty_position_on_image(context, argv.image, card_name):
                         detail = {"type": 1, "action": 0, "name": card_name}
                         return CustomRecognition.AnalyzeResult(box=reco_detail1.box, detail=detail)
-                    elif CCChessboard.can_upgrade_existing(card_name):
+                    if CCChessboard.can_upgrade_existing(card_name):
                         detail = {"type": 1, "action": 1, "name": card_name}
                         return CustomRecognition.AnalyzeResult(box=reco_detail1.box, detail=detail)
-                    # 既不能部署也不能升级：这张卡用不上，换下一张试
+                    logger.debug(f"奖励区的 {card_name} 既没空位也不能升级，跳过")
             logger.debug("奖励区的卡认不出或无处安放，跳过（不卖卡）")
             return CustomRecognition.AnalyzeResult(box=None, detail={})
         else:
