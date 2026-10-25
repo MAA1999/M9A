@@ -1793,6 +1793,25 @@ class TestBuyCardFlow:
         assert CCChessboard.no_card_streak == 0
         assert CCChessboard.pool_ok is True
 
+    def test_pool_bad_fires_only_once_per_match(self) -> None:
+        """命中一次后必须置 pool_gave_up，否则每轮都判定、反复点开始战斗 → 卡死。
+
+        实测 08:08：25s 判定开战 → 28s 又跑回来 → 29s streak 变成 6/5 再判一次，
+        人已被推到别的页面还在点。
+        """
+        from custom.reco.critter_crash import CCPoolBadRec
+
+        reco = CCPoolBadRec.__new__(CCPoolBadRec)
+        argv = type("Argv", (), {"image": np.zeros((720, 1280, 3), dtype=np.uint8)})()
+        CCChessboard.pool_ok = False
+        CCChessboard.pool_gave_up = False
+        CCChessboard.no_card_streak = CCChessboard._POOL_GIVE_UP_AFTER
+        assert reco.analyze(_ScriptedContext({}), argv).box is not None, "第一次应命中"
+        assert CCChessboard.pool_gave_up is True
+        # 就算计数又涨回去，也不许再命中
+        CCChessboard.no_card_streak = CCChessboard._POOL_GIVE_UP_AFTER + 3
+        assert reco.analyze(_ScriptedContext({}), argv).box is None, "本局只许触发一次"
+
     def test_pool_bad_never_fires_once_pool_ok(self) -> None:
         """本局出现过鹿蜀后，即使之后连续 5 轮没卡，也不再判卡池不符（用户 2026-10-25 明确）。
 

@@ -1052,7 +1052,13 @@
         "action": {
             "type": "DoNothing"
         },
-        "next": ["CCStartCombat"]
+        // 必须带兜底：CCStartCombat 是 TemplateMatch，按钮不可点（在别的页面）时会 miss，
+        // next 只有它一个就走到列表尽头。补上主循环锚点让它回落，别卡死。
+        "next": [
+            "CCStartCombat",
+            "CCFlagInCombatMain",
+            "CritterCrash"
+        ]
     },
     "CCRefreshCard_pre": {
         "recognition": {

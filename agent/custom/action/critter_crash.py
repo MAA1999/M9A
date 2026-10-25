@@ -724,6 +724,13 @@ class CCChessboard(CustomAction):
     # 不能「清零后重新累积」，否则中途连着 5 轮没刷到又会把一局好牌局提前结束
     # （实测 01:06 就是这么被误杀的：拖拽失败几轮 + 后续没出卡 → streak 到 5 → 直接开战）。
     pool_ok: bool = False
+
+    # 本局是否已因「卡池不符」放弃过 —— 只允许触发一次。
+    #
+    # 不加这个标记会反复命中：实测 08:08:25 判定开战后又跑回来，
+    # 08:08:29 streak 变成 6/5 再判一次，于是每轮都去点开始战斗，
+    # 人已经被推到别的页面了还在点 → 卡死。
+    pool_gave_up: bool = False
     # 连续合成多少次判定棋盘已满（实测满盘后每轮都是合成）
     _MERGE_STREAK_FULL: int = 4
     # 升 1 级要累计几次合成。
@@ -824,6 +831,7 @@ class CCChessboard(CustomAction):
         cls.merge_streak = 0
         cls.no_card_streak = 0
         cls.pool_ok = False
+        cls.pool_gave_up = False
         return cls.board
 
     @classmethod

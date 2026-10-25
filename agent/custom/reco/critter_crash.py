@@ -418,13 +418,22 @@ class CCPoolBadRec(CustomRecognition):
         if CCChessboard.pool_ok:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
 
+        # 本局已经放弃过 → 不再重复触发。
+        # 少了这道门就是无限循环：判定后点开始战斗、流程继续跑，
+        # streak 还在涨（实测 5/5 → 6/5），于是每轮又判一次、又去点开战，
+        # 人被推到别的页面后还在点 → 卡死。
+        if CCChessboard.pool_gave_up:
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
+
         streak = CCChessboard.no_card_streak
         if streak < CCChessboard._POOL_GIVE_UP_AFTER:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
 
-        # 命中：给一个合法的 box（点在开始战斗按钮上），action 用 DoNothing + next 走 CCStartCombat
+        # 命中：**先记账再返回**，保证本局只触发这一次
+        CCChessboard.pool_gave_up = True
+        CCChessboard.no_card_streak = 0
         logger.debug(
-            f"连续 {streak} 轮没有任何白名单卡 → 判定卡池不符，停止刷商店，直接开战"
+            f"连续 {streak} 轮没有任何白名单卡 → 判定卡池不符，停止刷商店，直接开战（本局只触发一次）"
         )
         return CustomRecognition.AnalyzeResult(
             box=[1146, 294, 104, 98], detail={"pool_bad": True, "streak": streak}
