@@ -212,6 +212,9 @@ class CCBuyCardRec(CustomRecognition):
 
             # 钱够了，先动态识别所有可能的卡牌，然后根据优先级选择
             upgrade_candidates = []
+            # 这一轮有没有任何白名单卡出现在商店里（不管能不能放 / 能不能升级）。
+            # 只有「一张都没出现」才可能是卡池不对；盘满导致的「用不上」不算。
+            any_hit = False
             for card_name in CCChessboard.strategy.card_names():
                 # 本回合已确认买不动的卡（钱不够/棋盘满/状态分叉）别再反复命中：
                 # CCBuyCard 是 [JumpBack]，它每轮都会命中一次，不跳过就会一直空转。
@@ -246,6 +249,7 @@ class CCBuyCardRec(CustomRecognition):
                     #
                     # 也不能只清零：用户 2026-10-25 要求「本局出现过鹿蜀就不再触发这条规则」——
                     # 清零后如果后面连着 5 轮没出卡，又会把一局好牌局提前结束。
+                    any_hit = True
                     CCChessboard.no_card_streak = 0
                     if not CCChessboard.pool_ok:
                         logger.debug(f"本局已出现白名单卡 {card_name} → 本局不再判卡池不符")
@@ -280,11 +284,17 @@ class CCBuyCardRec(CustomRecognition):
                 detail = {"type": 0, "action": 1, "name": card_name}
                 return CustomRecognition.AnalyzeResult(box=reco_detail.box, detail=detail)
 
-            # 没有找到合适的卡牌。
+            # 没有可买的卡。
             #
-            # 这里只统计「钱够、但一张白名单卡都没有」的连续轮数 —— 钱不够的分支
-            # 在上面就 return 了，不计入。连续够多次说明这个卡池里根本没有我们要的卡
-            # （奇遇/卡包决定棋子池），由 CCBuyCardGiveUp 直接开战，别再刷商店白烧时间。
+            # **只有这一轮一张白名单卡都没出现在商店里，才算「卡池没有」。**
+            # 棋盘满了的时候每张卡都「用不上」（实测 08:29:21 连续
+            # 「32122 识别到了但用不上：全部无空位」），那是没地方放、不是卡池不对，
+            # 计入的话必然把盘满的一局误判成卡池不符、然后把刷新永久锁死。
+            if any_hit:
+                # 商店里有我们的卡，只是这轮放不下 / 买不起 —— 不是卡池问题，不计数。
+                logger.debug("商店里有白名单卡但本轮买不成（位置/币/升级条件），不计入卡池判定")
+                return CustomRecognition.AnalyzeResult(box=None, detail={})
+
             CCChessboard.no_card_streak += 1
             logger.debug(
                 f"没有找到合适的卡牌（连续 {CCChessboard.no_card_streak}/"
@@ -307,8 +317,12 @@ class CCRemainMoney(CustomRecognition):
         # 本局已判定卡池不符（CCPoolBadRec 置了 pool_gave_up）时直接 miss ——
         # 这样 CCRefreshCard_pre 的 And 自己就失败，流程自然落到主循环末尾的 CCStartCombat，
         # 不需要在放弃节点里点任何东西，也不用给 next 堆兜底。
-        if type == 1 and CCChessboard.pool_gave_up:
-            return CustomRecognition.AnalyzeResult(box=None, detail={})
+        if type == 1 and CCChessboard.pool_gave_up_round is not None:
+            from custom.action.critter_crash import CCSticker as _CCSticker2
+
+            current = _CCSticker2._read_round(context, argv.image)
+            if current is not None and current == CCChessboard.pool_gave_up_round:
+                return CustomRecognition.AnalyzeResult(box=None, detail={})
 
         img = argv.image
         # 定义目标颜色和颜色容差
@@ -425,19 +439,18 @@ class CCPoolBadRec(CustomRecognition):
         if CCChessboard.pool_ok:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
 
-        # 本局已经放弃过 → 不再重复触发。
-        # 少了这道门就是无限循环：判定后点开始战斗、流程继续跑，
-        # streak 还在涨（实测 5/5 → 6/5），于是每轮又判一次、又去点开战，
-        # 人被推到别的页面后还在点 → 卡死。
-        if CCChessboard.pool_gave_up:
-            return CustomRecognition.AnalyzeResult(box=None, detail={})
-
         streak = CCChessboard.no_card_streak
         if streak < CCChessboard._POOL_GIVE_UP_AFTER:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
 
-        # 命中：**先记账再返回**，保证本局只触发这一次
-        CCChessboard.pool_gave_up = True
+        # 同一回合只触发一次：按回合号记账，下个回合自动重新评估。
+        # 做成永久标记会把刷新永久挡住 —— 实测 08:25 判定后再也不刷新了。
+        from custom.action.critter_crash import CCSticker as _CCSticker
+
+        current_round = _CCSticker._read_round(context, argv.image)
+        if current_round is not None and CCChessboard.pool_gave_up_round == current_round:
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
+        CCChessboard.pool_gave_up_round = current_round
         CCChessboard.no_card_streak = 0
         logger.debug(
             f"连续 {streak} 轮没有任何白名单卡 → 判定卡池不符，停止刷商店，直接开战（本局只触发一次）"

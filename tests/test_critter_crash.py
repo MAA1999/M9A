@@ -1793,24 +1793,29 @@ class TestBuyCardFlow:
         assert CCChessboard.no_card_streak == 0
         assert CCChessboard.pool_ok is True
 
-    def test_pool_bad_fires_only_once_per_match(self) -> None:
-        """命中一次后必须置 pool_gave_up，否则每轮都判定、反复点开始战斗 → 卡死。
+    def test_pool_bad_fires_once_per_round(self) -> None:
+        """同一回合只触发一次；下个回合重新评估。
 
-        实测 08:08：25s 判定开战 → 28s 又跑回来 → 29s streak 变成 6/5 再判一次，
-        人已被推到别的页面还在点。
+        做成永久标记会把刷新永久挡住 —— 实测 08:25:19 判定一次之后，
+        后面明明有币、商店里也有鹿蜀，就是再也不刷新了。
         """
         from custom.reco.critter_crash import CCPoolBadRec
 
         reco = CCPoolBadRec.__new__(CCPoolBadRec)
         argv = type("Argv", (), {"image": np.zeros((720, 1280, 3), dtype=np.uint8)})()
         CCChessboard.pool_ok = False
-        CCChessboard.pool_gave_up = False
+        CCChessboard.pool_gave_up_round = None
         CCChessboard.no_card_streak = CCChessboard._POOL_GIVE_UP_AFTER
-        assert reco.analyze(_ScriptedContext({}), argv).box is not None, "第一次应命中"
-        assert CCChessboard.pool_gave_up is True
-        # 就算计数又涨回去，也不许再命中
+
+        # 读不到回合数时按「放行」处理（不锁死功能）
+        ctx = _ScriptedContext({})
+        assert reco.analyze(ctx, argv).box is not None, "第一次应命中"
+
+        # 同一回合第二次：不许再命中
         CCChessboard.no_card_streak = CCChessboard._POOL_GIVE_UP_AFTER + 3
-        assert reco.analyze(_ScriptedContext({}), argv).box is None, "本局只许触发一次"
+        ctx_same = _ScriptedContext({"CCRoundPre": _ocr_hit("8/12")})
+        CCChessboard.pool_gave_up_round = 8
+        assert reco.analyze(ctx_same, argv).box is None, "同一回合只许触发一次"
 
     def test_pool_bad_never_fires_once_pool_ok(self) -> None:
         """本局出现过鹿蜀后，即使之后连续 5 轮没卡，也不再判卡池不符（用户 2026-10-25 明确）。

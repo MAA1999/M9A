@@ -725,12 +725,12 @@ class CCChessboard(CustomAction):
     # （实测 01:06 就是这么被误杀的：拖拽失败几轮 + 后续没出卡 → streak 到 5 → 直接开战）。
     pool_ok: bool = False
 
-    # 本局是否已因「卡池不符」放弃过 —— 只允许触发一次。
+    # 「卡池不符」判定生效的回合号（None = 未生效）。
     #
-    # 不加这个标记会反复命中：实测 08:08:25 判定开战后又跑回来，
-    # 08:08:29 streak 变成 6/5 再判一次，于是每轮都去点开始战斗，
-    # 人已经被推到别的页面了还在点 → 卡死。
-    pool_gave_up: bool = False
+    # **只能按回合失效，不能做成永久标记**：实测 08:25:19 判定一次之后，
+    # 刷新被永久挡住 —— 后面明明有币、商店里也有鹿蜀，就是不刷新了。
+    # 记回合号可以既防止同回合反复触发，又不会让刷新永远瘫痪。
+    pool_gave_up_round: int | None = None
     # 连续合成多少次判定棋盘已满（实测满盘后每轮都是合成）
     _MERGE_STREAK_FULL: int = 4
     # 升 1 级要累计几次合成。
@@ -831,7 +831,7 @@ class CCChessboard(CustomAction):
         cls.merge_streak = 0
         cls.no_card_streak = 0
         cls.pool_ok = False
-        cls.pool_gave_up = False
+        cls.pool_gave_up_round = None
         return cls.board
 
     @classmethod
@@ -1783,12 +1783,13 @@ class CCSticker(CustomAction):
         之前用 CCRemainMoney_rec_refresh 是错的 —— 那读的是**金币**（roi 669,29 左上角），
         拿它当回合数会让守卫恒为 None，于是每轮都重点一次盒子（实测空转 122 次）。
         """
+        # 用 CCRoundPre 而不是 CCRoundRec：后者的 roi 更宽（1160,415,120,50），
+        # 实测一直读不到，导致 _reset_if_new_game 永远返回 None ——
+        # 2026-10-25 全天日志里「检测到新对局」出现 0 次，按局状态（pool_ok /
+        # pool_gave_up / no_card_streak）因此跨局残留，刷新被永久挡住。
+        # CCRoundPre 的 roi（1172,419,77,30）在框架日志里稳定读到 "8/12"。
         try:
-            detail = context.run_recognition(
-                "CCRoundRec",
-                img,
-                {"CCRoundRec": {"roi": [1160, 415, 120, 50]}},
-            )
+            detail = context.run_recognition("CCRoundPre", img)
         except Exception:  # noqa: BLE001 - 回合数只用于去重，读不到不算失败
             return None
         if not is_hit(detail):
