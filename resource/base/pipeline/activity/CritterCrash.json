@@ -1052,13 +1052,9 @@
         "action": {
             "type": "DoNothing"
         },
-        // 必须带兜底：CCStartCombat 是 TemplateMatch，按钮不可点（在别的页面）时会 miss，
-        // next 只有它一个就走到列表尽头。补上主循环锚点让它回落，别卡死。
-        "next": [
-            "CCStartCombat",
-            "CCFlagInCombatMain",
-            "CritterCrash"
-        ]
+        // [JumpBack]：点完开战就回父列表（主循环）继续轮询，不在这里堆兜底节点。
+        // CCStartCombat 认不到（不在对局页 / 按钮灰）时子链自然走空，同样回父列表。
+        "next": ["[JumpBack]CCStartCombat"]
     },
     "CCRefreshCard_pre": {
         "recognition": {
