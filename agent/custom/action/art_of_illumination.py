@@ -51,7 +51,8 @@ next 覆写成翻页或收尾节点，让引擎走正常流转，而不是靠超
   **共用同一个计数条**；两个「>」是两个不同尺寸的图形（85×96 / 59×93），识别矩阵互不误命中。
   幕布 II 由「获得大奖」解锁（游戏原文：*通过折射观测到大奖的任意一角即可获得大奖，
   获得大奖后解锁多格光影幕布 II*）——本模块**不判断解锁与否**，只按「本页翻完、计数条还有次数」
-  推进；没得翻时 `AOI_PageSwitch` 的候选自然认不到，正常收尾。
+  推进；没得翻时 `AOI_PageSwitch` 的两个候选都认不到，等满它的 timeout 后由 on_error 收尾
+  （保留这段宽限是有意的：候选只有一帧机会时，瞬时遮挡会静默少翻一页，详见该节点注释）。
 
 终止条件（三层，都不依赖「次数用完时界面长什么样」这个未观测状态）：
 
@@ -263,7 +264,8 @@ class ArtOfIlluminationScratch(CustomAction):
             # 本页翻完了。还有折射次数 → 很可能还有另一幕布（多格光影幕布 II）没翻：
             # 实测两页共用一个计数条、共用同一套格心坐标，翻页就是点棋盘左/右那个「>」。
             # 交给 AOI_PageSwitch 去切；切过去要是新的一页还有格子，下一轮就会接着翻；
-            # 两页都翻完时 AOI_PageSwitch 的候选 max_hit 用尽 → 走它的 on_error 正常收尾。
+            # 两页都翻完时它的两个候选都认不到 / max_hit 用尽 → 等满 timeout 后由它的
+            # on_error 收尾到 AOI_ScratchCardDone。
             if counter is not None and counter >= 1:
                 logger.info(f"[ArtOfIllumination] 本页翻完（还有 {counter} 次）→ 翻另一幕布")
                 cls._finish(context, node_name, SWITCH_NODE)
