@@ -668,7 +668,7 @@ class CCChessboard(CustomAction):
         cls.strategy = strategy
         cls.board_rois = _board_rois_from(strategy)
         cls.chess_types = _chess_types_from(strategy)
-        # 棋盘 + 全部按局状态（board_full / merge_streak / no_card_streak / pool_ok）一起清
+        # 棋盘 + 全部按局状态（board_full / merge_streak / card_dead / _buy_fails）一起清
         cls.board_reset()
         cls._last_round = None
         cls._buy_skip = {}
@@ -709,22 +709,6 @@ class CCChessboard(CustomAction):
     # 连续「合到已有棋子（无新格）」的次数
     merge_streak: int = 0
 
-    # 连续多少轮「钱够、但商店里没有一张白名单卡」。
-    #
-    # 用来判定**卡池不符**：奇遇/卡包决定了商店棋子池，池子里没有鹿蜀时
-    # 机器人只会「刷新 → 还是没有 → 再刷新」，白烧一整局（实测一局 240s 刷 38 次）。
-    # 达到阈值就由 pipeline 的 CCBuyCardGiveUp 直接点开始战斗，不再刷商店。
-    no_card_streak: int = 0
-    # 连续多少轮无卡就判定卡池不符（用户 2026-10-25 定：5 次）
-    _POOL_GIVE_UP_AFTER: int = 5
-    # 判定成立后跳过几次刷新判定（每调用一次扣 1，归零自动恢复）。
-    #
-    # 要按「调用次数」而不是「轮数」算：CCRefreshCard_pre 和 CCRefreshCard_post
-    # 的 And 里**都**引用了 CCRemainMoney_refresh，一次主循环会各扣一次 ——
-    # 所以 3 只够 1.5 轮，流程来不及走到 CCStartCombat 额度就没了。
-    # 给 6 留出 3 轮余量。
-    _REFRESH_SKIP_AFTER_GIVE_UP: int = 6
-
     # 本局已确认「买不动」的卡（连续拖拽失败太多次）→ 卡名: True，新局复位。
     #
     # 这是死循环的保底：拖拽失败只会 skip_buy（安静 3 轮），之后又回来重试 →
@@ -736,21 +720,6 @@ class CCChessboard(CustomAction):
     # 连续拖拽失败达到几次就整局拉黑这张卡
     _CARD_DEAD_AFTER: int = 3
 
-    # 本局是否已判定「卡池不符」—— 判定后**整局都不再刷新**，直接开战。
-    #
-    # 之前不敢用「本局」标记，是因为新局检测（靠回合数 OCR）从来没成功过，
-    # 布尔标记会跨局残留、把下一局的刷新永久挡住。现在 _reset_if_new_game
-    # 改用棋盘状态判定（内部有棋子 + 画面全空 = 新局），复位可靠了，可以放心用。
-    pool_gave_up: bool = False
-
-    # 判定「卡池不符」之后，还要跳过几次刷新才真正开战（用一次扣一次，归零即恢复）。
-    #
-    # **不用任何跨局布尔标记**：一局是否出现过白名单卡、是否已经放弃过，
-    # 这类「本局状态」都依赖可靠的新局检测 —— 而实测 _reset_if_new_game 全天 0 次命中
-    # （_read_round 读不到回合数），于是 pool_ok / pool_gave_up 全部跨局残留，
-    # 表现为「新局第一轮不刷新」「无鹿蜀局反而不判卡池不符」。
-    # 改成有限次数后，最坏也只是多刷或早刷几次，不会永久瘫痪。
-    refresh_skip_left: int = 0
     # 连续合成多少次判定棋盘已满（实测满盘后每轮都是合成）
     _MERGE_STREAK_FULL: int = 4
     # 升 1 级要累计几次合成 = **2**（用户 2026-10-25 确认；日志也印证：
@@ -781,6 +750,15 @@ class CCChessboard(CustomAction):
         """这张卡成功了一次 → 失败计数与拉黑状态一起清掉。"""
         cls._buy_fails.pop(card_name, None)
         cls.card_dead.pop(card_name, None)
+
+    @classmethod
+    def is_card_dead(cls, card_name: str) -> bool:
+        """只读判断：这张卡本局是否已被拉黑（不消耗跳过额度）。
+
+        奖励区分支要用它 —— 那边如果调 is_buy_skipped()（扣减式），
+        会和商店分支各扣一次，额度消耗翻倍。
+        """
+        return bool(cls.card_dead.get(card_name))
 
     @classmethod
     def is_buy_skipped(cls, card_name: str) -> bool:
@@ -857,15 +835,12 @@ class CCChessboard(CustomAction):
         """清空棋盘与**所有按局状态**（新对局时调用）。
 
         盘点过一次就漏一次，所以按局状态统一在这里复位：
-        board_full / merge_streak / no_card_streak / pool_ok。
+        board_full / merge_streak / card_dead / _buy_fails。
         """
         cls.board = [[None] * cls.strategy.board_cols for _ in range(cls.strategy.board_rows)]
         cls.board_chesses = []
         cls.board_full = False
         cls.merge_streak = 0
-        cls.no_card_streak = 0
-        cls.refresh_skip_left = 0
-        cls.pool_gave_up = False
         cls.card_dead = {}
         cls._buy_fails = {}
         return cls.board
@@ -1518,25 +1493,11 @@ class CCBuyCard(CustomAction):
             if was_occupied and occupied:
                 diff = CCChessboard.cell_diff(pre_img, img2, row, col)
                 if diff < CCChessboard._CELL_CHANGE_MIN:
-                    # 拖到同名棋子上、画面一点没变 = **游戏拒绝了这次合成**。
-                    # 最可能的原因就是那格已经满级（实机此时会弹「棋子等级已满」）。
-                    #
-                    # 这是判断满级最可靠的信号：靠 Lv3.png 模板认不出来 ——
-                    # 实测那张模板只认得出其中一种角标（NCC=1.0 仅 1 处），
-                    # 棋盘上其它 LV.3 全部匹配不上。
-                    #
-                    # 直接按满级记账，后面 can_upgrade_existing 立刻变 False，
-                    # 不会再反复往这格拖（实测 11:06 每 4 秒重试一次、持续几分钟）。
-                    target = CCChessboard.board[row][col]
-                    if target is not None and target.get("name") == card_name:
-                        cap = int(CCChessboard.get_chess_info(card_name).get("max_level", 3))
-                        if int(target.get("level", 1)) < cap:
-                            target["level"] = cap
-                            target["merges"] = cap * CCChessboard._MERGES_PER_LEVEL
-                            logger.debug(
-                                f"{card_name} 在 ({row}, {col}) 合成被拒 → 判定已满级（{cap} 级），"
-                                f"不再尝试升级"
-                            )
+                    # **这里绝不能推断「已满级」**：满级只由上面的 CCLevelMaxPopup 判定。
+                    # 能走到这里说明弹窗没命中；而「拖拽完全没生效」本身非常常见
+                    # （本函数上面就记着 32124 连续 8 次假成功）。真要是在这里把目标格
+                    # 写成 level=cap，一次失败拖拽就会让一颗没满级的棋子本局再也升不上去
+                    # —— 对 single_slot 卡还会直接变成 (-1,-1) 然后被 skip/拉黑。
                     logger.debug(
                         f"拖拽 {card_name} 到 ({row}, {col}) 后该格画面无变化（diff={diff:.1f}），判定拖拽未生效"
                     )
@@ -1603,6 +1564,18 @@ class CCBuyCard(CustomAction):
                         f"{card_name} 合到 ({got_row}, {got_col})，"
                         f"累计 {merges} 次合成 → {new_level}/{cap} 级"
                     )
+                    # 合成会同时改动别的格（被吃掉的那颗消失、或整行重排）。
+                    # 只记目标格会让模型里留下幻影棋子，之后 find_empty_position
+                    # 一直说没空位、实际还有。这里把其它变化格里已经变空的清掉。
+                    others = [
+                        (r, c)
+                        for _, r, c in self._diff_changed_cells(pre_img, img2)
+                        if (r, c) != (got_row, got_col)
+                    ]
+                    if others:
+                        removed = CCChessboard.drop_cells_if_now_empty(context, img2, others)
+                        if removed:
+                            logger.debug(f"{card_name} 合成带走了 {removed} 个格，已从模型清掉")
                     return CustomAction.RunResult(success=True)
                 logger.debug(f"{card_name} 落到 ({got_row}, {got_col})，但该格记的是 {existing.get('name')}，跳过")
                 CCChessboard.skip_buy(card_name)
@@ -1896,11 +1869,14 @@ class CCSticker(CustomAction):
         之前用 CCRemainMoney_rec_refresh 是错的 —— 那读的是**金币**（roi 669,29 左上角），
         拿它当回合数会让守卫恒为 None，于是每轮都重点一次盒子（实测空转 122 次）。
         """
-        # 用 CCRoundPre 而不是 CCRoundRec：后者的 roi 更宽（1160,415,120,50），
-        # 实测一直读不到，导致 _reset_if_new_game 永远返回 None ——
-        # 2026-10-25 全天日志里「检测到新对局」出现 0 次，按局状态（pool_ok /
-        # pool_gave_up / no_card_streak）因此跨局残留，刷新被永久挡住。
-        # CCRoundPre 的 roi（1172,419,77,30）在框架日志里稳定读到 "8/12"。
+        # 一律走 CCRoundPre。它的 roi 2026-10-25 已从 1172,419,77,30 改成
+        # 1160,415,120,50：实测旧 roi（更窄）完全读不到，新 roi 能读到 "8"。
+        # 注意 OCR 有时只回 "8"、有时回 "8/12"，所以 CCnRound 的 expected 两种都要认 ——
+        # 之前只写 ^[0-9]{1,2}\/12$，导致币/回合两个条件轮流失败，
+        # 全天日志「检测到新对局」出现 0 次、按局状态跨局残留。
+        #
+        # 另外：_reset_if_new_game 现在**不再依赖回合数**（改用棋盘状态判断），
+        # 这个函数只用于贴纸箱的「同回合去重」。
         try:
             detail = context.run_recognition("CCRoundPre", img)
         except Exception:  # noqa: BLE001 - 回合数只用于去重，读不到不算失败

@@ -483,6 +483,10 @@ class _ScriptedContext:
         self.all_occupied = False
         # 画面强制全空（模拟新对局开始：内部还记着上一局的棋子，画面已经清空）
         self.force_empty_frame = False
+        # 拖拽后才变色的格（模拟合成成功：pre_img 与 img2 必须真的有差异，
+        # 否则 cell_diff=0 会被判「拖拽未生效」，压根测不到合并分支）
+        self.dirty_after_drag: tuple[int, int] | None = None
+        self._frame_calls = 0
         self.swipes: list[tuple[int, int, int, int, int]] = []
         self.keys: list[int] = []
         self.touches: list[tuple[str, int, int]] = []
@@ -554,6 +558,7 @@ class _ScriptedContext:
             return self
 
         def get(self) -> np.ndarray:
+            self._owner._frame_calls += 1
             # 空格底纹：**极低**噪声（std≈2），确保被判定为空格。
             # 实机空格 std≈29，但测试里只要低于 _OCCUPIED_STD(45) 即可；
             # 用更低的噪声能避免随机波动导致误判占用。
@@ -585,6 +590,12 @@ class _ScriptedContext:
                     frame[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]] = patch
             if self._owner.bought and self._owner.piece_cell is not None:
                 r, c = self._owner.piece_cell
+                roi = CCChessboard.board_rois[r][c]
+                patch = rng.integers(0, 255, (roi[3], roi[2], 3), dtype=np.uint8)
+                frame[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]] = patch
+            # 拖拽后的帧（第 3 次 get 起）才画出「颜色变了」的那格
+            if self._owner.dirty_after_drag is not None and self._owner._frame_calls >= 3:
+                r, c = self._owner.dirty_after_drag
                 roi = CCChessboard.board_rois[r][c]
                 patch = rng.integers(0, 255, (roi[3], roi[2], 3), dtype=np.uint8)
                 frame[roi[1] : roi[1] + roi[3], roi[0] : roi[0] + roi[2]] = patch
@@ -1776,23 +1787,6 @@ class TestBuyCardFlow:
         assert CCChessboard.apply_merge(entry) == 3, "第 4 次升到 3 级"
         assert CCChessboard.apply_merge(entry) == 3, "满级后不再升"
 
-    def test_correction_does_not_rebuild_same_card(self) -> None:
-        """同名同格时「按实际校正」不能重建 dict，否则 merges 被清零。
-
-        这是 10:37「累计 1 次合成」反复出现的直接原因。
-        """
-        assert CCChessboard.place_chess(0, 2, "32123") is True
-        entry = CCChessboard.board[0][2]
-        assert entry is not None
-        CCChessboard.apply_merge(entry)
-        CCChessboard.apply_merge(entry)
-        assert entry["merges"] == 2 and entry["level"] == 2
-
-        # 同名同格时现实代码不重建 dict，对象身份必须保持不变
-        before_id = id(CCChessboard.board[0][2])
-        assert id(CCChessboard.board[0][2]) == before_id
-        assert CCChessboard.board[0][2]["merges"] == 2
-
     def test_single_slot_maxed_card_is_not_bought(self) -> None:
         """辅助卡满级后不再买 —— 不许落到新格占第二个位置。
 
@@ -1817,23 +1811,6 @@ class TestBuyCardFlow:
         img = ctx.tasker.controller.get()
         row, col = CCBuyCard._pick_target_cell("32124", ctx, img)
         assert (row, col) == (1, 3)
-
-    def test_pool_bad_only_after_five_empty_rounds(self) -> None:
-        """连续 5 轮「钱够但没有白名单卡」才判定卡池不符。
-
-        卡包图标判断不了（解包 auto_chess_cardpack 里同一个图标既对应含鹿蜀的卡包、
-        也对应不含的，「工具采购」一名 14 个变体），所以只能在局内看商店实际出了什么。
-        """
-        from custom.reco.critter_crash import CCPoolBadRec
-
-        reco = CCPoolBadRec.__new__(CCPoolBadRec)
-        argv = type("Argv", (), {"image": np.zeros((720, 1280, 3), dtype=np.uint8)})()
-        for i in range(CCChessboard._POOL_GIVE_UP_AFTER - 1):
-            CCChessboard.no_card_streak = i
-            assert reco.analyze(_ScriptedContext({}), argv).box is None, f"第 {i} 轮不该判定"
-        CCChessboard.no_card_streak = CCChessboard._POOL_GIVE_UP_AFTER
-        result = reco.analyze(_ScriptedContext({}), argv)
-        assert result.box is not None, "达到阈值应命中，交给 pipeline 点开始战斗"
 
     def test_refresh_also_requires_three_money(self) -> None:
         """刷新的币门槛同样是 3。
@@ -1861,45 +1838,6 @@ class TestBuyCardFlow:
         assert run(1) is False, "刷新：币 2 不够（刷了也买不起卡）"
         assert run(0) is False, "买卡：币 2 不够（最便宜 3 费）"
 
-    def test_pool_bad_skips_refresh_a_finite_number_of_times(self) -> None:
-        """判定卡池不符后只跳过有限次刷新，不锁死功能。
-
-        之前用 pool_gave_up 布尔标记 → 判定一次之后刷新被永久挡住
-        （实测 08:25 之后再也没刷过）。改成计数后最坏只影响 3 次。
-        """
-        from custom.reco.critter_crash import CCPoolBadRec
-
-        reco = CCPoolBadRec.__new__(CCPoolBadRec)
-        argv = type("Argv", (), {"image": np.zeros((720, 1280, 3), dtype=np.uint8)})()
-        CCChessboard.no_card_streak = CCChessboard._POOL_GIVE_UP_AFTER
-        CCChessboard.refresh_skip_left = 0
-
-        assert reco.analyze(_ScriptedContext({}), argv).box is not None, "达到阈值应命中"
-        assert CCChessboard.refresh_skip_left == CCChessboard._REFRESH_SKIP_AFTER_GIVE_UP
-        # 第二次不许把跳过次数重置回满（否则永远 = 3，刷新被永久挡住）
-        CCChessboard.refresh_skip_left = 1
-        reco.analyze(_ScriptedContext({}), argv)
-        assert CCChessboard.refresh_skip_left == 1, "已生效的跳过次数不能被重新拉满"
-
-    def test_refresh_skip_expires(self) -> None:
-        """跳过次数用一次扣一次，归零后刷新恢复（不能永久失效）。"""
-        from custom.reco.critter_crash import CCRemainMoney
-
-        reco = CCRemainMoney.__new__(CCRemainMoney)
-        argv = type(
-            "Argv",
-            (),
-            {
-                "image": np.zeros((720, 1280, 3), dtype=np.uint8),
-                "custom_recognition_param": '{"type": 1}',
-            },
-        )()
-        CCChessboard.refresh_skip_left = 2
-        for left in (1, 0):
-            result = reco.analyze(_ScriptedContext({}), argv)
-            assert result.box is None, "还有跳过次数时应 miss"
-            assert CCChessboard.refresh_skip_left == left
-
     def test_new_match_detected_by_empty_board(self) -> None:
         """内部有棋子 + 画面全空 = 新对局 → 清空所有按局状态。
 
@@ -1907,8 +1845,6 @@ class TestBuyCardFlow:
         导致按局状态跨局残留。棋盘状态是可靠信号。
         """
         CCChessboard.board[0][2] = {"name": "32123", "level": 1, "row": 0, "col": 2}
-        CCChessboard.pool_gave_up = True
-        CCChessboard.no_card_streak = 4
         CCChessboard.board_full = True
 
         ctx = _ScriptedContext({})
@@ -1916,18 +1852,16 @@ class TestBuyCardFlow:
         CCChessboard.__new__(CCChessboard)._reset_if_new_game(ctx)
 
         assert CCChessboard.board[0][2] is None, "内部棋盘应被清空"
-        assert CCChessboard.pool_gave_up is False, "按局标记必须复位"
-        assert CCChessboard.no_card_streak == 0
         assert CCChessboard.board_full is False
 
     def test_no_reset_when_board_still_has_pieces(self) -> None:
         """画面里还有棋子 → 还是同一局，不许清状态。"""
         CCChessboard.board[0][2] = {"name": "32123", "level": 1, "row": 0, "col": 2}
-        CCChessboard.pool_gave_up = True
+        CCChessboard.board_full = True
         ctx = _ScriptedContext({})   # 桩按内部棋盘渲染 → 画面里也有棋子
         CCChessboard.__new__(CCChessboard)._reset_if_new_game(ctx)
         assert CCChessboard.board[0][2] is not None
-        assert CCChessboard.pool_gave_up is True
+        assert CCChessboard.board_full is True, "同一局内不该清状态"
 
     def test_pool_gave_up_blocks_refresh_for_whole_match(self) -> None:
         """判定卡池不符后整局不再刷新（新局才复位）。"""
@@ -1977,6 +1911,69 @@ class TestBuyCardFlow:
         target["level"] = cap
         target["merges"] = cap * CCChessboard._MERGES_PER_LEVEL
         assert CCChessboard.can_upgrade_existing("32123") is False, "判满级后不该再认为能升"
+
+    def test_buy_accumulates_merges_on_existing_piece(self) -> None:
+        """目标格已有同名棋子（merges 非 0）时再拖一次，merges 必须在原值上累加。
+
+        review 指出之前那条用例是恒真的（id() 同一对象连读两次）。
+        这里真正跑一遍 _run_buy_card：靠脏帧让 cell_diff > 0，才走得到合并分支。
+        """
+        assert CCChessboard.place_chess(0, 2, "32123") is True
+        entry = CCChessboard.board[0][2]
+        assert entry is not None
+        entry["merges"] = 1
+        entry["level"] = 1
+        # 该卡其它 positions 全占满，逼 _pick_target_cell 只能选「拖到已有棋子上升级」
+        # （它是先找空格、找不到才升级的）
+        for r, c in [(2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]:
+            CCChessboard.board[r][c] = {"name": "other", "level": 1, "merges": 0, "row": r, "col": c}
+
+        ctx = _ScriptedContext(
+            {
+                "CCRemainMoney": _hit((669, 29, 36, 25)),
+                "32123": _hit((300, 560, 80, 90)),
+            }
+        )
+        ctx.piece_cell = (0, 2)
+        ctx.dirty_after_drag = (0, 2)   # 拖拽后该格真的变了
+
+        # 先确认选格确实落在 (0,2)
+        pick_img = ctx.tasker.controller.get()
+        assert CCBuyCard._pick_target_cell("32123", ctx, pick_img, upgrade=True) == (0, 2)
+        ctx._frame_calls = 0
+
+        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(300, 620, 90, 100))
+
+        entry = CCChessboard.board[0][2]
+        assert entry is not None
+        assert entry["merges"] == 2, "必须在原 merges=1 上累加，而不是被重建回 0"
+        assert entry["level"] == 2, "两次合成升一级"
+
+    def test_buy_does_not_rebuild_dict_for_same_card(self) -> None:
+        """同名同格时不能重建 dict（重建会丢 merges / 让对象身份变化）。
+
+        用对象身份判断：重建后 id 一定变。
+        """
+        assert CCChessboard.place_chess(0, 2, "32123") is True
+        entry = CCChessboard.board[0][2]
+        assert entry is not None
+        before_id = id(entry)
+        for r, c in [(2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]:
+            CCChessboard.board[r][c] = {"name": "other", "level": 1, "merges": 0, "row": r, "col": c}
+
+        ctx = _ScriptedContext(
+            {
+                "CCRemainMoney": _hit((669, 29, 36, 25)),
+                "32123": _hit((300, 560, 80, 90)),
+            }
+        )
+        ctx.piece_cell = (0, 2)
+        ctx.dirty_after_drag = (0, 2)
+        _run_buy_card(ctx, {"type": 0, "action": 1, "name": "32123"}, box=(300, 620, 90, 100))
+
+        after = CCChessboard.board[0][2]
+        assert after is not None
+        assert id(after) == before_id, "同名同格不该重建 dict"
 
     def test_single_slot_finds_card_outside_positions(self) -> None:
         """辅助卡放在 positions 之外时也要能找到它。

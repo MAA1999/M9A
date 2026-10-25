@@ -698,9 +698,6 @@
             // 挂在最后就永远轮不到 —— 贴纸一次都没开过。
             "[JumpBack]CCSticker",
             "[JumpBack]CCBuyCard",
-            // 卡池不符判定（CCBuyCardGiveUp）已停用：局内判定始终不可靠，
-            // 2026-10-25 回滚为「开局重摇奇遇」的策略（encounters.max_reroll=15）。
-            // "[JumpBack]CCBuyCardGiveUp",
             "[JumpBack]CCRefreshCard_pre",
             "[JumpBack]CCRefreshCard_post",
             "[JumpBack]CCSelectAwardCard",
@@ -1042,21 +1039,6 @@
                 ],
                 "template": "CritterCrash/Cards"
             }
-        }
-    },
-    "CCBuyCardGiveUp": {
-        "desc": "卡池不符：连续 5 轮钱够却没有任何白名单卡 → 直接点开始战斗，不再刷新商店",
-        "recognition": {
-            "type": "Custom",
-            "param": {
-                "custom_recognition": "CCPoolBadRec"
-            }
-        },
-        // 只做标记（CCPoolBadRec 里置 pool_gave_up），不点任何东西 ——
-        // 点开战交给主循环末尾原来的 CCStartCombat。
-        // 节点不挂 next：主循环以 [JumpBack]CCBuyCardGiveUp 引用，做完即回父列表。
-        "action": {
-            "type": "DoNothing"
         }
     },
     "CCRefreshCard_pre": {
