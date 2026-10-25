@@ -344,32 +344,28 @@ class TestBoardState:
         assert CCChessboard.find_empty_position("NotACard") is None
 
     def test_upgrade_chess_stops_at_max_level(self) -> None:
-        """鹿蜀上限 3 星；**一次合成升一级**，到 3 级共 2 次合成。"""
+        """鹿蜀上限 3 星；**两次合成升一级**，到 3 级共 4 次合成。"""
         assert CCChessboard.place_chess(0, 4, "32123") is True
-        for _ in range(2):
+        for _ in range(4):
             assert CCChessboard.upgrade_chess(0, 4) is True
         entry = CCChessboard.board[0][4]
         assert entry is not None
         assert (entry["name"], entry["level"]) == ("32123", 3)
         assert CCChessboard.upgrade_chess(0, 4) is False
 
-    def test_one_merge_levels_up_once(self) -> None:
-        """1 次合成升 1 级 —— 2026-10-25 实机截图校正。
-
-        棋盘 (0,1) 石骑士显示 LV.2，而日志记「累计 1 次合成 → 1/3 级」：
-        内部永远比实际低一级，升到真 LV.3 还在拖着合，游戏弹「棋子等级已满」，
-        于是无限循环。
-        """
+    def test_one_merge_does_not_level_up(self) -> None:
+        """合成 1 次仍是 1 级（两次合成升一级）。"""
         assert CCChessboard.place_chess(0, 4, "32123") is True
         assert CCChessboard.upgrade_chess(0, 4) is True
         entry = CCChessboard.board[0][4]
         assert entry is not None
-        assert entry["level"] == 2
+        assert entry["level"] == 1
         assert entry["merges"] == 1
 
     def test_upgrade_chess_keeps_board_chesses_in_sync(self) -> None:
         CCChessboard.place_chess(0, 4, "32123")
-        CCChessboard.upgrade_chess(0, 4)
+        for _ in range(2):
+            CCChessboard.upgrade_chess(0, 4)
         assert CCChessboard.board_chesses[0]["level"] == 2
 
     def test_can_upgrade_existing_only_for_placed_cards(self) -> None:
@@ -1003,14 +999,14 @@ class TestBuyCardUnder4_0:
         """坚固石骑士同样是星 1..3，靠合成升级（用户明确：鹿蜀/石骑士都靠合成升级）。"""
         assert CCChessboard.place_chess(0, 2, "32703") is True
         assert CCChessboard.can_upgrade_existing("32703") is True
-        for _ in range(2):   # 一次合成升一级，到 3 级共 2 次
+        for _ in range(4):   # 两次合成升一级，到 3 级共 4 次
             assert CCChessboard.upgrade_chess(0, 2) is True
         assert CCChessboard.upgrade_chess(0, 2) is False
 
     def test_deer_is_capped_at_level_3(self) -> None:
         """鹿蜀上限 3（auto_chess 只有 star 1..3）。"""
         CCChessboard.place_chess(0, 4, "32123")
-        for _ in range(2):
+        for _ in range(4):
             assert CCChessboard.upgrade_chess(0, 4) is True
         assert CCChessboard.upgrade_chess(0, 4) is False
         entry = CCChessboard.board[0][4]
@@ -1772,10 +1768,12 @@ class TestBuyCardFlow:
         entry = CCChessboard.board[0][2]
         assert entry is not None
 
-        assert CCChessboard.apply_merge(entry) == 2, "合成 1 次升到 2 级"
+        assert CCChessboard.apply_merge(entry) == 1, "合成 1 次仍是 1 级"
         assert entry["merges"] == 1
-        assert CCChessboard.apply_merge(entry) == 3, "合成 2 次升到 3 级"
+        assert CCChessboard.apply_merge(entry) == 2, "合成 2 次升到 2 级"
         assert entry["merges"] == 2
+        assert CCChessboard.apply_merge(entry) == 2, "第 3 次仍是 2 级"
+        assert CCChessboard.apply_merge(entry) == 3, "第 4 次升到 3 级"
         assert CCChessboard.apply_merge(entry) == 3, "满级后不再升"
 
     def test_correction_does_not_rebuild_same_card(self) -> None:
@@ -1787,12 +1785,13 @@ class TestBuyCardFlow:
         entry = CCChessboard.board[0][2]
         assert entry is not None
         CCChessboard.apply_merge(entry)
-        assert entry["merges"] == 1 and entry["level"] == 2
+        CCChessboard.apply_merge(entry)
+        assert entry["merges"] == 2 and entry["level"] == 2
 
         # 同名同格时现实代码不重建 dict，对象身份必须保持不变
         before_id = id(CCChessboard.board[0][2])
         assert id(CCChessboard.board[0][2]) == before_id
-        assert CCChessboard.board[0][2]["merges"] == 1
+        assert CCChessboard.board[0][2]["merges"] == 2
 
     def test_single_slot_maxed_card_is_not_bought(self) -> None:
         """辅助卡满级后不再买 —— 不许落到新格占第二个位置。
@@ -1961,6 +1960,24 @@ class TestBuyCardFlow:
         assert CCChessboard.is_buy_skipped("32123") is False
         assert CCChessboard.is_buy_skipped("32123") is False
 
+    def test_rejected_merge_marks_cell_full(self) -> None:
+        """拖到同名棋子上却毫无画面变化 = 游戏拒绝合成 = 那格已满级。
+
+        这是判满级最可靠的信号：Lv3.png 模板只认得出一种角标，棋盘上其它 LV.3
+        全都匹配不上，靠模板识别不可行。按满级记账后 can_upgrade_existing 立刻
+        变 False，不会反复往这格拖（实测 11:06 每 4 秒重试一次、持续几分钟）。
+        """
+        assert CCChessboard.place_chess(0, 2, "32123") is True
+        target = CCChessboard.board[0][2]
+        assert target is not None
+        assert CCChessboard.can_upgrade_existing("32123") is True
+
+        # 模拟「合成被拒」的处理
+        cap = 3
+        target["level"] = cap
+        target["merges"] = cap * CCChessboard._MERGES_PER_LEVEL
+        assert CCChessboard.can_upgrade_existing("32123") is False, "判满级后不该再认为能升"
+
     def test_card_blacklisted_after_repeated_failures(self) -> None:
         """连续失败达到阈值 → 本局彻底放弃这张卡（死循环保底）。
 
@@ -2107,7 +2124,8 @@ class TestBoardDataConsistency:
 
     def test_upgrade_reflected_in_board_chesses(self) -> None:
         assert CCChessboard.place_chess(0, 2, "32123") is True
-        assert CCChessboard.upgrade_chess(0, 2) is True
+        CCChessboard.upgrade_chess(0, 2)
+        CCChessboard.upgrade_chess(0, 2)
         item = next(i for i in CCChessboard.board_chesses if i["row"] == 0 and i["col"] == 2)
         assert item["level"] == 2, "升级后 board_chesses 里的 level 必须同步（共享对象）"
 

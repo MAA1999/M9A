@@ -753,13 +753,9 @@ class CCChessboard(CustomAction):
     refresh_skip_left: int = 0
     # 连续合成多少次判定棋盘已满（实测满盘后每轮都是合成）
     _MERGE_STREAK_FULL: int = 4
-    # 升 1 级要累计几次合成 = **1**。
-    #
-    # 2026-10-25 实机截图校正：棋盘 (0,1) 的石骑士明明显示 LV.2，日志却记
-    # 「累计 1 次合成 → 1/3 级」—— 内部永远比实际低一级，于是「还能升」的判断一直成立，
-    # 升到真正的 LV.3 之后还在拖着往上合，游戏弹「棋子等级已满」，形成死循环。
-    # 之前写成 2 是因为当时拖拽失败率高，一次点击失败就以为要合两次。
-    _MERGES_PER_LEVEL: int = 1
+    # 升 1 级要累计几次合成 = **2**（用户 2026-10-25 确认；日志也印证：
+    # (0,1) 石骑士「累计 1 次 → 1/3 级」「累计 2 次 → 2/3 级」，图上正好 LV.2）。
+    _MERGES_PER_LEVEL: int = 2
 
     @classmethod
     def skip_buy(cls, card_name: str) -> None:
@@ -1489,6 +1485,25 @@ class CCBuyCard(CustomAction):
             if was_occupied and occupied:
                 diff = CCChessboard.cell_diff(pre_img, img2, row, col)
                 if diff < CCChessboard._CELL_CHANGE_MIN:
+                    # 拖到同名棋子上、画面一点没变 = **游戏拒绝了这次合成**。
+                    # 最可能的原因就是那格已经满级（实机此时会弹「棋子等级已满」）。
+                    #
+                    # 这是判断满级最可靠的信号：靠 Lv3.png 模板认不出来 ——
+                    # 实测那张模板只认得出其中一种角标（NCC=1.0 仅 1 处），
+                    # 棋盘上其它 LV.3 全部匹配不上。
+                    #
+                    # 直接按满级记账，后面 can_upgrade_existing 立刻变 False，
+                    # 不会再反复往这格拖（实测 11:06 每 4 秒重试一次、持续几分钟）。
+                    target = CCChessboard.board[row][col]
+                    if target is not None and target.get("name") == card_name:
+                        cap = int(CCChessboard.get_chess_info(card_name).get("max_level", 3))
+                        if int(target.get("level", 1)) < cap:
+                            target["level"] = cap
+                            target["merges"] = cap * CCChessboard._MERGES_PER_LEVEL
+                            logger.debug(
+                                f"{card_name} 在 ({row}, {col}) 合成被拒 → 判定已满级（{cap} 级），"
+                                f"不再尝试升级"
+                            )
                     logger.debug(
                         f"拖拽 {card_name} 到 ({row}, {col}) 后该格画面无变化（diff={diff:.1f}），判定拖拽未生效"
                     )
