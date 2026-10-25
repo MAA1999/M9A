@@ -975,9 +975,7 @@ class TestBuyCardUnder4_0:
     def test_buy_pool_uses_id_named_templates(self) -> None:
         ctx = _ScriptedContext({"CCRemainMoney": _hit((669, 29, 36, 25))})
         _analyze_buy_card(ctx)
-        assert ctx.templates == [
-            f"CritterCrash/Cards/{name}.png" for name in STRATEGY_4_0_AWARD_ORDER
-        ]
+        assert ctx.templates == [f"CritterCrash/Cards/{name}.png" for name in STRATEGY_4_0_AWARD_ORDER]
 
     def test_buy_deploys_lushu_to_first_placeable_cell(self) -> None:
         """positions 现在是全部可放置格，第一个空位是 (0,1)（col0 是贴纸列，不参与）。"""
@@ -1011,7 +1009,7 @@ class TestBuyCardUnder4_0:
         """坚固石骑士同样是星 1..3，靠合成升级（用户明确：鹿蜀/石骑士都靠合成升级）。"""
         assert CCChessboard.place_chess(0, 2, "32703") is True
         assert CCChessboard.can_upgrade_existing("32703") is True
-        for _ in range(4):   # 两次合成升一级，到 3 级共 4 次
+        for _ in range(4):  # 两次合成升一级，到 3 级共 4 次
             assert CCChessboard.upgrade_chess(0, 2) is True
         assert CCChessboard.upgrade_chess(0, 2) is False
 
@@ -1696,7 +1694,7 @@ class TestLeaderState:
     def test_concrete_leader_is_not_overwritten_by_fallback(self) -> None:
         """兜底分支每轮都会重问；它不许覆盖已经记到的具体领队。"""
         CCChessboard.set_leader("30027")
-        CCChessboard.set_leader(None)   # 兜底分支
+        CCChessboard.set_leader(None)  # 兜底分支
         assert CCChessboard.leader_id == "30027"
 
 
@@ -1741,7 +1739,7 @@ class TestBuyCardFlow:
         down = next(t for t in ctx.touches if t[0] == "down")
         assert (down[1], down[2]) == (300 + 90 // 2, 620 + 100 // 2)
         moves = [t for t in ctx.touches if t[0] == "move"]
-        target = CCChessboard.board_rois[0][2]   # positions 第一个格是 (0,2)（(0,1) 留给石骑士）
+        target = CCChessboard.board_rois[0][2]  # positions 第一个格是 (0,2)（(0,1) 留给石骑士）
         assert (moves[-1][1], moves[-1][2]) == (
             target[0] + target[2] // 2,
             target[1] + target[3] // 2,
@@ -1796,7 +1794,7 @@ class TestBuyCardFlow:
         和 single_slot「最多只放 1 个」相反。
         """
         CCChessboard.place_chess(1, 2, "32124")
-        for _ in range(4):   # 两次合成升一级，满级要 4 次
+        for _ in range(4):  # 两次合成升一级，满级要 4 次
             CCChessboard.upgrade_chess(1, 2)
         entry = CCChessboard.board[1][2]
         assert entry is not None and entry["level"] == 3, "先确保已满级"
@@ -1859,7 +1857,7 @@ class TestBuyCardFlow:
         """画面里还有棋子 → 还是同一局，不许清状态。"""
         CCChessboard.board[0][2] = {"name": "32123", "level": 1, "row": 0, "col": 2}
         CCChessboard.board_full = True
-        ctx = _ScriptedContext({})   # 桩按内部棋盘渲染 → 画面里也有棋子
+        ctx = _ScriptedContext({})  # 桩按内部棋盘渲染 → 画面里也有棋子
         CCChessboard.__new__(CCChessboard)._reset_if_new_game(ctx)
         assert CCChessboard.board[0][2] is not None
         assert CCChessboard.board_full is True, "同一局内不该清状态"
@@ -1890,7 +1888,7 @@ class TestBuyCardFlow:
         CCChessboard.board_chesses.append(CCChessboard.board[0][2])
 
         ctx = _ScriptedContext({})
-        ctx.force_empty_frame = True      # 画面里那格已经空了
+        ctx.force_empty_frame = True  # 画面里那格已经空了
         img = ctx.tasker.controller.get()
 
         removed = CCChessboard.drop_cells_if_now_empty(ctx, img, [(0, 2)])
@@ -1904,7 +1902,7 @@ class TestBuyCardFlow:
         CCChessboard.board_chesses.append(CCChessboard.board[0][2])
 
         ctx = _ScriptedContext({})
-        img = ctx.tasker.controller.get()   # 桩按内部棋盘渲染 → 那格有东西
+        img = ctx.tasker.controller.get()  # 桩按内部棋盘渲染 → 那格有东西
         removed = CCChessboard.drop_cells_if_now_empty(ctx, img, [(0, 2)])
         assert removed == 0
         assert CCChessboard.board[0][2] is not None
@@ -1932,7 +1930,7 @@ class TestBuyCardFlow:
             }
         )
         ctx.piece_cell = (0, 2)
-        ctx.dirty_after_drag = (0, 2)   # 拖拽后该格真的变了
+        ctx.dirty_after_drag = (0, 2)  # 拖拽后该格真的变了
 
         # 先确认选格确实落在 (0,2)
         pick_img = ctx.tasker.controller.get()
@@ -2059,7 +2057,7 @@ class TestUpgradePath:
         """
         CCChessboard.place_chess(0, 2, "32123")
         ctx = _ScriptedContext({})
-        img = ctx.tasker.controller.get()   # 桩按内部棋盘渲染 → (0,2) 画成占用
+        img = ctx.tasker.controller.get()  # 桩按内部棋盘渲染 → (0,2) 画成占用
         row, col = CCBuyCard._pick_target_cell("32123", ctx, img, upgrade=True)
         assert (row, col) == (2, 2), "(0,2) 已被占，应跳到 (2,2)"
 
@@ -2067,7 +2065,7 @@ class TestUpgradePath:
         """画面里该格有棋子 → 跳过它，选下一格。"""
         ctx = _ScriptedContext({})
         ctx.piece_cell = (0, 2)
-        ctx.bought = True          # 让桩在 (0,2) 画出高对比棋子
+        ctx.bought = True  # 让桩在 (0,2) 画出高对比棋子
         img = ctx.tasker.controller.get()
         row, col = CCBuyCard._pick_target_cell("32123", ctx, img, upgrade=True)
         assert (row, col) == (2, 2), "画面里 (0,2) 有棋子，应跳到 (2,2)"
@@ -2077,7 +2075,7 @@ class TestUpgradePath:
         for r, c in [(0, 2), (2, 2), (0, 3), (2, 3), (0, 4), (2, 4), (0, 5), (2, 5)]:
             CCChessboard.board[r][c] = {"name": "32123", "level": 1, "row": r, "col": c}
         ctx = _ScriptedContext({})
-        ctx.all_occupied = True   # 画面里所有格都有棋子
+        ctx.all_occupied = True  # 画面里所有格都有棋子
         img = ctx.tasker.controller.get()
         row, col = CCBuyCard._pick_target_cell("32123", ctx, img, upgrade=True)
         assert (row, col) == (0, 2), "全满时应返回第一个可升级的同名棋子格"
@@ -2204,9 +2202,9 @@ class TestClearLeader:
 
     def test_clear_leader_bypasses_stickiness(self) -> None:
         CCChessboard.set_leader("30027")
-        CCChessboard.set_leader(None)      # 被粘性保护挡住
+        CCChessboard.set_leader(None)  # 被粘性保护挡住
         assert CCChessboard.leader_id == "30027"
-        CCChessboard.clear_leader()        # 显式清空
+        CCChessboard.clear_leader()  # 显式清空
         assert CCChessboard.leader_id is None
 
 

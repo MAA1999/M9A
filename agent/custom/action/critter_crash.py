@@ -465,7 +465,7 @@ def _parse_sticker(raw: Any, label: str, problems: list[str]) -> StickerSpec | N
     raw_leader = raw.get("leader")
     if raw_leader is not None:
         if not isinstance(raw_leader, str) or not raw_leader:
-            problems.append(f"{label}.leader: 应为非空字符串（领队 id，如 \"30027\"）")
+            problems.append(f'{label}.leader: 应为非空字符串（领队 id，如 "30027"）')
         else:
             leader = raw_leader
 
@@ -739,9 +739,7 @@ class CCChessboard(CustomAction):
         cls._buy_fails[card_name] = fails
         if fails >= cls._CARD_DEAD_AFTER:
             if not cls.card_dead.get(card_name):
-                logger.warning(
-                    f"{card_name} 连续 {fails} 次买/升失败，本局不再尝试（防止死循环）"
-                )
+                logger.warning(f"{card_name} 连续 {fails} 次买/升失败，本局不再尝试（防止死循环）")
             cls.card_dead[card_name] = True
         cls._buy_skip[card_name] = cls._SKIP_TIMES
 
@@ -1068,9 +1066,7 @@ class CCChessboard(CustomAction):
         return True
 
     @classmethod
-    def find_empty_position_on_image(
-        cls, context: Context, img: Any, name: str
-    ) -> tuple[int, int] | None:
+    def find_empty_position_on_image(cls, context: Context, img: Any, name: str) -> tuple[int, int] | None:
         """按**实际画面**为指定棋子找一个空位置。
 
         为什么不复用 find_empty_position：那个只看内部棋盘，一次拖拽假成功就永久分叉 ——
@@ -1481,9 +1477,7 @@ class CCBuyCard(CustomAction):
                     cap = int(CCChessboard.get_chess_info(card_name).get("max_level", 3))
                     target["level"] = cap
                     target["merges"] = cap * CCChessboard._MERGES_PER_LEVEL
-                logger.debug(
-                    f"{card_name} 在 ({row}, {col}) 合成被拒：游戏弹「棋子等级已满」→ 记该格满级"
-                )
+                logger.debug(f"{card_name} 在 ({row}, {col}) 合成被拒：游戏弹「棋子等级已满」→ 记该格满级")
                 # 关掉提示，免得挡住后续识别（点棋盘外空白处）
                 context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
                 time.sleep(0.4)
@@ -1519,8 +1513,7 @@ class CCBuyCard(CustomAction):
             if actual is not None and actual != card_name:
                 # 允许「合到同名棋子」：目标是同名卡时，拖进去本来就该是它
                 logger.debug(
-                    f"拖拽 {card_name} 到 ({got_row}, {got_col}) 后该格实际是 {actual}，"
-                    f"不是目标卡，判定拖拽未生效"
+                    f"拖拽 {card_name} 到 ({got_row}, {got_col}) 后该格实际是 {actual}，不是目标卡，判定拖拽未生效"
                 )
                 CCChessboard.skip_buy(card_name)
                 return CustomAction.RunResult(success=True)
@@ -1541,15 +1534,14 @@ class CCBuyCard(CustomAction):
                 )
                 entry: dict[str, Any] = {
                     "name": actual,
-                    "level": 1,        # 不认识原来的等级，从 1 起算
-                    "merges": 0,       # 合成次数也跟着归零，避免拿别的卡的进度
+                    "level": 1,  # 不认识原来的等级，从 1 起算
+                    "merges": 0,  # 合成次数也跟着归零，避免拿别的卡的进度
                     "row": got_row,
                     "col": got_col,
                 }
                 CCChessboard.board[got_row][got_col] = entry
                 CCChessboard.board_chesses = [
-                    x for x in CCChessboard.board_chesses
-                    if not (x["row"] == got_row and x["col"] == got_col)
+                    x for x in CCChessboard.board_chesses if not (x["row"] == got_row and x["col"] == got_col)
                 ]
                 CCChessboard.board_chesses.append(entry)
                 existing = entry
@@ -1561,16 +1553,13 @@ class CCBuyCard(CustomAction):
                     merges = int(existing.get("merges", 0))
                     CCChessboard.clear_buy_fails(card_name)
                     logger.debug(
-                        f"{card_name} 合到 ({got_row}, {got_col})，"
-                        f"累计 {merges} 次合成 → {new_level}/{cap} 级"
+                        f"{card_name} 合到 ({got_row}, {got_col})，累计 {merges} 次合成 → {new_level}/{cap} 级"
                     )
                     # 合成会同时改动别的格（被吃掉的那颗消失、或整行重排）。
                     # 只记目标格会让模型里留下幻影棋子，之后 find_empty_position
                     # 一直说没空位、实际还有。这里把其它变化格里已经变空的清掉。
                     others = [
-                        (r, c)
-                        for _, r, c in self._diff_changed_cells(pre_img, img2)
-                        if (r, c) != (got_row, got_col)
+                        (r, c) for _, r, c in self._diff_changed_cells(pre_img, img2) if (r, c) != (got_row, got_col)
                     ]
                     if others:
                         removed = CCChessboard.drop_cells_if_now_empty(context, img2, others)
@@ -1736,8 +1725,7 @@ class CCSticker(CustomAction):
         # CCChessboard.leader_id 为 None，这里直接跳过。
         if sticker.leader and CCChessboard.leader_id != sticker.leader:
             logger.debug(
-                f"本局领队是 {CCChessboard.leader_id or '未知/兜底'}，"
-                f"不是贴纸归属的小叶尼塞 {sticker.leader}，不开箱"
+                f"本局领队是 {CCChessboard.leader_id or '未知/兜底'}，不是贴纸归属的小叶尼塞 {sticker.leader}，不开箱"
             )
             # 置 _opened：本局不再检查。
             #
@@ -1746,7 +1734,7 @@ class CCSticker(CustomAction):
             # 实测 300s 内空转 312 次，把买卡/开战全挤掉了（14:03 那轮买入 0 次）。
             # 新局由 _reset_if_new_game 复位，不影响下一局。
             CCSticker._opened = True
-            return CustomAction.RunResult(success=True)   # 失败会终结任务，见上方注释
+            return CustomAction.RunResult(success=True)  # 失败会终结任务，见上方注释
 
         # 门控：盒子还在才处理。盒子开掉后该格变成三角格，模板不再命中——
         # 这条比「第 N 回合」可靠：面板自己写着「品质越高，开启所需回合越长」，
@@ -1774,9 +1762,7 @@ class CCSticker(CustomAction):
         # 实测第 1 回合那次点了箱子后卡 8.2 秒（17:44:43 → 17:44:51）。
         # 领队换人时 open_round 会变（实测另一角色是 5），但配置里写的就是当前领队的值。
         if sticker.open_round and current_round is not None and current_round < sticker.open_round:
-            logger.debug(
-                f"第 {current_round} 回合，贴纸箱要第 {sticker.open_round} 回合才开，本回合不点"
-            )
+            logger.debug(f"第 {current_round} 回合，贴纸箱要第 {sticker.open_round} 回合才开，本回合不点")
             CCSticker._failed_round = current_round
             return CustomAction.RunResult(success=True)
 
@@ -1824,9 +1810,7 @@ class CCSticker(CustomAction):
             # 盒子还在：还没到可开回合，弹的是道具面板——关掉它。
             # 只记「本回合」已确认开不了，**下一回合还要再试**：open_round 是下限，
             # 不是精确值（实测同一领队不同局有 2 与 5 两种）。
-            logger.debug(
-                f"贴纸箱未开（第 {current_round} 回合 / 该领队需第 {sticker.open_round} 回合），关闭面板"
-            )
+            logger.debug(f"贴纸箱未开（第 {current_round} 回合 / 该领队需第 {sticker.open_round} 回合），关闭面板")
             context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
             time.sleep(0.5)
             CCSticker._failed_round = current_round
