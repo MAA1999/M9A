@@ -254,6 +254,8 @@ class CCBuyCardRec(CustomRecognition):
                     # 不需要额外的「本局出现过」布尔标记（那种跨局状态一旦漏复位就会误伤）。
                     any_hit = True
                     CCChessboard.no_card_streak = 0
+                    # 商店里有卡了 → 之前的「跳过刷新」立刻解除，别让它拖到下一局
+                    CCChessboard.refresh_skip_left = 0
 
                     # 识别成功，检查是否有空位
                     free = CCChessboard.find_empty_position_on_image(context, argv.image, card_name)
@@ -319,22 +321,13 @@ class CCRemainMoney(CustomRecognition):
         # 不需要在放弃节点里点任何东西，也不用给 next 堆兜底。
         # type=1 是刷新判定那一份：判定「卡池不符」后故意失败几次，
         # 让流程落到主循环末尾的 CCStartCombat 开战。用一次扣一次，自动恢复。
-        # 卡池不符判定生效期间（连续多轮一张白名单卡都没有）→ 刷新判定直接 miss。
-        # 于是 CCRefreshCard_pre 的 And 失败，流程落到主循环末尾的 CCStartCombat 开战。
-        #
-        # 用 no_card_streak 本身当门控（而不是一次性扣减的计数）：
-        # 扣减式的 refresh_skip_left 只用 3 次就恢复，实测表现为「停一下又接着刷」。
-        # streak 只有在**商店里重新出现白名单卡**时才清零，所以在无鹿蜀局里会一直
-        # 把它挡到底；有鹿蜀的局 streak 天天被清，不受影响。
-        if type == 1 and CCChessboard.no_card_streak >= CCChessboard._POOL_GIVE_UP_AFTER:
-            logger.debug(
-                f"连续 {CCChessboard.no_card_streak} 轮没有白名单卡，跳过本次刷新（准备开战）"
-            )
-            return CustomRecognition.AnalyzeResult(box=None, detail={})
-
-        # 旧的一次性门控保留（判定成立那一刻立刻挡 3 次，防止 streak 还没稳住时抢刷）
+        # 判定「卡池不符」后挡掉几次刷新，让流程落到主循环末尾的 CCStartCombat 开战。
+        # 用一次扣一次、归零自动恢复 —— 不做永久标记，避免把刷新锁死。
         if type == 1 and CCChessboard.refresh_skip_left > 0:
             CCChessboard.refresh_skip_left -= 1
+            logger.debug(
+                f"连续多轮没有白名单卡 → 跳过本次刷新（还剩 {CCChessboard.refresh_skip_left} 次后开战）"
+            )
             return CustomRecognition.AnalyzeResult(box=None, detail={})
 
         img = argv.image
@@ -452,17 +445,14 @@ class CCPoolBadRec(CustomRecognition):
         if streak < CCChessboard._POOL_GIVE_UP_AFTER:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
 
-        # 判定成立：让接下来几次「刷新判定」故意失败，
-        # 于是 CCRefreshCard_pre 自己 miss、流程落到主循环末尾的 CCStartCombat 开战。
-        #
-        # **不清零 no_card_streak**：清零会让本节点在同一秒内被反复重新触发
-        # （实测 08:04:02、08:13:33 各在 0.2 秒内触发 4 次），每次都把
-        # refresh_skip_left 重置回 3 —— 结果永远是 3，刷新被永久挡住。
-        # 保持 streak >= 阈值，本节点就一直返回 miss（只做一次记账）。
-        #
-        # refresh_skip_left 也只在归零时才设，避免被反复延长。
-        if CCChessboard.refresh_skip_left <= 0:
-            CCChessboard.refresh_skip_left = CCChessboard._REFRESH_SKIP_AFTER_GIVE_UP
+        # 判定成立后**必须清零 no_card_streak**，否则本节点每轮都命中：
+        # 它是 [JumpBack] 挂在主循环 next 里的，动作（DoNothing）做完回父列表
+        # **从头轮询**，于是又一次命中本节点 —— 死循环卡在这里，
+        # 永远轮不到后面的 CCRefreshCard_pre / CCStartCombat。
+        # 实测 09:14~09:15 卡池不符命中 27 次、跳过刷新 0 次，就是这个原因。
+        CCChessboard.no_card_streak = 0
+        # 同时挡掉接下来几次刷新，让流程能落到主循环末尾的 CCStartCombat 开战。
+        CCChessboard.refresh_skip_left = CCChessboard._REFRESH_SKIP_AFTER_GIVE_UP
         logger.debug(
             f"连续 {streak} 轮没有任何白名单卡 → 判定卡池不符，停止刷商店，直接开战（本局只触发一次）"
         )
