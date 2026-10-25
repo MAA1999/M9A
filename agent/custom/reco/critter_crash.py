@@ -249,11 +249,11 @@ class CCBuyCardRec(CustomRecognition):
                     #
                     # 也不能只清零：用户 2026-10-25 要求「本局出现过鹿蜀就不再触发这条规则」——
                     # 清零后如果后面连着 5 轮没出卡，又会把一局好牌局提前结束。
+                    # 商店里有我们要的卡 → 连续无卡计数清零。
+                    # 有鹿蜀的局不会连续 5 轮都刷不到，所以自然不会被判「卡池不符」，
+                    # 不需要额外的「本局出现过」布尔标记（那种跨局状态一旦漏复位就会误伤）。
                     any_hit = True
                     CCChessboard.no_card_streak = 0
-                    if not CCChessboard.pool_ok:
-                        logger.debug(f"本局已出现白名单卡 {card_name} → 本局不再判卡池不符")
-                    CCChessboard.pool_ok = True
 
                     # 识别成功，检查是否有空位
                     free = CCChessboard.find_empty_position_on_image(context, argv.image, card_name)
@@ -317,12 +317,11 @@ class CCRemainMoney(CustomRecognition):
         # 本局已判定卡池不符（CCPoolBadRec 置了 pool_gave_up）时直接 miss ——
         # 这样 CCRefreshCard_pre 的 And 自己就失败，流程自然落到主循环末尾的 CCStartCombat，
         # 不需要在放弃节点里点任何东西，也不用给 next 堆兜底。
-        if type == 1 and CCChessboard.pool_gave_up_round is not None:
-            from custom.action.critter_crash import CCSticker as _CCSticker2
-
-            current = _CCSticker2._read_round(context, argv.image)
-            if current is not None and current == CCChessboard.pool_gave_up_round:
-                return CustomRecognition.AnalyzeResult(box=None, detail={})
+        # type=1 是刷新判定那一份：判定「卡池不符」后故意失败几次，
+        # 让流程落到主循环末尾的 CCStartCombat 开战。用一次扣一次，自动恢复。
+        if type == 1 and CCChessboard.refresh_skip_left > 0:
+            CCChessboard.refresh_skip_left -= 1
+            return CustomRecognition.AnalyzeResult(box=None, detail={})
 
         img = argv.image
         # 定义目标颜色和颜色容差
@@ -435,23 +434,15 @@ class CCPoolBadRec(CustomRecognition):
         argv: CustomRecognition.AnalyzeArg,
     ) -> CustomRecognition.AnalyzeResult | RectType | None:
 
-        # 本局出现过任意白名单卡 → 永不判卡池不符（用户 2026-10-25 明确）
-        if CCChessboard.pool_ok:
-            return CustomRecognition.AnalyzeResult(box=None, detail={})
-
         streak = CCChessboard.no_card_streak
         if streak < CCChessboard._POOL_GIVE_UP_AFTER:
             return CustomRecognition.AnalyzeResult(box=None, detail={})
 
-        # 同一回合只触发一次：按回合号记账，下个回合自动重新评估。
-        # 做成永久标记会把刷新永久挡住 —— 实测 08:25 判定后再也不刷新了。
-        from custom.action.critter_crash import CCSticker as _CCSticker
-
-        current_round = _CCSticker._read_round(context, argv.image)
-        if current_round is not None and CCChessboard.pool_gave_up_round == current_round:
-            return CustomRecognition.AnalyzeResult(box=None, detail={})
-        CCChessboard.pool_gave_up_round = current_round
+        # 判定成立：清零计数 + 让接下来几次「刷新判定」故意失败，
+        # 于是 CCRefreshCard_pre 自己 miss、流程落到主循环末尾的 CCStartCombat 开战。
+        # 只跳过有限次，用一次扣一次 —— 不做永久标记，避免把刷新永久锁死。
         CCChessboard.no_card_streak = 0
+        CCChessboard.refresh_skip_left = CCChessboard._REFRESH_SKIP_AFTER_GIVE_UP
         logger.debug(
             f"连续 {streak} 轮没有任何白名单卡 → 判定卡池不符，停止刷商店，直接开战（本局只触发一次）"
         )

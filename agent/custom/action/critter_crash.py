@@ -717,20 +717,17 @@ class CCChessboard(CustomAction):
     no_card_streak: int = 0
     # 连续多少轮无卡就判定卡池不符（用户 2026-10-25 定：5 次）
     _POOL_GIVE_UP_AFTER: int = 5
+    # 判定成立后跳过几次刷新（每次刷新判定扣 1，归零自动恢复）
+    _REFRESH_SKIP_AFTER_GIVE_UP: int = 3
 
-    # 本局是否出现过白名单卡（一次性置位，新局才复位）。
+    # 判定「卡池不符」之后，还要跳过几次刷新才真正开战（用一次扣一次，归零即恢复）。
     #
-    # 用户 2026-10-25 明确：**只要本局刷出过一次鹿蜀，整局就不再判「卡池不符」** ——
-    # 不能「清零后重新累积」，否则中途连着 5 轮没刷到又会把一局好牌局提前结束
-    # （实测 01:06 就是这么被误杀的：拖拽失败几轮 + 后续没出卡 → streak 到 5 → 直接开战）。
-    pool_ok: bool = False
-
-    # 「卡池不符」判定生效的回合号（None = 未生效）。
-    #
-    # **只能按回合失效，不能做成永久标记**：实测 08:25:19 判定一次之后，
-    # 刷新被永久挡住 —— 后面明明有币、商店里也有鹿蜀，就是不刷新了。
-    # 记回合号可以既防止同回合反复触发，又不会让刷新永远瘫痪。
-    pool_gave_up_round: int | None = None
+    # **不用任何跨局布尔标记**：一局是否出现过白名单卡、是否已经放弃过，
+    # 这类「本局状态」都依赖可靠的新局检测 —— 而实测 _reset_if_new_game 全天 0 次命中
+    # （_read_round 读不到回合数），于是 pool_ok / pool_gave_up 全部跨局残留，
+    # 表现为「新局第一轮不刷新」「无鹿蜀局反而不判卡池不符」。
+    # 改成有限次数后，最坏也只是多刷或早刷几次，不会永久瘫痪。
+    refresh_skip_left: int = 0
     # 连续合成多少次判定棋盘已满（实测满盘后每轮都是合成）
     _MERGE_STREAK_FULL: int = 4
     # 升 1 级要累计几次合成。
@@ -830,8 +827,7 @@ class CCChessboard(CustomAction):
         cls.board_full = False
         cls.merge_streak = 0
         cls.no_card_streak = 0
-        cls.pool_ok = False
-        cls.pool_gave_up_round = None
+        cls.refresh_skip_left = 0
         return cls.board
 
     @classmethod

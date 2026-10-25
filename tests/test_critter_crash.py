@@ -1780,61 +1780,41 @@ class TestBuyCardFlow:
         result = reco.analyze(_ScriptedContext({}), argv)
         assert result.box is not None, "达到阈值应命中，交给 pipeline 点开始战斗"
 
-    def test_finding_a_card_sets_pool_ok(self) -> None:
-        """刷出一张白名单卡 → 清零连续计数 + 置本局 pool_ok。"""
-        CCChessboard.no_card_streak = 4
-        ctx = _ScriptedContext(
-            {
-                "CCRemainMoney": _hit((669, 29, 36, 25)),
-                "32123": _hit((300, 560, 80, 90)),
-            }
-        )
-        _analyze_buy_card(ctx)
-        assert CCChessboard.no_card_streak == 0
-        assert CCChessboard.pool_ok is True
+    def test_pool_bad_skips_refresh_a_finite_number_of_times(self) -> None:
+        """判定卡池不符后只跳过有限次刷新，不锁死功能。
 
-    def test_pool_bad_fires_once_per_round(self) -> None:
-        """同一回合只触发一次；下个回合重新评估。
-
-        做成永久标记会把刷新永久挡住 —— 实测 08:25:19 判定一次之后，
-        后面明明有币、商店里也有鹿蜀，就是再也不刷新了。
+        之前用 pool_gave_up 布尔标记 → 判定一次之后刷新被永久挡住
+        （实测 08:25 之后再也没刷过）。改成计数后最坏只影响 3 次。
         """
         from custom.reco.critter_crash import CCPoolBadRec
 
         reco = CCPoolBadRec.__new__(CCPoolBadRec)
         argv = type("Argv", (), {"image": np.zeros((720, 1280, 3), dtype=np.uint8)})()
-        CCChessboard.pool_ok = False
-        CCChessboard.pool_gave_up_round = None
         CCChessboard.no_card_streak = CCChessboard._POOL_GIVE_UP_AFTER
+        CCChessboard.refresh_skip_left = 0
 
-        # 读不到回合数时按「放行」处理（不锁死功能）
-        ctx = _ScriptedContext({})
-        assert reco.analyze(ctx, argv).box is not None, "第一次应命中"
+        assert reco.analyze(_ScriptedContext({}), argv).box is not None, "达到阈值应命中"
+        assert CCChessboard.no_card_streak == 0, "命中后计数要清零，否则每轮都触发"
+        assert CCChessboard.refresh_skip_left == CCChessboard._REFRESH_SKIP_AFTER_GIVE_UP
 
-        # 同一回合第二次：不许再命中
-        CCChessboard.no_card_streak = CCChessboard._POOL_GIVE_UP_AFTER + 3
-        ctx_same = _ScriptedContext({"CCRoundPre": _ocr_hit("8/12")})
-        CCChessboard.pool_gave_up_round = 8
-        assert reco.analyze(ctx_same, argv).box is None, "同一回合只许触发一次"
+    def test_refresh_skip_expires(self) -> None:
+        """跳过次数用一次扣一次，归零后刷新恢复（不能永久失效）。"""
+        from custom.reco.critter_crash import CCRemainMoney
 
-    def test_pool_bad_never_fires_once_pool_ok(self) -> None:
-        """本局出现过鹿蜀后，即使之后连续 5 轮没卡，也不再判卡池不符（用户 2026-10-25 明确）。
-
-        不能只做「清零后重新累积」：一局好牌局中途连着几轮没刷到就会被打断。
-        """
-        from custom.reco.critter_crash import CCPoolBadRec
-
-        reco = CCPoolBadRec.__new__(CCPoolBadRec)
-        argv = type("Argv", (), {"image": np.zeros((720, 1280, 3), dtype=np.uint8)})()
-        CCChessboard.pool_ok = True
-        CCChessboard.no_card_streak = 99
-        assert reco.analyze(_ScriptedContext({}), argv).box is None
-
-    def test_new_match_resets_pool_ok(self) -> None:
-        """pool_ok 按局有效：新局必须复位，否则卡池不对的局永远提前结束不了。"""
-        CCChessboard.pool_ok = True
-        CCChessboard.board_reset()
-        assert CCChessboard.pool_ok is False
+        reco = CCRemainMoney.__new__(CCRemainMoney)
+        argv = type(
+            "Argv",
+            (),
+            {
+                "image": np.zeros((720, 1280, 3), dtype=np.uint8),
+                "custom_recognition_param": '{"type": 1}',
+            },
+        )()
+        CCChessboard.refresh_skip_left = 2
+        for left in (1, 0):
+            result = reco.analyze(_ScriptedContext({}), argv)
+            assert result.box is None, "还有跳过次数时应 miss"
+            assert CCChessboard.refresh_skip_left == left
 
     def test_skip_expires_after_a_few_attempts(self) -> None:
         """skip 是**有限次数**，不是整回合拉黑。
