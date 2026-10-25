@@ -236,9 +236,10 @@ jobs:
     needs: gate
     if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
-    # 真正给分析定预算的是 Analyze 一步里的 `timeout`（45 min），这一条只是兜底。job 级超时记录成
+    # 真正给分析定预算的是 Analyze 一步里的 `budget`，这一条只是兜底。job 级超时记录成
     # `cancelled`，而 `post` 的 if 把 `cancelled` 排除在外（那是「被同号更新的一轮顶掉」的语义，拿它
-    # 发通知会误伤），所以预算必须在步内收口 —— 见那一步。留 50 是给它自己前置安装步骤的余量。
+    # 发通知会误伤），所以预算必须在步内收口 —— 见那一步。留 50 是给它自己前置安装步骤的余量，
+    # 改 `budget` 时要连这里一起调大。
     timeout-minutes: 50
     # 并发放在这个 job 上，**不放 workflow 级** —— 那是 Sentry 在 PR #957 上指出的一条真 bug：
     # workflow 级的组会让「任意一条普通评论」起的运行也进来。它 gate 判成 run=false，自己什么都不做，
@@ -510,13 +511,20 @@ jobs:
           # 因为 dsh 的回复总会把 answer.md 填上。分开之后 answer.md 恰好是 agent 选择留下的全部内容：
           # 空 = 没什么值得说的。
           #
-          # 预算在这里自己收口（`timeout` 45 min），不留给 job 级 `timeout-minutes`：后者记录成
+          # 预算在这里自己收口（`$budget`），不留给 job 级 `timeout-minutes`：后者记录成
           # `cancelled`，而 `post` 的 if 恰好排除 `cancelled`（见上面 job 那处注释），于是超时的运行
-          # **完全静默**。run 38742593402 就是这么没的：45 min 到点被取消，133 步、10.8M cache-read
-          # 烧在取不到的网盘日志上，`answer.md` 空，issue 只剩一个永远不变的 👀。
+          # **完全静默**。run 38742593402 就是这么没的：133 步、10.8M cache-read 烧在取不到的网盘日志上，
+          # `answer.md` 空，issue 只剩一个永远不变的 👀。
           # `timeout` 的 124/137 是一次普通失败，会走 `post` 里那条已经写好的失败通知。
+          #
+          # **这个数不能给模型看到**，所以它是本 shell 的局部变量而不是 job env —— 实测 agent 在 step 1
+          # 就能 `echo "$TARGET"` 取到 job env 的值，写进 env 等于把数字递过去。
+          # 不给它看的理由是行为：模型一旦读到预算，就会拿它当借口跳过可选的核对 —— 实测 40102504952
+          # 连续三次决定去读 `maallmwiki`，又三次以「Time budget 45 min」为由放弃，最后改成「这条断言不写」。
+          # 预算该由外面收口，模型只需要把活干完。改预算就改这一行。
+          budget=45m
           set +e
-          timeout --signal=TERM --kill-after=30 45m \
+          timeout --signal=TERM --kill-after=30 "$budget" \
             dsh --profile headless --patch tools/bot/dsh-patch.yml - < tools/bot/prompt.md \
             > "$ANALYSIS_DIR/agent.out" 2> "$ANALYSIS_DIR/agent.stderr"
           status=$?
@@ -526,7 +534,7 @@ jobs:
           echo "--- agent stderr (tail) ---"
           tail -n 40 "$ANALYSIS_DIR/agent.stderr" || true
           if [ "$status" -eq 124 ] || [ "$status" -eq 137 ]; then
-            echo "::error::the analysis hit its 45-minute budget without finishing"
+            echo "::error::the analysis hit its ${budget} budget without finishing"
           fi
           exit "$status"
 
