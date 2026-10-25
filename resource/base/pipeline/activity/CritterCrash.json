@@ -1295,6 +1295,22 @@
             }
         }
     },
+    "CCLevelMaxPopup": {
+        "desc": "拖拽合成被拒时游戏弹的「棋子等级已满」提示（右上角）。这是判满级最可靠的信号：Lv3.png 模板只认得出一种角标，棋盘上其它 LV.3 都匹配不上；而格子 roi 内合成前后像素差恒为 0（弹窗在 roi 外）。",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    985,
+                    80,
+                    265,
+                    70
+                ],
+                "expected": ["棋子等级已满"],
+                "only_rec": true
+            }
+        }
+    },
     "CCLevelMax": {
         "recognition": {
             "type": "TemplateMatch",

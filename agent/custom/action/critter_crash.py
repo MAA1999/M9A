@@ -1482,6 +1482,27 @@ class CCBuyCard(CustomAction):
             # 目标格原本就有棋子时，拖拽成功必须体现为**画面变化**（卡种/等级变了）。
             # 只判「有棋子」会把「拖拽完全没生效」也算成功 —— 这是 32124 连续 8 次
             # 假成功、内部棋盘与画面彻底分叉的直接原因。
+            # **先查「棋子等级已满」弹窗** —— 这是判满级最可靠的信号。
+            #
+            # 不能用格子 roi 内的像素差：弹窗在右上角、不在 roi 里，合成被拒时
+            # roi 内 diff 恒为 0.0（实测就是精确的 0）。也不能靠 Lv3.png 模板：
+            # 全屏搜一帧 NCC=1.0 只有 1 处，棋盘上其它 LV.3 全部匹配不上。
+            # 而这个弹窗 OCR 稳定命中（text="棋子等级已满"）。
+            if is_hit(context.run_recognition("CCLevelMaxPopup", img2)):
+                target = CCChessboard.board[row][col]
+                if target is not None and target.get("name") == card_name:
+                    cap = int(CCChessboard.get_chess_info(card_name).get("max_level", 3))
+                    target["level"] = cap
+                    target["merges"] = cap * CCChessboard._MERGES_PER_LEVEL
+                logger.debug(
+                    f"{card_name} 在 ({row}, {col}) 合成被拒：游戏弹「棋子等级已满」→ 记该格满级"
+                )
+                # 关掉提示，免得挡住后续识别（点棋盘外空白处）
+                context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
+                time.sleep(0.4)
+                CCChessboard.skip_buy(card_name)
+                return CustomAction.RunResult(success=True)
+
             if was_occupied and occupied:
                 diff = CCChessboard.cell_diff(pre_img, img2, row, col)
                 if diff < CCChessboard._CELL_CHANGE_MIN:
