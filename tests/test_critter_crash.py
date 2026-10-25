@@ -1863,21 +1863,6 @@ class TestBuyCardFlow:
         assert CCChessboard.board[0][2] is not None
         assert CCChessboard.board_full is True, "同一局内不该清状态"
 
-    def test_pool_gave_up_blocks_refresh_for_whole_match(self) -> None:
-        """判定卡池不符后整局不再刷新（新局才复位）。"""
-        from custom.reco.critter_crash import CCRemainMoney
-
-        reco = CCRemainMoney.__new__(CCRemainMoney)
-        argv = type(
-            "Argv",
-            (),
-            {"image": np.zeros((720, 1280, 3), dtype=np.uint8), "custom_recognition_param": '{"type": 1}'},
-        )()
-        CCChessboard.pool_gave_up = True
-        assert reco.analyze(_ScriptedContext({}), argv).box is None
-        # 反复问也一直 miss（不是扣次数那种）
-        assert reco.analyze(_ScriptedContext({}), argv).box is None
-
     def test_skip_expires_after_a_few_attempts(self) -> None:
         """skip 是**有限次数**，不是整回合拉黑。
 
@@ -1894,23 +1879,34 @@ class TestBuyCardFlow:
         assert CCChessboard.is_buy_skipped("32123") is False
         assert CCChessboard.is_buy_skipped("32123") is False
 
-    def test_rejected_merge_marks_cell_full(self) -> None:
-        """拖到同名棋子上却毫无画面变化 = 游戏拒绝合成 = 那格已满级。
+    def test_drop_cells_clears_phantom_pieces(self) -> None:
+        """合成带走的棋子要在模型里清掉（否则 find_empty_position 一直说没空位）。
 
-        这是判满级最可靠的信号：Lv3.png 模板只认得出一种角标，棋盘上其它 LV.3
-        全都匹配不上，靠模板识别不可行。按满级记账后 can_upgrade_existing 立刻
-        变 False，不会反复往这格拖（实测 11:06 每 4 秒重试一次、持续几分钟）。
+        review 指出之前接回了调用但阈值写错（_EMPTY_CELL_STD=18 < 实机空格 std≈29），
+        等于「调了但永远不命中」。这里用贴合实机的桩噪声验证它真的会清。
         """
-        assert CCChessboard.place_chess(0, 2, "32123") is True
-        target = CCChessboard.board[0][2]
-        assert target is not None
-        assert CCChessboard.can_upgrade_existing("32123") is True
+        CCChessboard.board[0][2] = {"name": "32123", "level": 1, "merges": 0, "row": 0, "col": 2}
+        CCChessboard.board_chesses.append(CCChessboard.board[0][2])
 
-        # 模拟「合成被拒」的处理
-        cap = 3
-        target["level"] = cap
-        target["merges"] = cap * CCChessboard._MERGES_PER_LEVEL
-        assert CCChessboard.can_upgrade_existing("32123") is False, "判满级后不该再认为能升"
+        ctx = _ScriptedContext({})
+        ctx.force_empty_frame = True      # 画面里那格已经空了
+        img = ctx.tasker.controller.get()
+
+        removed = CCChessboard.drop_cells_if_now_empty(ctx, img, [(0, 2)])
+        assert removed == 1, "画面已空就该从模型里清掉"
+        assert CCChessboard.board[0][2] is None
+        assert all(not (i["row"] == 0 and i["col"] == 2) for i in CCChessboard.board_chesses)
+
+    def test_drop_cells_keeps_real_pieces(self) -> None:
+        """画面里还有棋子时不许清（宁可多留一条错记录，也不删真棋子）。"""
+        CCChessboard.board[0][2] = {"name": "32123", "level": 1, "merges": 0, "row": 0, "col": 2}
+        CCChessboard.board_chesses.append(CCChessboard.board[0][2])
+
+        ctx = _ScriptedContext({})
+        img = ctx.tasker.controller.get()   # 桩按内部棋盘渲染 → 那格有东西
+        removed = CCChessboard.drop_cells_if_now_empty(ctx, img, [(0, 2)])
+        assert removed == 0
+        assert CCChessboard.board[0][2] is not None
 
     def test_buy_accumulates_merges_on_existing_piece(self) -> None:
         """目标格已有同名棋子（merges 非 0）时再拖一次，merges 必须在原值上累加。

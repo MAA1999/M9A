@@ -650,9 +650,9 @@ class CCChessboard(CustomAction):
     # 否则会把「别人的贴纸」塞进按小叶尼塞配置的贴纸位。
     leader_id: str | None = None
 
-    # 空格（爪印底纹）的像素标准差上限；占用格因为叠了棋子会明显更高
-    _EMPTY_CELL_STD = 18.0
-    # 占用格的像素标准差下限（实测空格 ≈29、有棋子 ≈68）
+    # 占用格的像素标准差下限（实测空格 ≈29、有棋子 ≈68）。
+    # 判空不许用另一个阈值 —— 曾经写成 _EMPTY_CELL_STD=18，而实机空格 std≈29，
+    # 「std < 18」永远不成立，drop_cells_if_now_empty 变成调了但永远不命中。
     _OCCUPIED_STD = 45.0
     # 拖拽后目标格的最小画面变化（低于此值视为拖拽没生效）
     _CELL_CHANGE_MIN = 6.0
@@ -875,7 +875,8 @@ class CCChessboard(CustomAction):
                 continue
             if patch.size == 0:
                 continue
-            if float(patch.std()) < cls._EMPTY_CELL_STD:
+            # 复用「该格有没有棋子」的同一判据，不再维护第二个阈值。
+            if not cls.is_cell_occupied(context, img, row, col):
                 cls.board[row][col] = None
                 cls.board_chesses = [
                     item for item in cls.board_chesses if not (item["row"] == row and item["col"] == col)
@@ -1150,8 +1151,7 @@ class CCChessboard(CustomAction):
 
         **不用回合数**：CCRoundRec 的 OCR 实测读不到（框架日志里 hit 恒 false），
         改 expected、改 roi 都没救回来 —— 全天日志里「检测到新对局」0 次，
-        于是 board_full / no_card_streak / refresh_skip_left 全部跨局残留，
-        表现为「新局第一轮不刷新」「无鹿蜀局反而不判卡池不符」。
+        于是 board_full / merge_streak / card_dead 这些按局状态全部跨局残留。
 
         **改用棋盘状态**：新一局开始时棋盘必定是空的，而内部棋盘还记着上一局的棋子。
         「内部有棋子 + 画面全空」就是换局了，这个信号不依赖任何 OCR。
