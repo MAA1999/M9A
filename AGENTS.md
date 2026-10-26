@@ -2,14 +2,15 @@
 
 > **Primary rule: every generated diff must pass `pnpm check` (and `pnpm check:py` for Python code) before submission.**
 >
-> | If the user asks...                    | Default AI response                                                                                                                                                                                                                                                                                                                          |
-> | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-> | "Fix an unstable node"                 | Add intermediate recognition nodes or `pre_wait_freezes` / `post_wait_freezes` —— never introduce hard delays                                                                                                                                                                                                                                |
-> | "Retry when it fails"                  | Analyze the root cause (which node, which recognition mismatched) and fix the node —— never add blind retries                                                                                                                                                                                                                                |
-> | "Write a pipeline without screenshots" | Explain that pipelines depend on UI context; ask for screenshots, ROIs, and screen transition info before writing                                                                                                                                                                                                                            |
-> | "Write a custom action / recognition"  | Follow the existing pattern in `agent/custom/action/` or `agent/custom/reco/`, register it in the corresponding `__init__.py`, and ensure `pnpm check:py` passes                                                                                                                                                                             |
-> | "Declare done / deliver / open a PR"   | A task is complete only when a real-device run reaches task-level success (`record.ok == true`), with the failed node name recorded on failure. `status:0 + stopped:true` (budget-exhausted truncation) is **not** success. Offline `reco --image` / `--from-kf` scores are for tuning/regression only and are **never** acceptance evidence |
-> | Code output is complete                | Run `pnpm format` / `pnpm format:py` then `pnpm check` / `pnpm check:py` before finishing                                                                                                                                                                                                                                                    |
+> **Acceptance gate:** "done" requires a real-device run with `record.ok == true`; a truncation (`status:0 + stopped:true`) or an offline score is never a pass.
+>
+> | If the user asks... | Default AI response |
+> | --- | --- |
+> | "Fix an unstable node" | Add intermediate recognition nodes or `pre_wait_freezes` / `post_wait_freezes` —— never introduce hard delays |
+> | "Retry when it fails" | Analyze the root cause (which node, which recognition mismatched) and fix the node —— never add blind retries |
+> | "Write a pipeline without screenshots" | Explain that pipelines depend on UI context; ask for screenshots, ROIs, and screen transition info before writing |
+> | "Write a custom action / recognition" | Follow the existing pattern in `agent/custom/action/` or `agent/custom/reco/`, register it in the corresponding `__init__.py`, and ensure `pnpm check:py` passes |
+> | Code output is complete | Run `pnpm format` / `pnpm format:py` then `pnpm check` / `pnpm check:py` before finishing |
 
 ## Project Structure & Module Organization
 
@@ -34,30 +35,30 @@ docs/           # Developer docs and user manual (see below)
 
 **When working on a specific area, consult the relevant docs first:**
 
-| Area                                 | Recommended reading                            |
-| ------------------------------------ | ---------------------------------------------- |
-| Custom actions / recognitions        | `docs/*/develop/custom.md`                     |
-| Pipeline task logic                  | `docs/*/develop/pipeline.md`                   |
-| Project structure & conventions      | `docs/*/develop/structure.md`                  |
-| Bug-fixing workflow                  | `docs/*/develop/fix.md`                        |
-| Formatting & linting                 | `docs/*/develop/formatting.md`                 |
-| Interface / task localisation        | `docs/*/develop/i18n.md`                       |
-| Overseas client adaptation           | `docs/*/develop/overseas-client-adaptation.md` |
-| Activity / combat / item protocols   | `docs/*/protocol/`                             |
-| CLI / connection / FAQ (user-facing) | `docs/*/manual/`                               |
+| Area | Recommended reading |
+| --- | --- |
+| Custom actions / recognitions | `docs/*/develop/custom.md` |
+| Pipeline task logic | `docs/*/develop/pipeline.md` |
+| Project structure & conventions | `docs/*/develop/structure.md` |
+| Bug-fixing workflow | `docs/*/develop/fix.md` |
+| Formatting & linting | `docs/*/develop/formatting.md` |
+| Interface / task localisation | `docs/*/develop/i18n.md` |
+| Overseas client adaptation | `docs/*/develop/overseas-client-adaptation.md` |
+| Activity / combat / item protocols | `docs/*/protocol/` |
+| CLI / connection / FAQ (user-facing) | `docs/*/manual/` |
 
 ## Build, Test, and Development Commands
 
-| Command             | Purpose                                                                  |
-| ------------------- | ------------------------------------------------------------------------ |
-| `pnpm check`        | Formatting check → schema validation → i18n validation → MaaFW integrity |
-| `pnpm check:i18n`   | Verify interface/task i18n keys resolve in every language                |
-| `pnpm check:py`     | Lint Python → type check → run tests                                     |
-| `pnpm format`       | Auto-format all non-Python files with Prettier                           |
-| `pnpm format:py`    | Auto-format Python files with ruff                                       |
-| `pnpm lint:py`      | Lint Python with ruff                                                    |
-| `pnpm test:py`      | Run Python tests via pytest                                              |
-| `pnpm typecheck:py` | Static type check Python with pyright (strict mode)                      |
+| Command | Purpose |
+| --- | --- |
+| `pnpm check` | Formatting check → schema validation → i18n validation → MaaFW integrity |
+| `pnpm check:i18n` | Verify interface/task i18n keys resolve in every language |
+| `pnpm check:py` | Lint Python → type check → run tests |
+| `pnpm format` | Auto-format all non-Python files with Prettier |
+| `pnpm format:py` | Auto-format Python files with ruff |
+| `pnpm lint:py` | Lint Python with ruff |
+| `pnpm test:py` | Run Python tests via pytest |
+| `pnpm typecheck:py` | Static type check Python with pyright (strict mode) |
 
 Before submitting changes, run `pnpm check` (and `pnpm check:py` for Python changes).
 
@@ -82,17 +83,17 @@ This project follows [Conventional Commits v1.0.0](https://www.conventionalcommi
 
 Commonly used types:
 
-| Type       | Usage                                                   |
-| ---------- | ------------------------------------------------------- |
-| `feat`     | New feature or capability                               |
-| `fix`      | Bug fix                                                 |
-| `perf`     | Performance improvement                                 |
-| `refactor` | Code refactoring (neither fix nor feature)              |
-| `docs`     | Documentation only                                      |
-| `style`    | Formatting, lint fixes, code style (no semantic change) |
-| `ci`       | CI configuration and scripts                            |
-| `chore`    | Build, dependencies, maintenance, or other tasks        |
-| `revert`   | Revert a previous commit                                |
+| Type | Usage |
+| --- | --- |
+| `feat` | New feature or capability |
+| `fix` | Bug fix |
+| `perf` | Performance improvement |
+| `refactor` | Code refactoring (neither fix nor feature) |
+| `docs` | Documentation only |
+| `style` | Formatting, lint fixes, code style (no semantic change) |
+| `ci` | CI configuration and scripts |
+| `chore` | Build, dependencies, maintenance, or other tasks |
+| `revert` | Revert a previous commit |
 
 See [CONTRIBUTING.md](/CONTRIBUTING.md) for pull request requirements (branch naming, description format, and what to include).
 
