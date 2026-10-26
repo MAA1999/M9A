@@ -1,126 +1,84 @@
-# Repository Guidelines
+# M9A 开发指南
 
-> **Primary rule: every generated diff must pass `pnpm check` (and `pnpm check:py` for Python code) before submission.**
+> **提交前，每一份生成的 diff 必须通过 `pnpm check`（Python 代码另需 `pnpm check:py`）。先跑格式化（`pnpm format` / `pnpm format:py`）。**
 >
-> | If the user asks...                    | Default AI response                                                                                                                                                                                                                                                                                                                          |
-> | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-> | "Fix an unstable node"                 | Add intermediate recognition nodes or `pre_wait_freezes` / `post_wait_freezes` —— never introduce hard delays                                                                                                                                                                                                                                |
-> | "Retry when it fails"                  | Analyze the root cause (which node, which recognition mismatched) and fix the node —— never add blind retries                                                                                                                                                                                                                                |
-> | "Write a pipeline without screenshots" | Explain that pipelines depend on UI context; ask for screenshots, ROIs, and screen transition info before writing                                                                                                                                                                                                                            |
-> | "Write a custom action / recognition"  | Follow the existing pattern in `agent/custom/action/` or `agent/custom/reco/`, register it in the corresponding `__init__.py`, and ensure `pnpm check:py` passes                                                                                                                                                                             |
-> | "Declare done / deliver / open a PR"   | A task is complete only when a real-device run reaches task-level success (`record.ok == true`), with the failed node name recorded on failure. `status:0 + stopped:true` (budget-exhausted truncation) is **not** success. Offline `reco --image` / `--from-kf` scores are for tuning/regression only and are **never** acceptance evidence |
-> | Code output is complete                | Run `pnpm format` / `pnpm format:py` then `pnpm check` / `pnpm check:py` before finishing                                                                                                                                                                                                                                                    |
+> **验收硬门（声明完成 / 交付 / 开 PR 时）：必须真机跑通并达到任务级成功；调用成功、截断、离线识别分数都不算通过。** 判定与取证见 `maafw-debug` / `maafw-live` skill。
+>
+> **Skill 先行：** 第一次读或改文件之前，先按下方 *Skill 与文档* 查表加载对应 skill —— 这是查表，不是判断。
 
-## Project Structure & Module Organization
+## 项目结构与模块划分
 
 ```text
-agent/          # Python agent —— custom actions, recognitions, utilities (entry: main.py)
-tasks/          # Project Interface task and preset definitions (images/ holds GUI option icons and task screenshots)
-announcement/   # Welcome-page notices shown by the GUI (PI `welcome` protocol, per locale)
-locales/        # Project Interface display translations
-tools/          # Build, release, schema/i18n validation, and CI scripts
-resource/       # MaaFW runtime resource packs (images, pipeline, model)
-data/           # Game reference data (activity schedules, drop tables, item databases, etc.)
-tests/          # pytest test suite, mirrors agent/ structure
-docs/           # Developer docs and user manual (see below)
+agent/          # Python agent —— 自定义动作、识别、工具（入口：main.py）
+tasks/          # Project Interface 任务与预设定义（images/ 存 GUI 选项图标和任务截图）
+announcement/   # GUI 欢迎页公告（PI `welcome` 协议，按语言）
+locales/        # Project Interface 显示翻译
+tools/          # 构建、发布、schema/i18n 校验与 CI 脚本
+resource/       # MaaFW 运行时资源包（图片、pipeline、模型）
+data/           # 游戏参考数据（活动排期、掉落表、物品数据库等）
+tests/          # pytest 测试，镜像 agent/ 结构
+docs/           # 开发者文档与用户手册（见下）
 ```
 
-**Key directories inside `agent/`:**
+- `agent/custom/action/`、`agent/custom/reco/`、`agent/custom/sink/` —— 自定义 MaaFW 动作、识别与 sink（如宽高比处理）；每个功能组一个文件。
+- `agent/utils/` —— 可复用工具（日志、HTTP、缩放等）。
+- **新增自定义动作/识别**：沿用 `agent/custom/action/` 或 `agent/custom/reco/` 的既有写法，在对应 `__init__.py` 注册，并保证 `pnpm check:py` 通过。
 
-- `agent/custom/action/` —— custom MaaFW actions, one file per feature group
-- `agent/custom/reco/` —— custom MaaFW recognitions
-- `agent/custom/sink/` —— custom sinks (aspect-ratio handling, etc.)
-- `agent/utils/` —— reusable helpers (logging, HTTP, scaling, etc.)
+## Skill 与文档
 
-**When working on a specific area, consult the relevant docs first:**
+**第一次读或改文件前，按表加载对应 skill：这是查表，不是判断 —— 多行命中就全部加载，"改动很小"不是跳过的理由。** skill 承载 MaaFW 的详细打法（`pnpm check` 替代不了它们）。环境里没有 `skill` 工具时，改读文档列。
 
-| Area                                 | Recommended reading                            |
-| ------------------------------------ | ---------------------------------------------- |
-| Custom actions / recognitions        | `docs/*/develop/custom.md`                     |
-| Pipeline task logic                  | `docs/*/develop/pipeline.md`                   |
-| Project structure & conventions      | `docs/*/develop/structure.md`                  |
-| Bug-fixing workflow                  | `docs/*/develop/fix.md`                        |
-| Formatting & linting                 | `docs/*/develop/formatting.md`                 |
-| Interface / task localisation        | `docs/*/develop/i18n.md`                       |
-| Overseas client adaptation           | `docs/*/develop/overseas-client-adaptation.md` |
-| Activity / combat / item protocols   | `docs/*/protocol/`                             |
-| CLI / connection / FAQ (user-facing) | `docs/*/manual/`                               |
+| 区域 / 触发条件 | Skill（先加载） | 文档 |
+| --- | --- | --- |
+| `resource/**/pipeline/**` —— pipeline 任务逻辑 | `maafw-pipeline` | `docs/*/develop/pipeline.md` |
+| `tasks/**`、`interface.json`、`locales/**`、`announcement/**` | `maafw-interface` | `docs/*/develop/i18n.md` |
+| `agent/**` —— 自定义动作 / 识别 / 运行时 | `maafw-custom` | `docs/*/develop/custom.md` |
+| 修 bug、声明完成/交付/开 PR、真机验收 | `maafw-debug`（设备/验收）或 `maa-evidence`（日志） | `docs/*/develop/fix.md` |
+| 实时观测、ROI/模板实测、关键帧留存 | `maafw-live` | — |
+| MaaFW 字段语义、默认值、版本支持 | `maallmwiki` | — |
+| Sentry 遥测 / 失败率分析 | `maafw-sentry-analysis` | — |
+| 仓库结构、构建与发布 | — | `docs/*/develop/structure.md` |
+| 格式化 / lint / 文档编写 | — | `docs/*/develop/formatting.md`、`docs/*/develop/doc.md` |
+| 刷取材料目录 | — | `docs/*/develop/depot-catalog.md` |
+| 外服适配 | — | `docs/*/develop/overseas-client-adaptation.md` |
+| 活动 / 战斗 / 物品协议 | — | `docs/*/protocol/` |
+| CLI / 连接 / FAQ（面向用户） | — | `docs/*/manual/` |
 
-## Build, Test, and Development Commands
+## 构建、测试与开发命令
 
-| Command             | Purpose                                                                  |
-| ------------------- | ------------------------------------------------------------------------ |
-| `pnpm check`        | Formatting check → schema validation → i18n validation → MaaFW integrity |
-| `pnpm check:i18n`   | Verify interface/task i18n keys resolve in every language                |
-| `pnpm check:py`     | Lint Python → type check → run tests                                     |
-| `pnpm format`       | Auto-format all non-Python files with Prettier                           |
-| `pnpm format:py`    | Auto-format Python files with ruff                                       |
-| `pnpm lint:py`      | Lint Python with ruff                                                    |
-| `pnpm test:py`      | Run Python tests via pytest                                              |
-| `pnpm typecheck:py` | Static type check Python with pyright (strict mode)                      |
+| 命令 | 用途 |
+| --- | --- |
+| `pnpm check` | Prettier 检查 → schema 校验 → i18n 校验 → MaaFW 完整性 |
+| `pnpm check:i18n` | 校验 interface/task 的 i18n key 在每种语言都能解析 |
+| `pnpm check:py` | ruff lint → pyright 类型检查 → pytest |
+| `pnpm format` / `pnpm format:py` | 自动格式化非 Python（Prettier）/ Python（ruff） |
+| `pnpm test:py` | 跑测试（`uv run --frozen pytest`） |
+| `pnpm lint:py` / `pnpm typecheck:py` | Python lint（ruff）/ 严格类型检查（pyright） |
 
-Before submitting changes, run `pnpm check` (and `pnpm check:py` for Python changes).
+测试：`pytest`（配置见 `pyproject.toml`），文件在 `tests/`，命名 `test_<module>_<behaviour>`；覆盖自定义动作/识别注册、工具模块与发布打包流程。
 
-## Coding Style & Naming Conventions
+## 代码风格与命名
 
-- **Python**: 120-character line limit, 4-space indentation. Linted with `ruff` (via `pnpm lint:py`) and type-checked with `pyright --strict` (via `pnpm typecheck:py`). Follow PEP 8 and PEP 484.
-- **JSON / Markdown**: 4-space indentation (`tabWidth: 4` in `.prettierrc.mjs`), formatted with Prettier.
-- **YAML**: 2-space indentation, via the YAML override in `.prettierrc.mjs`.
-- **Resource files**: Use forward slashes for paths. Follow MaaFW 720p baseline for coordinates, ROI, and template images.
-- **Naming**: Modules use `snake_case`. Classes use `PascalCase`. Functions/variables use `snake_case`. Custom actions/recognitions match their pipeline node names.
+- **Python**：ruff + `pyright --strict`（配置见 `pyproject.toml`）；遵循 PEP 8 / PEP 484。
+- **JSON / Markdown / YAML**：以 Prettier 配置（`.prettierrc.mjs`）为准 —— 跑 `pnpm format`，不要手工对齐。
+- **资源**：路径用正斜杠；坐标、ROI 和模板图以 MaaFW **1280x720** 为基准。
+- **命名**：模块/函数/变量用 `snake_case`，类用 `PascalCase`；自定义动作/识别名与其 pipeline 节点名一致。
 
-## Testing Guidelines
+## 提交与 PR
 
-- Framework: `pytest`, configured via `pyproject.toml`. Test paths: `tests/`.
-- Test naming: `test_<module>_<behaviour>` (e.g., `test_aspect_ratio`, `test_http_session`).
-- Run with `pnpm test:py` or `uv run --frozen pytest`.
-- Cover custom action/recognition registration, utility modules, and the release packaging flow.
+遵循 [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)。分支命名、PR 描述格式与验证证据要求见 [CONTRIBUTING.md](/CONTRIBUTING.md)。
 
-## Commit & Pull Request Guidelines
+## 代码审查清单
 
-This project follows [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
+在上面规则之外，额外检查：
 
-Commonly used types:
+- **协议与 next**：字段符合 MaaFW 协议（无拼错或不支持的属性）；每个 `next` 列表覆盖动作后所有可能界面，保证第一轮推理就落到正确节点。
+- **界面 i18n 与一致性**：`name` 保持稳定，显示文本走 `label`，所有声明的语言表都更新，`interface.json` / `tasks/` / `locales/` / `resource/` 保持同步；跑 `pnpm check:i18n`。
+- **边界情况**：处理中断（弹窗、意外对话框）；每个动作后跟一个识别步骤。
 
-| Type       | Usage                                                   |
-| ---------- | ------------------------------------------------------- |
-| `feat`     | New feature or capability                               |
-| `fix`      | Bug fix                                                 |
-| `perf`     | Performance improvement                                 |
-| `refactor` | Code refactoring (neither fix nor feature)              |
-| `docs`     | Documentation only                                      |
-| `style`    | Formatting, lint fixes, code style (no semantic change) |
-| `ci`       | CI configuration and scripts                            |
-| `chore`    | Build, dependencies, maintenance, or other tasks        |
-| `revert`   | Revert a previous commit                                |
+## 环境与编码
 
-See [CONTRIBUTING.md](/CONTRIBUTING.md) for pull request requirements (branch naming, description format, and what to include).
-
-## Review Checklist
-
-When reviewing code, check for:
-
-- **Protocol compliance**: Pipeline and interface JSON fields must follow MaaFW protocol. No misspelled or unsupported attributes.
-- **Acceptance gate**: "Task done" requires a real-device run reaching task-level success (`record.ok == true`); a budget-exhausted truncation (`status:0 + stopped:true`) is **not** a pass. Offline recognition scores are never acceptance evidence, and a failed run must be traced to a concrete node name before any fix is claimed.
-- **No hard delays**: `pre_delay` / `post_delay` should be avoided. Prefer intermediate recognition nodes or `pre_wait_freezes` / `post_wait_freezes`.
-- **Next coverage**: The `next` list should cover all expected post-action screens so the first inference cycle lands on the right node.
-- **720p baseline**: All coordinates, ROIs, and template images must be based on **1280x720** resolution.
-- **Code formatting**: All files must pass `pnpm check` (includes Prettier, schema, and MaaFW integrity). Run `pnpm format` / `pnpm format:py` to auto-format.
-- **Type safety**: Python code must pass `pnpm check:py` (ruff lint + pyright type check + pytest) without errors.
-- **Custom registration**: New custom actions/recognitions must be registered in the corresponding `__init__.py`.
-- **Interface i18n**: Keep stable `name` identifiers unchanged, add display text through `label`, update every declared language table, and run `pnpm check:i18n`.
-- **Consistency**: `interface.json`, `tasks/`, `locales/`, and `resource/` must stay in sync.
-- **Edge cases**: Pipelines should handle interruptions (pop-ups, unexpected dialogs). Every action should be followed by a recognition step.
-
-## Additional Notes
-
-- Resource paths must always use **forward slashes**.
-- **Encoding**:
-    - `.ps1` (PowerShell) files: **UTF-8 with BOM**. In code, use `encoding='utf-8-sig'` for both reading and writing.
-    - All other source files (`.py`, `.js`, `.json`, `.md`, `.sh`, `.yml`, etc.): **UTF-8 without BOM**. In code, use `encoding='utf-8'`.
-- **Shell Restriction**: Never use PowerShell's `Out-File` / `Set-Content` with default parameters (they emit UTF-16 or locale-dependent encoding). Console redirection (`>`, `>>`) inherits the system code page and will mangle non-ASCII text — avoid it.
-- **Preferred Modification Tools**:
-    - For **non-`.ps1`** files: Prefer `apply_patch` for diffs.
-    - For **`.ps1`** files: **Do NOT use `apply_patch`** (BOM breaks line offsets). Always use full file rewrites via Python's `open()`/`pathlib`.
-- Python 3.13 is required. Dependencies are locked in `uv.lock` and managed with `uv`.
-- The project uses `pnpm` workspaces and requires Node.js >= 22.13.
+- **编码**：`.ps1` 文件为 **UTF-8 with BOM** —— 代码里读写都用 `encoding='utf-8-sig'`；其他源文件（`.py`、`.js`、`.json`、`.md`、`.sh`、`.yml` 等）为 **UTF-8 without BOM**（`encoding='utf-8'`）。
+- **Shell**：不要用 PowerShell 默认参数的 `Out-File` / `Set-Content`（会写 UTF-16 或跟随本地代码页）；非 ASCII 文本避免用 `>` / `>>` 重定向。
+- **改 `.ps1`**：**不要用 `apply_patch`**（BOM 会打乱行偏移）—— 用 Python `open()` / `pathlib` 整文件重写。其他文件优先 `apply_patch`。
+- Python 3.13（用 `uv` 管理，锁定在 `uv.lock`）；pnpm workspace，Node.js >= 22.13。
