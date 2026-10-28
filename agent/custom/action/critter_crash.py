@@ -70,7 +70,9 @@ DEFAULT_PANEL_CLOSE_POINT = (1150, 650)
 # 「每局只用一次」的节点：它们的 max_hit 是按**任务**计的，打几局就会耗尽，
 # 之后再也认不出来 → 必然死端。所以每局开始（回到对局页）时把命中计数清零。
 # 实测：第 3 局起 CCNext（奇遇「下一步」）不再命中 → CCStart 卡 20s 超时 → 任务报 4000。
-MATCH_SCOPED_HIT_NODES = ("CCNext", "CCEnterBattle")
+# CCSelectPeople4p0 的 max_hit 是**环路限次**（CCFlagInSelectPeople ↔ 本节点每轮都有命中，
+# timeout 永不触发），同样必须按局清零，否则第二局起选领队会直接失败。
+MATCH_SCOPED_HIT_NODES = ("CCNext", "CCEnterBattle", "CCSelectPeople4p0")
 
 
 @dataclass(frozen=True)

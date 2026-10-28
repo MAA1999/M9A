@@ -34,6 +34,10 @@ class CCPickLeaderRec(CustomRecognition):
 
         people = CCChessboard.strategy.people
         if people is None or not people.slots:
+            # 静默 miss 很难查：日志里只会看到「本节点没命中」，页面停在选领队页 20s 后 4000。
+            # 实测（issue #988 20:21）就是这条 —— agent 重启后流程从活动入口页进入、绕开了
+            # CCResetData，策略表还是空表。pipeline 侧已保证入口先初始化；这里留痕便于复查。
+            logger.debug("选领队：策略表未加载或无 people 段（CCResetData 没跑到？），返回 miss")
             return CustomRecognition.AnalyzeResult(box=None, detail={})
 
         # 门 2：不在选领队页就不要给出 box（对局页左侧也是同一张领队立绘）

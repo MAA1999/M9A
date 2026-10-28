@@ -2225,3 +2225,89 @@ class TestBoardFullShortCircuit:
             for col in range(len(CCChessboard.board[row])):
                 CCChessboard.board[row][col] = {"name": "32123", "level": 1, "row": row, "col": col}
         assert CCChessboard.has_no_empty_cell() is True
+
+
+class TestRunStopsInsteadOfSpinning:
+    """issue #988「翻斗棋在运行中途未正常停止」的结构回归。
+
+    三份用户日志把同一个毛病拆成了三条独立机制，每一条都不会让加载期校验报错、
+    表现还都像「卡住」，所以逐条钉住：
+
+    1. 入口绕开初始化：`CritterCrashEntry.next` 里 `CCPlay` 排在 `CCResetData` 前面时，
+       从活动入口页 / agent 重启后进来的那条路根本不加载策略表（`CCChessboard.strategy`
+       仍是空表）→ `CCPickLeaderRec` 第一道门静默 miss → 选领队页 20s 空转 → 4000。
+       实测（issue #988 2026-10-25 22:17，任务 200000003）：全程没有一次 `CCResetData`。
+    2. 环路没有限次：`CCEnterBattle` 把「进入战斗」读成「进战斗」之后，`CCFlagInSelectPeople
+       ↔ CCSelectPeople4p0` 每轮都有节点命中，`timeout` 永远不会触发，`max_hit` 又没配 ——
+       实测空转 17 分 50 秒 / 532 次点击，最后靠画面全黑才结束。
+    3. 页面没有出口：对局告一段落后游戏把画面送回活动入口页，而 `CCFlagInCombatMain.next`
+       里没有任何候选认那一页 → 20.9s 零命中 → 4000（实测 2026-10-25 17:57:45）。
+    """
+
+    def setup_method(self) -> None:
+        self.pipeline = _load_cc_pipeline()
+
+    def test_entry_initialises_before_dispatching(self) -> None:
+        """入口先走 `CCResetData`（任务级唯一初始化点），不许被带决策的节点抢在前面。
+
+        `CCPlay` 抢在前面时它自己会直接进主菜单，入口链就绕开初始化；`CCSelectPeople4p0`
+        抢在前面时同理（它的识别依赖策略表）。
+        """
+        nxt = self.pipeline["CritterCrashEntry"]["next"]
+        assert "CCResetData" in nxt
+        assert "CCPlay" not in nxt
+        assert "CCSelectPeople4p0" not in nxt
+
+    def test_entry_page_is_reachable_from_in_game_anchor(self) -> None:
+        """对局页锚点必须有活动入口页的出口，否则「回到入口页」= 20s 零命中 4000。"""
+        assert "CCPlay" in self.pipeline["CCFlagInCombatMain"]["next"]
+
+    def test_play_does_not_loop_back_to_reset(self) -> None:
+        """`CCPlay.next` 不许回指 `CCResetData`：那是 `CCResetData → CCPlay → CCResetData` 互指环。"""
+        assert "CCResetData" not in self.pipeline["CCPlay"]["next"]
+
+    def test_play_gives_up_instead_of_hanging(self) -> None:
+        """点不到「参与游戏」时走 `on_error` 的终止节点 = 任务正常结束，不是 20s 后甩 4000。
+
+        终止节点必须**只识别、无 next**：有 next 就变成普通流程节点，挂进别的列表会让任务
+        打完一局就收工。
+        """
+        on_error = self.pipeline["CCPlay"]["on_error"]
+        assert on_error == ["CCActivityDone"]
+        done = self.pipeline["CCActivityDone"]
+        assert "next" not in done
+        assert "action" not in done
+
+    def test_leader_page_loop_is_bounded(self) -> None:
+        """选领队环路必须配 `max_hit`，否则按钮点不动时无限自环（实测 532 次 / 17m50s）。"""
+        for node in ("CCSelectPeople4p0", "CCEnterBattle"):
+            assert isinstance(self.pipeline[node].get("max_hit"), int), f"{node} 缺环路限次"
+
+    def test_leader_page_exits_to_match(self) -> None:
+        """选领队页点击后可能直接进对局页，`CCSelectPeople4p0.next` 必须有对局页出口。"""
+        assert "CCFlagInCombatMain" in self.pipeline["CCSelectPeople4p0"]["next"]
+
+    def test_enter_battle_accepts_both_readings(self) -> None:
+        """「进入战斗」必须容忍 OCR 读成「进战斗」/「进人战斗」（Lenovo 0.768、SM-S9280 0.979）。
+
+        两种 OCR 错误分开兜：漏字靠 `expected` 正则，字形混淆靠 `replace` 还原
+        （`replace` 先于 `expected` 生效，源码 OCRer::add_results 里 postproc_replace_ 在
+        filter_by_required 之前）。另外不许开 `only_rec`——它会把整块 roi 当一行识别，
+        读进相邻小字、且返回 box = roi，点击落点跟着偏。
+        """
+        param = self.pipeline["CCEnterBattle"]["recognition"]["param"]
+        expected = param["expected"]
+        assert isinstance(expected, list)
+        assert any(re.fullmatch(pattern, "进战斗") for pattern in expected)
+        assert any(re.fullmatch(pattern, "进入战斗") for pattern in expected)
+        assert param["replace"] == ["人", "入"]
+        assert "only_rec" not in param
+
+    def test_combat_end_outranks_card_panel(self) -> None:
+        """「对战结束」必须排在卡牌详情面板之前。
+
+        `PanelArrow.png` 是低对比模板（50x45、像素亮度 37~99），在「对战结束」的虚化光斑上
+        以 0.808 误命中（阈值 0.70），把本该处理这一页的 `CCCombatEnd` 整个遮蔽掉。
+        """
+        nxt = self.pipeline["CCFlagInCombatMain"]["next"]
+        assert nxt.index("[JumpBack]CCCombatEnd") < nxt.index("[JumpBack]CCCloseCardPanel")

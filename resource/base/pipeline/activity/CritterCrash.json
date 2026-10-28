@@ -13,17 +13,29 @@
     //   · **带文字的按钮/标签一律走 OCR**：主菜单「翻斗历程」「箱中对决」、对局页「怪物粘贴处」、
     //     奇遇「下一步」、选领队「进入战斗」、入口页「参与游戏」。`expected` 写成数组，
     //     以后加语言就是往数组里加字符串，不用重新裁图。
+    //   · `expected` 里**只放假定文案**：OCR 把字读错/读丢（如「入」→「人」或漏字）时用
+    //     `replace` 归一化，别把错字当变体塞进 expected —— 否则加语言时错字也要跟着翻一遍，
+    //     而且错字清单会无限膨胀。`replace` 的键与 expected 同为正则，替换先于匹配
+    //     （两者都是实测确认的：CCEnterBattle 用它兜 OCR 字形混淆，CCRemainMoney 用它兜 O→0）。
     //   · 模板只留给**美术/图标/印章**（没有可读文字，换语言也不变）：Cards/ 棋子美术、Award/、
     //     Empty、Lv3 满级角标、Blank/、StartCombat/ 的 Battle 印章、SkipCombat / Spirit / Stop 图标、
     //     LeaderSelected 勾选圈、Leaders_<id> 棋手立绘。
     //
-    // 两段式入口（重要）：
-    //   · CritterCrashEntry = 任务入口，收「任意翻斗棋界面」（主菜单 / 对局页 / 选领队页），
-    //     这样用户从对局中间启动也能接上（3.5 只认主菜单，从对局页启动会 status 4000 秒失败）。
+    // 三段式入口（重要）：
+    //   · CritterCrashEntry = 任务入口，只做**页面分类 + 挡路弹窗兜底**（贴纸册/卡牌面板/
+    //     「是否保存队伍」/「对战结束」），收「任意翻斗棋界面」（主菜单 / 对局页 / 选领队页 /
+    //     活动入口页 / 奇遇弹窗），这样用户从对局中间启动也能接上（3.5 只认主菜单，从对局页
+    //     启动会 status 4000 秒失败）。它**不做任何决策**，兜底节点走完统一交给 CCResetData。
+    //   · CCResetData      = 任务级唯一初始化点（DirectHit）+ 页面分派点。策略表、棋盘 ROI、
+    //     领队、重摇额度、贴纸都在这里重置，然后由它的 next 认当前页面。
+    //   ⚠️ entry 的 next 必须在 CCResetData 之前**只放兜底节点**：CCPlay / CCSelectPeople4p0
+    //      这类带决策的节点一旦排到 CCResetData 前面，活动入口页启动 / agent 重启后的路径就会
+    //      绕开初始化（策略表为空 → 选领队静默 miss → 20s 超时 4000，issue #988 20:21）。
     //   · CritterCrash      = 主菜单锚点，保持 3.5 语义（只认主菜单的「翻斗历程」），
     //     它被 CCFlagInCombatMain.next 当作「是否已回到主菜单」的判据使用。
     //   ⚠️ 不要把对局页判据并进 CritterCrash：那样会与 CCFlagInCombatMain.next 里的
     //      CritterCrash 形成 Entry→CCResetData→CCFlagInCombatMain→CritterCrash 死循环（已实测踩过）。
+    //   ⚠️ 同理 CCPlay.next 不许回指 CCResetData（CCResetData → CCPlay → CCResetData 互指环）。
     //
     // 三条实测行为（2026-10-16 / 10-17，决定了下面的 next 排布）：
     //   1. 选领队页「进入战斗」在**没有选中领队时是禁用态**，点了不响应 —— 死等会让任务在
@@ -75,8 +87,13 @@
             "CCEntryCardPanel",
             "CCCloseCardPanel",
             "CCEntrySaveTeam",
-            "CCSelectPeople4p0",
-            "CCPlay",
+            // 兜底做完后一律先走 CCResetData（DirectHit）：它是**任务级唯一初始化点**
+            // （策略表 / 棋盘 ROI / 领队 / 重摇额度 / 贴纸），同时把当前页面分派给它的 next
+            // （对局页 / 选领队页 / 活动入口页 / 主菜单 / 奇遇弹窗都在 CCResetData.next 里）。
+            // ⚠️ 不要把 CCPlay / CCSelectPeople4p0 排在它前面：活动入口页会被 CCPlay 先命中，
+            // 于是 CCPlay.next 直接进主菜单，整条入口链就绕开了初始化 —— agent 重启后
+            // （或本次任务第一次进入）策略表还是空表，CCPickLeaderRec 第一道门静默 miss，
+            // 选领队页 20s 空转 → 4000（issue #988 20:21 实测：全程没有 CCResetData）。
             "CCResetData"
         ]
     },
@@ -207,7 +224,8 @@
         "next": ["CCResetData"]
     },
     // 活动入口页（畅游摩卢旁卡）的「参与游戏」，点它进翻斗棋主菜单。
-    // 放在 CCResetData 之前：在入口页时它先命中；在其它界面它不命中，由 CCResetData 兜底。
+    // 两处引用：CCResetData.next（任务从入口页启动 → 先初始化再点）与
+    // CCFlagInCombatMain.next（对局告一段落后游戏把画面送回入口页 → 重进继续刷）。
     "CCPlay": {
         "recognition": {
             "type": "OCR",
@@ -218,19 +236,63 @@
                     270,
                     90
                 ],
-                "expected": ["参与游戏"],
-                "only_rec": true
+                // ⚠️ 这里**不要**加 `only_rec: true`（默认就是 false），根因是**点击落点**不是识别率：
+                // only_rec 跳过文字检测，返回的 box 直接等于整块 roi —— 而 Click 默认 target=true
+                // 点的是 box 中心，于是落点变成「270x90 这块 ROI 的正中」，可能落在按钮外面
+                // （ROI 为了容错留了上下/左右余量，中心并不等于按钮中心）。
+                // 实测同帧 A/B（入口页实拍 1280x720）：
+                //   only_rec=true  → box=[1000,555,270,90]（=roi 本身），落点 (1135,600)
+                //   only_rec=false → box=[1004,555,186,59]（真实文字框），落点 (1097,584)
+                // 去掉之后 box 就是「参与游戏」这四个字的框，点击必然落在按钮上，而且顺带把
+                // 按钮上的英文小字（同帧检测到 CrutterCrash 0.886）排除在外、得分 0.995→1.000。
+                // 本项目已有同类教训：docs/zh_cn/protocol/auto-promotion.md 的「唐人街影话」条目里，
+                // AP_StartAction 放宽 ROI 时同样把 only_rec 去掉（宽 ROI 下 only_rec 会把背景文字混进整行）。
+                // only_rec 只适合**正好框住一行文字**的窄 ROI（本文件里 CCNext 那种）。
+                "expected": ["参与游戏"]
             }
         },
         "action": {
             "type": "Click"
         },
         "post_delay": 2000,
+        // 「点了参与游戏却哪儿也没去」= 进不去（次数用完 / 活动结束 / 弹了别的框）：
+        // 比默认 20s 早一点交给 on_error 的终止节点收工 —— 这是这条链上
+        // **唯一有界的停止条件**，不是无条件终止。链路正常时 2~5s 内就会命中下一页
+        // （实测 20:21:34 点「参与游戏」→ 20:21:36 翻斗历程），15s 是留给慢设备/加载的余量。
+        "timeout": 15000,
         "next": [
+            // 点完「参与游戏」只会到三个地方：翻斗棋主菜单（最常见）/ 直接续进某一局的对局页
+            // / 主菜单上的「箱中对决」招牌（OCR 兜底）。**不要在这里回 CCResetData**：
+            // 调用方 CCResetData.next 已经初始化过一次，再回指就会形成
+            // CCResetData → CCPlay → CCResetData 的互指环（点在原地不动时无限点「参与游戏」）。
             "CritterCrash",
-            "CCStart",
-            "CCResetData"
-        ]
+            "CCFlagInCombatMain",
+            "CCStart"
+        ],
+        "on_error": ["CCActivityDone"]
+    },
+    // 终止节点：**只识别、不点击、没有 next** —— 链走到这里自然结束 = 任务成功，
+    // 也就是用户要的「正常停止」（issue #988 的标题）。
+    // 它只被 CCPlay.on_error 引用，语义是「入口页上点『参与游戏』之后仍然停在原地」：
+    // 这时既没有可打的局，也不该 20s 后甩一个 4000 给用户。
+    // ⚠️ 不要把它挂进任何 next 列表：入口页是**中途页**（实测 20:12/20:21 两次都是
+    // 回到入口页后点「参与游戏」又进了主菜单），挂进 next 会让任务只刷一局就收工。
+    "CCActivityDone": {
+        "desc": "点「参与游戏」后仍停在活动入口页（次数用完等）—— 终止节点，任务正常结束",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1000,
+                    555,
+                    270,
+                    90
+                ],
+                // 与 CCPlay 用同一套识别参数（同一块按钮、同一页）：同样不加 only_rec，
+                // 否则两个节点的命中率会不一致（一个吃检测模式、一个吃整块识别）。
+                "expected": ["参与游戏"]
+            }
+        }
     },
     "CritterCrash": {
         "recognition": {
@@ -248,8 +310,8 @@
         },
         "next": [
             // 主菜单锚点 = 「我在主菜单」时的唯一决策点：先清放弃框 → 还压着一局就先放弃 → 再开局。
-            // 从活动入口页「参与游戏」进来走的就是这里（CCPlay.next 第 1 项），绕开了 CCResetData，
-            // 所以「先放弃」这一刀必须挂在这儿，否则那条路径又会「点箱中对决续旧局」（原 bug 复现）。
+            // 从活动入口页「参与游戏」进来的路径是 CCResetData → CCPlay → 这里，
+            // 「先放弃」这一刀在 CCResetData.next 里也挂了一份，两条路都盖得到。
             // CCStop 是原子节点（只认 ✕ + 点掉，没有 next），用 [JumpBack] 引用：点完回到本列表重新识别，
             // 下一轮由 CCRerollConfirm 清框 —— 这样 CCStop 不会和本节点互指成环。
             "[JumpBack]CCRerollConfirm",
@@ -302,6 +364,10 @@
             // 停在一页「本次奇遇」弹窗上时：先按名字门控，再翻页（主菜单上它不命中，不会抢 CCStart 的道）
             "CCEncounterAccept",
             "CCNext",
+            // 任务是从活动入口页（畅游摩卢旁卡）启动时：初始化完在这里点「参与游戏」进主菜单。
+            // 另一处引用是 CCFlagInCombatMain.next（对局告一段落后回到入口页时重进），
+            // 两处都别把它排到 CCResetData 前面（见 CritterCrashEntry）。
+            "CCPlay",
             // 从入口启动时同样要先放弃残局：脚本每轮都从干净状态开打。
             "[JumpBack]CCStop",
             "CCStart",
@@ -365,8 +431,30 @@
             "CCFlagInCombatMain"
         ]
     },
-    // 4.0 新增：选择领队页右下角「进入战斗」（kf 0021 实测置信度 1.0）
+    // 4.0 新增：选择领队页右下角「进入战斗」按钮（游戏内文案只有「进入战斗」，没有别的写法）。
+    //
+    // 根因是 `only_rec`，不是 ROI、更不是阈值：它跳过文字检测、把整块 roi 当一行识别，于是
+    //   (a) 按钮上的绶带/爆点/英文小字混进来 → 读成「进战斗」「进人战斗」；
+    //   (b) 返回的 box 直接等于整块 roi → Click 默认点 box 中心，落点可能不在按钮上。
+    // 同帧 A/B（用户现场帧，1280x720，issue #988 2026-10-25）：
+    //   · roi 255x85 + only_rec=true   → **未命中**（读回「进战斗」0.898，复现原 bug）
+    //   · roi 255x85 + 去掉 only_rec   → 命中「进入战斗」0.9347，box=[1000,604,193,43]（真实文字框）
+    //   · roi 226x50 + 去掉 only_rec   → 0.849 且文字被裁（说明「收紧 roi」不是解法，反而干扰检测）
+    //   · roi 226x50 + only_rec=true   → 命中 0.9986 但 box=整块 roi（落点靠余量，靠不住）
+    // → 结论：**去掉 only_rec、roi 保持原样**。只认真文案时按钮永远点不到，会让
+    //   CCFlagInSelectPeople ↔ CCSelectPeople4p0 空转（OnePlus 用户实测空转 17 分 50 秒）。
+    // expected/replace 只作**其它设备残余漏字/错字**的兜底（SM-S9280 34 次读成「进战斗」0.979、
+    // Lenovo 读成「进人战斗」0.768，都是 only_rec 时代的样本）：
+    //   · expected `进入?战斗` 容忍漏掉「入」；
+    //   · replace `人→入` 还原字形混淆（键是正则、替换先于 expected 匹配，两者均已实测）。
+    // 不要试图靠调阈值解决：OCR 的 expected 是文本匹配，阈值/缩放不参与。
     "CCEnterBattle": {
+        // ⚠️ 环路限次：next 里 CCEnterBattle 自指是「点一次没进对局就再点一次」的重试，
+        // 但没有上限时，按钮点不动（领队没选中时是禁用态）就会无限自环 —— 每轮都有命中，
+        // timeout 永远不会触发。OCR 修好之后这条反而更容易踩到（以前读不到按钮所以进不来）。
+        // 计数按局清零（CCChessboard.run 清 MATCH_SCOPED_HIT_NODES），正常一局只命中 1 次。
+        // 超限后 → next 列表全灭 → 20s 内以明确失败收场，而不是空转。
+        "max_hit": 5,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -376,8 +464,15 @@
                     255,
                     85
                 ],
-                "expected": ["进入战斗"],
-                "only_rec": true
+                "expected": ["进入?战斗"],
+                // 两种 OCR 错误分开兜，各写最小那条规则：
+                //   · 「入→人」字形混淆（Lenovo 0.768）→ 字符级还原：人→入；
+                //   · 漏掉「入」（SM-S9280 0.979，34 次）→ 字根本没出来、还原不了，
+                //     只能让 expected 的正则 `进入?战斗` 容忍（expected 与 replace 同为正则）。
+                "replace": [
+                    "人",
+                    "入"
+                ]
             }
         },
         "action": {
@@ -523,6 +618,17 @@
     // 点返回后回到主菜单，故 next 里补 CritterCrash/CCStart 把「再进箱中对决」接上。
     "CCSelectPeople4p0": {
         "desc": "4.0 选领队：优先小叶尼塞（30027），没摇到则退出重摇，最后兜底点卡位 0",
+        // ⚠️ max_hit 是**环路限次**，不是性能参数：本节点与 CCFlagInSelectPeople 组成的循环
+        // 每轮都有节点命中（CCPickLeaderRec 门 3 返回已选卡位的小框 → 再点一次），
+        // 所以 next 的 timeout **永远不会触发**。实测（2026-10-27 OnePlus 用户，issue #988）：
+        // CCEnterBattle 把「进入战斗」读成「进战斗」，这条环从 10:36:11 空转到 10:54:01，
+        // 17 分 50 秒 / 532 次点击，最后由「画面全黑」才结束 —— 这正是 issue 标题
+        //「运行中途未正常停止」的机制。
+        // 超限后本节点不再命中 → CCFlagInSelectPeople.next 余下候选（CCEnterBattle /
+        // CCFlagInCombatMain）也不命中 → 20s 内以**明确的节点失败**收场，而不是空转。
+        // 计数按局清零（CCChessboard.run 里 clear_hit_count 清 MATCH_SCOPED_HIT_NODES），
+        // 所以正常连打多局不会累积到上限；取值参照 CCDeploy 的同一道保险。
+        "max_hit": 5,
         "recognition": {
             "type": "Custom",
             "param": {
@@ -536,6 +642,11 @@
         "next": [
             "CCEnterBattle",
             "CCFlagInSelectPeople",
+            // 本节点的点击本身就可能把页面推进到对局页（例如上一轮点中了「进入战斗」，
+            // 或游戏自己转场）：没有这个出口时 next 里全是选领队页/主菜单的候选，
+            // 20s 一个都不命中 → 任务以 4000 收场（issue #988，2026-10-25 20:13:44 实测截图
+            // 就是「怪物粘贴处」对局页）。
+            "CCFlagInCombatMain",
             // 「没摇到优先棋手就退出重摇」（people.max_reroll > 0 才走得到）也是两步：上面点返回回主菜单后，
             // 由主菜单锚点 CritterCrash 的 [JumpBack]CCStop 放弃这一局才算真重摇 —— 否则又回到同一局、
             // 同样 3 张卡。这里不重复挂 CCStop。
@@ -685,13 +796,19 @@
             }
         },
         "next": [
-            // 详情面板开着时什么都做不了（它会挡住后续所有识别），必须最先处理。
+            // 「对战结束」必须排第一，优先于 CCCloseCardPanel：PanelArrow.png 是低对比模板
+            // （50x45、像素亮度 37~99），在「对战结束」的虚化光斑上会以 0.808 误命中（阈值 0.70），
+            // 把本该处理这一页的 CCCombatEnd 遮蔽掉。实测（2026-10-25 macOS PlayCover 用户）：
+            // 误命中后 ClickKey 在该 controller 上不被支持 → 动作失败 → 任务直接 4000。
+            // ADB 上不报动作失败，但只要 ESC 不推进画面，就会每轮抢在 CCCombatEnd 前面空转。
+            "[JumpBack]CCCombatEnd",
+            // 详情面板开着时什么都做不了（它会挡住后续所有识别），必须最先处理
+            //（排在 CCCombatEnd 之后：对战结束页不是面板，先让 CCCombatEnd 出手）。
             "[JumpBack]CCCloseCardPanel",
             "CritterCrash",
             "[JumpBack]CCSkipCombat",
             "[JumpBack]CCClickBlank",
             "[JumpBack]ObtainedAwards",
-            "[JumpBack]CCCombatEnd",
             "[JumpBack]CCSpirit",
             "[JumpBack]CCConfirm",
             // 贴纸箱必须排在买卡之前：买卡几乎每轮都命中（实测一轮 70 次），
@@ -702,7 +819,13 @@
             "[JumpBack]CCRefreshCard_post",
             "[JumpBack]CCSelectAwardCard",
             "[JumpBack]CCAwardClearConfirm",
-            "[JumpBack]CCStartCombat"
+            "[JumpBack]CCStartCombat",
+            // 对局告一段落后游戏可能把画面送回**活动入口页**（不是主菜单）：这一页在
+            // 非正对局页的候选里没有任何出口，20s 后任务就以 4000 收场
+            // （issue #988 17:57:45 实测：入口页上 20.9s 零命中，on_error 截图就是这一页）。
+            // 入口页是中途页 —— 实测 20:12/20:21 两次回到入口页后点「参与游戏」都能再进主菜单，
+            // 所以这里挂 CCPlay 重进继续刷，而不是终止；真正的停止条件在 CCPlay.on_error。
+            "CCPlay"
         ]
     },
     "CCCombatEnd": {
