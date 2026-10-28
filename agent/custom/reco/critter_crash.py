@@ -83,6 +83,10 @@ class CCPickLeaderRec(CustomRecognition):
 
         # 门 4b：没摇到优先棋手 —— 还有额度就退出去重摇（返回键），否则兜底点第一个卡位
         if CCChessboard.consume_reroll("leader", people.max_reroll):
+            # 重摇 = 新的一次选领队尝试，且这条路径不经过对局页（选领队页 → 主菜单 → CCStop
+            # → CCStart），CCFlagInCombatMain 那处清零覆盖不到 —— 不在这里清，
+            # `people.max_reroll > 0` 时 CCSelectPeople4p0 的 max_hit 会跨尝试累积到失效。
+            CCChessboard.clear_match_scoped_hits(context)
             point = people.back_point()
             logger.debug(f"选领队：没有优先棋手，退出重摇（点返回 {point}）")
             return CustomRecognition.AnalyzeResult(box=[point[0] - 5, point[1] - 5, 10, 10], detail={"reroll": True})

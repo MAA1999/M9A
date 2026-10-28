@@ -1341,6 +1341,28 @@ class TestPickLeaderReroll:
 
         assert cleared == list(MATCH_SCOPED_HIT_NODES)
 
+    def test_leader_reroll_also_resets_hit_counts(self) -> None:
+        """重摇分支也要清命中计数 —— 它不经过对局页，锚点那处覆盖不到。
+
+        重摇路径是「选领队页 → 主菜单 → CCStop → CCStart」，全程没有 `CCFlagInCombatMain`。
+        `people.max_reroll > 0`（`data/critter_crash/strategy-4.0.json` 用户可改）时，
+        每重摇一次 `CCSelectPeople4p0` 就 +1，不清的话第 6 次左右 `max_hit` 耗尽 →
+        该节点不再被识别 → 选领队页 20s 全 miss → 4000。
+        重摇额度本身有上限，所以在这里清不会破坏限次语义：真正的死环走的是门 3
+        「已选中」分支，不消耗额度、也不清计数。
+        """
+        CCChessboard.apply_strategy(_strategy_40(max_reroll=3))
+        ctx = self._ctx()
+        assert _pick_leader(ctx).detail == {"reroll": True}
+        assert ctx.cleared_hits == list(MATCH_SCOPED_HIT_NODES)
+
+    def test_leader_fallback_does_not_reset_hit_counts(self) -> None:
+        """兜底点卡位 0 不是重摇，不清计数 —— 死环的限次不能被日常路径刷掉。"""
+        CCChessboard.apply_strategy(_strategy_40(max_reroll=0))
+        ctx = self._ctx()
+        assert _pick_leader(ctx).detail == {"fallback": True}
+        assert ctx.cleared_hits == []
+
     def test_board_anchor_survives_clear_hit_count_failure(self) -> None:
         """计数复位失败不能拖垮主循环（对局页每轮都会走这里）。"""
 

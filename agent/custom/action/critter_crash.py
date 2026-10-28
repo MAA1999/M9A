@@ -686,6 +686,24 @@ class CCChessboard(CustomAction):
         """
         cls.rerolls_used = {}
 
+    @classmethod
+    def clear_match_scoped_hits(cls, context: Context) -> None:
+        """把 `max_hit` 是「按局限次」的节点命中计数清零 —— 见 MATCH_SCOPED_HIT_NODES。
+
+        两个调用点，缺一不可：
+          · `CCFlagInCombatMain`（对局页锚点）：每局主循环命中一次，清掉上一局的累计；
+          · `CCPickLeaderRec` 的重摇分支：重摇走「选领队页 → 主菜单 → CCStop → CCStart」，
+            **不经过对局页**，不给这里清的话，`people.max_reroll > 0`（`data/` 里用户可改）
+            时每摇一次 `CCSelectPeople4p0` 就 +1，第 6 次左右该节点就不再被识别 → 选领队页
+            20s 全 miss → 4000。重摇额度本身有上限，所以这里清不会破坏限次语义
+            （真正的死环走的是门 3「已选中」分支，不消耗额度、也不清计数）。
+        """
+        for node_name in MATCH_SCOPED_HIT_NODES:
+            try:
+                context.clear_hit_count(node_name)
+            except Exception as e:  # noqa: BLE001 - 计数复位失败不该拖垮主循环
+                logger.warning(f"清 {node_name} 命中计数失败: {e}")
+
     # 暂时买不动的卡 → 卡名: 剩余跳过次数
     #
     # **不能按回合整段拉黑**：原来是 card_name -> 回合号，同回合内永久生效。
@@ -1199,16 +1217,12 @@ class CCChessboard(CustomAction):
         # 1) 选领队重摇额度清零 —— 额度按每一局算，而不是每个任务（一个任务会连打多局，
         #    实测打完 7 轮会自动开下一局，不复位的话第二局起就只能兜底）。
         #    重摇环走在 选领队/主菜单/奇遇，不会经过这里，所以额度不会被中途刷掉。
-        # 2) 清 MATCH_SCOPED_HIT_NODES 的命中计数 —— 见上面常量注释。
+        # 2) 清 MATCH_SCOPED_HIT_NODES 的命中计数 —— 见 clear_match_scoped_hits。
         # 3) 检测新对局：回合数变小就清空内部棋盘（详见 _last_round 注释）。
         self._reset_if_new_game(context)
 
         type(self).reset_rerolls()
-        for node_name in MATCH_SCOPED_HIT_NODES:
-            try:
-                context.clear_hit_count(node_name)
-            except Exception as e:  # noqa: BLE001 - 计数复位失败不该拖垮主循环
-                logger.warning(f"清 {node_name} 命中计数失败: {e}")
+        type(self).clear_match_scoped_hits(context)
         return CustomAction.RunResult(success=True)
 
 
