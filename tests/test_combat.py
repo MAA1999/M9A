@@ -398,6 +398,7 @@ def test_select_combat_stage_resets_free_used(monkeypatch: pytest.MonkeyPatch) -
     context = SimpleNamespace(
         get_node_object=lambda _name: SimpleNamespace(attach={"level": None}),
         override_pipeline=lambda _pipeline: None,
+        clear_hit_count=lambda _name: None,
     )
     argv = SimpleNamespace(custom_action_param='{"stage": "Psychube-07"}')
 
@@ -408,12 +409,34 @@ def test_select_combat_stage_resets_free_used(monkeypatch: pytest.MonkeyPatch) -
     assert _TargetCountState.candy_page_hits == 0
 
 
+def test_select_combat_stage_clears_scan_hit_counts() -> None:
+    """每次选关都要清零左右扫描头的 max_hit 计数。
+
+    库存保持一个任务会连续选多次关（TargetCountFinish → BF_Plan → 再 override 回 Combat），
+    而 max_hit 是任务运行内累计：不清零的话几轮换材料就把右向扫描的预算用光，
+    之后明明存在的关卡会被判成「未找到」。
+    """
+    cleared: list[str] = []
+    context = SimpleNamespace(
+        get_node_object=lambda _name: SimpleNamespace(attach={"level": None}),
+        override_pipeline=lambda _pipeline: None,
+        clear_hit_count=cleared.append,
+    )
+    argv = SimpleNamespace(custom_action_param='{"stage": "7-26"}')
+
+    result = SelectCombatStage().run(context, argv)  # type: ignore[arg-type]
+
+    assert result.success
+    assert cleared == ["SwipeLeftAndFindStage", "SwipeRightAndFindStage"]
+
+
 def test_select_combat_stage_wires_accumulate_for_resource_stage() -> None:
     """资源本 + 库存保持：胜利链挂上 BF_DepotAccumulate 与胜利点击节点。"""
     captured: dict[str, object] = {}
     context = SimpleNamespace(
         get_node_object=lambda _name: SimpleNamespace(attach={"level": None, "depot_accumulate": 1}),
         override_pipeline=lambda pipeline: captured.update(pipeline),
+        clear_hit_count=lambda _name: None,
     )
     argv = SimpleNamespace(custom_action_param='{"stage": "MA-06"}')
 
@@ -444,6 +467,7 @@ def test_select_combat_stage_wires_accumulate_after_drop_recognition() -> None:
     context = SimpleNamespace(
         get_node_object=lambda _name: SimpleNamespace(attach={"level": None, "depot_accumulate": 1}),
         override_pipeline=lambda pipeline: captured.update(pipeline),
+        clear_hit_count=lambda _name: None,
     )
     argv = SimpleNamespace(custom_action_param='{"stage": "7-7"}')
 
@@ -464,6 +488,7 @@ def test_select_combat_stage_keeps_main_story_chain_without_depot() -> None:
     context = SimpleNamespace(
         get_node_object=lambda _name: SimpleNamespace(attach={"level": None}),
         override_pipeline=lambda pipeline: captured.update(pipeline),
+        clear_hit_count=lambda _name: None,
     )
     argv = SimpleNamespace(custom_action_param='{"stage": "7-7"}')
 
@@ -481,6 +506,7 @@ def test_select_combat_stage_keeps_resource_victory_chain_without_depot() -> Non
     context = SimpleNamespace(
         get_node_object=lambda _name: SimpleNamespace(attach={"level": None}),
         override_pipeline=lambda pipeline: captured.update(pipeline),
+        clear_hit_count=lambda _name: None,
     )
     argv = SimpleNamespace(custom_action_param='{"stage": "MA-06"}')
 
