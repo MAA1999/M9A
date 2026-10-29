@@ -79,6 +79,8 @@ PLAN_NODE = "BF_Plan"
 REFRESH_NODE = "BF_Refresh"
 DONE_NODE = "BF_Done"
 DROP_REPORT_NODE = "DropRecognition"
+# 战斗流程入口节点：国服 base 里是 DoNothing，非国服（global_jp）覆写成关掉 DropRecognition
+DISABLE_UPLOAD_NODE = "DisableUpload"
 ACCUMULATE_NODE = "BF_DepotAccumulate"
 # 由 combat.py 的 SelectCombatStage 在主线流程里注入，库存保持模式下才有意义
 VICTORY_CLICK_NODE = "TargetCountVictoryClick"
@@ -496,7 +498,28 @@ def material_candy_override(context: Context, item_id: str, caps: Mapping[str, i
 def report_enabled(context: Context, stage: str, level: str) -> bool:
     """本轮关卡的掉落上报开关：只有上报表内的关卡（原有材料）参与上报，新加的不参与。"""
     _capture_baselines(context)
+    if _resource_disables_report(context):
+        return False
     return _state.report_base_enabled and _stage_reportable(stage, level)
+
+
+def _resource_disables_report(context: Context) -> bool:
+    """本资源包是否把 `DropRecognition` 关掉了。
+
+    非国服资源（`global_jp`，被国际服与港澳台服加载）把 `DisableUpload` 覆写成
+    `DisableNode("DropRecognition")`：每局开打前把节点关掉，`total_drops` 恒为 0；
+    国服 `base` 里它是 `DoNothing`。不判这一条的话，国际服/港澳台服仍会选 drop_core，
+    结算永远读到 0，缺口不缩小。
+
+    这里对 `get_node_data` 的返回值做序列化匹配、不按字段路径取值：该接口返回
+    `PipelineDumper` 的产物，形态随版本变化时按路径取会静默失效——而静默失效正好
+    指向「继续用 drop_core」，是本函数要防的那一侧。
+    """
+    data = context.get_node_data(DISABLE_UPLOAD_NODE)
+    if not data:
+        return False
+    blob = json.dumps(data, ensure_ascii=False, default=str)
+    return "DisableNode" in blob and DROP_REPORT_NODE in blob
 
 
 def candy_note(item_id: str, caps: Mapping[str, int]) -> str:

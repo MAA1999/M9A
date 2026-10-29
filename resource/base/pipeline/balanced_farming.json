@@ -177,7 +177,7 @@
         ]
     },
     "BF_ItemIcon": {
-        "desc": "供 BalancedFarmingAnalyze 调用：仓库网格中匹配单个材料图标",
+        "desc": "供 BalancedFarmingAnalyze 调用：仓库网格中匹配单个材料图标。阈值取 0.85：实测真实匹配分在 0.87~0.92（图标带紫色底纹会拉低分数），同屏最高误配约 0.32，原 0.9 正好切在真实分布中间，导致部分材料时读时漏、被按 0 计",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -189,7 +189,7 @@
                 ],
                 "template": "Warehouse/Item-110103.png",
                 "green_mask": true,
-                "threshold": 0.9,
+                "threshold": 0.85,
                 "order_by": "Score"
             }
         }

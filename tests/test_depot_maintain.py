@@ -71,11 +71,14 @@ class _FakeContext:
         eat_candy: bool = True,
         candy_max_hit: int | None = None,
         ocr_texts: dict[str, str] | None = None,
+        resource_disables_report: bool = False,
     ) -> None:
         self.next_overrides: list[list[str]] = []
         self.pipeline_overrides: list[dict[str, Any]] = []
         self.run_tasks: list[str] = []
         self.drop_report_disabled = drop_report_disabled
+        # 模拟资源级 override：global_jp 把 DisableUpload 覆写成关掉 DropRecognition
+        self.resource_disables_report = resource_disables_report
         # 模拟 MaaFW 的覆盖语义：override_pipeline 写进去的值会被后续 get_node_data 读到，
         # 也就是会跨轮次残留（正是「读数模式不能读节点数据」那条的成因）
         self.drop_report_enabled = not drop_report_disabled
@@ -109,6 +112,18 @@ class _FakeContext:
         return types.SimpleNamespace(hit=True, box=(0, 0, 1, 1), best_result=best)
 
     def get_node_data(self, name: str) -> dict[str, Any] | None:
+        if name == depot_maintain.DISABLE_UPLOAD_NODE:
+            if not self.resource_disables_report:
+                return {"action": {"type": "DoNothing"}}
+            return {
+                "action": {
+                    "type": "Custom",
+                    "param": {
+                        "custom_action": "DisableNode",
+                        "custom_action_param": {"node_name": depot_maintain.DROP_REPORT_NODE},
+                    },
+                }
+            }
         if name == depot_maintain.DROP_REPORT_NODE:
             return {"enabled": self.drop_report_enabled}
         if name == depot_maintain.EAT_CANDY_NODE:
@@ -163,12 +178,14 @@ class _PlanHarness:
         eat_candy: bool = True,
         candy_max_hit: int | None = None,
         raw: dict[str, Any] | None = None,
+        resource_disables_report: bool = False,
     ) -> None:
         self.context = _FakeContext(
             drop_report_disabled=drop_report_disabled,
             attach=attach,
             eat_candy=eat_candy,
             candy_max_hit=candy_max_hit,
+            resource_disables_report=resource_disables_report,
         )
         self.stops = 0
         # 刷图计数器：真实值由 TargetCountInit（每轮清零）与 TargetCountProgress（批次收尾并入）推动，
@@ -1005,6 +1022,30 @@ def test_accumulate_falls_back_when_report_disabled(monkeypatch: pytest.MonkeyPa
     harness.install_drop_core(monkeypatch)
     assert harness.plan().success
     assert depot_maintain._state.read_mode == depot_maintain.READ_SETTLEMENT
+
+
+def test_accumulate_falls_back_when_resource_disables_report(monkeypatch: pytest.MonkeyPatch) -> None:
+    """非国服资源把 DropRecognition 关掉时同样不能读 drop_core 累计。
+
+    `global_jp`（国际服 / 港澳台服）把 `DisableUpload` 覆写成 `DisableNode(DropRecognition)`，
+    于是 GUI 开关是 Yes、关卡也在上报表内，但节点每局都不执行，`total_drops` 恒为 0。
+    """
+    harness = _PlanHarness(
+        monkeypatch,
+        snapshot=_snapshot({"110103": 10, "110203": 0}),
+        resource_disables_report=True,
+    )
+    harness.install_drop_core(monkeypatch)
+    assert depot_maintain.report_enabled(harness.context, "3-13", "Hard") is False
+    assert harness.plan().success
+    assert depot_maintain._state.read_mode == depot_maintain.READ_SETTLEMENT
+
+
+def test_report_enabled_true_when_resource_keeps_report(monkeypatch: pytest.MonkeyPatch) -> None:
+    """国服 base 的 `DisableUpload` 是 DoNothing，上报开关仍按 GUI 选项 + 关卡表判定。"""
+    harness = _PlanHarness(monkeypatch, snapshot=_snapshot({"110103": 10, "110203": 0}))
+    harness.install_drop_core(monkeypatch)
+    assert depot_maintain.report_enabled(harness.context, "3-13", "Hard") is True
 
 
 def test_read_mode_uses_current_round_report_state(monkeypatch: pytest.MonkeyPatch) -> None:
