@@ -1872,8 +1872,7 @@ class CCSticker(CustomAction):
             return CustomAction.RunResult(success=True)
 
         # 面板可能没点中：关掉它，贴纸留给下一轮
-        context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
-        time.sleep(0.4)
+        CCBuyCard._close_card_panel(context)
         logger.debug("贴纸点击后仍在奖励区，关闭面板，下一轮再试")
         return CustomAction.RunResult(success=True)
 

@@ -2291,14 +2291,17 @@ class TestRunStopsInsteadOfSpinning:
     def test_play_gives_up_instead_of_hanging(self) -> None:
         """点不到「参与游戏」时走 `on_error` 的终止节点 = 任务正常结束，不是 20s 后甩 4000。
 
-        终止节点必须**只识别、无 next**：有 next 就变成普通流程节点，挂进别的列表会让任务
-        打完一局就收工。
+        终止节点必须用 `StopTask`，**不能**靠「没有 next、链走空」自然结束：协议 3.1「终止
+        条件」第一条写着 next 走空时**若 `[JumpBack]` 栈上还压着回跳点会先回跳**，
+        那样这个「终止」就退化成回父列表继续轮询。`StopTask` 置 need_to_stop 后
+        `PipelineTask::run` 在动作后直接 `return true`，结果恒定是任务成功。
+        另外它绝不能挂进任何 next 列表 —— 挂进去会让任务只刷一局就收工。
         """
         on_error = self.pipeline["CCPlay"]["on_error"]
         assert on_error == ["CCActivityDone"]
         done = self.pipeline["CCActivityDone"]
         assert "next" not in done
-        assert "action" not in done
+        assert done["action"] == {"type": "StopTask"}
 
     def test_leader_page_loop_is_bounded(self) -> None:
         """选领队环路必须配 `max_hit`，否则按钮点不动时无限自环（实测 532 次 / 17m50s）。"""
