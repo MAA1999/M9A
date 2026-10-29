@@ -151,27 +151,47 @@
     },
     // 入口兜底：上一轮任务停在卡牌详情面板（点开商店卡后没关掉）。
     // 这页会挡住后续所有识别，任务 1 节点就 4000（实测 12:25/12:33/12:52 多次）。
-    // 判据用面板右侧的翻页箭头（模板 PanelArrow.png，实测命中 0.866）——
-    // 「可摆放区域位置不足」那行红底小字 OCR 识别不出（roi 600,450,500,120 只读回 "M1"）。
-    // 关闭方式：Android KEYCODE_ESCAPE(111)，实测有效。
+    //
+    // 判据是**面板右下角那颗购买按钮的左端（购物车图标 + 左侧圆角）**，不是箭头：
+    // 旧模板 `PanelArrow.png` 是 #986 引入的报废资产 —— 它整张就是一片棕色渐变
+    // （50x45、亮度 46~88、标准差 11.4），ROI [980,250,120,100] 还落在面板**外面**的
+    // 模糊背景上（实测真面板该 ROI 也是纯背景，0.727）。于是「命中」只是在量背景有多棕：
+    // 对战结束页全屏最高 0.885，比它所谓的真面板命中 0.866 还高 —— 阈值怎么调都分不开。
+    //
+    // 也不能用整颗按钮：按钮右侧内容随状态变（「免费」/ 星币 + 价格），实测「免费」态裁的
+    // 整颗按钮在付费态匹配不上（0.4 级别）。购物车图标与左侧圆角两态位置一致（x≈871~909），
+    // 故裁 [857,542,49,46]（关键帧 17ff007a-…:0002 = 付费态）。
+    // 实测矩阵（1280x720）：付费面板 1.000 / 免费面板 0.931 / 对战结束 0.368 /
+    // 对局页 0.126 / 主菜单 0.247 / 大厅 0.261 —— 取 threshold 0.8（两侧各留 0.43 余量）。
+    //
+    // 关闭方式用**点击面板外的空白点**（target 见下），不用 ClickKey：PlayCover controller
+    // 明确不支持 click_key（`PlayCoverControlUnitMgr.cpp` → `click_key is not supported`），
+    // 动作失败会把任务直接判死；点击两边都支持。实测点 [150,400] 后这一页立即关闭、棋盘无副作用。
+    // ⚠️ 模板取自「免费」态，付费卡的按钮文案未经实测（未取得该状态的关键帧）。
     "CCEntryCardPanel": {
-        "desc": "入口兜底：ESC 关掉卡牌详情面板",
+        "desc": "入口兜底：点面板外空白处，关掉卡牌详情面板",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    980,
-                    250,
-                    120,
-                    100
+                    850,
+                    535,
+                    195,
+                    70
                 ],
-                "template": ["CritterCrash/PanelArrow.png"]
+                "template": ["CritterCrash/PanelCart.png"],
+                "threshold": 0.8
             }
         },
         "action": {
-            "type": "ClickKey",
+            "type": "Click",
             "param": {
-                "key": 111
+                "target": [
+                    140,
+                    390,
+                    20,
+                    20
+                ]
             }
         },
         "post_delay": 500,
@@ -336,24 +356,34 @@
             "[JumpBack]CCClickBlank"
         ]
     },
+    // 对局中关掉卡牌详情面板（买卡后没关掉、或点了商店卡又没买）。
+    // 判据 / 关闭方式与 CCEntryCardPanel 完全一致（同一颗按钮、同一个空白点），
+    // 理由见那边：PanelArrow 已报废，ClickKey 在 PlayCover 上必失败。
+    // 原子节点（无 next）：由 CCFlagInCombatMain.next 用 [JumpBack] 引用。
     "CCCloseCardPanel": {
-        "desc": "用 ESC 关掉卡牌详情面板。pipeline 的 ClickKey 走框架原生按键路径；Python 侧 post_click_key / post_key_down 实测对该面板无效（发了 40 次面板 40 次都在）。",
+        "desc": "点面板外空白处，关掉卡牌详情面板",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    980,
-                    250,
-                    120,
-                    100
+                    850,
+                    535,
+                    195,
+                    70
                 ],
-                "template": ["CritterCrash/PanelArrow.png"]
+                "template": ["CritterCrash/PanelCart.png"],
+                "threshold": 0.8
             }
         },
         "action": {
-            "type": "ClickKey",
+            "type": "Click",
             "param": {
-                "key": 111
+                "target": [
+                    140,
+                    390,
+                    20,
+                    20
+                ]
             }
         },
         "post_delay": 600
@@ -815,11 +845,12 @@
             }
         },
         "next": [
-            // 「对战结束」必须排第一，优先于 CCCloseCardPanel：PanelArrow.png 是低对比模板
-            // （50x45、像素亮度 37~99），在「对战结束」的虚化光斑上会以 0.808 误命中（阈值 0.70），
-            // 把本该处理这一页的 CCCombatEnd 遮蔽掉。实测（2026-10-25 macOS PlayCover 用户）：
-            // 误命中后 ClickKey 在该 controller 上不被支持 → 动作失败 → 任务直接 4000。
-            // ADB 上不报动作失败，但只要 ESC 不推进画面，就会每轮抢在 CCCombatEnd 前面空转。
+            // 「对战结束」必须排第一，优先于 CCCloseCardPanel：历史原因是一次真实的 4000 ——
+            // 当时的判据 PanelArrow.png 是报废模板（一片棕色渐变），在「对战结束」的虚化光斑上
+            // 以 0.808 误命中（阈值 0.70），把本该处理这一页的 CCCombatEnd 遮蔽掉，
+            // 误命中后的 ClickKey 在 macOS PlayCover 上不被支持 → 动作失败 → 任务直接 4000
+            // （实测 2026-10-25）。模板已换成 PanelCart.png（付费 1.000 / 免费 0.931，负样本 ≤0.368），
+            // 动作也已换成点击，但顺序仍然保留：对战结束页本来就该由 CCCombatEnd 处理。
             "[JumpBack]CCCombatEnd",
             // 详情面板开着时什么都做不了（它会挡住后续所有识别），必须最先处理
             //（排在 CCCombatEnd 之后：对战结束页不是面板，先让 CCCombatEnd 出手）。

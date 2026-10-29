@@ -1238,39 +1238,54 @@ class CCBuyCard(CustomAction):
     _BUY_SETTLE = 1.2
     # 详情面板里「购买」按钮的位置（实测 940,568；面板居中、布局固定）
     _BUY_BUTTON_POINT = (940, 568)
+    # 关面板用的「面板外空白处」。比 DEFAULT_PANEL_CLOSE_POINT(1150,650) 更靠外：
+    # 那个点挨着商店「刷新」按钮，误点会白烧一次刷新。实测（2026-10-29）点这里面板
+    # 立即关闭、棋盘无任何副作用。
+    _PANEL_BLANK_POINT = (150, 400)
     # 买卡前后「落子格」的最小平均像素差；空位底纹会有轻微抖动，取 6 足够区分
     _PIECE_DIFF_MIN = 6.0
 
-    @staticmethod
-    def _close_card_panel(context: Context) -> None:
-        """关掉卡牌详情面板（ESC 优先，失败回退点击）。
+    @classmethod
+    def _panel_still_open(cls, context: Context) -> bool | None:
+        """复查卡牌详情面板是否还开着（判据 = 面板右下角那颗「免费 / 购买」按钮）。
 
-        Python binding 只有 post_click_key（没有 post_key）；写错会抛 AttributeError
-        被吞掉，然后静默回退到无效的点击 —— 面板关不掉，后续识别全被遮挡。
+        复用 pipeline 的 `CCEntryCardPanel` 节点，不要另写一套参数：两处判据一旦分叉，
+        就会出现「这里说还开着、pipeline 说没开」的对不上。返回 `None` = 复查本身失败
+        （取帧/识别异常），调用方按「不确定」处理。
         """
-        # post_click_key(111) 实测无效：发了 40 次、面板 40 次都还在（13:11 那轮日志）。
-        # 改用 key_down + key_up 的显式按下/抬起（Android 上更接近物理键）。
+        try:
+            img = context.tasker.controller.post_screencap().wait().get()
+            return is_hit(context.run_recognition("CCEntryCardPanel", img))
+        except Exception as e:  # noqa: BLE001 - 复查失败不该中断买卡流程
+            logger.debug(f"复查卡牌面板失败：{e}")
+            return None
+
+    @classmethod
+    def _close_card_panel(cls, context: Context) -> None:
+        """关掉卡牌详情面板：先点面板外的空白处，仍在就补一发 ESC。
+
+        顺序是**点击优先**，不是 ESC 优先 —— PlayCover controller 明确不支持 click_key
+        （`PlayCoverControlUnitMgr.cpp` → `click_key is not supported`），动作失败会把整个
+        任务判死；点击两边都支持，实测（2026-10-29）点面板外空白处面板立即关闭、
+        棋盘无副作用。ESC 只留作 ADB 侧兜底（`post_click_key(111)` 对这一页实测无效，
+        必须用 key_down + key_up）。
+        """
+        context.tasker.controller.post_click(*CCBuyCard._PANEL_BLANK_POINT).wait()
+        time.sleep(0.6)
+        if cls._panel_still_open(context) is not True:
+            return
+
         try:
             context.tasker.controller.post_key_down(111).wait()
             time.sleep(0.05)
             context.tasker.controller.post_key_up(111).wait()
-            logger.debug("已发 ESC(111) 关面板")
+            time.sleep(0.4)
+            logger.debug("点击没关掉面板，补发 ESC(111)")
         except Exception as e:  # noqa: BLE001 - 关面板失败不该中断买卡流程
-            logger.warning(f"发 ESC 关面板失败（{e}），改用点击兜底")
-            context.tasker.controller.post_click(*DEFAULT_PANEL_CLOSE_POINT).wait()
-        time.sleep(0.6)
-        # 关完复查：面板还在就说明 ESC 没生效，记录下来便于定位
-        try:
-            img = context.tasker.controller.post_screencap().wait().get()
-            still = context.run_recognition(
-                "CCPanelArrowRec",
-                img,
-                {"CCPanelArrowRec": {"template": "CritterCrash/PanelArrow.png", "roi": [980, 250, 120, 100]}},
-            )
-            if is_hit(still):
-                logger.warning("ESC 后卡牌详情面板仍在（PanelArrow 仍命中）")
-        except Exception:  # noqa: BLE001 - 复查失败不影响主流程
-            pass
+            logger.debug(f"补发 ESC 失败（{e}）")
+
+        if cls._panel_still_open(context) is True:
+            logger.warning("卡牌详情面板仍开着（点击 + ESC 都没关掉），后续识别会被遮挡")
 
     @classmethod
     def _pick_target_cell(

@@ -2328,8 +2328,44 @@ class TestRunStopsInsteadOfSpinning:
     def test_combat_end_outranks_card_panel(self) -> None:
         """「对战结束」必须排在卡牌详情面板之前。
 
-        `PanelArrow.png` 是低对比模板（50x45、像素亮度 37~99），在「对战结束」的虚化光斑上
-        以 0.808 误命中（阈值 0.70），把本该处理这一页的 `CCCombatEnd` 整个遮蔽掉。
+        历史原因：当时的判据 `PanelArrow.png` 是报废模板（一片棕色渐变），在「对战结束」的
+        虚化光斑上以 0.808 误命中（阈值 0.70），把本该处理这一页的 `CCCombatEnd` 整个遮蔽掉。
+        模板与动作都已换掉，但顺序仍然保留 —— 那一页本来就该由 `CCCombatEnd` 处理。
         """
         nxt = self.pipeline["CCFlagInCombatMain"]["next"]
         assert nxt.index("[JumpBack]CCCombatEnd") < nxt.index("[JumpBack]CCCloseCardPanel")
+
+    def test_card_panel_never_uses_click_key(self) -> None:
+        """关面板不许用 `ClickKey`：PlayCover controller 不支持，动作失败直接判死任务。
+
+        实测（2026-10-25 macOS PlayCover）`click_key is not supported` → `action_failed`
+        → 4000。改用**点击面板外空白处**，ADB 与 PlayCover 都支持。
+        全仓库只有这两个节点用过 `ClickKey`，所以直接把「文件里不出现 ClickKey」当不变量。
+        """
+        param = self.pipeline["CCCloseCardPanel"]
+        assert param["action"]["type"] == "Click"
+        assert param["action"]["param"]["target"] is not None
+        entry = self.pipeline["CCEntryCardPanel"]
+        assert entry["action"]["type"] == "Click"
+        offenders = [
+            name
+            for name, node in self.pipeline.items()
+            if isinstance(node, dict) and (node.get("action") or {}).get("type") == "ClickKey"
+        ]
+        assert offenders == [], f"关面板/入口兜底不许用 ClickKey（PlayCover 不支持）：{offenders}"
+
+    def test_card_panel_matches_the_buy_button_not_the_arrow(self) -> None:
+        """面板判据必须是购买按钮左端那颗购物车：旧的 `PanelArrow.png` 已删除。
+
+        旧模板整张是一片棕色渐变（50x45、亮度 46~88、标准差 11.4），ROI 还落在面板外的
+        模糊背景上 —— 对战结束页全屏最高 0.885，比所谓真面板命中 0.866 还高，阈值分不开。
+        整颗按钮也不行：右侧内容随状态变（「免费」/ 星币 + 价格）。购物车 + 左侧圆角两态
+        位置一致，实测付费面板 1.000、免费面板 0.931、负样本最高 0.368。
+        """
+        for name in ("CCCloseCardPanel", "CCEntryCardPanel"):
+            param = self.pipeline[name]["recognition"]["param"]
+            assert param["template"] == ["CritterCrash/PanelCart.png"], f"{name} 判据没换"
+            assert param["threshold"] >= 0.8, f"{name} 阈值要高于实测误配上限"
+        assert not (PROJECT_ROOT / "resource/base/image/CritterCrash/PanelArrow.png").exists()
+        assert not (PROJECT_ROOT / "resource/base/image/CritterCrash/PanelCart.png").is_symlink()
+        assert (PROJECT_ROOT / "resource/base/image/CritterCrash/PanelCart.png").exists()
