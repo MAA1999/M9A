@@ -1341,6 +1341,28 @@ class TestPickLeaderReroll:
 
         assert cleared == list(MATCH_SCOPED_HIT_NODES)
 
+    def test_leader_reroll_also_resets_hit_counts(self) -> None:
+        """重摇分支也要清命中计数 —— 它不经过对局页，锚点那处覆盖不到。
+
+        重摇路径是「选领队页 → 主菜单 → CCStop → CCStart」，全程没有 `CCFlagInCombatMain`。
+        `people.max_reroll > 0`（`data/critter_crash/strategy-4.0.json` 用户可改）时，
+        每重摇一次 `CCSelectPeople4p0` 就 +1，不清的话第 6 次左右 `max_hit` 耗尽 →
+        该节点不再被识别 → 选领队页 20s 全 miss → 4000。
+        重摇额度本身有上限，所以在这里清不会破坏限次语义：真正的死环走的是门 3
+        「已选中」分支，不消耗额度、也不清计数。
+        """
+        CCChessboard.apply_strategy(_strategy_40(max_reroll=3))
+        ctx = self._ctx()
+        assert _pick_leader(ctx).detail == {"reroll": True}
+        assert ctx.cleared_hits == list(MATCH_SCOPED_HIT_NODES)
+
+    def test_leader_fallback_does_not_reset_hit_counts(self) -> None:
+        """兜底点卡位 0 不是重摇，不清计数 —— 死环的限次不能被日常路径刷掉。"""
+        CCChessboard.apply_strategy(_strategy_40(max_reroll=0))
+        ctx = self._ctx()
+        assert _pick_leader(ctx).detail == {"fallback": True}
+        assert ctx.cleared_hits == []
+
     def test_board_anchor_survives_clear_hit_count_failure(self) -> None:
         """计数复位失败不能拖垮主循环（对局页每轮都会走这里）。"""
 
@@ -2225,3 +2247,128 @@ class TestBoardFullShortCircuit:
             for col in range(len(CCChessboard.board[row])):
                 CCChessboard.board[row][col] = {"name": "32123", "level": 1, "row": row, "col": col}
         assert CCChessboard.has_no_empty_cell() is True
+
+
+class TestRunStopsInsteadOfSpinning:
+    """issue #988「翻斗棋在运行中途未正常停止」的结构回归。
+
+    三份用户日志把同一个毛病拆成了三条独立机制，每一条都不会让加载期校验报错、
+    表现还都像「卡住」，所以逐条钉住：
+
+    1. 入口绕开初始化：`CritterCrashEntry.next` 里 `CCPlay` 排在 `CCResetData` 前面时，
+       从活动入口页 / agent 重启后进来的那条路根本不加载策略表（`CCChessboard.strategy`
+       仍是空表）→ `CCPickLeaderRec` 第一道门静默 miss → 选领队页 20s 空转 → 4000。
+       实测（issue #988 2026-10-25 22:17，任务 200000003）：全程没有一次 `CCResetData`。
+    2. 环路没有限次：`CCEnterBattle` 把「进入战斗」读成「进战斗」之后，`CCFlagInSelectPeople
+       ↔ CCSelectPeople4p0` 每轮都有节点命中，`timeout` 永远不会触发，`max_hit` 又没配 ——
+       实测空转 17 分 50 秒 / 532 次点击，最后靠画面全黑才结束。
+    3. 页面没有出口：对局告一段落后游戏把画面送回活动入口页，而 `CCFlagInCombatMain.next`
+       里没有任何候选认那一页 → 20.9s 零命中 → 4000（实测 2026-10-25 17:57:45）。
+    """
+
+    def setup_method(self) -> None:
+        self.pipeline = _load_cc_pipeline()
+
+    def test_entry_initialises_before_dispatching(self) -> None:
+        """入口先走 `CCResetData`（任务级唯一初始化点），不许被带决策的节点抢在前面。
+
+        `CCPlay` 抢在前面时它自己会直接进主菜单，入口链就绕开初始化；`CCSelectPeople4p0`
+        抢在前面时同理（它的识别依赖策略表）。
+        """
+        nxt = self.pipeline["CritterCrashEntry"]["next"]
+        assert "CCResetData" in nxt
+        assert "CCPlay" not in nxt
+        assert "CCSelectPeople4p0" not in nxt
+
+    def test_entry_page_is_reachable_from_in_game_anchor(self) -> None:
+        """对局页锚点必须有活动入口页的出口，否则「回到入口页」= 20s 零命中 4000。"""
+        assert "CCPlay" in self.pipeline["CCFlagInCombatMain"]["next"]
+
+    def test_play_does_not_loop_back_to_reset(self) -> None:
+        """`CCPlay.next` 不许回指 `CCResetData`：那是 `CCResetData → CCPlay → CCResetData` 互指环。"""
+        assert "CCResetData" not in self.pipeline["CCPlay"]["next"]
+
+    def test_play_gives_up_instead_of_hanging(self) -> None:
+        """点不到「参与游戏」时走 `on_error` 的终止节点 = 任务正常结束，不是 20s 后甩 4000。
+
+        终止节点必须用 `StopTask`，**不能**靠「没有 next、链走空」自然结束：协议 3.1「终止
+        条件」第一条写着 next 走空时**若 `[JumpBack]` 栈上还压着回跳点会先回跳**，
+        那样这个「终止」就退化成回父列表继续轮询。`StopTask` 置 need_to_stop 后
+        `PipelineTask::run` 在动作后直接 `return true`，结果恒定是任务成功。
+        另外它绝不能挂进任何 next 列表 —— 挂进去会让任务只刷一局就收工。
+        """
+        on_error = self.pipeline["CCPlay"]["on_error"]
+        assert on_error == ["CCActivityDone"]
+        done = self.pipeline["CCActivityDone"]
+        assert "next" not in done
+        assert done["action"] == {"type": "StopTask"}
+
+    def test_leader_page_loop_is_bounded(self) -> None:
+        """选领队环路必须配 `max_hit`，否则按钮点不动时无限自环（实测 532 次 / 17m50s）。"""
+        for node in ("CCSelectPeople4p0", "CCEnterBattle"):
+            assert isinstance(self.pipeline[node].get("max_hit"), int), f"{node} 缺环路限次"
+
+    def test_leader_page_exits_to_match(self) -> None:
+        """选领队页点击后可能直接进对局页，`CCSelectPeople4p0.next` 必须有对局页出口。"""
+        assert "CCFlagInCombatMain" in self.pipeline["CCSelectPeople4p0"]["next"]
+
+    def test_enter_battle_accepts_both_readings(self) -> None:
+        """「进入战斗」必须容忍 OCR 读成「进战斗」/「进人战斗」（Lenovo 0.768、SM-S9280 0.979）。
+
+        两种 OCR 错误分开兜：漏字靠 `expected` 正则，字形混淆靠 `replace` 还原
+        （`replace` 先于 `expected` 生效，源码 OCRer::add_results 里 postproc_replace_ 在
+        filter_by_required 之前）。另外不许开 `only_rec`——它会把整块 roi 当一行识别，
+        读进相邻小字、且返回 box = roi，点击落点跟着偏。
+        """
+        param = self.pipeline["CCEnterBattle"]["recognition"]["param"]
+        expected = param["expected"]
+        assert isinstance(expected, list)
+        assert any(re.fullmatch(pattern, "进战斗") for pattern in expected)
+        assert any(re.fullmatch(pattern, "进入战斗") for pattern in expected)
+        assert param["replace"] == ["人", "入"]
+        assert "only_rec" not in param
+
+    def test_combat_end_outranks_card_panel(self) -> None:
+        """「对战结束」必须排在卡牌详情面板之前。
+
+        历史原因：当时的判据 `PanelArrow.png` 是报废模板（一片棕色渐变），在「对战结束」的
+        虚化光斑上以 0.808 误命中（阈值 0.70），把本该处理这一页的 `CCCombatEnd` 整个遮蔽掉。
+        模板与动作都已换掉，但顺序仍然保留 —— 那一页本来就该由 `CCCombatEnd` 处理。
+        """
+        nxt = self.pipeline["CCFlagInCombatMain"]["next"]
+        assert nxt.index("[JumpBack]CCCombatEnd") < nxt.index("[JumpBack]CCCloseCardPanel")
+
+    def test_card_panel_never_uses_click_key(self) -> None:
+        """关面板不许用 `ClickKey`：PlayCover controller 不支持，动作失败直接判死任务。
+
+        实测（2026-10-25 macOS PlayCover）`click_key is not supported` → `action_failed`
+        → 4000。改用**点击面板外空白处**，ADB 与 PlayCover 都支持。
+        全仓库只有这两个节点用过 `ClickKey`，所以直接把「文件里不出现 ClickKey」当不变量。
+        """
+        param = self.pipeline["CCCloseCardPanel"]
+        assert param["action"]["type"] == "Click"
+        assert param["action"]["param"]["target"] is not None
+        entry = self.pipeline["CCEntryCardPanel"]
+        assert entry["action"]["type"] == "Click"
+        offenders = [
+            name
+            for name, node in self.pipeline.items()
+            if isinstance(node, dict) and (node.get("action") or {}).get("type") == "ClickKey"
+        ]
+        assert offenders == [], f"关面板/入口兜底不许用 ClickKey（PlayCover 不支持）：{offenders}"
+
+    def test_card_panel_matches_the_buy_button_not_the_arrow(self) -> None:
+        """面板判据必须是购买按钮左端那颗购物车：旧的 `PanelArrow.png` 已删除。
+
+        旧模板整张是一片棕色渐变（50x45、亮度 46~88、标准差 11.4），ROI 还落在面板外的
+        模糊背景上 —— 对战结束页全屏最高 0.885，比所谓真面板命中 0.866 还高，阈值分不开。
+        整颗按钮也不行：右侧内容随状态变（「免费」/ 星币 + 价格）。购物车 + 左侧圆角两态
+        位置一致，实测付费面板 1.000、免费面板 0.931、负样本最高 0.368。
+        """
+        for name in ("CCCloseCardPanel", "CCEntryCardPanel"):
+            param = self.pipeline[name]["recognition"]["param"]
+            assert param["template"] == ["CritterCrash/PanelCart.png"], f"{name} 判据没换"
+            assert param["threshold"] >= 0.8, f"{name} 阈值要高于实测误配上限"
+        assert not (PROJECT_ROOT / "resource/base/image/CritterCrash/PanelArrow.png").exists()
+        assert not (PROJECT_ROOT / "resource/base/image/CritterCrash/PanelCart.png").is_symlink()
+        assert (PROJECT_ROOT / "resource/base/image/CritterCrash/PanelCart.png").exists()

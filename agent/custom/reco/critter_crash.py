@@ -34,6 +34,10 @@ class CCPickLeaderRec(CustomRecognition):
 
         people = CCChessboard.strategy.people
         if people is None or not people.slots:
+            # 静默 miss 很难查：日志里只会看到「本节点没命中」，页面停在选领队页 20s 后 4000。
+            # 实测（issue #988 20:21）就是这条 —— agent 重启后流程从活动入口页进入、绕开了
+            # CCResetData，策略表还是空表。pipeline 侧已保证入口先初始化；这里留痕便于复查。
+            logger.debug("选领队：策略表未加载或无 people 段（CCResetData 没跑到？），返回 miss")
             return CustomRecognition.AnalyzeResult(box=None, detail={})
 
         # 门 2：不在选领队页就不要给出 box（对局页左侧也是同一张领队立绘）
@@ -79,6 +83,10 @@ class CCPickLeaderRec(CustomRecognition):
 
         # 门 4b：没摇到优先棋手 —— 还有额度就退出去重摇（返回键），否则兜底点第一个卡位
         if CCChessboard.consume_reroll("leader", people.max_reroll):
+            # 重摇 = 新的一次选领队尝试，且这条路径不经过对局页（选领队页 → 主菜单 → CCStop
+            # → CCStart），CCFlagInCombatMain 那处清零覆盖不到 —— 不在这里清，
+            # `people.max_reroll > 0` 时 CCSelectPeople4p0 的 max_hit 会跨尝试累积到失效。
+            CCChessboard.clear_match_scoped_hits(context)
             point = people.back_point()
             logger.debug(f"选领队：没有优先棋手，退出重摇（点返回 {point}）")
             return CustomRecognition.AnalyzeResult(box=[point[0] - 5, point[1] - 5, 10, 10], detail={"reroll": True})
