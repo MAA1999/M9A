@@ -65,7 +65,15 @@
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    52,
+                    15,
+                    -106,
+                    -25
+                ]
+            }
         },
         "next": [
             "EquipmentOverflowDissociate",
