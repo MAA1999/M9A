@@ -2328,6 +2328,29 @@ class TestRunStopsInsteadOfSpinning:
         assert param["replace"] == ["人", "入"]
         assert "only_rec" not in param
 
+    def test_rank_cap_stops_the_task(self) -> None:
+        """段位满级（8 级「棋艺人生」）= 本期奖励拿满 → 任务正常收工。
+
+        判据是主菜单那块段位圆盘里的「8」角标（这块 UI 只有主菜单有，活动入口页没有）。
+        实测矩阵：主菜单 8 级 1.000 / 7 级 0.360 / 对战结束 0.111 / 对局页 0.142 /
+        卡牌面板 0.176 / 大厅 0.128 → threshold 0.7。
+        """
+        node = self.pipeline["CCActivityCapped"]
+        assert node["action"] == {"type": "StopTask"}
+        assert "next" not in node
+        param = node["recognition"]["param"]
+        assert param["template"] == ["CritterCrash/RankMax.png"]
+        assert param["threshold"] >= 0.7
+
+    def test_rank_cap_check_runs_first_at_between_game_points(self) -> None:
+        """满级检查必须排在「局间决策点」的最前面，否则会被 CCStart 直接开局绕过。
+
+        主菜单锚点 `CritterCrash.next` 与任务初始化点 `CCResetData.next` 是每局之间必然经过的
+        两处；从主菜单启动时走的是后者（它不经过 CritterCrash），所以两处都要排第一。
+        """
+        assert self.pipeline["CritterCrash"]["next"][0] == "CCActivityCapped"
+        assert self.pipeline["CCResetData"]["next"][0] == "CCActivityCapped"
+
     def test_combat_end_outranks_card_panel(self) -> None:
         """「对战结束」必须排在卡牌详情面板之前。
 
