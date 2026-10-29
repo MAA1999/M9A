@@ -728,16 +728,22 @@
         }
     },
     "TheFarLeftOfStageList": {
+        // 只在关卡编号行取“01”，并用 `^` 锚定。
+        // 原 roi [0,470,1280,160] 同时盖住编号行与下方的关卡名行，OCR 把编号和名字粘成一段时
+        // （实测 "201よ米" score 0.64 —— 关卡 20 的 `0` 与分隔符/名字顶部被误读成 01），
+        // `expected: "01"` 的子串匹配会命中，方向被误判成“已在最左端”后反向扫描（issue #990）。
+        // 编号行内也会粘连（实测真最左端读到 "01i+" score 0.9995），锚定后只认以 01 开头的文本：
+        // 真最左端照样命中，关卡名行与 20/21 这类编号不再触发。
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
                     0,
-                    470,
+                    539,
                     1280,
-                    160
+                    46
                 ],
-                "expected": "01"
+                "expected": "^01"
             }
         },
         "next": [
@@ -765,11 +771,28 @@
         },
         "post_wait_freezes": 1,
         "post_delay": 0,
+        // SwipeLeftAndFindStage 的 max_hit 用尽后，本节点的 next 不再命中：2s 内没有命中
+        // 即判定“关卡列表里没有目标关卡”，任务以失败收场（issue #990）。
+        // 不给 on_error 兜底：静默回主界面会被当成正常结束。
+        "timeout": 2000,
         "next": [
             "SwipeLeftAndFindStage"
-        ]
+        ],
+        "focus": {
+            "Node.PipelineNode.Failed": "<span style=\"color:crimson;\">未在关卡列表中找到目标关卡，请检查关卡配置</span>"
+        }
     },
     "SwipeRightAndFindStage": {
+        // 右向扫描的头部，与左边 SwipeLeftAndFindStage 对称：max_hit 限定总轮数
+        // （30 次足够扫完最长的章节）。用尽后本节点在 SwipeRightForStageList 的 next 里被跳过，
+        // 由那里的超时判定“没找到”并失败 —— 原来没有上限，目标不在右侧时无限右滑
+        // （issue #990：21:08 起连续 637 轮、21 分钟）。
+        // ⚠️ max_hit 是「本次任务运行内累计」，不是每次进入重置（MaaFW 的 TaskState 计数）。
+        // 库存保持一个任务会连续选多次关（TargetCountFinish → BF_Plan，规划节点再 override 回
+        // Combat，最多 MAX_ROUNDS_PER_TASK 轮），所以 SelectCombatStage 每次选关前会对
+        // SwipeLeftAndFindStage / SwipeRightAndFindStage 各 clear_hit_count 一次 ——
+        // 这里的 30 是「单次选关」的上限，不是整个任务的预算。
+        "max_hit": 30,
         "next": [
             "TargetStageName",
             "SwipeRightForStageList"
@@ -794,9 +817,14 @@
             }
         },
         "post_wait_freezes": 100,
+        // 见 SwipeLeftForStageList：右向扫完后 2s 无命中即失败并报错，不静默回主界面。
+        "timeout": 2000,
         "next": [
             "SwipeRightAndFindStage"
-        ]
+        ],
+        "focus": {
+            "Node.PipelineNode.Failed": "<span style=\"color:crimson;\">未在关卡列表中找到目标关卡，请检查关卡配置</span>"
+        }
     },
     "StageDifficulty": {
         "next_doc": "Set in code."
