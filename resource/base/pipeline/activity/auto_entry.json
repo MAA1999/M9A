@@ -435,7 +435,7 @@
         }
     },
     "AP_NavUnlockButton": {
-        "desc": "活动解锁弹窗第一步：点击卡片后若活动未解锁会弹出含「解锁」按钮的弹窗，OCR 找「解锁」并点击。流程：解锁→Confirm 点确认→AP_NavInsufficientCanister 判断显影罐是否充足。放在 Confirm/AP_NavCardClick 之前，避免背景卡片被反复误触卡死",
+        "desc": "活动解锁弹窗第一步：点击卡片后若活动未解锁会弹出含「解锁」按钮的弹窗，OCR 找「解锁」并点击。流程：解锁→Confirm 点确认→AP_NavInsufficientCanister 判断显影罐是否充足。放在 Confirm/AP_NavCardClick 之前，避免背景卡片被反复误触卡死。expected 必须排除「未解锁」：卡片列表上未解锁的活动各自带「未解锁」标签且正落在这个 roi 内，裸露的「解锁」会子串命中它们，于是变成反复点锁住的卡（#975 连点 10 次 / 3 分钟直到 AP_NavLoop 超时）",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -445,7 +445,7 @@
                     380,
                     530
                 ],
-                "expected": "解锁"
+                "expected": "^(?!.*未).*解锁"
             }
         },
         "action": {
