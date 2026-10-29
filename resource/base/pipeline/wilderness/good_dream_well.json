@@ -7,6 +7,7 @@
         ]
     },
     "EnterGoodDreamWell": {
+        "desc": "进入好梦井。好梦井在底栏有三种落位，按序识别：魔精公司展开时是末项（Expanded）；魔精公司子选项收起时顶到第二项（Collapsed）；另有账号没有魔精公司条目、好梦井独占最左（Standalone）",
         "recognition": {
             "type": "Or",
             "param": {
@@ -37,6 +38,22 @@
                                     669,
                                     90,
                                     26
+                                ],
+                                "expected": "好梦井",
+                                "only_rec": true
+                            }
+                        }
+                    },
+                    {
+                        "sub_name": "Collapsed",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    142,
+                                    667,
+                                    72,
+                                    28
                                 ],
                                 "expected": "好梦井",
                                 "only_rec": true
