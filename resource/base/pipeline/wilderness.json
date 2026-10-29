@@ -28,6 +28,7 @@
         }
     },
     "FlagInWilderness": {
+        "desc": "荒原总闸：识别当前界面后按序分发 5 个子任务。continue 让任一子任务失败后仍跑完全部（尽力收集），strict 必须同步为 false，否则整个动作被判失败、下面的返回兜底链永远跑不到",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -63,7 +64,8 @@
                         "WildernessProductTask",
                         "WildernessTradeTask"
                     ],
-                    "continue": true
+                    "continue": true,
+                    "strict": false
                 }
             }
         },
