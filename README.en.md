@@ -26,7 +26,7 @@ Powered by [MaaFramework](https://github.com/MaaXYZ/MaaFramework)!
 
 <div align="center">
 
-[English](./README.en.md) | [简体中文](./README.md)
+English | [简体中文](./README.md)
 
 </div>
 

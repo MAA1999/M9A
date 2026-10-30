@@ -26,7 +26,7 @@
 
 <div align="center">
 
-[English](./README.en.md) | [简体中文](./README.md)
+简体中文 | [English](./README.en.md)
 
 </div>
 
