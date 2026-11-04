@@ -29,7 +29,16 @@ from custom.action.critter_crash import (
     parse_strategy,
 )
 from custom.reco.critter_crash import CCBuyCardRec, CCPickEncounterRec, CCPickLeaderRec
-from maa.define import BoxAndScoreResult, MaaStatusEnum, OCRResult, RecognitionDetail, Rect, Status, TaskDetail
+from maa.define import (
+    BoxAndScoreResult,
+    CustomRecognitionResult,
+    MaaStatusEnum,
+    OCRResult,
+    RecognitionDetail,
+    Rect,
+    Status,
+    TaskDetail,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 # 4.0 是独立策略表，默认不加载；只有 CCResetData 显式指定 strategy_file 才启用
@@ -670,9 +679,22 @@ def _run_buy_card(
 ) -> Any:
     """直接跑 CCBuyCard.run —— 覆盖「部署/升级的成败判定」与 run_task 的 override。"""
     actor = CCBuyCard.__new__(CCBuyCard)
-    # 生产的取值路径是 raw_detail["best"]["detail"]，两段都是字典下标
-    raw_detail = {"best": {"detail": detail}}
-    reco_detail = type("RecoDetail", (), {"raw_detail": raw_detail})()
+    # 生产的取值路径是 Custom 识别 best 结果里的 detail 载荷
+    rect = Rect(*box)
+    payload = CustomRecognitionResult(rect, detail)
+    reco_detail = RecognitionDetail(
+        reco_id=1,
+        name="fake",
+        algorithm="Custom",
+        hit=True,
+        box=rect,
+        all_results=[payload],
+        filtered_results=[payload],
+        best_result=payload,
+        raw_detail={"all": [], "filtered": [], "best": {"box": list(box), "detail": detail}},
+        raw_image=np.zeros((1, 1, 3), dtype=np.uint8),
+        draw_images=[],
+    )
     argv = type("Argv", (), {"reco_detail": reco_detail, "box": box, "custom_action_param": None})()
     return actor.run(context, argv)  # pyright: ignore[reportArgumentType]
 

@@ -6,6 +6,7 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JActionType, JClick
+from utils.maa_types import custom_result_dict
 
 
 @AgentServer.custom_action("CUB_StartAllIn")
@@ -28,17 +29,14 @@ class CUBStartAllIn(CustomAction):
         argv: CustomAction.RunArg,
     ) -> bool:
         # 1. 从 recognition detail 读取材料数量
-        detail: dict[str, Any] | None = None
-        try:
-            detail = argv.reco_detail.raw_detail.get("best", {}).get("detail")
-        except Exception:
-            pass
-
-        if not detail or "first" not in detail or "second" not in detail:
+        detail = custom_result_dict(argv.reco_detail)
+        if detail is None or "first" not in detail or "second" not in detail:
             return False
 
         first = detail["first"]
         second = detail["second"]
+        if not isinstance(first, int | float) or not isinstance(second, int | float):
+            return False
 
         # 2. 计算需要打几次
         params: dict[str, Any] = {}

@@ -1,10 +1,14 @@
-from typing import TypeGuard
+import json
+from collections.abc import Iterator
+from typing import Any, TypeGuard
 
 from maa.define import (
+    AndRecognitionResult,
     BoxAndCountResult,
     BoxAndScoreResult,
     CustomRecognitionResult,
     OCRResult,
+    OrRecognitionResult,
     RecognitionDetail,
     RecognitionResult,
     Rect,
@@ -176,6 +180,82 @@ def recognition_results(detail: RecognitionDetail | None) -> list[RecognitionRes
     return detail.filtered_results
 
 
+def _iter_details(detail: RecognitionDetail) -> Iterator[RecognitionDetail]:
+    """Yield a detail and every nested sub-detail of combined And / Or results."""
+    pending = [detail]
+    seen: set[int] = set()
+    while pending:
+        current = pending.pop()
+        if current.reco_id in seen:
+            continue
+        seen.add(current.reco_id)
+        yield current
+
+        best = current.best_result
+        if isinstance(best, AndRecognitionResult | OrRecognitionResult):
+            pending.extend(reversed(best.sub_results))
+
+
+def custom_result_dict(detail: RecognitionDetail | None) -> dict[str, Any] | None:
+    """Return the payload dict of the best ``Custom`` recognition result.
+
+    The payload is ``CustomRecognitionResult.detail``, JSON-decoded when the
+    callback wrote a string. Combined ``And`` / ``Or`` details are searched
+    through their sub-results, so callers do not depend on how the node's
+    recognition is composed.
+
+    Args:
+        detail: Recognition detail returned by MaaFramework.
+
+    Returns:
+        The custom payload dict, or None when the detail has no custom result
+        or its payload is not an object.
+    """
+    if detail is None or not detail.hit:
+        return None
+    for current in _iter_details(detail):
+        best = current.best_result
+        if not isinstance(best, CustomRecognitionResult):
+            continue
+        payload = best.detail
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except json.JSONDecodeError:
+                return None
+        return payload if isinstance(payload, dict) else None
+    return None
+
+
+def filtered_result_dicts(detail: RecognitionDetail | None) -> list[dict[str, Any]]:
+    """Return the raw ``filtered`` result dicts carried by a detail.
+
+    Single-algorithm details expose them as ``raw_detail["filtered"]``; for
+    combined ``And`` / ``Or`` details the sub-results are flattened in
+    execution order.
+
+    Args:
+        detail: Recognition detail returned by MaaFramework.
+
+    Returns:
+        Raw filtered result dicts, or an empty list when the detail is absent,
+        missed, or provides no parsed results.
+    """
+    if detail is None or not detail.hit:
+        return []
+
+    results: list[dict[str, Any]] = []
+    for current in _iter_details(detail):
+        # And / Or details carry a list here even though the binding types it as dict.
+        raw: Any = current.raw_detail
+        if not isinstance(raw, dict):
+            continue
+        filtered = raw.get("filtered")
+        if isinstance(filtered, list):
+            results.extend(item for item in filtered if isinstance(item, dict))
+    return results
+
+
 BoxedRecognitionResult = BoxAndScoreResult | BoxAndCountResult | CustomRecognitionResult
 
 
@@ -207,18 +287,19 @@ def boxed_results(detail: RecognitionDetail | None) -> list[BoxedRecognitionResu
 
 
 def best_box(detail: RecognitionDetail | None) -> Rect | None:
-    """Return the box from the best boxed result.
+    """Return the recognition box of a hit detail.
+
+    The box belongs to the recognition detail itself, so it is available for
+    every algorithm. ``best_result`` cannot provide it: combined ``And`` /
+    ``Or`` results only carry sub-results there, and some algorithms (for
+    example ``DirectHit``) have no typed result at all.
 
     Args:
         detail: Recognition detail returned by MaaFramework.
 
     Returns:
-        The best result's box, or None when the detail is absent, missed, or
-        the best result does not carry a box.
+        The recognition box, or None when the detail is absent or missed.
     """
     if detail is None or not detail.hit:
         return None
-    result = detail.best_result
-    if not has_box_result(result):
-        return None
-    return result.box
+    return detail.box

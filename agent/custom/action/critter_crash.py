@@ -10,7 +10,7 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 from utils import logger
-from utils.maa_types import is_hit, ocr_text
+from utils.maa_types import custom_result_dict, is_hit, ocr_text
 from utils.params import parse_params
 
 # 翻斗棋策略表：棋子白名单、棋盘 ROI、奖励优先级、选领队卡位都收敛到这一个数据文件，
@@ -1398,10 +1398,9 @@ class CCBuyCard(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
         # 策略已经在reco中制定，直接从argv.reco_detail获取结果
-        detail_str = argv.reco_detail.raw_detail["best"]["detail"]
+        detail_data = custom_result_dict(argv.reco_detail)
         box = argv.box
 
-        detail_data = self._parse_detail(detail_str)
         if not detail_data:
             logger.debug("无法解析detail")
             return CustomAction.RunResult(success=False)
@@ -1617,18 +1616,6 @@ class CCBuyCard(CustomAction):
         else:
             logger.debug(f"未知action: {action}")
             return CustomAction.RunResult(success=False)
-
-    def _parse_detail(self, detail: Any) -> dict[str, Any] | None:
-        """从detail中解析type和action"""
-        try:
-            # 如果是dict，直接使用
-            if isinstance(detail, dict):
-                return detail
-            # 如果是其他，尝试json.loads
-            return json.loads(str(detail))
-        except Exception as e:
-            logger.debug(f"解析detail失败: {e}")
-            return None
 
 
 @AgentServer.custom_action("CCLevelUp")

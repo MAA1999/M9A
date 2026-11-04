@@ -1,10 +1,14 @@
+from typing import Any
+
 import numpy as np
 import pytest
 from maa.define import (
+    AndRecognitionResult,
     BoxAndCountResult,
     BoxAndScoreResult,
     CustomRecognitionResult,
     OCRResult,
+    OrRecognitionResult,
     RecognitionDetail,
     RecognitionResult,
     Rect,
@@ -15,6 +19,8 @@ from agent.utils.maa_types import (
     best_box,
     best_result_as,
     boxed_results,
+    custom_result_dict,
+    filtered_result_dicts,
     has_box_result,
     is_hit,
     ocr_result,
@@ -31,12 +37,14 @@ def _detail(
     *,
     hit: bool,
     box: Rect | None,
+    reco_id: int = 1,
     all_results: list[RecognitionResult] | None = None,
     filtered_results: list[RecognitionResult] | None = None,
     best_result: RecognitionResult | None = None,
+    raw_detail: dict[str, Any] | None = None,
 ) -> RecognitionDetail:
     return RecognitionDetail(
-        reco_id=1,
+        reco_id=reco_id,
         name="TestRecognition",
         algorithm="Test",
         hit=hit,
@@ -44,7 +52,7 @@ def _detail(
         all_results=all_results or [],
         filtered_results=filtered_results or [],
         best_result=best_result,
-        raw_detail={},
+        raw_detail=raw_detail or {},
         raw_image=np.zeros((1, 1, 3), dtype=np.uint8),
         draw_images=[],
     )
@@ -153,3 +161,59 @@ def test_recognition_and_boxed_helpers_filter_non_hits_and_boxed_result_types() 
     assert best_box(detail) == rect
     assert best_box(miss) is None
     assert best_box(_detail(hit=True, box=rect, best_result=ocr)) == rect
+
+
+def test_best_box_returns_detail_box_for_every_algorithm() -> None:
+    rect = Rect(10, 20, 30, 40)
+    # And / Or: best_result carries sub-results instead of a box.
+    for combined in (OrRecognitionResult(sub_results=[]), AndRecognitionResult(sub_results=[])):
+        assert best_box(_detail(hit=True, box=rect, best_result=combined)) == rect
+    # DirectHit and other algorithms without a typed result.
+    assert best_box(_detail(hit=True, box=rect)) == rect
+    # Misses yield nothing, even when a hand-built detail carries a box.
+    assert best_box(_detail(hit=False, box=rect, best_result=OrRecognitionResult(sub_results=[]))) is None
+
+
+def test_custom_result_dict_reads_payload_through_combined_results() -> None:
+    rect = Rect(1, 2, 3, 4)
+    payload = {"options": [{"content": "离开", "roi": [10, 20, 30, 40]}]}
+    custom = CustomRecognitionResult(rect, payload)
+    string_payload = CustomRecognitionResult(rect, '{"first": 1, "second": 3}')
+    ocr = OCRResult(rect, 0.9, "text")
+    ocr_child = _detail(reco_id=2, hit=True, box=rect, best_result=ocr)
+    custom_child = _detail(reco_id=3, hit=True, box=rect, best_result=custom)
+
+    direct = _detail(hit=True, box=rect, best_result=custom)
+    from_string = _detail(hit=True, box=rect, best_result=string_payload)
+    or_detail = _detail(hit=True, box=rect, best_result=OrRecognitionResult(sub_results=[custom_child]))
+    and_detail = _detail(
+        hit=True,
+        box=rect,
+        best_result=AndRecognitionResult(sub_results=[ocr_child, custom_child]),
+    )
+
+    assert custom_result_dict(None) is None
+    assert custom_result_dict(_detail(hit=True, box=rect)) is None
+    assert custom_result_dict(_detail(hit=False, box=rect, best_result=custom)) is None
+    assert custom_result_dict(_detail(hit=True, box=rect, best_result=ocr)) is None
+    assert custom_result_dict(_detail(hit=True, box=rect, best_result=CustomRecognitionResult(rect, [1, 2]))) is None
+    assert custom_result_dict(_detail(hit=True, box=rect, best_result=CustomRecognitionResult(rect, "{bad"))) is None
+    assert custom_result_dict(direct) == payload
+    assert custom_result_dict(from_string) == {"first": 1, "second": 3}
+    assert custom_result_dict(or_detail) == payload
+    assert custom_result_dict(and_detail) == payload
+
+
+def test_filtered_result_dicts_flattens_combined_results() -> None:
+    rect = Rect(1, 2, 3, 4)
+    raw_first = {"all": [{"text": "a"}], "filtered": [{"text": "a", "box": [1, 2, 3, 4]}, "junk"]}
+    raw_second = {"filtered": [{"text": "b"}]}
+
+    single = _detail(hit=True, box=rect, raw_detail=raw_first)
+    child = _detail(reco_id=2, hit=True, box=rect, raw_detail=raw_second)
+    combined = _detail(hit=True, box=rect, best_result=OrRecognitionResult(sub_results=[child]))
+
+    assert filtered_result_dicts(single) == [{"text": "a", "box": [1, 2, 3, 4]}]
+    assert filtered_result_dicts(combined) == [{"text": "b"}]
+    assert filtered_result_dicts(_detail(hit=False, box=rect, raw_detail=raw_first)) == []
+    assert filtered_result_dicts(None) == []
