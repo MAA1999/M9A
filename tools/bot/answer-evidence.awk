@@ -29,14 +29,24 @@ function has_local_evidence(line,   i, rest, k, target) {
         rest = substr(line, i + 2)
         k = index(rest, ")")
         if (k == 0) return 0
-        target = substr(rest, 1, k - 1)
-        split(target, parts, /[ \t]/)
-        if (is_local_evidence(parts[1])) return 1
+        if (is_local_evidence(clean_dest(substr(rest, 1, k - 1)))) return 1
         line = substr(line, i + 1)
     }
     return 0
 }
 
+
+# 取出 markdown 目标里的路径：角括号写法 `(<evidence/x.png>)` 去掉括号，`(path "title")` 只取第一段。
+function clean_dest(raw,   t, k) {
+    t = raw
+    sub(/^[ 	]+/, "", t)
+    if (substr(t, 1, 1) == "<") {
+        k = index(t, ">")
+        if (k > 0) return substr(t, 2, k - 2)
+    }
+    split(t, parts, /[ \t]/)
+    return parts[1]
+}
 function emit(target) {
     if (!(target in seen)) {
         seen[target] = 1
@@ -109,9 +119,7 @@ function rewrite(line,   out, i, rest, jp, jb, j, alt, tail, k, label, target, p
             k = index(tail, ")")
             if (k == 0) return out substr(line, i)
             alt = substr(rest, 1, jp - 1)
-            target = substr(tail, 1, k - 1)
-            split(target, parts, /[ \t]/)
-            path = norm(parts[1])
+            path = norm(clean_dest(substr(tail, 1, k - 1)))
             end = i + jp + k + 2
             if (is_local_evidence(path)) {
                 if (mode == "refs") {
