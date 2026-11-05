@@ -739,51 +739,73 @@ jobs:
             exit 0
           fi
 
-          # 正文里可能引用了 `evidence/…` 的图（约定见 prompt 的「需要让读者看画面时」那一节）。
-          # 先把「降级副本」做出来：任何发不出附件的路径都改发它，图片语法落成 alt 文本 —— 公开评论或
-          # review 里留一张 `![](evidence/x.png)` 的断图，比不贴图更糟。只降级 evidence/ 开头的引用，
-          # 其余路径是 agent 自己写错的，不替它掩饰。
+          # 正文里的证据图片交给 tools/bot/answer-evidence.awk 解析：只认 inline 图片
+          # `![alt](evidence/x.png)`，跳过围栏代码块，按出现顺序去重输出 —— `refs` 是给 `--attach`
+          # 用的清单，`plain` 是降级副本（证据图片换成 alt 文本）。
+          #
+          # 任何发不出附件的路径都改发 `plain`：公开评论或 review 里不会留 `./evidence/...` 这种断图。
+          # refs 的退出码 3 表示正文用了 reference-style 图片（`![x][id]` + 定义行）—— `gh` 只改写
+          # inline 引用，那种形态就算传了附件也只会得到断图，所以整轮不发。
           plain="$RUNNER_TEMP/answer-plain.md"
-          sed -E 's/!\[([^]]*)\]\(\.?\/?evidence\/[^)]*\)/\1/g' "$answer" > "$plain"
+          refs="$RUNNER_TEMP/evidence-refs.txt"
+          plain_rc=0
+          LC_ALL=C awk -v mode=plain -f tools/bot/answer-evidence.awk "$answer" > "$plain" \
+            || plain_rc=$?
+          refs_rc=0
+          refs_err="$(LC_ALL=C awk -v mode=refs -f tools/bot/answer-evidence.awk "$answer" 2>&1 > "$refs")" \
+            || refs_rc=$?
+          if [ -n "$refs_err" ]; then echo "$refs_err"; fi
+          # `plain` 退出 4 = 降级完仍剩下认不出的证据引用（那些残行已经被它丢掉）。这一轮同样不发图：
+          # 附图路径发的是原始 `$answer`，那里还留着同一条引用，公开发出去就是断图。
+          if [ "$plain_rc" -ne 0 ]; then
+            echo "::warning::answer.md still points at evidence/ outside inline images; those lines were dropped"
+          fi
 
           # 附图只开在 issue 这条路上：PR 的摘要和行内意见走 reviews API，那条接口没有附件。
           #
-          # 文件**按正文里的引用**收集，不扫目录：扫目录会把 agent 顺手存下、正文没提过的图也带上，
-          # 而 `gh` 对没被引用的附件是追加到末尾 —— 那是噪音。按引用收，正文与附件天然一一对应。
-          #
-          # 只要有一个 evidence 引用对不上（文件不在、后缀不是图、超过 2 MiB），这一轮就一张都不发：
-          # `gh` 只改写它认得的引用，剩下的会以本地相对路径出现在公开评论里。宁可不贴，也不贴断链。
+          # 校验按「全有或全无」：只要有一张对不上（路径逃逸、后缀不是图、文件不在、超过 2 MiB），
+          # 或者超过 prompt 允许的 3 张，这一轮就一张都不发、整篇走 `plain`。`gh` 只改写实际上传的那
+          # 几个引用，剩下几张会以本地路径留在正文里 —— 那正是这条路径要避免的断图。
           #
           # `--attach` 打的是 GitHub 的上传端点：gh 2.103.2 起才接受 GitHub App installation token，
-          # 而端点本身还只收一部分 App（`gh` 源码注释的原话）。这两条都是运行环境的事，所以一律降级
-          # 并留 warning —— 附图是结论的补充，不值得让一条分析因为传图失败而发不出去。
+          # 而端点本身还只收一部分 App。这两条都是运行环境的事，所以一律降级并留 warning —— 附图是
+          # 结论的补充，不值得让一条分析因为传图失败而发不出去。
           if [ "$KIND" != "pr" ]; then
             attach=()
             skipped=""
-            while IFS= read -r ref; do
+            if [ "$refs_rc" -eq 3 ]; then
+              skipped="answer.md uses reference-style image references, which --attach cannot rewrite"
+            elif [ "$refs_rc" -ne 0 ]; then
+              skipped="could not parse the image references out of answer.md (awk exit $refs_rc)"
+            elif [ "$plain_rc" -ne 0 ]; then
+              skipped="answer.md still points at evidence/ outside inline images"
+            fi
+            while IFS= read -r ref && [ -z "$skipped" ]; do
               case "$ref" in
-                evidence/*) ;;
-                *) continue ;;
+                "") continue ;;
+                *..*)
+                  skipped="$ref escapes the analysis directory"
+                  continue
+                  ;;
               esac
-              path="$ANALYSIS_DIR/$ref"
               case "${ref##*.}" in
                 png | jpg | jpeg | webp | gif) ;;
                 *)
                   skipped="$ref is not a png/jpg/webp/gif"
-                  break
+                  continue
                   ;;
               esac
+              path="$ANALYSIS_DIR/$ref"
               if [ ! -f "$path" ]; then
                 skipped="$ref is referenced by answer.md but not in the analysis directory"
-                break
+                continue
               fi
               if [ "$(wc -c < "$path")" -gt 2097152 ]; then
                 skipped="$ref is larger than 2 MiB"
-                break
+                continue
               fi
               attach+=(--attach "$path")
-            done < <(grep -oE '!\[[^]]*\]\([^)]*\)' "$answer" 2>/dev/null |
-              sed -E 's/^!\[[^]]*\]\(//; s/\)$//; s#^\./##' | sort -u || true)
+            done < "$refs"
 
             images=$((${#attach[@]} / 2))
             if [ -n "$skipped" ]; then
@@ -791,13 +813,16 @@ jobs:
               attach=()
               images=0
             elif [ "$images" -gt 3 ]; then
-              echo "::warning::answer.md references $images evidence images; only the first 3 are attached"
-              attach=("${attach[@]:0:6}")
-              images=3
+              echo "::warning::answer.md references $images evidence images, more than the 3 the prompt allows; posting without them"
+              attach=()
+              images=0
             fi
 
             if [ "$images" -gt 0 ]; then
-              if ! gh issue comment --help 2>/dev/null | grep -q -- '--attach'; then
+              # 不用 `gh ... --help | grep -q`：`-q` 命中即退出会让 gh 吃 SIGPIPE，`pipefail` 下整条
+              # 管道判失败，于是把「这个 gh 支持 --attach」误判成不支持。
+              help="$(gh issue comment --help 2>/dev/null || true)"
+              if [ "${help#*--attach}" = "$help" ]; then
                 echo "::warning::this gh has no --attach; posting the answer without the evidence images"
               elif gh issue comment "$TARGET" --body-file "$answer" "${attach[@]}"; then
                 echo "posted with $images evidence image(s)"
