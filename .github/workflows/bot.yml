@@ -739,13 +739,11 @@ jobs:
             exit 0
           fi
 
-          # 正文里的证据图片交给 tools/bot/answer-evidence.awk 解析：只认 inline 图片
-          # `![alt](evidence/x.png)`，跳过围栏代码块，按出现顺序去重输出 —— `refs` 是给 `--attach`
-          # 用的清单，`plain` 是降级副本（证据图片换成 alt 文本）。
+          # 正文里的证据图片交给 tools/bot/answer-evidence.awk 解析：inline 图片与 reference-style
+          # 定义都认（`gh --attach` 两种都会改写，前者改目的地、后者改定义行），围栏代码块跳过，
+          # 按出现顺序去重 —— `refs` 是给 `--attach` 用的清单，`plain` 是降级副本。
           #
           # 任何发不出附件的路径都改发 `plain`：公开评论或 review 里不会留 `./evidence/...` 这种断图。
-          # refs 的退出码 3 表示正文用了 reference-style 图片（`![x][id]` + 定义行）—— `gh` 只改写
-          # inline 引用，那种形态就算传了附件也只会得到断图，所以整轮不发。
           plain="$RUNNER_TEMP/answer-plain.md"
           refs="$RUNNER_TEMP/evidence-refs.txt"
           plain_rc=0
@@ -773,9 +771,7 @@ jobs:
           if [ "$KIND" != "pr" ]; then
             attach=()
             skipped=""
-            if [ "$refs_rc" -eq 3 ]; then
-              skipped="answer.md uses reference-style image references, which --attach cannot rewrite"
-            elif [ "$refs_rc" -ne 0 ]; then
+            if [ "$refs_rc" -ne 0 ]; then
               skipped="could not parse the image references out of answer.md (awk exit $refs_rc)"
             elif [ "$plain_rc" -ne 0 ]; then
               skipped="answer.md still points at evidence/ outside inline images"
