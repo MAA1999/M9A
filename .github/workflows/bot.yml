@@ -739,8 +739,96 @@ jobs:
             exit 0
           fi
 
+          # 正文里的证据图片交给 tools/bot/answer-evidence.awk 解析：inline 图片与 reference-style
+          # 定义都认（`gh --attach` 两种都会改写，前者改目的地、后者改定义行），围栏代码块跳过，
+          # 按出现顺序去重 —— `refs` 是给 `--attach` 用的清单，`plain` 是降级副本。
+          #
+          # 任何发不出附件的路径都改发 `plain`：公开评论或 review 里不会留 `./evidence/...` 这种断图。
+          plain="$RUNNER_TEMP/answer-plain.md"
+          refs="$RUNNER_TEMP/evidence-refs.txt"
+          plain_rc=0
+          LC_ALL=C awk -v mode=plain -f tools/bot/answer-evidence.awk "$answer" > "$plain" \
+            || plain_rc=$?
+          refs_rc=0
+          refs_err="$(LC_ALL=C awk -v mode=refs -f tools/bot/answer-evidence.awk "$answer" 2>&1 > "$refs")" \
+            || refs_rc=$?
+          if [ -n "$refs_err" ]; then echo "$refs_err"; fi
+          # `plain` 退出 4 = 降级完仍剩下认不出的证据引用（那些残行已经被它丢掉）。这一轮同样不发图：
+          # 附图路径发的是原始 `$answer`，那里还留着同一条引用，公开发出去就是断图。
+          if [ "$plain_rc" -ne 0 ]; then
+            echo "::warning::answer.md still points at evidence/ outside inline images; those lines were dropped"
+          fi
+
+          # 附图只开在 issue 这条路上：PR 的摘要和行内意见走 reviews API，那条接口没有附件。
+          #
+          # 校验按「全有或全无」：只要有一张对不上（路径逃逸、后缀不是图、文件不在、超过 2 MiB），
+          # 或者超过 prompt 允许的 3 张，这一轮就一张都不发、整篇走 `plain`。`gh` 只改写实际上传的那
+          # 几个引用，剩下几张会以本地路径留在正文里 —— 那正是这条路径要避免的断图。
+          #
+          # `--attach` 打的是 GitHub 的上传端点：gh 2.103.2 起才接受 GitHub App installation token，
+          # 而端点本身还只收一部分 App。这两条都是运行环境的事，所以一律降级并留 warning —— 附图是
+          # 结论的补充，不值得让一条分析因为传图失败而发不出去。
           if [ "$KIND" != "pr" ]; then
-            gh issue comment "$TARGET" --body-file "$answer"
+            attach=()
+            skipped=""
+            if [ "$refs_rc" -ne 0 ]; then
+              skipped="could not parse the image references out of answer.md (awk exit $refs_rc)"
+            elif [ "$plain_rc" -ne 0 ]; then
+              skipped="answer.md still points at evidence/ outside inline images"
+            fi
+            while IFS= read -r ref && [ -z "$skipped" ]; do
+              case "$ref" in
+                "") continue ;;
+                *..*)
+                  skipped="$ref escapes the analysis directory"
+                  continue
+                  ;;
+              esac
+              case "${ref##*.}" in
+                png | jpg | jpeg | webp | gif) ;;
+                *)
+                  skipped="$ref is not a png/jpg/webp/gif"
+                  continue
+                  ;;
+              esac
+              path="$ANALYSIS_DIR/$ref"
+              if [ ! -f "$path" ]; then
+                skipped="$ref is referenced by answer.md but not in the analysis directory"
+                continue
+              fi
+              if [ "$(wc -c < "$path")" -gt 2097152 ]; then
+                skipped="$ref is larger than 2 MiB"
+                continue
+              fi
+              attach+=(--attach "$path")
+            done < "$refs"
+
+            images=$((${#attach[@]} / 2))
+            if [ -n "$skipped" ]; then
+              echo "::warning::posting without evidence images: $skipped"
+              attach=()
+              images=0
+            elif [ "$images" -gt 3 ]; then
+              echo "::warning::answer.md references $images evidence images, more than the 3 the prompt allows; posting without them"
+              attach=()
+              images=0
+            fi
+
+            if [ "$images" -gt 0 ]; then
+              # 不用 `gh ... --help | grep -q`：`-q` 命中即退出会让 gh 吃 SIGPIPE，`pipefail` 下整条
+              # 管道判失败，于是把「这个 gh 支持 --attach」误判成不支持。
+              help="$(gh issue comment --help 2>/dev/null || true)"
+              if [ "${help#*--attach}" = "$help" ]; then
+                echo "::warning::this gh has no --attach; posting the answer without the evidence images"
+              elif gh issue comment "$TARGET" --body-file "$answer" "${attach[@]}"; then
+                echo "posted with $images evidence image(s)"
+                exit 0
+              else
+                echo "::warning::the evidence images could not be uploaded; posting the answer without them"
+              fi
+            fi
+
+            gh issue comment "$TARGET" --body-file "$plain"
             exit 0
           fi
 
@@ -769,12 +857,12 @@ jobs:
             echo "::warning::every proposed inline comment was outside the diff"
           fi
 
-          jq -n --rawfile body "$answer" --slurpfile c "$RUNNER_TEMP/comments.json" \
+          jq -n --rawfile body "$plain" --slurpfile c "$RUNNER_TEMP/comments.json" \
             '{event: "COMMENT", body: $body, comments: $c[0].comments}' > "$RUNNER_TEMP/review.json"
 
           if ! gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" --input "$RUNNER_TEMP/review.json"; then
             echo "::warning::review rejected with inline comments, retrying as a summary-only review"
-            jq -n --rawfile body "$answer" '{event: "COMMENT", body: $body, comments: []}' \
+            jq -n --rawfile body "$plain" '{event: "COMMENT", body: $body, comments: []}' \
               > "$RUNNER_TEMP/review.json"
             gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" --input "$RUNNER_TEMP/review.json"
           fi
