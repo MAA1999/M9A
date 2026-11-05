@@ -15,6 +15,28 @@ function norm(dest) {
     return dest
 }
 
+# 这个目标是不是本地 evidence 文件？URI（`https://example.com/evidence/x.png`）与纯锚点不算 ——
+# 否则正文里一条带 evidence 字样的外链会被当成证据引用，连累整批图发不出去。
+function is_local_evidence(dest,   t) {
+    if (dest ~ /^[A-Za-z][A-Za-z0-9+.-]*:/) return 0
+    t = norm(dest)
+    return t ~ /(^|\/)evidence\//
+}
+
+# 行里还有没有指向本地 evidence 的链接目标（含非图片链接）。降级完仍命中的行由调用方丢掉。
+function has_local_evidence(line,   i, rest, k, target) {
+    while ((i = index(line, "](")) > 0) {
+        rest = substr(line, i + 2)
+        k = index(rest, ")")
+        if (k == 0) return 0
+        target = substr(rest, 1, k - 1)
+        split(target, parts, /[ \t]/)
+        if (is_local_evidence(parts[1])) return 1
+        line = substr(line, i + 1)
+    }
+    return 0
+}
+
 function emit(target) {
     if (!(target in seen)) {
         seen[target] = 1
@@ -91,7 +113,7 @@ function rewrite(line,   out, i, rest, jp, jb, j, alt, tail, k, label, target, p
             split(target, parts, /[ \t]/)
             path = norm(parts[1])
             end = i + jp + k + 2
-            if (path ~ /^evidence\//) {
+            if (is_local_evidence(path)) {
                 if (mode == "refs") {
                     emit(path)
                 } else {
@@ -150,7 +172,7 @@ END {
             continue
         }
         if (!parse_def(line)) continue
-        if (index(dd, "evidence/") == 0) continue
+        if (!is_local_evidence(dd)) continue
         def_line[i] = 1
         ref_label[dl] = 1
         if (mode == "refs") emit(norm(dd))
@@ -177,7 +199,7 @@ END {
         }
         if (def_line[i]) continue
         result = rewrite(line)
-        if (result ~ /\]\([^)]*evidence\//) {
+        if (has_local_evidence(result)) {
             residual = 1
             continue
         }
