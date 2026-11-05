@@ -27,7 +27,7 @@ function is_local_evidence(dest,   t) {
 function has_local_evidence(line,   i, rest, k, target) {
     while ((i = index(line, "](")) > 0) {
         rest = substr(line, i + 2)
-        k = index(rest, ")")
+        k = close_paren(rest)
         if (k == 0) return 0
         if (is_local_evidence(clean_dest(substr(rest, 1, k - 1)))) return 1
         line = substr(line, i + 1)
@@ -37,6 +37,19 @@ function has_local_evidence(line,   i, rest, k, target) {
 
 
 # 取出 markdown 目标里的路径：角括号写法 `(<evidence/x.png>)` 去掉括号，`(path "title")` 只取第一段。
+
+# 目标在 `(` 之后到哪里结束。角括号写法里可以有 `)`（`(<evidence/a(1).png>)`），
+# 所以先看 `>` 再看右括号 —— 否则文件名里的括号会把目标截断。
+function close_paren(tail,   e, k) {
+    if (substr(tail, 1, 1) == "<") {
+        e = index(tail, ">")
+        if (e == 0) return 0
+        k = index(substr(tail, e), ")")
+        if (k == 0) return 0
+        return e + k - 1
+    }
+    return index(tail, ")")
+}
 function clean_dest(raw,   t, k) {
     t = raw
     sub(/^[ 	]+/, "", t)
@@ -116,7 +129,7 @@ function rewrite(line,   out, i, rest, jp, jb, j, alt, tail, k, label, target, p
         jb = index(rest, "][")
         if (jp > 0 && (jb == 0 || jp < jb)) {
             tail = substr(rest, jp + 2)
-            k = index(tail, ")")
+            k = close_paren(tail)
             if (k == 0) return out substr(line, i)
             alt = substr(rest, 1, jp - 1)
             path = norm(clean_dest(substr(tail, 1, k - 1)))
