@@ -739,8 +739,75 @@ jobs:
             exit 0
           fi
 
+          # 正文里可能引用了 `evidence/…` 的图（约定见 prompt 的「需要让读者看画面时」那一节）。
+          # 先把「降级副本」做出来：任何发不出附件的路径都改发它，图片语法落成 alt 文本 —— 公开评论或
+          # review 里留一张 `![](evidence/x.png)` 的断图，比不贴图更糟。只降级 evidence/ 开头的引用，
+          # 其余路径是 agent 自己写错的，不替它掩饰。
+          plain="$RUNNER_TEMP/answer-plain.md"
+          sed -E 's/!\[([^]]*)\]\(\.?\/?evidence\/[^)]*\)/\1/g' "$answer" > "$plain"
+
+          # 附图只开在 issue 这条路上：PR 的摘要和行内意见走 reviews API，那条接口没有附件。
+          #
+          # 文件**按正文里的引用**收集，不扫目录：扫目录会把 agent 顺手存下、正文没提过的图也带上，
+          # 而 `gh` 对没被引用的附件是追加到末尾 —— 那是噪音。按引用收，正文与附件天然一一对应。
+          #
+          # 只要有一个 evidence 引用对不上（文件不在、后缀不是图、超过 2 MiB），这一轮就一张都不发：
+          # `gh` 只改写它认得的引用，剩下的会以本地相对路径出现在公开评论里。宁可不贴，也不贴断链。
+          #
+          # `--attach` 打的是 GitHub 的上传端点：gh 2.103.2 起才接受 GitHub App installation token，
+          # 而端点本身还只收一部分 App（`gh` 源码注释的原话）。这两条都是运行环境的事，所以一律降级
+          # 并留 warning —— 附图是结论的补充，不值得让一条分析因为传图失败而发不出去。
           if [ "$KIND" != "pr" ]; then
-            gh issue comment "$TARGET" --body-file "$answer"
+            attach=()
+            skipped=""
+            while IFS= read -r ref; do
+              case "$ref" in
+                evidence/*) ;;
+                *) continue ;;
+              esac
+              path="$ANALYSIS_DIR/$ref"
+              case "${ref##*.}" in
+                png | jpg | jpeg | webp | gif) ;;
+                *)
+                  skipped="$ref is not a png/jpg/webp/gif"
+                  break
+                  ;;
+              esac
+              if [ ! -f "$path" ]; then
+                skipped="$ref is referenced by answer.md but not in the analysis directory"
+                break
+              fi
+              if [ "$(wc -c < "$path")" -gt 2097152 ]; then
+                skipped="$ref is larger than 2 MiB"
+                break
+              fi
+              attach+=(--attach "$path")
+            done < <(grep -oE '!\[[^]]*\]\([^)]*\)' "$answer" 2>/dev/null |
+              sed -E 's/^!\[[^]]*\]\(//; s/\)$//; s#^\./##' | sort -u || true)
+
+            images=$((${#attach[@]} / 2))
+            if [ -n "$skipped" ]; then
+              echo "::warning::posting without evidence images: $skipped"
+              attach=()
+              images=0
+            elif [ "$images" -gt 3 ]; then
+              echo "::warning::answer.md references $images evidence images; only the first 3 are attached"
+              attach=("${attach[@]:0:6}")
+              images=3
+            fi
+
+            if [ "$images" -gt 0 ]; then
+              if ! gh issue comment --help 2>/dev/null | grep -q -- '--attach'; then
+                echo "::warning::this gh has no --attach; posting the answer without the evidence images"
+              elif gh issue comment "$TARGET" --body-file "$answer" "${attach[@]}"; then
+                echo "posted with $images evidence image(s)"
+                exit 0
+              else
+                echo "::warning::the evidence images could not be uploaded; posting the answer without them"
+              fi
+            fi
+
+            gh issue comment "$TARGET" --body-file "$plain"
             exit 0
           fi
 
@@ -769,12 +836,12 @@ jobs:
             echo "::warning::every proposed inline comment was outside the diff"
           fi
 
-          jq -n --rawfile body "$answer" --slurpfile c "$RUNNER_TEMP/comments.json" \
+          jq -n --rawfile body "$plain" --slurpfile c "$RUNNER_TEMP/comments.json" \
             '{event: "COMMENT", body: $body, comments: $c[0].comments}' > "$RUNNER_TEMP/review.json"
 
           if ! gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" --input "$RUNNER_TEMP/review.json"; then
             echo "::warning::review rejected with inline comments, retrying as a summary-only review"
-            jq -n --rawfile body "$answer" '{event: "COMMENT", body: $body, comments: []}' \
+            jq -n --rawfile body "$plain" '{event: "COMMENT", body: $body, comments: []}' \
               > "$RUNNER_TEMP/review.json"
             gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" --input "$RUNNER_TEMP/review.json"
           fi
