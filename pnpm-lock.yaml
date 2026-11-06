@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@nekosu/maa-tools':
-        specifier: 1.2.1
-        version: 1.2.1
+        specifier: 1.3.0
+        version: 1.3.0
       '@nekosu/prettier-plugin-maafw-sort':
         specifier: 1.1.0
         version: 1.1.0
@@ -89,8 +89,8 @@ packages:
   '@nekosu/maa-tasker@1.0.0':
     resolution: {integrity: sha512-p5SaBJGvAMr5J2uk6imoiK7eIF7yA67HndWyfxddAHHdoyliai2dkHqBhTmDDuRmmAJ/ly4INg5Hnx8CI7Po3A==}
 
-  '@nekosu/maa-tools@1.2.1':
-    resolution: {integrity: sha512-92L8Arhk96VltfRsHKeCXLW8fBleEo8S+cvNRf7oBZpDhge/BVG7t7zztB/dYOxeKaO0bG2I0c6wvg8bmQspjA==}
+  '@nekosu/maa-tools@1.3.0':
+    resolution: {integrity: sha512-EapP65M2jFh7i2LoJfuF0Pgm+vNTSl+C6RwlSseKsgVqA4Fc3vVoqcMSO8o2MfC8lNokTQ05wo5L0gZZoUESNA==}
     hasBin: true
 
   '@nekosu/maa-version-manager@1.1.0':
@@ -327,8 +327,8 @@ packages:
     resolution: {integrity: sha512-IBTdIkzZNOpqm7q3dRqJvMaldXjDHWkEDfrwGEQTs5eaQMWV+djAhR+wahyNNMAa+qpbDUhBMVt4ZKNwpPm7xQ==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  ip-address@10.7.5:
-    resolution: {integrity: sha512-t2v0rkILYv9WXmSL7TpAaU3HXgaFYOPUcH3QHgwQ++gpJuH3bqyMy4Fvt/DJCTKwzH3Cf+bAp5W/mFL39KPLzA==}
+  ip-address@10.7.6:
+    resolution: {integrity: sha512-00LYkM6byILa9eQIx6qoaXCM40xTLd56AZ4vyaPW3YTyb49VZYPo5xsiAq4tuQ54GH4R7gVdYScJ1B7B77PuTg==}
     engines: {node: '>= 12'}
 
   isexe@4.0.0:
@@ -505,8 +505,8 @@ packages:
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
-  semver@7.8.5:
-    resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
+  semver@7.8.6:
+    resolution: {integrity: sha512-9lpSSU4Mly3mrtruwLs1eLK6+gzbzqeBFwRNjIjE+9LuDpWdYctrQlQ3ej1Ilgi7gknpsTRnPoLP8DpCHqHIJw==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -671,7 +671,7 @@ snapshots:
     dependencies:
       '@nekosu/simple-parser': 1.0.0
 
-  '@nekosu/maa-tools@1.2.1':
+  '@nekosu/maa-tools@1.3.0':
     dependencies:
       '@actions/core': 3.0.1
       '@nekosu/maa-locale': 1.2.0
@@ -688,7 +688,7 @@ snapshots:
     dependencies:
       pacote: 21.5.2
       proper-lockfile: 4.1.2
-      semver: 7.8.5
+      semver: 7.8.6
     transitivePeerDependencies:
       - supports-color
 
@@ -712,7 +712,7 @@ snapshots:
 
   '@npmcli/fs@5.0.0':
     dependencies:
-      semver: 7.8.5
+      semver: 7.8.6
 
   '@npmcli/git@7.0.2':
     dependencies:
@@ -722,7 +722,7 @@ snapshots:
       lru-cache: 11.5.3
       npm-pick-manifest: 11.0.3
       proc-log: 6.1.0
-      semver: 7.8.5
+      semver: 7.8.6
       which: 6.0.1
 
   '@npmcli/installed-package-contents@4.0.0':
@@ -739,7 +739,7 @@ snapshots:
       hosted-git-info: 9.0.3
       json-parse-even-better-errors: 5.0.0
       proc-log: 6.1.0
-      semver: 7.8.5
+      semver: 7.8.6
       spdx-expression-parse: 4.0.0
 
   '@npmcli/promise-spawn@9.0.2':
@@ -922,7 +922,7 @@ snapshots:
 
   ini@6.0.0: {}
 
-  ip-address@10.7.5: {}
+  ip-address@10.7.6: {}
 
   isexe@4.0.0: {}
 
@@ -1010,7 +1010,7 @@ snapshots:
       graceful-fs: 4.2.11
       nopt: 9.0.0
       proc-log: 6.1.0
-      semver: 7.8.5
+      semver: 7.8.6
       tar: 7.5.22
       tinyglobby: 0.2.17
       undici: 6.29.1
@@ -1026,7 +1026,7 @@ snapshots:
 
   npm-install-checks@8.0.0:
     dependencies:
-      semver: 7.8.5
+      semver: 7.8.6
 
   npm-normalize-package-bin@5.0.0: {}
 
@@ -1034,7 +1034,7 @@ snapshots:
     dependencies:
       hosted-git-info: 9.0.3
       proc-log: 6.1.0
-      semver: 7.8.5
+      semver: 7.8.6
       validate-npm-package-name: 7.0.2
 
   npm-packlist@10.0.4:
@@ -1047,7 +1047,7 @@ snapshots:
       npm-install-checks: 8.0.0
       npm-normalize-package-bin: 5.0.0
       npm-package-arg: 13.0.2
-      semver: 7.8.5
+      semver: 7.8.6
 
   npm-registry-fetch@19.1.1:
     dependencies:
@@ -1124,7 +1124,7 @@ snapshots:
   safer-buffer@2.1.2:
     optional: true
 
-  semver@7.8.5: {}
+  semver@7.8.6: {}
 
   signal-exit@3.0.7: {}
 
@@ -1151,7 +1151,7 @@ snapshots:
 
   socks@2.8.10:
     dependencies:
-      ip-address: 10.7.5
+      ip-address: 10.7.6
       smart-buffer: 4.2.0
 
   spdx-exceptions@2.5.0: {}
