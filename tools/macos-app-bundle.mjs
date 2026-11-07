@@ -1,18 +1,17 @@
 // Assembles a macOS application bundle from a release package and wraps it in a dmg, so the macOS
 // build ships as a real .app the way MaaEnd does.
 //
-// The layout follows MXU's docs/macos-deployment.md: Contents/MacOS keeps every Mach-O file (the
-// main executable, dylibs, native Agent extensions) so @loader_path and the launch path stay intact,
-// while read-only data files move to Contents/Resources/MXU-portable. Both sides get an in-bundle
-// relative symlink to the other, because the Agent resolves its real script path and still has to
-// import the native extensions that stayed behind. Writing data straight into Contents/MacOS makes
-// codesign fail with "code object is not signed at all / In subcomponent: ...json", which leaves the
-// bundle unable to pass `codesign --verify --strict` and breaks macOS notifications.
+// Contents/MacOS holds only the GUI executable and one in-bundle relative symlink per top-level
+// entry; the entries themselves live in Contents/Resources/MXU-portable. MXU still finds
+// interface.json next to the executable through that link, while the data stays out of the code
+// directory, where codesign reports "code object is not signed at all / In subcomponent: ...json"
+// and the bundle ends up unsigned (MXU's docs/macos-deployment.md calls this out).
 import {spawnSync} from "node:child_process";
 import {
     chmodSync,
     closeSync,
     copyFileSync,
+    cpSync,
     existsSync,
     lstatSync,
     mkdirSync,
@@ -125,66 +124,70 @@ function assembleBundle(packageDir, appDir, options) {
         throw new Error("release package has no interface.json");
     }
 
-    visit(packageDir, "", (relativePath, absolutePath, isDirectory) => {
-        if (isDirectory) {
-            mkdirSync(join(macosDir, relativePath), {recursive: true});
-            mkdirSync(join(portableDir, relativePath), {recursive: true});
-            return;
+    for (const entry of readdirSync(packageDir, {withFileTypes: true})) {
+        if (entry.name === ".DS_Store") continue;
+        const source = join(packageDir, entry.name);
+        if (entry.name === options.executable) {
+            moveEntry(source, join(macosDir, entry.name));
+            chmodSync(join(macosDir, entry.name), 0o755);
+            continue;
         }
-        placeEntry(relativePath, absolutePath, {macosDir, portableDir});
-    });
-
-    const bundleExecutable = join(macosDir, options.executable);
-    if (!existsSync(bundleExecutable)) {
-        throw new Error(`macOS entrypoint is not a Mach-O executable: ${options.executable}`);
+        const target = join(portableDir, entry.name);
+        moveEntry(source, target);
+        symlinkSync(relative(macosDir, target), join(macosDir, entry.name));
     }
-    chmodSync(bundleExecutable, 0o755);
     writeInfoPlist(appDir, options);
 }
 
-// A Mach-O file stays in the code directory and gets a link in the portable tree; a data file moves
-// to the portable tree and gets a link in the code directory. Exactly one real copy exists per file.
-function placeEntry(relativePath, absolutePath, {macosDir, portableDir}) {
-    const isCode = isMachO(absolutePath);
-    const homeDir = isCode ? macosDir : portableDir;
-    const linkDir = isCode ? portableDir : macosDir;
-    const target = join(homeDir, relativePath);
+function moveEntry(source, target) {
     mkdirSync(dirname(target), {recursive: true});
-    moveFile(absolutePath, target);
-
-    const linkPath = join(linkDir, relativePath);
-    mkdirSync(dirname(linkPath), {recursive: true});
-    symlinkSync(relative(dirname(linkPath), target), linkPath);
-}
-
-function visit(root, relativePath, visitEntry) {
-    const directory = relativePath ? join(root, relativePath) : root;
-    for (const entry of readdirSync(directory, {withFileTypes: true})) {
-        if (entry.name === ".DS_Store") continue;
-        const childRelative = relativePath ? join(relativePath, entry.name) : entry.name;
-        const childAbsolute = join(directory, entry.name);
-        if (entry.isDirectory()) {
-            visitEntry(childRelative, childAbsolute, true);
-            visit(root, childRelative, visitEntry);
-            continue;
-        }
-        if (entry.isSymbolicLink()) {
-            // Materialise the target: a link pointing outside the package would dangle once moved.
-            const content = readFileSync(childAbsolute);
-            rmSync(childAbsolute, {force: true});
-            writeFileSync(childAbsolute, content);
-        }
-        visitEntry(childRelative, childAbsolute, false);
-    }
-}
-
-function moveFile(source, target) {
     try {
         renameSync(source, target);
     } catch (error) {
         if (error.code !== "EXDEV") throw error;
-        copyFileSync(source, target);
-        rmSync(source, {force: true});
+        cpSync(source, target, {recursive: true});
+        rmSync(source, {recursive: true, force: true});
+    }
+}
+
+// codesign only seals what it is given, so every nested Mach-O is signed before the bundle: signing
+// the bundle last records their signatures in the seal.
+function signNestedCode(appDir, options) {
+    const macosExecutable = join(appDir, "Contents", "MacOS", options.executable);
+    const nested = [];
+    collectMachOFiles(join(appDir, "Contents"), (path) => {
+        if (path !== macosExecutable) nested.push(path);
+    });
+    for (const path of nested) {
+        chmodSync(path, (lstatSync(path).mode & 0o777) | 0o755);
+        run("codesign", [
+            "--force",
+            "--sign",
+            "-",
+            "--identifier",
+            `${options.bundleId}.${nestedIndex(path, appDir)}`,
+            path,
+        ]);
+    }
+    console.log(`[OK] signed ${nested.length} nested Mach-O file(s)`);
+}
+
+function nestedIndex(path, appDir) {
+    return relative(join(appDir, "Contents"), path)
+        .split(/[\\/]/u)
+        .join(".")
+        .replace(/[^A-Za-z0-9.-]/gu, "_");
+}
+
+function collectMachOFiles(root, visit) {
+    for (const entry of readdirSync(root, {withFileTypes: true})) {
+        const path = join(root, entry.name);
+        if (entry.isDirectory()) {
+            collectMachOFiles(path, visit);
+            continue;
+        }
+        if (!entry.isFile()) continue;
+        if (isMachO(path)) visit(path);
     }
 }
 
@@ -285,7 +288,7 @@ function attachIcon(appDir, iconPath, options) {
         return;
     }
     const resourcesDir = join(appDir, "Contents", "Resources");
-    const icnsName = "m9a.icns";
+    const icnsName = `${options.displayName.toLowerCase()}.icns`;
     const icnsPath = join(resourcesDir, icnsName);
     const workDir = join(resourcesDir, "icon-work");
     rmSync(workDir, {recursive: true, force: true});
@@ -365,10 +368,11 @@ function attachIcon(appDir, iconPath, options) {
 }
 
 function signBundle(appDir, options) {
-    chmodSync(join(appDir, "Contents", "MacOS", options.executable), 0o755);
+    signNestedCode(appDir, options);
+    // No --deep here: it re-discovers subcomponents, and the nested signatures are already in place,
+    // so sealing the bundle itself is what records them.
     run("codesign", [
         "--force",
-        "--deep",
         "--sign",
         "-",
         "--identifier",
@@ -377,7 +381,6 @@ function signBundle(appDir, options) {
     ]);
     run("codesign", [
         "--verify",
-        "--deep",
         "--strict",
         "--verbose=2",
         appDir,
@@ -410,7 +413,7 @@ function createDmg(appDir, dmgPath, options) {
 }
 
 // The layout contract is checked on every host, including the Windows and Linux builders that
-// cross-build a macOS package, so a broken link or a data file left in the code directory fails
+// cross-build a macOS package, so a dangling link or a data file left in the code directory fails
 // before anything is signed.
 function verifyBundle(appDir, options) {
     const contentsDir = join(appDir, "Contents");
@@ -419,65 +422,29 @@ function verifyBundle(appDir, options) {
     if (!existsSync(join(contentsDir, "Info.plist"))) {
         throw new Error("macOS bundle is missing Contents/Info.plist");
     }
-    const executablePath = join(macosDir, options.executable);
-    const stats = lstatSync(executablePath, {throwIfNoEntry: false});
-    if (!stats || !stats.isFile()) {
+    const executable = join(macosDir, options.executable);
+    const executableStats = lstatSync(executable, {throwIfNoEntry: false});
+    if (!executableStats || !executableStats.isFile()) {
         throw new Error(`macOS bundle is missing its executable: ${options.executable}`);
     }
-    for (const entry of [
-        "json",
-        "md",
-        "png",
-        "py",
-    ]) {
-        const stray = findRealFileWithExtension(macosDir, `.${entry}`);
-        if (stray) {
-            throw new Error(`macOS bundle keeps data in Contents/MacOS, codesign would reject it: ${stray}`);
-        }
-    }
-    checkMirroredLinks(macosDir, portableDir, "data file");
-    checkMirroredLinks(portableDir, macosDir, "Mach-O file");
-}
-
-function checkMirroredLinks(root, linkRoot, label) {
-    walkFiles(root, (relativePath) => {
-        const linkPath = join(linkRoot, relativePath);
-        const stats = lstatSync(linkPath, {throwIfNoEntry: false});
-        if (!stats) {
-            throw new Error(`macOS bundle is missing the ${label} link: ${relativePath}`);
-        }
+    for (const entry of readdirSync(macosDir, {withFileTypes: true})) {
+        if (entry.name === options.executable) continue;
+        const linkPath = join(macosDir, entry.name);
+        const stats = lstatSync(linkPath);
         if (!stats.isSymbolicLink()) {
-            throw new Error(`macOS bundle keeps two real copies of ${relativePath}`);
+            throw new Error(`macOS bundle keeps data inside Contents/MacOS: ${entry.name}`);
         }
-        const resolved = resolve(dirname(linkPath), readRelativeLink(linkPath));
+        const resolved = resolve(dirname(linkPath), readlinkSync(linkPath));
         if (!existsSync(resolved)) {
-            throw new Error(`macOS bundle symlink does not resolve: ${relativePath}`);
+            throw new Error(`macOS bundle symlink does not resolve: ${entry.name}`);
         }
-    });
-}
-
-function readRelativeLink(linkPath) {
-    return readlinkSync(linkPath);
-}
-
-function walkFiles(root, visitFile) {
-    for (const entry of readdirSync(root, {withFileTypes: true})) {
-        const path = join(root, entry.name);
-        if (entry.isDirectory()) {
-            walkFiles(path, (childRelative) => visitFile(join(entry.name, childRelative)));
-            continue;
+        if (!resolved.startsWith(portableDir)) {
+            throw new Error(`macOS bundle symlink escapes ${PORTABLE_DIR}: ${entry.name}`);
         }
-        if (entry.isSymbolicLink()) continue;
-        visitFile(entry.name);
     }
-}
-
-function findRealFileWithExtension(root, extension) {
-    let found;
-    walkFiles(root, (relativePath) => {
-        if (found === undefined && relativePath.toLowerCase().endsWith(extension)) found = relativePath;
-    });
-    return found;
+    if (!existsSync(join(portableDir, "interface.json"))) {
+        throw new Error(`macOS bundle is missing ${PORTABLE_DIR}/interface.json`);
+    }
 }
 
 function run(command, args) {
