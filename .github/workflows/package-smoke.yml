@@ -261,3 +261,9 @@ jobs:
             echo "[WARN] MXU exited within 20s; see the log below"
           fi
           tail -n 60 "$RUNNER_TEMP/mxu.log"
+          # MXU keeps its own config and logs outside the bundle; a populated directory means the
+          # app got far enough to initialise, which is what a broken interface.json path would stop.
+          echo "--- ~/Library/Application Support/MXU ---"
+          ls -la "$HOME/Library/Application Support/MXU" 2>/dev/null || echo "(not created)"
+          echo "--- newest MXU log lines ---"
+          find "$HOME/Library/Application Support/MXU" -name '*.log' -print -exec tail -n 30 {} \; 2>/dev/null || true
