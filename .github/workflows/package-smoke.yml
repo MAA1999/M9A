@@ -244,8 +244,10 @@ jobs:
         shell: bash
         run: bash tools/ci/smoke-macos-app.sh dist/M9A.app "$RUNNER_TEMP/m9a-bundle-smoke"
 
-      # Best effort only: a hosted runner may not have a usable window server, so a failed launch
-      # here says nothing about a real Mac. The log is attached for whoever runs the acceptance pass.
+      # Launches the bundled GUI like a user would and reads its own log. The step stays soft:
+      # MXU < https://github.com/MaaXYZ/MXU/pull/432 resolves the project directory to the .app
+      # parent on macOS, so only an MXU release carrying that fix prints "loaded interface for
+      # project" here. Releasing M9A-macos-*-MXU.dmg requires this step to print [OK].
       - name: Probe the MXU GUI
         if: runner.os == 'macOS'
         continue-on-error: true
@@ -267,3 +269,9 @@ jobs:
           ls -la "$HOME/Library/Application Support/MXU" 2>/dev/null || echo "(not created)"
           echo "--- newest MXU log lines ---"
           find "$HOME/Library/Application Support/MXU" -name '*.log' -print -exec tail -n 30 {} \; 2>/dev/null || true
+          mxu_tauri_log="$HOME/Library/Application Support/MXU/debug/mxu-tauri.log"
+          if grep -q 'loaded interface for project' "$mxu_tauri_log" 2>/dev/null; then
+            echo "[OK] MXU found interface.json inside the bundle (MaaXYZ/MXU#432 or later)"
+          else
+            echo "[WARN] MXU did not load interface.json; the bundled MXU predates MaaXYZ/MXU#432, so the dmg will not run as a project yet"
+          fi
