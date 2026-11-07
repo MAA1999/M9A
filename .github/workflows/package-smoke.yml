@@ -233,4 +233,6 @@ jobs:
           test -L dist/M9A.app/Contents/MacOS/interface.json
           test -d dist/M9A.app/Contents/Resources/MXU-portable/agent
           test -s dist/M9A-package-smoke.dmg
+          # The listing documents the shipped layout: one real file, a symlink per top-level entry.
+          ls -l dist/M9A.app/Contents/MacOS
           codesign --verify --strict --verbose=2 dist/M9A.app
