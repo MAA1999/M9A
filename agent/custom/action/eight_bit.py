@@ -175,9 +175,11 @@ class Board:
     cells: dict[tuple[int, int], str]
 
     def neighbour(self, key: int) -> str:
+        """相邻格子的状态（越界按不可达处理）。"""
         return self.cells.get(STEP[key], OFF)
 
     def nearest_monster(self) -> tuple[int, int] | None:
+        """最近的有单位的格子（按切比雪夫距离，同距离取曼哈顿距离小的）。"""
         monsters = [cell for cell, state in self.cells.items() if state == OCCUPIED]
         if not monsters:
             return None
@@ -373,6 +375,7 @@ class EightBitCombatMove(CustomAction):
         context: Context,
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
+        """打完整关：读关卡目标决定阶段与计时，逐回合移动，离开关卡时返回成功；单关超时返回失败。"""
         params = parse_move_params(argv.custom_action_param)
         cls = EightBitCombatMove
         holdout_step = search_step = idle_steps = steps = misses = 0
@@ -563,6 +566,7 @@ class EightBitShopBuy(CustomAction):
         context: Context,
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
+        """按白名单从左到右购买买得起的秘宝；离开商店与否由 pipeline 的「放弃」节点负责。"""
         skipped: set[int] = set()
         last: tuple[int, str] | None = None
         bought: list[str] = []
@@ -647,6 +651,7 @@ class EightBitScoreRecord(CustomAction):
         context: Context,
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
+        """读本局卡带数并记日志，然后点空白处关闭结算页。"""
         img = context.tasker.controller.cached_image
         detail = context.run_recognition_direct(
             JRecognitionType.OCR,
