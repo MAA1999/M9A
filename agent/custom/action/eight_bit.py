@@ -17,6 +17,7 @@
 """
 
 import math
+import re
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -293,14 +294,36 @@ def parse_count(text: str) -> int | None:
     return int(digits) if digits else None
 
 
-def resolve_level_start(prev_start: float | None, last_exit_at: float, now: float, window_s: float) -> float:
-    """本关计时起点：刚退出又被立刻判回同一关（OCR 连续未命中后重入）时沿用旧起点，避免超时永远不触发。
+ROUND_PATTERN = re.compile(r"坚持\s*(\d+)\s*回合")
 
-    真正换关要经过商店点击、关卡过场和祝福界面，间隔明显大于 window_s，因此不会被误判成重入。
+
+def round_from_objective(text: str) -> int | None:
+    """从「坚持N回合」取出剩余回合数；不是坚持阶段时返回 None。"""
+    match = ROUND_PATTERN.search(text)
+    return int(match.group(1)) if match else None
+
+
+def next_level_start(
+    prev_start: float | None,
+    prev_phase: str | None,
+    prev_round: int | None,
+    phase: str | None,
+    round_no: int | None,
+    now: float,
+) -> float:
+    """本次调用的关卡计时起点：同一关被 OCR 抖动判回时沿用旧起点，真正换关才从当前时刻重算。
+
+    判据是关卡目标本身，不靠时间窗口猜：一关里回合数只会从大到小，「击败所有怪物」接在回合数归零之后。
+    所以「回合数比上次大」或「上次已经在清场阶段却又出现坚持」都说明是新的一关；
+    读不到目标（phase 为 None，即已经离开关卡界面）时一律沿用旧起点。
     """
-    if prev_start is not None and now - last_exit_at <= window_s:
-        return prev_start
-    return now
+    if prev_start is None:
+        return now
+    if phase == HOLDOUT and (
+        prev_phase == CLEAR or (round_no is not None and prev_round is not None and round_no > prev_round)
+    ):
+        return now
+    return prev_start
 
 
 def efficiency_per_hour(total: int, first_count: int, elapsed_s: float) -> float | None:
@@ -332,11 +355,18 @@ class EightBitCombatMove(CustomAction):
     MISSES_TO_END = 2
     # 连续这么多步都没动（含把装饰物误判成怪物）就强制换方向
     MAX_IDLE_STEPS = 6
-    # 与上一次「识别不到关卡」相隔多少秒内又被判回同一关，视为重入、不重置超时计时
-    REENTRY_WINDOW_S = 5.0
 
+    # 跨调用保存的关卡状态：调用结束不清 `_level_started`，由下一帧的关卡目标决定是同一关还是新一关
     _level_started: float | None = None
-    _last_exit_at: float = 0.0
+    _last_phase: str | None = None
+    _last_round: int | None = None
+
+    @classmethod
+    def _forget_level(cls) -> None:
+        """忘掉当前关卡：确认离开关卡界面（换关或放弃本局）后调用。"""
+        cls._level_started = None
+        cls._last_phase = None
+        cls._last_round = None
 
     def run(
         self,
@@ -345,28 +375,32 @@ class EightBitCombatMove(CustomAction):
     ) -> CustomAction.RunResult:
         params = parse_move_params(argv.custom_action_param)
         cls = EightBitCombatMove
-        started = resolve_level_start(cls._level_started, cls._last_exit_at, time.time(), cls.REENTRY_WINDOW_S)
-        cls._level_started = started
         holdout_step = search_step = idle_steps = steps = misses = 0
         last_key: int | None = None
+        started: float | None = None
 
         while not context.tasker.stopping:
             tick = time.time()
-            if tick - started > params.level_timeout_s:
-                if self._read_phase(context) is None:
+            img = context.tasker.controller.post_screencap().wait().get()
+            phase, round_no = self._read_level(context, img)
+            if phase is not None:
+                # 第一帧决定本关计时起点：同一关沿用上次的起点，超时才不会被 OCR 抖动重置
+                started = next_level_start(cls._level_started, cls._last_phase, cls._last_round, phase, round_no, tick)
+                cls._level_started, cls._last_phase, cls._last_round = started, phase, round_no
+
+            if started is not None and tick - started > params.level_timeout_s:
+                if self._left_level_screen(context, img):
                     # 超时那一帧已经在商店 / 结算页：本关其实打完了，交给 next 处理
                     logger.info(f"[8bit] 关卡用时 {tick - started:.0f} 秒后已离开战斗界面，按正常结束处理")
-                    cls._last_exit_at = time.time()
+                    cls._forget_level()
                     return CustomAction.RunResult(success=True)
                 logger.warning(f"[8bit] 单关超过 {params.level_timeout_s:.0f} 秒未结束，退出本局")
+                cls._forget_level()
                 return CustomAction.RunResult(success=False)
 
-            img = context.tasker.controller.post_screencap().wait().get()
-            phase = self._read_phase(context, img)
             if phase is None:
                 misses += 1
                 if misses >= self.MISSES_TO_END:
-                    cls._last_exit_at = time.time()
                     break
                 time.sleep(params.interval_ms / 1000)
                 continue
@@ -395,22 +429,37 @@ class EightBitCombatMove(CustomAction):
                 steps += 1
             time.sleep(max(0.0, params.interval_ms / 1000 - (time.time() - tick)))
 
-        logger.info(f"[8bit] 关卡结束：用时 {time.time() - started:.0f} 秒，移动 {steps} 步")
-        cls._level_started = None
+        elapsed = time.time() - started if started is not None else 0.0
+        logger.info(f"[8bit] 关卡结束：用时 {elapsed:.0f} 秒，移动 {steps} 步")
+        # 这里不清 `_level_started`：下一帧若还是同一关（OCR 抖动重入）要继续计时，
+        # 若已是新一关，next_level_start 会按回合数判断后重置。
         return CustomAction.RunResult(success=True)
 
     # 每次都重新取 context.tasker.controller，不要持有它：agent 侧每取一次就会替换掉上一个远程控制器句柄，
     # 旧句柄再用就会访问已释放的内存（实测 access violation）。
-    def _read_phase(self, context: Context, img: np.ndarray | None = None) -> str | None:
-        """读左上角关卡目标：坚持 / 清场 / None（不在普通关）。"""
-        if img is None:
-            img = context.tasker.controller.post_screencap().wait().get()
+    def _read_level(self, context: Context, img: np.ndarray) -> tuple[str | None, int | None]:
+        """读左上角关卡目标，返回 (阶段, 剩余回合数)。不在普通关时两者都是 None。"""
         detail = context.run_recognition_direct(
             JRecognitionType.OCR,
             JOCR(roi=OBJECTIVE_ROI, expected=NORMAL_OBJECTIVES),
             img,
         )
-        return objective_phase(ocr_text(detail)) if is_hit(detail) else None
+        if not is_hit(detail):
+            return None, None
+        text = ocr_text(detail)
+        return objective_phase(text), round_from_objective(text)
+
+    @staticmethod
+    def _left_level_screen(context: Context, img: np.ndarray) -> bool:
+        """当前画面是不是商店或结算页（超时那一帧要区分「本关打完了」与「卡住了」）。"""
+        for roi, expected in (
+            (SHOP_TITLE_ROI, SHOP_TITLES),
+            (RESULT_TIP_ROI, RESULT_TIPS),
+        ):
+            detail = context.run_recognition_direct(JRecognitionType.OCR, JOCR(roi=roi, expected=expected), img)
+            if is_hit(detail):
+                return True
+        return False
 
     @staticmethod
     def _press(context: Context, key: int, move_input: str) -> None:
@@ -426,6 +475,9 @@ class EightBitCombatMove(CustomAction):
 SHOP_TITLE_ROI: tuple[int, int, int, int] = (500, 35, 280, 55)
 # 两种商店标题：普通商店「地下流通处」；持有洛佩拉的秘宝「力量投影」时换成只卖卡包的「秘密交易处」
 SHOP_TITLES: list[str] = ["地下流通处", "秘密交易处"]
+# 结算页底部提示：用来判断「已经在结算页」（超时兜底时区分本关打完与卡住）
+RESULT_TIP_ROI: tuple[int, int, int, int] = (520, 635, 320, 50)
+RESULT_TIPS: list[str] = ["点击空白区域关闭"]
 # 首领关前的商店副标题下多一行「下回合即将迎战强敌」
 BOSS_NEXT_ROI: tuple[int, int, int, int] = (500, 110, 280, 45)
 # 四个商品槽的名称行；买走的槽位会空出来，其余商品不移位

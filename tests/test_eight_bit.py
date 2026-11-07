@@ -1,7 +1,9 @@
 from collections import Counter
+from types import SimpleNamespace
 
 import numpy as np
 
+import agent.custom.action.eight_bit as eight_bit
 from agent.custom.action.eight_bit import (
     BUY_BUTTON_ROI,
     CLEAR,
@@ -12,6 +14,7 @@ from agent.custom.action.eight_bit import (
     HOLDOUT_ROUTE,
     LEFT,
     MOVE_CLICK_POSITIONS,
+    OBJECTIVE_ROI,
     OCCUPIED,
     OFF,
     RIGHT,
@@ -19,6 +22,7 @@ from agent.custom.action.eight_bit import (
     SHOP_TITLES,
     UP,
     Board,
+    EightBitCombatMove,
     MoveParams,
     buy_button_ready,
     classify_cell,
@@ -26,11 +30,12 @@ from agent.custom.action.eight_bit import (
     efficiency_per_hour,
     find_player,
     forced_move,
+    next_level_start,
     objective_phase,
     parse_count,
     parse_move_params,
     read_board,
-    resolve_level_start,
+    round_from_objective,
     route_key,
     slot_of,
     toward,
@@ -249,10 +254,110 @@ def test_efficiency_excludes_first_settlement() -> None:
     assert efficiency_per_hour(total=60, first_count=30, elapsed_s=0) is None
 
 
-def test_resolve_level_start_keeps_timer_on_quick_reentry() -> None:
-    assert resolve_level_start(prev_start=100.0, last_exit_at=120.0, now=123.0, window_s=5.0) == 100.0
-    assert resolve_level_start(prev_start=100.0, last_exit_at=120.0, now=140.0, window_s=5.0) == 140.0
-    assert resolve_level_start(prev_start=None, last_exit_at=0.0, now=140.0, window_s=5.0) == 140.0
+def test_next_level_start_keeps_timer_within_same_level() -> None:
+    # 回合数在变小 = 同一关被 OCR 抖动判回，沿用旧起点
+    assert next_level_start(100.0, HOLDOUT, 40, HOLDOUT, 38, 140.0) == 100.0
+    # 读不到目标（已离开关卡）时也沿用，交给下一帧判断
+    assert next_level_start(100.0, HOLDOUT, 40, None, None, 140.0) == 100.0
+
+
+def test_next_level_start_resets_on_new_level() -> None:
+    # 回合数变大 = 新的一关
+    assert next_level_start(100.0, HOLDOUT, 3, HOLDOUT, 45, 140.0) == 140.0
+    # 上一次已经是清场阶段，又回到坚持阶段 = 新的一关
+    assert next_level_start(100.0, CLEAR, None, HOLDOUT, 45, 140.0) == 140.0
+    # 没有历史状态
+    assert next_level_start(None, None, None, HOLDOUT, 45, 140.0) == 140.0
+
+
+def test_round_from_objective() -> None:
+    assert round_from_objective("坚持45回合") == 45
+    assert round_from_objective("坚持 7 回合") == 7
+    assert round_from_objective("击败所有怪物") is None
+
+
+class _Job:
+    """假的 Job：wait() 返回自身，get() 返回载荷。"""
+
+    def __init__(self, payload: object = None) -> None:
+        self._payload = payload
+
+    def wait(self) -> "_Job":
+        return self
+
+    def get(self) -> object:
+        return self._payload
+
+
+class _Detail:
+    def __init__(self, text: str) -> None:
+        self.text = text
+
+
+class _FakeController:
+    def __init__(self, screens: list[str | None]) -> None:
+        self.screens = screens
+        self.clicks: list[tuple[int, int]] = []
+
+    def post_screencap(self) -> _Job:
+        payload = self.screens.pop(0) if self.screens else None
+        return _Job(payload)
+
+    def post_click(self, x: int, y: int) -> _Job:
+        self.clicks.append((x, y))
+        return _Job()
+
+    def post_click_key(self, code: int) -> _Job:
+        self.clicks.append((code, 0))
+        return _Job()
+
+
+class _FakeTasker:
+    def __init__(self, controller: _FakeController) -> None:
+        self.controller = controller
+        self.stopping = False
+
+
+class _FakeContext:
+    def __init__(self, screens: list[str | None]) -> None:
+        self.tasker = _FakeTasker(_FakeController(screens))
+
+    def run_recognition_direct(self, reco_type: object, param: object, img: object) -> object:
+        """只对关卡目标 ROI 返回文本；商店 / 结算页一律未命中。"""
+        if tuple(getattr(param, "roi", ())) != OBJECTIVE_ROI:
+            return None
+        return _Detail(img) if isinstance(img, str) else None
+
+
+def _run_level(screens: list[str | None], monkeypatch, *, reset: bool = False) -> _FakeContext:
+    context = _FakeContext(screens)
+    argv = SimpleNamespace(custom_action_param='{"interval_ms": 1}')
+    monkeypatch.setattr(eight_bit, "is_hit", lambda detail: detail is not None)
+    monkeypatch.setattr(eight_bit, "ocr_text", lambda detail, default="": getattr(detail, "text", default))
+    if reset:
+        EightBitCombatMove._forget_level()
+    EightBitCombatMove().run(context, argv)  # type: ignore[arg-type]
+    return context
+
+
+def test_run_keeps_level_timer_across_reentry(monkeypatch) -> None:
+    """OCR 抖动导致退出后又被判回同一关时，计时起点不变（回归：之前末尾把起点清空了）。"""
+    _run_level(["坚持45回合", "坚持44回合", None, None], monkeypatch, reset=True)
+    first = EightBitCombatMove._level_started
+    assert first is not None
+
+    _run_level(["坚持43回合", None, None], monkeypatch)
+    assert EightBitCombatMove._level_started == first
+
+    # 回合数回到 45 = 新的一关，计时重置
+    _run_level(["坚持45回合", None, None], monkeypatch)
+    assert EightBitCombatMove._level_started is not None
+    assert EightBitCombatMove._level_started > first
+
+
+def test_run_moves_during_holdout(monkeypatch) -> None:
+    context = _run_level(["坚持40回合", "坚持39回合", None, None], monkeypatch)
+    assert context.tasker.controller.clicks, "坚持阶段应当在移动"
 
 
 def test_parse_count() -> None:
