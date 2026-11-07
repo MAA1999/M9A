@@ -344,7 +344,7 @@ Each run: enter One-Way Coin I → pick a blessing → clear the 3 normal levels
 - **Shop (Underground Exchange)**: buys affordable stat-only Muse relics (damage, attack range, HP, crit, dodge) from left to right, skips relics that spawn bombs or summons or change shop rules, and buys nothing in the shop right before the boss
 
 ::: warning
-This task needs to run on its own and loops until you stop it. Start it from the game's main screen or the Muse arcade hall.
+This task needs to run on its own and loops until you stop it. You can start it from the game's main screen, the event page, or the Muse arcade hall.
 :::
 
 ::: note

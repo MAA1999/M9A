@@ -9,12 +9,14 @@
 - 「坚持N回合」阶段：左右来回巡逻，不读棋盘。一直在动就躲得开预警，追过来的怪物会进入武器范围。
 - 「击败所有怪物」阶段：每步读棋盘，朝最近的怪物走，走到 2 格内（武器范围）就停下等武器输出；
   看不到怪物时走十字找怪；脚下出现预警就先躲到没有预警的邻格。
+  连续多步都不动（把静态装饰误判成怪物也走这条路）时强制换方向，免得站到单关超时。
 难度Ⅰ第一阶段实测：左右巡逻 3 个普通关全部满血通关；站着不动则 3 次都在第 1 关被打死。
 
 关卡之间的商店「地下流通处」：从左到右买下买得起的纯属性缪斯秘宝（白名单），首领关前的商店不买。
 坐标与颜色阈值都是 1280×720 实测值；框架截图是 BGR。
 """
 
+import math
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -111,7 +113,7 @@ def find_player(img: np.ndarray) -> tuple[int, int] | None:
     """找玩家格：玩家脚下橙色角标框的左上与右下两个 L 形折角（外框约 67×67），返回格心坐标。
 
     两个折角要同时成立且相距一个格子：怪物精灵、金币特效上也有零星橙色，单看颜色会误判。
-    脚下格子被预警染红时角标可能被盖住，这时返回 None。
+    脚下格子被预警染红时角标可能被盖住，这时返回 None，调用方按镜头居中兜底。
     """
     x0, y0, x1, y1 = BOARD
     r, g, b = _channels(img, x0, y0, x1, y1)
@@ -204,13 +206,13 @@ def toward(target: tuple[int, int]) -> list[int]:
 def clear_move(board: Board, search_key: int) -> int | None:
     """清场阶段本步的方向键，None 表示原地等武器输出。
 
-    朝最近的怪物走，到 2 格内就停；看不到怪物就按十字路线走一步；不主动走进预警格和有单位的格子。
-    脚下有预警时必须离开：优先没有预警的邻格，邻格全有预警（如以玩家为中心的十字）也要走，
-    因为邻格的预警通常晚一回合才落下。
+    朝最近的怪物走，到 2 格内就停；看不到怪物就按十字路线走一步（该方向走不通时换其他空邻格，
+    不原地卡住）；不主动走进预警格和有单位的格子。脚下有预警时必须离开：优先没有预警的邻格，
+    邻格全有预警（如以玩家为中心的十字）也要走，因为邻格的预警通常晚一回合才落下。
     """
     target = board.nearest_monster()
     if target is None:
-        preferred = [search_key]
+        preferred = [search_key, *[k for k in DIRECTIONS if k != search_key]]
     elif max(abs(target[0]), abs(target[1])) <= WEAPON_RANGE:
         preferred = []
     else:
@@ -230,6 +232,14 @@ def clear_move(board: Board, search_key: int) -> int | None:
     return None
 
 
+def forced_move(board: Board, last_key: int) -> int | None:
+    """连续多步没动时的兜底：换一个空邻格走，免得把静态装饰误判成怪物后站到超时。"""
+    for key in DIRECTIONS:
+        if key != last_key and board.neighbour(key) == FREE:
+            return key
+    return None
+
+
 # ---------------------------------------------------------------- 参数
 
 
@@ -242,11 +252,16 @@ class MoveParams:
 
 
 def _positive_number(value: Any) -> bool:
-    return isinstance(value, int | float) and not isinstance(value, bool) and value > 0
+    """有限的正数（拒绝 bool、nan、inf 与字符串）。"""
+    return isinstance(value, int | float) and not isinstance(value, bool) and math.isfinite(value) and value > 0
 
 
 def parse_move_params(raw: Any) -> MoveParams:
-    """解析 custom_action_param；非法值回落默认并记 warning。"""
+    """解析 custom_action_param；非法值回落默认并记 warning。
+
+    interval_ms 必须是正整数般的值：0.5 这种小于 1 的会被 int() 截成 0（循环不在等待），
+    inf 则直接抛异常，都在这里挡掉。
+    """
     default = MoveParams()
     try:
         params = raw if isinstance(raw, dict) else parse_params(raw)
@@ -260,7 +275,7 @@ def parse_move_params(raw: Any) -> MoveParams:
         move_input = default.move_input
 
     interval = params.get("interval_ms", default.interval_ms)
-    if not _positive_number(interval):
+    if not _positive_number(interval) or int(interval) != interval:
         logger.warning(f"[8bit] interval_ms 非法: {interval}，使用默认值")
         interval = default.interval_ms
 
@@ -278,6 +293,23 @@ def parse_count(text: str) -> int | None:
     return int(digits) if digits else None
 
 
+def resolve_level_start(prev_start: float | None, last_exit_at: float, now: float, window_s: float) -> float:
+    """本关计时起点：刚退出又被立刻判回同一关（OCR 连续未命中后重入）时沿用旧起点，避免超时永远不触发。
+
+    真正换关要经过商店点击、关卡过场和祝福界面，间隔明显大于 window_s，因此不会被误判成重入。
+    """
+    if prev_start is not None and now - last_exit_at <= window_s:
+        return prev_start
+    return now
+
+
+def efficiency_per_hour(total: int, first_count: int, elapsed_s: float) -> float | None:
+    """每小时卡带数：分子扣掉首次结算的奖励，与计时的起点对齐（首次结算发生在计时开始那一刻）。"""
+    if elapsed_s <= 0:
+        return None
+    return (total - first_count) / elapsed_s * 3600
+
+
 # ---------------------------------------------------------------- 普通关
 
 
@@ -288,7 +320,8 @@ class EightBitCombatMove(CustomAction):
 
     每隔 interval_ms 走一步，中途不停：交回 pipeline 重新识别会空过回合，站着不动的回合正是掉血的主因。
     每步都读左上角关卡目标：读不到就不按键，连续两次读不到（进入商店、结算页或首领关）就返回成功，
-    由 next 里的节点接手；单关超过 level_timeout_s 还没结束就返回失败，走 on_error 退出本局。
+    由 next 里的节点接手；单关超过 level_timeout_s 还没结束就返回失败，走 on_error 退出本局
+    （超时那一刻如果已经在商店或结算页，则按正常结束返回成功）。
 
     参数：
       move_input: "click"（默认，点击屏幕十字键）或 "key"（发送 Android 方向键）
@@ -297,6 +330,13 @@ class EightBitCombatMove(CustomAction):
     """
 
     MISSES_TO_END = 2
+    # 连续这么多步都没动（含把装饰物误判成怪物）就强制换方向
+    MAX_IDLE_STEPS = 6
+    # 与上一次「识别不到关卡」相隔多少秒内又被判回同一关，视为重入、不重置超时计时
+    REENTRY_WINDOW_S = 5.0
+
+    _level_started: float | None = None
+    _last_exit_at: float = 0.0
 
     def run(
         self,
@@ -304,48 +344,67 @@ class EightBitCombatMove(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
         params = parse_move_params(argv.custom_action_param)
-        started = time.time()
-        phase = HOLDOUT
-        steps = holdout_step = search_step = misses = 0
+        cls = EightBitCombatMove
+        started = resolve_level_start(cls._level_started, cls._last_exit_at, time.time(), cls.REENTRY_WINDOW_S)
+        cls._level_started = started
+        holdout_step = search_step = idle_steps = steps = misses = 0
+        last_key: int | None = None
 
         while not context.tasker.stopping:
             tick = time.time()
             if tick - started > params.level_timeout_s:
+                if self._read_phase(context) is None:
+                    # 超时那一帧已经在商店 / 结算页：本关其实打完了，交给 next 处理
+                    logger.info(f"[8bit] 关卡用时 {tick - started:.0f} 秒后已离开战斗界面，按正常结束处理")
+                    cls._last_exit_at = time.time()
+                    return CustomAction.RunResult(success=True)
                 logger.warning(f"[8bit] 单关超过 {params.level_timeout_s:.0f} 秒未结束，退出本局")
                 return CustomAction.RunResult(success=False)
 
             img = context.tasker.controller.post_screencap().wait().get()
-            current = self._read_phase(context, img)
-            if current is None:
+            phase = self._read_phase(context, img)
+            if phase is None:
                 misses += 1
                 if misses >= self.MISSES_TO_END:
+                    cls._last_exit_at = time.time()
                     break
                 time.sleep(params.interval_ms / 1000)
                 continue
             misses = 0
-            phase = current
 
             if phase == HOLDOUT:
                 key: int | None = route_key(HOLDOUT_ROUTE, holdout_step)
                 holdout_step += 1
             else:
                 search_key = route_key(SEARCH_ROUTE, search_step)
-                key = clear_move(read_board(img), search_key)
-                if key == search_key:
+                board = read_board(img)
+                key = clear_move(board, search_key)
+                if key is None:
+                    idle_steps += 1
+                    if idle_steps >= self.MAX_IDLE_STEPS:
+                        key = forced_move(board, last_key) if last_key is not None else search_key
+                        idle_steps = 0
+                else:
+                    idle_steps = 0
+                if key is not None:
                     search_step += 1
 
             if key is not None:
                 self._press(context, key, params.move_input)
+                last_key = key
                 steps += 1
             time.sleep(max(0.0, params.interval_ms / 1000 - (time.time() - tick)))
 
         logger.info(f"[8bit] 关卡结束：用时 {time.time() - started:.0f} 秒，移动 {steps} 步")
+        cls._level_started = None
         return CustomAction.RunResult(success=True)
 
     # 每次都重新取 context.tasker.controller，不要持有它：agent 侧每取一次就会替换掉上一个远程控制器句柄，
     # 旧句柄再用就会访问已释放的内存（实测 access violation）。
-    @staticmethod
-    def _read_phase(context: Context, img: np.ndarray) -> str | None:
+    def _read_phase(self, context: Context, img: np.ndarray | None = None) -> str | None:
+        """读左上角关卡目标：坚持 / 清场 / None（不在普通关）。"""
+        if img is None:
+            img = context.tasker.controller.post_screencap().wait().get()
         detail = context.run_recognition_direct(
             JRecognitionType.OCR,
             JOCR(roi=OBJECTIVE_ROI, expected=NORMAL_OBJECTIVES),
@@ -355,6 +414,7 @@ class EightBitCombatMove(CustomAction):
 
     @staticmethod
     def _press(context: Context, key: int, move_input: str) -> None:
+        """按一次方向键（点屏幕十字键或发 Android 方向键）。"""
         if move_input == "key":
             context.tasker.controller.post_click_key(key).wait()
         else:
@@ -364,6 +424,8 @@ class EightBitCombatMove(CustomAction):
 # ---------------------------------------------------------------- 商店
 
 SHOP_TITLE_ROI: tuple[int, int, int, int] = (500, 35, 280, 55)
+# 两种商店标题：普通商店「地下流通处」；持有洛佩拉的秘宝「力量投影」时换成只卖卡包的「秘密交易处」
+SHOP_TITLES: list[str] = ["地下流通处", "秘密交易处"]
 # 首领关前的商店副标题下多一行「下回合即将迎战强敌」
 BOSS_NEXT_ROI: tuple[int, int, int, int] = (500, 110, 280, 45)
 # 四个商品槽的名称行；买走的槽位会空出来，其余商品不移位
@@ -435,8 +497,9 @@ def buy_button_ready(img: np.ndarray) -> bool:
 @AgentServer.custom_action("EightBitShopBuy")
 class EightBitShopBuy(CustomAction):
     """
-    8-bit 街机秀商店「地下流通处」：从左到右买下白名单里买得起的秘宝，然后返回，由 pipeline 点「放弃」离开。
+    8-bit 街机秀商店：从左到右买下白名单里买得起的秘宝，然后返回，由 pipeline 点「放弃」离开。
 
+    两种商店标题（地下流通处 / 秘密交易处）都照常购买：两者都是买秘宝和卡包的店。
     每次购买：点商品选中它 → 「购买」按钮是橙色才点。点完再读一遍，商品还在就算没买成、之后跳过它。
     首领关前的商店（「下回合即将迎战强敌」）不买：本任务到首领关就结算退出，买了也用不上。
     """
@@ -456,7 +519,7 @@ class EightBitShopBuy(CustomAction):
             if context.tasker.stopping:
                 break
             img = context.tasker.controller.post_screencap().wait().get()
-            if not self._ocr_hit(context, img, SHOP_TITLE_ROI, ["地下流通处"]):
+            if not self._ocr_hit(context, img, SHOP_TITLE_ROI, SHOP_TITLES):
                 break
             if self._ocr_hit(context, img, BOSS_NEXT_ROI, ["强敌"]):
                 logger.debug("[8bit] 首领关前的商店，不购买")
@@ -490,6 +553,7 @@ class EightBitShopBuy(CustomAction):
 
     @staticmethod
     def _ocr_hit(context: Context, img: np.ndarray, roi: tuple[int, int, int, int], expected: list[str]) -> bool:
+        """指定 ROI 里是否出现任一 expected 文本。"""
         detail = context.run_recognition_direct(JRecognitionType.OCR, JOCR(roi=roi, expected=expected), img)
         return is_hit(detail)
 
@@ -516,12 +580,13 @@ class EightBitScoreRecord(CustomAction):
     8-bit 街机秀结算页：记录本局获得的像素卡带并统计效率，然后点击空白处关闭结算页。
 
     结算页右侧依次展示像素宝石与像素卡带两个奖励格（未通关任何关卡时不展示），
-    卡带数量在第二格右下角。
+    卡带数量在第二格右下角。数量识别失败时不记 0，而是明确记一条警告并说明累计不完整。
     """
 
     _cassette_roi: tuple[int, int, int, int] = (1018, 488, 70, 40)
     _close_point: tuple[int, int] = (640, 690)
     _first_time: float = 0
+    _first_count: int = 0
     _total: int = 0
     _runs: int = 0
 
@@ -544,15 +609,20 @@ class EightBitScoreRecord(CustomAction):
             cls._first_time = time.time()
 
         if count is None:
-            logger.info("[8bit] 本局未获得像素卡带")
+            logger.warning(
+                "[8bit] 结算页没读到像素卡带数量（可能是本局没有通任何关卡，也可能是识别失败），本局不计入累计"
+            )
         else:
             cls._total += count
-            elapsed = time.time() - cls._first_time
-            if cls._runs > 1 and elapsed > 0:
-                rate = cls._total / elapsed * 3600
-                logger.info(f"[8bit] 本局获得像素卡带：{count}，累计：{cls._total}，约 {rate:.0f} 个/小时")
-            else:
+            if cls._runs == 1:
+                cls._first_count = count
                 logger.info(f"[8bit] 本局获得像素卡带：{count}")
+            else:
+                rate = efficiency_per_hour(cls._total, cls._first_count, time.time() - cls._first_time)
+                if rate is None:
+                    logger.info(f"[8bit] 本局获得像素卡带：{count}，累计：{cls._total}")
+                else:
+                    logger.info(f"[8bit] 本局获得像素卡带：{count}，累计：{cls._total}，约 {rate:.0f} 个/小时")
 
         context.tasker.controller.post_click(*self._close_point).wait()
         return CustomAction.RunResult(success=True)
