@@ -165,6 +165,23 @@ def test_encounter_option_failure_is_reported(monkeypatch, method, succeeded, pa
     assert SOSNodeProcess().exec_action(context, action) is expected
 
 
+@pytest.mark.parametrize(("page_still_open", "expected"), [(True, False), (False, True)])
+def test_failed_interrupt_counts_when_screen_moved_on(page_still_open, expected) -> None:
+    """中断子任务失败时：画面仍在算点击失败；画面已推进（如共鸣器确认后 next 超时）算已处理。"""
+    context = Mock()
+    context.tasker.stopping = False
+    calls = {"n": 0}
+
+    def recognize(*_):
+        calls["n"] += 1
+        return SimpleNamespace(hit=calls["n"] == 1 or page_still_open, box=[0, 0, 1, 1], algorithm="OCR")
+
+    context.run_recognition.side_effect = recognize
+    context.run_task.return_value = SimpleNamespace(status=SimpleNamespace(succeeded=False))
+    assert SOSNodeProcess().exec_action(context, "SOSSelectResonator") is expected
+    assert calls["n"] == 2
+
+
 def test_direct_hit_without_box_executes() -> None:
     context = Mock()
     context.tasker.stopping = False
@@ -187,8 +204,18 @@ def test_attributes_close_pipeline_gates_click_and_successor() -> None:
     assert _ATTRIBUTES_MARKERS <= _ocr_expected(marker_nodes[0])
     assert close["recognition"]["param"]["box_index"] == 0
     assert close["action"] == {"type": "Click"}
-    assert close["next"] == ["SOSAttributesClosed", "SOSAttributesClose"]
-    assert 0 < close["max_hit"] <= 20, "属性页自重试必须有上限"
+    assert close["next"] == ["SOSAttributesClosed", "SOSAttributesCloseRetry1"]
+    # max_hit 是任务内累计额度，长跑局会被耗尽；重试改为每次关闭流程独立的有限链
+    chain = ["SOSAttributesClose", "SOSAttributesCloseRetry1", "SOSAttributesCloseRetry2"]
+    for name in chain:
+        assert "max_hit" not in pipeline[name]
+    for prev, name in zip(chain, chain[1:], strict=False):
+        retry = pipeline[name]
+        assert retry["recognition"]["type"] == "And"
+        assert retry["recognition"]["param"]["all_of"] == ["SOSAttributesClose"]
+        assert retry["action"] == {"type": "Click"}
+        assert pipeline[prev]["next"] == ["SOSAttributesClosed", name]
+    assert pipeline[chain[-1]]["next"] == ["SOSAttributesClosed"], "属性页重试链必须有终点"
 
     closed = pipeline["SOSAttributesClosed"]
     assert closed.get("inverse") is True
@@ -226,7 +253,7 @@ def test_real_interrupts_resume_pending_action(monkeypatch, successor, completed
             close = pipeline["SOSAttributesClose"]
             assert "BackButton" in close["recognition"]["param"]["all_of"]
             assert close["action"]["type"] == "Click"
-            assert close["next"] == ["SOSAttributesClosed", "SOSAttributesClose"]
+            assert close["next"] == ["SOSAttributesClosed", "SOSAttributesCloseRetry1"]
             closed = pipeline["SOSAttributesClosed"]
             assert closed.get("inverse") is True
             assert _ATTRIBUTES_MARKERS <= _ocr_expected(closed)

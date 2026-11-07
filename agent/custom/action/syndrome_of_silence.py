@@ -499,7 +499,18 @@ class SOSNodeProcess(CustomAction):
             if is_hit(rec) and not context.tasker.stopping:
                 logger.debug(f"执行中断节点: {action}")
                 result = context.run_task(action)
-                return result is not None and result.status.succeeded
+                if result is not None and result.status.succeeded:
+                    return True
+                if context.tasker.stopping:
+                    return False
+                # 子任务失败时区分两种情况：画面仍在说明点击没生效；画面已离开说明点击生效，
+                # 只是后续 next 识别超时（如 SOSSelectResonator 确认后进入属性页），按已处理算，
+                # 让 exec_main 重置重试并回头检查主动作。
+                img = context.tasker.controller.post_screencap().wait().get()
+                if is_hit(context.run_recognition(action, img)):
+                    return False
+                logger.debug(f"中断节点 {action} 子任务失败但画面已推进，按已处理")
+                return True
         elif isinstance(action, list):
             # 对于列表，依次执行，任意一个成功即返回成功
             for act in action:

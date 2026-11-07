@@ -1127,8 +1127,8 @@
         }
     },
     "SOSAttributesClose": {
-        // 返回点击可能被吞：属性页仍在时再点一次，max_hit 限制总次数，避免单次失败直接结束任务
-        "max_hit": 20,
+        // 返回点击可能被吞：属性页仍在时由 SOSAttributesCloseRetry1/2 再点，每次关闭流程最多 3 次点击。
+        // 不用 max_hit：它是任务内累计额度，长跑局中多次成功关闭后会被耗尽。
         // 属性详情页必须同时命中页面文字和返回按钮，禁止在其他界面盲目返回。
         "recognition": {
             "type": "And",
@@ -1156,7 +1156,44 @@
         "timeout": 10000,
         "next": [
             "SOSAttributesClosed",
-            "SOSAttributesClose"
+            "SOSAttributesCloseRetry1"
+        ]
+    },
+    "SOSAttributesCloseRetry1": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "SOSAttributesClose"
+                ],
+                "box_index": 0
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 10000,
+        "next": [
+            "SOSAttributesClosed",
+            "SOSAttributesCloseRetry2"
+        ]
+    },
+    "SOSAttributesCloseRetry2": {
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "SOSAttributesClose"
+                ],
+                "box_index": 0
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 10000,
+        "next": [
+            "SOSAttributesClosed"
         ]
     },
     "SOSAttributesClosed": {
