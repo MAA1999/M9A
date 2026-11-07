@@ -24,6 +24,7 @@
             "SOSNextMessage_left"
         ],
         "stats": [
+            "SOSAttributesClose",
             "SOSWarning",
             "SOSStatBreakthrough",
             "SOSStatsUpButton",

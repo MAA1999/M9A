@@ -1,9 +1,38 @@
-"""SOSSelectNode 跨类型事件自愈的纯函数单测。
+"""SOS 节点分类与中断恢复的回归测试。
 
-覆盖：事件归属查找（精确/相似/未命中）与备用事件名 ROI 收集（去重、排除自身）。
+覆盖：事件归属、备用 ROI，以及弹窗恢复、重试预算和子任务结果。
 """
 
-from agent.custom.action.syndrome_of_silence import SOSSelectNode
+import json
+import re
+from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
+from unittest.mock import Mock
+
+import pytest
+
+from agent.custom.action import syndrome_of_silence as sos
+from agent.custom.action.syndrome_of_silence import SOSNodeProcess, SOSSelectNode
+
+_JSONC_TOKEN = re.compile(r'"(?:\\.|[^"\\])*"|//[^\n]*')
+_SOS_PIPELINE = Path("resource/base/pipeline/activity/TheSyndromeOfSilence.json")
+_SOS_NODES = Path("data/sos/nodes.json")
+_ATTRIBUTES_MARKERS = {"改造状态", "属性详情"}
+
+
+def _load_jsonc(path: Path) -> dict[str, Any]:
+    raw = path.read_text(encoding="utf-8")
+    text = _JSONC_TOKEN.sub(lambda match: match.group(0) if match.group(0).startswith('"') else "", raw)
+    data = json.loads(text)
+    assert isinstance(data, dict)
+    return data
+
+
+def _ocr_expected(node: dict[str, Any]) -> set[str]:
+    expected = node.get("recognition", {}).get("param", {}).get("expected", [])
+    return set(expected if isinstance(expected, list) else [expected])
+
 
 _NODES = {
     "types": ["已完成节点", "冲突", "途中偶遇", "必经之路", "休憩处"],
@@ -73,3 +102,154 @@ def test_match_node_type_containment_hit() -> None:
 def test_match_node_type_miss_returns_empty() -> None:
     """无法归属的文本返回空串，保留模板识别结果。"""
     assert SOSSelectNode._match_node_type("毫不相干的乱码", _NODES) == ""
+
+
+def test_persistent_banner_stops_before_later_event_action(monkeypatch) -> None:
+    context = Mock()
+    context.clone.return_value = context
+    context.tasker.stopping = False
+    context.run_recognition.side_effect = lambda name, *_: SimpleNamespace(
+        hit=name == "SOSClickEventRec", box=[0, 0, 1, 1], algorithm="OCR"
+    )
+    context.run_task.return_value = SimpleNamespace(status=SimpleNamespace(succeeded=True))
+    monkeypatch.setattr(sos.time, "sleep", lambda _: None)
+    monkeypatch.setattr(sos.time, "monotonic", lambda: 0)
+    monkeypatch.setattr(SOSSelectNode, "node_type", "途中偶遇")
+    monkeypatch.setattr(SOSSelectNode, "event_name", "鬃毛的回报")
+    process = SOSNodeProcess()
+    monkeypatch.setattr(process, "_skip_stranded_event", lambda *_: False)
+    result = process.run(context, SimpleNamespace(custom_action_param="{}"))
+    assert not result.success
+    assert context.run_task.call_count <= 3
+    assert all(call.args == ("SOSClickEventRec",) for call in context.run_task.call_args_list)
+    assert (
+        sum(call.args[0] == "SOSSelectEncounterOptionRec_Template" for call in context.run_recognition.call_args_list)
+        == 5
+    )
+
+
+@pytest.mark.parametrize("action", ["SOSStatsUp", {"type": "RunNode", "name": "SOSStatsUp"}])
+@pytest.mark.parametrize("succeeded", [None, False, True])
+def test_interrupt_requires_successful_task_result(action, succeeded) -> None:
+    context = Mock()
+    context.tasker.stopping = False
+    context.run_recognition.return_value = SimpleNamespace(hit=True, box=[0, 0, 1, 1], algorithm="OCR")
+    context.run_task.return_value = (
+        None if succeeded is None else SimpleNamespace(status=SimpleNamespace(succeeded=succeeded))
+    )
+    assert SOSNodeProcess().exec_action(context, action) is (succeeded is True)
+
+
+def test_direct_hit_without_box_executes() -> None:
+    context = Mock()
+    context.tasker.stopping = False
+    context.run_recognition.return_value = SimpleNamespace(hit=True, box=None, algorithm="DirectHit")
+    context.run_task.return_value = SimpleNamespace(status=SimpleNamespace(succeeded=True))
+    assert SOSNodeProcess().exec_action(context, {"type": "RunNode", "name": "Pending"})
+
+
+def test_attributes_close_pipeline_gates_click_and_successor() -> None:
+    """属性关闭必须同时命中页面文字和返回按钮，点击 BackButton，并在后继节点确认页面已消失。"""
+    pipeline = _load_jsonc(_SOS_PIPELINE)
+    nodes = json.loads(_SOS_NODES.read_text(encoding="utf-8"))
+
+    close = pipeline["SOSAttributesClose"]
+    all_of = close["recognition"]["param"]["all_of"]
+    assert close["recognition"]["type"] == "And"
+    assert "BackButton" in all_of
+    marker_nodes = [item for item in all_of if isinstance(item, dict)]
+    assert marker_nodes, "属性页 OCR 标记不能缺失，否则其他带返回键的界面也会被点返回"
+    assert _ATTRIBUTES_MARKERS <= _ocr_expected(marker_nodes[0])
+    assert close["recognition"]["param"]["box_index"] == 0
+    assert close["action"] == {"type": "Click"}
+    assert close["next"] == ["SOSAttributesClosed"]
+
+    closed = pipeline["SOSAttributesClosed"]
+    assert closed.get("inverse") is True
+    assert closed["recognition"]["type"] == "OCR"
+    assert _ATTRIBUTES_MARKERS <= _ocr_expected(closed)
+    assert "inverse" not in json.dumps(closed["recognition"])
+    assert "SOSResonatorTransition" not in json.dumps(closed)
+    assert "SOSAttributesClose" not in json.dumps(closed)
+
+    assert "SOSAttributesClose" in nodes["common_interrupts"]["stats"]
+    error_next = pipeline["SOSNodeProcessErrorLoop"]["next"]
+    assert "[JumpBack]SOSAttributesClose" in error_next
+    close_idx = error_next.index("[JumpBack]SOSAttributesClose")
+    for destructive in ("[JumpBack]SOSGiveup", "[JumpBack]SOSStart", "[JumpBack]SOSAbortConfirm"):
+        assert close_idx < error_next.index(destructive)
+
+
+@pytest.mark.parametrize("successor", ["SOSAttributesClose", "SOSStatsUp", "SOSSelectHarmonic"])
+@pytest.mark.parametrize("completed", [False, True])
+def test_real_interrupts_resume_pending_action(monkeypatch, successor, completed) -> None:
+    pipeline = _load_jsonc(_SOS_PIPELINE)
+    context = Mock()
+    context.clone.return_value = context
+    context.tasker.stopping = False
+    screens = iter(["SOSSelectResonatorConfirm", successor, "SOSNodeProcessFinished"])
+    screen = next(screens)
+
+    def recognize(name, *_):
+        return SimpleNamespace(hit=name == screen, box=[0, 0, 1, 1], algorithm="OCR")
+
+    def run_task(name=None, *_, **kwargs):
+        nonlocal screen
+        entry = name or kwargs.get("entry")
+        if entry == "SOSAttributesClose":
+            close = pipeline["SOSAttributesClose"]
+            assert "BackButton" in close["recognition"]["param"]["all_of"]
+            assert close["action"]["type"] == "Click"
+            assert close["next"] == ["SOSAttributesClosed"]
+            closed = pipeline["SOSAttributesClosed"]
+            assert closed.get("inverse") is True
+            assert _ATTRIBUTES_MARKERS <= _ocr_expected(closed)
+            screen = "SOSNodeProcessFinished"
+            return SimpleNamespace(status=SimpleNamespace(succeeded=True))
+        screen = next(screens, "SOSNodeProcessFinished")
+        return SimpleNamespace(
+            status=SimpleNamespace(succeeded=completed if kwargs.get("entry") == "SOSNodeProcessFinished" else True)
+        )
+
+    context.run_recognition.side_effect = recognize
+    context.run_task.side_effect = run_task
+    monkeypatch.setattr(sos.time, "sleep", lambda _: None)
+    monkeypatch.setattr(sos.time, "monotonic", lambda: 0)
+    assert (
+        SOSNodeProcess().exec_main(
+            context,
+            {"type": "RunNode", "name": "SOSNodeProcessFinished"},
+            ["SOSSelectResonatorConfirm", successor],
+        )
+        is completed
+    )
+    assert context.run_task.call_args_list[0].args == ("SOSSelectResonatorConfirm",)
+    assert context.run_task.call_args_list[1].args == (successor,)
+    assert context.run_task.call_args_list[2].kwargs == {"entry": "SOSNodeProcessFinished"}
+
+
+@pytest.mark.parametrize("mode", ["cancel_before", "cancel_scanning", "deadline", "unknown", "complete"])
+def test_main_action_boundaries(monkeypatch, mode) -> None:
+    context = Mock()
+    context.clone.return_value = context
+    context.tasker.stopping = mode == "cancel_before"
+    clock = 0
+
+    def recognize(*_):
+        nonlocal clock
+        clock += 120 if mode == "deadline" else 0
+        if mode == "cancel_scanning":
+            context.tasker.stopping = True
+        return SimpleNamespace(hit=mode == "complete", box=[0, 0, 1, 1], algorithm="OCR")
+
+    context.run_recognition.side_effect = recognize
+    context.run_task.return_value = SimpleNamespace(status=SimpleNamespace(succeeded=True))
+    monkeypatch.setattr(sos.time, "sleep", lambda _: None)
+    monkeypatch.setattr(sos.time, "monotonic", lambda: clock)
+    assert SOSNodeProcess().exec_main(context, {"type": "RunNode", "name": "Pending"}, ["Interrupt"]) is (
+        mode == "complete"
+    )
+    if mode in ("cancel_before", "cancel_scanning", "deadline"):
+        assert context.run_recognition.call_count <= 1
+    elif mode == "unknown":
+        assert context.run_recognition.call_count == 10

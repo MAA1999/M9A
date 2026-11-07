@@ -858,6 +858,16 @@
         "next": [
             "SOSMain",
             "SOSSelectNoise",
+            "[JumpBack]SOSAttributesClose",
+            "[JumpBack]SOSStatBreakthrough",
+            "[JumpBack]SOSStatsUpButton",
+            "[JumpBack]SOSStatsUp",
+            "[JumpBack]SOSHarmonicObtained",
+            "[JumpBack]SOSSelectHarmonic",
+            "[JumpBack]SOSResonatorObtained",
+            "[JumpBack]SOSSelectResonator",
+            "[JumpBack]SOSSelectResonatorConfirm",
+            "[JumpBack]SOSFormBreakthrough",
             "[JumpBack]SOSContinue",
             "[JumpBack]SOSEventEnd",
             "[JumpBack]SOSSelectOption",
@@ -1087,10 +1097,77 @@
         "action": {
             "type": "Click"
         },
+        "timeout": 5000,
         "next": [
-            "SOSConfirm",
-            "SOSSelectResonatorConfirm"
+            "[JumpBack]SOSConfirm",
+            "SOSSelectResonatorConfirm",
+            "SOSResonatorTransition"
         ]
+    },
+    "SOSResonatorTransition": {
+        // 只识别后继界面，将处理权交还 SOSNodeProcess；未知界面仍按超时失败。
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "SOSAttributesClose",
+                    "SOSStatBreakthrough",
+                    "SOSStatsUpButton",
+                    "SOSStatsUp",
+                    "SOSHarmonicObtained",
+                    "SOSSelectHarmonic",
+                    "SOSResonatorObtained",
+                    "SOSFormBreakthrough",
+                    "SOSSelectOption",
+                    "SOSSelectEncounterOptionRec_Template",
+                    "SOSClickEventRec",
+                    "SOSNodeProcessFinished"
+                ]
+            }
+        }
+    },
+    "SOSAttributesClose": {
+        // 属性详情页必须同时命中页面文字和返回按钮，禁止在其他界面盲目返回。
+        "recognition": {
+            "type": "And",
+            "param": {
+                "all_of": [
+                    "BackButton",
+                    {
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "expected": [
+                                    "改造状态",
+                                    "属性详情"
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "box_index": 0
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "timeout": 5000,
+        "next": [
+            "SOSAttributesClosed"
+        ]
+    },
+    "SOSAttributesClosed": {
+        // 关闭后须确认属性详情已消失。inverse 只能写在节点上，MaaFW 不会套用 And 子识别里的 inverse。
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "expected": [
+                    "改造状态",
+                    "属性详情"
+                ]
+            }
+        },
+        "inverse": true
     },
     "SOSFormBreakthrough": {
         // 共鸣器形态突破

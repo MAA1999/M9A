@@ -457,37 +457,51 @@ class SOSNodeProcess(CustomAction):
 
     def exec_main(self, context: Context, action: dict[str, Any] | list[Any], interrupts: list[Any]):
         retry_times = 0
+        banner_hits = 0
+        deadline = time.monotonic() + 60
         # interrupt 命中会重置 retry_times，需另设总轮数上限，
         # 防止"事件横幅一直在→反复点击"造成无限循环（#839）
         total_rounds = 0
         while retry_times < 5 and total_rounds < 100:
             total_rounds += 1
-            if context.tasker.stopping:
+            if context.tasker.stopping or time.monotonic() >= deadline:
                 return False
             # 先尝试执行主动作
             if self.exec_action(context.clone(), action):
-                return True
+                return not context.tasker.stopping
 
             # 尝试所有 interrupts
             for interrupt in interrupts:
-                if context.tasker.stopping:
+                if context.tasker.stopping or time.monotonic() >= deadline:
                     return False
+                is_banner = interrupt == "SOSClickEventRec" or (
+                    isinstance(interrupt, dict) and interrupt.get("name") == "SOSClickEventRec"
+                )
+                if is_banner and banner_hits >= 3:
+                    continue
                 if self.exec_action(context.clone(), interrupt):
-                    retry_times = 0
+                    if is_banner:
+                        banner_hits += 1
+                    else:
+                        retry_times = 0
                     break
 
+            if context.tasker.stopping or time.monotonic() >= deadline:
+                return False
             time.sleep(1)
             retry_times += 1
         return False
 
     def exec_action(self, context: Context, action: dict[str, Any] | list[Any] | str) -> bool:
+        if context.tasker.stopping:
+            return False
         if isinstance(action, str):
             img = context.tasker.controller.post_screencap().wait().get()
             rec = context.run_recognition(action, img)
-            if is_hit(rec):
+            if is_hit(rec) and not context.tasker.stopping:
                 logger.debug(f"执行中断节点: {action}")
-                context.run_task(action)
-                return True
+                result = context.run_task(action)
+                return result is not None and result.status.succeeded
         elif isinstance(action, list):
             # 对于列表，依次执行，任意一个成功即返回成功
             for act in action:
@@ -507,11 +521,13 @@ class SOSNodeProcess(CustomAction):
 
                 img = context.tasker.controller.post_screencap().wait().get()
                 reco_detail = context.run_recognition(name, img)
+                if context.tasker.stopping:
+                    return False
                 # DirectHit nodes are executable even when Maa does not provide a box.
                 if is_hit(reco_detail) or (reco_detail is not None and reco_detail.algorithm == "DirectHit"):
                     logger.debug(f"执行节点: {name}")
-                    context.run_task(entry=name)
-                    return True
+                    result = context.run_task(entry=name)
+                    return result is not None and result.status.succeeded
             elif action_type == "SelectOption":
                 if context.tasker.stopping:
                     return False
