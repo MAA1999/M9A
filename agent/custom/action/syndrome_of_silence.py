@@ -457,7 +457,7 @@ class SOSNodeProcess(CustomAction):
 
     def exec_main(self, context: Context, action: dict[str, Any] | list[Any], interrupts: list[Any]):
         retry_times = 0
-        banner_hits = 0
+        # 60 秒内无进展则放弃；非横幅中断成功处理时顺延期限，总轮数上限仍防止无限循环
         deadline = time.monotonic() + 60
         # interrupt 命中会重置 retry_times，需另设总轮数上限，
         # 防止"事件横幅一直在→反复点击"造成无限循环（#839）
@@ -477,13 +477,11 @@ class SOSNodeProcess(CustomAction):
                 is_banner = interrupt == "SOSClickEventRec" or (
                     isinstance(interrupt, dict) and interrupt.get("name") == "SOSClickEventRec"
                 )
-                if is_banner and banner_hits >= 3:
-                    continue
                 if self.exec_action(context.clone(), interrupt):
-                    if is_banner:
-                        banner_hits += 1
-                    else:
+                    # 横幅点击可能被动画吞掉，不重置 retry_times，由重试预算限制次数
+                    if not is_banner:
                         retry_times = 0
+                        deadline = time.monotonic() + 60
                     break
 
             if context.tasker.stopping or time.monotonic() >= deadline:
@@ -606,7 +604,7 @@ class SOSNodeProcess(CustomAction):
                     if context.tasker.stopping:
                         logger.debug("任务即将停止，跳过节点处理")
                         return False
-                    context.run_task(
+                    result = context.run_task(
                         "SOSSelectEncounterOption_OCR",
                         pipeline_override={
                             "SOSSelectEncounterOption_OCR": {"custom_action_param": {"expected": expected}},
@@ -634,7 +632,7 @@ class SOSNodeProcess(CustomAction):
                     if context.tasker.stopping:
                         logger.debug("任务即将停止，跳过节点处理")
                         return False
-                    context.run_task(
+                    result = context.run_task(
                         "SOSSelectEncounterOption_HSV",
                         pipeline_override={
                             "SOSSelectEncounterOption_HSV": {"custom_action_param": {"index": index}},
@@ -651,8 +649,24 @@ class SOSNodeProcess(CustomAction):
                 else:
                     logger.error(f"未知的途中偶遇选项选择方法: {method}")
                     return False
-                return True
+                return self._encounter_option_done(context, result)
         return False
+
+    def _encounter_option_done(self, context: Context, result: Any) -> bool:
+        """
+        途中偶遇选项子任务的结果判定。子任务成功即完成；子任务失败时，
+        选项界面已离开说明选择已生效（只是后续 next 链超时），仍算完成；
+        选项界面仍在说明没有选中目标选项，返回失败交给重试/中断处理。
+        """
+        if result is not None and result.status.succeeded:
+            return True
+        if context.tasker.stopping:
+            return False
+        img = context.tasker.controller.post_screencap().wait().get()
+        if is_hit(context.run_recognition("SOSSelectEncounterOptionRec_Template", img)):
+            logger.warning("途中偶遇选项子任务失败且选项界面仍在，按失败处理")
+            return False
+        return True
 
 
 @AgentServer.custom_action("SOSSelectEncounterOption_OCR")

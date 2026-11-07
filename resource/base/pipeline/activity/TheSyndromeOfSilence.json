@@ -1127,6 +1127,8 @@
         }
     },
     "SOSAttributesClose": {
+        // 返回点击可能被吞：属性页仍在时再点一次，max_hit 限制总次数，避免单次失败直接结束任务
+        "max_hit": 20,
         // 属性详情页必须同时命中页面文字和返回按钮，禁止在其他界面盲目返回。
         "recognition": {
             "type": "And",
@@ -1151,9 +1153,10 @@
         "action": {
             "type": "Click"
         },
-        "timeout": 5000,
+        "timeout": 10000,
         "next": [
-            "SOSAttributesClosed"
+            "SOSAttributesClosed",
+            "SOSAttributesClose"
         ]
     },
     "SOSAttributesClosed": {

@@ -120,7 +120,7 @@ def test_persistent_banner_stops_before_later_event_action(monkeypatch) -> None:
     monkeypatch.setattr(process, "_skip_stranded_event", lambda *_: False)
     result = process.run(context, SimpleNamespace(custom_action_param="{}"))
     assert not result.success
-    assert context.run_task.call_count <= 3
+    assert context.run_task.call_count <= 5
     assert all(call.args == ("SOSClickEventRec",) for call in context.run_task.call_args_list)
     assert (
         sum(call.args[0] == "SOSSelectEncounterOptionRec_Template" for call in context.run_recognition.call_args_list)
@@ -138,6 +138,31 @@ def test_interrupt_requires_successful_task_result(action, succeeded) -> None:
         None if succeeded is None else SimpleNamespace(status=SimpleNamespace(succeeded=succeeded))
     )
     assert SOSNodeProcess().exec_action(context, action) is (succeeded is True)
+
+
+@pytest.mark.parametrize("method", ["OCR", "HSV"])
+@pytest.mark.parametrize(
+    ("succeeded", "page_still_open", "expected"),
+    [(True, True, True), (False, True, False), (False, False, True), (None, True, False)],
+)
+def test_encounter_option_failure_is_reported(monkeypatch, method, succeeded, page_still_open, expected) -> None:
+    """子任务失败且选项页仍在时必须返回失败；选项页已离开说明选择生效，仍算完成。"""
+    monkeypatch.setattr(sos.time, "sleep", lambda _: None)
+    context = Mock()
+    context.tasker.stopping = False
+    calls = {"n": 0}
+
+    def recognize(name, *_):
+        calls["n"] += 1
+        hit = calls["n"] == 1 or page_still_open
+        return SimpleNamespace(hit=hit, box=[0, 0, 1, 1], algorithm="TemplateMatch")
+
+    context.run_recognition.side_effect = recognize
+    context.run_task.return_value = (
+        None if succeeded is None else SimpleNamespace(status=SimpleNamespace(succeeded=succeeded))
+    )
+    action = {"type": "SelectEncounterOption", "method": method, "expected": "x", "index": 0}
+    assert SOSNodeProcess().exec_action(context, action) is expected
 
 
 def test_direct_hit_without_box_executes() -> None:
@@ -162,7 +187,8 @@ def test_attributes_close_pipeline_gates_click_and_successor() -> None:
     assert _ATTRIBUTES_MARKERS <= _ocr_expected(marker_nodes[0])
     assert close["recognition"]["param"]["box_index"] == 0
     assert close["action"] == {"type": "Click"}
-    assert close["next"] == ["SOSAttributesClosed"]
+    assert close["next"] == ["SOSAttributesClosed", "SOSAttributesClose"]
+    assert 0 < close["max_hit"] <= 20, "属性页自重试必须有上限"
 
     closed = pipeline["SOSAttributesClosed"]
     assert closed.get("inverse") is True
@@ -200,7 +226,7 @@ def test_real_interrupts_resume_pending_action(monkeypatch, successor, completed
             close = pipeline["SOSAttributesClose"]
             assert "BackButton" in close["recognition"]["param"]["all_of"]
             assert close["action"]["type"] == "Click"
-            assert close["next"] == ["SOSAttributesClosed"]
+            assert close["next"] == ["SOSAttributesClosed", "SOSAttributesClose"]
             closed = pipeline["SOSAttributesClosed"]
             assert closed.get("inverse") is True
             assert _ATTRIBUTES_MARKERS <= _ocr_expected(closed)
