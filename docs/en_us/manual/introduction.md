@@ -334,22 +334,21 @@ Please complete one full round manually first to finish the tutorial, then start
 
 ### 8-bit Arcade Show
 
-Complete 8-bit Arcade Show mini-game, including the following options:
+Farms Pixel Cassettes in the 4.1 "8-bit Arcade Show: Dungeon Survivors" (spent in the Noise Tracker reward track), including the following options:
 
-- **Stage Difficulty**: Select stage difficulty
-- **Farming Mode**: Select farming mode based on your needs
+- **Movement Input**: taps the on-screen D-pad by default; switch to the keyboard arrow keys on PC if tapping does not move the character
+
+Each run: enter One-Way Coin I → pick a blessing → clear the 3 normal levels of stage 1 → pause at the boss level and return to the hall to settle → start again. A run takes about 3 minutes and pays 30 Pixel Cassettes and 30 Pixel Gems.
+
+- **In a level**: moves in a fixed up→left→down→right rhythm; during "Defeat all monsters" it walks toward a straggler once only a few monsters remain and none is inside weapon range, and sweeps a wider area if no monster is visible for several steps
+- **Shop (Underground Exchange)**: buys affordable stat-only Muse relics (damage, attack range, HP, crit, dodge) from left to right, skips relics that spawn bombs or summons or change shop rules, and buys nothing in the shop right before the boss
 
 ::: warning
-This task needs to run independently. Please navigate to the difficulty selection page before running.
+This task needs to run on its own and loops until you stop it. You can start it from the game's main screen, the event page, or the Muse arcade hall.
 :::
 
 ::: note
-This task has two scenarios:
-
-1. Clear the first floor then exit directly (stable)
-2. Keep going as far as possible (continue fighting after the first floor without exiting)
-
-Please select the corresponding option based on your situation
+The first entry into the mode forces a tutorial. Finish it by hand once before using this task.
 :::
 
 ### Character Upgrade (beta)
