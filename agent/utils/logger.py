@@ -7,6 +7,7 @@ from logging.handlers import TimedRotatingFileHandler
 from typing import Any
 
 from . import pienv
+from .runtime_paths import default_work_root
 
 LEVEL_SHORT_NAMES = {
     "INFO": "info",
@@ -202,11 +203,12 @@ def _setup_std_logger(log_dir: str = "debug/custom", console_level: str = "INFO"
     return _std_logger
 
 
-def setup_logger(log_dir: str = "debug/custom", console_level: str = "INFO"):
+def setup_logger(log_dir: str | None = None, console_level: str = "INFO"):
     """设置 logger（优先 loguru，无 loguru 时回退到标准 logging）"""
+    resolved_log_dir = log_dir or str(default_work_root() / "debug" / "custom")
     if _has_loguru:
-        return _setup_loguru_logger(log_dir=log_dir, console_level=console_level)
-    return _setup_std_logger(log_dir=log_dir, console_level=console_level)
+        return _setup_loguru_logger(log_dir=resolved_log_dir, console_level=console_level)
+    return _setup_std_logger(log_dir=resolved_log_dir, console_level=console_level)
 
 
 def change_console_level(level: str = "DEBUG"):

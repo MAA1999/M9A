@@ -8,7 +8,7 @@ from typing import Any
 
 from maafw_paths import ENV_NAME
 from utils import logger
-from utils.runtime_paths import configure_runtime_paths, get_runtime_paths
+from utils.runtime_paths import configure_runtime_paths, default_work_root, get_runtime_paths
 
 PI_ENV_KEYS = (
     "PI_INTERFACE_VERSION",
@@ -17,6 +17,7 @@ PI_ENV_KEYS = (
     "PI_CLIENT_LANGUAGE",
     "PI_CLIENT_MAAFW_VERSION",
     "PI_VERSION",
+    "PI_USER_DATA_DIR",
     "PI_CONTROLLER",
     "PI_RESOURCE",
 )
@@ -165,7 +166,10 @@ def _log_maafw_version() -> None:
 
 
 def run_agent(project_root_dir: str) -> int:
-    configure_runtime_paths(project_root=project_root_dir, work_root=os.getcwd())
+    # PI v2.11.0: the client passes the absolute directory it owns for config, debug and logs.
+    # Inside a macOS .app the project root lives in the bundle, which a user account cannot write
+    # to, so the working directory is only a fallback for clients that do not set the variable.
+    configure_runtime_paths(project_root=project_root_dir, work_root=default_work_root())
 
     # debug:纯诊断信息，不进 GUI 日志打扰用户；agent 文件 sink 固定 DEBUG 级，排查时 debug/custom/*.log 里仍有
     logger.debug("MaaFW 二进制目录: {}", os.environ.get(ENV_NAME) or "wheel 自带 (site-packages/maa/bin)")
@@ -194,7 +198,7 @@ def run_agent(project_root_dir: str) -> int:
     import custom
 
     custom.register_all()
-    Tasker.set_log_dir("./debug/agent")
+    Tasker.set_log_dir(str(get_runtime_paths().debug_dir / "agent"))
 
     socket_id = sys.argv[-1]
     logger.debug("socket_id: {}", socket_id)
