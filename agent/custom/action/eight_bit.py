@@ -391,12 +391,9 @@ class EightBitCombatMove(CustomAction):
                 started = next_level_start(cls._level_started, cls._last_phase, cls._last_round, phase, round_no, tick)
                 cls._level_started, cls._last_phase, cls._last_round = started, phase, round_no
 
-            if started is not None and tick - started > params.level_timeout_s:
-                if self._left_level_screen(context, img):
-                    # 超时那一帧已经在商店 / 结算页：本关其实打完了，交给 next 处理
-                    logger.info(f"[8bit] 关卡用时 {tick - started:.0f} 秒后已离开战斗界面，按正常结束处理")
-                    cls._forget_level()
-                    return CustomAction.RunResult(success=True)
+            # 只有「本帧仍读得到关卡目标」才算真的卡在这一关：读不到目标时可能是过场动画、
+            # 商店，或本关刚结束，交给下面的连续未命中判定处理，不要把任务直接判失败。
+            if phase is not None and started is not None and tick - started > params.level_timeout_s:
                 logger.warning(f"[8bit] 单关超过 {params.level_timeout_s:.0f} 秒未结束，退出本局")
                 cls._forget_level()
                 return CustomAction.RunResult(success=False)
@@ -453,18 +450,6 @@ class EightBitCombatMove(CustomAction):
         return objective_phase(text), round_from_objective(text)
 
     @staticmethod
-    def _left_level_screen(context: Context, img: np.ndarray) -> bool:
-        """当前画面是不是商店或结算页（超时那一帧要区分「本关打完了」与「卡住了」）。"""
-        for roi, expected in (
-            (SHOP_TITLE_ROI, SHOP_TITLES),
-            (RESULT_TIP_ROI, RESULT_TIPS),
-        ):
-            detail = context.run_recognition_direct(JRecognitionType.OCR, JOCR(roi=roi, expected=expected), img)
-            if is_hit(detail):
-                return True
-        return False
-
-    @staticmethod
     def _press(context: Context, key: int, move_input: str) -> None:
         """按一次方向键（点屏幕十字键或发 Android 方向键）。"""
         if move_input == "key":
@@ -478,9 +463,6 @@ class EightBitCombatMove(CustomAction):
 SHOP_TITLE_ROI: tuple[int, int, int, int] = (500, 35, 280, 55)
 # 两种商店标题：普通商店「地下流通处」；持有洛佩拉的秘宝「力量投影」时换成只卖卡包的「秘密交易处」
 SHOP_TITLES: list[str] = ["地下流通处", "秘密交易处"]
-# 结算页底部提示：用来判断「已经在结算页」（超时兜底时区分本关打完与卡住）
-RESULT_TIP_ROI: tuple[int, int, int, int] = (520, 635, 320, 50)
-RESULT_TIPS: list[str] = ["点击空白区域关闭"]
 # 首领关前的商店副标题下多一行「下回合即将迎战强敌」
 BOSS_NEXT_ROI: tuple[int, int, int, int] = (500, 110, 280, 45)
 # 四个商品槽的名称行；买走的槽位会空出来，其余商品不移位

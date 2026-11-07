@@ -329,15 +329,15 @@ class _FakeContext:
         return _Detail(img) if isinstance(img, str) else None
 
 
-def _run_level(screens: list[str | None], monkeypatch, *, reset: bool = False) -> _FakeContext:
+def _run_level(screens: list[str | None], monkeypatch, *, reset: bool = False) -> tuple[_FakeContext, object]:
     context = _FakeContext(screens)
     argv = SimpleNamespace(custom_action_param='{"interval_ms": 1}')
     monkeypatch.setattr(eight_bit, "is_hit", lambda detail: detail is not None)
     monkeypatch.setattr(eight_bit, "ocr_text", lambda detail, default="": getattr(detail, "text", default))
     if reset:
         EightBitCombatMove._forget_level()
-    EightBitCombatMove().run(context, argv)  # type: ignore[arg-type]
-    return context
+    result = EightBitCombatMove().run(context, argv)  # type: ignore[arg-type]
+    return context, result
 
 
 def test_run_keeps_level_timer_across_reentry(monkeypatch) -> None:
@@ -356,8 +356,23 @@ def test_run_keeps_level_timer_across_reentry(monkeypatch) -> None:
 
 
 def test_run_moves_during_holdout(monkeypatch) -> None:
-    context = _run_level(["坚持40回合", "坚持39回合", None, None], monkeypatch)
+    context, _ = _run_level(["坚持40回合", "坚持39回合", None, None], monkeypatch, reset=True)
     assert context.tasker.controller.clicks, "坚持阶段应当在移动"
+
+
+def test_run_times_out_only_while_level_is_still_visible(monkeypatch) -> None:
+    """关卡目标读不到时不能判失败（可能是过场 / 商店），只有仍看得见关卡目标才超时退出。"""
+    # 起点设成很久以前：本帧读不到目标 → 走未命中判定，正常结束
+    _run_level([None, None], monkeypatch, reset=True)
+    EightBitCombatMove._level_started = 1.0
+    _, result = _run_level([None, None], monkeypatch)
+    assert result.success
+
+    # 起点很久以前且仍读得到关卡目标 → 真卡住，返回失败交给 on_error
+    EightBitCombatMove._level_started = 1.0
+    _, result = _run_level(["坚持30回合", "坚持29回合"], monkeypatch)
+    assert not result.success
+    assert EightBitCombatMove._level_started is None
 
 
 def test_parse_count() -> None:
