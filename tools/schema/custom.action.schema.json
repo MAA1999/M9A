@@ -74,7 +74,7 @@
                 "CISelectResearchers",
                 "EightBitCombatMove",
                 "EightBitScoreRecord",
-                "EightBitCombatInit",
+                "EightBitShopBuy",
                 "CUB_StartAllIn",
                 "WarehouseInventoryScan",
                 "ArtOfIlluminationScratch"
@@ -293,7 +293,7 @@
             "$ref": "#/$defs/EightBitScoreRecord"
         },
         {
-            "$ref": "#/$defs/EightBitCombatInit"
+            "$ref": "#/$defs/EightBitShopBuy"
         },
         {
             "$ref": "#/$defs/CUB_StartAllIn"
@@ -1332,7 +1332,7 @@
             "properties": {
                 "custom_action": {
                     "const": "EightBitCombatMove",
-                    "description": "8-bit 战斗界面移动逻辑"
+                    "description": "8-bit 街机秀（幸存者游戏）普通关：坚持阶段左右巡逻，清场阶段读棋盘朝最近的怪物走，一次调用打完整关"
                 },
                 "custom_action_param": {
                     "type": "object",
@@ -1340,11 +1340,23 @@
                         "move_input": {
                             "type": "string",
                             "enum": [
-                                "key",
-                                "click"
+                                "click",
+                                "key"
                             ],
-                            "description": "移动输入方式。key 使用方向键，click 使用 Python 中预留的四方向点击坐标。",
-                            "default": "key"
+                            "description": "移动输入方式。click 点击屏幕左下角方向键，key 发送 Android 方向键。",
+                            "default": "click"
+                        },
+                        "interval_ms": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "description": "每步间隔毫秒。",
+                            "default": 500
+                        },
+                        "level_timeout_s": {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "description": "单关超时秒数，超时返回失败并走 on_error。",
+                            "default": 150
                         }
                     },
                     "unevaluatedProperties": false
@@ -1355,15 +1367,15 @@
             "properties": {
                 "custom_action": {
                     "const": "EightBitScoreRecord",
-                    "description": "8-bit 战斗结束后记录获得代币数量并统计效率"
+                    "description": "8-bit 街机秀结算页记录本局像素卡带并统计效率，然后关闭结算页"
                 }
             }
         },
-        "EightBitCombatInit": {
+        "EightBitShopBuy": {
             "properties": {
                 "custom_action": {
-                    "const": "EightBitCombatInit",
-                    "description": "8-bit 战斗初始化，检测是否需要开启碰壁检测"
+                    "const": "EightBitShopBuy",
+                    "description": "8-bit 街机秀商店「地下流通处」：从左到右买下买得起的纯属性缪斯秘宝，首领关前的商店不买"
                 }
             }
         },
