@@ -12,8 +12,13 @@ from agent.custom.action.eight_bit import (
     FREE,
     HOLDOUT,
     HOLDOUT_ROUTE,
+    HUNT_MAX_MONSTERS,
     LEFT,
     MOVE_CLICK_POSITIONS,
+    MOVE_CYCLE,
+    MOVE_STRATEGY_CYCLE,
+    MOVE_STRATEGY_HYBRID,
+    MOVE_STRATEGY_SMART,
     OBJECTIVE_ROI,
     OCCUPIED,
     OFF,
@@ -27,9 +32,11 @@ from agent.custom.action.eight_bit import (
     buy_button_ready,
     classify_cell,
     clear_move,
+    cycle_key,
     efficiency_per_hour,
     find_player,
     forced_move,
+    hunt_target,
     next_level_start,
     objective_phase,
     parse_count,
@@ -37,6 +44,7 @@ from agent.custom.action.eight_bit import (
     read_board,
     round_from_objective,
     route_key,
+    safe_key,
     slot_of,
     toward,
     wanted_relic,
@@ -137,6 +145,47 @@ def test_routes_return_to_start() -> None:
 
 def test_route_keys_all_have_click_positions() -> None:
     assert set(HOLDOUT_ROUTE) | set(SEARCH_ROUTE) <= MOVE_CLICK_POSITIONS.keys()
+
+
+def test_cycle_key_repeats_up_left_down_right() -> None:
+    assert MOVE_CYCLE == (UP, LEFT, DOWN, RIGHT)
+    assert [cycle_key(step) for step in range(8)] == [UP, LEFT, DOWN, RIGHT] * 2
+    assert set(MOVE_CYCLE) <= MOVE_CLICK_POSITIONS.keys()
+
+
+# ---- 混合策略：固定节奏 + 怪少时主动靠近
+
+
+def test_hunt_target_goes_for_straggler_outside_weapon_range() -> None:
+    assert hunt_target(_board(l4_u1=OCCUPIED)) == (-4, -1)
+
+
+def test_hunt_target_ignores_monster_already_in_weapon_range() -> None:
+    assert hunt_target(_board(r2_d2=OCCUPIED)) is None
+
+
+def test_hunt_target_ignores_crowd() -> None:
+    board = _board(r4_d0=OCCUPIED, l4_d0=OCCUPIED, r0_u4=OCCUPIED)
+    assert len(board.monsters()) > HUNT_MAX_MONSTERS
+    assert hunt_target(board) is None
+
+
+def test_hunt_target_none_without_monsters() -> None:
+    assert hunt_target(_board()) is None
+
+
+def test_safe_key_prefers_first_free_direction() -> None:
+    assert safe_key(_board(), [UP, LEFT]) == UP
+
+
+def test_safe_key_skips_warning_and_occupied_cells() -> None:
+    board = _board(r0_u1=DANGER, l1_d0=OCCUPIED)
+    assert safe_key(board, [UP, LEFT, DOWN]) == DOWN
+
+
+def test_safe_key_none_when_every_direction_is_blocked() -> None:
+    board = _board(r0_u1=DANGER, r1_d0=OCCUPIED, r0_d1=OCCUPIED, l1_d0=OFF)
+    assert safe_key(board, [UP, RIGHT, DOWN, LEFT]) is None
 
 
 def test_objective_phase() -> None:
@@ -360,6 +409,19 @@ def test_run_moves_during_holdout(monkeypatch) -> None:
     assert context.tasker.controller.clicks, "坚持阶段应当在移动"
 
 
+def test_run_holdout_follows_up_left_down_right(monkeypatch) -> None:
+    """坚持阶段不读棋盘，按 上→左→下→右 固定节奏走。"""
+    context, _ = _run_level(["坚持40回合", "坚持39回合", None, None], monkeypatch, reset=True)
+    assert context.tasker.controller.clicks == [MOVE_CLICK_POSITIONS[UP], MOVE_CLICK_POSITIONS[LEFT]]
+
+
+def test_run_hybrid_hunts_straggler_in_clear_phase(monkeypatch) -> None:
+    """清场阶段只剩一只远处的怪：主动朝它走，而不是只按固定节奏。"""
+    monkeypatch.setattr(eight_bit, "read_board", lambda img: _board(l4_d0=OCCUPIED))
+    context, _ = _run_level(["击败所有怪物", "击败所有怪物", None, None], monkeypatch, reset=True)
+    assert context.tasker.controller.clicks[0] == MOVE_CLICK_POSITIONS[LEFT]
+
+
 def test_run_times_out_only_while_level_is_still_visible(monkeypatch) -> None:
     """关卡目标读不到时不能判失败（可能是过场 / 商店），只有仍看得见关卡目标才超时退出。"""
     # 起点设成很久以前：本帧读不到目标 → 走未命中判定，正常结束
@@ -403,3 +465,10 @@ def test_move_params_ignore_invalid_values() -> None:
     raw = '{"move_input": "mouse", "interval_ms": 0, "level_timeout_s": true}'
     assert parse_move_params(raw) == MoveParams()
     assert parse_move_params("{not json") == MoveParams()
+
+
+def test_move_params_strategy_defaults_to_hybrid() -> None:
+    assert parse_move_params(None).move_strategy == MOVE_STRATEGY_HYBRID
+    assert parse_move_params('{"move_strategy": "cycle"}').move_strategy == MOVE_STRATEGY_CYCLE
+    assert parse_move_params('{"move_strategy": "smart"}').move_strategy == MOVE_STRATEGY_SMART
+    assert parse_move_params('{"move_strategy": "random"}').move_strategy == MOVE_STRATEGY_HYBRID

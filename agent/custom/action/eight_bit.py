@@ -5,9 +5,13 @@
 自动攻击以玩家为中心的 5×5。怪物攻击前会先在目标格上画出红色预警，目标格在施放时就固定了，
 不会跟着玩家走。
 
-普通关的移动规则：
-- 「坚持N回合」阶段：左右来回巡逻，不读棋盘。一直在动就躲得开预警，追过来的怪物会进入武器范围。
-- 「击败所有怪物」阶段：每步读棋盘，朝最近的怪物走，走到 2 格内（武器范围）就停下等武器输出；
+普通关的移动规则（move_strategy=hybrid，默认）：
+- 平时不读棋盘，按 上 → 左 → 下 → 右 的顺序循环点击十字键：一直在动就躲得开预警。
+- 清场阶段看到的怪不多（≤ HUNT_MAX_MONSTERS）且最近的怪也在武器范围外时，主动朝它走一步
+  （避开预警格和有单位的格子）：落单的怪不一定主动过来，只靠固定节奏永远走不到它跟前。
+- 清场阶段连续 SEARCH_AFTER_STEPS 步一只怪都看不到，就按十字路线走大圈扩大视野找怪。
+- move_strategy=cycle 时始终固定节奏；smart 时走原来的读棋盘打法：「坚持N回合」阶段左右来回巡逻；
+  「击败所有怪物」阶段每步读棋盘，朝最近的怪物走，走到 2 格内（武器范围）就停下等武器输出；
   看不到怪物时走十字找怪；脚下出现预警就先躲到没有预警的邻格。
   连续多步都不动（把静态装饰误判成怪物也走这条路）时强制换方向，免得站到单关超时。
 难度Ⅰ第一阶段实测：左右巡逻 3 个普通关全部满血通关；站着不动则 3 次都在第 1 关被打死。
@@ -47,6 +51,16 @@ MOVE_CLICK_POSITIONS: dict[int, tuple[int, int]] = {
     RIGHT: (259, 548),
 }
 
+# 进入对局后的默认移动：按 上 → 左 → 下 → 右 顺序循环点击
+MOVE_CYCLE: tuple[int, ...] = (UP, LEFT, DOWN, RIGHT)
+MOVE_STRATEGY_HYBRID, MOVE_STRATEGY_CYCLE, MOVE_STRATEGY_SMART = "hybrid", "cycle", "smart"
+
+# 清场阶段可见的怪不超过这个数量、且最近的怪也在武器范围外时，主动朝它走：
+# 落单的怪不一定主动过来，只靠固定节奏永远走不到它跟前，会拖到单关超时
+HUNT_MAX_MONSTERS = 2
+# 清场阶段连续这么多步一只怪都看不到，就按十字路线走大圈扩大视野找怪
+SEARCH_AFTER_STEPS = 6
+
 # 两条巡逻路线都会回到起点：玩家从 32×32 地图中央出生，走不到地图边缘
 # 坚持阶段：往右 5 格、往左 5 格
 HOLDOUT_ROUTE: tuple[int, ...] = (RIGHT,) * 5 + (LEFT,) * 5
@@ -82,6 +96,11 @@ def objective_phase(text: str) -> str | None:
 def route_key(route: tuple[int, ...], step: int) -> int:
     """返回巡逻路线第 step 步（从 0 开始）的方向键。"""
     return route[step % len(route)]
+
+
+def cycle_key(step: int) -> int:
+    """进入对局后第 step 步（从 0 开始）的方向键：上 → 左 → 下 → 右 循环。"""
+    return MOVE_CYCLE[step % len(MOVE_CYCLE)]
 
 
 # ---------------------------------------------------------------- 棋盘读取
@@ -178,9 +197,13 @@ class Board:
         """相邻格子的状态（越界按不可达处理）。"""
         return self.cells.get(STEP[key], OFF)
 
+    def monsters(self) -> list[tuple[int, int]]:
+        """所有读到「有单位」的格子（怪物与医疗箱都算）。"""
+        return [cell for cell, state in self.cells.items() if state == OCCUPIED]
+
     def nearest_monster(self) -> tuple[int, int] | None:
         """最近的有单位的格子（按切比雪夫距离，同距离取曼哈顿距离小的）。"""
-        monsters = [cell for cell, state in self.cells.items() if state == OCCUPIED]
+        monsters = self.monsters()
         if not monsters:
             return None
         return min(monsters, key=lambda c: (max(abs(c[0]), abs(c[1])), abs(c[0]) + abs(c[1])))
@@ -243,12 +266,37 @@ def forced_move(board: Board, last_key: int) -> int | None:
     return None
 
 
+def safe_key(board: Board, preferred: list[int]) -> int | None:
+    """按优先级挑一个不会踩进预警格 / 有单位格的方向键；都不安全时返回 None（原地等一回合）。"""
+    for key in preferred:
+        if board.neighbour(key) == FREE:
+            return key
+    return None
+
+
+def hunt_target(board: Board) -> tuple[int, int] | None:
+    """清场阶段该不该主动靠近：可见的怪不多、且最近的怪也在武器范围外时，返回最近的怪。
+
+    怪多的时候它们会自己走进武器范围，保持固定节奏躲预警就够；落单的怪不一定主动过来，
+    只靠固定节奏永远走不到它跟前，会拖到单关超时。医疗箱也会被读成「有单位」，按怪处理。
+    """
+    monsters = board.monsters()
+    if not monsters or len(monsters) > HUNT_MAX_MONSTERS:
+        return None
+    target = board.nearest_monster()
+    if target is None or max(abs(target[0]), abs(target[1])) <= WEAPON_RANGE:
+        return None
+    return target
+
+
 # ---------------------------------------------------------------- 参数
 
 
 @dataclass(frozen=True)
 class MoveParams:
     move_input: str = "click"
+    # hybrid：固定节奏 + 怪少时主动靠近（默认）；cycle：始终固定节奏；smart：读棋盘靠近怪物并躲预警
+    move_strategy: str = MOVE_STRATEGY_HYBRID
     interval_ms: int = 500
     # 正常一关约 50~70 秒；超时就放弃本局，已通关的关卡照样结算
     level_timeout_s: float = 150.0
@@ -277,6 +325,11 @@ def parse_move_params(raw: Any) -> MoveParams:
         logger.warning(f"[8bit] 未知移动输入方式: {move_input}，使用点击输入")
         move_input = default.move_input
 
+    move_strategy = params.get("move_strategy", default.move_strategy)
+    if move_strategy not in (MOVE_STRATEGY_HYBRID, MOVE_STRATEGY_CYCLE, MOVE_STRATEGY_SMART):
+        logger.warning(f"[8bit] 未知移动策略: {move_strategy}，使用固定节奏 + 怪少时靠近（hybrid）")
+        move_strategy = default.move_strategy
+
     interval = params.get("interval_ms", default.interval_ms)
     if not _positive_number(interval) or int(interval) != interval:
         logger.warning(f"[8bit] interval_ms 非法: {interval}，使用默认值")
@@ -287,7 +340,12 @@ def parse_move_params(raw: Any) -> MoveParams:
         logger.warning(f"[8bit] level_timeout_s 非法: {timeout}，使用默认值")
         timeout = default.level_timeout_s
 
-    return MoveParams(move_input=str(move_input), interval_ms=int(interval), level_timeout_s=float(timeout))
+    return MoveParams(
+        move_input=str(move_input),
+        move_strategy=str(move_strategy),
+        interval_ms=int(interval),
+        level_timeout_s=float(timeout),
+    )
 
 
 def parse_count(text: str) -> int | None:
@@ -350,6 +408,8 @@ class EightBitCombatMove(CustomAction):
 
     参数：
       move_input: "click"（默认，点击屏幕十字键）或 "key"（发送 Android 方向键）
+      move_strategy: "hybrid"（默认，固定节奏 + 怪少时主动靠近）/ "cycle"（始终固定节奏）/
+        "smart"（读棋盘靠近怪物并躲预警）
       interval_ms: 每步间隔毫秒，默认 500
       level_timeout_s: 单关超时秒数，默认 150
     """
@@ -378,7 +438,8 @@ class EightBitCombatMove(CustomAction):
         """打完整关：读关卡目标决定阶段与计时，逐回合移动，离开关卡时返回成功；单关超时返回失败。"""
         params = parse_move_params(argv.custom_action_param)
         cls = EightBitCombatMove
-        holdout_step = search_step = idle_steps = steps = misses = 0
+        holdout_step = search_step = idle_steps = cycle_step = blind_steps = 0
+        steps = misses = 0
         last_key: int | None = None
         started: float | None = None
 
@@ -406,22 +467,50 @@ class EightBitCombatMove(CustomAction):
                 continue
             misses = 0
 
-            if phase == HOLDOUT:
-                key: int | None = route_key(HOLDOUT_ROUTE, holdout_step)
-                holdout_step += 1
-            else:
-                search_key = route_key(SEARCH_ROUTE, search_step)
-                board = read_board(img)
-                key = clear_move(board, search_key)
-                if key is None:
-                    idle_steps += 1
-                    if idle_steps >= self.MAX_IDLE_STEPS:
-                        key = forced_move(board, last_key) if last_key is not None else search_key
-                        idle_steps = 0
+            key: int | None
+            if params.move_strategy == MOVE_STRATEGY_SMART:
+                if phase == HOLDOUT:
+                    key = route_key(HOLDOUT_ROUTE, holdout_step)
+                    holdout_step += 1
                 else:
-                    idle_steps = 0
-                if key is not None:
-                    search_step += 1
+                    search_key = route_key(SEARCH_ROUTE, search_step)
+                    board = read_board(img)
+                    key = clear_move(board, search_key)
+                    if key is None:
+                        idle_steps += 1
+                        if idle_steps >= self.MAX_IDLE_STEPS:
+                            key = forced_move(board, last_key) if last_key is not None else search_key
+                            idle_steps = 0
+                    else:
+                        idle_steps = 0
+                    if key is not None:
+                        search_step += 1
+            elif params.move_strategy == MOVE_STRATEGY_HYBRID and phase == CLEAR:
+                board = read_board(img)
+                target = hunt_target(board)
+                if target is not None:
+                    # 落单的怪不主动过来：朝它走，躲开预警格和有单位的格子
+                    blind_steps = search_step = 0
+                    key = safe_key(board, toward(target))
+                elif board.nearest_monster() is None:
+                    # 一只都看不到：先按固定节奏走几步，还是没有就走十字路线扩大视野
+                    blind_steps += 1
+                    if blind_steps > SEARCH_AFTER_STEPS:
+                        key = safe_key(board, [route_key(SEARCH_ROUTE, search_step)])
+                        search_step += 1
+                    else:
+                        key = cycle_key(cycle_step)
+                        cycle_step += 1
+                else:
+                    blind_steps = search_step = 0
+                    key = cycle_key(cycle_step)
+                    cycle_step += 1
+                if key is None and last_key is not None:
+                    # 被预警格 / 怪物堵住时换方向，别站着不动
+                    key = forced_move(board, last_key)
+            else:
+                key = cycle_key(cycle_step)
+                cycle_step += 1
 
             if key is not None:
                 self._press(context, key, params.move_input)

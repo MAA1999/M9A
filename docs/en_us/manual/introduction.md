@@ -340,7 +340,7 @@ Farms Pixel Cassettes in the 4.1 "8-bit Arcade Show: Dungeon Survivors" (spent i
 
 Each run: enter One-Way Coin I → pick a blessing → clear the 3 normal levels of stage 1 → pause at the boss level and return to the hall to settle → start again. A run takes about 3 minutes and pays 30 Pixel Cassettes and 30 Pixel Gems.
 
-- **In a level**: during "Hold out N rounds" the character patrols left and right; during "Defeat all monsters" it walks toward the nearest monster, stops once the monster is inside weapon range so the auto-attack can land, and steps around red warning cells
+- **In a level**: moves in a fixed up→left→down→right rhythm; during "Defeat all monsters" it walks toward a straggler once only a few monsters remain and none is inside weapon range, and sweeps a wider area if no monster is visible for several steps
 - **Shop (Underground Exchange)**: buys affordable stat-only Muse relics (damage, attack range, HP, crit, dodge) from left to right, skips relics that spawn bombs or summons or change shop rules, and buys nothing in the shop right before the boss
 
 ::: warning

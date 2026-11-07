@@ -1332,7 +1332,7 @@
             "properties": {
                 "custom_action": {
                     "const": "EightBitCombatMove",
-                    "description": "8-bit 街机秀（幸存者游戏）普通关：坚持阶段左右巡逻，清场阶段读棋盘朝最近的怪物走，一次调用打完整关"
+                    "description": "8-bit 街机秀（幸存者游戏）普通关：平时按 上→左→下→右 固定节奏移动，清场阶段怪少时主动靠近落单的怪，一次调用打完整关"
                 },
                 "custom_action_param": {
                     "type": "object",
@@ -1345,6 +1345,16 @@
                             ],
                             "description": "移动输入方式。click 点击屏幕左下角方向键，key 发送 Android 方向键。",
                             "default": "click"
+                        },
+                        "move_strategy": {
+                            "type": "string",
+                            "enum": [
+                                "hybrid",
+                                "cycle",
+                                "smart"
+                            ],
+                            "description": "移动策略。hybrid 固定节奏 + 怪少时主动靠近落单的怪（默认），cycle 始终按 上→左→下→右 循环，smart 读棋盘靠近怪物并躲预警。",
+                            "default": "hybrid"
                         },
                         "interval_ms": {
                             "type": "integer",

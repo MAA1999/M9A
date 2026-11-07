@@ -183,7 +183,7 @@
         ]
     },
     "8bitFlagInCombat": {
-        "desc": "普通关战斗中（左上角目标为「坚持N回合」或「击败所有怪物」）：自定义动作每回合读棋盘、躲预警、巡逻或靠近怪物，一次打完整关；单关超时则走 on_error 收尾（已在商店 / 结算页时按正常结束继续，仍在战斗里则暂停并返回大厅结算）",
+        "desc": "普通关战斗中（左上角目标为「坚持N回合」或「击败所有怪物」）：自定义动作平时按 上→左→下→右 固定节奏移动，清场阶段怪少时主动靠近落单的怪，一次打完整关；单关超时则走 on_error 收尾（已在商店 / 结算页时按正常结束继续，仍在战斗里则暂停并返回大厅结算）",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -204,7 +204,8 @@
             "param": {
                 "custom_action": "EightBitCombatMove",
                 "custom_action_param": {
-                    "move_input": "click"
+                    "move_input": "click",
+                    "move_strategy": "hybrid"
                 }
             }
         },
