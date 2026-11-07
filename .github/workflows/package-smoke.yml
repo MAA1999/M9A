@@ -236,3 +236,28 @@ jobs:
           # The listing documents the shipped layout: one real file, a symlink per top-level entry.
           ls -l dist/M9A.app/Contents/MacOS
           codesign --verify --strict --verbose=2 dist/M9A.app
+
+      # The bundle is signed and sealed; this runs it the way a user would, with the app directory
+      # read-only, so the Agent has to keep its config and logs outside the bundle.
+      - name: Verify macOS bundle runs
+        if: runner.os == 'macOS'
+        shell: bash
+        run: bash tools/ci/smoke-macos-app.sh dist/M9A.app "$RUNNER_TEMP/m9a-bundle-smoke"
+
+      # Best effort only: a hosted runner may not have a usable window server, so a failed launch
+      # here says nothing about a real Mac. The log is attached for whoever runs the acceptance pass.
+      - name: Probe the MXU GUI
+        if: runner.os == 'macOS'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          ( cd dist/M9A.app/Contents/MacOS && ./m9a > "$RUNNER_TEMP/mxu.log" 2>&1 & echo $! > "$RUNNER_TEMP/mxu.pid" )
+          sleep 20
+          if kill -0 "$(cat "$RUNNER_TEMP/mxu.pid")" 2>/dev/null; then
+            echo "[OK] MXU stayed alive for 20s"
+            kill "$(cat "$RUNNER_TEMP/mxu.pid")" 2>/dev/null
+          else
+            echo "[WARN] MXU exited within 20s; see the log below"
+          fi
+          tail -n 60 "$RUNNER_TEMP/mxu.log"
