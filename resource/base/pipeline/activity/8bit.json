@@ -205,7 +205,8 @@
                 "custom_action": "EightBitCombatMove",
                 "custom_action_param": {
                     "move_input": "click",
-                    "move_strategy": "hybrid"
+                    "move_strategy": "hybrid",
+                    "interval_ms": 300
                 }
             }
         },
