@@ -42,7 +42,7 @@ def run_bundler(package: Path, app: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
-def test_macos_bundle_keeps_code_in_macos_and_data_in_resources(tmp_path: Path) -> None:
+def test_macos_bundle_keeps_code_out_of_the_data_directory(tmp_path: Path) -> None:
     package = write_release_package(tmp_path)
     app = tmp_path / "M9A.app"
 
@@ -51,17 +51,17 @@ def test_macos_bundle_keeps_code_in_macos_and_data_in_resources(tmp_path: Path) 
     assert result.returncode == 0, result.stdout + result.stderr
     macos = app / "Contents/MacOS"
     portable = app / "Contents/Resources/MXU-portable"
-    # Mach-O stays real in the code directory and is linked from the portable tree
-    for relative in ("m9a", "agent/libs/drop_core.so", "maafw/libMaaFramework.dylib", "python/bin/python3"):
-        assert (macos / relative).is_file()
-        assert not (macos / relative).is_symlink()
-        assert (portable / relative).is_symlink()
-    # Data moves out of the code directory and is linked back, because codesign rejects it there
-    for relative in ("interface.json", "resource/logo.png", "agent/main.py"):
-        assert (portable / relative).is_file()
-        assert not (portable / relative).is_symlink()
-        assert (macos / relative).is_symlink()
+    # Only the GUI executable is real inside the code directory; everything else is a link so the
+    # bundle seal never has to cover mutable-looking data in Contents/MacOS.
+    assert (macos / "m9a").is_file()
+    assert not (macos / "m9a").is_symlink()
+    for relative in ("interface.json", "agent", "resource", "maafw", "python"):
+        assert (macos / relative).is_symlink(), relative
         assert (macos / relative).resolve() == (portable / relative).resolve()
+    # The real files sit in the portable directory, so MXU and the Agent still resolve them
+    for relative in ("interface.json", "agent/main.py", "agent/libs/drop_core.so", "python/bin/python3"):
+        assert (portable / relative).is_file(), relative
+        assert not (portable / relative).is_symlink()
 
     plist = (app / "Contents/Info.plist").read_text(encoding="utf-8")
     assert "<string>com.m9a.app</string>" in plist

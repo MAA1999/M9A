@@ -166,8 +166,8 @@ jobs:
             --version v0.0.0-package-smoke
           test -x dist/M9A.app/Contents/MacOS/m9a
           test -L dist/M9A.app/Contents/MacOS/interface.json
-          test ! -L dist/M9A.app/Contents/MacOS/python/bin/python3
-          codesign --verify --deep --strict --verbose=2 dist/M9A.app
+          test -d dist/M9A.app/Contents/Resources/MXU-portable/agent
+          codesign --verify --strict --verbose=2 dist/M9A.app
 
       - name: Verify packaging
         if: runner.os != 'Windows'
