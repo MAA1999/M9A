@@ -226,8 +226,11 @@ jobs:
           node tools/macos-app-bundle.mjs \
             --package dist/package-mxu \
             --app dist/M9A.app \
-            --version v0.0.0-package-smoke
+            --version v0.0.0-package-smoke \
+            --icon logo.ico \
+            --dmg dist/M9A-package-smoke.dmg
           test -x dist/M9A.app/Contents/MacOS/m9a
           test -L dist/M9A.app/Contents/MacOS/interface.json
           test -d dist/M9A.app/Contents/Resources/MXU-portable/agent
+          test -s dist/M9A-package-smoke.dmg
           codesign --verify --strict --verbose=2 dist/M9A.app
