@@ -1,9 +1,22 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
+ENV_USER_DATA_DIR = "PI_USER_DATA_DIR"
 DEFAULT_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def default_work_root() -> Path:
+    """返回 config / debug / data 的落盘根目录。
+
+    PI v2.11.0 起 Client 通过 ``PI_USER_DATA_DIR`` 交出一个可写数据目录。macOS 的 .app 里项目
+    根目录位于应用包内，普通用户账户不可写，所以不能回落到工作目录；Client 没设该变量时
+    （例如 MFAAvalonia）与以前一致，仍用当前工作目录。
+    """
+    value = os.environ.get(ENV_USER_DATA_DIR, "").strip()
+    return Path(value) if value else Path.cwd()
 
 
 @dataclass(frozen=True)
