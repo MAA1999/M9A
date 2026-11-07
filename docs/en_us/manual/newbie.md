@@ -185,9 +185,9 @@ Chinese users can also download at high speed through [MirrorChyan](https://mirr
 
 <div align="center">
 
-|                      |          Windows          |                                                macOS                                                |                                                Linux                                                |                                                                                    Android                                                                                    |
-| :------------------: | :-----------------------: | :-------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| You need to download | `M9A-win-x86_64-vXXX.zip` | `M9A-macos-x86_64-vXXX.tar.gz` or `M9A-macos-aarch64-vXXX.tar.gz`<br>depending on your architecture | `M9A-linux-x86_64-vXXX.tar.gz` or `M9A-linux-aarch64-vXXX.tar.gz`<br>depending on your architecture | `M9A-android-universal-<version>.apk`<br>or `M9A-android-arm64-v8a-<version>.apk` (recommended for physical devices)<br>or `M9A-android-x86_64-<version>.apk` (x86 emulators) |
+|                      |          Windows          |                                                                                       macOS                                                                                       |                                                Linux                                                |                                                                                    Android                                                                                    |
+| :------------------: | :-----------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| You need to download | `M9A-win-x86_64-vXXX.zip` | `M9A-macos-x86_64-vXXX-MXU.dmg` or `M9A-macos-aarch64-vXXX-MXU.dmg`<br>depending on your architecture, containing `M9A.app`<br>the MFAA GUI is still shipped as `...-MFAA.tar.gz` | `M9A-linux-x86_64-vXXX.tar.gz` or `M9A-linux-aarch64-vXXX.tar.gz`<br>depending on your architecture | `M9A-android-universal-<version>.apk`<br>or `M9A-android-arm64-v8a-<version>.apk` (recommended for physical devices)<br>or `M9A-android-x86_64-<version>.apk` (x86 emulators) |
 
 </div>
 
@@ -201,8 +201,9 @@ Chinese users can also download at high speed through [MirrorChyan](https://mirr
       <li>In the window that appears, you can see the processor information.</li>
     </ol>
     <ul>
-      <li>If using Intel X86 processor, please download <code>M9A-macos-x86_64-vXXX.tar.gz</code></li>
-      <li>If using Apple Silicon series such as M1, M2, etc. ARM architecture processors, please download <code>M9A-macos-aarch64-vXXX.tar.gz</code></li>
+      <li>If using Intel X86 processor, please download <code>M9A-macos-x86_64-vXXX-MXU.dmg</code></li>
+      <li>If using Apple Silicon series such as M1, M2, etc. ARM architecture processors, please download <code>M9A-macos-aarch64-vXXX-MXU.dmg</code></li>
+      <li>The dmg contains <code>M9A.app</code> (MXU GUI): drag it into Applications. The MFAA GUI is still shipped as a <code>.tar.gz</code> archive</li>
     </ul>
   </blockquote>
 </details>
@@ -323,53 +324,43 @@ Confirm complete extraction and ensure M9A is extracted to an independent folder
 
 #### macOS
 
+The macOS build ships as a dmg containing `M9A.app` (MXU GUI).
+
+1. Open the downloaded `M9A-macos-<arch>-vXXX-MXU.dmg` and drag `M9A.app` into Applications.
+2. Launch `M9A.app` from Launchpad or Applications.
+
 <details>
-  <summary>Details</summary>
+  <summary>Using MFAAvalonia or the command line (MaaPiCli)</summary>
   <p></p>
   <blockquote>
 
-1. Open terminal, extract the distributed archive:
+The MFAA GUI and MaaPiCli are still distributed as `.tar.gz`, so extract and run them as before:
 
-    **Option 1: Extract to system directory (requires administrator privileges)**
+```shell
+mkdir -p ~/M9A
+tar -xzf M9A-macos-<arch>-vXXX-MFAA.tar.gz -C ~/M9A
+cd ~/M9A
+./MFAAvalonia
+```
 
-    ```shell
-    sudo mkdir -p /usr/local/bin/M9A
-    sudo tar -xzf <downloaded M9A archive path> -C /usr/local/bin/M9A
-    ```
+  </blockquote>
+</details>
 
-    **Option 2: Extract to user directory (recommended, no sudo required)**
+<details>
+  <summary>Gatekeeper security prompt handling</summary>
+  <p></p>
+  <blockquote>
 
-    ```shell
-    mkdir -p ~/M9A
-    tar -xzf <downloaded M9A archive path> -C ~/M9A
-    ```
-
-2. Enter the extraction directory and run the program:
-
-    ```shell
-    cd /usr/local/bin/M9A
-    ./M9A
-    ```
-
-If you want to use the **graphical interface**, follow step 2 and run the `M9A` program.
-
-⚠️Gatekeeper security prompt handling:
-
-In macOS 10.15 (Catalina) and later, Gatekeeper may prevent unsigned applications from running.  
+In macOS 10.15 (Catalina) and later, Gatekeeper may prevent ad-hoc signed (not notarised) applications from running.  
 If you encounter errors such as "Cannot open because the developer cannot be verified", please choose one of the following solutions:
 
 ```shell
-# Solution 1: Take M9A as an example to remove the quarantine attribute (recommended, subject to the actual path)
-sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/M9A
-# Or user directory version: xattr -rd com.apple.quarantine ~/M9A/M9A
+# Solution 1: remove the quarantine attribute (recommended, subject to the actual path)
+sudo xattr -rd com.apple.quarantine /Applications/M9A.app
 
-# Solution 2: Add to Gatekeeper whitelist
-sudo spctl --add /usr/local/bin/M9A/M9A
-# Or user directory version: spctl --add ~/M9A/M9A
+# Solution 2: right-click M9A.app in Finder → Open, then click Open in the dialog
 
-# Solution 3: Process the entire directory at once
-sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
-# Or user directory version: xattr -rd com.apple.quarantine ~/M9A/*
+# Solution 3: System Settings → Privacy & Security → Open Anyway
 ```
 
   </blockquote>
@@ -377,7 +368,7 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
 
 #### Linux
 
-Same as macOS, download the corresponding version of the archive, extract it, and then run `M9A`.
+Same as Windows, download the corresponding version of the archive, extract it, and then run `M9A`.
 
 #### Android
 

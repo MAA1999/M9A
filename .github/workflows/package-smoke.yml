@@ -153,6 +153,22 @@ jobs:
             }
             Write-Host "[OK] $packageName"
           }
+      - name: Verify macOS app bundle
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The release pipeline ships macOS MXU as M9A.app inside a dmg; building and signing it
+          # here keeps the layout, the codesign seal and the icon conversion covered on every push.
+          node tools/macos-app-bundle.mjs \
+            --package dist/package-mxu \
+            --app dist/M9A.app \
+            --version v0.0.0-package-smoke
+          test -x dist/M9A.app/Contents/MacOS/m9a
+          test -L dist/M9A.app/Contents/MacOS/interface.json
+          test ! -L dist/M9A.app/Contents/MacOS/python/bin/python3
+          codesign --verify --deep --strict --verbose=2 dist/M9A.app
+
       - name: Verify packaging
         if: runner.os != 'Windows'
         shell: bash
