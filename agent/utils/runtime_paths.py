@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -25,6 +26,32 @@ def _mtime(path: Path) -> float:
         return path.stat().st_mtime
     except OSError:
         return float("-inf")
+
+
+def seed_data_dir(paths: RuntimePaths) -> int:
+    """把 ``project_root/data`` 的基线播种进 ``work_root/data``，返回复制文件数。
+
+    数据目录（PI_USER_DATA_DIR/data）是项目 data/ 的覆盖层：热更写这里、读侧
+    ``resolve()`` 优先取这里。但 libs 下的二进制插件（drop_core.pyd 按 cwd 读
+    ``data/combat/*.json``）和遗漏的裸 ``open("data/...")`` 不会走 resolve，得让
+    数据目录自带一份基线：数据目录没有或更旧的文件按 ``copy2`` 带 mtime 复制，
+    已存在且更新（热更产物）的不动。work_root == project_root 时无事可做。
+    """
+    src = paths.project_root / "data"
+    dst = paths.data_dir
+    if paths.work_root == paths.project_root or not src.is_dir():
+        return 0
+    copied = 0
+    for base in src.rglob("*"):
+        if not base.is_file():
+            continue
+        target = dst / base.relative_to(src)
+        if _mtime(target) >= _mtime(base):
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(base, target)
+        copied += 1
+    return copied
 
 
 @dataclass(frozen=True)

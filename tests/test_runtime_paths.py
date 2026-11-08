@@ -123,3 +123,23 @@ def test_resolve_falls_back_for_identical_roots(tmp_path: Path) -> None:
     paths = runtime_paths.build_runtime_paths(project_root=tmp_path, work_root=tmp_path)
 
     assert paths.resolve("data/x.json") == (tmp_path / "data/x.json").resolve()
+
+
+def test_seed_data_dir_copies_missing_and_stale_only(tmp_path: Path) -> None:
+    paths = _bundle_paths(tmp_path)
+    _touch(paths.project_root / "data/a.json", 1000)
+    _touch(paths.project_root / "data/sub/b.json", 1000)
+    # 数据目录里已有一份更新的热更文件，不应被旧基线覆盖
+    fresh = paths.work_root / "data/a.json"
+    _touch(fresh, 9000)
+
+    assert runtime_paths.seed_data_dir(paths) == 1
+    assert (paths.work_root / "data/sub/b.json").exists()
+    assert fresh.read_text(encoding="utf-8") == "x"
+    assert os.path.getmtime(fresh) == 9000
+
+
+def test_seed_data_dir_noop_when_roots_identical(tmp_path: Path) -> None:
+    paths = runtime_paths.build_runtime_paths(project_root=tmp_path, work_root=tmp_path)
+
+    assert runtime_paths.seed_data_dir(paths) == 0

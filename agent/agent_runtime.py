@@ -8,7 +8,12 @@ from typing import Any
 
 from maafw_paths import ENV_NAME
 from utils.logger import logger
-from utils.runtime_paths import configure_runtime_paths, default_work_root, get_runtime_paths
+from utils.runtime_paths import (
+    configure_runtime_paths,
+    default_work_root,
+    get_runtime_paths,
+    seed_data_dir,
+)
 
 PI_ENV_KEYS = (
     "PI_INTERFACE_VERSION",
@@ -170,6 +175,17 @@ def run_agent(project_root_dir: str) -> int:
     # Inside a macOS .app the project root lives in the bundle, which a user account cannot write
     # to, so the working directory is only a fallback for clients that do not set the variable.
     configure_runtime_paths(project_root=project_root_dir, work_root=default_work_root())
+
+    # 数据目录播种包内 data/ 基线：libs/drop_core.pyd 这类二进制插件按 cwd 读
+    # data/，不走 resolve() 的覆盖层；播种后 cwd 与 resolve 两条读路径落到同一份文件。
+    # 热更产物（更新）不动，只补缺失或更旧的。
+    try:
+        seeded = seed_data_dir(get_runtime_paths())
+        if seeded:
+            logger.debug(f"已向数据目录播种 {seeded} 个 data/ 基线文件")
+    except OSError as error:
+        # 播种失败不致命：resolve() 仍会回落到包内基线，仅二进制插件读到旧数据
+        logger.warning(f"data/ 基线播种失败（{error}），二进制插件可能读到包内旧数据")
 
     # debug:纯诊断信息，不进 GUI 日志打扰用户；agent 文件 sink 固定 DEBUG 级，排查时 debug/custom/*.log 里仍有
     logger.debug("MaaFW 二进制目录: {}", os.environ.get(ENV_NAME) or "wheel 自带 (site-packages/maa/bin)")
