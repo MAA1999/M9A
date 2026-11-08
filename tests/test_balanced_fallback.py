@@ -104,6 +104,14 @@ class _FakeContext:
         failed = not self.home_ok if entry == balanced_fallback.HOME_ENTRY else False
         return types.SimpleNamespace(status=types.SimpleNamespace(failed=failed))
 
+    def get_node_object(self, name: str) -> Any:
+        """`material_candy_override` 会读节点数据；桩里直接给默认结构。"""
+        return types.SimpleNamespace(attach={})
+
+    def get_node_data(self, name: str) -> Any:
+        """`_capture_baselines` 会读节点数据；桩里返回空 dict。"""
+        return {}
+
 
 def _entry(item_id: str, name: str, stage: str, level: str = "Hard", per_run: int | None = None) -> MaterialEntry:
     return MaterialEntry(
@@ -692,6 +700,44 @@ def test_retarget_material_returns_tristate(tmp_path: Path) -> None:
         assert result is False, "库存保持模式下切换失败必须返回 False"
     finally:
         depot_maintain._state.item_id = None
+
+
+def test_retarget_material_syncs_battle_params(tmp_path: Path) -> None:
+    """跨材料顺延时，除 `_state` 外还必须同步 AllIn / 吃糖 / 掉落上报。
+
+    回归防护（GPT 评审指出）：规划路径会把 `AllIn.target_count`、逐材料吃糖上限、
+    `DropRecognition.enabled` 按**旧材料**写进 pipeline；若 `retarget_material` 只更新
+    `_state`，会出现「材料已换成 B，但复现次数/吃糖仍按 A」。
+    """
+    from agent.custom.action import depot_maintain
+
+    # 模拟库存保持模式：item_id 已设置、candy_caps 已有规划时存下的值
+    depot_maintain._state.item_id = "110103"
+    depot_maintain._state.candy_caps = {"110103": 3}
+    depot_maintain._state.runs = 5
+
+    ctx = _FakeContext()
+    result = depot_maintain.retarget_material(ctx, "110103", "7-26", "Hard")
+
+    assert result is True
+    # 必须把 AllIn 的 target_count 一并写回（retarget 内部会按新材料重算 runs，
+    # 这里不预先假设具体值，只验证「写回了 AllIn」且值等于 _state.runs）
+    allin_override = None
+    drop_override = None
+    for pipeline in ctx.pipeline_overrides:
+        for node, val in pipeline.items():
+            if node == "AllIn":
+                allin_override = val
+            elif node == depot_maintain.DROP_REPORT_NODE:
+                drop_override = val
+    assert allin_override is not None, "必须同步 AllIn"
+    assert (
+        allin_override["action"]["param"]["custom_action_param"]["target_count"]
+        == depot_maintain._state.runs
+    ), "AllIn 的 target_count 必须等于重算后的 _state.runs"
+    assert drop_override is not None, "必须同步掉落上报开关"
+    # 恢复，避免影响其它用例
+    depot_maintain._state.item_id = None
 
 
 def test_entry_skips_task_when_marked(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

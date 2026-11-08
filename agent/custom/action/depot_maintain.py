@@ -156,6 +156,10 @@ class _PlanState:
     report_base_enabled = True
     # 本轮参与库存保持、需要角色页读数的货币（决定读数齐全与否，见 write_snapshot_counts）
     required_currency: list[str] = []
+    # 本轮 GUI 配置的**逐材料吃糖上限**（材料 id → 上限）。
+    # 规划节点解析一次后存这里：跨材料顺延时 `retarget_material` 拿不到 GUI 参数，
+    # 必须靠它给新材料重算吃糖覆盖，否则会沿用旧材料的设置。
+    candy_caps: dict[str, int] = {}
     # 本轮因候选关卡全部不可用而被跳过的材料（收尾时汇总到日志）
     skipped_materials: list[str] = []
     # 本次任务是否已尝试记录该账号的关卡进度（首次运行时记录一次）
@@ -579,7 +583,34 @@ def retarget_material(context: Context, item_id: str, stage: str, level: str) ->
     _state.stopped = False
     _state.per_run = entry.per_run
     # 读数模式依赖关卡是否参与掉落上报，换关卡后要重算
-    _state.read_mode = _pick_read_mode(item_id, label, reportable=report_enabled(context, stage, level))
+    reportable = report_enabled(context, stage, level)
+    _state.read_mode = _pick_read_mode(item_id, label, reportable=reportable)
+
+    # ⚠️ 只更新 `_state` 不够。正常规划路径（`DepotMaintainPlan`）在写 `_state` 之外
+    # 还会 override 这几项，它们是**按旧材料算好后写进 pipeline 的**，跨材料顺延后
+    # 如果不一起改，就会出现「材料已换成 B、但复现次数/吃糖仍按 A」：
+    #
+    #   - `AllIn.target_count` = A 的 runs  → B 会被按 A 的目标局数刷
+    #   - `material_candy_override(A, …)`   → B 会套用 A 的逐材料吃糖上限
+    #   - `DropRecognition.enabled`         → 上报开关是按 A 的关卡算的
+    #
+    # 这里把它们与新材料的 `_state` 一起重算并写回，保证「换材料」是一次原子切换。
+    # 吃糖上限用规划节点存下的 `_state.candy_caps`（本函数拿不到 GUI 参数，不能现算）。
+    candy_caps = dict(_state.candy_caps)
+
+    context.override_pipeline(
+        {
+            "AllIn": {
+                "action": {"param": {"custom_action_param": {"target_count": _state.runs}}},
+            },
+            **material_candy_override(context, item_id, candy_caps),
+            DROP_REPORT_NODE: {"enabled": reportable},
+        }
+    )
+    logger.debug(
+        f"跨材料顺延已同步作战参数: runs={_state.runs}, "
+        f"candy={candy_note(item_id, candy_caps)}, drop_report={reportable}"
+    )
 
     logger.info(
         f"库存保持目标已切换到 {label}（当前 {current} / 目标 {target}，缺口 {deficit}），"
@@ -870,6 +901,7 @@ class DepotMaintainInit(CustomAction):
         _state.candy_base_max_hit = UNLIMITED_CANDY
         _state.report_base_enabled = True
         _state.required_currency = []
+        _state.candy_caps = {}
         _state.skipped_materials = []
         # 关卡进度只在本次任务里记录一次
         _state.progress_recorded = False
@@ -917,6 +949,8 @@ class DepotMaintainPlan(CustomAction):
 
         targets = resolve_targets(catalog, parse_gui_targets(params, catalog))
         candy_caps = parse_gui_candy(params, catalog)
+        # 存下来供跨材料顺延时复用（`retarget_material` 拿不到 GUI 参数）
+        _state.candy_caps = candy_caps
         chosen = selected_items(context, catalog)
         if chosen is not None:
             targets = {item_id: (value if item_id in chosen else 0) for item_id, value in targets.items()}
