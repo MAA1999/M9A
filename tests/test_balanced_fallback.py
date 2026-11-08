@@ -736,12 +736,30 @@ def test_entry_navigates_once_to_read_uid(tmp_path: Path, monkeypatch: pytest.Mo
     assert calls, "UID 未知时必须触发一次读取"
 
 
-def test_entry_proceeds_when_not_marked(tmp_path: Path) -> None:
+def test_entry_proceeds_when_not_marked(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """未停用 → 放行。"""
+    monkeypatch.setattr(balanced_entry, "current_uid", lambda: "100000001")
     context = _FakeContext()
     result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
     assert result.success is True
     assert context.next_overrides[-1][1] == ["BF_Plan"]
+
+
+def test_entry_skips_when_uid_unavailable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """读不到 UID 时**不放行到规划节点** —— 避免把记录写进错误的账号桶。
+
+    回归防护：`current_account()` 在 UID 为空时回落成旧账号/默认桶，而 planner 与
+    状态文件都以它为桶键。若放行，关卡记录会写错账号；等稍后 UID 读出来桶又变了，
+    两边记录永远对不上。
+    """
+    monkeypatch.setattr(balanced_entry, "current_uid", lambda: "")
+    monkeypatch.setattr(balanced_entry, "_ensure_uid", lambda ctx: None)
+
+    context = _FakeContext()
+    result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
+
+    assert result.success is True
+    assert context.next_overrides[-1][1] == ["BF_Skipped"], "UID 未知必须跳过而不是规划"
 
 
 def test_reset_clears_records_and_skip_flag(tmp_path: Path) -> None:
@@ -773,7 +791,9 @@ def test_reset_without_option_keeps_records(tmp_path: Path) -> None:
     assert is_task_skipped(account) is True
 
 
-def test_reset_then_entry_order_allows_reset_while_skipped(tmp_path: Path) -> None:
+def test_reset_then_entry_order_allows_reset_while_skipped(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """已停用时仍能执行重置：重置在停用检查之前。"""
     account = current_account()
     set_task_skipped(account, True)
@@ -785,13 +805,15 @@ def test_reset_then_entry_order_allows_reset_while_skipped(tmp_path: Path) -> No
     )
     assert reset_ctx.next_overrides[-1][1] == ["BF_Entry"]
 
-    # 重置后停用标记已清 → 入口放行
+    # 重置后停用标记已清 → 入口放行（UID 已知，跳过 OCR 导航）
+    monkeypatch.setattr(balanced_entry, "current_uid", lambda: account)
+    monkeypatch.setattr(balanced_entry, "current_account", lambda *a, **k: account)
     entry_ctx = _FakeContext()
     balanced_entry.BalancedTaskEntry().run(entry_ctx, _FAKE_ARGV)
     assert entry_ctx.next_overrides[-1][1] == ["BF_Plan"], "重置后应恢复执行"
 
 
-def test_skip_flag_persists_across_restart(tmp_path: Path) -> None:
+def test_skip_flag_persists_across_restart(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """停用标记跨「重启」生效：重新读文件仍然认得。"""
     account = current_account()
     set_task_skipped(account, True)
@@ -799,6 +821,8 @@ def test_skip_flag_persists_across_restart(tmp_path: Path) -> None:
     # 模拟重启：新建状态机实例（内存清空），从文件重新读
     fresh = BalancedFallback()
     assert fresh.account_id == account
+    monkeypatch.setattr(balanced_entry, "current_uid", lambda: account)
+    monkeypatch.setattr(balanced_entry, "current_account", lambda *a, **k: account)
     context = _FakeContext()
     balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
     assert context.next_overrides[-1][1] == ["BF_Skipped"]
@@ -837,6 +861,69 @@ def test_failed_switch_does_not_change_ownership(tmp_path: Path) -> None:
     set_current_account("A")
     # 失败路径不调用 set_current_account
     assert current_account() == "A"
+
+
+def test_switch_sink_never_saves_stale_uid(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """切换成功但读不到新 UID 时，**不能**把旧账号当新归属写回去。
+
+    回归防护：早前 sink 用 `current_account()`，它在 UID 为空时回落成文件里的
+    旧账号（= 切换前的账号）。把它写回去会同时造成两件事：
+      1. 归属仍指向旧账号；
+      2. `clear_account_unsaved()` 解除写入保护，后续任务开始污染旧账号桶。
+    现在只认 `current_uid()`；读不到就退回配置标识，两者都没有则保持保护状态。
+    """
+    from maa.event_sink import NotificationType
+
+    from agent.custom.sink.switch_account_attribution import SwitchAccountAttribution
+
+    set_current_account("OLD-ACCOUNT")
+    balanced_state.remember_switch_target("")  # 没有配置标识
+
+    monkeypatch.setattr(
+        "agent.custom.sink.switch_account_attribution.current_uid",
+        lambda: "",  # 新账号的 UID 还没 OCR 出来
+    )
+    monkeypatch.setattr(
+        "agent.custom.sink.switch_account_attribution.pending_switch_target",
+        lambda: "",
+    )
+    balanced_state.clear_account_unsaved()
+
+    sink = SwitchAccountAttribution()
+    sink.on_tasker_task(
+        types.SimpleNamespace(),  # pyright: ignore[reportArgumentType]
+        NotificationType.Succeeded,
+        types.SimpleNamespace(entry="SwitchAccount"),  # pyright: ignore[reportArgumentType]
+    )
+
+    assert current_account() == "OLD-ACCOUNT", "归属不该被改写（旧值本来就是它）"
+    assert balanced_state.account_is_unsaved() is True, "读不到 UID 时必须保持写入保护，不能解除"
+    balanced_state.clear_account_unsaved()
+
+
+def test_switch_sink_prefers_real_uid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """切换成功且读到新 UID → 用 UID 作为归属。"""
+    from maa.event_sink import NotificationType
+
+    from agent.custom.sink.switch_account_attribution import SwitchAccountAttribution
+
+    set_current_account("OLD-ACCOUNT")
+    monkeypatch.setattr(
+        "agent.custom.sink.switch_account_attribution.current_uid",
+        lambda: "100000002",
+    )
+
+    sink = SwitchAccountAttribution()
+    sink.on_tasker_task(
+        types.SimpleNamespace(),  # pyright: ignore[reportArgumentType]
+        NotificationType.Succeeded,
+        types.SimpleNamespace(entry="SwitchAccount"),  # pyright: ignore[reportArgumentType]
+    )
+
+    assert current_account() == "100000002", "有真实 UID 时用它，不用旧账号"
+    assert balanced_state.account_is_unsaved() is False
 
 
 def test_switch_target_uses_config_identifier(tmp_path: Path) -> None:

@@ -111,8 +111,26 @@ class BalancedTaskEntry(CustomAction):
         # `RecordID` 的缓存默认是空的（agent 刚启动时没有任何 OCR 结果），
         # 所以这里补一次「回主页 → 跑 RecordId」。**只在 UID 为空时才导航**，
         # 已经读到过就不再往返一次。
+        #
+        # ⚠️ 读不到 UID 就**不放行到规划节点**。原因：
+        # `current_account()` 在 UID 为空时会回落成文件里的旧账号 / 默认桶，而
+        # planner 与状态文件都以它为桶键。若此刻放行，后续关卡记录与停用标记
+        # 会写进**错误的桶**；等稍后 UID 读出来，桶又变了，两边的记录永远对不上。
+        # 宁可本次不刷，也不要往错账号写东西。
         if not current_uid():
             _ensure_uid(context)
+
+        if not current_uid():
+            logger.error(
+                "未能读到游戏内 UID（回主页 + RecordId 都没拿到），无法确定该用哪个账号的记录。"
+                "本次跳过均衡刷材料，避免把关卡记录写进错误的账号桶。"
+                "请确认游戏停在主界面且能正常显示账号信息后重试"
+            )
+            account_id = current_account()
+            logger.info(f"（当前归属回落为 {account_id}，本次不写入任何记录）")
+            context.override_next(ENTRY_NODE, [SKIPPED_NODE])
+            return CustomAction.RunResult(success=True)
+
         account_id = current_account()
 
         if not is_task_skipped(account_id):

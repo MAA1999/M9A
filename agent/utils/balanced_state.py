@@ -357,23 +357,36 @@ def set_current_account(account_id: str, path: Path | None = None) -> bool:
     return save_state(data, _path(path))
 
 
-# 切换账号任务「这一次要切到哪个」的暂存。
-# 「切换任务是否成功」只有框架知道（tasker sink 的任务级 Succeeded），
-# 而「目标是哪个」由切换动作自己读到 —— 两者分开存，成功时才合成归属。
-_pending_switch_target: str = ""
+# ---------------------------------------------------------------------------
+# 进程内共享状态
+#
+# ⚠️ `agent.utils.balanced_state` 与 `utils.balanced_state` 是**两张模块图**
+# （同一份源码被两条 import 路径加载成两个模块对象），模块级变量各有一份。
+# `mark_account_unsaved()` 由 sink 调用（走 `utils.*`），而
+# `account_is_unsaved()` 由 `record_unavailable` 读（可能走 `agent.utils.*`）——
+# 用普通模块级变量会出现「一边置位、另一边读不到」。
+#
+# 所以把这些**跨模块图共享**的运行期状态挂到一个进程级容器上，两边拿到的
+# 是同一个 dict。
+# ---------------------------------------------------------------------------
 
-# 「切换成功了，但归属没能落盘」的标记（进程内）。
-# 这种状态下游戏里已经是新账号，而文件里的 `current_account` 还是旧的 ——
-# 继续按旧归属读写会把新账号的关卡/停用状态写进旧账号。所以置位后，
-# `record_unavailable` / `set_task_skipped` 这类写操作会被拒绝，
-# 由调用方如实报错，而不是默默污染另一个账号的记录。
-_account_unsaved: bool = False
+_SHARED_KEY = "__m9a_balanced_state_shared__"
+
+
+def _shared() -> dict[str, Any]:
+    """取进程级共享状态容器（首次访问时创建）。"""
+    import builtins
+
+    container = getattr(builtins, _SHARED_KEY, None)
+    if container is None:
+        container = {"pending_switch_target": "", "account_unsaved": False}
+        setattr(builtins, _SHARED_KEY, container)
+    return container
 
 
 def mark_account_unsaved(target: str) -> None:
     """记录「切换成功但归属未落盘」这一不一致状态。"""
-    global _account_unsaved
-    _account_unsaved = True
+    _shared()["account_unsaved"] = True
     logger.error(
         f"逻辑账号归属保存失败：游戏已切到 {target}，但记录仍指向旧账号。"
         f"本次运行内不再写入关卡记录，避免污染旧账号（文件可写后重跑一次即可恢复）"
@@ -382,13 +395,12 @@ def mark_account_unsaved(target: str) -> None:
 
 def account_is_unsaved() -> bool:
     """归属是否处于「已切换但未落盘」的不一致状态。"""
-    return _account_unsaved
+    return bool(_shared()["account_unsaved"])
 
 
 def clear_account_unsaved() -> None:
     """归属重新落盘成功后清除标记。"""
-    global _account_unsaved
-    _account_unsaved = False
+    _shared()["account_unsaved"] = False
 
 
 def remember_switch_target(account: str) -> str:
@@ -397,16 +409,16 @@ def remember_switch_target(account: str) -> str:
     由「切换账号」动作在选中账号时调用；**不代表切换已经成功** ——
     归属要等任务真的成功后才写（见 `set_current_account`）。
     """
-    global _pending_switch_target
-    _pending_switch_target = (account or "").strip() or DEFAULT_SWITCH_TARGET
-    return _pending_switch_target
+    target = (account or "").strip() or DEFAULT_SWITCH_TARGET
+    _shared()["pending_switch_target"] = target
+    return target
 
 
 def pending_switch_target() -> str:
     """取出（并清空）暂存的切换目标。"""
-    global _pending_switch_target
-    target = _pending_switch_target
-    _pending_switch_target = ""
+    shared = _shared()
+    target = str(shared["pending_switch_target"])
+    shared["pending_switch_target"] = ""
     return target
 
 

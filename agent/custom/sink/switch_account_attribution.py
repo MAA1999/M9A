@@ -37,10 +37,9 @@ from maa.agent.agent_server import AgentServer
 from maa.event_sink import NotificationType
 from maa.tasker import Tasker, TaskerEventSink
 from utils import logger
-from utils.account_store import DEFAULT_ACCOUNT_KEY
 from utils.balanced_state import (
     clear_account_unsaved,
-    current_account,
+    current_uid,
     mark_account_unsaved,
     pending_switch_target,
     set_current_account,
@@ -72,16 +71,26 @@ class SwitchAccountAttribution(TaskerEventSink):
         if noti_type != NotificationType.Succeeded:
             return
 
-        # 首选游戏内真实 UID：`SwitchAccount` 结尾的 StartGame → 回家链会让
-        # `RecordId` 命中并把 UID 刷成新账号。
-        uid = current_account()
+        # ⚠️ 必须用 `current_uid()`，**不能用 `current_account()`**。
+        #
+        # `current_account()` 在拿不到 UID 时会回落成「文件里记的旧账号」—— 那是
+        # **切换前**的账号。切换已经成功、但 `RecordId` 还没来得及 OCR（或任务在
+        # 登录后立刻被停止）时，`current_account()` 返回的正是旧账号，把它当新归属
+        # 写回去会导致：
+        #   1. 归属仍指向旧账号，新账号的记录写不进去；
+        #   2. 更糟的是 `clear_account_unsaved()` 会把「归属不可信」保护解除，
+        #      后续均衡任务开始往旧账号桶里写新账号的关卡失败记录。
+        #
+        # 所以这里只认游戏内真实 UID；读不到就退回 GUI 配置标识，两者都没有时
+        # **保持保护状态**，不写归属。
+        uid = current_uid()
         configured = pending_switch_target()
 
-        if uid and uid != DEFAULT_ACCOUNT_KEY:
+        if uid:
             target = uid
             logger.info(f"切换账号任务成功，读到游戏内 UID: {uid}（GUI 配置标识: {configured or '未填'}）")
         elif configured:
-            # 读不到 UID 时退回 GUI 配置的标识 —— 比丢归属强，但会记一条警告，
+            # 读不到 UID 时退回 GUI 配置的标识 —— 比丢归属强，但会记警告，
             # 因为这种模式下手工换号可能串号。
             target = configured
             logger.warning(
@@ -89,7 +98,13 @@ class SwitchAccountAttribution(TaskerEventSink):
                 f"多账号场景下这个标识不会随手工换号变化，可能串号"
             )
         else:
-            logger.info("切换账号任务成功，但未读到 UID 且未记录目标标识，逻辑账号归属保持不变")
+            # UID 和配置标识都没有：**不写归属，也不解除保护**。
+            # 此时游戏里已经是新账号，而归属性未知；继续按旧归属读写会污染旧账号。
+            logger.error(
+                "切换账号任务成功，但既没读到游戏内 UID 也没记录目标标识 —— "
+                "无法确定当前归属。本次运行内不再写入关卡记录与停用标记"
+            )
+            mark_account_unsaved("<unknown>")
             return
 
         if set_current_account(target):
