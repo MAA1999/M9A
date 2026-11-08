@@ -22,6 +22,7 @@ project_root_dir = os.path.dirname(agent_dir)
 user_data_dir = os.environ.get("PI_USER_DATA_DIR", "").strip()
 work_root_dir = user_data_dir if user_data_dir else project_root_dir
 if os.path.realpath(os.getcwd()) != os.path.realpath(work_root_dir):
+    os.makedirs(work_root_dir, exist_ok=True)
     os.chdir(work_root_dir)
 
 if agent_dir not in sys.path:

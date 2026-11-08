@@ -47,7 +47,9 @@ kill "$pid" 2>/dev/null
 set -e
 
 # Whatever the socket handshake does, the run has to reach the point where logs and config are set
-# up — that is the part a read-only bundle used to break.
+# up — that is the part a read-only bundle used to break. seed_work_root() also has to have linked
+# the read-only bundle dirs into the data dir, otherwise cwd-relative resource readers (warehouse /
+# SOS / drop templates) silently find nothing.
 if [ -d "$scratch/user-data/debug/custom" ]; then
     echo "[OK] Agent logs go to PI_USER_DATA_DIR: $(ls "$scratch/user-data/debug/custom" | head -n 3 | tr '\n' ' ')"
 else
@@ -61,6 +63,16 @@ if grep -q 'AgentServer started.' "$scratch/agent.stdout.log" || [ "$agent_alive
 else
     fail "the Agent exited before AgentServer startup (see $scratch/agent.stdout.log)"
 fi
+
+# cwd-relative 的资源读点（warehouse/SOS/掉落模板）靠数据目录里的符号链接读包内资产；
+# 链接不在就等于这些读点全部落空——这正是上一轮 review 抓到的回归。
+for seeded_link in resource agent; do
+    if [ -e "$scratch/user-data/$seeded_link" ] || [ -L "$scratch/user-data/$seeded_link" ]; then
+        echo "[OK] data dir reaches bundle asset: $seeded_link"
+    else
+        fail "seed_work_root did not expose $seeded_link in the data dir"
+    fi
+done
 
 for unexpected in debug config data; do
     if [ -e "$macos_dir/$unexpected" ] && [ ! -L "$macos_dir/$unexpected" ]; then

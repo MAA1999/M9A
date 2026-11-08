@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+import pytest
+
 from agent.utils import runtime_paths
 
 
@@ -177,3 +179,30 @@ def test_seed_work_root_makes_cwd_self_sufficient(tmp_path: Path) -> None:
 
     cwd_read = (paths.work_root / "data/combat/drop_index.json").read_text(encoding="utf-8")
     assert cwd_read == paths.resolve("data/combat/drop_index.json").read_text(encoding="utf-8")
+
+
+def test_seed_work_root_links_remaining_bundle_entries(tmp_path: Path) -> None:
+    """resource/ 这类只读包内资产经符号链接进数据目录；用户真实文件不碰、指错重链。"""
+    paths = _bundle_paths(tmp_path)
+    (paths.project_root / "resource/base/image/Warehouse").mkdir(parents=True)
+    _touch(paths.project_root / "resource/base/image/Warehouse/Item-1.png", 1000)
+    _touch(paths.work_root / "my_note.txt", 1000)
+
+    seeded = runtime_paths.seed_work_root(paths)
+
+    link = paths.work_root / "resource"
+    if not link.is_symlink():
+        pytest.skip("platform does not allow creating symlinks")
+    assert seeded >= 1
+    assert (link / "base/image/Warehouse/Item-1.png").exists()
+    # 再次运行幂等：已正确的链接不重做
+    assert runtime_paths._ensure_link(link, paths.project_root / "resource") == 0
+    # 用户自己放的真实文件/目录不能被链接顶替
+    real = paths.work_root / "my_note.txt"
+    assert runtime_paths._ensure_link(real, paths.project_root / "resource") == 0
+    assert not real.is_symlink()
+    # 指错的链接（.app 被移动后留下的旧目标）要重链到当前包体
+    wrong = paths.work_root / "wrong_link"
+    wrong.symlink_to(tmp_path / "elsewhere")
+    assert runtime_paths._ensure_link(wrong, paths.project_root / "resource") == 1
+    assert wrong.resolve() == (paths.project_root / "resource").resolve()

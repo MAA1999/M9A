@@ -47,28 +47,59 @@ def _seed_tree(src_dir: Path, dst_dir: Path, overwrite_stale: bool) -> int:
     return copied
 
 
+# 这些顶层条目由 seed_work_root 用复制规则管理，不参与下面的符号链接直通。
+_SEED_MANAGED_ENTRIES = frozenset({"data", "config", "version", "debug", "interface.json"})
+
+
+def _ensure_link(target: Path, source: Path) -> int:
+    """让 ``target`` 成为指向 ``source`` 的符号链接：不存在/指错就（重）建，
+
+    真实文件/目录（用户内容）与已正确的链接都原样保留。目标平台不支持符号链接
+    时静默跳过——cwd 的这份读不到时，resolve() 仍负责包内基线回落。
+    """
+    real_source = source.resolve()
+    try:
+        if target.is_symlink():
+            if target.resolve() == real_source:
+                return 0
+            target.unlink()
+        elif os.path.lexists(target):
+            return 0
+        target.symlink_to(real_source, target_is_directory=source.is_dir())
+    except OSError:
+        return 0
+    return 1
+
+
 def seed_work_root(paths: RuntimePaths) -> int:
-    """把包内基线播种进数据目录，让 ``work_root`` 作为 cwd 自足，返回复制文件数。
+    """把包内基线接进数据目录，让 ``work_root`` 作为 cwd 自足，返回改动条目数。
 
     agent 在 PI_USER_DATA_DIR 下以数据目录为 cwd（``main.py``）：libs 下的二进制
     插件（drop_core.pyd 按 cwd 读 ``data/combat/*.json`` 与 ``./interface.json``）
     和遗漏的裸相对路径不经过 ``resolve()``，数据目录必须自带一份基线，cwd 读路径
     才与 ``resolve()`` 落到同一份文件。
 
-    - ``data/``、``interface.json``：比 mtime，包内新基线可盖过旧副本（与 ``resolve()``
-      的回落规则一致），热更产物（更新）不动；
-    - ``config/``：只补缺不覆盖——这是用户数据，对应 ``resolve_user()`` 的
-      「存在即赢」，旧的用户存档不能被新基线替换。
+    - ``data/``、``version/``、``interface.json``：复制、比 mtime，包内新基线可盖过旧
+      副本（与 ``resolve()`` 的回落规则一致），热更产物（更新）不动；
+    - ``config/``：复制、只补缺不覆盖——这是用户数据，对应 ``resolve_user()`` 的
+      「存在即赢」，旧的用户存档不能被新基线替换；
+    - 其余顶层条目（``resource/``、``libs/`` 等只读包内资产）：在数据目录建指向包内
+      实际路径的符号链接——量大且永不热更，复制浪费磁盘；指错（.app 被移动）会重链，
+      用户自建的同名真实文件不碰。
 
     ``work_root == project_root``（便携客户端）时无事可做。
     """
     if paths.work_root == paths.project_root:
         return 0
     copied = _seed_tree(paths.project_root / "data", paths.data_dir, overwrite_stale=True)
+    copied += _seed_tree(paths.project_root / "version", paths.work_root / "version", overwrite_stale=True)
     copied += _seed_tree(paths.project_root / "config", paths.config_dir, overwrite_stale=False)
     interface = paths.project_root / "interface.json"
     if interface.is_file():
         copied += _seed_file(interface, paths.work_root / "interface.json", overwrite_stale=True)
+    for entry in paths.project_root.iterdir():
+        if entry.name not in _SEED_MANAGED_ENTRIES:
+            copied += _ensure_link(paths.work_root / entry.name, entry)
     return copied
 
 
