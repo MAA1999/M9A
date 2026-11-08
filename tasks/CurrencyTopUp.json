@@ -1,0 +1,91 @@
+{
+    "task": [
+        {
+            "name": "微尘利齿子儿刷取",
+            "label": "$Task.CurrencyTopUp",
+            "entry": "CurrencyTopUp",
+            "description": "$Task.CurrencyTopUp.desc",
+            "group": ["daily"],
+            "option": [
+                "补足微尘",
+                "补足利齿子儿",
+                "微尘阈值",
+                "利齿子儿阈值"
+            ]
+        }
+    ],
+    "option": {
+        "补足微尘": {
+            "type": "switch",
+            "label": "$Option.CurrencyTopUp.Dust",
+            "description": "$Option.CurrencyTopUp.Dust.desc",
+            "default_case": "No",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "CT_Plan": {"attach": {"dust_enabled": false}}
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "option": ["微尘阈值"],
+                    "pipeline_override": {
+                        "CT_Plan": {"attach": {"dust_enabled": true}}
+                    }
+                }
+            ]
+        },
+        "补足利齿子儿": {
+            "type": "switch",
+            "label": "$Option.CurrencyTopUp.Coin",
+            "description": "$Option.CurrencyTopUp.Coin.desc",
+            "default_case": "No",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "CT_Plan": {"attach": {"coin_enabled": false}}
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "option": ["利齿子儿阈值"],
+                    "pipeline_override": {
+                        "CT_Plan": {"attach": {"coin_enabled": true}}
+                    }
+                }
+            ]
+        },
+        "微尘阈值": {
+            "type": "input",
+            "label": "$Option.CurrencyTopUp.Threshold",
+            "description": "$Option.CurrencyTopUp.Threshold.desc",
+            "inputs": [
+                {
+                    "name": "dust_threshold",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "default": "1352100",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*[KkMm]?$"
+                }
+            ],
+            "pipeline_override": {"CT_Plan": {"attach": {"dust_threshold": "{dust_threshold}"}}}
+        },
+        "利齿子儿阈值": {
+            "type": "input",
+            "label": "$Option.CurrencyTopUp.Threshold",
+            "description": "$Option.CurrencyTopUp.Threshold.desc",
+            "inputs": [
+                {
+                    "name": "coin_threshold",
+                    "label": "$Option.BalancedFarming.Material.Target",
+                    "default": "1616830",
+                    "pipeline_type": "string",
+                    "verify": "^\\d*[KkMm]?$"
+                }
+            ],
+            "pipeline_override": {"CT_Plan": {"attach": {"coin_threshold": "{coin_threshold}"}}}
+        }
+    }
+}

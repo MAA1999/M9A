@@ -194,6 +194,7 @@
         "tasks/Psychube.json",
         "tasks/Combat.json",
         "tasks/BalancedFarming.json",
+        "tasks/CurrencyTopUp.json",
         "tasks/CombatActivity.json",
         "tasks/Limbo.json",
         "tasks/Lucidscape.json",

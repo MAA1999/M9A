@@ -1,0 +1,35 @@
+{
+    "CurrencyTopUp": {
+        "desc": "微尘 / 利齿子儿补足任务入口：重置状态并准备读数",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CurrencyTopUpInit"
+            }
+        },
+        "next": [
+            "CT_Plan"
+        ]
+    },
+    "CT_Plan": {
+        "desc": "补足规划：读微尘 / 利齿子儿数量，算缺口，决定刷尘埃运动还是铸币美学",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CurrencyTopUpPlan"
+            }
+        },
+        "next": [
+            "CT_Done"
+        ]
+    },
+    "CT_Done": {
+        "desc": "补足收尾：输出结果并回到主界面",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "CurrencyTopUpDone"
+            }
+        }
+    }
+}

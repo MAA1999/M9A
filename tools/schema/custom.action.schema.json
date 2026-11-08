@@ -77,7 +77,10 @@
                 "EightBitCombatInit",
                 "CUB_StartAllIn",
                 "WarehouseInventoryScan",
-                "ArtOfIlluminationScratch"
+                "ArtOfIlluminationScratch",
+                "CurrencyTopUpDone",
+                "CurrencyTopUpInit",
+                "CurrencyTopUpPlan"
             ]
         }
     },
@@ -306,6 +309,15 @@
         },
         {
             "$ref": "#/$defs/ArtOfIlluminationScratch"
+        },
+        {
+            "$ref": "#/$defs/CurrencyTopUpDone"
+        },
+        {
+            "$ref": "#/$defs/CurrencyTopUpInit"
+        },
+        {
+            "$ref": "#/$defs/CurrencyTopUpPlan"
         }
     ],
     "$defs": {
@@ -1420,6 +1432,35 @@
                 "custom_action": {
                     "const": "CCSticker",
                     "description": "翻斗棋：专属贴纸箱（点开箱子并把贴纸拖到空位）"
+                }
+            }
+        },
+        "CurrencyTopUpPlan": {
+            "properties": {
+                "custom_action": {
+                    "const": "CurrencyTopUpPlan",
+                    "description": "补足规划：读微尘 / 利齿子儿数量，算缺口，决定刷尘埃运动还是铸币美学"
+                }
+            }
+        },
+        "CurrencyTopUpDone": {
+            "properties": {
+                "custom_action": {
+                    "const": "CurrencyTopUpDone",
+                    "description": "补足收尾：输出结果并回到主界面"
+                }
+            }
+        },
+        "CurrencyTopUpInit": {
+            "properties": {
+                "custom_action": {
+                    "const": "CurrencyTopUpInit",
+                    "description": "微尘 / 利齿子儿补足任务入口：重置状态并写入目标数量"
+                },
+                "custom_action_param": {
+                    "type": "object",
+                    "description": "dust_target=微尘目标数量，coin_target=利齿子儿目标数量，dust_enabled/coin_enabled=是否补足",
+                    "additionalProperties": true
                 }
             }
         }

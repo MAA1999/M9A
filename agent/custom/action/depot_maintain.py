@@ -148,6 +148,10 @@ class _PlanState:
     report_base_enabled = True
     # 本轮参与库存保持、需要角色页读数的货币（决定读数齐全与否，见 write_snapshot_counts）
     required_currency: list[str] = []
+    # 本轮**真的读到**的货币（`DepotCurrencyRead` 写进快照的那几个）。
+    # 别的任务（微尘 / 利齿子儿刷取）靠它区分「本轮有效读数」与「快照里的旧值」——
+    # 缺读数的货币不能用旧值决定刷不刷。
+    read_currency_ids: list[str] = []
 
 
 _state = _PlanState()
@@ -222,6 +226,25 @@ def parse_target(value: Any) -> int | None:
 def current_account_id() -> str:
     """当前账号 id（`RecordID` 没跑过时为空，落盘时归入默认桶）。"""
     return RecordID.current_account_id()
+
+
+def set_required_currency(item_ids: list[str]) -> None:
+    """声明本轮参与角色页读数的货币。
+
+    `DepotCurrencyRead` 用它判断「读数是否齐全」——只有本轮参与的货币都读到了，
+    才刷新 `currency_updated_at`；少读一个却盖上新鲜时间戳，下次任务就会拿旧值当新值用。
+    别的任务（微尘 / 利齿子儿刷取）也要用这条通道，就走这个公开入口。
+    """
+    _state.required_currency = list(item_ids)
+
+
+def read_currency_ids() -> list[str]:
+    """本轮**真的读到**的货币 id（`DepotCurrencyRead` 实际写进快照的那几个）。
+
+    读不到的那个货币在快照里保留着上次的旧值，所以调用方要判断「这次读到的值」
+    时必须用这份名单，不能只看快照里有没有这个键。
+    """
+    return list(_state.read_currency_ids)
 
 
 def _ensure_account_id(context: Context) -> bool:
@@ -752,6 +775,7 @@ class DepotMaintainInit(CustomAction):
         _state.candy_base_max_hit = UNLIMITED_CANDY
         _state.report_base_enabled = True
         _state.required_currency = []
+        _state.read_currency_ids = []
         # 抬 ReturnMain 的命中上限（见 RETURN_MAIN_MAX_HIT）。必须在**任务入口**就抬好：
         # 读账号、仓库扫描收尾、角色页读数收尾都要回主界面，而它们全排在规划节点之前，
         # 等规划「选好材料」才抬的话前面几次回家已经撞上 base 的 2 次配额。
@@ -1030,6 +1054,13 @@ class DepotCurrencyRead(CustomAction):
                 logger.warning(f"{names} 本轮没读到，保留旧读数且不刷新时间戳（下次任务会重试）")
             if write_snapshot_counts(updates, complete=not missing):
                 logger.info(f"已记录库存: {summary}")
+            else:
+                # 写盘失败：快照里还是旧值，不能拿它当本轮读数用
+                logger.error("库存快照保存失败，本轮读数未能持久化")
+                updates = {}
+
+        # 记下本轮真的读到哪些货币（别的任务据此区分「本轮读数」与「旧快照值」）
+        _state.read_currency_ids = sorted(updates)
 
         detail = context.run_task(HOME_ENTRY)
         if detail is None or detail.status.failed:
