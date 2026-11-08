@@ -216,6 +216,24 @@ class CurrencyTopUpPlan(CustomAction):
             context.override_next("CT_Plan", ["CT_Done"])
             return CustomAction.RunResult(success=True)
 
+        # ⚠️ 解析阈值必须在**扫描之前**：读取数量要进角色页、是一次完整导航，
+        # 如果两个阈值都无效（用户填了 `K` / `abc` 之类），根本不需要跑这一趟。
+        global dust_threshold, coin_threshold
+        parsed_dust = _int_param(params.get("dust_threshold"), DUST_DEFAULT_THRESHOLD)
+        parsed_coin = _int_param(params.get("coin_threshold"), COIN_DEFAULT_THRESHOLD)
+
+        # 用窄化后的局部变量：`_int_param` 返回 `int | None`，直接往下传会让类型检查
+        # 报错（`should_farm_currency` 要求 `int`）。阈值无效 → 该货币本轮不参与。
+        dust_limit: int | None = parsed_dust if dust_enabled else None
+        coin_limit: int | None = parsed_coin if coin_enabled else None
+        dust_threshold = dust_limit if dust_limit is not None else DUST_DEFAULT_THRESHOLD
+        coin_threshold = coin_limit if coin_limit is not None else COIN_DEFAULT_THRESHOLD
+
+        if dust_limit is None and coin_limit is None:
+            logger.warning("没有可用的阈值（开关全关，或填写的阈值无法解析），本次跳过刷取")
+            context.override_next("CT_Plan", ["CT_Done"])
+            return CustomAction.RunResult(success=True)
+
         detail = context.run_task(CURRENCY_SCAN_ENTRY)
         if detail is None or detail.status.failed:
             logger.warning("读取微尘 / 利齿子儿数量失败，本次跳过刷取")
@@ -224,17 +242,6 @@ class CurrencyTopUpPlan(CustomAction):
 
         counts = _read_currency_counts()
 
-        global dust_threshold, coin_threshold
-        dust_threshold = _int_param(params.get("dust_threshold"), DUST_DEFAULT_THRESHOLD)
-        coin_threshold = _int_param(params.get("coin_threshold"), COIN_DEFAULT_THRESHOLD)
-
-        # 阈值解析失败 → 该货币本轮不参与（`_int_param` 已记错误日志）。
-        # 不能拿默认阈值顶上：默认 135 万会让任务直接刷完当天体力。
-        if dust_threshold is None:
-            dust_enabled = False
-        if coin_threshold is None:
-            coin_enabled = False
-
         dust_now = counts.get(DUST_ITEM_ID)
         coin_now = counts.get(COIN_ITEM_ID)
         logger.info(f"当前数量：微尘 {dust_now if dust_now is not None else '未读到'}，"
@@ -242,13 +249,13 @@ class CurrencyTopUpPlan(CustomAction):
 
         # 低于阈值就要刷（阈值是「触发线」，不是「补到多少」）
         choices: list[tuple[int, str, str, str, int]] = []
-        if should_farm_currency(DUST_ITEM_ID, dust_now, dust_threshold, dust_enabled):
+        if dust_limit is not None and should_farm_currency(DUST_ITEM_ID, dust_now, dust_limit, dust_enabled):
             choices.append(
-                (dust_threshold - int(dust_now or 0), DUST_ITEM_ID, "微尘", DUST_STAGE, DUST_PER_RUN)
+                (dust_limit - int(dust_now or 0), DUST_ITEM_ID, "微尘", DUST_STAGE, DUST_PER_RUN)
             )
-        if should_farm_currency(COIN_ITEM_ID, coin_now, coin_threshold, coin_enabled):
+        if coin_limit is not None and should_farm_currency(COIN_ITEM_ID, coin_now, coin_limit, coin_enabled):
             choices.append(
-                (coin_threshold - int(coin_now or 0), COIN_ITEM_ID, "利齿子儿", COIN_STAGE, COIN_PER_RUN)
+                (coin_limit - int(coin_now or 0), COIN_ITEM_ID, "利齿子儿", COIN_STAGE, COIN_PER_RUN)
             )
 
         if not choices:
@@ -397,9 +404,19 @@ def _int_param(value: Any, default: int) -> int | None:
 
     输入为空时返回 `default`：GUI 没填阈值属于「用默认值」，与「填了但填错」
     是两回事，不能一并按错误处理。
+
+    但**布尔值按无效处理**：`True` / `False` 只可能来自 GUI 之外的 pipeline 覆写，
+    说明有人把开关值错填到阈值字段。此时若回落到默认阈值（135 万），任务会按一个
+    用户从未输入过的数字把当天体力刷光。
     """
-    if isinstance(value, bool) or value is None:
+    if value is None:
         return default
+    if isinstance(value, bool):
+        logger.error(
+            f"阈值收到布尔值 {value}（可能把开关值填到了阈值字段），本次跳过刷取。"
+            f"不会用默认阈值 {default} 替代"
+        )
+        return None
     text = str(value).strip()
     if not text:
         return default

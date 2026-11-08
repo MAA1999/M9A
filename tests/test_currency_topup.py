@@ -120,6 +120,17 @@ def test_int_param_rejects_unparsable_instead_of_defaulting() -> None:
     assert _int_param("0", 42) is None, "0 不是有效阈值"
 
 
+def test_int_param_rejects_bool() -> None:
+    """布尔阈值按无效处理，不回落到默认值。
+
+    回归防护：`True` / `False` 只可能来自 GUI 之外的 pipeline 覆写（把开关值错填到
+    阈值字段）。若回落到默认阈值 135 万，任务会按一个用户从未输入过的数字刷光体力。
+    """
+    assert _int_param(True, 42) is None, "布尔 True 必须拒绝"
+    assert _int_param(False, 42) is None, "布尔 False 必须拒绝"
+    assert _int_param(None, 42) == 42, "None = 没传 → 用默认值（与布尔区分开）"
+
+
 # ------------------------------------------------------------------ 入口动作
 def test_init_does_not_clobber_gui_attach(monkeypatch: pytest.MonkeyPatch) -> None:
     """入口**不覆写** CT_Plan 的 attach —— GUI 的开关与阈值不能被盖掉。

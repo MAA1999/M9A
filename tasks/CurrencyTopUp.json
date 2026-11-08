@@ -62,7 +62,8 @@
             "inputs": [
                 {
                     "name": "dust_threshold",
-                    "label": "$Option.BalancedFarming.Material.Target",
+                    "label": "$Option.CurrencyTopUp.DustThreshold",
+                    "description": "$Option.CurrencyTopUp.DustThreshold.desc",
                     "default": "1352100",
                     "pipeline_type": "string",
                     "verify": "^(\\d+(\\.\\d+)?|\\.\\d+)[KkMm]?$"
@@ -77,7 +78,8 @@
             "inputs": [
                 {
                     "name": "coin_threshold",
-                    "label": "$Option.BalancedFarming.Material.Target",
+                    "label": "$Option.CurrencyTopUp.CoinThreshold",
+                    "description": "$Option.CurrencyTopUp.CoinThreshold.desc",
                     "default": "1616830",
                     "pipeline_type": "string",
                     "verify": "^(\\d+(\\.\\d+)?|\\.\\d+)[KkMm]?$"
