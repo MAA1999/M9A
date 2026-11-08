@@ -398,7 +398,7 @@ function createDmg(appDir, dmgPath, options) {
     ]);
     symlinkSync("/Applications", join(stagingDir, "Applications"));
     mkdirSync(dirname(dmgPath), {recursive: true});
-    run("hdiutil", [
+    const dmgArgs = [
         "create",
         "-volname",
         `${options.displayName} ${options.version}`,
@@ -408,7 +408,20 @@ function createDmg(appDir, dmgPath, options) {
         "-format",
         "UDZO",
         dmgPath,
-    ]);
+    ];
+    // Hosted runners occasionally answer `Resource busy` while the volume service is still
+    // settling after the bundle was just written; a short retry absorbs that flake.
+    for (let attempt = 1; ; attempt++) {
+        try {
+            run("hdiutil", dmgArgs);
+            break;
+        } catch (error) {
+            if (attempt >= 4) throw error;
+            const waitMs = attempt * 5000;
+            console.warn(`[WARN] hdiutil create failed (attempt ${attempt}/4), retrying in ${waitMs / 1000}s`);
+            spawnSync("sleep", [String(waitMs / 1000)]);
+        }
+    }
     rmSync(stagingDir, {recursive: true, force: true});
 }
 
