@@ -83,7 +83,7 @@
     "Option.BalancedFarming.Material.Target.desc": "留空 = 不刷该材料；正整数 = 该材料要补到的库存",
     "Option.BalancedFarming.Material.TargetCurrency.desc": "留空 = 不刷；正整数 = 目标库存；支持 K/M 缩写（如 500K = 500000、5M = 5000000）",
     "Option.BalancedFarming.ResetStageRecords": "重置全部记录",
-    "Option.BalancedFarming.ResetStageRecords.desc": "清空所有逻辑账号的「过不去的关卡」记录与「跳过均衡刷材料任务」标记（config/balanced_state.json）。寻找某个关卡超过两分钟仍未找到时，该关会被记下来并顺延到其它候选；当所有参与材料的候选都确认不可用时，本任务会被标记为跳过，之后每次运行都直接跳过（不导航、不选关）。手动通关主线后勾上此项重跑一次即可全部重来。",
+    "Option.BalancedFarming.ResetStageRecords.desc": "清空所有逻辑账号的「过不去的关卡」记录与「跳过均衡刷材料任务」标记（config/balanced_state.json）。寻找某个关卡超过两分钟仍未找到时，该关会被记下来并顺延到其它候选；当所有参与材料的候选都确认不可用时，本任务会被标记为跳过，之后每次运行都直接跳过（不导航、不选关）。手动通关主线后勾上此项重跑一次即可全部重来。 ⚠️ 这是持久开关：勾上重跑一次后请记得取消勾选，否则之后每次运行都会清空记录。",
     "Option.Bank.CounterSpecials": "柜台特奉",
     "Option.Bank.CounterSpecials.desc": "每周免费礼包",
     "Option.Bank.DreamNarrative": "梦境记述",
