@@ -307,14 +307,15 @@ def check_and_update_resources(
         logger.warning(result["error"])
         return result
 
-    # macOS .app 形态下热更新写得到（PI_USER_DATA_DIR/resource）但 MXU 只从
-    # Contents/Resources/MXU-portable 加载，更新读不到。文件仍会照常下载（上游一旦支持
-    # 数据目录叠加即可生效），这里只把现状告诉用户，避免把「更新成功」误读为「已生效」。
+    # macOS .app 形态下热更新写得到（PI_USER_DATA_DIR/data）但自定义动作按工作目录读
+    # data/*.json——main.py 会 chdir 到包内 project_root，读到的是 bundle 里的旧文件。
+    # 下载仍照常完成（数据目录那份随包体升级自然替换），这里只把现状告诉用户，
+    # 避免把「更新成功」误读为「已生效」。
     project_root_path = Path(getattr(paths, "project_root", paths.work_root))
     if paths.work_root != project_root_path and ".app/Contents/Resources/" in str(project_root_path):
         logger.warning(
-            "资源热更新将写入数据目录，但 macOS .app 形态的 MXU 从应用包内加载资源，"
-            "更新在重启前不会被读取（需要 MXU 支持数据目录资源叠加后才会生效）。",
+            "资源热更新将写入数据目录，但 macOS .app 形态下代码按应用包内路径读取 data/，"
+            "更新在本次运行中不会生效（需由下一版包体带上新数据）。",
         )
 
     if resource_manifests is None:
