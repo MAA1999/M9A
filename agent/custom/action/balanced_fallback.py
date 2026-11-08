@@ -493,12 +493,28 @@ class StageLookupTimeout(CustomAction):
                     f"所有参与材料的候选关卡都不可用（{names}），"
                     f"但停用标记保存失败，下次运行不会自动跳过"
                 )
+            # 回主界面：此刻游戏停在**关卡列表页**（本动作正是从扫描链的失败出口进来的），
+            # 而 BF_Skipped 按约定不导航。不先回家的话任务结束时游戏留在关卡页，
+            # 后续任务会从错误界面开始。与下方顺延分支、balanced_farming.py 的
+            # 跳过分支保持同一做法。
+            detail = context.run_task(HOME_ENTRY)
+            if detail is None or detail.status.failed:
+                logger.warning("跳过均衡任务前未能回到主界面，请检查游戏当前界面")
             context.override_next(TIMEOUT_NODE, [SKIPPED_NODE])
             return CustomAction.RunResult(success=True)
 
         material = state.current_material()
         label = material.entry.name if material else candidate.stage
         logger.info(f"{label} 顺延到关卡 {candidate.stage} {candidate.level}")
+
+        # 库存保持模式下，跨材料顺延必须同步 depot 的「本轮目标材料」。
+        # 不然 `_state.item_id` 还是旧材料：`DepotMaintainAccumulate` 会按旧 id
+        # 找掉落，新关卡的掉落统计不到、快照也不更新，等于白刷。
+        # 延迟导入避免与 depot_maintain 的循环依赖（它已经 import 了本模块）。
+        if material is not None:
+            from .depot_maintain import retarget_material
+
+            retarget_material(context, material.entry.item_id, candidate.stage, candidate.level)
 
         # 回主界面：原导航依赖主界面的「进入」按钮，停在关卡页时它认不出来
         detail = context.run_task(HOME_ENTRY)

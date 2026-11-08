@@ -556,6 +556,61 @@ def runs_for(deficit: int, entry: MaterialEntry) -> int:
     return max(1, math.ceil(deficit / per_run))
 
 
+def retarget_material(context: Context, item_id: str, stage: str, level: str) -> bool:
+    """把库存保持的「本轮目标材料」切到另一个材料，供跨材料顺延使用。
+
+    `StageLookupTimeout` 在库存保持模式下把目标换到别的材料时调用 —— 否则
+    `_state.item_id` 还留着旧材料，`DepotMaintainAccumulate` 会按旧 id 找掉落，
+    新关卡打完的掉落统计不到、快照也不更新，白刷。
+
+    返回是否成功切换；`False` 表示当前不是库存保持模式（或目标配置缺失），
+    调用方应保持原样。
+
+    缺口与 runs 按「该材料的 GUI 目标 − 快照当前值」重算，与规划节点的口径一致。
+    """
+    if _state.item_id is None:
+        # 非库存保持模式（默认均衡分支）：没有 depot 状态需要同步
+        return False
+
+    try:
+        catalog = load_catalog()
+    except CatalogError as exc:
+        logger.warning(f"切换目标材料时读取材料目录失败: {exc}")
+        return False
+
+    entry = catalog.get(item_id)
+    if entry is None:
+        logger.warning(f"切换目标材料失败：材料目录里没有 {item_id}")
+        return False
+
+    target = parse_gui_targets(gui_material_params(context, {}), catalog).get(item_id, 0)
+    inventory = snapshot_counts(read_snapshot())
+    current = inventory.get(item_id, 0)
+    deficit = max(0, target - current) if target > 0 else 0
+
+    label = material_label(item_id, catalog)
+    _state.item_id = item_id
+    _state.item_name = label
+    _state.stage = stage
+    _state.level = level
+    _state.deficit = deficit
+    _state.runs = runs_for(max(1, deficit), entry)
+    _state.observed = 0
+    _state.persisted = 0
+    _state.estimate_committed_battles = 0
+    _state.estimate_batch_battles = 0
+    _state.stopped = False
+    _state.per_run = entry.per_run
+    # 读数模式依赖关卡是否参与掉落上报，换关卡后要重算
+    _state.read_mode = _pick_read_mode(item_id, label, reportable=report_enabled(context, stage, level))
+
+    logger.info(
+        f"库存保持目标已切换到 {label}（当前 {current} / 目标 {target}，缺口 {deficit}），"
+        f"关卡 {stage} {level}"
+    )
+    return True
+
+
 def _capture_baselines(context: Context) -> None:
     """记录任务开始时的全局开关（GUI 选项生效后的节点数据），逐材料/逐关卡设置在其上叠加。"""
     if _state.baseline_captured:

@@ -477,6 +477,88 @@ def test_balanced_task_skip_clears_state(tmp_path: Path) -> None:
     assert state.active is False
 
 
+def test_task_end_sink_clears_state_for_default_flow(tmp_path: Path) -> None:
+    """默认均衡分支（走 Combat → TargetCountFinish）不经过任何 BF_* 收尾节点，
+    必须靠 tasker sink 在任务结束时清理，否则 active 会留到后续任务。
+
+    回归防护：review 指出 `BalancedFarmingAnalyze` 设了 active=True 后直接走 Combat，
+    没有清理路径，导致后续任务的 StageLookupBudget 误命中。
+    """
+    from maa.event_sink import NotificationType
+
+    from agent.custom.sink.balanced_cleanup import BalancedStateCleanup
+
+    state = _planner_with([_material("110103", 1, ["7-26"])])
+    _scanned(state, "7-26")
+    assert state.active is True
+
+    sink = BalancedStateCleanup()
+    sink.on_tasker_task(
+        types.SimpleNamespace(),  # pyright: ignore[reportArgumentType]
+        NotificationType.Succeeded,
+        types.SimpleNamespace(entry="BalancedFarming"),  # pyright: ignore[reportArgumentType]
+    )
+
+    assert state.active is False, "任务结束后必须清理，否则后续任务的预算识别会误命中"
+    assert state.budget_exceeded() is False
+
+
+def test_task_end_sink_ignores_other_tasks(tmp_path: Path) -> None:
+    """其它任务的结束事件不该碰均衡顺延状态。"""
+    from maa.event_sink import NotificationType
+
+    from agent.custom.sink.balanced_cleanup import BalancedStateCleanup
+
+    state = _planner_with([_material("110103", 1, ["7-26"])])
+    _scanned(state, "7-26")
+
+    sink = BalancedStateCleanup()
+    sink.on_tasker_task(
+        types.SimpleNamespace(),  # pyright: ignore[reportArgumentType]
+        NotificationType.Succeeded,
+        types.SimpleNamespace(entry="Combat"),  # pyright: ignore[reportArgumentType]
+    )
+
+    assert state.active is True, "非均衡任务不应清理"
+
+
+def test_task_end_sink_clears_on_failure(tmp_path: Path) -> None:
+    """任务失败（用户停止等）时同样要清理。"""
+    from maa.event_sink import NotificationType
+
+    from agent.custom.sink.balanced_cleanup import BalancedStateCleanup
+
+    state = _planner_with([_material("110103", 1, ["7-26"])])
+    _scanned(state, "7-26")
+
+    sink = BalancedStateCleanup()
+    sink.on_tasker_task(
+        types.SimpleNamespace(),  # pyright: ignore[reportArgumentType]
+        NotificationType.Failed,
+        types.SimpleNamespace(entry="BalancedFarming"),  # pyright: ignore[reportArgumentType]
+    )
+
+    assert state.active is False
+
+
+def test_exhausted_branch_returns_home_before_skip(tmp_path: Path) -> None:
+    """候选全耗尽时，跳过前必须回主界面（否则游戏留在关卡列表页）。
+
+    回归防护：review 指出该分支只 override_next 到 BF_Skipped（不导航），
+    与其它跳过路径不一致。
+    """
+    state = _planner_with([_material("110103", 1, ["7-26"])])
+    _scanned(state, "7-26")
+    context = _FakeContext()
+
+    result = balanced_fallback.StageLookupTimeout().run(context, _FAKE_ARGV)
+
+    assert result.success is True
+    assert is_task_skipped(state.account_id) is True
+    assert balanced_fallback.HOME_ENTRY in context.run_tasks, "跳过前应先回主界面"
+    assert context.next_overrides[-1][1] == ["BF_Skipped"]
+
+
 def test_timeout_action_does_not_record_when_scan_not_started(tmp_path: Path) -> None:
     """一次都没滑动过 → 不是「找不到目标关卡」→ 不记录关卡不可用。
 
