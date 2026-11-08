@@ -258,12 +258,30 @@ def clear_move(board: Board, search_key: int) -> int | None:
     return None
 
 
-def forced_move(board: Board, last_key: int) -> int | None:
-    """连续多步没动时的兜底：换一个空邻格走，免得把静态装饰误判成怪物后站到超时。"""
+def forced_move(board: Board, last_key: int | None) -> int | None:
+    """换一个空邻格走，免得站着不动。`last_key` 为 None 时（清场阶段重入）不做方向排除。"""
     for key in DIRECTIONS:
         if key != last_key and board.neighbour(key) == FREE:
             return key
     return None
+
+
+def escape_key(board: Board) -> int | None:
+    """脚下正在预警、四个邻格也都在预警里时（以玩家为中心的十字），随便挑一个预警邻格离开。
+
+    预警格在施放时就固定了，邻格的预警通常晚一回合才落下，先挪走比原地挨打划算。
+    """
+    if not board.own_danger:
+        return None
+    for key in DIRECTIONS:
+        if board.neighbour(key) == DANGER:
+            return key
+    return None
+
+
+def fallback_key(board: Board, last_key: int | None) -> int | None:
+    """兜底方向：先换空邻格，脚下在预警里时退而求其次走进预警邻格，都不行才站住。"""
+    return forced_move(board, last_key) or escape_key(board)
 
 
 def safe_key(board: Board, preferred: list[int]) -> int | None:
@@ -402,9 +420,10 @@ class EightBitCombatMove(CustomAction):
     8-bit 街机秀普通关：一次调用打完整关（移动规则见模块说明）。
 
     每隔 interval_ms 走一步，中途不停：交回 pipeline 重新识别会空过回合，站着不动的回合正是掉血的主因。
-    每步都读左上角关卡目标：读不到就不按键，连续两次读不到（进入商店、结算页或首领关）就返回成功，
-    由 next 里的节点接手；单关超过 level_timeout_s 还没结束就返回失败，走 on_error 退出本局
-    （超时那一刻如果已经在商店或结算页，则按正常结束返回成功）。
+    每步都读左上角关卡目标：读不到就不按键，连续两次读不到就返回成功，由 next 里的节点接手
+    （商店、结算页、首领关、关卡过场都表现为读不到目标）。
+    单关超过 level_timeout_s 时只有「这一帧仍读得到关卡目标」才算真卡住并返回失败走 on_error；
+    目标已经消失的帧按本关结束处理——过场帧里商店 / 结算页还没渲染出来，不能当作卡住。
 
     参数：
       move_input: "click"（默认，点击屏幕十字键）或 "key"（发送 Android 方向键）
@@ -479,7 +498,7 @@ class EightBitCombatMove(CustomAction):
                     if key is None:
                         idle_steps += 1
                         if idle_steps >= self.MAX_IDLE_STEPS:
-                            key = forced_move(board, last_key) if last_key is not None else search_key
+                            key = forced_move(board, last_key) or search_key
                             idle_steps = 0
                     else:
                         idle_steps = 0
@@ -505,9 +524,10 @@ class EightBitCombatMove(CustomAction):
                     blind_steps = search_step = 0
                     key = cycle_key(cycle_step)
                     cycle_step += 1
-                if key is None and last_key is not None:
-                    # 被预警格 / 怪物堵住时换方向，别站着不动
-                    key = forced_move(board, last_key)
+                if key is None:
+                    # 被预警格 / 怪物堵住时换方向，别站着不动；脚下也全在预警里时按 escape_key 挪一格。
+                    # last_key 为 None（清场阶段重入）时同样要兜底，否则朝怪方向被预警挡住就白站一回合
+                    key = fallback_key(board, last_key)
             else:
                 key = cycle_key(cycle_step)
                 cycle_step += 1

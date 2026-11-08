@@ -34,6 +34,8 @@ from agent.custom.action.eight_bit import (
     clear_move,
     cycle_key,
     efficiency_per_hour,
+    escape_key,
+    fallback_key,
     find_player,
     forced_move,
     hunt_target,
@@ -423,18 +425,46 @@ def test_run_hybrid_hunts_straggler_in_clear_phase(monkeypatch) -> None:
 
 
 def test_run_times_out_only_while_level_is_still_visible(monkeypatch) -> None:
-    """关卡目标读不到时不能判失败（可能是过场 / 商店），只有仍看得见关卡目标才超时退出。"""
-    # 起点设成很久以前：本帧读不到目标 → 走未命中判定，正常结束
-    _run_level([None, None], monkeypatch, reset=True)
-    EightBitCombatMove._level_started = 1.0
-    _, result = _run_level([None, None], monkeypatch)
-    assert result.success
+    """同一次调用内：读到过目标、跑满超时后本帧目标消失 → 必须按「本关结束」返回成功。
 
-    # 起点很久以前且仍读得到关卡目标 → 真卡住，返回失败交给 on_error
-    EightBitCombatMove._level_started = 1.0
-    _, result = _run_level(["坚持30回合", "坚持29回合"], monkeypatch)
-    assert not result.success
-    assert EightBitCombatMove._level_started is None
+    这条锁的是超时分支上的 `phase is not None` 门控：去掉它，第二帧就会因为
+    `tick - started > level_timeout_s` 直接返回失败（过场帧里商店 / 结算页还没渲染出来）。
+    """
+
+    def _run_with_clock(screens: list[str | None], *, step_s: float) -> object:
+        context = _FakeContext(screens)
+        clock = [1000.0]
+
+        def _tick() -> float:
+            now = clock[0]
+            clock[0] += step_s
+            return now
+
+        fake_time = SimpleNamespace(time=_tick, sleep=lambda _s: None, monotonic=_tick)
+        monkeypatch.setattr(eight_bit, "time", fake_time)
+        monkeypatch.setattr(eight_bit, "is_hit", lambda detail: detail is not None)
+        monkeypatch.setattr(eight_bit, "ocr_text", lambda detail, default="": getattr(detail, "text", default))
+        EightBitCombatMove._forget_level()
+        argv = SimpleNamespace(custom_action_param='{"interval_ms": 1}')
+        return EightBitCombatMove().run(context, argv)  # type: ignore[arg-type]
+
+    # 首帧读到目标（t=1000），次帧已超时（160s > 150s）且目标消失 → 本关其实结束了
+    assert _run_with_clock(["坚持30回合", None, None], step_s=160.0).success
+
+    # 首帧 t=1000 读到目标，次帧 t=1040 仍读得到目标但没超时；第三帧 t=1200 仍读得到 → 真卡住
+    assert not _run_with_clock(["坚持30回合", "坚持29回合", "坚持28回合"], step_s=200.0).success
+
+
+def test_fallback_steps_into_warning_when_boxed_in(monkeypatch) -> None:
+    """脚下在预警里、四个邻格也都在预警里时，要挪一格而不是原地挨打。"""
+    board = _board(own_danger=True, r1_d0=DANGER, l1_d0=DANGER, r0_u1=DANGER, r0_d1=DANGER)
+    assert fallback_key(board, RIGHT) in (UP, DOWN, LEFT)
+    assert escape_key(board) is not None
+
+
+def test_fallback_works_without_last_key(monkeypatch) -> None:
+    """清场阶段重入时 last_key 还是 None，同样要能挑方向。"""
+    assert fallback_key(_board(), None) is not None
 
 
 def test_parse_count() -> None:
