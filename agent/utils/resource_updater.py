@@ -15,8 +15,8 @@ from typing import Any
 
 import requests  # pyright: ignore[reportMissingModuleSource]
 
-from . import logger
 from .http_session import create_no_proxy_session
+from .logger import logger
 from .runtime_paths import get_runtime_paths
 
 # 默认配置
@@ -307,17 +307,8 @@ def check_and_update_resources(
         logger.warning(result["error"])
         return result
 
-    # macOS .app 形态下热更新写得到（PI_USER_DATA_DIR/data）但自定义动作按工作目录读
-    # data/*.json——main.py 会 chdir 到包内 project_root，读到的是 bundle 里的旧文件。
-    # 下载仍照常完成（数据目录那份随包体升级自然替换），这里只把现状告诉用户，
-    # 避免把「更新成功」误读为「已生效」。
-    project_root_path = Path(getattr(paths, "project_root", paths.work_root))
-    if paths.work_root != project_root_path and ".app/Contents/Resources/" in str(project_root_path):
-        logger.warning(
-            "资源热更新将写入数据目录，但 macOS .app 形态下代码按应用包内路径读取 data/，"
-            "更新在本次运行中不会生效（需由下一版包体带上新数据）。",
-        )
-
+    # 写目标固定在 work_root（数据目录）；读取侧由 RuntimePaths.resolve 按覆盖层
+    # 兜底到包内基线，macOS .app 下热更文件同样会被读到，写=读始终对齐。
     if resource_manifests is None:
         try:
             logger.debug("开始从根 manifest 递归获取资源清单列表")

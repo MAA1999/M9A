@@ -31,7 +31,7 @@ from typing import Any
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from utils import logger
+from utils.logger import logger
 from utils.maa_types import is_hit, ocr_text
 from utils.material_catalog import (
     SOURCE_CHARACTER,
@@ -42,6 +42,7 @@ from utils.material_catalog import (
     load_catalog,
 )
 from utils.params import parse_params
+from utils.runtime_paths import get_runtime_paths
 from utils.settlement_drops import read_battle_drops
 from utils.warehouse_snapshot import (
     SNAPSHOT_PATH,
@@ -71,8 +72,9 @@ except ImportError:
 
 SNAPSHOT_TS_FORMAT = "%Y-%m-%d %H:%M:%S"
 SNAPSHOT_TTL_HOURS = 24
-# 材料名称/品质表（与仓库扫描同源）：日志里显示「名称（品质色）」用
-ITEMS_PATH = Path("data/combat/items.json")
+# 材料名称/品质表（与仓库扫描同源）：日志里显示「名称（品质色）」用。
+# 相对路径在读取时经 RuntimePaths.resolve 走数据目录覆盖层，热更文件优先、包内基线兜底。
+ITEMS_REL_PATH = "data/combat/items.json"
 _RARITY_ORDER = ("gold", "yellow", "purple", "blue", "green")
 
 PLAN_NODE = "BF_Plan"
@@ -162,7 +164,7 @@ def _load_item_labels() -> dict[str, tuple[str, str]]:
         return _item_labels
     labels: dict[str, tuple[str, str]] = {}
     try:
-        raw = json.loads(ITEMS_PATH.read_text(encoding="utf-8"))
+        raw = json.loads(get_runtime_paths().resolve(ITEMS_REL_PATH).read_text(encoding="utf-8"))
         if isinstance(raw, dict):
             for rarity, items in raw.items():
                 if not isinstance(items, dict):
@@ -172,7 +174,7 @@ def _load_item_labels() -> dict[str, tuple[str, str]]:
                     if isinstance(name, str) and name:
                         labels[str(item_id)] = (name, str(rarity))
     except (OSError, json.JSONDecodeError):
-        logger.debug(f"读取材料名称表失败({ITEMS_PATH})，日志退回材料目录名称")
+        logger.debug(f"读取材料名称表失败({ITEMS_REL_PATH})，日志退回材料目录名称")
     _item_labels = labels
     return labels
 

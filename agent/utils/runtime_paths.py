@@ -19,6 +19,14 @@ def default_work_root() -> Path:
     return Path(value) if value else Path.cwd()
 
 
+def _mtime(path: Path) -> float:
+    """文件/目录的 mtime；不存在返回 -inf，让『存在的一方』自然胜出。"""
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return float("-inf")
+
+
 @dataclass(frozen=True)
 class RuntimePaths:
     project_root: Path
@@ -26,10 +34,39 @@ class RuntimePaths:
     work_root: Path
     config_dir: Path
     resource_dir: Path
+    data_dir: Path
     debug_dir: Path
     requirements_file: Path
     interface_file: Path
     manifest_cache_file: Path
+
+    def resolve(self, rel: str | Path) -> Path:
+        """解析项目内的相对路径：**写** 始终落 ``work_root``（数据目录），**读** 走覆盖层。
+
+        覆盖层规则：数据目录里的同名文件存在且 mtime 不早于包内基线时用它，否则回落
+        ``project_root``。macOS .app 下 project_root 在包内（只读、随版本发布），work_root
+        是 PI_USER_DATA_DIR——首跑读包内基线，热更后读新下载的文件，下一版包体的新基线
+        mtime 又会盖过旧的覆盖文件，不需要额外清理。
+        """
+        relative = Path(rel)
+        work_candidate = self.work_root / relative
+        project_candidate = self.project_root / relative
+        if self.work_root == self.project_root:
+            return project_candidate
+        if _mtime(work_candidate) >= _mtime(project_candidate):
+            return work_candidate
+        return project_candidate
+
+    def resolve_dir(self, rel: str | Path) -> Path:
+        """目录版 ``resolve``：用于 glob/listdir 这类需要整目录的调用点。"""
+        relative = Path(rel)
+        work_candidate = self.work_root / relative
+        project_candidate = self.project_root / relative
+        if self.work_root == self.project_root:
+            return project_candidate
+        if work_candidate.is_dir() and _mtime(work_candidate) >= _mtime(project_candidate):
+            return work_candidate
+        return project_candidate
 
 
 def build_runtime_paths(
@@ -44,11 +81,10 @@ def build_runtime_paths(
         work_root=resolved_work_root,
         config_dir=resolved_work_root / "config",
         # 热更新（Mirror酱 manifest）写 work_root 下的 data/、version/：Windows/Linux 下
-        # work_root 与项目目录相同，写=读一致。
-        # 已知缺口：macOS .app 下 main.py chdir 到包内 project_root，自定义动作以相对路径读
-        # data/*.json 读到的是 bundle 里的旧文件；热更写到 work_root/data 读不到——新数据
-        # 要随包体版本一起发布才会生效。上游（MXU）不提供数据目录覆盖机制时无解。
+        # work_root 与项目目录相同，写=读一致；macOS .app 下读取侧经 resolve() 走覆盖层
+        # （数据目录新文件优先、否则回落包内基线），两边始终对齐。
         resource_dir=resolved_work_root / "resource",
+        data_dir=resolved_work_root / "data",
         debug_dir=resolved_work_root / "debug",
         requirements_file=resolved_project_root / "requirements.txt",
         interface_file=resolved_project_root / "interface.json",

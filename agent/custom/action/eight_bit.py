@@ -31,7 +31,7 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JOCR, JRecognitionType
-from utils import logger
+from utils.logger import logger
 from utils.maa_types import is_hit, ocr_results, ocr_text
 from utils.params import parse_params
 

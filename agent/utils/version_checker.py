@@ -5,7 +5,6 @@ from typing import Any
 
 import requests  # pyright: ignore[reportMissingModuleSource]
 
-from . import logger
 from .exceptions import (
     APIBusinessError,
     APICriticalError,
@@ -15,6 +14,7 @@ from .exceptions import (
     ResourceNotFoundError,
     VersionCheckError,
 )
+from .logger import logger
 from .runtime_paths import get_runtime_paths
 
 

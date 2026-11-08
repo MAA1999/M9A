@@ -4,13 +4,13 @@ from pathlib import Path
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from utils import logger
 from utils.account_store import (
     get_account_scalar,
     load_json_object,
     save_json_object,
     set_account_scalar,
 )
+from utils.logger import logger
 from utils.params import parse_params
 from utils.time import is_current_period
 
