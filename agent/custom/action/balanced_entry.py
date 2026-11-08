@@ -132,6 +132,15 @@ class BalancedTaskEntry(CustomAction):
             return CustomAction.RunResult(success=True)
 
         account_id = current_account()
+        # 启动时 UID 缓存为空、刚才 OCR 成功 —— planner 可能是重置时绑定的旧账号
+        # （默认桶或上一次的 UID）。在进入规划前把它同步成刚确认的账号，
+        # 否则读取关卡记录、写入失败/停用标记都会落到错误的桶。
+        from .balanced_fallback import planner
+
+        state = planner()
+        if state.account_id != account_id:
+            logger.debug(f"入口确认账号 {account_id}，同步顺延状态机（原 {state.account_id}）")
+            state.account_id = account_id
 
         if not is_task_skipped(account_id):
             context.override_next(ENTRY_NODE, [PLAN_NODE])
@@ -152,8 +161,8 @@ def _ensure_uid(context: Context) -> None:
     验证过：先 `HOME_ENTRY` 回家、再 `RECORD_ID_ENTRY` 触发 OCR，因为
     `RecordId` 只在主界面命中）。
 
-    **不返回成功与否** —— 读不到 UID 不该阻塞任务：调用方会按默认桶继续
-    （与改造前行为一致），只是记一条警告，提醒多账号用户可能串号。
+    **不返回成功与否** —— 读不到 UID 时由调用方决定怎么处理
+    （`BalancedTaskEntry` 会跳过本任务而不是放行，见上方 `run`）。
     """
     if current_uid():
         return
@@ -166,7 +175,8 @@ def _ensure_uid(context: Context) -> None:
         logger.info(f"已通过主页 OCR 读到游戏内 UID: {current_uid()}")
     else:
         logger.warning(
-            "未能读到游戏内 UID（回主页 + RecordId 都没拿到），本次按默认桶记录。"
+            "未能读到游戏内 UID（回主页 + RecordId 都没拿到）。"
+            "本次将跳过均衡刷材料，不会写入任何关卡记录或停用标记。"
             "如果你在多账号间切换，建议确认主页能正常显示账号信息后再跑"
         )
 

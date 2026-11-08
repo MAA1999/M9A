@@ -46,7 +46,6 @@ from agent.custom.action.balanced_fallback import (
 )
 from agent.utils import balanced_state
 from agent.utils.balanced_state import (
-    DEFAULT_SWITCH_TARGET,
     StageCandidate,
     candidates_for_material,
     current_account,
@@ -949,6 +948,42 @@ def test_switch_sink_never_saves_stale_uid(
     balanced_state.clear_account_unsaved()
 
 
+def test_switch_sink_empty_config_stays_unknown(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """空配置 + UID 失败 → 走「未知归属」分支，而不是把空串当有效目标。
+
+    回归防护：`remember_switch_target("")` 曾把空串替换成 `"default"`，sink 拿到
+    `"default"` 会当作「有有效配置目标」而写入归属、解除保护。现在保留空串。
+    """
+    from maa.event_sink import NotificationType
+
+    from agent.custom.sink.switch_account_attribution import SwitchAccountAttribution
+
+    set_current_account("OLD-ACCOUNT")
+    # 真实调用 remember_switch_target("") —— 应保留空串
+    balanced_state.remember_switch_target("")
+    assert balanced_state.pending_switch_target() == "", "空配置必须保留为空串"
+
+    balanced_state.remember_switch_target("")  # 重新暂存，供 sink 取
+    monkeypatch.setattr(
+        "agent.custom.sink.switch_account_attribution.current_uid",
+        lambda: "",  # UID 也没读到
+    )
+    balanced_state.clear_account_unsaved()
+
+    sink = SwitchAccountAttribution()
+    sink.on_tasker_task(
+        types.SimpleNamespace(),  # pyright: ignore[reportArgumentType]
+        NotificationType.Succeeded,
+        types.SimpleNamespace(entry="SwitchAccount"),  # pyright: ignore[reportArgumentType]
+    )
+
+    assert current_account() == "OLD-ACCOUNT", "空配置不应改写归属"
+    assert balanced_state.account_is_unsaved() is True, "空配置必须走未知归属分支，保持保护"
+    balanced_state.clear_account_unsaved()
+
+
 def test_switch_sink_prefers_real_uid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """切换成功且读到新 UID → 用 UID 作为归属。"""
     from maa.event_sink import NotificationType
@@ -980,8 +1015,9 @@ def test_switch_target_uses_config_identifier(tmp_path: Path) -> None:
     """
     assert balanced_state.remember_switch_target("189****6002") == "189****6002"
     assert balanced_state.pending_switch_target() == "189****6002"
-    assert balanced_state.remember_switch_target("") == DEFAULT_SWITCH_TARGET
-    assert balanced_state.pending_switch_target() == DEFAULT_SWITCH_TARGET
+    # 空配置必须保留为空串（不能转成 "default"），否则 sink 会误判成「有有效目标」
+    assert balanced_state.remember_switch_target("") == ""
+    assert balanced_state.pending_switch_target() == ""
 
 
 def test_current_account_prefers_game_uid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

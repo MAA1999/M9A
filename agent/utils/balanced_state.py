@@ -404,18 +404,26 @@ def clear_account_unsaved() -> None:
 
 
 def remember_switch_target(account: str) -> str:
-    """记下这次切换的目标账号标识（空值用固定默认标识）。
+    """记下这次切换的目标账号标识（**原样保存，不做空值替换**）。
 
     由「切换账号」动作在选中账号时调用；**不代表切换已经成功** ——
     归属要等任务真的成功后才写（见 `set_current_account`）。
+
+    ⚠️ 空字符串 = 「GUI 没配置目标」，与「配置了 `default`」是两回事。
+    这里必须保留空串，否则 `pending_switch_target()` 取回 `"default"` 会让
+    sink 误判成「有有效配置目标」而写入归属、解除保护。
     """
-    target = (account or "").strip() or DEFAULT_SWITCH_TARGET
+    target = (account or "").strip()
     _shared()["pending_switch_target"] = target
     return target
 
 
 def pending_switch_target() -> str:
-    """取出（并清空）暂存的切换目标。"""
+    """取出（并清空）暂存的切换目标。
+
+    返回空串表示「这次切换没有配置目标标识」—— 调用方应据此走「未知归属」
+    分支，而不是把空串当有效目标。
+    """
     shared = _shared()
     target = str(shared["pending_switch_target"])
     shared["pending_switch_target"] = ""
