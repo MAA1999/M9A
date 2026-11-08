@@ -56,6 +56,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
@@ -291,15 +292,56 @@ def account_bucket(data: dict[str, Any], account_id: str | None = None) -> dict[
 
 
 def current_account(path: Path | None = None) -> str:
-    """当前逻辑账号：最近一次**执行成功**的切换账号任务切到的目标。
+    """当前逻辑账号标识。
 
-    从未切换过（没有切换任务，或切换任务尚未成功执行）时用固定默认标识。
+    优先级：
+    1. **游戏内真实 UID**（`RecordID` 的 OCR 结果，进程内缓存）—— 最可靠，
+       换号后读到的值会跟着变，不需要用户在 GUI 里维护任何东西；
+    2. 状态文件里记的 `current_account`（切换账号任务成功后写入的标识）；
+    3. 固定默认桶 `__default__`。
+
+    为什么把 UID 放第一位：早期版本用「GUI 配置的掩码账号文本」当标识，
+    但那个文本只有前 3 位 + 后 4 位，且从不由游戏校验 —— 手工在游戏里换号后
+    仍会沿用旧账号的记录。真实 UID 由 `RecordId` 节点在主页 OCR 得到，
+    是游戏自己显示的值。
+
+    注意：`agent.utils.balanced_state` 与 `utils.balanced_state` 是两张模块图，
+    所以 `RecordID` 的取用要容忍任一侧未加载。
     """
+    uid = current_uid()
+    if uid:
+        return uid
+
     data = load_state(_path(path))
     value = data.get("current_account")
     if isinstance(value, str) and value.strip():
         return value.strip()
     return DEFAULT_ACCOUNT_KEY
+
+
+def current_uid() -> str:
+    """取 `RecordID` 缓存里的真实 UID；读不到返回空串。
+
+    用 `sys.modules` 查已加载的那份模块，避免 `import agent.custom...` 触发
+    第二次模块加载（会重复注册自定义动作并抛 `Custom name is already registered`）。
+
+    与 `current_account()` 的区别：本函数**只**返回真实 UID，不回落任何默认值 ——
+    调用方据此判断「要不要先回主页做一次 OCR」。
+    """
+    for name in (
+        "agent.custom.action.record_id",
+        "custom.action.record_id",
+    ):
+        module = sys.modules.get(name)
+        if module is None:
+            continue
+        record_id = getattr(module, "RecordID", None)
+        if record_id is None:
+            continue
+        uid = str(record_id.current_account_id() or "").strip()
+        if uid:
+            return uid
+    return ""
 
 
 def set_current_account(account_id: str, path: Path | None = None) -> bool:

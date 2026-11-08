@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 import json
+import sys
 import types
 from pathlib import Path
 from typing import Any
@@ -693,15 +694,46 @@ def test_retarget_material_returns_tristate(tmp_path: Path) -> None:
         depot_maintain._state.item_id = None
 
 
-def test_entry_skips_task_when_marked(tmp_path: Path) -> None:
-    """已停用 → 直接跳过，不导航、不点选关卡。"""
+def test_entry_skips_task_when_marked(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """已停用 → 直接跳过，不点选关卡。
+
+    入口会先确认归属（读游戏内 UID）。这里 mock 掉 `current_uid` 让它看起来
+    已缓存，从而覆盖「UID 已缓存 → 不额外导航」这条快路径。
+    """
     account = current_account()
     set_task_skipped(account, True)
+    monkeypatch.setattr(balanced_entry, "current_uid", lambda: account)
+    monkeypatch.setattr(balanced_entry, "current_account", lambda *a, **k: account)
+
     context = _FakeContext()
     result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
+
     assert result.success is True
     assert context.next_overrides[-1][1] == ["BF_Skipped"]
-    assert context.run_tasks == [], "已停用时不应再导航"
+    assert context.run_tasks == [], "UID 已缓存时不应再导航"
+
+
+def test_entry_navigates_once_to_read_uid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """UID 未知时，入口回主页读一次（这是「按真实账号分桶」的前提）。
+
+    回归防护：早前归属直接用 GUI 里手填的掩码文本，手工换号后仍沿用旧账号记录。
+    """
+    calls: list[str] = []
+
+    def fake_current_account(*args: object, **kwargs: object) -> str:
+        return "100000001" if calls else balanced_state.DEFAULT_ACCOUNT_KEY
+
+    context = _FakeContext()
+    monkeypatch.setattr(balanced_entry, "current_account", fake_current_account)
+    monkeypatch.setattr(
+        "agent.custom.action.depot_maintain._ensure_account_id",
+        lambda ctx: (calls.append("nav"), ctx.run_tasks.append("ResetReturnMain"), True)[-1],
+    )
+
+    result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
+
+    assert result.success is True
+    assert calls, "UID 未知时必须触发一次读取"
 
 
 def test_entry_proceeds_when_not_marked(tmp_path: Path) -> None:
@@ -808,11 +840,43 @@ def test_failed_switch_does_not_change_ownership(tmp_path: Path) -> None:
 
 
 def test_switch_target_uses_config_identifier(tmp_path: Path) -> None:
-    """归属用切换任务的目标配置标识；没配则用固定默认标识。"""
+    """切换目标的**配置标识**仍被记下来（UID 读不到时的兜底）。
+
+    注意：归属本身已优先用真实 UID（见 `test_current_account_prefers_game_uid`），
+    这个配置标识只在读不到 UID 时兜底。
+    """
     assert balanced_state.remember_switch_target("189****6002") == "189****6002"
     assert balanced_state.pending_switch_target() == "189****6002"
     assert balanced_state.remember_switch_target("") == DEFAULT_SWITCH_TARGET
     assert balanced_state.pending_switch_target() == DEFAULT_SWITCH_TARGET
+
+
+def test_current_account_prefers_game_uid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """`current_account()` 优先返回游戏内真实 UID，其次才是文件里的旧标识。
+
+    这是「账号归属加 OCR」改造的核心：掩码文本只有前 3 位 + 后 4 位、游戏从不校验，
+    手工换号后会串号；真实 UID 由主页 `RecordId` 节点 OCR 得到。
+    """
+    import types
+
+    set_current_account("189****6002")
+    assert current_account() == "189****6002", "没有 UID 时用文件里的标识"
+
+    fake_record_id = types.SimpleNamespace(current_account_id=lambda: "100000001")
+    fake_module = types.SimpleNamespace(RecordID=fake_record_id)
+    monkeypatch.setitem(sys.modules, "agent.custom.action.record_id", fake_module)
+    try:
+        assert current_account() == "100000001", "有 UID 时必须优先用 UID"
+        assert balanced_state.current_uid() == "100000001"
+    finally:
+        pass
+
+
+def test_current_uid_empty_when_record_unloaded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """`RecordID` 未加载时 `current_uid()` 返回空串，而不是抛异常。"""
+    monkeypatch.delitem(sys.modules, "agent.custom.action.record_id", raising=False)
+    monkeypatch.delitem(sys.modules, "custom.action.record_id", raising=False)
+    assert balanced_state.current_uid() == ""
 
 
 # ------------------------------------------------------------- 库存保持顺延

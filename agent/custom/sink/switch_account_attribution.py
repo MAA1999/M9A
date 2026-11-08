@@ -8,19 +8,27 @@
 还可能失败）。`TaskerEventSink.on_tasker_task` 正好给出任务级的
 `NotificationType.Succeeded` / `Failed`，所以归属只在**任务真正成功**时才写。
 
-## 归属标识从哪来
+## 归属标识从哪来（2026-11-08 改造）
 
-用**切换任务的目标配置标识**（GUI 的「目标账号(可选)」输入），**不识别真实 UID**：
+**优先用游戏内真实 UID**，而不是 GUI 里手填的掩码账号文本。
 
-- GUI 填了账号 → 用它（规范化后）；
-- GUI 没填 → 用一个固定默认标识（表示「账号列表里选中的那个」）；
-- 任务失败 → **不写**，归属保持不变（未执行或切换失败都不能提前改变归属）。
+原因：掩码文本只有前 3 位 + 后 4 位，游戏从不校验它，手工在游戏里换号后
+仍会沿用旧账号的记录 —— 多账号场景下会串号。
+
+UID 的来源是 `RecordID` 动作（`agent/custom/action/record_id.py`）：它在
+`RecordId` 节点上用 OCR 读主页右上角的用户名与 ID，缓存在类变量里。
+而 `SwitchAccount` 任务结尾会 `StartGame` → 走回家链（`HomeFlagCloseReturnMain`）
+→ 到主界面时 `RecordId` 节点命中 → UID 被刷成**新账号**的值。
+
+所以任务成功时读 `current_account()`（内部优先取 `RecordID.current_account_id()`）
+拿到的就是刚切过去的那个账号。
+
+兜底顺序：真实 UID → 状态文件里的旧值 → 固定默认标识。
 
 ## 状态文件
 
 `config/balanced_state.json` 的 `current_account` 字段（见 `utils/balanced_state.py`）。
-不同切换目标各自保留一套「关卡不可用记录 + 均衡停用标记」，
-切回之前的目标继续用它那份记录。
+不同账号各自保留一套「关卡不可用记录 + 均衡停用标记」，切回之前继续用它那份记录。
 """
 
 from __future__ import annotations
@@ -29,8 +37,10 @@ from maa.agent.agent_server import AgentServer
 from maa.event_sink import NotificationType
 from maa.tasker import Tasker, TaskerEventSink
 from utils import logger
+from utils.account_store import DEFAULT_ACCOUNT_KEY
 from utils.balanced_state import (
     clear_account_unsaved,
+    current_account,
     mark_account_unsaved,
     pending_switch_target,
     set_current_account,
@@ -62,13 +72,28 @@ class SwitchAccountAttribution(TaskerEventSink):
         if noti_type != NotificationType.Succeeded:
             return
 
-        target = pending_switch_target()
-        if not target:
-            logger.info("切换账号任务成功，但未记录目标账号标识，逻辑账号归属保持不变")
+        # 首选游戏内真实 UID：`SwitchAccount` 结尾的 StartGame → 回家链会让
+        # `RecordId` 命中并把 UID 刷成新账号。
+        uid = current_account()
+        configured = pending_switch_target()
+
+        if uid and uid != DEFAULT_ACCOUNT_KEY:
+            target = uid
+            logger.info(f"切换账号任务成功，读到游戏内 UID: {uid}（GUI 配置标识: {configured or '未填'}）")
+        elif configured:
+            # 读不到 UID 时退回 GUI 配置的标识 —— 比丢归属强，但会记一条警告，
+            # 因为这种模式下手工换号可能串号。
+            target = configured
+            logger.warning(
+                f"切换账号任务成功，但未能读到游戏内 UID，退回使用 GUI 配置标识 {configured}。"
+                f"多账号场景下这个标识不会随手工换号变化，可能串号"
+            )
+        else:
+            logger.info("切换账号任务成功，但未读到 UID 且未记录目标标识，逻辑账号归属保持不变")
             return
 
         if set_current_account(target):
-            logger.info(f"切换账号任务成功，当前逻辑账号记为 {target}")
+            logger.info(f"当前逻辑账号记为 {target}")
             clear_account_unsaved()
         else:
             # 切换**已经成功**（游戏里是新账号），但归属没能落盘 —— 文件里还是旧账号。
@@ -78,3 +103,4 @@ class SwitchAccountAttribution(TaskerEventSink):
 
 
 __all__ = ["SwitchAccountAttribution"]
+

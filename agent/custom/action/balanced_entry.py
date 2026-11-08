@@ -30,6 +30,7 @@ from utils import logger
 from utils.balanced_state import (
     clear_all,
     current_account,
+    current_uid,
     is_task_skipped,
     set_task_skipped,
 )
@@ -103,6 +104,15 @@ class BalancedTaskEntry(CustomAction):
     ) -> CustomAction.RunResult:
 
         parse_params(argv.custom_action_param)
+
+        # 归属必须是游戏内的真实 UID，否则「按账号分桶」就是按一段 GUI 里手填的
+        # 掩码文本分桶 —— 手工换号后仍会沿用旧账号的记录。
+        #
+        # `RecordID` 的缓存默认是空的（agent 刚启动时没有任何 OCR 结果），
+        # 所以这里补一次「回主页 → 跑 RecordId」。**只在 UID 为空时才导航**，
+        # 已经读到过就不再往返一次。
+        if not current_uid():
+            _ensure_uid(context)
         account_id = current_account()
 
         if not is_task_skipped(account_id):
@@ -115,6 +125,32 @@ class BalancedTaskEntry(CustomAction):
         )
         context.override_next(ENTRY_NODE, [SKIPPED_NODE])
         return CustomAction.RunResult(success=True)
+
+
+def _ensure_uid(context: Context) -> None:
+    """UID 为空时回主页跑一次 `RecordId` 把它读出来。
+
+    复用 `depot_maintain._ensure_account_id` 的同一套逻辑（它已经在库存保持里
+    验证过：先 `HOME_ENTRY` 回家、再 `RECORD_ID_ENTRY` 触发 OCR，因为
+    `RecordId` 只在主界面命中）。
+
+    **不返回成功与否** —— 读不到 UID 不该阻塞任务：调用方会按默认桶继续
+    （与改造前行为一致），只是记一条警告，提醒多账号用户可能串号。
+    """
+    if current_uid():
+        return
+
+    # 延迟导入：depot_maintain 已经 import 了本模块所在包的自定义动作，
+    # 顶层互相 import 会绕成环。
+    from .depot_maintain import ensure_account_id
+
+    if ensure_account_id(context) and current_uid():
+        logger.info(f"已通过主页 OCR 读到游戏内 UID: {current_uid()}")
+    else:
+        logger.warning(
+            "未能读到游戏内 UID（回主页 + RecordId 都没拿到），本次按默认桶记录。"
+            "如果你在多账号间切换，建议确认主页能正常显示账号信息后再跑"
+        )
 
 
 @AgentServer.custom_action("BalancedTaskUnskip")

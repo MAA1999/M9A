@@ -261,6 +261,15 @@ def _ensure_account_id(context: Context) -> bool:
     return True
 
 
+def ensure_account_id(context: Context) -> bool:
+    """`_ensure_account_id` 的公开入口。
+
+    均衡刷材料的入口（`balanced_entry`）和货币刷取任务都要在碰状态文件前
+    确认账号，跨模块调私有名不合适，这里开一个稳定入口；行为完全一致。
+    """
+    return _ensure_account_id(context)
+
+
 def read_snapshot(path: Path | None = None) -> dict[str, Any] | None:
     """读取当前账号的仓库扫描快照（WarehouseInventory 任务落盘）。"""
     target = path or SNAPSHOT_PATH
