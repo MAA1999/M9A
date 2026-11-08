@@ -5,8 +5,19 @@ from pathlib import Path
 from typing import Any
 
 from .logger import logger
+from .runtime_paths import get_runtime_paths
 
 DEFAULT_ACCOUNT_KEY = "__default__"
+
+
+def config_read_path(rel: str | Path) -> Path:
+    """用户配置读路径：数据目录存在即赢（旧的用户配置也优先），包内基线兜底。"""
+    return get_runtime_paths().resolve_user(rel)
+
+
+def config_write_path(rel: str | Path) -> Path:
+    """用户配置写路径：固定落数据目录（macOS .app 内 project_root 只读）。"""
+    return get_runtime_paths().work_root / rel
 
 
 def normalize_account_id(account_id: str | None) -> str:

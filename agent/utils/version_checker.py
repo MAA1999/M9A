@@ -5,7 +5,6 @@ from typing import Any
 
 import requests  # pyright: ignore[reportMissingModuleSource]
 
-from . import logger
 from .exceptions import (
     APIBusinessError,
     APICriticalError,
@@ -15,6 +14,7 @@ from .exceptions import (
     ResourceNotFoundError,
     VersionCheckError,
 )
+from .logger import logger
 from .runtime_paths import get_runtime_paths
 
 
@@ -60,11 +60,12 @@ def check_resource_version(interface_file_path: str = "./interface.json") -> dic
     }
 
     try:
-        # 读取本地interface.json
+        # 读取本地interface.json：它属于项目资源（只读），不是用户数据，所以相对路径按
+        # project_root 解析；work_root 指向 PI_USER_DATA_DIR 时二者并不相同。
         paths = get_runtime_paths()
         interface_path = Path(interface_file_path)
         if not interface_path.is_absolute():
-            interface_path = paths.work_root / interface_path
+            interface_path = paths.project_root / interface_path
 
         if not interface_path.exists():
             result["error"] = "未找到interface.json文件"

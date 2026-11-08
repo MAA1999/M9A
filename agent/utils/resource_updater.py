@@ -15,8 +15,8 @@ from typing import Any
 
 import requests  # pyright: ignore[reportMissingModuleSource]
 
-from . import logger
 from .http_session import create_no_proxy_session
+from .logger import logger
 from .runtime_paths import get_runtime_paths
 
 # 默认配置
@@ -299,13 +299,16 @@ def check_and_update_resources(
     }
 
     try:
-        project_root = get_runtime_paths().work_root.resolve()
+        paths = get_runtime_paths()
+        project_root = paths.work_root.resolve()
     except Exception as error:
         result["success"] = False
         result["error"] = f"资源更新失败: {error}"
         logger.warning(result["error"])
         return result
 
+    # 写目标固定在 work_root（数据目录）；读取侧由 RuntimePaths.resolve 按覆盖层
+    # 兜底到包内基线，macOS .app 下热更文件同样会被读到，写=读始终对齐。
     if resource_manifests is None:
         try:
             logger.debug("开始从根 manifest 递归获取资源清单列表")

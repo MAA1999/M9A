@@ -8,7 +8,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.define import OCRResult, RecognitionDetail
 from maa.pipeline import JOCR, JRecognitionType
-from utils import logger
+from utils.logger import logger
 from utils.maa_types import is_hit, results_as
 from utils.params import parse_params
 

@@ -20,7 +20,7 @@ from custom.action.critter_crash import (
     DEFAULT_LEADER_BADGE_OFFSET,
     DEFAULT_LEVEL_BADGE_OFFSET,
     MATCH_SCOPED_HIT_NODES,
-    STRATEGY_PATH,
+    STRATEGY_REL_PATH,
     CCBuyCard,
     CCChessboard,
     CCSticker,
@@ -90,7 +90,7 @@ STRATEGY_4_0_CARD_ORDER = ["32122", "32123", "32703", "32124", "32126"]
 STRATEGY_4_0_AWARD_ORDER = ["32123", "32703", "32122", "32124", "32126"]
 
 # 唯一策略表（data/critter_crash/strategy-4.0.json）解析后的基线
-BASE_STRATEGY = load_strategy(STRATEGY_PATH)
+BASE_STRATEGY = load_strategy(PROJECT_ROOT / STRATEGY_REL_PATH)
 
 
 def _minimal_raw(**overrides: object) -> dict[str, object]:
@@ -137,8 +137,8 @@ def test_default_strategy_chess_types_keep_tuple_positions() -> None:
 
 def test_shipped_strategy_file_matches_builtin_default() -> None:
     """仓库里的策略表内容必须等于内置默认值，否则默认行为会随文件漂移。"""
-    raw = json.loads((PROJECT_ROOT / STRATEGY_PATH).read_text(encoding="utf-8"))
-    loaded = parse_strategy(raw, source=str(STRATEGY_PATH))
+    raw = json.loads((PROJECT_ROOT / STRATEGY_REL_PATH).read_text(encoding="utf-8"))
+    loaded = parse_strategy(raw, source=str(STRATEGY_REL_PATH))
     assert loaded == BASE_STRATEGY
 
 
@@ -929,7 +929,7 @@ class TestStrategy40:
         """4.0 是唯一策略表：内置默认值、仓库文件、默认路径三者一致。"""
         assert BASE_STRATEGY.version == "4.0"
         assert self._load() == BASE_STRATEGY  # type: ignore[attr-defined]
-        assert STRATEGY_PATH.as_posix() == STRATEGY_4_0_PATH.as_posix()
+        assert Path(STRATEGY_REL_PATH).as_posix() == STRATEGY_4_0_PATH.as_posix()
 
     def test_loading_4_0_does_not_mutate_default(self) -> None:
         before = CCChessboard.strategy
@@ -1080,7 +1080,8 @@ class TestStrategyBoardBounds:
             parse_strategy(raw)
 
     def test_shipped_profiles_pass_the_bounds_check(self) -> None:
-        assert parse_strategy(json.loads((PROJECT_ROOT / STRATEGY_PATH).read_text(encoding="utf-8"))).board_rows == 3
+        shipped = json.loads((PROJECT_ROOT / STRATEGY_REL_PATH).read_text(encoding="utf-8"))
+        assert parse_strategy(shipped).board_rows == 3
         assert load_strategy(PROJECT_ROOT / STRATEGY_4_0_PATH).board_rows == 3
 
     def test_find_empty_position_ignores_out_of_board_entries(self) -> None:

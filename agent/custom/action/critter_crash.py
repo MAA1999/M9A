@@ -9,9 +9,10 @@ import numpy as np
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from utils import logger
+from utils.logger import logger
 from utils.maa_types import custom_result_dict, is_hit, ocr_text
 from utils.params import parse_params
+from utils.runtime_paths import get_runtime_paths
 
 # 翻斗棋策略表：棋子白名单、棋盘 ROI、奖励优先级、选领队卡位都收敛到这一个数据文件，
 # 换版本（3.5 鹿蜀成长流 → 4.0）只改 JSON，不动代码。
@@ -20,7 +21,12 @@ from utils.params import parse_params
 # 历史策略表（原以注释形式内联在本文件，现已迁出，留此备查）：
 #   - 3.2 工厂流：Knight(8级) + Cat1-4/Robot1-4/Item1-3 占位
 #   - 4.0 鹿蜀成长流：见 data/critter_crash/strategy-4.0.json（唯一策略表，运行时读盘）
-STRATEGY_PATH = Path("data/critter_crash/strategy-4.0.json")
+STRATEGY_REL_PATH = "data/critter_crash/strategy-4.0.json"
+
+
+def _default_strategy_path() -> Path:
+    """默认策略表按覆盖层解析：数据目录里的热更文件优先，包内基线兜底。"""
+    return get_runtime_paths().resolve(STRATEGY_REL_PATH)
 
 
 class StrategyError(ValueError):
@@ -474,7 +480,7 @@ def _parse_sticker(raw: Any, label: str, problems: list[str]) -> StickerSpec | N
     return StickerSpec(open_round=parsed_round, leader=leader, box_point=box_point, positions=tuple(positions))
 
 
-def parse_strategy(raw: Any, *, source: str = str(STRATEGY_PATH)) -> StrategySpec:
+def parse_strategy(raw: Any, *, source: str = STRATEGY_REL_PATH) -> StrategySpec:
     """校验并构建策略表；一次性报出全部问题，便于维护时逐条修。"""
     if not isinstance(raw, dict):
         raise StrategyError(f"{source}: 顶层应为对象")
@@ -593,7 +599,7 @@ EMPTY_STRATEGY = StrategySpec(
 )
 
 
-def load_strategy(path: Path = STRATEGY_PATH) -> StrategySpec:
+def load_strategy(path: Path | None = None) -> StrategySpec:
     """读取并校验策略表；失败直接抛（由调用方决定怎么报错，不静默兜底）。
 
     Raises:
@@ -602,9 +608,10 @@ def load_strategy(path: Path = STRATEGY_PATH) -> StrategySpec:
         UnicodeDecodeError: 不是 UTF-8
         StrategyError: 结构/取值不合法
     """
-    raw = json.loads(path.read_text(encoding="utf-8"))
-    strategy = parse_strategy(raw, source=str(path))
-    logger.debug(f"已加载翻斗棋策略表 {path}（version={strategy.version}）")
+    resolved = path if path is not None else _default_strategy_path()
+    raw = json.loads(resolved.read_text(encoding="utf-8"))
+    strategy = parse_strategy(raw, source=str(resolved))
+    logger.debug(f"已加载翻斗棋策略表 {resolved}（version={strategy.version}）")
     return strategy
 
 
@@ -842,7 +849,7 @@ class CCChessboard(CustomAction):
         return True
 
     @classmethod
-    def reload_strategy(cls, path: Path = STRATEGY_PATH) -> StrategySpec:
+    def reload_strategy(cls, path: Path | None = None) -> StrategySpec:
         """按策略表重载棋盘配置；数据文件不可用时沿用内置 4.0 策略。"""
         strategy = load_strategy(path)
         cls.apply_strategy(strategy)
@@ -1677,7 +1684,8 @@ class CCResetData(CustomAction):
         except ValueError as e:
             logger.warning(f"CCResetData 参数非法（{e}），使用默认策略表")
 
-        path = Path(strategy_file) if strategy_file else STRATEGY_PATH
+        # strategy_file 是 pipeline 参数给的相对路径，同样走覆盖层解析
+        path = get_runtime_paths().resolve(strategy_file if strategy_file else STRATEGY_REL_PATH)
         try:
             CCChessboard.reload_strategy(path)
         except (OSError, ValueError) as e:

@@ -7,7 +7,7 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.pipeline import JOCR, JColorMatch, JRecognitionType, JTemplateMatch
-from utils import logger
+from utils.logger import logger
 from utils.maa_types import is_hit, ocr_text
 
 _CATEGORY_UNLOCK_LEVEL: dict[str, int] = {

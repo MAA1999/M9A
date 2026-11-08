@@ -7,9 +7,10 @@ from typing import Any
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from utils import logger
+from utils.logger import logger
 from utils.maa_types import best_box, ocr_text
 from utils.material_catalog import colorize_name
+from utils.runtime_paths import get_runtime_paths
 from utils.warehouse_snapshot import load_snapshot_file, save_snapshot_file, snapshot_bucket
 
 from .record_id import RecordID
@@ -73,7 +74,7 @@ class WarehouseInventoryScan(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
         try:
-            with open(self._ITEMS_PATH, encoding="utf-8") as f:
+            with open(get_runtime_paths().resolve(self._ITEMS_PATH), encoding="utf-8") as f:
                 items_by_rarity: dict[str, dict[str, dict[str, Any]]] = json.load(f)
         except (OSError, json.JSONDecodeError) as e:
             logger.error(f"读取材料映射表失败: {self._ITEMS_PATH}, {e}")
