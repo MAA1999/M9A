@@ -39,6 +39,7 @@ def prepare_release_project(
     mxu: bool = False,
     platform: str = "win-x64",
     welcome: list[str] | None = None,
+    mxu_app_bundle: bool = False,
 ) -> None:
     root.mkdir(exist_ok=True)
     write_json(root / "maa-project.lock.json", {"pending": []})
@@ -76,7 +77,13 @@ def prepare_release_project(
     for name in framework_library_names(platform):
         (root / f"runtimes/{platform}/native/{name}").write_bytes(b"maafw")
     for gui in ("mfaa", "mxu"):
-        entrypoint = root / f".create-maa-project/runtime/{gui}/{platform}/{gui_entrypoint(gui, platform)}"
+        runtime = root / f".create-maa-project/runtime/{gui}/{platform}"
+        if gui == "mxu" and mxu_app_bundle:
+            # MXU 2.10 moved the macOS build into mxu.app/Contents/MacOS/mxu
+            entrypoint = runtime / "mxu.app/Contents/MacOS/mxu"
+        else:
+            entrypoint = runtime / gui_entrypoint(gui, platform)
+        entrypoint.parent.mkdir(parents=True, exist_ok=True)
         entrypoint.write_bytes(b"gui")
     interpreter = root / f".create-maa-project/runtime/python/{platform}"
     interpreter = interpreter / ("python.exe" if platform.startswith("win-") else "bin/python3")
@@ -179,6 +186,19 @@ def test_release_mxu_package_keeps_agent_command(tmp_path: Path) -> None:
     assert not (package_root / "maafw/MaaPiCli.exe").exists()
     assert (package_root / "maafw/MaaAgentBinary").is_dir()
     assert (package_root / "python/python.exe").is_file()
+
+
+def test_release_mxu_package_lifts_entrypoint_out_of_macos_app_bundle(tmp_path: Path) -> None:
+    prepare_release_project(tmp_path, mxu=True, platform="osx-arm64", mxu_app_bundle=True)
+
+    result = run_release_builder(tmp_path, platform="osx-arm64")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    package_root = tmp_path / "dist/package-mxu"
+    # MXU 2.10 ships the macOS build as mxu.app; the package keeps the flat portable entrypoint
+    assert (package_root / "m9a").is_file()
+    assert not (package_root / "mxu").exists()
+    assert not (package_root / "mxu.app").exists()
 
 
 def test_release_linux_mxu_package_ships_embedded_python(tmp_path: Path) -> None:

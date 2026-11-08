@@ -709,12 +709,23 @@ function guiEntrypointName(runtimePlatform) {
     return runtimePlatform.startsWith("win-") ? `${projectSlug}.exe` : projectSlug;
 }
 
+// MXU 2.10 moved the macOS build into mxu.app/Contents/MacOS/mxu. The release package keeps the
+// flat portable layout (a bare executable outside a bundle is still a supported MXU deployment),
+// so the binary is lifted out of the bundle and the bundle itself stays out of the package.
 function renameGuiEntrypoint(gui, root, runtimePlatform) {
     const target = join(root, guiEntrypointName(runtimePlatform));
     for (const candidate of gui.entrypointCandidates(runtimePlatform)) {
         const source = join(root, candidate);
         if (existsSync(source)) {
             renameSync(source, target);
+            return;
+        }
+        if (!runtimePlatform.startsWith("osx-")) continue;
+        const bundleDir = join(root, `${candidate}.app`);
+        const bundled = join(bundleDir, "Contents", "MacOS", candidate);
+        if (existsSync(bundled)) {
+            renameSync(bundled, target);
+            rmSync(bundleDir, {recursive: true, force: true});
             return;
         }
     }
