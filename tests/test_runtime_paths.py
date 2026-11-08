@@ -125,7 +125,7 @@ def test_resolve_falls_back_for_identical_roots(tmp_path: Path) -> None:
     assert paths.resolve("data/x.json") == (tmp_path / "data/x.json").resolve()
 
 
-def test_seed_data_dir_copies_missing_and_stale_only(tmp_path: Path) -> None:
+def test_seed_work_root_copies_missing_and_stale_only(tmp_path: Path) -> None:
     paths = _bundle_paths(tmp_path)
     _touch(paths.project_root / "data/a.json", 1000)
     _touch(paths.project_root / "data/sub/b.json", 1000)
@@ -133,13 +133,47 @@ def test_seed_data_dir_copies_missing_and_stale_only(tmp_path: Path) -> None:
     fresh = paths.work_root / "data/a.json"
     _touch(fresh, 9000)
 
-    assert runtime_paths.seed_data_dir(paths) == 1
+    assert runtime_paths.seed_work_root(paths) == 1
     assert (paths.work_root / "data/sub/b.json").exists()
     assert fresh.read_text(encoding="utf-8") == "x"
     assert os.path.getmtime(fresh) == 9000
 
 
-def test_seed_data_dir_noop_when_roots_identical(tmp_path: Path) -> None:
+def test_seed_work_root_seeds_interface_and_config_baseline(tmp_path: Path) -> None:
+    paths = _bundle_paths(tmp_path)
+    _touch(paths.project_root / "interface.json", 1000)
+    _touch(paths.project_root / "config/hot_update.json", 1000)
+    # 用户已有的 config 无论新旧都不能被基线覆盖（resolve_user 的「存在即赢」）
+    _touch(paths.work_root / "config/m9a_data.json", 500)
+
+    assert runtime_paths.seed_work_root(paths) == 2
+    assert (paths.work_root / "interface.json").exists()
+    assert (paths.work_root / "config/hot_update.json").exists()
+    assert os.path.getmtime(paths.work_root / "config/m9a_data.json") == 500
+
+
+def test_seed_work_root_noop_when_roots_identical(tmp_path: Path) -> None:
     paths = runtime_paths.build_runtime_paths(project_root=tmp_path, work_root=tmp_path)
 
-    assert runtime_paths.seed_data_dir(paths) == 0
+    assert runtime_paths.seed_work_root(paths) == 0
+
+
+def test_seed_work_root_copies_newer_bundle_baseline(tmp_path: Path) -> None:
+    """下一版包体的 data/ 基线更新时，数据目录的旧副本要被覆盖（与 resolve() 一致）。"""
+    paths = _bundle_paths(tmp_path)
+    _touch(paths.project_root / "data/a.json", 9000)
+    _touch(paths.work_root / "data/a.json", 1000)
+
+    assert runtime_paths.seed_work_root(paths) == 1
+    assert os.path.getmtime(paths.work_root / "data/a.json") == 9000
+
+
+def test_seed_work_root_makes_cwd_self_sufficient(tmp_path: Path) -> None:
+    """端到端目标：播种后按 cwd=work_root 的相对路径读到的内容与 resolve() 相同。"""
+    paths = _bundle_paths(tmp_path)
+    _touch(paths.project_root / "data/combat/drop_index.json", 2000)
+
+    runtime_paths.seed_work_root(paths)
+
+    cwd_read = (paths.work_root / "data/combat/drop_index.json").read_text(encoding="utf-8")
+    assert cwd_read == paths.resolve("data/combat/drop_index.json").read_text(encoding="utf-8")

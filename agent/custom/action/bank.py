@@ -1,28 +1,22 @@
 import time
-from pathlib import Path
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from utils.account_store import get_account_bucket, load_json_object, save_json_object
+from utils.account_store import (
+    config_read_path,
+    config_write_path,
+    get_account_bucket,
+    load_json_object,
+    save_json_object,
+)
 from utils.logger import logger
 from utils.params import parse_params
-from utils.runtime_paths import get_runtime_paths
 from utils.time import is_current_period
 
 from .record_id import RecordID
 
 CONFIG_REL_PATH = "config/m9a_data.json"
-
-
-def _config_read_path() -> Path:
-    """用户配置读路径：数据目录存在即赢（旧的用户配置也优先），包内基线兜底。"""
-    return get_runtime_paths().resolve_user(CONFIG_REL_PATH)
-
-
-def _config_write_path() -> Path:
-    """用户配置写路径：固定落数据目录，包内是只读的。"""
-    return get_runtime_paths().config_dir / "m9a_data.json"
 
 
 DEFAULT_TIMESTAMP_MS = 1058306766000
@@ -36,10 +30,10 @@ class BankPurchaseRecord(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
         item = parse_params(argv.custom_action_param, "item")["item"]
-        data = load_json_object(_config_read_path(), {"bank": {}})
+        data = load_json_object(config_read_path(CONFIG_REL_PATH), {"bank": {}})
         bank_store = get_account_bucket(data, "bank", RecordID.current_account_id())
         bank_store[item] = int(time.time() * 1000)
-        save_json_object(_config_write_path(), data)
+        save_json_object(config_write_path(CONFIG_REL_PATH), data)
 
         logger.info(f"{item}检查时间已记录")
 
@@ -76,9 +70,9 @@ class ModifyBankTaskList(CustomAction):
         else:
             timezone = "Asia/Tokyo"
 
-        data = load_json_object(_config_read_path(), {"bank": {}})
+        data = load_json_object(config_read_path(CONFIG_REL_PATH), {"bank": {}})
         bank_store = get_account_bucket(data, "bank", RecordID.current_account_id())
-        save_json_object(_config_write_path(), data)
+        save_json_object(config_write_path(CONFIG_REL_PATH), data)
 
         for task, period_type in tasks.items():
             is_current_week, is_current_month = is_current_period(bank_store.get(task, DEFAULT_TIMESTAMP_MS), timezone)

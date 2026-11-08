@@ -28,29 +28,47 @@ def _mtime(path: Path) -> float:
         return float("-inf")
 
 
-def seed_data_dir(paths: RuntimePaths) -> int:
-    """把 ``project_root/data`` 的基线播种进 ``work_root/data``，返回复制文件数。
+def _seed_file(src: Path, dst: Path, overwrite_stale: bool) -> int:
+    """单个基线文件播种：目标不存在，或允许时目标更旧，才复制（``copy2`` 带 mtime）。"""
+    if dst.exists() and (not overwrite_stale or _mtime(dst) >= _mtime(src)):
+        return 0
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, dst)
+    return 1
 
-    数据目录（PI_USER_DATA_DIR/data）是项目 data/ 的覆盖层：热更写这里、读侧
-    ``resolve()`` 优先取这里。但 libs 下的二进制插件（drop_core.pyd 按 cwd 读
-    ``data/combat/*.json``）和遗漏的裸 ``open("data/...")`` 不会走 resolve，得让
-    数据目录自带一份基线：数据目录没有或更旧的文件按 ``copy2`` 带 mtime 复制，
-    已存在且更新（热更产物）的不动。work_root == project_root 时无事可做。
-    """
-    src = paths.project_root / "data"
-    dst = paths.data_dir
-    if paths.work_root == paths.project_root or not src.is_dir():
+
+def _seed_tree(src_dir: Path, dst_dir: Path, overwrite_stale: bool) -> int:
+    if not src_dir.is_dir():
         return 0
     copied = 0
-    for base in src.rglob("*"):
-        if not base.is_file():
-            continue
-        target = dst / base.relative_to(src)
-        if _mtime(target) >= _mtime(base):
-            continue
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(base, target)
-        copied += 1
+    for base in src_dir.rglob("*"):
+        if base.is_file():
+            copied += _seed_file(base, dst_dir / base.relative_to(src_dir), overwrite_stale)
+    return copied
+
+
+def seed_work_root(paths: RuntimePaths) -> int:
+    """把包内基线播种进数据目录，让 ``work_root`` 作为 cwd 自足，返回复制文件数。
+
+    agent 在 PI_USER_DATA_DIR 下以数据目录为 cwd（``main.py``）：libs 下的二进制
+    插件（drop_core.pyd 按 cwd 读 ``data/combat/*.json`` 与 ``./interface.json``）
+    和遗漏的裸相对路径不经过 ``resolve()``，数据目录必须自带一份基线，cwd 读路径
+    才与 ``resolve()`` 落到同一份文件。
+
+    - ``data/``、``interface.json``：比 mtime，包内新基线可盖过旧副本（与 ``resolve()``
+      的回落规则一致），热更产物（更新）不动；
+    - ``config/``：只补缺不覆盖——这是用户数据，对应 ``resolve_user()`` 的
+      「存在即赢」，旧的用户存档不能被新基线替换。
+
+    ``work_root == project_root``（便携客户端）时无事可做。
+    """
+    if paths.work_root == paths.project_root:
+        return 0
+    copied = _seed_tree(paths.project_root / "data", paths.data_dir, overwrite_stale=True)
+    copied += _seed_tree(paths.project_root / "config", paths.config_dir, overwrite_stale=False)
+    interface = paths.project_root / "interface.json"
+    if interface.is_file():
+        copied += _seed_file(interface, paths.work_root / "interface.json", overwrite_stale=True)
     return copied
 
 
