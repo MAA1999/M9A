@@ -77,7 +77,12 @@
                 "EightBitCombatInit",
                 "CUB_StartAllIn",
                 "WarehouseInventoryScan",
-                "ArtOfIlluminationScratch"
+                "ArtOfIlluminationScratch",
+                "BalancedResetRecords",
+                "BalancedTaskEntry",
+                "BalancedTaskUnskip",
+                "BalancedTaskSkip",
+                "StageLookupTimeout"
             ]
         }
     },
@@ -306,6 +311,21 @@
         },
         {
             "$ref": "#/$defs/ArtOfIlluminationScratch"
+        },
+        {
+            "$ref": "#/$defs/BalancedResetRecords"
+        },
+        {
+            "$ref": "#/$defs/BalancedTaskEntry"
+        },
+        {
+            "$ref": "#/$defs/BalancedTaskUnskip"
+        },
+        {
+            "$ref": "#/$defs/BalancedTaskSkip"
+        },
+        {
+            "$ref": "#/$defs/StageLookupTimeout"
         }
     ],
     "$defs": {
@@ -1420,6 +1440,46 @@
                 "custom_action": {
                     "const": "CCSticker",
                     "description": "翻斗棋：专属贴纸箱（点开箱子并把贴纸拖到空位）"
+                }
+            }
+        },
+        "BalancedResetRecords": {
+            "properties": {
+                "custom_action": {
+                    "const": "BalancedResetRecords",
+                    "description": "按 GUI「重置全部记录」清空所有逻辑账号的关卡不可用记录与均衡停用标记"
+                }
+            }
+        },
+        "BalancedTaskEntry": {
+            "properties": {
+                "custom_action": {
+                    "const": "BalancedTaskEntry",
+                    "description": "均衡刷材料入口：当前逻辑账号已被标记停用时直接跳过本任务"
+                }
+            }
+        },
+        "BalancedTaskUnskip": {
+            "properties": {
+                "custom_action": {
+                    "const": "BalancedTaskUnskip",
+                    "description": "清除「跳过均衡刷材料任务」标记"
+                }
+            }
+        },
+        "BalancedTaskSkip": {
+            "properties": {
+                "custom_action": {
+                    "const": "BalancedTaskSkip",
+                    "description": "均衡刷材料任务被标记停用时的收尾（不导航、不点选关卡）"
+                }
+            }
+        },
+        "StageLookupTimeout": {
+            "properties": {
+                "custom_action": {
+                    "const": "StageLookupTimeout",
+                    "description": "寻找目标关卡超时：记录该关不可用并顺延到下一个候选"
                 }
             }
         }

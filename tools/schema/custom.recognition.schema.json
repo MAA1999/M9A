@@ -8,6 +8,7 @@
                 "ColorOCR",
                 "ColorOCRWithFallback",
                 "CheckStopping",
+                "StageLookupBudget",
                 "CandyPageRecord",
                 "BankShop",
                 "ActivityRe_releaseChapter",
@@ -45,6 +46,9 @@
         },
         {
             "$ref": "#/$defs/CheckStopping"
+        },
+        {
+            "$ref": "#/$defs/StageLookupBudget"
         },
         {
             "$ref": "#/$defs/CandyPageRecord"
@@ -300,6 +304,14 @@
                 "custom_recognition": {
                     "const": "CheckStopping",
                     "description": "检查任务是否即将停止"
+                }
+            }
+        },
+        "StageLookupBudget": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "StageLookupBudget",
+                    "description": "均衡刷材料：寻找单个目标关卡的总预算检查（两分钟）。未超预算不匹配，流程照常；超了则走 StageLookupTimeout 顺延"
                 }
             }
         },

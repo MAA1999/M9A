@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import tempfile
 import types
@@ -192,11 +193,13 @@ class _PlanHarness:
         # 用例用 set_battles() 按真实拓扑逐步推进，而不是给个固定值掩盖时序。
         self.battles = 4
         sample = raw or _SAMPLE_RAW
-        # 快照写回一律落临时目录，避免用例覆盖仓库 config/warehouse_inventory.json
+        # 快照写回一律落临时目录，避免用例覆盖仓库 config/warehouse_inventory.json。
+        # 临时目录放系统临时目录（而不是仓库根目录）：仓库根目录里堆临时目录会让
+        # prettier 之类的工具扫仓库时 EPERM 失败。
         monkeypatch.setattr(
             depot_maintain,
             "SNAPSHOT_PATH",
-            Path(tempfile.mkdtemp(prefix="m9a-depot-test-")) / "warehouse_inventory.json",
+            Path(tempfile.gettempdir()) / f"m9a-depot-test-{os.getpid()}" / "warehouse_inventory.json",
         )
         monkeypatch.setattr(depot_maintain, "read_snapshot", lambda path=None: snapshot)
         monkeypatch.setattr(depot_maintain, "load_catalog", lambda path=None: build_catalog(sample, source="unit-test"))
@@ -204,6 +207,13 @@ class _PlanHarness:
         monkeypatch.setattr(depot_maintain, "battles_done", lambda: self.battles)
         # 账号解析要有主界面才能做，与本脚手架驱动的流程无关；单独有用例覆盖它
         monkeypatch.setattr(depot_maintain, "_ensure_account_id", lambda _context: True)
+        # 关卡可用性判定要真跑关卡导航，本脚手架驱动不了；默认「登记关卡可用」，
+        # 顺延与未解锁的判定由 tests/test_balanced_fallback.py 单独覆盖
+        monkeypatch.setattr(
+            depot_maintain,
+            "_resolve_available_stage",
+            lambda _context, entry, _catalog: (entry.stage.code, entry.level),
+        )
         DepotMaintainInit().run(self.context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
         # 入口节点会抬 ReturnMain 的命中上限（见 RETURN_MAIN_MAX_HIT），它不属于「规划」，
         # 清掉以免干扰下面按索引取规划覆盖的断言；该行为由 test_init_raises_return_main_limit 覆盖。

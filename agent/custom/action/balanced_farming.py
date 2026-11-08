@@ -11,6 +11,15 @@ from utils import logger
 from utils.maa_types import best_box, ocr_text
 from utils.material_catalog import SOURCE_WAREHOUSE, CatalogError, MaterialEntry, load_catalog
 
+from .balanced_fallback import build_material_candidates, planner
+
+# 本模块要跳转的 pipeline 节点（名字与 resource/base/pipeline/balanced_farming.json 一致）
+ANALYZE_NODE = "BF_Analyze"
+SKIPPED_NODE = "BF_Skipped"
+SELECT_STAGE_NODE = "SelectCombatStage"
+# 回主界面：原版共享的回家链（ResetReturnMain → ReturnMain），与 balanced_fallback 用同一个
+HOME_ENTRY = "ResetReturnMain"
+
 
 def balanced_candidates(catalog: Mapping[str, MaterialEntry]) -> dict[str, MaterialEntry]:
     """旧「均衡取最少」流程（`BalancedFarmingAnalyze`）的候选材料。
@@ -113,18 +122,69 @@ class BalancedFarmingAnalyze(CustomAction):
         summary = ", ".join(f"{materials[item_id].name}x{counts[item_id]}" for item_id in sorted(counts))
         logger.info(f"仓库材料数量: {summary}")
 
+        # 库存最少的材料（原版「均衡取最少」口径）；下面 planner 可能因跨材料顺延
+        # 改用别的材料，那些情况会就地覆盖 target / target_id。
         target_id = min(sorted(counts), key=lambda item_id: counts[item_id])
-        target = materials[target_id]
-        logger.info(f"数量最少的材料: {target.name}({counts[target_id]})，目标关卡: {target.stage.code} {target.level}")
+        target: MaterialEntry = materials[target_id]
+
+        # 顺延状态机：本次先刷「库存数量最少」的材料，其余按库存数量从少到多排好，
+        # 供「寻找目标关卡超时」时跨材料顺延用（第二少、第三少……）。
+        # 参与材料只取**读到数量的**那些：数量识别失败（unreadable）的材料不在 counts 里，
+        # 缺读数不等于关卡不可用。
+        candidates = build_material_candidates(materials, counts)
+        planner().begin(candidates)
+        # ⚠️ 必须用 `next_available_candidate()`（会自动跨材料顺延），不能用
+        # `next_candidate()` —— 后者只看当前材料，第一个材料的候选都被记录过就返回
+        # None，会把「单个材料刷不了」误判成「所有材料都不可用」而永久停用任务。
+        # 需求 §5：单个材料刷不了不能停用整个均衡任务。
+        target_candidate = planner().next_available_candidate()
+        # 跨材料顺延后，实际参与的材料可能不是库存最少的那个 —— 日志要跟着变
+        active_material = planner().current_material()
+        if active_material is not None:
+            target = active_material.entry
+            target_id = active_material.entry.item_id
+
+        # ⚠️ 日志必须打印**实际要去的那个关卡**（`target_candidate`），不是材料目录里
+        # 登记的关卡 —— 登记关卡可能已被记录为不可用，实际会顺延到更早的候选。
+        # 材料也可能因跨材料顺延而不再是最少的那一个，所以都从 planner 取。
+        if target_candidate is not None and active_material is not None:
+            registered = f"{target.stage.code} {target.level}"
+            actual = f"{target_candidate.stage} {target_candidate.level}"
+            pick = "数量最少的材料" if target_id == min(sorted(counts), key=lambda k: counts[k]) else "顺延到的材料"
+            if actual != registered:
+                logger.info(
+                    f"{pick}: {target.name}({counts[target_id]})，"
+                    f"登记关卡 {registered} 不可用，顺延到 {actual}"
+                )
+            else:
+                logger.info(f"{pick}: {target.name}({counts[target_id]})，目标关卡: {actual}")
+
+        if target_candidate is None:
+            # 所有候选都被记录为不可用 —— 属于「所有参与材料都不可用」，停用本任务
+            logger.warning("所有参与材料的候选关卡此前都被记录为不可用，结束本任务")
+            if planner().persist_skip_flag():
+                logger.warning("已标记「跳过均衡刷材料任务」，下次运行直接跳过")
+            else:
+                logger.error("停用标记保存失败，下次运行不会自动跳过")
+            # ⚠️ 此刻游戏停在**仓库页**（BF_Analyze 排在 BF_EnterWarehouse → BF_WarehouseFlag
+            # 之后），而 BF_Skipped 按约定不导航。不先回主界面的话，任务结束时游戏会留在
+            # 仓库里，后续任务从错误界面开始。
+            # 这里复用原版共享的回家链（与 StageLookupTimeout 换候选前的做法一致）。
+            detail = context.run_task(HOME_ENTRY)
+            if detail is None or detail.status.failed:
+                logger.warning("跳过均衡任务前未能回到主界面，请检查游戏当前界面")
+            context.override_next(ANALYZE_NODE, [SKIPPED_NODE])
+            return CustomAction.RunResult(success=True)
 
         context.override_pipeline(
             {
                 "SelectCombatStage": {
-                    "action": {"param": {"custom_action_param": {"stage": target.stage.code}}},
-                    "attach": {"level": target.level},
+                    "action": {"param": {"custom_action_param": {"stage": target_candidate.stage}}},
+                    "attach": {"level": target_candidate.level},
                 }
             }
         )
+        planner().begin_stage_lookup(target_candidate.stage)
 
         return CustomAction.RunResult(success=True)
 

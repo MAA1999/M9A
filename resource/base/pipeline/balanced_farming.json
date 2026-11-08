@@ -8,8 +8,43 @@
             }
         },
         "next": [
+            "BF_ResetRecords",
             "BF_Plan"
         ]
+    },
+    "BF_ResetRecords": {
+        "desc": "按 GUI「重置全部记录」选项清空所有逻辑账号的关卡不可用记录与均衡停用标记；清完进入入口检查（顺序保证已停用时仍能执行重置）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BalancedResetRecords"
+            }
+        },
+        "next": [
+            "BF_Entry"
+        ]
+    },
+    "BF_Entry": {
+        "desc": "均衡刷材料入口：当前逻辑账号已被标记停用时直接跳过本任务（不导航、不点选关卡）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BalancedTaskEntry"
+            }
+        },
+        "next": [
+            "BF_Plan"
+        ]
+    },
+    "BF_Skipped": {
+        "desc": "均衡刷材料任务被标记停用时的收尾（不导航、不点选关卡，后续任务继续）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "BalancedTaskSkip"
+            }
+        },
+        "next": []
     },
     "BF_Plan": {
         "desc": "库存保持规划：读仓库快照与目标库存，决定刷取目标、刷新快照或退回原有流程",

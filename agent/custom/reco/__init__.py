@@ -6,6 +6,7 @@ RECO_MODULES = (
     "activity",
     "auto_promotion",
     "auto_trail",
+    "balanced_fallback",
     "combat",
     "compare_numbers",
     "lucidscape",

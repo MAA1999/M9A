@@ -1,0 +1,24 @@
+{
+    "StageLookupBudget": {
+        "desc": "均衡刷材料：寻找单个目标关卡的总预算检查（两分钟）。未超预算不匹配，流程照常滑动；超了则匹配并走到 StageLookupTimeout 顺延。非均衡刷材料的流程里永远不匹配，原版行为不变。",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "StageLookupBudget"
+            }
+        },
+        "next": [
+            "StageLookupTimeout"
+        ]
+    },
+    "StageLookupTimeout": {
+        "desc": "均衡刷材料：寻找目标关卡超时 → 记录该关不可用 → 顺延到同材料下一候选；候选用尽则换库存数量第二少、第三少的材料；所有参与材料都不可用则停用本任务。",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "StageLookupTimeout"
+            }
+        },
+        "next": []
+    }
+}
