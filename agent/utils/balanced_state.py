@@ -185,14 +185,18 @@ def candidates_for_material(
     按用户指定的数字编号降序回退（`13-4 > 12-10`、`9-8 > 8-7`）。
 
     掉落索引里查不到该材料时（资源族关卡不在索引里）只返回登记关卡本身。
+
+    **登记关卡始终在候选里**，即使掉落索引漏了它（索引按关卡收录材料，理论上该有，
+    但版本更新或个别关卡可能缺项）。不能因为「索引里有别的候选」就把登记关卡丢掉 ——
+    否则其余候选都不可用时会把材料判成「无可用关卡」，而实际上登记关卡本来是能打的。
     """
     candidates = candidate_stages_for_item(item_id, level=level, drop_index=drop_index)
     head = [c for c in candidates if c.stage == registered_stage]
     rest = [c for c in candidates if c.stage != registered_stage]
-    ordered = head + rest
-    if not ordered:
-        return [StageCandidate(stage=registered_stage, level=level, order=parse_stage_order(registered_stage))]
-    return ordered
+    if not head:
+        # 索引里没有登记关卡 → 补到最前面（它仍是首选）
+        head = [StageCandidate(stage=registered_stage, level=level, order=parse_stage_order(registered_stage))]
+    return head + rest
 
 
 def is_stage_unavailable(unavailable: Iterable[str], stage: str) -> bool:
@@ -406,12 +410,9 @@ def clear_all(path: Path | None = None) -> bool:
     target = _path(path)
     data = load_state(target)
     data[STATE_KEY] = {}
-    try:
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(json.dumps(data, ensure_ascii=False, indent=4), encoding="utf-8")
-    except OSError:
-        return False
-    return True
+    # 复用原子写入（tmp + os.replace）：直接 write_text 若中途出错会留下半截文件，
+    # 下次 load_state 读到损坏内容会退化成空状态，连 current_account 都一起丢。
+    return save_state(data, target)
 
 
 def format_unavailable_summary(stages: Iterable[str]) -> str:

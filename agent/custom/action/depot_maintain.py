@@ -473,44 +473,6 @@ def pick_target(
     return catalog[item_id], deficits[item_id]
 
 
-def _pick_second_least_material(
-    catalog: Mapping[str, MaterialEntry],
-    inventory: Mapping[str, int],
-    targets: Mapping[str, int],
-    exclude_item_id: str,
-) -> tuple[MaterialEntry, int] | None:
-    """挑「仓库里第二少的材料」作为顺延目标（排除刚失败的那一种）。
-
-    「最少」的口径与 `pick_target` 不同：这里按**库存数量**排序（不是缺口），
-    因为需求是「该材料刷不了，退而刷另一种材料」，而顺延目标应选库存最紧的那种，
-    否则会先刷一种库存充裕的材料。数量相同时按 id 排序保证结果稳定
-    （与 `BalancedFarmingAnalyze` 的 `min(sorted(counts), key=...)` 同口径）。
-
-    **只考虑有正缺口且未达标的材料**：
-    - 已达标的材料不硬刷（需求：「库存保持模式仍遵守材料开关与正缺口，已达标材料不硬刷」）；
-    - `max(1, target - count)` 会把「刚好达标」的材料强行造成缺口，所以先过滤掉已达标项。
-    """
-    candidates: list[tuple[str, int]] = []
-    for item_id in catalog:
-        if item_id == exclude_item_id:
-            continue
-        target = targets.get(item_id, 0)
-        if target <= 0:
-            continue
-        count = inventory.get(item_id)
-        if count is None:
-            continue  # 没有读数 → 不参与（缺读数不等于关卡不可用）
-        if count >= target:
-            continue  # 已达标 → 不硬刷
-        candidates.append((item_id, count))
-    if not candidates:
-        return None
-    item_id, count = min(sorted(candidates), key=lambda pair: pair[1])
-    entry = catalog[item_id]
-    target = targets.get(item_id, 0)
-    return entry, max(1, target - count)
-
-
 def _resolve_available_stage(
     context: Context,
     entry: MaterialEntry,
@@ -1046,26 +1008,32 @@ class DepotMaintainPlan(CustomAction):
             # 没有可参与的材料（不该发生：上面 pick_target 已经判定过）→ 关掉顺延
             state.reset()
 
-        # 关卡可用性判定：登记关卡此前被记为不可用时顺延到下一个候选关卡。
-        # 判定依据见 utils/balanced_state.py 与 custom/action/balanced_fallback.py。
+        # 关卡可用性判定：登记关卡此前被记为不可用时，顺延到该材料的下一个候选关卡。
+        # ⚠️ 材料层面的顺延走统一的 `next_available_candidate()` —— 它会连续跨材料
+        # （第一、第二、第三……直到找到可用的或全部耗尽），并维护 `current_index`。
+        # 不能写成「换一次第二少材料、它也不行就结束」：那样只在第二种材料上就停住，
+        # 与 `balanced_farming.py` 的连续顺延不一致，也违背「继续顺延第二少、第三少……」。
         stage_code, stage_level = _resolve_available_stage(context, entry, catalog)
         if stage_code is None:
-            # 该材料的候选关卡全部不可用 → 顺延到「库存数量第二少的材料」
-            logger.warning(f"{label} 的候选关卡均不可用，顺延到库存中第二少的材料")
+            logger.warning(f"{label} 的候选关卡均不可用，继续顺延到下一个参与材料")
             _state.skipped_materials.append(label)
-            alternative = _pick_second_least_material(catalog, inventory, targets, entry.item_id)
-            if alternative is None:
-                logger.error("没有可顺延的其他材料，库存保持结束")
+            # 当前材料的候选已用尽，交给状态机换下一种（会推进 current_index）
+            state.finish_material()
+            next_candidate = state.next_available_candidate()
+            if next_candidate is None:
+                logger.error("所有参与材料的候选关卡均不可用，库存保持结束")
                 context.override_next(PLAN_NODE, [DONE_NODE])
                 return CustomAction.RunResult(success=True)
-            entry, deficit = alternative
+            material = state.current_material()
+            if material is None:
+                logger.error("顺延状态机给出的候选没有对应的材料，库存保持结束")
+                context.override_next(PLAN_NODE, [DONE_NODE])
+                return CustomAction.RunResult(success=True)
+            entry = material.entry
+            deficit = max(1, targets.get(entry.item_id, 0) - inventory.get(entry.item_id, 0))
             runs = runs_for(deficit, entry)
             label = material_label(entry.item_id, catalog)
-            stage_code, stage_level = _resolve_available_stage(context, entry, catalog)
-            if stage_code is None:
-                logger.error(f"{label} 的候选关卡同样不可用，库存保持结束")
-                context.override_next(PLAN_NODE, [DONE_NODE])
-                return CustomAction.RunResult(success=True)
+            stage_code, stage_level = next_candidate.stage, next_candidate.level
             logger.info(f"已顺延到材料 {label}，关卡 {stage_code} {stage_level}")
 
         # 本轮的上报开关先算出来：读数模式依赖它，而节点数据里还是上一轮的残留值

@@ -43,7 +43,6 @@ from agent.custom.action.balanced_fallback import (
     planner,
     reset_planner,
 )
-from agent.custom.action.depot_maintain import _pick_second_least_material
 from agent.utils import balanced_state
 from agent.utils.balanced_state import (
     DEFAULT_SWITCH_TARGET,
@@ -185,6 +184,22 @@ def test_candidates_sixth_is_reachable(tmp_path: Path) -> None:
     )
     assert len(candidates) == 7
     assert candidates[5].stage == "2-1", "第六个候选必须可达"
+
+
+def test_candidates_always_include_registered_stage(tmp_path: Path) -> None:
+    """登记关卡始终在候选里 —— 即使掉落索引漏了它。
+
+    回归防护：索引里「有别的候选但没有登记关卡」时，不能把登记关卡丢掉，
+    否则其余候选都不可用会把材料误判成「无可用关卡」。
+    """
+    # 索引里有 13-4 / 12-10，但**没有**登记关卡 7-26
+    drop_index = {"13-4E": [110103], "12-10E": [110103]}
+    candidates = candidates_for_material(
+        "110103", level="Hard", registered_stage="7-26", drop_index=drop_index
+    )
+    stages = [c.stage for c in candidates]
+    assert stages[0] == "7-26", "登记关卡必须仍在首位（索引缺项时补回来）"
+    assert stages[1:] == ["13-4", "12-10"]
 
 
 def test_resource_family_stage_only_exact_match(tmp_path: Path) -> None:
@@ -418,6 +433,25 @@ def test_timeout_action_marks_skip_when_all_unavailable(tmp_path: Path) -> None:
     assert result.success is True
     assert is_task_skipped(state.account_id) is True, "应写入停用标记"
     assert context.next_overrides[-1][1] == ["BF_Skipped"], "应跳到跳过收尾"
+
+
+def test_reset_uses_atomic_write_and_keeps_account(tmp_path: Path) -> None:
+    """重置走原子写入，且在清空记录后保留当前逻辑账号标识。
+
+    回归防护：早前 `clear_all` 用 `write_text` 直接覆盖，中途出错会留下半截文件，
+    下次读到损坏内容会连 `current_account` 一起丢。
+    """
+    from agent.utils.balanced_state import clear_all, load_state, set_current_account
+
+    set_current_account("A", balanced_state.BALANCED_STATE_PATH)
+    record_unavailable("A", "7-26")
+    set_task_skipped("A", True)
+
+    assert clear_all(balanced_state.BALANCED_STATE_PATH) is True
+
+    data = load_state(balanced_state.BALANCED_STATE_PATH)
+    assert data.get("accounts") == {}, "记录与停用标记应被清空"
+    assert data.get("current_account") == "A", "当前逻辑账号标识必须保留"
 
 
 def test_timeout_action_continues_past_second_material(tmp_path: Path) -> None:
@@ -756,44 +790,6 @@ def test_depot_candidates_ordered_by_inventory_after_first(tmp_path: Path) -> No
     ids = [c.entry.item_id for c in candidates]
     # 缺口相同 → 按库存数量从少到多
     assert ids == ["110103", "110203", "110303"]
-
-
-def test_pick_second_least_excludes_reached_material(tmp_path: Path) -> None:
-    """第二少材料的选择不选已达标的（`max(1, ...)` 曾把已达标强行造成缺口）。"""
-    catalog = {
-        "110103": _entry("110103", "甲", "7-26"),
-        "110203": _entry("110203", "乙", "3-13"),
-    }
-    # 110103 已经达标（100/100）→ 不该被当成顺延目标
-    inventory = {"110103": 100, "110203": 5}
-    targets = {"110103": 100, "110203": 100}
-    picked = _pick_second_least_material(catalog, inventory, targets, "110203")
-    assert picked is None, "另一个材料已达标 → 没有可顺延的目标"
-
-
-def test_pick_second_least_excludes_material_without_reading(tmp_path: Path) -> None:
-    """缺读数的材料不参与顺延（缺读数不等于关卡不可用）。"""
-    catalog = {
-        "110103": _entry("110103", "甲", "7-26"),
-        "110203": _entry("110203", "乙", "3-13"),
-    }
-    inventory = {"110203": 5}  # 110103 没有读数
-    targets = {"110103": 100, "110203": 100}
-    picked = _pick_second_least_material(catalog, inventory, targets, "110203")
-    assert picked is None, "没有读数的材料不能当顺延目标"
-
-
-def test_pick_second_least_uses_inventory_count(tmp_path: Path) -> None:
-    """第二少按库存数量排序（不是缺口大小）。"""
-    catalog = {
-        "110103": _entry("110103", "甲", "7-26"),
-        "110203": _entry("110203", "乙", "3-13"),
-    }
-    inventory = {"110103": 50, "110203": 2}
-    targets = {"110103": 100, "110203": 100}
-    picked = _pick_second_least_material(catalog, inventory, targets, "110203")
-    assert picked is not None
-    assert picked[0].item_id == "110103", "库存更少的那个才是第二少"
 
 
 # ---------------------------------------------------------- 均衡取最少入口
