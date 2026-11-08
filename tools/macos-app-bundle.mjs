@@ -25,7 +25,7 @@ import {
     symlinkSync,
     writeFileSync,
 } from "node:fs";
-import {basename, dirname, join, relative, resolve} from "node:path";
+import {basename, dirname, join, relative, resolve, sep} from "node:path";
 
 // Mach-O and universal binaries, read as big-endian u32 so both byte orders are listed.
 const MACHO_MAGICS = new Set([
@@ -288,7 +288,10 @@ function attachIcon(appDir, iconPath, options) {
         return;
     }
     const resourcesDir = join(appDir, "Contents", "Resources");
-    const icnsName = `${options.displayName.toLowerCase()}.icns`;
+    // The icon file name becomes part of Contents/Info.plist and a real file under
+    // Contents/Resources — keep it strictly inside a safe character set.
+    const iconBase = options.displayName.toLowerCase().replace(/[^a-z0-9.-]+/g, "-");
+    const icnsName = `${iconBase}.icns`;
     const icnsPath = join(resourcesDir, icnsName);
     const workDir = join(resourcesDir, "icon-work");
     rmSync(workDir, {recursive: true, force: true});
@@ -361,7 +364,9 @@ function attachIcon(appDir, iconPath, options) {
         );
         writeFileSync(plistPath, plist, "utf8");
     } catch (error) {
-        console.warn(`[WARN] macOS app icon was not applied: ${error.message}`);
+        // An explicitly requested icon must either land or fail the build; silently shipping the
+        // default icon makes release assets lie about what was applied.
+        throw new Error(`macOS app icon was not applied: ${error.message}`);
     } finally {
         rmSync(workDir, {recursive: true, force: true});
     }
@@ -409,20 +414,23 @@ function createDmg(appDir, dmgPath, options) {
         "UDZO",
         dmgPath,
     ];
-    // Hosted runners occasionally answer `Resource busy` while the volume service is still
-    // settling after the bundle was just written; a short retry absorbs that flake.
-    for (let attempt = 1; ; attempt++) {
-        try {
-            run("hdiutil", dmgArgs);
-            break;
-        } catch (error) {
-            if (attempt >= 4) throw error;
-            const waitMs = attempt * 5000;
-            console.warn(`[WARN] hdiutil create failed (attempt ${attempt}/4), retrying in ${waitMs / 1000}s`);
-            spawnSync("sleep", [String(waitMs / 1000)]);
+    try {
+        // Hosted runners occasionally answer `Resource busy` while the volume service is still
+        // settling after the bundle was just written; a short retry absorbs that flake.
+        for (let attempt = 1; ; attempt++) {
+            try {
+                run("hdiutil", dmgArgs);
+                break;
+            } catch (error) {
+                if (attempt >= 4) throw error;
+                const waitMs = attempt * 5000;
+                console.warn(`[WARN] hdiutil create failed (attempt ${attempt}/4), retrying in ${waitMs / 1000}s`);
+                spawnSync("sleep", [String(waitMs / 1000)]);
+            }
         }
+    } finally {
+        rmSync(stagingDir, {recursive: true, force: true});
     }
-    rmSync(stagingDir, {recursive: true, force: true});
 }
 
 // The layout contract is checked on every host, including the Windows and Linux builders that
@@ -451,7 +459,7 @@ function verifyBundle(appDir, options) {
         if (!existsSync(resolved)) {
             throw new Error(`macOS bundle symlink does not resolve: ${entry.name}`);
         }
-        if (!resolved.startsWith(portableDir)) {
+        if (!resolved.startsWith(portableDir + sep)) {
             throw new Error(`macOS bundle symlink escapes ${PORTABLE_DIR}: ${entry.name}`);
         }
     }

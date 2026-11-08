@@ -247,10 +247,9 @@ jobs:
       # Launches the bundled GUI like a user would and reads its own log. The step stays soft:
       # MXU < https://github.com/MaaXYZ/MXU/pull/432 resolves the project directory to the .app
       # parent on macOS, so only an MXU release carrying that fix prints "loaded interface for
-      # project" here. Releasing M9A-macos-*-MXU.dmg requires this step to print [OK].
+      # project" here. Releasing M9A-macos-*-MXU.dmg requires this step to pass.
       - name: Probe the MXU GUI
         if: runner.os == 'macOS'
-        continue-on-error: true
         shell: bash
         run: |
           set +e
@@ -273,5 +272,6 @@ jobs:
           if grep -q 'loaded interface for project' "$mxu_tauri_log" 2>/dev/null; then
             echo "[OK] MXU found interface.json inside the bundle (MaaXYZ/MXU#432 or later)"
           else
-            echo "[WARN] MXU did not load interface.json; the bundled MXU predates MaaXYZ/MXU#432, so the dmg will not run as a project yet"
+            echo "[ERR] MXU did not load interface.json; the bundled MXU predates MaaXYZ/MXU#432, so the dmg will not run as a project yet" >&2
+            exit 1
           fi
