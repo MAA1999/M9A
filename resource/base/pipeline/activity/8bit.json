@@ -5,6 +5,7 @@
         "desc": "8-bit 街机秀（幸存者游戏）",
         "next": [
             "8bitFlagInMain",
+            "8bitResumeCancel",
             "[JumpBack]8bitEntryFromMain",
             "[JumpBack]8bitEntry"
         ]
