@@ -65,7 +65,7 @@
                     "label": "$Option.BalancedFarming.Material.Target",
                     "default": "1352100",
                     "pipeline_type": "string",
-                    "verify": "^\\d*(\\.\\d+)?[KkMm]?$"
+                    "verify": "^(\\d+(\\.\\d+)?|\\.\\d+)[KkMm]?$"
                 }
             ],
             "pipeline_override": {"CT_Plan": {"attach": {"dust_threshold": "{dust_threshold}"}}}
@@ -80,7 +80,7 @@
                     "label": "$Option.BalancedFarming.Material.Target",
                     "default": "1616830",
                     "pipeline_type": "string",
-                    "verify": "^\\d*(\\.\\d+)?[KkMm]?$"
+                    "verify": "^(\\d+(\\.\\d+)?|\\.\\d+)[KkMm]?$"
                 }
             ],
             "pipeline_override": {"CT_Plan": {"attach": {"coin_threshold": "{coin_threshold}"}}}

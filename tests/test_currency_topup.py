@@ -102,12 +102,22 @@ def test_should_farm_needs_reading() -> None:
 
 
 def test_int_param_supports_k_and_m() -> None:
-    """阈值输入支持 K / M 缩写。"""
+    """阈值输入支持 K / M 缩写；空输入用默认值，非法输入返回 None。"""
     assert _int_param("500K", 0) == 500_000
     assert _int_param("1.5M", 0) == 1_500_000
     assert _int_param("1352100", 0) == 1_352_100
-    assert _int_param("", 42) == 42, "空输入回落默认值"
-    assert _int_param("abc", 42) == 42, "非法输入回落默认值"
+    assert _int_param("", 42) == 42, "空输入 = 用户没填 → 用默认值"
+
+
+def test_int_param_rejects_unparsable_instead_of_defaulting() -> None:
+    """非法阈值返回 `None`，**不回落到默认值**。
+
+    回归防护：默认阈值是 135 万，若输入 `K` 之类解析失败后静默用默认值，
+    任务会把当天体力一次刷光。
+    """
+    assert _int_param("abc", 42) is None, "非法输入必须拒绝，不能回落默认值"
+    assert _int_param("K", 42) is None, "只有单位没有数字也要拒绝"
+    assert _int_param("0", 42) is None, "0 不是有效阈值"
 
 
 # ------------------------------------------------------------------ 入口动作

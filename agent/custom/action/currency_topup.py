@@ -228,6 +228,13 @@ class CurrencyTopUpPlan(CustomAction):
         dust_threshold = _int_param(params.get("dust_threshold"), DUST_DEFAULT_THRESHOLD)
         coin_threshold = _int_param(params.get("coin_threshold"), COIN_DEFAULT_THRESHOLD)
 
+        # 阈值解析失败 → 该货币本轮不参与（`_int_param` 已记错误日志）。
+        # 不能拿默认阈值顶上：默认 135 万会让任务直接刷完当天体力。
+        if dust_threshold is None:
+            dust_enabled = False
+        if coin_threshold is None:
+            coin_enabled = False
+
         dust_now = counts.get(DUST_ITEM_ID)
         coin_now = counts.get(COIN_ITEM_ID)
         logger.info(f"当前数量：微尘 {dust_now if dust_now is not None else '未读到'}，"
@@ -262,6 +269,9 @@ class CurrencyTopUpPlan(CustomAction):
             logger.info(f"微尘与利齿子儿都低于阈值，本次刷缺口更大的 {item_name}（规则：缺口大者优先）")
         current = dust_now if item_id == DUST_ITEM_ID else coin_now
         threshold = dust_threshold if item_id == DUST_ITEM_ID else coin_threshold
+        # 阈值解析失败的货币已在上面把 enabled 置 False，不可能进到 choices；
+        # 这里断言一次，避免 None 泄漏到 _state.target。
+        assert threshold is not None
 
         _state.item_id = item_id
         _state.item_name = item_name
@@ -374,11 +384,19 @@ def _read_currency_counts() -> dict[str, int]:
     return counts
 
 
-def _int_param(value: Any, default: int) -> int:
+def _int_param(value: Any, default: int) -> int | None:
     """把 GUI 的阈值输入解析成整数，**支持 K/M 缩写**（`500K` = 500000）。
 
     与 `depot_maintain.parse_abbreviated_number` 同一口径（游戏的缩写显示）。
-    解析不出来（非数字、非法缩写）时回落到默认值。
+
+    Returns:
+        - 正整数 —— 解析成功
+        - `None`  —— 输入非空但**解析不出来**（例如 `K`、`abc`）。调用方必须
+                     跳过刷取，**不能回落到默认阈值** —— 默认值是 135 万，
+                     静默拿它当阈值会把当天体力一次刷光。
+
+    输入为空时返回 `default`：GUI 没填阈值属于「用默认值」，与「填了但填错」
+    是两回事，不能一并按错误处理。
     """
     if isinstance(value, bool) or value is None:
         return default
@@ -386,9 +404,12 @@ def _int_param(value: Any, default: int) -> int:
     if not text:
         return default
     parsed = parse_abbreviated_number(text)
-    if parsed is None:
-        logger.warning(f"阈值 {text!r} 无法解析，回落到默认值 {default}")
-        return default
+    if parsed is None or parsed <= 0:
+        logger.error(
+            f"阈值 {text!r} 无法解析成有效数字，本次跳过刷取（不会用默认阈值替代 —— "
+            f"默认值 {default} 会让任务直接刷完当天体力）"
+        )
+        return None
     return parsed
 
 
