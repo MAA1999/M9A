@@ -120,6 +120,18 @@ def test_int_param_rejects_unparsable_instead_of_defaulting() -> None:
     assert _int_param("0", 42) is None, "0 不是有效阈值"
 
 
+def test_int_param_accepts_numeric_types() -> None:
+    """数值类型阈值直接接受，不经过字符串（避免科学计数法）。
+
+    回归防护：手写 pipeline 覆写可能传 `1e16`，先 `str()` 会变成 `1e+16`，
+    解析器反而拒绝该货币。数值应直接按整数接受。
+    """
+    assert _int_param(1_000_000, 42) == 1_000_000, "int 直接接受"
+    assert _int_param(1.5e6, 42) == 1_500_000, "float 转 int 后接受"
+    assert _int_param(0.5, 42) is None, "小于 1 的数值转 int 后为 0，必须拒绝"
+    assert _int_param(-5, 42) is None, "负数必须拒绝"
+
+
 def test_int_param_rejects_bool() -> None:
     """布尔阈值按无效处理，不回落到默认值。
 

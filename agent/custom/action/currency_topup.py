@@ -398,8 +398,8 @@ def _int_param(value: Any, default: int) -> int | None:
 
     Returns:
         - 正整数 —— 解析成功
-        - `None`  —— 输入非空但**解析不出来**（例如 `K`、`abc`）。调用方必须
-                     跳过刷取，**不能回落到默认阈值** —— 默认值是 135 万，
+        - `None`  —— 输入非空但**解析不出来**（例如 `K`、`abc`）。调用方应让
+                     该货币本轮不参与刷取，**不能回落到默认阈值** —— 默认值是 135 万，
                      静默拿它当阈值会把当天体力一次刷光。
 
     输入为空时返回 `default`：GUI 没填阈值属于「用默认值」，与「填了但填错」
@@ -408,23 +408,32 @@ def _int_param(value: Any, default: int) -> int | None:
     但**布尔值按无效处理**：`True` / `False` 只可能来自 GUI 之外的 pipeline 覆写，
     说明有人把开关值错填到阈值字段。此时若回落到默认阈值（135 万），任务会按一个
     用户从未输入过的数字把当天体力刷光。
+
+    数值类型（int / float）**直接接受**：手写 pipeline 覆写可能传 `1e16` 之类的
+    数值，先 `str()` 会变成科学计数法（`1e+16`），解析器反而拒绝。
     """
     if value is None:
         return default
     if isinstance(value, bool):
         logger.error(
-            f"阈值收到布尔值 {value}（可能把开关值填到了阈值字段），本次跳过刷取。"
-            f"不会用默认阈值 {default} 替代"
+            f"阈值收到布尔值 {value}（可能把开关值填到了阈值字段），"
+            f"该货币本轮不参与刷取。不会用默认阈值 {default} 替代"
         )
         return None
+    if isinstance(value, (int, float)):
+        parsed = int(value)
+        if parsed <= 0:
+            logger.error(f"阈值 {value!r} 不是正数，该货币本轮不参与刷取")
+            return None
+        return parsed
     text = str(value).strip()
     if not text:
         return default
     parsed = parse_abbreviated_number(text)
     if parsed is None or parsed <= 0:
         logger.error(
-            f"阈值 {text!r} 无法解析成有效数字，本次跳过刷取（不会用默认阈值替代 —— "
-            f"默认值 {default} 会让任务直接刷完当天体力）"
+            f"阈值 {text!r} 无法解析成有效数字，该货币本轮不参与刷取"
+            f"（不会用默认阈值替代 —— 默认值 {default} 会让任务直接刷完当天体力）"
         )
         return None
     return parsed
