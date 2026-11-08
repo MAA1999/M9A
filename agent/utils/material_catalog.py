@@ -23,9 +23,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-CATALOG_PATH = Path("data/combat/balanced_farming.json")
+from .runtime_paths import get_runtime_paths
+
+CATALOG_REL_PATH = "data/combat/balanced_farming.json"
 # 材料显示名的单一来源（仓库扫描与日志着色也读它）；目录条目只在不在表里时写自己的 name
-ITEMS_PATH = Path("data/combat/items.json")
+ITEMS_REL_PATH = "data/combat/items.json"
+
+
+def _resolve(rel: str) -> Path:
+    """数据文件按覆盖层解析：数据目录的热更文件优先，包内基线兜底。"""
+    return get_runtime_paths().resolve(rel)
 
 
 @dataclass(frozen=True)
@@ -155,8 +162,9 @@ def parse_stage_code(code: str) -> MaterialStage:
     return MaterialStage(code=code, chapter=chapter, stage_no=stage_no, family=chapter)
 
 
-def load_item_names(path: Path = ITEMS_PATH) -> dict[str, str]:
+def load_item_names(path: Path | None = None) -> dict[str, str]:
     """读取 items.json 的材料名（id → 名称）；文件缺失/损坏/结构不符时返回空表。"""
+    path = path if path is not None else _resolve(ITEMS_REL_PATH)
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
@@ -178,7 +186,7 @@ def load_item_names(path: Path = ITEMS_PATH) -> dict[str, str]:
 def build_catalog(
     raw: Any,
     *,
-    source: str = str(CATALOG_PATH),
+    source: str = CATALOG_REL_PATH,
     names: Mapping[str, str] | None = None,
 ) -> dict[str, MaterialEntry]:
     """校验并构建目录；一次性报出全部问题，便于维护时逐条修。
@@ -202,8 +210,10 @@ def build_catalog(
     return catalog
 
 
-def load_catalog(path: Path = CATALOG_PATH, *, names_path: Path = ITEMS_PATH) -> dict[str, MaterialEntry]:
+def load_catalog(path: Path | None = None, *, names_path: Path | None = None) -> dict[str, MaterialEntry]:
     """读取材料目录（名称回退到 items.json）；文件缺失或内容非法时抛 CatalogError。"""
+    path = path if path is not None else _resolve(CATALOG_REL_PATH)
+    names_path = names_path if names_path is not None else _resolve(ITEMS_REL_PATH)
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
     except OSError as exc:
@@ -250,7 +260,7 @@ def _build_entry(item_id: str, entry: Any, names: Mapping[str, str]) -> Material
         # 名称默认来自 items.json（单一来源），只有不在表里的材料才需要在目录里写
         name = names.get(item_id, "")
     if not name:
-        raise CatalogError(f"{item_id}: name 缺失或为空，且 {ITEMS_PATH.as_posix()} 里没有该材料")
+        raise CatalogError(f"{item_id}: name 缺失或为空，且 {ITEMS_REL_PATH} 里没有该材料")
 
     stage_code = entry.get("stage")
     if not isinstance(stage_code, str) or not stage_code.strip():

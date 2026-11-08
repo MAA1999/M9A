@@ -4,7 +4,7 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
-from utils import logger
+from utils.logger import logger
 from utils.maa_types import boxed_results, is_hit, ocr_text
 
 

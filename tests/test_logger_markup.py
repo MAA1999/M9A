@@ -1,5 +1,7 @@
 import io
 import logging
+import sys
+from pathlib import Path
 
 from loguru import logger as loguru_logger
 
@@ -106,3 +108,23 @@ def test_console_paths_agree_for_every_client(monkeypatch) -> None:
         assert (
             _render_via_loguru(monkeypatch, client, message) == _ConsoleFormatter().format(_std_record(message)) + "\n"
         )
+
+
+def test_fallback_stacklevel_points_at_caller(caplog) -> None:
+    """标准 logging 回退路径的 funcName/lineno 必须指向调用方，而不是 _log 内部。
+
+    包装类在调用方之上多叠两层帧（debug()/info()/_log），findCaller 默认会停在内
+    部那一行；修正是把包装帧数加进 stacklevel。
+    """
+    from agent.utils.logger import _BraceFormatLogger
+
+    wrapper = _BraceFormatLogger(logging.getLogger("m9a-test"))
+    with caplog.at_level(logging.INFO, logger="m9a-test"):
+        wrapper.info("定位测试")  # ← 断言应指到这一行
+    caller_lineno = sys._getframe().f_lineno - 1
+
+    assert caplog.records
+    record = caplog.records[-1]
+    assert record.funcName == "test_fallback_stacklevel_points_at_caller"
+    assert record.filename == Path(__file__).name
+    assert record.lineno == caller_lineno

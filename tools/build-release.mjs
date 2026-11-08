@@ -164,6 +164,8 @@ function main() {
             smokeReleasePackage(gui, `dist/package-${guiKey}`, packagePaths, runtimePlatform);
         }
 
+        // The extension must match what release.yml actually publishes: macOS MXU ships as a
+        // dmg produced by tools/macos-app-bundle.mjs; every other target stays an archive.
         const releaseTargets = [
             [
                 "win",
@@ -188,12 +190,12 @@ function main() {
             [
                 "macos",
                 "x86_64",
-                "tar.gz",
+                guiKey === "mxu" ? "dmg" : "tar.gz",
             ],
             [
                 "macos",
                 "aarch64",
-                "tar.gz",
+                guiKey === "mxu" ? "dmg" : "tar.gz",
             ],
         ];
         for (const [
@@ -216,7 +218,7 @@ function main() {
                     escapeRegExp(releaseArtifactName) +
                     "-(win|linux|macos)-(x86_64|aarch64)-v.+-(" +
                     suffixPattern +
-                    ")\\.(zip|tar\\.gz)$",
+                    ")\\.(zip|tar\\.gz|dmg)$",
             ).test(artifact)
         ) {
             throw new Error(`invalid artifact name: ${artifact}`);

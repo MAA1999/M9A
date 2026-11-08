@@ -194,21 +194,37 @@ jobs:
             # macOS runners resolve `shell: bash` to the system bash 3.2, which predates the
             # parameter-expansion case modifiers, so uppercase through tr instead.
             gui_upper="$(printf '%s' "$gui" | tr '[:lower:]' '[:upper:]')"
-            archive="M9A-${{ matrix.artifact_os }}-${{ matrix.arch }}-${GITHUB_REF_NAME}-${gui_upper}.${{ matrix.ext }}"
-            (
-              cd "$pkg_dir"
-              if [[ "${{ matrix.ext }}" == "zip" ]]; then
-                7z a "../$archive" .
-              else
-                tar -czf "../$archive" .
-                tar -tzvf "../$archive" > "../$archive.manifest"
-                if ! awk '$1 ~ /^-/ && $0 ~ /(^|\/)(m9a|MFAAvalonia|mxu|MaaPiCli|MaaAgentServer|maa-cli|python3?)$/ && $1 !~ /^-..x/ { print; bad=1 } END { exit bad }' "../$archive.manifest"; then
-                  echo "[ERR] Unix archive is missing executable permission metadata"
-                  exit 1
+            # macOS MXU ships as M9A.app inside a dmg, the shape MaaEnd publishes; MFAA keeps the
+            # plain archive because it is a bare GUI binary.
+            ext="${{ matrix.ext }}"
+            if [[ "${{ matrix.artifact_os }}" == "macos" && "$gui" == "mxu" ]]; then
+              ext="dmg"
+            fi
+            archive="M9A-${{ matrix.artifact_os }}-${{ matrix.arch }}-${GITHUB_REF_NAME}-${gui_upper}.$ext"
+            if [[ "$ext" == "dmg" ]]; then
+              node tools/macos-app-bundle.mjs \
+                --package "$pkg_dir" \
+                --app dist/M9A.app \
+                --version "$GITHUB_REF_NAME" \
+                --icon logo.ico \
+                --dmg "dist/$archive"
+              rm -rf dist/M9A.app
+            else
+              (
+                cd "$pkg_dir"
+                if [[ "$ext" == "zip" ]]; then
+                  7z a "../$archive" .
+                else
+                  tar -czf "../$archive" .
+                  tar -tzvf "../$archive" > "../$archive.manifest"
+                  if ! awk '$1 ~ /^-/ && $0 ~ /(^|\/)(m9a|MFAAvalonia|mxu|MaaPiCli|MaaAgentServer|maa-cli|python3?)$/ && $1 !~ /^-..x/ { print; bad=1 } END { exit bad }' "../$archive.manifest"; then
+                    echo "[ERR] Unix archive is missing executable permission metadata"
+                    exit 1
+                  fi
+                  echo "[OK] Unix archive executable metadata smoke passed"
                 fi
-                echo "[OK] Unix archive executable metadata smoke passed"
-              fi
-            )
+              )
+            fi
             rm -rf "$pkg_dir"
           done
           # 断言该平台必须产出的资产集合：MFAA 恒有；MXU 仅在 linux-arm64 上没有可用运行时，
@@ -218,7 +234,11 @@ jobs:
             expected_guis+=(MXU)
           fi
           for gui_upper in "${expected_guis[@]}"; do
-            archive="M9A-${{ matrix.artifact_os }}-${{ matrix.arch }}-${GITHUB_REF_NAME}-${gui_upper}.${{ matrix.ext }}"
+            ext="${{ matrix.ext }}"
+            if [[ "${{ matrix.artifact_os }}" == "macos" && "$gui_upper" == "MXU" ]]; then
+              ext="dmg"
+            fi
+            archive="M9A-${{ matrix.artifact_os }}-${{ matrix.arch }}-${GITHUB_REF_NAME}-${gui_upper}.$ext"
             if [[ ! -f "dist/$archive" ]]; then
               echo "[ERR] expected release asset was not produced: $archive"
               exit 1
@@ -313,6 +333,7 @@ jobs:
           files: |
             release-assets/*.zip
             release-assets/*.tar.gz
+            release-assets/*.dmg
             release-assets/*.apk
       - name: Dispatch post-release hooks
         env:

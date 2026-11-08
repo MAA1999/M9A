@@ -13,8 +13,8 @@ from typing import Any
 
 import requests  # pyright: ignore[reportMissingModuleSource]
 
-from . import logger
 from .http_session import create_no_proxy_session
+from .logger import logger
 from .runtime_paths import get_runtime_paths
 
 # 配置
@@ -49,7 +49,9 @@ def _load_cache() -> dict[str, Any]:
         }
     """
     default = {"root_updated": 0, "manifests": {}}
-    cache_file = get_runtime_paths().manifest_cache_file
+    # 读侧走覆盖层：包内随版发布的基线缓存在数据目录还没有缓存时可兜底，
+    # 数据目录里的缓存更新后用数据目录那份
+    cache_file = get_runtime_paths().resolve("data/manifest_cache.json")
     if not cache_file.exists():
         return default
     try:
