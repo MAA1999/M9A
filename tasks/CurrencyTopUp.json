@@ -17,7 +17,6 @@
             "type": "switch",
             "label": "$Option.CurrencyTopUp.Dust",
             "description": "$Option.CurrencyTopUp.Dust.desc",
-            "default_case": "No",
             "cases": [
                 {
                     "name": "No",
@@ -32,13 +31,13 @@
                         "CT_Plan": {"attach": {"dust_enabled": true}}
                     }
                 }
-            ]
+            ],
+            "default_case": "No"
         },
         "补足利齿子儿": {
             "type": "switch",
             "label": "$Option.CurrencyTopUp.Coin",
             "description": "$Option.CurrencyTopUp.Coin.desc",
-            "default_case": "No",
             "cases": [
                 {
                     "name": "No",
@@ -53,7 +52,8 @@
                         "CT_Plan": {"attach": {"coin_enabled": true}}
                     }
                 }
-            ]
+            ],
+            "default_case": "No"
         },
         "微尘阈值": {
             "type": "input",
