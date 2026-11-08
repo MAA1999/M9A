@@ -6,9 +6,11 @@ from custom.reco.activity import SailingRecordBoatRecord, SailingRecordSelectTar
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from utils import logger, ms_timestamp_diff_to_dhm
+from utils import ms_timestamp_diff_to_dhm
+from utils.logger import logger
 from utils.maa_types import ocr_text
 from utils.params import parse_params
+from utils.runtime_paths import get_runtime_paths
 
 # 活动数据由热更新下发，可能比代码更旧或缺少字段，因此下面所有字段访问都容错：
 # 缺字段应表现为"该活动不可用"，而不是抛异常带崩整条流程。
@@ -17,8 +19,12 @@ from utils.params import parse_params
 
 
 def _load_activity_data(resource: str) -> dict[str, Any]:
-    """读取活动数据文件，只保证顶层是对象。"""
-    path = f"data/activity/{resource}.json"
+    """读取活动数据文件，只保证顶层是对象。
+
+    经 ``RuntimePaths.resolve`` 走覆盖层：热更下载到数据目录的同名文件优先，
+    包内基线在数据目录还没有文件时兜底。
+    """
+    path = get_runtime_paths().resolve(f"data/activity/{resource}.json")
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
     if not isinstance(data, dict):

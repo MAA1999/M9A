@@ -7,6 +7,7 @@ from logging.handlers import TimedRotatingFileHandler
 from typing import Any
 
 from . import pienv
+from .runtime_paths import default_work_root
 
 LEVEL_SHORT_NAMES = {
     "INFO": "info",
@@ -144,6 +145,62 @@ _FILE_FORMAT = logging.Formatter("%(asctime)s | %(levelname)-8s | %(name)s:%(fun
 _std_logger = logging.getLogger("m9a")
 
 
+class _BraceFormatLogger:
+    """Delegate wrapper that pre-renders loguru-style {} placeholders for stdlib logging.
+
+    项目里的调用点大量写成 logger.debug("{}={}", key, value)。回退到标准 logging 时这些
+    参数会被当 % 占位处理而抛 TypeError（Logging error）；这里在记录前先把 msg.format(*args) 展开。
+    """
+
+    def __init__(self, wrapped: logging.Logger) -> None:
+        self._wrapped = wrapped
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._wrapped, name)
+
+    # 用户调用点到 logging 的内部帧共两层：debug()/info()/… 一层、_log() 一层。
+    # findCaller 的默认 stacklevel=1 会停在 _log 里这一行，%(funcName)s:%(lineno)d 全部指错；
+    # 在调用方给的 stacklevel 之上再补这两层包装帧。
+    _WRAPPER_FRAMES = 2
+
+    def _render(self, msg: Any, args: tuple[Any, ...], kwargs: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
+        if args and isinstance(msg, str):
+            try:
+                rendered = msg.format(*args, **{k: v for k, v in kwargs.items() if k != "exc_info"})
+            except Exception:
+                rendered = msg
+            kwargs = {k: v for k, v in kwargs.items() if k in ("exc_info", "stack_info", "stacklevel", "extra")}
+            return rendered, kwargs
+        return msg, kwargs
+
+    def _log(self, level: int, msg: Any, args: tuple[Any, ...], kwargs: dict[str, Any]) -> None:
+        msg, kwargs = self._render(msg, args, kwargs)
+        kwargs["stacklevel"] = int(kwargs.get("stacklevel") or 1) + self._WRAPPER_FRAMES
+        self._wrapped.log(level, msg, **kwargs)
+
+    def debug(self, msg: Any, *args: Any, **kwargs: Any) -> None:
+        self._log(logging.DEBUG, msg, args, kwargs)
+
+    def info(self, msg: Any, *args: Any, **kwargs: Any) -> None:
+        self._log(logging.INFO, msg, args, kwargs)
+
+    def warning(self, msg: Any, *args: Any, **kwargs: Any) -> None:
+        self._log(logging.WARNING, msg, args, kwargs)
+
+    def error(self, msg: Any, *args: Any, **kwargs: Any) -> None:
+        self._log(logging.ERROR, msg, args, kwargs)
+
+    def exception(self, msg: Any, *args: Any, **kwargs: Any) -> None:
+        kwargs.setdefault("exc_info", True)
+        self._log(logging.ERROR, msg, args, kwargs)
+
+    def critical(self, msg: Any, *args: Any, **kwargs: Any) -> None:
+        self._log(logging.CRITICAL, msg, args, kwargs)
+
+    def opt(self, *args: Any, **kwargs: Any) -> "_BraceFormatLogger":
+        return self  # loguru 特有；回退路径直接忽略 opt(...) 的语义，仍可用 .debug 等
+
+
 def _resolve_level(level: Any) -> int:
     if isinstance(level, int):
         return level
@@ -199,14 +256,17 @@ def _setup_std_logger(log_dir: str = "debug/custom", console_level: str = "INFO"
     file_handler.setFormatter(_FILE_FORMAT)
     _std_logger.addHandler(file_handler)
 
-    return _std_logger
+    # 标准 logging 用 % 占位，loguru 用 {}。回退路径上把所有调用方的 {} 占位先渲染成
+    # 最终字符串，否则 record.getMessage() 会在格式化时抛 TypeError（Logging error）。
+    return _BraceFormatLogger(_std_logger)
 
 
-def setup_logger(log_dir: str = "debug/custom", console_level: str = "INFO"):
+def setup_logger(log_dir: str | None = None, console_level: str = "INFO"):
     """设置 logger（优先 loguru，无 loguru 时回退到标准 logging）"""
+    resolved_log_dir = log_dir or str(default_work_root() / "debug" / "custom")
     if _has_loguru:
-        return _setup_loguru_logger(log_dir=log_dir, console_level=console_level)
-    return _setup_std_logger(log_dir=log_dir, console_level=console_level)
+        return _setup_loguru_logger(log_dir=resolved_log_dir, console_level=console_level)
+    return _setup_std_logger(log_dir=resolved_log_dir, console_level=console_level)
 
 
 def change_console_level(level: str = "DEBUG"):

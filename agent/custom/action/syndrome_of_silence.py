@@ -3,15 +3,23 @@ import difflib
 import json
 import re
 import time
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from utils import logger
+from utils.logger import logger
 from utils.maa_types import custom_result_dict, filtered_result_dicts, is_hit, ocr_text
 from utils.params import parse_params
+from utils.runtime_paths import get_runtime_paths
+
+
+def _sos_data_path(name: str) -> Path:
+    """data/sos 数据文件按覆盖层解析：数据目录的热更文件优先，包内基线兜底。"""
+    return get_runtime_paths().resolve(f"data/sos/{name}")
+
 
 __all__ = [
     "SOSSelectNode",
@@ -70,7 +78,7 @@ class SOSSelectNode(CustomAction):
         reco_detail = custom_result_dict(argv.reco_detail)
 
         try:
-            with open("data/sos/nodes.json", encoding="utf-8") as f:
+            with open(_sos_data_path("nodes.json"), encoding="utf-8") as f:
                 nodes = json.load(f)
         except FileNotFoundError:
             print("错误：文件 data/sos/nodes.json 未找到。")
@@ -324,7 +332,7 @@ class SOSNodeProcess(CustomAction):
             logger.debug("刚完成恶战重开，跳过本次节点处理")
             return CustomAction.RunResult(success=True)
 
-        with open("data/sos/nodes.json", encoding="utf-8") as f:
+        with open(_sos_data_path("nodes.json"), encoding="utf-8") as f:
             nodes = json.load(f)
 
         node_type, event_name = (
@@ -731,7 +739,7 @@ class SOSShoppingList(CustomAction):
         SOSShoppingList.shopping_items = {}
 
         # 加载物品数据用于纠错
-        with open("data/sos/items.json", encoding="utf-8") as f:
+        with open(_sos_data_path("items.json"), encoding="utf-8") as f:
             items_data = json.load(f)
 
         # 构建所有有效物品名的集合（造物+谐波）
@@ -983,7 +991,7 @@ class SOSBuyItems(CustomAction):
 
         # 加载物品优先级配置（可选）
         try:
-            with open("data/sos/items.json", encoding="utf-8") as f:
+            with open(_sos_data_path("items.json"), encoding="utf-8") as f:
                 _items_data = json.load(f)
             # 可以在这里定义优先级逻辑，暂时按价格升序排列（买便宜的，数量更多）
         except Exception:

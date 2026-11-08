@@ -185,9 +185,9 @@ M9A 下载（更新）地址： [GitHub 发布页](https://github.com/MAA1999/M9
 
 <div align="center">
 
-|            |          Windows          |                                        macOS                                        |                                        Linux                                        |                                                                   Android                                                                   |
-| :--------: | :-----------------------: | :---------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------: |
-| 您需要下载 | `M9A-win-x86_64-vXXX.zip` | `M9A-macos-x86_64-vXXX.tar.gz` 或 `M9A-macos-aarch64-vXXX.tar.gz`<br>取决于您的架构 | `M9A-linux-x86_64-vXXX.tar.gz` 或 `M9A-linux-aarch64-vXXX.tar.gz`<br>取决于您的架构 | `M9A-android-universal-<版本>.apk`<br>或 `M9A-android-arm64-v8a-<版本>.apk`（真机推荐）<br>或 `M9A-android-x86_64-<版本>.apk`（x86 模拟器） |
+|            |          Windows          |                                                                    macOS                                                                     |                                        Linux                                        |                                                                   Android                                                                   |
+| :--------: | :-----------------------: | :------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------: |
+| 您需要下载 | `M9A-win-x86_64-vXXX.zip` | `M9A-macos-x86_64-vXXX-MXU.dmg` 或 `M9A-macos-aarch64-vXXX-MXU.dmg`<br>取决于您的架构，内含 `M9A.app`<br>MFAA 图形界面仍为 `...-MFAA.tar.gz` | `M9A-linux-x86_64-vXXX.tar.gz` 或 `M9A-linux-aarch64-vXXX.tar.gz`<br>取决于您的架构 | `M9A-android-universal-<版本>.apk`<br>或 `M9A-android-arm64-v8a-<版本>.apk`（真机推荐）<br>或 `M9A-android-x86_64-<版本>.apk`（x86 模拟器） |
 
 </div>
 
@@ -201,8 +201,9 @@ M9A 下载（更新）地址： [GitHub 发布页](https://github.com/MAA1999/M9
       <li>在弹出的窗口中，你可以看到处理器的信息。</li>
     </ol>
     <ul>
-      <li>若使用 Intel X86 处理器，请下载 <code>M9A-macos-x86_64-vXXX.tar.gz</code></li>
-      <li>若使用 Apple Silicon 系列如：M1、M2 等 ARM 架构处理器，请下载 <code>M9A-macos-aarch64-vXXX.tar.gz</code></li>
+      <li>若使用 Intel X86 处理器，请下载 <code>M9A-macos-x86_64-vXXX-MXU.dmg</code></li>
+      <li>若使用 Apple Silicon 系列如：M1、M2 等 ARM 架构处理器，请下载 <code>M9A-macos-aarch64-vXXX-MXU.dmg</code></li>
+      <li>dmg 里是 <code>M9A.app</code>（MXU 图形界面），拖进「应用程序」即可；MFAA 图形界面仍提供 <code>.tar.gz</code> 压缩包</li>
     </ul>
   </blockquote>
 </details>
@@ -324,53 +325,43 @@ M9A 支持通过命令行（MaaPiCli）和图形化界面（MFAAvalonia/MXU）�
 
 #### macOS
 
+M9A 的 macOS 包以 dmg 分发，里面是 `M9A.app`（MXU 图形界面）。
+
+1. 双击打开下载的 `M9A-macos-<架构>-vXXX-MXU.dmg`，把 `M9A.app` 拖进「应用程序」文件夹。
+2. 在「启动台」或「应用程序」里双击 `M9A.app` 启动。
+
 <details>
-  <summary>详情</summary>
+  <summary>使用 MFAAvalonia 或命令行（MaaPiCli）</summary>
   <p></p>
   <blockquote>
 
-1. 打开终端，解压分发的压缩包：
+MFAA 图形界面与 MaaPiCli 仍以 `.tar.gz` 分发，解压后按原方式运行：
 
-    **选项1：解压到系统目录（需要管理员权限）**
+```shell
+mkdir -p ~/M9A
+tar -xzf M9A-macos-<架构>-vXXX-MFAA.tar.gz -C ~/M9A
+cd ~/M9A
+./m9a
+```
 
-    ```shell
-    sudo mkdir -p /usr/local/bin/M9A
-    sudo tar -xzf <下载的M9A压缩包路径> -C /usr/local/bin/M9A
-    ```
+  </blockquote>
+</details>
 
-    **选项2：解压到用户目录（推荐，无需sudo）**
+<details>
+  <summary>Gatekeeper 安全提示处理</summary>
+  <p></p>
+  <blockquote>
 
-    ```shell
-    mkdir -p ~/M9A
-    tar -xzf <下载的M9A压缩包路径> -C ~/M9A
-    ```
-
-2. 进入解压目录并运行程序：
-
-    ```shell
-    cd /usr/local/bin/M9A
-    ./M9A
-    ```
-
-若想使用**图形操作页面**请按第二步操作，执行 `M9A` 程序即可。
-
-⚠️Gatekeeper 安全提示处理：
-
-在 macOS 10.15 (Catalina) 及更高版本中，Gatekeeper 可能会阻止运行未签名的应用程序。  
+在 macOS 10.15 (Catalina) 及更高版本中，Gatekeeper 可能会阻止运行 ad-hoc 签名（未公证）的应用程序。  
 如果遇到"无法打开，因为无法验证开发者"等错误，请选择以下任一方案:
 
 ```shell
-# 方案1：以 M9A 为例，移除隔离属性（推荐，以实际路径为准）
-sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/M9A
-# 或用户目录版本：xattr -rd com.apple.quarantine ~/M9A/M9A
+# 方案1：移除隔离属性（推荐，以实际路径为准）
+sudo xattr -rd com.apple.quarantine /Applications/M9A.app
 
-# 方案2：添加到 Gatekeeper 白名单
-sudo spctl --add /usr/local/bin/M9A/M9A
-# 或用户目录版本：spctl --add ~/M9A/M9A
+# 方案2：在「访达」里右键 M9A.app → 打开，再在弹窗里点「打开」
 
-# 方案3：一次性处理整个目录
-sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
-# 或用户目录版本：xattr -rd com.apple.quarantine ~/M9A/*
+# 方案3：系统设置 → 隐私与安全性 → 仍要打开
 ```
 
   </blockquote>
@@ -378,7 +369,7 @@ sudo xattr -rd com.apple.quarantine /usr/local/bin/M9A/*
 
 #### Linux
 
-同macOS，下载对应版本的压缩包，解压后运行 `M9A` 即可。
+同 Windows，下载对应版本的压缩包，解压后运行 `M9A` 即可。
 
 #### Android
 

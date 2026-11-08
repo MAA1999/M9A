@@ -1,15 +1,15 @@
 import re
 import time
 from collections.abc import Mapping
-from pathlib import Path
 from typing import Any
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from utils import logger
+from utils.logger import logger
 from utils.maa_types import best_box, ocr_text
 from utils.material_catalog import SOURCE_WAREHOUSE, CatalogError, MaterialEntry, load_catalog
+from utils.runtime_paths import get_runtime_paths
 
 from .balanced_fallback import build_material_candidates, planner
 
@@ -62,7 +62,7 @@ class BalancedFarmingAnalyze(CustomAction):
     ) -> CustomAction.RunResult:
 
         try:
-            catalog = load_catalog(Path(self._DATA_PATH))
+            catalog = load_catalog(get_runtime_paths().resolve(self._DATA_PATH))
         except CatalogError as e:
             logger.error(f"读取材料映射表失败: {self._DATA_PATH}, {e}")
             return CustomAction.RunResult(success=False)

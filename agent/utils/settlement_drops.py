@@ -17,7 +17,7 @@ import time
 
 import numpy as np
 from maa.context import Context
-from utils import logger
+from utils.logger import logger
 from utils.maa_types import best_box, ocr_text
 
 DROP_REGION_NODE = "DropRegionRec"

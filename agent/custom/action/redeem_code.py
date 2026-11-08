@@ -2,21 +2,27 @@ import re
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 import pytz  # pyright: ignore[reportMissingModuleSource]
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
-from utils import logger
-from utils.account_store import get_account_bucket, load_json_object, save_json_object
+from utils.account_store import (
+    config_read_path,
+    config_write_path,
+    get_account_bucket,
+    load_json_object,
+    save_json_object,
+)
+from utils.logger import logger
 from utils.params import parse_params
+from utils.runtime_paths import get_runtime_paths
 
 from .record_id import RecordID
 
-CONFIG_PATH = Path("config/m9a_data.json")
-DATA_DIR = Path("data/redeem_code")
+CONFIG_REL_PATH = "config/m9a_data.json"
+DATA_REL_DIR = "data/redeem_code"
 
 RESOURCE_TIMEZONES = {
     "cn": "Asia/Shanghai",
@@ -47,7 +53,8 @@ def _split_custom_codes(codes: Any) -> list[RedeemCodeItem]:
 
 
 def _load_resource_codes(resource: str) -> list[RedeemCodeItem]:
-    path = DATA_DIR / f"{resource}.txt"
+    # 覆盖层解析：数据目录里热更下发的兑换码优先，包内基线在数据目录尚无文件时兜底
+    path = get_runtime_paths().resolve(f"{DATA_REL_DIR}/{resource}.txt")
     if not path.exists():
         logger.debug(f"Redeem code data file not found: {path}")
         return []
@@ -189,10 +196,10 @@ class RedeemCode(CustomAction):
             return CustomAction.RunResult(success=True)
 
         account_id = RecordID.current_account_id()
-        data = load_json_object(CONFIG_PATH, {"bank": {}, "redeem_code": {}})
+        data = load_json_object(config_read_path(CONFIG_REL_PATH), {"bank": {}, "redeem_code": {}})
         if check_used:
             used_codes = _get_used_codes(data, resource, account_id)
-            save_json_object(CONFIG_PATH, data)
+            save_json_object(config_write_path(CONFIG_REL_PATH), data)
             pending_codes = [item for item in codes if item.code not in used_codes]
         else:
             pending_codes = codes
@@ -222,7 +229,7 @@ class RedeemCode(CustomAction):
             _mark_code_used(data, resource, item.code, account_id)
 
         if completed_codes:
-            save_json_object(CONFIG_PATH, data)
+            save_json_object(config_write_path(CONFIG_REL_PATH), data)
             logger.info(f"Recorded {len(completed_codes)} used redeem code(s)")
 
         return CustomAction.RunResult(success=not has_failure)
