@@ -35,13 +35,15 @@ fi
 set +e
 (
     cd "$macos_dir"
-    PI_USER_DATA_DIR="$scratch/user-data" ./python/bin/python3 -u agent/main.py 0123456789abcdef &
+    PI_USER_DATA_DIR="$scratch/user-data" ./python/bin/python3 -u agent/main.py 0123456789abcdef \
+        > "$scratch/agent.stdout.log" 2>&1 &
     echo $! > "$scratch/agent.pid"
 )
 pid="$(cat "$scratch/agent.pid")"
 sleep 25
+agent_alive=0
+kill -0 "$pid" 2>/dev/null && agent_alive=1
 kill "$pid" 2>/dev/null
-wait "$pid" 2>/dev/null
 set -e
 
 # Whatever the socket handshake does, the run has to reach the point where logs and config are set
@@ -50,6 +52,14 @@ if [ -d "$scratch/user-data/debug/custom" ]; then
     echo "[OK] Agent logs go to PI_USER_DATA_DIR: $(ls "$scratch/user-data/debug/custom" | head -n 3 | tr '\n' ' ')"
 else
     fail "the Agent did not write its logs into PI_USER_DATA_DIR"
+fi
+
+# debug/custom 在 utils.logger import 时就会创建，光看目录证明不了 Agent 真的起来了：
+# 要么 stdout 里出现 AgentServer 就绪，要么 25s 后进程还活着，二者都没有说明它死在启动阶段。
+if grep -q 'AgentServer started.' "$scratch/agent.stdout.log" || [ "$agent_alive" -eq 1 ]; then
+    echo "[OK] Agent process reached startup inside the bundle"
+else
+    fail "the Agent exited before AgentServer startup (see $scratch/agent.stdout.log)"
 fi
 
 for unexpected in debug config data; do

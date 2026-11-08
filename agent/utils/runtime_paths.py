@@ -95,6 +95,19 @@ class RuntimePaths:
             return work_candidate
         return project_candidate
 
+    def resolve_user(self, rel: str | Path) -> Path:
+        """用户所有文件的读路径：数据目录存在即赢，只回落包内基线。
+
+        与 ``resolve`` 的区别在不比 mtime：config/、仓库快照这类文件是用户数据，
+        哪怕是旧版本写下的也必须优先于新包体里的基线——比 mtime 会让新版基线
+        静默覆盖用户存档。写侧直接用 ``work_root / rel``（如 ``config_dir``）。
+        """
+        relative = Path(rel)
+        work_candidate = self.work_root / relative
+        if self.work_root != self.project_root and not work_candidate.exists():
+            return self.project_root / relative
+        return work_candidate
+
 
 def build_runtime_paths(
     project_root: str | Path | None = None,

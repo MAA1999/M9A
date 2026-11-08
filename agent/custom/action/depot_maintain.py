@@ -45,10 +45,11 @@ from utils.params import parse_params
 from utils.runtime_paths import get_runtime_paths
 from utils.settlement_drops import read_battle_drops
 from utils.warehouse_snapshot import (
-    SNAPSHOT_PATH,
     load_snapshot_file,
     save_snapshot_file,
     snapshot_bucket,
+    snapshot_read_path,
+    snapshot_write_path,
 )
 
 # 相对导入：agent.custom.* 与 custom.* 是两张模块图，跨图导入会重复注册自定义动作
@@ -251,19 +252,26 @@ def _ensure_account_id(context: Context) -> bool:
     return True
 
 
-def read_snapshot(path: Path | None = None) -> dict[str, Any] | None:
+# 快照落盘位置：相对项目根的默认路径，读经 snapshot_read_path（数据目录存在即赢）、
+# 写经 snapshot_write_path（固定数据目录）。测试可 monkeypatch 为绝对路径指向临时目录。
+SNAPSHOT_PATH = "config/warehouse_inventory.json"
+
+
+def read_snapshot(path: Path | str | None = None) -> dict[str, Any] | None:
     """读取当前账号的仓库扫描快照（WarehouseInventory 任务落盘）。"""
-    target = path or SNAPSHOT_PATH
+    target = snapshot_read_path(path or SNAPSHOT_PATH)
     if not target.exists():
         logger.debug(f"尚未生成库存数据（{target}），本次将先刷新")
         return None
     return snapshot_bucket(load_snapshot_file(target), current_account_id()) or None
 
 
-def save_snapshot(snapshot: Mapping[str, Any], path: Path | None = None) -> bool:
+def save_snapshot(snapshot: Mapping[str, Any], path: Path | str | None = None) -> bool:
     """把整份快照写进当前账号的桶；其他账号的读数原样保留。"""
-    target = path or SNAPSHOT_PATH
-    data = load_snapshot_file(target)
+    target = snapshot_write_path(path or SNAPSHOT_PATH)
+    # 写前先把数据目录与包内基线合并成完整文件：数据目录没有时 read 回落包内，
+    # 直接写会丢掉基线里的内容
+    data = load_snapshot_file(path or SNAPSHOT_PATH)
     bucket = snapshot_bucket(data, current_account_id())
     bucket.clear()
     bucket.update(snapshot)
@@ -350,8 +358,7 @@ def write_snapshot_counts(updates: Mapping[str, int], path: Path | None = None, 
     `complete=False`（本轮没读全参与材料的读数）时**保留原时间戳**：读到的那几个数照常合并，
     但时间戳不刷新，下次规划仍会判定角色页读数过期并重试，不会拿没读到的旧值当新鲜读数用。
     """
-    target = path or SNAPSHOT_PATH
-    snapshot = read_snapshot(target)
+    snapshot = read_snapshot(path)
     if snapshot is None:
         snapshot = {"updated_at": datetime.now().strftime(SNAPSHOT_TS_FORMAT), "counts": {}}
     counts = snapshot.get("counts")
@@ -362,7 +369,7 @@ def write_snapshot_counts(updates: Mapping[str, int], path: Path | None = None, 
         counts[item_id] = value
     if complete:
         snapshot["currency_updated_at"] = datetime.now().strftime(SNAPSHOT_TS_FORMAT)
-    return save_snapshot(snapshot, target)
+    return save_snapshot(snapshot, path)
 
 
 def gui_material_params(context: Context, params: Mapping[str, Any]) -> dict[str, Any]:

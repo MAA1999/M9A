@@ -158,6 +158,11 @@ class _BraceFormatLogger:
     def __getattr__(self, name: str) -> Any:
         return getattr(self._wrapped, name)
 
+    # 用户调用点到 logging 的内部帧共两层：debug()/info()/… 一层、_log() 一层。
+    # findCaller 的默认 stacklevel=1 会停在 _log 里这一行，%(funcName)s:%(lineno)d 全部指错；
+    # 在调用方给的 stacklevel 之上再补这两层包装帧。
+    _WRAPPER_FRAMES = 2
+
     def _render(self, msg: Any, args: tuple[Any, ...], kwargs: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
         if args and isinstance(msg, str):
             try:
@@ -170,6 +175,7 @@ class _BraceFormatLogger:
 
     def _log(self, level: int, msg: Any, args: tuple[Any, ...], kwargs: dict[str, Any]) -> None:
         msg, kwargs = self._render(msg, args, kwargs)
+        kwargs["stacklevel"] = int(kwargs.get("stacklevel") or 1) + self._WRAPPER_FRAMES
         self._wrapped.log(level, msg, **kwargs)
 
     def debug(self, msg: Any, *args: Any, **kwargs: Any) -> None:

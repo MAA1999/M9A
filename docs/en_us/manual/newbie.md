@@ -340,7 +340,7 @@ The MFAA GUI and MaaPiCli are still distributed as `.tar.gz`, so extract and run
 mkdir -p ~/M9A
 tar -xzf M9A-macos-<arch>-vXXX-MFAA.tar.gz -C ~/M9A
 cd ~/M9A
-./MFAAvalonia
+./m9a
 ```
 
   </blockquote>

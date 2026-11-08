@@ -280,12 +280,13 @@ function escapeXml(value) {
     return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-// sips and iconutil only exist on macOS, so a failed conversion keeps the default system icon
-// instead of breaking the packaging step.
+// The .app icon must either land or fail the build: silently shipping the default icon is a
+// release regression that nobody notices until the dmg is out. sips and iconutil only exist on
+// macOS, so an explicit --icon on another platform means the caller is producing a real macOS
+// bundle where conversion cannot be skipped — fail there too instead of shipping the default.
 function attachIcon(appDir, iconPath, options) {
     if (process.platform !== "darwin") {
-        console.warn("[WARN] sips and iconutil are macOS-only; the app keeps the default icon");
-        return;
+        throw new Error("--icon requires macOS (sips + iconutil); refusing to ship the default icon");
     }
     const resourcesDir = join(appDir, "Contents", "Resources");
     // The icon file name becomes part of Contents/Info.plist and a real file under

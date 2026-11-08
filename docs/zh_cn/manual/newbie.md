@@ -341,7 +341,7 @@ MFAA 图形界面与 MaaPiCli 仍以 `.tar.gz` 分发，解压后按原方式运
 mkdir -p ~/M9A
 tar -xzf M9A-macos-<架构>-vXXX-MFAA.tar.gz -C ~/M9A
 cd ~/M9A
-./MFAAvalonia
+./m9a
 ```
 
   </blockquote>

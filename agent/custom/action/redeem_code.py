@@ -16,8 +16,19 @@ from utils.runtime_paths import get_runtime_paths
 
 from .record_id import RecordID
 
-CONFIG_PATH = Path("config/m9a_data.json")
+CONFIG_REL_PATH = "config/m9a_data.json"
 DATA_REL_DIR = "data/redeem_code"
+
+
+def _config_read_path() -> Path:
+    """用户配置读路径：数据目录存在即赢（旧的用户配置也优先），包内基线兜底。"""
+    return get_runtime_paths().resolve_user(CONFIG_REL_PATH)
+
+
+def _config_write_path() -> Path:
+    """用户配置写路径：固定落数据目录，包内是只读的。"""
+    return get_runtime_paths().config_dir / "m9a_data.json"
+
 
 RESOURCE_TIMEZONES = {
     "cn": "Asia/Shanghai",
@@ -191,10 +202,10 @@ class RedeemCode(CustomAction):
             return CustomAction.RunResult(success=True)
 
         account_id = RecordID.current_account_id()
-        data = load_json_object(CONFIG_PATH, {"bank": {}, "redeem_code": {}})
+        data = load_json_object(_config_read_path(), {"bank": {}, "redeem_code": {}})
         if check_used:
             used_codes = _get_used_codes(data, resource, account_id)
-            save_json_object(CONFIG_PATH, data)
+            save_json_object(_config_write_path(), data)
             pending_codes = [item for item in codes if item.code not in used_codes]
         else:
             pending_codes = codes
@@ -224,7 +235,7 @@ class RedeemCode(CustomAction):
             _mark_code_used(data, resource, item.code, account_id)
 
         if completed_codes:
-            save_json_object(CONFIG_PATH, data)
+            save_json_object(_config_write_path(), data)
             logger.info(f"Recorded {len(completed_codes)} used redeem code(s)")
 
         return CustomAction.RunResult(success=not has_failure)

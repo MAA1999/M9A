@@ -244,10 +244,10 @@ jobs:
         shell: bash
         run: bash tools/ci/smoke-macos-app.sh dist/M9A.app "$RUNNER_TEMP/m9a-bundle-smoke"
 
-      # Launches the bundled GUI like a user would and reads its own log. The step stays soft:
-      # MXU < https://github.com/MaaXYZ/MXU/pull/432 resolves the project directory to the .app
-      # parent on macOS, so only an MXU release carrying that fix prints "loaded interface for
-      # project" here. Releasing M9A-macos-*-MXU.dmg requires this step to pass.
+      # Launches the bundled GUI like a user would and reads its own log. Hard gate: any failure
+      # below exits non-zero and fails the job. MXU < https://github.com/MaaXYZ/MXU/pull/432
+      # resolves the project directory to the .app parent on macOS, so only an MXU release
+      # carrying that fix prints "loaded interface for project" here.
       - name: Probe the MXU GUI
         if: runner.os == 'macOS'
         shell: bash
