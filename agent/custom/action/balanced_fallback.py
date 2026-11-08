@@ -90,6 +90,7 @@ from utils.balanced_state import (
     StageCandidate,
     candidates_for_material,
     current_account,
+    end_ephemeral_run,
     is_stage_unavailable,
     record_unavailable,
     set_task_skipped,
@@ -568,5 +569,6 @@ class BalancedTaskSkip(CustomAction):
         parse_params(argv.custom_action_param)
         # 收尾清理：本任务结束时关掉顺延状态，避免影响同一 agent 进程里的后续任务
         finish_planner()
+        end_ephemeral_run()
         logger.info("均衡刷材料任务已按标记跳过（所有参与材料的候选关卡此前都不可用）")
         return CustomAction.RunResult(success=True)

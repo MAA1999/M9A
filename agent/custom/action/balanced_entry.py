@@ -28,10 +28,14 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from utils import logger
 from utils.balanced_state import (
+    account_is_unsaved,
+    begin_ephemeral_run,
+    clear_account_unsaved,
     clear_all,
     current_account,
     current_uid,
     is_task_skipped,
+    set_current_account,
     set_task_skipped,
 )
 from utils.params import parse_params
@@ -111,24 +115,20 @@ class BalancedTaskEntry(CustomAction):
         # `RecordID` 的缓存默认是空的（agent 刚启动时没有任何 OCR 结果），
         # 所以这里补一次「回主页 → 跑 RecordId」。**只在 UID 为空时才导航**，
         # 已经读到过就不再往返一次。
-        #
-        # ⚠️ 读不到 UID 就**不放行到规划节点**。原因：
-        # `current_account()` 在 UID 为空时会回落成文件里的旧账号 / 默认桶，而
-        # planner 与状态文件都以它为桶键。若此刻放行，后续关卡记录与停用标记
-        # 会写进**错误的桶**；等稍后 UID 读出来，桶又变了，两边的记录永远对不上。
-        # 宁可本次不刷，也不要往错账号写东西。
         if not current_uid():
             _ensure_uid(context)
 
+        # 读不到 UID：**当作没有任何历史记录照常刷取，但本次产生的记录不落盘**。
+        #
+        # 为什么不跳过：跳过会让玩家在 OCR 偶尔失败时完全刷不了材料（体验太差），
+        # 而且失败原因往往是暂时的（主页没显示账号信息、动画没结束）。
+        #
+        # 为什么不落到 `__default__` 桶：`current_account()` 在 UID 为空时会回落成
+        # 文件里的旧账号 —— 那是**上一个**账号，读写它的记录会污染别人的数据。
+        # 所以走「不落盘」模式：不读旧记录（当作空）、不写新记录，顺延靠内存推进。
         if not current_uid():
-            logger.error(
-                "未能读到游戏内 UID（回主页 + RecordId 都没拿到），无法确定该用哪个账号的记录。"
-                "本次跳过均衡刷材料，避免把关卡记录写进错误的账号桶。"
-                "请确认游戏停在主界面且能正常显示账号信息后重试"
-            )
-            account_id = current_account()
-            logger.info(f"（当前归属回落为 {account_id}，本次不写入任何记录）")
-            context.override_next(ENTRY_NODE, [SKIPPED_NODE])
+            begin_ephemeral_run()
+            context.override_next(ENTRY_NODE, [PLAN_NODE])
             return CustomAction.RunResult(success=True)
 
         account_id = current_account()
@@ -141,6 +141,20 @@ class BalancedTaskEntry(CustomAction):
         if state.account_id != account_id:
             logger.debug(f"入口确认账号 {account_id}，同步顺延状态机（原 {state.account_id}）")
             state.account_id = account_id
+
+        # 「归属不可信」保护的**退出路径**。
+        #
+        # 之前只有 `SwitchAccountAttribution` 里 `set_current_account()` 成功才会清它，
+        # 于是「切换时 OCR 失败 → 之后某次 UID 读到了」这种情况会被永久卡住：
+        # 任务能跑，但 record_unavailable / set_task_skipped 一直拒写，关卡记录永远存不下。
+        #
+        # 现在 UID 已经确认，把归属补写一次；成功即解除保护（失败则维持保护，宁可少写）。
+        if account_is_unsaved():
+            if set_current_account(account_id):
+                clear_account_unsaved()
+                logger.info(f"已确认游戏内 UID {account_id}，恢复账号归属并解除写入保护")
+            else:
+                logger.warning("已确认 UID 但归属仍无法保存，本次继续不写入关卡记录")
 
         if not is_task_skipped(account_id):
             context.override_next(ENTRY_NODE, [PLAN_NODE])
@@ -162,7 +176,7 @@ def _ensure_uid(context: Context) -> None:
     `RecordId` 只在主界面命中）。
 
     **不返回成功与否** —— 读不到 UID 时由调用方决定怎么处理
-    （`BalancedTaskEntry` 会跳过本任务而不是放行，见上方 `run`）。
+    （`BalancedTaskEntry` 会进入「不落盘」模式照常刷取，见上方 `run`）。
     """
     if current_uid():
         return
@@ -176,7 +190,6 @@ def _ensure_uid(context: Context) -> None:
     else:
         logger.warning(
             "未能读到游戏内 UID（回主页 + RecordId 都没拿到）。"
-            "本次将跳过均衡刷材料，不会写入任何关卡记录或停用标记。"
             "如果你在多账号间切换，建议确认主页能正常显示账号信息后再跑"
         )
 

@@ -151,6 +151,11 @@ def _isolated_state(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPa
     for module in (balanced_state, _plain_balanced_state):
         monkeypatch.setattr(module, "BALANCED_STATE_PATH", path)
     reset_planner()
+    # 「不落盘」模式挂在**进程级**容器上（两张模块图共享同一份），用例之间必须
+    # 显式复位 —— 否则某个用例进入 ephemeral 后，后面的用例会全部读到空记录。
+    balanced_state.end_ephemeral_run()
+    yield
+    balanced_state.end_ephemeral_run()
 
 
 # ------------------------------------------------------------- 候选关卡顺序
@@ -790,12 +795,18 @@ def test_entry_proceeds_when_not_marked(tmp_path: Path, monkeypatch: pytest.Monk
     assert context.next_overrides[-1][1] == ["BF_Plan"]
 
 
-def test_entry_skips_when_uid_unavailable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """读不到 UID 时**不放行到规划节点** —— 避免把记录写进错误的账号桶。
+def test_entry_runs_ephemeral_when_uid_unavailable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """读不到 UID 时**照常放行到规划**，但进入「不落盘」模式。
 
-    回归防护：`current_account()` 在 UID 为空时回落成旧账号/默认桶，而 planner 与
-    状态文件都以它为桶键。若放行，关卡记录会写错账号；等稍后 UID 读出来桶又变了，
-    两边记录永远对不上。
+    设计取舍：跳过任务会让 OCR 偶尔失败时完全刷不了材料，体验太差；而落到
+    `__default__` 桶又可能读写到别的账号的记录（`current_account()` 会回落成
+    文件里的旧账号）。折中是「当作没有现存记录照常刷、但本次不落盘」——
+    顺延靠内存推进，本来就不依赖文件。
+
+    回归防护：若把 ephemeral 去掉直接放行，下面的写入断言会失败（记录会被写进
+    某个账号的桶）。
     """
     monkeypatch.setattr(balanced_entry, "current_uid", lambda: "")
     monkeypatch.setattr(balanced_entry, "_ensure_uid", lambda ctx: None)
@@ -804,7 +815,69 @@ def test_entry_skips_when_uid_unavailable(tmp_path: Path, monkeypatch: pytest.Mo
     result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
 
     assert result.success is True
-    assert context.next_overrides[-1][1] == ["BF_Skipped"], "UID 未知必须跳过而不是规划"
+    assert context.next_overrides[-1][1] == ["BF_Plan"], "UID 未知应照常刷取，不是跳过"
+    assert balanced_state.is_ephemeral_run() is True, "必须进入「不落盘」模式"
+
+    # 不落盘模式下：读记录当作空、写记录不落盘
+    assert unavailable_stages("any") == set()
+    assert record_unavailable("any", "7-26") is True, "不落盘模式按成功返回，调用方继续顺延"
+
+    balanced_state.end_ephemeral_run()
+    assert balanced_state.is_ephemeral_run() is False
+
+
+def test_ephemeral_run_writes_nothing_but_still_falls_back(tmp_path: Path) -> None:
+    """「不落盘」模式：读当作空、写不落盘，但顺延逻辑照常推进。
+
+    这条路径对应「读不到游戏内 UID」时的行为：照常刷材料并自动顺延，
+    代价只是下次运行不记得这次试过哪些关卡。
+    """
+    account = current_account()
+    # 先存一条真实记录，确认 ephemeral 模式下**读不到**它
+    record_unavailable(account, "7-26")
+    assert "7-26" in unavailable_stages(account)
+
+    balanced_state.begin_ephemeral_run()
+
+    # 读：当作没有现存记录
+    assert unavailable_stages(account) == set(), "不落盘模式必须当作没有任何记录"
+    assert is_task_skipped(account) is False, "不落盘模式不能被停用标记拦住"
+
+    # 写：返回成功（调用方继续顺延），但文件里没有新增
+    assert record_unavailable(account, "11-5") is True
+    assert set_task_skipped(account, True) is True
+
+    balanced_state.end_ephemeral_run()
+
+    # 退出后：原记录还在，且**没有**写入 ephemeral 期间的两条
+    assert "7-26" in unavailable_stages(account), "原有记录不该被改动"
+    assert "11-5" not in unavailable_stages(account), "不落盘模式的记录不该落盘"
+    assert is_task_skipped(account) is False, "不落盘模式不该写停用标记"
+
+
+def test_entry_recovers_unsaved_guard_when_uid_confirmed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """UID 确认后必须能解除「归属不可信」保护 —— 这是它的**退出路径**。
+
+    回归防护：之前只有 `SwitchAccountAttribution` 里 `set_current_account()` 成功
+    才会清保护。于是「切换时 OCR 失败 → 之后某次运行 UID 读到了」会被永久卡住：
+    任务能跑，但 record_unavailable / set_task_skipped 一直拒写，关卡记录永远存不下。
+    """
+    monkeypatch.setattr(balanced_entry, "current_uid", lambda: "100000009")
+    monkeypatch.setattr(balanced_entry, "current_account", lambda *a, **k: "100000009")
+    monkeypatch.setattr(balanced_entry, "_ensure_uid", lambda ctx: None)
+
+    balanced_state.mark_account_unsaved("<unknown>", balanced_state.REASON_UNKNOWN_UID)
+    assert balanced_state.account_is_unsaved() is True
+    assert record_unavailable("100000009", "7-26") is False, "保护生效时写入应被拒绝"
+
+    context = _FakeContext()
+    balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
+
+    assert balanced_state.account_is_unsaved() is False, "确认 UID 后保护必须解除"
+    assert record_unavailable("100000009", "7-26") is True, "解除后应能正常写入"
+    balanced_state.clear_account_unsaved()
 
 
 def test_reset_clears_records_and_skip_flag(tmp_path: Path) -> None:

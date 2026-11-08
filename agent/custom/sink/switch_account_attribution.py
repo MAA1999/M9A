@@ -38,6 +38,7 @@ from maa.event_sink import NotificationType
 from maa.tasker import Tasker, TaskerEventSink
 from utils import logger
 from utils.balanced_state import (
+    REASON_UNKNOWN_UID,
     clear_account_unsaved,
     current_uid,
     mark_account_unsaved,
@@ -100,11 +101,9 @@ class SwitchAccountAttribution(TaskerEventSink):
         else:
             # UID 和配置标识都没有：**不写归属，也不解除保护**。
             # 此时游戏里已经是新账号，而归属性未知；继续按旧归属读写会污染旧账号。
-            logger.error(
-                "切换账号任务成功，但既没读到游戏内 UID 也没记录目标标识 —— "
-                "无法确定当前归属。本次运行内不再写入关卡记录与停用标记"
-            )
-            mark_account_unsaved("<unknown>")
+            # 文案由 `mark_account_unsaved` 按 reason 输出 —— 这种情况下**没有**任何
+            # 保存动作失败，文件可能完全可写，所以不能提示用户去查磁盘。
+            mark_account_unsaved("<unknown>", REASON_UNKNOWN_UID)
             return
 
         if set_current_account(target):
