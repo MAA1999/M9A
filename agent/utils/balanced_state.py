@@ -62,6 +62,7 @@ from pathlib import Path
 from typing import Any
 
 from utils.account_store import DEFAULT_ACCOUNT_KEY, load_json_object, normalize_account_id
+from utils.logger import logger
 
 # 均衡刷材料的状态文件（与仓库快照同目录）
 BALANCED_STATE_PATH = Path("config/balanced_state.json")
@@ -319,6 +320,34 @@ def set_current_account(account_id: str, path: Path | None = None) -> bool:
 # 而「目标是哪个」由切换动作自己读到 —— 两者分开存，成功时才合成归属。
 _pending_switch_target: str = ""
 
+# 「切换成功了，但归属没能落盘」的标记（进程内）。
+# 这种状态下游戏里已经是新账号，而文件里的 `current_account` 还是旧的 ——
+# 继续按旧归属读写会把新账号的关卡/停用状态写进旧账号。所以置位后，
+# `record_unavailable` / `set_task_skipped` 这类写操作会被拒绝，
+# 由调用方如实报错，而不是默默污染另一个账号的记录。
+_account_unsaved: bool = False
+
+
+def mark_account_unsaved(target: str) -> None:
+    """记录「切换成功但归属未落盘」这一不一致状态。"""
+    global _account_unsaved
+    _account_unsaved = True
+    logger.error(
+        f"逻辑账号归属保存失败：游戏已切到 {target}，但记录仍指向旧账号。"
+        f"本次运行内不再写入关卡记录，避免污染旧账号（文件可写后重跑一次即可恢复）"
+    )
+
+
+def account_is_unsaved() -> bool:
+    """归属是否处于「已切换但未落盘」的不一致状态。"""
+    return _account_unsaved
+
+
+def clear_account_unsaved() -> None:
+    """归属重新落盘成功后清除标记。"""
+    global _account_unsaved
+    _account_unsaved = False
+
 
 def remember_switch_target(account: str) -> str:
     """记下这次切换的目标账号标识（空值用固定默认标识）。
@@ -358,8 +387,15 @@ def record_unavailable(
     """记录「这个关卡找不到，以后直接跳过」。
 
     返回是否真的落盘成功。**保存失败时调用方不得宣称已持久化。**
+
+    归属处于「已切换但未落盘」状态时**拒绝写入**并返回 `False`：此刻
+    `account_id` 指向的桶是旧账号的，写进去会污染另一个账号的记录。
     """
+    if account_is_unsaved():
+        logger.warning(f"逻辑账号归属未落盘，跳过写入关卡记录 {stage}（避免污染旧账号）")
+        return False
     target = _path(path)
+
     data = load_state(target)
     bucket = account_bucket(data, account_id)
     raw = bucket.get("unavailable")
@@ -388,8 +424,15 @@ def set_task_skipped(
     """设置/清除「跳过均衡刷材料任务」标记。
 
     返回是否真的落盘成功。**保存失败时调用方不得宣称已持久化。**
+
+    归属处于「已切换但未落盘」状态时**拒绝写入**（同 `record_unavailable`）——
+    否则会把停用标记写到旧账号头上，让旧账号下次莫名其妙跳过任务。
     """
+    if account_is_unsaved():
+        logger.warning("逻辑账号归属未落盘，跳过写入停用标记（避免污染旧账号）")
+        return False
     target = _path(path)
+
     data = load_state(target)
     bucket = account_bucket(data, account_id)
     stamp = now or _now_str()

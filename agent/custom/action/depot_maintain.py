@@ -518,31 +518,37 @@ def runs_for(deficit: int, entry: MaterialEntry) -> int:
     return max(1, math.ceil(deficit / per_run))
 
 
-def retarget_material(context: Context, item_id: str, stage: str, level: str) -> bool:
+def retarget_material(context: Context, item_id: str, stage: str, level: str) -> bool | None:
     """把库存保持的「本轮目标材料」切到另一个材料，供跨材料顺延使用。
 
     `StageLookupTimeout` 在库存保持模式下把目标换到别的材料时调用 —— 否则
     `_state.item_id` 还留着旧材料，`DepotMaintainAccumulate` 会按旧 id 找掉落，
     新关卡打完的掉落统计不到、快照也不更新，白刷。
 
-    返回是否成功切换；`False` 表示当前不是库存保持模式（或目标配置缺失），
-    调用方应保持原样。
+    Returns:
+        - `True`  — 切换成功
+        - `None`  — **当前不是库存保持模式**（默认均衡分支），没有 depot 状态需要同步，
+                    调用方可以继续顺延
+        - `False` — 是库存保持模式但**切换失败**（材料目录读不出 / 目标材料不在目录里）。
+                    此时 `_state` 仍是旧材料，继续刷新关卡会让掉落记到旧材料头上，
+                    调用方**必须停止顺延**而不能当没事发生。
 
-    缺口与 runs 按「该材料的 GUI 目标 − 快照当前值」重算，与规划节点的口径一致。
+    三态是必要的：只返回 `bool` 的话，调用方无法区分「不需要同步」和「同步失败」，
+    会把失败当正常继续跑。
     """
     if _state.item_id is None:
-        # 非库存保持模式（默认均衡分支）：没有 depot 状态需要同步
-        return False
+        # 非库存保持模式：没有 depot 状态需要同步
+        return None
 
     try:
         catalog = load_catalog()
     except CatalogError as exc:
-        logger.warning(f"切换目标材料时读取材料目录失败: {exc}")
+        logger.error(f"切换目标材料时读取材料目录失败，无法同步库存目标: {exc}")
         return False
 
     entry = catalog.get(item_id)
     if entry is None:
-        logger.warning(f"切换目标材料失败：材料目录里没有 {item_id}")
+        logger.error(f"切换目标材料失败：材料目录里没有 {item_id}")
         return False
 
     target = parse_gui_targets(gui_material_params(context, {}), catalog).get(item_id, 0)

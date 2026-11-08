@@ -640,6 +640,59 @@ def test_swipe_count_resets_per_lookup(tmp_path: Path) -> None:
 
 
 # ------------------------------------------------------------- 入口与停用
+def test_unsaved_account_blocks_record_writes(tmp_path: Path) -> None:
+    """归属「已切换但未落盘」时拒绝写关卡记录与停用标记。
+
+    回归防护：切换成功但 `set_current_account` 保存失败时，文件里还是旧账号。
+    若继续写入，新账号的失败关卡/停用标记会落到旧账号头上，让旧账号下次
+    莫名其妙跳过任务。
+    """
+    from agent.utils.balanced_state import (
+        account_is_unsaved,
+        clear_account_unsaved,
+        mark_account_unsaved,
+    )
+
+    account = current_account()
+    mark_account_unsaved("B")
+    try:
+        assert account_is_unsaved() is True
+        assert record_unavailable(account, "7-26") is False, "不一致状态下必须拒绝写关卡记录"
+        assert set_task_skipped(account, True) is False, "不一致状态下必须拒绝写停用标记"
+        # 文件里什么都没写进去
+        assert unavailable_stages(account) == set()
+        assert is_task_skipped(account) is False
+    finally:
+        clear_account_unsaved()
+
+    # 清除标记后恢复可写
+    assert record_unavailable(account, "7-26") is True
+    assert "7-26" in unavailable_stages(account)
+
+
+def test_retarget_material_returns_tristate(tmp_path: Path) -> None:
+    """`retarget_material` 必须能区分「不需要同步」与「同步失败」。
+
+    三态语义：
+    - `None`  = 不在库存保持模式（默认均衡分支），可继续顺延
+    - `False` = 库存保持模式下切换失败，调用方必须停止而不是硬刷
+    - `True`  = 切换成功
+    """
+    from agent.custom.action import depot_maintain
+
+    # 非库存保持模式（_state.item_id 为 None）
+    depot_maintain._state.item_id = None
+    assert depot_maintain.retarget_material(_FakeContext(), "110103", "7-26", "Hard") is None
+
+    # 库存保持模式下、材料目录里没有该材料 → 失败
+    depot_maintain._state.item_id = "999999"
+    try:
+        result = depot_maintain.retarget_material(_FakeContext(), "nonexistent-id", "7-26", "Hard")
+        assert result is False, "库存保持模式下切换失败必须返回 False"
+    finally:
+        depot_maintain._state.item_id = None
+
+
 def test_entry_skips_task_when_marked(tmp_path: Path) -> None:
     """已停用 → 直接跳过，不导航、不点选关卡。"""
     account = current_account()

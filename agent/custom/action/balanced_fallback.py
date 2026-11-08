@@ -514,7 +514,19 @@ class StageLookupTimeout(CustomAction):
         if material is not None:
             from .depot_maintain import retarget_material
 
-            retarget_material(context, material.entry.item_id, candidate.stage, candidate.level)
+            synced = retarget_material(context, material.entry.item_id, candidate.stage, candidate.level)
+            if synced is False:
+                # 库存保持模式下同步失败：`_state` 仍是旧材料，继续刷会把掉落记到
+                # 旧材料头上。宁可结束本任务也不要刷错。
+                logger.error(
+                    "库存保持目标切换失败，无法把掉落记到材料 "
+                    f"{material.entry.name}，结束本次均衡刷材料"
+                )
+                detail = context.run_task(HOME_ENTRY)
+                if detail is None or detail.status.failed:
+                    logger.warning("结束前未能回到主界面，请检查游戏当前界面")
+                context.override_next(TIMEOUT_NODE, [])
+                return CustomAction.RunResult(success=False)
 
         # 回主界面：原导航依赖主界面的「进入」按钮，停在关卡页时它认不出来
         detail = context.run_task(HOME_ENTRY)

@@ -29,7 +29,12 @@ from maa.agent.agent_server import AgentServer
 from maa.event_sink import NotificationType
 from maa.tasker import Tasker, TaskerEventSink
 from utils import logger
-from utils.balanced_state import pending_switch_target, set_current_account
+from utils.balanced_state import (
+    clear_account_unsaved,
+    mark_account_unsaved,
+    pending_switch_target,
+    set_current_account,
+)
 
 # 切换账号任务的 entry 名（tasks/SwitchAccount.json 的 entry）
 SWITCH_ACCOUNT_ENTRY = "SwitchAccount"
@@ -64,8 +69,12 @@ class SwitchAccountAttribution(TaskerEventSink):
 
         if set_current_account(target):
             logger.info(f"切换账号任务成功，当前逻辑账号记为 {target}")
+            clear_account_unsaved()
         else:
-            logger.error("逻辑账号归属保存失败（文件不可写），当前逻辑账号归属保持不变")
+            # 切换**已经成功**（游戏里是新账号），但归属没能落盘 —— 文件里还是旧账号。
+            # 这种不一致比单纯「保存失败」危险：继续按旧归属读写会把新账号的关卡
+            # 失败记录、停用标记写进旧账号的桶。置位后写操作会被拒绝。
+            mark_account_unsaved(target)
 
 
 __all__ = ["SwitchAccountAttribution"]
