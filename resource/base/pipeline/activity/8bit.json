@@ -1,13 +1,59 @@
 {
+    // 4.1「幸存者游戏」：每局只打第一阶段 3 个普通关，进首领关后暂停→返回大厅结算（已通关的关卡照发宝石与卡带），然后重开。
+    // 循环终止：挂机意图——任务由用户停止；每轮有真实产出（每局 +30 卡带）。
     "8bit": {
-        "desc": "8-bit 街机秀",
+        "desc": "8-bit 街机秀（幸存者游戏）",
         "next": [
             "8bitFlagInMain",
+            "[JumpBack]8bitEntryFromMain",
             "[JumpBack]8bitEntry"
         ]
     },
+    "8bitEntryFromMain": {
+        "desc": "游戏主界面右上角的活动横幅「8-bit街机秀」：点进活动页（活动页同一块区域没有这段文字）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    840,
+                    40,
+                    320,
+                    170
+                ],
+                "expected": [
+                    "8-bit街机秀"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "8bitEntry"
+        ]
+    },
+    "8bitEntry": {
+        "desc": "活动页点击开始游戏",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1007,
+                    527,
+                    237,
+                    72
+                ],
+                "expected": [
+                    "开始游戏"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
     "8bitFlagInMain": {
-        "desc": "8-bit 主界面",
+        "desc": "缪斯街机厅（大厅）",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -24,51 +70,23 @@
             }
         },
         "next": [
-            "8bitFlagInCombat",
-            "[JumpBack]8bitLevelEntry",
+            "8bitLevelEntry",
             "[JumpBack]8bitLevelSelect"
         ]
     },
-    "8bitFlagInCombat": {
-        "desc": "8-bit 战斗界面",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    104,
-                    5,
-                    133,
-                    136
-                ],
-                "template": [
-                    "8-bit/Level.png"
-                ]
-            }
-        },
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "EightBitCombatInit"
-            }
-        },
-        "next": [
-            "8bitCombatEnd",
-            "[JumpBack]8bitCombatMove"
-        ]
-    },
-    "8bitCombatEnd": {
-        "desc": "8-bit 战斗结束，当前后续处理是传送后直接退出关卡",
+    "8bitLevelSelect": {
+        "desc": "大厅点击难度机台（单向投币Ⅰ）",
         "recognition": {
             "type": "OCR",
             "param": {
                 "roi": [
-                    1083,
-                    279,
-                    51,
-                    28
+                    635,
+                    169,
+                    92,
+                    26
                 ],
                 "expected": [
-                    "传送"
+                    "单向投币"
                 ],
                 "only_rec": true
             }
@@ -76,57 +94,309 @@
         "action": {
             "type": "Click"
         },
-        "next": [
-            "8bitFlagInMain",
-            "[JumpBack]8bitHome",
-            "[JumpBack]Confirm",
-            "[JumpBack]8bitScoreRecord",
-            "[JumpBack]8bitExit"
-        ]
-    },
-    "8bitExit": {
-        "desc": "8-bit 退出关卡",
-        "recognition": {
-            "type": "TemplateMatch",
-            "param": {
-                "roi": [
-                    34,
-                    34,
-                    65,
-                    77
-                ],
-                "template": [
-                    "8-bit/Exit.png"
-                ],
-                "method": 10001
-            }
-        },
-        "action": {
-            "type": "Click"
+        "post_wait_freezes": {
+            "time": 300,
+            "timeout": 2000
         }
     },
-    "8bitHome": {
-        "desc": "8-bit 返回主界面",
+    "8bitLevelEntry": {
+        "desc": "机台说明面板点击进入",
         "recognition": {
-            "type": "TemplateMatch",
+            "type": "OCR",
             "param": {
                 "roi": [
-                    668,
-                    446,
-                    98,
-                    85
+                    1028,
+                    263,
+                    90,
+                    50
                 ],
-                "template": [
-                    "8-bit/Home.png"
+                "expected": [
+                    "进入"
                 ]
             }
         },
         "action": {
             "type": "Click"
-        }
+        },
+        "next": [
+            "8bitResumeCancel",
+            "8bitBlessingSelect",
+            "8bitFlagInCombat",
+            "[JumpBack]8bitLevelEntry"
+        ]
+    },
+    "8bitResumeCancel": {
+        "desc": "上次中断留有存档时弹出「是否返回未完成的关卡？」，取消即按放弃结算并回到大厅",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    420,
+                    270,
+                    440,
+                    90
+                ],
+                "expected": [
+                    "未完成的关卡"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    437,
+                    401,
+                    71,
+                    39
+                ]
+            }
+        },
+        "next": [
+            "8bitScoreRecord",
+            "8bitFlagInMain",
+            "[JumpBack]8bitResumeCancel"
+        ]
+    },
+    "8bitBlessingSelect": {
+        "desc": "阶段开始「角色的祝福」，保持默认选项直接选择",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    560,
+                    630,
+                    160,
+                    70
+                ],
+                "expected": [
+                    "^选择$"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "8bitFlagInCombat",
+            "[JumpBack]8bitBlessingSelect"
+        ]
+    },
+    "8bitFlagInCombat": {
+        "desc": "普通关战斗中（左上角目标为「坚持N回合」或「击败所有怪物」）：自定义动作平时按 上→左→下→右 固定节奏移动，清场阶段怪少时主动靠近落单的怪，一次打完整关；单关超时则走 on_error 收尾（读不到关卡目标时按本关结束继续，仍读得到目标才暂停并返回大厅结算）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    60,
+                    60,
+                    200,
+                    40
+                ],
+                "expected": [
+                    "坚持\\d+回合",
+                    "击败所有怪物"
+                ]
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EightBitCombatMove",
+                "custom_action_param": {
+                    "move_input": "click",
+                    "move_strategy": "hybrid",
+                    "interval_ms": 300
+                }
+            }
+        },
+        "next": [
+            "8bitShopGiveUp",
+            "8bitScoreRecord",
+            "8bitBossFlag",
+            "[JumpBack]8bitFlagInCombat"
+        ],
+        "on_error": [
+            "8bitCombatQuit"
+        ]
+    },
+    "8bitCombatQuit": {
+        "desc": "普通关卡住（单关超时）时兜底：点击左上角返回按钮暂停，再返回大厅结算已通关的关卡",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    60,
+                    60,
+                    200,
+                    40
+                ],
+                "expected": [
+                    "坚持\\d+回合",
+                    "击败"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    36,
+                    22,
+                    40,
+                    36
+                ]
+            }
+        },
+        "next": [
+            "8bitPauseReturnHall",
+            "[JumpBack]8bitCombatQuit"
+        ]
+    },
+    "8bitShopGiveUp": {
+        "desc": "关卡结算后的商店「地下流通处」：先买下买得起的纯属性秘宝（首领关前不买），再点击左上角「放弃」进入下一关",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    500,
+                    35,
+                    280,
+                    55
+                ],
+                "expected": [
+                    "地下流通处",
+                    "秘密交易处"
+                ]
+            }
+        },
+        "pre_delay": 0,
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "EightBitShopBuy"
+            }
+        },
+        "next": [
+            "8bitShopLeave"
+        ]
+    },
+    "8bitShopLeave": {
+        "desc": "商店买完：点击左上角「放弃」离开商店、进入下一关",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    500,
+                    35,
+                    280,
+                    55
+                ],
+                "expected": [
+                    "地下流通处",
+                    "秘密交易处"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    48,
+                    37,
+                    100,
+                    34
+                ]
+            }
+        },
+        "next": [
+            "8bitFlagInCombat",
+            "8bitBossFlag",
+            "[JumpBack]8bitShopLeave"
+        ]
+    },
+    "8bitBossFlag": {
+        "desc": "首领关（左上角目标为「击败…」且不是「击败所有怪物」）：点击左上角返回按钮暂停。排除「所有」开头，防止普通关的「击败所有怪物」被 OCR 截断成「击败所有怪」后误判成首领关",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    60,
+                    60,
+                    200,
+                    40
+                ],
+                "expected": [
+                    "^击败(?!所有).{4,}$"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": [
+                    36,
+                    22,
+                    40,
+                    36
+                ]
+            }
+        },
+        "next": [
+            "8bitPauseReturnHall",
+            "[JumpBack]8bitBossFlag"
+        ]
+    },
+    "8bitPauseReturnHall": {
+        "desc": "暂停菜单 GAME PAUSED：点击「返回大厅」",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    650,
+                    505,
+                    130,
+                    55
+                ],
+                "expected": [
+                    "返回大厅"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "8bitReturnHallConfirm",
+            "[JumpBack]8bitPauseReturnHall"
+        ]
+    },
+    "8bitReturnHallConfirm": {
+        "desc": "「是否返回缪斯街机厅？游戏会结算当前关卡进度」点击确认",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    740,
+                    385,
+                    130,
+                    70
+                ],
+                "expected": [
+                    "确认"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": [
+            "8bitScoreRecord",
+            "[JumpBack]8bitReturnHallConfirm"
+        ]
     },
     "8bitScoreRecord": {
-        "desc": "8-bit 记录代币",
+        "desc": "结算页 GAME OVER：记录本局卡带并点击空白关闭",
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -147,82 +417,10 @@
             "param": {
                 "custom_action": "EightBitScoreRecord"
             }
-        }
-    },
-    "8bitCombatMove": {
-        "desc": "8-bit 战斗界面移动逻辑",
-        "pre_delay": 0,
-        "action": {
-            "type": "Custom",
-            "param": {
-                "custom_action": "EightBitCombatMove",
-                "custom_action_param": {
-                    "move_input": "key"
-                }
-            }
         },
-        "post_delay": 0
-    },
-    "8bitLevelSelect": {
-        "desc": "选择关卡",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    635,
-                    169,
-                    92,
-                    26
-                ],
-                "expected": [
-                    "单向投币"
-                ],
-                "only_rec": true
-            }
-        },
-        "action": {
-            "type": "Click"
-        }
-    },
-    "8bitLevelEntry": {
-        "desc": "进入关卡-单向投币",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    1048,
-                    302,
-                    53,
-                    27
-                ],
-                "expected": [
-                    "进入"
-                ],
-                "only_rec": true
-            }
-        },
-        "action": {
-            "type": "Click"
-        }
-    },
-    "8bitEntry": {
-        "desc": "进入 8-bit 活动界面",
-        "recognition": {
-            "type": "OCR",
-            "param": {
-                "roi": [
-                    1007,
-                    527,
-                    237,
-                    72
-                ],
-                "expected": [
-                    "开始游戏"
-                ]
-            }
-        },
-        "action": {
-            "type": "Click"
-        }
+        "next": [
+            "8bitFlagInMain",
+            "[JumpBack]8bitScoreRecord"
+        ]
     }
 }
