@@ -43,10 +43,13 @@ def build_runtime_paths(
         agent_dir=resolved_project_root / "agent",
         work_root=resolved_work_root,
         config_dir=resolved_work_root / "config",
-        # 热更新写到 work_root/resource：MXU 的 .app 形态下项目目录只读，只能写这里；便携布局
-        # 下 work_root 与项目目录相同，与旧行为一致。
-        # TODO: 若 Client 在扁平布局下仍把 PI_USER_DATA_DIR 指到独立数据目录，MaaFW 仍按
-        # project_root/resource 加载资源，热更新会静默不生效，届时需改回 project_root。
+        # 热更新写到 work_root/resource：Windows/Linux 下 MXU 的 PI_USER_DATA_DIR 就是 exe 所在
+        # 目录（便携布局），写这里等于写进资源目录，与旧行为一致。
+        # 已知缺口：macOS .app 下 MXU 从 Contents/Resources/MXU-portable 加载资源（以
+        # interface.json 所在目录为基准，见 MXU src/utils/resourcePath.ts），不写
+        # PI_USER_DATA_DIR/resource——也就是说 Mirror酱 热更新在 macOS 下写得到但读不到，
+        # 每次启动都会重新提示有新版本。需要 MXU 在加载 resource.path 之外再叠加
+        # PI_USER_DATA_DIR/resource（或提供等价覆盖机制）才能真正生效，属于上游改动。
         resource_dir=resolved_work_root / "resource",
         debug_dir=resolved_work_root / "debug",
         requirements_file=resolved_project_root / "requirements.txt",
