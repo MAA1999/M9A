@@ -151,6 +151,18 @@ class CurrencyTopUpInit(CustomAction):
 
         parse_params(argv.custom_action_param)
         reset_currency_state()
+
+        # 抬 `ReturnMain` 的命中上限。
+        # `startup.json` 里它是 2，而命中计数在**整个顶层任务内累计**（`run_task` 子任务
+        # 共享同一个 TaskState，只有 post_task 才清零）。本任务正常流程就要回家两次
+        # （`DepotCurrencyRead` 收尾 + `CT_Done` 收尾），正好用满、没有余量；只要多一次
+        # （例如从非主界面启动时 `DepotCurrencyNav` 的 `[JumpBack]ReturnMain` 先命中一次），
+        # `CT_Done` 的 `ResetReturnMain → ReturnMain` 就会被静默过滤，收尾失败。
+        # `DepotMaintainInit` 为同一原因早就在入口抬过（见 `RETURN_MAIN_MAX_HIT`）。
+        from .depot_maintain import RETURN_MAIN_MAX_HIT
+
+        context.override_pipeline({"ReturnMain": {"max_hit": RETURN_MAIN_MAX_HIT}})
+
         logger.info("微尘 / 利齿子儿刷取任务开始")
         return CustomAction.RunResult(success=True)
 
@@ -179,7 +191,7 @@ class CurrencyTopUpPlan(CustomAction):
         # 读之前声明本轮参与读数的货币：`DepotCurrencyRead` 用它判断「读数是否齐全」，
         # 齐全才刷新 `currency_updated_at`；不声明的话没读到的那个也会盖上新鲜时间戳，
         # 下次任务就会拿旧值当新值用。
-        from .depot_maintain import set_required_currency
+        from .depot_maintain import ensure_account_id, set_required_currency
 
         dust_enabled = _bool_param(params.get("dust_enabled"), False)
         coin_enabled = _bool_param(params.get("coin_enabled"), False)
@@ -190,6 +202,17 @@ class CurrencyTopUpPlan(CustomAction):
 
         if not required:
             logger.info("微尘 / 利齿子儿刷取的开关都关着，本次不刷取")
+            context.override_next("CT_Plan", ["CT_Done"])
+            return CustomAction.RunResult(success=True)
+
+        # ⚠️ 读账号必须在读数**之前**。
+        # `DepotCurrencyRead` 的顺序是「先写快照、再 run_task(HOME_ENTRY)」：写盘时若
+        # `RecordId` 还没跑过（agent 刚启动，或本任务就是第一个任务），读数会落进
+        # `__default__` 桶；紧接着 HOME_ENTRY 才把账号 id 填上。之后 `_read_currency_counts()`
+        # 按真实账号桶取值 —— 那里可能是别的任务留下的旧值，于是旧值会被当成本轮读数。
+        # `DepotMaintainPlan` 对同一风险已有这条守卫，这里同样需要。
+        if not ensure_account_id(context):
+            logger.error("未能读取账号信息，读数无法与账号对应，本次跳过刷取")
             context.override_next("CT_Plan", ["CT_Done"])
             return CustomAction.RunResult(success=True)
 
@@ -229,11 +252,14 @@ class CurrencyTopUpPlan(CustomAction):
             context.override_next("CT_Plan", ["CT_Done"])
             return CustomAction.RunResult(success=True)
 
-        # 两个货币都缺时用一条简单确定的规则：**先刷微尘**（id 小的先）。
-        # 需求只要求「一个简单确定的规则」并说明，不扩建资源分配或多轮调度系统。
+        # 两个货币都缺时用一条简单确定的规则：**缺口大的优先**；缺口相同时固定选微尘
+        # （`_CURRENCY_ORDER` 里微尘在前）。需求只要求「一个简单确定的规则」并说明，
+        # 不扩建资源分配或多轮调度系统。
         _, item_id, item_name, stage, per_run = max(choices, key=lambda c: (c[0], -_CURRENCY_ORDER[c[1]]))
         if len(choices) > 1:
-            logger.info("微尘与利齿子儿都低于阈值，本次先刷微尘（规则：两者都缺时先刷微尘）")
+            # 日志必须打**实际选中的**那个，不能固定写「微尘」——
+            # 缺口更大时选中的可能是利齿子儿，固定文案会和实际刷的关卡对不上。
+            logger.info(f"微尘与利齿子儿都低于阈值，本次刷缺口更大的 {item_name}（规则：缺口大者优先）")
         current = dust_now if item_id == DUST_ITEM_ID else coin_now
         threshold = dust_threshold if item_id == DUST_ITEM_ID else coin_threshold
 

@@ -76,7 +76,11 @@ def _reset_state(monkeypatch: pytest.MonkeyPatch) -> None:
     currency_topup.reset_currency_state()
     # 规划节点读不到快照（默认）→ 「本轮没读到」
     monkeypatch.setattr(currency_topup, "_read_currency_counts", lambda: {})
-    monkeypatch.setattr("agent.custom.action.depot_maintain.set_required_currency", lambda _ids: None)
+    # 这两个函数由规划节点在函数内 import，patch 到定义它们的模块上
+    from agent.custom.action import depot_maintain
+
+    monkeypatch.setattr(depot_maintain, "set_required_currency", lambda _ids: None)
+    monkeypatch.setattr(depot_maintain, "ensure_account_id", lambda _ctx: True)
 
 
 # ------------------------------------------------------------------ 阈值规则
@@ -108,14 +112,38 @@ def test_int_param_supports_k_and_m() -> None:
 
 # ------------------------------------------------------------------ 入口动作
 def test_init_does_not_clobber_gui_attach(monkeypatch: pytest.MonkeyPatch) -> None:
-    """入口**不覆写** CT_Plan 的 attach —— GUI 的开关与阈值不能被盖掉。"""
+    """入口**不覆写** CT_Plan 的 attach —— GUI 的开关与阈值不能被盖掉。
+
+    入口唯一允许写的 pipeline 是 `ReturnMain.max_hit`（抬命中上限，见下一个用例），
+    除此之外不能碰任何节点。
+    """
     context = _FakeContext(attach={"dust_enabled": True, "dust_threshold": "500K"})
     result = CurrencyTopUpInit().run(context, _argv(json.dumps({"dust_threshold": 999})))
     assert result.success is True
-    assert context.pipeline_overrides == [], "入口不应覆写任何 pipeline（GUI 配置会被盖掉）"
+    written_nodes = {node for pipeline in context.pipeline_overrides for node in pipeline}
+    assert written_nodes == {"ReturnMain"}, f"入口只应抬 ReturnMain，实际写了 {written_nodes}"
     # attach 原样保留
     assert context.attach["dust_enabled"] is True
     assert context.attach["dust_threshold"] == "500K"
+
+
+def test_init_raises_return_main_max_hit(monkeypatch: pytest.MonkeyPatch) -> None:
+    """入口把 ReturnMain 的 max_hit 抬到 RETURN_MAIN_MAX_HIT。
+
+    回归防护：`startup.json` 里 max_hit 只有 2，而本任务正常流程要回家两次
+    （读角色页收尾 + CT_Done 收尾），正好用满没有余量 —— 多一次回家需求就会
+    让收尾的 ReturnMain 被静默过滤、任务以失败收场。
+    """
+    from agent.custom.action.depot_maintain import RETURN_MAIN_MAX_HIT
+
+    context = _FakeContext()
+    CurrencyTopUpInit().run(context, _FAKE_ARGV)
+
+    hit = None
+    for pipeline in context.pipeline_overrides:
+        if "ReturnMain" in pipeline:
+            hit = pipeline["ReturnMain"].get("max_hit")
+    assert hit == RETURN_MAIN_MAX_HIT, "入口必须抬高 ReturnMain 的命中上限"
 
 
 def test_plan_reads_thresholds_from_gui_attach(monkeypatch: pytest.MonkeyPatch) -> None:

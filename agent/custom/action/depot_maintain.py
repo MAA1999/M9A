@@ -272,6 +272,15 @@ def _ensure_account_id(context: Context) -> bool:
     return True
 
 
+def ensure_account_id(context: Context) -> bool:
+    """`_ensure_account_id` 的公开入口。
+
+    别的任务（微尘 / 利齿子儿刷取）也要在碰快照前确认账号，直接调私有名不合适，
+    这里开一个稳定入口；行为与原函数完全一致。
+    """
+    return _ensure_account_id(context)
+
+
 def read_snapshot(path: Path | None = None) -> dict[str, Any] | None:
     """读取当前账号的仓库扫描快照（WarehouseInventory 任务落盘）。"""
     target = path or SNAPSHOT_PATH

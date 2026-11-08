@@ -8,9 +8,7 @@
             "group": ["daily"],
             "option": [
                 "补足微尘",
-                "补足利齿子儿",
-                "微尘阈值",
-                "利齿子儿阈值"
+                "补足利齿子儿"
             ]
         }
     ],
@@ -67,7 +65,7 @@
                     "label": "$Option.BalancedFarming.Material.Target",
                     "default": "1352100",
                     "pipeline_type": "string",
-                    "verify": "^\\d*[KkMm]?$"
+                    "verify": "^\\d*(\\.\\d+)?[KkMm]?$"
                 }
             ],
             "pipeline_override": {"CT_Plan": {"attach": {"dust_threshold": "{dust_threshold}"}}}
@@ -82,7 +80,7 @@
                     "label": "$Option.BalancedFarming.Material.Target",
                     "default": "1616830",
                     "pipeline_type": "string",
-                    "verify": "^\\d*[KkMm]?$"
+                    "verify": "^\\d*(\\.\\d+)?[KkMm]?$"
                 }
             ],
             "pipeline_override": {"CT_Plan": {"attach": {"coin_threshold": "{coin_threshold}"}}}
