@@ -259,10 +259,16 @@ def clear_move(board: Board, search_key: int) -> int | None:
 
 
 def forced_move(board: Board, last_key: int | None) -> int | None:
-    """换一个空邻格走，免得站着不动。`last_key` 为 None 时（清场阶段重入）不做方向排除。"""
+    """换一个空邻格走，免得站着不动。
+
+    优先避开上一步的方向（防止在两格之间来回撞），但**空邻格永远优先于预警格**：
+    别的方向都没空位时，原方向是空的也照走。`last_key` 为 None（清场阶段重入）时不做方向排除。
+    """
     for key in DIRECTIONS:
         if key != last_key and board.neighbour(key) == FREE:
             return key
+    if last_key is not None and board.neighbour(last_key) == FREE:
+        return last_key
     return None
 
 
@@ -280,7 +286,7 @@ def escape_key(board: Board) -> int | None:
 
 
 def fallback_key(board: Board, last_key: int | None) -> int | None:
-    """兜底方向：先换空邻格，脚下在预警里时退而求其次走进预警邻格，都不行才站住。"""
+    """兜底方向：先找空邻格（含上一步的方向），脚下在预警里时退而求其次走进预警邻格，都不行才站住。"""
     return forced_move(board, last_key) or escape_key(board)
 
 

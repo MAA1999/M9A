@@ -467,6 +467,23 @@ def test_fallback_works_without_last_key(monkeypatch) -> None:
     assert fallback_key(_board(), None) is not None
 
 
+def test_fallback_prefers_free_cell_over_warning_in_last_direction() -> None:
+    """唯一空邻格正好是上一步的方向时也要走它，不能平白走进预警格。"""
+    board = Board(
+        own_danger=True,
+        cells={(1, 0): FREE, (0, -1): DANGER, (0, 1): DANGER, (-1, 0): DANGER},
+    )
+    assert forced_move(board, RIGHT) == RIGHT
+    assert fallback_key(board, RIGHT) == RIGHT
+
+
+def test_escape_key_only_when_standing_on_warning() -> None:
+    dangerous = Board(own_danger=True, cells={(1, 0): DANGER, (0, -1): DANGER, (0, 1): DANGER, (-1, 0): DANGER})
+    safe = Board(own_danger=False, cells={(1, 0): DANGER, (0, -1): DANGER, (0, 1): DANGER, (-1, 0): DANGER})
+    assert escape_key(dangerous) in (UP, DOWN, LEFT, RIGHT)
+    assert escape_key(safe) is None
+
+
 def test_parse_count() -> None:
     assert parse_count("30") == 30
     assert parse_count("x30") == 30
