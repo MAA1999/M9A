@@ -390,6 +390,8 @@ def _shared() -> dict[str, Any]:
             "pending_switch_target": "",
             "account_unsaved": False,
             "ephemeral": False,
+            # 「不落盘」模式下本轮产生的不可用关卡（只在内存里，跨材料共享失败边界）
+            "ephemeral_unavailable": set(),
         }
         setattr(builtins, _SHARED_KEY, container)
     return container
@@ -409,7 +411,10 @@ def _shared() -> dict[str, Any]:
 
 def begin_ephemeral_run() -> None:
     """进入「本轮不落盘」模式：不读旧记录、不写新记录。"""
-    _shared()["ephemeral"] = True
+    shared = _shared()
+    shared["ephemeral"] = True
+    # 清空上一轮遗留的会话内记录（同一进程可能连续跑多个任务）
+    shared["ephemeral_unavailable"] = set()
     logger.warning(
         "未能确定账号归属，本次按「没有任何历史记录」处理："
         "照常刷取并自动顺延，但本次产生的关卡记录与停用标记都不会保存"
@@ -418,12 +423,31 @@ def begin_ephemeral_run() -> None:
 
 def end_ephemeral_run() -> None:
     """退出「本轮不落盘」模式（任务结束时调用，避免影响同进程里的后续任务）。"""
-    _shared()["ephemeral"] = False
+    shared = _shared()
+    shared["ephemeral"] = False
+    shared["ephemeral_unavailable"] = set()
 
 
 def is_ephemeral_run() -> bool:
     """本轮是否处于「不落盘」模式。"""
     return bool(_shared()["ephemeral"])
+
+
+def _ephemeral_unavailable() -> set[str]:
+    """「不落盘」模式下**仅在本次运行内**有效的不可用关卡集合。
+
+    为什么需要它：`candidate_index` 只能防止**当前材料**内重复取同一个候选，
+    无法代替跨材料共享的失败边界。例如 7-26 已确认过不去，换到别的材料时如果
+    候选里还有 7-26 或更靠后的主线关卡，就会被再试一次 —— 白白多等一轮超时
+    （每轮最长两分钟）。所以这次运行内产生的失败关卡必须留在内存里，
+    `unavailable_stages()` 仍然要能读到它们，只是不落盘。
+    """
+    shared = _shared()
+    items = shared.get("ephemeral_unavailable")
+    if not isinstance(items, set):
+        items = set()
+        shared["ephemeral_unavailable"] = items
+    return items
 
 
 def mark_account_unsaved(target: str, reason: str = REASON_SAVE_FAILED) -> None:
@@ -495,7 +519,12 @@ def unavailable_stages(account_id: str | None = None, path: Path | None = None) 
     这样既不会读到别的账号桶里的记录，也不会因为读不到而卡住任务。
     """
     if is_ephemeral_run():
-        return set()
+        # ⚠️ 返回**本轮刚确认的失败关卡**（内存里的），不是空集。
+        #
+        # 早前这里直接返回空集，等于把「本次运行内已经试出来的失败边界」也丢掉：
+        # `candidate_index` 只能防住同一材料内重复取候选，跨材料时若候选里还有
+        # 同一个（或更靠后的）主线关卡，会被再试一次 —— 白等一轮两分钟超时。
+        return set(_ephemeral_unavailable())
     bucket = account_bucket(load_state(_path(path)), account_id)
     raw = bucket.get("unavailable")
     if not isinstance(raw, dict):
@@ -516,13 +545,15 @@ def record_unavailable(
 
     三种「不写」的情形：
 
-    1. 「不落盘」模式（读不到 UID）—— 当作成功返回 `True`，但**什么都不写**。
-       调用方按「已记录」继续顺延即可；本次运行内顺延靠内存推进，本来就不依赖文件。
+    1. 「不落盘」模式（读不到 UID）—— 返回 `True`，**不写文件但记进内存**。
+       调用方按「已记录」继续顺延；本次运行内 `unavailable_stages()` 会返回这条，
+       所以跨材料时不会再试同一个（或更靠后的）主线关卡。
     2. 归属处于「已切换但未落盘」状态 —— 返回 `False`，因为 `account_id` 指向的桶
        是旧账号的，写进去会污染另一个账号的记录。
     """
     if is_ephemeral_run():
-        logger.debug(f"「不落盘」模式：跳过写入关卡记录 {stage}（本次运行内仍然生效）")
+        _ephemeral_unavailable().add(str(stage))
+        logger.debug(f"「不落盘」模式：关卡 {stage} 记入本次运行（不写文件）")
         return True
     if account_is_unsaved():
         logger.warning(f"逻辑账号归属未落盘，跳过写入关卡记录 {stage}（避免污染旧账号）")

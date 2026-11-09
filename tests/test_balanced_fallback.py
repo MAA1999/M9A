@@ -818,19 +818,26 @@ def test_entry_runs_ephemeral_when_uid_unavailable(
     assert context.next_overrides[-1][1] == ["BF_Plan"], "UID 未知应照常刷取，不是跳过"
     assert balanced_state.is_ephemeral_run() is True, "必须进入「不落盘」模式"
 
-    # 不落盘模式下：读记录当作空、写记录不落盘
-    assert unavailable_stages("any") == set()
+    # 不落盘模式下：读不到**旧**记录，但本轮新记的失败关卡必须能读到
+    assert unavailable_stages("any") == set(), "旧记录不该被读到"
     assert record_unavailable("any", "7-26") is True, "不落盘模式按成功返回，调用方继续顺延"
+    assert "7-26" in unavailable_stages("any"), "本轮刚确认的失败关卡必须留在内存里"
 
     balanced_state.end_ephemeral_run()
     assert balanced_state.is_ephemeral_run() is False
+    assert unavailable_stages("any") == set(), "退出后内存记录也要清掉"
 
 
 def test_ephemeral_run_writes_nothing_but_still_falls_back(tmp_path: Path) -> None:
-    """「不落盘」模式：读当作空、写不落盘，但顺延逻辑照常推进。
+    """「不落盘」模式：不读旧记录、不写文件，但本轮失败关卡要留在内存里。
 
     这条路径对应「读不到游戏内 UID」时的行为：照常刷材料并自动顺延，
     代价只是下次运行不记得这次试过哪些关卡。
+
+    ⚠️ 关键：本轮刚确认的失败关卡**必须**仍能被 `unavailable_stages()` 读到。
+    `candidate_index` 只能防住同一材料内重复取候选，跨材料时如果候选里还有
+    同一个（或更靠后的）主线关卡，必须靠这份内存记录过滤掉，否则会白等
+    一轮两分钟超时。
     """
     account = current_account()
     # 先存一条真实记录，确认 ephemeral 模式下**读不到**它
@@ -839,13 +846,18 @@ def test_ephemeral_run_writes_nothing_but_still_falls_back(tmp_path: Path) -> No
 
     balanced_state.begin_ephemeral_run()
 
-    # 读：当作没有现存记录
-    assert unavailable_stages(account) == set(), "不落盘模式必须当作没有任何记录"
+    # 读：旧记录当作没有
+    assert unavailable_stages(account) == set(), "不落盘模式必须当作没有**历史**记录"
     assert is_task_skipped(account) is False, "不落盘模式不能被停用标记拦住"
 
     # 写：返回成功（调用方继续顺延），但文件里没有新增
     assert record_unavailable(account, "11-5") is True
     assert set_task_skipped(account, True) is True
+
+    # 本轮刚记的必须能读到 —— 这是跨材料共享失败边界的前提
+    assert "11-5" in unavailable_stages(account), "本轮确认的失败关卡必须留在内存里"
+    # 而且套用「编号更大也算不可用」的规则
+    assert is_stage_unavailable(unavailable_stages(account), "12-1"), "更靠后的主线关卡也该被过滤"
 
     balanced_state.end_ephemeral_run()
 
