@@ -214,22 +214,22 @@
         "jsonInt128": {
             "type": "integer",
             "format": "int128",
-            "minimum": -1.7014118346046923e38,
-            "maximum": 1.7014118346046923e38,
+            "minimum": -1.7014118346046923e+38,
+            "maximum": 1.7014118346046923e+38,
             "default": 0
         },
         "jsonNInt128": {
             "type": "integer",
             "format": "int128",
             "minimum": 0,
-            "maximum": 1.7014118346046923e38,
+            "maximum": 1.7014118346046923e+38,
             "default": 0
         },
         "jsonUInt128": {
             "type": "integer",
             "format": "uint128",
             "minimum": 0,
-            "maximum": 3.402823669209385e38,
+            "maximum": 3.402823669209385e+38,
             "default": 0
         },
         "jsonNumber01": {
