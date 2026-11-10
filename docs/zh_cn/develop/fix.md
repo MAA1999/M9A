@@ -34,14 +34,15 @@ icon: qlementine-icons:debug-16
 **使用步骤**：
 
 1. 从 [Releases](https://github.com/Windsland52/MAALogAnalyzer/releases) 下载最新版本
-2. 打开工具，导入日志文件（`debug/maa.log` 或 `logs/` 下的 MFA 日志）
+2. 打开工具，导入日志文件（`debug/maafw.log` 或 `logs/` 下的 MFA 日志）
 3. 查看可视化执行流程，定位问题节点
 
 ### 日志文件位置
 
 M9A 的日志一般在以下位置：
 
-- `debug/maa.log` - MaaFramework 核心日志
+- `debug/maafw.log` - Client 的 MaaFramework 核心日志
+- `debug/agent/maafw.log` - Agent 进程的 MaaFramework 核心日志（内核日志已从 `debug/` 根移入）
 - `debug/custom/` - Custom 模块生成的日志
 - `logs/` - MFA 的日志（仅 MFA 运行时）
 
@@ -51,7 +52,7 @@ M9A 的日志一般在以下位置：
 
 1. **确认版本信息**
 
-    在 `maa.log` 中搜索：
+    在 `maafw.log` 中搜索：
     - `Interface Version: [data.version=` - 查看资源版本
     - `MFAA Version` 或 `MaaPiCli` - 确认运行方式
 
