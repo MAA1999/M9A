@@ -53,7 +53,7 @@ class BalancedFarmingAnalyze(CustomAction):
     ) -> CustomAction.RunResult:
 
         try:
-            catalog = load_catalog(get_runtime_paths().resolve(self._DATA_PATH))
+            catalog = load_catalog(get_runtime_paths().data_path(self._DATA_PATH))
         except CatalogError as e:
             logger.error(f"读取材料映射表失败: {self._DATA_PATH}, {e}")
             return CustomAction.RunResult(success=False)

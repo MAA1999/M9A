@@ -74,7 +74,7 @@ class WarehouseInventoryScan(CustomAction):
         argv: CustomAction.RunArg,
     ) -> CustomAction.RunResult:
         try:
-            with open(get_runtime_paths().resolve(self._ITEMS_PATH), encoding="utf-8") as f:
+            with open(get_runtime_paths().data_path(self._ITEMS_PATH), encoding="utf-8") as f:
                 items_by_rarity: dict[str, dict[str, dict[str, Any]]] = json.load(f)
         except (OSError, json.JSONDecodeError) as e:
             logger.error(f"读取材料映射表失败: {self._ITEMS_PATH}, {e}")
