@@ -65,11 +65,13 @@ def test_link_work_root_links_package_entries_and_keeps_runtime_dirs(tmp_path: P
     (work_root / "config/user.json").write_text("user", encoding="utf-8")
     paths = runtime_paths.build_runtime_paths(project_root=project_root, work_root=work_root)
 
-    runtime_paths.link_work_root(paths)
+    linked, failed = runtime_paths.link_work_root(paths)
 
     data_link = work_root / "data"
     if not data_link.is_symlink():
         pytest.skip("platform does not allow creating symlinks")
+    assert failed == 0
+    assert linked > 0
     assert (data_link / "combat/items.json").is_file()
     assert (work_root / "resource").is_symlink()
     assert (work_root / "interface.json").is_symlink()
@@ -102,10 +104,57 @@ def test_link_work_root_relinks_a_wrong_target_and_preserves_user_files(tmp_path
     assert user_file.read_text(encoding="utf-8") == "keep"
 
 
+def test_link_work_root_replaces_legacy_seeded_copies(tmp_path: Path) -> None:
+    project_root = tmp_path / "bundle"
+    work_root = tmp_path / "user-data"
+    project_root.mkdir()
+    work_root.mkdir()
+    _touch(project_root / "data/combat/items.json", 1000)
+    (project_root / "interface.json").write_text("new", encoding="utf-8")
+    # v4.14.0 seed_work_root() 遗留的真实副本
+    _touch(work_root / "data/combat/items.json", 500)
+    (work_root / "interface.json").write_text("stale", encoding="utf-8")
+    (work_root / "version").mkdir()
+    (work_root / "version/hot.json").write_text("x", encoding="utf-8")
+    paths = runtime_paths.build_runtime_paths(project_root=project_root, work_root=work_root)
+
+    linked, failed = runtime_paths.link_work_root(paths)
+
+    # version/ 只剩热更元数据，直接清掉。
+    assert not (work_root / "version").exists()
+    data_link = work_root / "data"
+    if not data_link.is_symlink():
+        pytest.skip("platform does not allow creating symlinks")
+    assert failed == 0
+    assert linked >= 3
+    assert (data_link / "combat/items.json").is_file()
+    assert (work_root / "interface.json").is_symlink()
+    assert (work_root / "interface.json").read_text(encoding="utf-8") == "new"
+
+
+def test_link_work_root_counts_failed_links(monkeypatch, tmp_path: Path) -> None:
+    project_root = tmp_path / "bundle"
+    work_root = tmp_path / "user-data"
+    project_root.mkdir()
+    work_root.mkdir()
+    _touch(project_root / "data/a.json", 1000)
+    paths = runtime_paths.build_runtime_paths(project_root=project_root, work_root=work_root)
+
+    def deny_symlink(self: Path, target: Path, target_is_directory: bool = False) -> None:
+        raise OSError("symlink denied")
+
+    monkeypatch.setattr(Path, "symlink_to", deny_symlink)
+
+    linked, failed = runtime_paths.link_work_root(paths)
+
+    assert linked == 0
+    assert failed == 1
+
+
 def test_link_work_root_noop_when_roots_identical(tmp_path: Path) -> None:
     paths = runtime_paths.build_runtime_paths(project_root=tmp_path, work_root=tmp_path)
 
-    assert runtime_paths.link_work_root(paths) == 0
+    assert runtime_paths.link_work_root(paths) == (0, 0)
 
 
 def test_link_work_root_skips_a_project_local_work_root(tmp_path: Path) -> None:
@@ -116,10 +165,11 @@ def test_link_work_root_skips_a_project_local_work_root(tmp_path: Path) -> None:
     work_root.mkdir()
     paths = runtime_paths.build_runtime_paths(project_root=project_root, work_root=work_root)
 
-    runtime_paths.link_work_root(paths)
+    linked, failed = runtime_paths.link_work_root(paths)
 
     assert not (work_root / "userdata").exists()
     link = work_root / "data"
     if not link.is_symlink():
         pytest.skip("platform does not allow creating symlinks")
+    assert failed == 0
     assert (link / "a.json").is_file()

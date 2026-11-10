@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -21,13 +22,23 @@ def default_work_root() -> Path:
 
 # 运行期会写这两个目录（用户配置、日志），链接进数据目录会把只读包内路径当成可写目录。
 _WORK_ROOT_OWNED_ENTRIES = frozenset({"config", "debug"})
+# v4.14.0 的 seed_work_root() 把这三项复制进 PI_USER_DATA_DIR；升级后要用链接替换旧副本。
+_LEGACY_COPIED_ENTRIES = frozenset({"data", "interface.json"})
 
 
-def _ensure_link(target: Path, source: Path) -> int:
-    """让 ``target`` 成为指向 ``source`` 的符号链接：不存在/指错就（重）建，
+def _remove_path(path: Path) -> None:
+    if path.is_dir() and not path.is_symlink():
+        shutil.rmtree(path)
+    else:
+        path.unlink()
 
-    真实文件/目录（用户内容）与已正确的链接都原样保留。目标平台不支持符号链接
-    时静默跳过。
+
+def _ensure_link(target: Path, source: Path, *, replace_existing: bool = False) -> int:
+    """让 ``target`` 成为指向 ``source`` 的符号链接：不存在/指错就（重）建。
+
+    返回 ``1``（建立/替换）、``0``（已正确或保留用户内容）、``-1``（链接失败）。
+    ``replace_existing`` 为真时，已存在的真实文件/目录会被替换——只用于 v4.14.0
+    播种出的 ``data/``、``interface.json`` 这类包内拥有的旧副本。
     """
     real_source = source.resolve()
     try:
@@ -36,36 +47,58 @@ def _ensure_link(target: Path, source: Path) -> int:
                 return 0
             target.unlink()
         elif os.path.lexists(target):
-            return 0
+            if not replace_existing:
+                return 0
+            _remove_path(target)
         target.symlink_to(real_source, target_is_directory=source.is_dir())
     except OSError:
-        return 0
+        return -1
     return 1
 
 
-def link_work_root(paths: RuntimePaths) -> int:
-    """把包内只读顶层条目链接进数据目录，让 ``work_root`` 作为 cwd 自足，返回改动条目数。
+def link_work_root(paths: RuntimePaths) -> tuple[int, int]:
+    """把包内只读顶层条目链接进数据目录，让 ``work_root`` 作为 cwd 自足。
 
-    agent 在 PI_USER_DATA_DIR 下以数据目录为 cwd（``main.py``）：libs 下的二进制插件
-    （drop_core.pyd 按 cwd 读 ``data/combat/*.json`` 与 ``./interface.json``）和遗漏的
-    裸相对路径没有调用 ``RuntimePaths.data_path()``，数据目录必须能按 cwd 读到同一份
-    文件，所以 ``data/``、``resource/``、``tasks/``、``interface.json`` 等包内条目以
-    符号链接接入；``config/``、``debug/`` 是运行期可写目录，保持真实目录。
+    返回 ``(改动条目数, 失败条目数)``。agent 在 PI_USER_DATA_DIR 下以数据目录为 cwd
+    （``main.py``）：libs 下的二进制插件（drop_core.pyd 按 cwd 读
+    ``data/combat/*.json`` 与 ``./interface.json``）和遗漏的裸相对路径没有调用
+    ``RuntimePaths.data_path()``，数据目录必须能按 cwd 读到同一份文件，所以 ``data/``、
+    ``resource/``、``tasks/``、``interface.json`` 等包内条目以符号链接接入；
+    ``config/``、``debug/`` 是运行期可写目录，保持真实目录。
+
+    从 v4.14.0 升级时，旧 ``seed_work_root()`` 复制出的 ``data/``、``interface.json``
+    会被替换成链接，旧 ``version/`` 直接清掉；用户自建的其他真实目录保持不动。
 
     ``work_root == project_root``（便携客户端）时无事可做；``work_root`` 位于项目内时
     跳过数据目录自身及包含它的祖先，避免自引用。
     """
     if paths.work_root == paths.project_root:
-        return 0
+        return 0, 0
     linked = 0
+    failed = 0
+    legacy_version = paths.work_root / "version"
+    if legacy_version.is_symlink() or os.path.lexists(legacy_version):
+        try:
+            _remove_path(legacy_version)
+            linked += 1
+        except OSError:
+            failed += 1
     for entry in paths.project_root.iterdir():
         if entry.name in _WORK_ROOT_OWNED_ENTRIES:
             continue
         real_entry = entry.resolve()
         if paths.work_root == real_entry or paths.work_root.is_relative_to(real_entry):
             continue
-        linked += _ensure_link(paths.work_root / entry.name, entry)
-    return linked
+        result = _ensure_link(
+            paths.work_root / entry.name,
+            entry,
+            replace_existing=entry.name in _LEGACY_COPIED_ENTRIES,
+        )
+        if result > 0:
+            linked += 1
+        elif result < 0:
+            failed += 1
+    return linked, failed
 
 
 @dataclass(frozen=True)
