@@ -134,13 +134,10 @@ class CurrencyTopUpInit(CustomAction):
     「微尘阈值 / 利齿子儿阈值」是通过 `CT_Plan.attach` 传进来的，
     入口再写一遍会把 GUI 的配置盖掉（用户明确要求：GUI 开关与阈值继续有效）。
 
-    参数格式（可选，缺省时读 attach）：
-    {
-        "dust_threshold": 1352100,  # 微尘阈值（低于就刷）
-        "coin_threshold": 1616830,  # 利齿子儿阈值（低于就刷）
-        "dust_enabled": true,       # 是否补微尘
-        "coin_enabled": true        # 是否补利齿子儿
-    }
+    ⚠️ **本节点忽略 `custom_action_param`**：开关与阈值一律由 `CT_Plan.attach`
+    提供（`dust_enabled` / `coin_enabled` / `dust_threshold` / `coin_threshold`）。
+    这里只把参数读出来校验格式（`parse_params`），**不使用其内容** —— 否则手写的
+    pipeline 覆写会覆盖用户在 GUI 里的配置。
     """
 
     def run(

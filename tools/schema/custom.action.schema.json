@@ -1477,11 +1477,11 @@
             "properties": {
                 "custom_action": {
                     "const": "CurrencyTopUpInit",
-                    "description": "微尘 / 利齿子儿补足任务入口：重置状态并写入目标数量"
+                    "description": "微尘 / 利齿子儿补足任务入口：重置状态（开关与阈值由 CT_Plan.attach 提供）"
                 },
                 "custom_action_param": {
                     "type": "object",
-                    "description": "dust_target=微尘目标数量，coin_target=利齿子儿目标数量，dust_enabled/coin_enabled=是否补足",
+                    "description": "本节点忽略此参数。开关与阈值一律由 GUI 写入的 CT_Plan.attach 提供（dust_enabled / coin_enabled / dust_threshold / coin_threshold），入口若再写一遍会覆盖用户配置",
                     "additionalProperties": true
                 }
             }
