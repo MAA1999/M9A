@@ -679,27 +679,3 @@ Mac 用户使用 PlayCover 时，在连接区域的**控制器类型**中选择 
 > [!IMPORTANT]
 >
 > 大部分任务需在使用前正确配置，少部分任务还需根据任务说明在特定场景执行。启用任务前，请确保您已阅读并理解了该任务的**任务说明**，并结合实际情况对**任务设置**进行配置。更多关于任务的说明请参阅 [功能介绍](./introduction.md) 。
-
----
-
-#### 配置文件
-
-##### 资源热更配置
-
-M9A 支持通过 `config/hot_update.json` 文件配置部分资源（例如活动开放时间）热更相关设置。
-
-  <details>
-    <summary>config/hot_update.json 示例</summary>
-    <p></p>
-    <blockquote>
-
-```jsonc
-{
-    "enable_hot_update": true, // 是否启用部分资源热更，默认 true
-}
-```
-
-  </blockquote>
-  </details>
-
----
