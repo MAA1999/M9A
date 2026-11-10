@@ -20,12 +20,13 @@ import {
     readFileSync,
     readlinkSync,
     readSync,
+    realpathSync,
     renameSync,
     rmSync,
     symlinkSync,
     writeFileSync,
 } from "node:fs";
-import {basename, dirname, join, relative, resolve, sep} from "node:path";
+import {basename, dirname, isAbsolute, join, relative, resolve, sep} from "node:path";
 
 // Mach-O and universal binaries, read as big-endian u32 so both byte orders are listed.
 const MACHO_MAGICS = new Set([
@@ -49,6 +50,7 @@ function main() {
     if (!existsSync(packageDir)) {
         throw new Error(`release package does not exist: ${packageDir}`);
     }
+    assertDisjointPaths(packageDir, appDir);
 
     assembleBundle(packageDir, appDir, options);
     verifyBundle(appDir, options);
@@ -109,13 +111,8 @@ function parseOptions(argv) {
 }
 
 function assembleBundle(packageDir, appDir, options) {
-    const contentsDir = join(appDir, "Contents");
-    const macosDir = join(contentsDir, "MacOS");
-    const portableDir = join(contentsDir, "Resources", PORTABLE_DIR);
-    rmSync(appDir, {recursive: true, force: true});
-    mkdirSync(macosDir, {recursive: true});
-    mkdirSync(portableDir, {recursive: true});
-
+    // 先确认输入完整再动文件系统：下面会递归删除 appDir 并搬走包内容，
+    // 失败一次就同时失去旧产物和输入包。
     const entrypoint = join(packageDir, options.executable);
     if (!existsSync(entrypoint)) {
         throw new Error(`release package has no entrypoint: ${options.executable}`);
@@ -123,6 +120,14 @@ function assembleBundle(packageDir, appDir, options) {
     if (!existsSync(join(packageDir, "interface.json"))) {
         throw new Error("release package has no interface.json");
     }
+    parseBundleVersions(options.version);
+
+    const contentsDir = join(appDir, "Contents");
+    const macosDir = join(contentsDir, "MacOS");
+    const portableDir = join(contentsDir, "Resources", PORTABLE_DIR);
+    rmSync(appDir, {recursive: true, force: true});
+    mkdirSync(macosDir, {recursive: true});
+    mkdirSync(portableDir, {recursive: true});
 
     for (const entry of readdirSync(packageDir, {withFileTypes: true})) {
         if (entry.name === ".DS_Store") continue;
@@ -137,6 +142,43 @@ function assembleBundle(packageDir, appDir, options) {
         symlinkSync(relative(macosDir, target), join(macosDir, entry.name));
     }
     writeInfoPlist(appDir, options);
+}
+
+// appDir 会被递归删除，所以输出路径不能与输入包或调用方的工作目录重叠：
+// 否则一次参数写错就会先删掉发布包/工作区，再报一句“no entrypoint”。
+// 比较前先 realpath：macOS 的 /tmp、/var 都指向 /private/...，字面路径相同不代表同一个目录。
+function assertDisjointPaths(packageDir, appDir) {
+    const cwd = realPath(process.cwd());
+    const realPackage = realPath(packageDir);
+    const realApp = realPath(appDir);
+    if (realApp === realPackage) throw new Error("--app must not be the release package directory");
+    if (realApp === cwd) throw new Error("--app must not be the working directory");
+    if (containsPath(realApp, cwd)) throw new Error("--app must not contain the working directory");
+    if (containsPath(realApp, realPackage)) throw new Error("--app must not contain the release package");
+    if (containsPath(realPackage, realApp)) throw new Error("--app must not live inside the release package");
+}
+
+// appDir 首次运行时还不存在，realpath 会失败；此时沿父级找到最近一个存在的祖先，
+// 解析它的真实路径后把缺失的路径段拼回去。
+function realPath(path) {
+    const missing = [];
+    let current = resolve(path);
+    while (true) {
+        try {
+            return join(realpathSync(current), ...[...missing].reverse());
+        } catch {
+            const parent = dirname(current);
+            if (parent === current) return resolve(path);
+            missing.push(basename(current));
+            current = parent;
+        }
+    }
+}
+
+function containsPath(parent, child) {
+    const rel = relative(parent, child);
+    if (rel === "") return true;
+    return !isAbsolute(rel) && rel !== ".." && !rel.startsWith(".." + sep);
 }
 
 function moveEntry(source, target) {
@@ -206,8 +248,7 @@ function isMachO(path) {
 }
 
 function writeInfoPlist(appDir, options) {
-    const fullVersion = String(options.version).replace(/^v/i, "");
-    const shortVersion = fullVersion.split("-")[0];
+    const {shortVersion} = parseBundleVersions(options.version);
     const entries = [
         [
             "CFBundleDevelopmentRegion",
@@ -243,7 +284,8 @@ function writeInfoPlist(appDir, options) {
         ],
         [
             "CFBundleVersion",
-            fullVersion,
+            // Apple 要求 1–3 段纯数字；预发布 tag（v2.0.0-rc.1）的后缀不能进这个键。
+            shortVersion,
         ],
         [
             "LSMinimumSystemVersion",
@@ -274,6 +316,16 @@ ${body}
 </plist>
 `;
     writeFileSync(join(appDir, "Contents", "Info.plist"), plist, "utf8");
+}
+
+// Apple 的版本键只接受 1–3 段纯数字；预发布/构建元数据只能留在 dmg 文件名和卷名里。
+function parseBundleVersions(version) {
+    const fullVersion = String(version).replace(/^v/i, "").split("+")[0];
+    const shortVersion = fullVersion.split("-")[0];
+    if (!/^\d+(?:\.\d+){0,2}$/.test(shortVersion)) {
+        throw new Error(`--version must start with a numeric version such as v1.2.3, got: ${version}`);
+    }
+    return {fullVersion, shortVersion};
 }
 
 function escapeXml(value) {

@@ -17,7 +17,7 @@ def default_work_root() -> Path:
     （例如 MFAAvalonia）与以前一致，仍用当前工作目录。
     """
     value = os.environ.get(ENV_USER_DATA_DIR, "").strip()
-    return Path(value) if value else Path.cwd()
+    return Path(value).expanduser().resolve() if value else Path.cwd()
 
 
 # 运行期会写这两个目录（用户配置、日志），链接进数据目录会把只读包内路径当成可写目录。

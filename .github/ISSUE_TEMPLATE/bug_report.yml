@@ -107,8 +107,8 @@ body:
         请上传完整的日志文件（体积过大可压缩为 zip），而不是只粘贴片段或截图日志。
         Please attach complete log files (zip them if too large) instead of snippets or screenshots of logs.
 
-        本地运行：请打包上传整个 debug/ 目录，若启动器或自定义程序还写入了 logs/ 等其他日志目录，请一并打包。至少包含 debug/maafw.log；如果存在 debug/maafw.bak.log，请一并上传，事发记录可能已经轮转进备份文件。
-        Local run: pack and upload the entire debug/ directory, plus any other log directories such as logs/ written by your launcher or custom programs. Include at least debug/maafw.log, and debug/maafw.bak.log as well when it exists — the moment in question may already have rotated into the backup.
+        本地运行：请打包上传整个 debug/ 目录，若启动器或自定义程序还写入了 logs/ 等其他日志目录，请一并打包。至少包含 debug/maafw.log；如果存在带时间戳的 debug/maafw.bak.<时间戳>.log，请一并上传，事发记录可能已经轮转进备份文件。Agent 项目的 MaaFW 内核日志在 debug/agent/maafw.log；macOS 的 MXU 客户端把该目录放在 ~/Library/Application Support/MXU，对应日志是 ~/Library/Application Support/MXU/debug/agent/maafw.log。
+        Local run: pack and upload the entire debug/ directory, plus any other log directories such as logs/ written by your launcher or custom programs. Include at least debug/maafw.log, and the timestamped debug/maafw.bak.<timestamp>.log as well when it exists — the moment in question may already have rotated into the backup. Agent projects keep their MaaFW core log at debug/agent/maafw.log; the macOS MXU client puts its debug directory under ~/Library/Application Support/MXU, so the log is ~/Library/Application Support/MXU/debug/agent/maafw.log.
 
         由 GUI 导出：请上传导出的日志压缩包；如果分成多个文件或分卷，请全部上传，缺少任何一部分都可能丢失事发记录。
         Exported by a GUI: upload the exported log archive; if it is split into multiple files or parts, upload every one of them — a single missing part can lose the moment in question.
