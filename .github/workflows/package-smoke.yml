@@ -232,6 +232,9 @@ jobs:
           test -x dist/M9A.app/Contents/MacOS/m9a
           test -L dist/M9A.app/Contents/MacOS/interface.json
           test -d dist/M9A.app/Contents/Resources/MXU-portable/agent
+          # --icon 是显式请求：转换失败会中止构建，但 plist 注入曾经静默 no-op，这里补上落地断言。
+          test -f dist/M9A.app/Contents/Resources/m9a.icns
+          grep -q '<key>CFBundleIconFile</key>' dist/M9A.app/Contents/Info.plist
           test -s dist/M9A-package-smoke.dmg
           # The listing documents the shipped layout: one real file, a symlink per top-level entry.
           ls -l dist/M9A.app/Contents/MacOS
