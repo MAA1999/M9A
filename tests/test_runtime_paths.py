@@ -130,6 +130,32 @@ def test_link_work_root_replaces_legacy_seeded_copies(tmp_path: Path) -> None:
     assert (data_link / "combat/items.json").is_file()
     assert (work_root / "interface.json").is_symlink()
     assert (work_root / "interface.json").read_text(encoding="utf-8") == "new"
+    assert not list(work_root.glob("*.m9a-*"))
+
+
+def test_link_work_root_keeps_legacy_copies_when_linking_fails(monkeypatch, tmp_path: Path) -> None:
+    project_root = tmp_path / "bundle"
+    work_root = tmp_path / "user-data"
+    project_root.mkdir()
+    work_root.mkdir()
+    _touch(project_root / "data/combat/items.json", 1000)
+    (project_root / "interface.json").write_text("new", encoding="utf-8")
+    _touch(work_root / "data/combat/items.json", 500)
+    (work_root / "interface.json").write_text("stale", encoding="utf-8")
+    paths = runtime_paths.build_runtime_paths(project_root=project_root, work_root=work_root)
+
+    def deny_symlink(self: Path, target: Path, target_is_directory: bool = False) -> None:
+        raise OSError("symlink denied")
+
+    monkeypatch.setattr(Path, "symlink_to", deny_symlink)
+
+    linked, failed = runtime_paths.link_work_root(paths)
+
+    assert linked == 0
+    assert failed >= 2
+    # 链接失败时旧副本不能被提前删掉。
+    assert (work_root / "data/combat/items.json").is_file()
+    assert (work_root / "interface.json").read_text(encoding="utf-8") == "stale"
 
 
 def test_link_work_root_counts_failed_links(monkeypatch, tmp_path: Path) -> None:

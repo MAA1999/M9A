@@ -39,20 +39,49 @@ def _ensure_link(target: Path, source: Path, *, replace_existing: bool = False) 
     返回 ``1``（建立/替换）、``0``（已正确或保留用户内容）、``-1``（链接失败）。
     ``replace_existing`` 为真时，已存在的真实文件/目录会被替换——只用于 v4.14.0
     播种出的 ``data/``、``interface.json`` 这类包内拥有的旧副本。
+
+    先在同目录建临时链接，成功后才替换旧副本；链接失败（Windows 无符号链接权限、
+    exFAT/网络盘等）时旧副本保持原样，不会先删后失败。
     """
     real_source = source.resolve()
+    temporary = target.with_name(f"{target.name}.m9a-link-tmp")
     try:
-        if target.is_symlink():
-            if target.resolve() == real_source:
-                return 0
-            target.unlink()
-        elif os.path.lexists(target):
-            if not replace_existing:
-                return 0
-            _remove_path(target)
-        target.symlink_to(real_source, target_is_directory=source.is_dir())
+        if target.is_symlink() and target.resolve() == real_source:
+            return 0
+        if os.path.lexists(target) and not target.is_symlink() and not replace_existing:
+            return 0
+        if os.path.lexists(temporary):
+            _remove_path(temporary)
+        temporary.symlink_to(real_source, target_is_directory=source.is_dir())
     except OSError:
         return -1
+
+    backup: Path | None = None
+    try:
+        if os.path.lexists(target):
+            backup = target.with_name(f"{target.name}.m9a-old")
+            if os.path.lexists(backup):
+                _remove_path(backup)
+            os.replace(target, backup)
+        os.replace(temporary, target)
+    except OSError:
+        # 替换失败：尽量把旧副本改回原名，至少不丢失数据。
+        if backup is not None and not os.path.lexists(target):
+            try:
+                os.replace(backup, target)
+            except OSError:
+                pass
+        try:
+            temporary.unlink()
+        except OSError:
+            pass
+        return -1
+
+    if backup is not None:
+        try:
+            _remove_path(backup)
+        except OSError:
+            pass
     return 1
 
 
