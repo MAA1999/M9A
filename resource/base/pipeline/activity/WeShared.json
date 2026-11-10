@@ -1,0 +1,642 @@
+{
+    "WeShared": {
+        "desc": "任务入口：清空本次任务状态，再按当前界面选择导航（越具体的界面越靠前）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "WeShared"
+            }
+        },
+        "next": [
+            "CheckStopping",
+            "WeSharedEventHome",
+            "WeSharedNavOverview",
+            "WeSharedNavHome",
+            "[JumpBack]ReturnMain"
+        ]
+    },
+    "WeSharedNavHome": {
+        "desc": "主界面：点左上角第三个图标（高礼帽 + 摊开的书）直接进「书页与小憩」。图标纵向会随主界面状态漂移约 30px，ROI 留足纵向余量并点识别框中心",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    280,
+                    0,
+                    160,
+                    140
+                ],
+                "template": [
+                    "WeShared/NavHomeHub.png"
+                ],
+                "threshold": 0.8
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                940,
+                455,
+                245,
+                65
+            ]
+        },
+        "next": [
+            "CheckStopping",
+            "WeSharedNavOverview",
+            "WeSharedNavHome"
+        ]
+    },
+    "WeSharedNavOverview": {
+        "desc": "活动总览页：点「共读之忆」入口进活动页",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    940,
+                    455,
+                    245,
+                    65
+                ],
+                "expected": "共读之忆"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                20,
+                100,
+                350,
+                90
+            ]
+        },
+        "next": [
+            "CheckStopping",
+            "WeSharedEventHome",
+            "WeSharedNavOverview"
+        ]
+    },
+    "WeSharedEventHome": {
+        "desc": "活动页：先领能领的里程碑奖励，再由 WeSharedScoreCheck 判断是否继续",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    20,
+                    100,
+                    350,
+                    90
+                ],
+                "expected": "共读之忆"
+            }
+        },
+        "next": [
+            "CheckStopping",
+            "WeSharedClaimReward",
+            "[JumpBack]ObtainedAwards",
+            "WeSharedScoreCheck"
+        ]
+    },
+    "WeSharedClaimReward": {
+        "desc": "里程碑「领取」：点掉可领的奖励，弹出的「获得物品」交给公共 ObtainedAwards",
+        "max_hit": 50,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    240,
+                    552,
+                    80,
+                    46
+                ],
+                "expected": "领取"
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_delay": 800,
+        "next": [
+            "CheckStopping",
+            "WeSharedClaimReward",
+            "[JumpBack]ObtainedAwards",
+            "WeSharedScoreCheck"
+        ]
+    },
+    "WeSharedScoreCheck": {
+        "desc": "停在活动页时的双重门控：诈唬分到 score_cap、或局数到 max_games，任一达标就结束。超限必须停在活动页 —— 进了牌桌总览再退出会被算作放弃本局",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    20,
+                    100,
+                    350,
+                    90
+                ],
+                "expected": "共读之忆"
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "WeSharedScoreCheck",
+                "custom_action_param": {
+                    "score_cap": 9000
+                }
+            }
+        },
+        "next": [
+            "CheckStopping",
+            "WeSharedStartGame"
+        ]
+    },
+    "WeSharedStartGame": {
+        "desc": "活动页「开始游戏」→ 牌桌总览。点识别框中心（按钮文字在按钮内），不写死坐标",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    830,
+                    540,
+                    420,
+                    90
+                ],
+                "expected": "开始游戏"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_wait_freezes": {
+            "time": 500,
+            "target": [
+                430,
+                505,
+                420,
+                36
+            ]
+        },
+        "next": [
+            "CheckStopping",
+            "WeSharedDeckOverview",
+            "WeSharedStartGame"
+        ]
+    },
+    "WeSharedDeckOverview": {
+        "desc": "牌桌总览（18 张牌铺开）：只做识别门控，由 WeSharedTurnLoop 决定是否开下一局并点「开始游戏」",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    430,
+                    505,
+                    420,
+                    36
+                ],
+                "expected": "识破对手"
+            }
+        },
+        "next": [
+            "CheckStopping",
+            "WeSharedTurnLoop"
+        ]
+    },
+    "WeSharedTurnLoop": {
+        "desc": "牌局循环：点牌桌总览上的「开始游戏」并自主驱动出牌/确认阶段直到「游戏结束」。局数上限不在这里判（见 WeSharedScoreCheck），本节点只记账并发布 max_games / mode（once 只跑一遍、full 跑到满分）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "WeSharedTurnLoop",
+                "custom_action_param": {
+                    "max_games": 50
+                }
+            }
+        },
+        "next": [
+            "CheckStopping",
+            "WeSharedGameOver"
+        ]
+    },
+    "WeSharedGameOver": {
+        "desc": "游戏结束（仅作识别锚点，供自定义动作判定本局已结束）：本局积分由 WeSharedTurnLoop 读出来后写进运行日志",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    510,
+                    85,
+                    265,
+                    70
+                ],
+                "expected": "游戏结束"
+            }
+        },
+        "next": [
+            "CheckStopping",
+            "WeSharedExitGame"
+        ]
+    },
+    "WeSharedGameScore": {
+        "desc": "识别用：游戏结束页的「获得诈唬分」数值（本局积分，供结束单轮游戏的 toast 用）。这里的 roi 只是基础搜索区（留出 4 位数余量，实测 3 位笔画在 x 785..848 / y 482..506）：真正喂给识别模型的框由 agent 侧 digit_roi() 按墨迹收紧，因为数字是渐入的，面板出来之前这一带是「诈唬失败」横幅文字，固定框会把横幅认成数字（实测 300 读成 1300）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    745,
+                    468,
+                    130,
+                    52
+                ],
+                "expected": "[0-9]+",
+                "only_rec": true
+            }
+        }
+    },
+    "WeSharedReportSummary": {
+        "desc": "报告节点：只由 WeSharedScoreCheck 通过 override_next 进入，收尾时把「任务结束，总共刷了 N 次」写进运行日志",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": [
+            "WeSharedReportFinish"
+        ]
+    },
+    "WeSharedReportFinish": {
+        "desc": "报告节点：只由 WeSharedReportSummary 引出，标记整条链结束",
+        "recognition": {
+            "type": "DirectHit"
+        },
+        "next": []
+    },
+    "WeSharedExitGame": {
+        "desc": "游戏结束页「退出游戏」：点识别框中心回活动页，不写死坐标",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    495,
+                    565,
+                    105,
+                    110
+                ],
+                "expected": "退出游戏"
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                "target": true
+            }
+        },
+        "post_delay": 1500,
+        "next": [
+            "CheckStopping",
+            "WeSharedClaimReward",
+            "WeSharedScoreCheck",
+            "WeSharedExitGame"
+        ]
+    },
+    "WeSharedRemainCount": {
+        "desc": "识别用：右上「剩余」单个花色计数，ROI 由自定义动作按花色覆写",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    945,
+                    55,
+                    48,
+                    42
+                ],
+                "expected": "[0-9]+",
+                "only_rec": true
+            }
+        }
+    },
+    "WeSharedTargetNeedle": {
+        "desc": "识别用：顶部目标牌图标 = 棕·缝衣针",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    795,
+                    52,
+                    42,
+                    45
+                ],
+                "template": [
+                    "WeShared/TargetNeedle.png"
+                ],
+                "threshold": 0.6
+            }
+        }
+    },
+    "WeSharedTargetHood": {
+        "desc": "识别用：顶部目标牌图标 = 蓝·毛斗篷",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    795,
+                    52,
+                    42,
+                    45
+                ],
+                "template": [
+                    "WeShared/TargetHood.png"
+                ],
+                "threshold": 0.6
+            }
+        }
+    },
+    "WeSharedTargetLettuce": {
+        "desc": "识别用：顶部目标牌图标 = 绿·莴苣叶",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    795,
+                    52,
+                    42,
+                    45
+                ],
+                "template": [
+                    "WeShared/TargetLettuce.png"
+                ],
+                "threshold": 0.6
+            }
+        }
+    },
+    "WeSharedHandNeedle": {
+        "desc": "识别用：我方手牌 6 槽里的棕·缝衣针，命中框左边界 +28 = 槽心 x",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    275,
+                    370,
+                    710,
+                    160
+                ],
+                "template": [
+                    "WeShared/CardNeedle.png"
+                ],
+                "threshold": 0.6
+            }
+        }
+    },
+    "WeSharedHandHood": {
+        "desc": "识别用：我方手牌 6 槽里的蓝·毛斗篷",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    275,
+                    370,
+                    710,
+                    160
+                ],
+                "template": [
+                    "WeShared/CardHood.png"
+                ],
+                "threshold": 0.6
+            }
+        }
+    },
+    "WeSharedHandLettuce": {
+        "desc": "识别用：我方手牌 6 槽里的绿·莴苣叶",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    275,
+                    370,
+                    710,
+                    160
+                ],
+                "template": [
+                    "WeShared/CardLettuce.png"
+                ],
+                "threshold": 0.6
+            }
+        }
+    },
+    "WeSharedHandWild": {
+        "desc": "识别用：我方手牌 6 槽里的紫·万能",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    275,
+                    370,
+                    710,
+                    160
+                ],
+                "template": [
+                    "WeShared/CardWild.png"
+                ],
+                "threshold": 0.6
+            }
+        }
+    },
+    "WeSharedConfirmPhase": {
+        "desc": "识别用：确认阶段（出牌内容 + 信任/质疑）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    520,
+                    118,
+                    250,
+                    52
+                ],
+                "expected": "出牌内容"
+            }
+        }
+    },
+    "WeSharedPickPrompt": {
+        "desc": "识别用：出牌阶段（请选择 2~5 张牌声明为 …）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    460,
+                    135,
+                    320,
+                    60
+                ],
+                "expected": "请选择"
+            }
+        }
+    },
+    "WeSharedRoundBanner": {
+        "desc": "识别用：每圈开头的「Round N」宣告",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    490,
+                    88,
+                    320,
+                    68
+                ],
+                "expected": "Round"
+            }
+        }
+    },
+    "WeSharedClaimBar": {
+        "desc": "识别用：确认阶段的声称文案，从中取 k（这 N 张牌）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    400,
+                    400,
+                    480,
+                    56
+                ],
+                "expected": "这[0-9]张牌"
+            }
+        }
+    },
+    "WeSharedPotionLeft": {
+        "desc": "识别用：透视药水剩余次数",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1078,
+                    668,
+                    130,
+                    30
+                ],
+                "expected": "[0-9]",
+                "only_rec": true
+            }
+        }
+    },
+    "WeSharedTrust": {
+        "desc": "识别用：确认阶段「信任」按钮（自定义动作点识别框中心）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    310,
+                    483,
+                    310,
+                    77
+                ],
+                "expected": "信任"
+            }
+        }
+    },
+    "WeSharedDoubt": {
+        "desc": "识别用：确认阶段「质疑」按钮（自定义动作点识别框中心）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    660,
+                    483,
+                    310,
+                    77
+                ],
+                "expected": "质疑"
+            }
+        }
+    },
+    "WeSharedPotion": {
+        "desc": "识别用：确认阶段「透视药水」按钮（自定义动作点识别框中心）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    1085,
+                    640,
+                    110,
+                    32
+                ],
+                "expected": "透视药水"
+            }
+        }
+    },
+    "WeSharedConfirmPlay": {
+        "desc": "识别用：出牌阶段「确认出牌」按钮（自定义动作点识别框中心）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    830,
+                    540,
+                    420,
+                    90
+                ],
+                "expected": "确认出牌"
+            }
+        }
+    },
+    "WeSharedMyHp": {
+        "desc": "识别用：我方底部中央三颗心里**亮红**的那几颗，命中数就是当前血量",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    640,
+                    648,
+                    130,
+                    44
+                ],
+                "template": [
+                    "WeShared/HeartFull.png"
+                ],
+                "threshold": 0.85
+            }
+        }
+    },
+    "WeSharedMyHpEmpty": {
+        "desc": "识别用：我方底部中央三颗心里**已扣掉**的暗心；与亮心合计大于 0 才说明这一排真的在画面上（用来区分 0 血与读不到）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    640,
+                    648,
+                    130,
+                    44
+                ],
+                "template": [
+                    "WeShared/HeartEmpty.png"
+                ],
+                "threshold": 0.85
+            }
+        }
+    },
+    "WeSharedScore": {
+        "desc": "识别用：活动页左下角诈唬分数值。左边界必须到 x=15，否则首位数字会被切掉（实测 3660 被读成 660）",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    15,
+                    620,
+                    130,
+                    42
+                ],
+                "expected": "[0-9]+",
+                "only_rec": true
+            }
+        }
+    }
+}
