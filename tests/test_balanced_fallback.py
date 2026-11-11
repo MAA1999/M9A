@@ -403,14 +403,18 @@ def _planner_with(materials: list[MaterialCandidate]) -> BalancedFallback:
 
 
 def _scanned(state: BalancedFallback, stage: str, swipes: int = 30) -> None:
-    """模拟「已经滑动过 swipes 次仍在找 stage」。
+    """模拟「已经滑动过 swipes 次、并滑到本章第一关，仍在找 stage」。
 
     滑动次数由 `StageLookupBudget` 每次被问时累加（`note_swipe`），
     真机实测：扫描链每滑动一次就问一次预算节点。
+
+    `reached_far_left` 由 `StageLookupFarLeft` 命中时置位 —— 它才是
+    「整章确实扫完」的判据（`on_error` 也会因动作失败触发，光有滑动次数不算）。
     """
     state.begin_stage_lookup(stage)
     for _ in range(swipes):
         state.note_swipe()
+    state.note_reached_far_left()
 
 
 def test_timeout_action_advances_to_next_candidate(tmp_path: Path) -> None:
@@ -446,6 +450,93 @@ def test_timeout_action_marks_skip_when_all_unavailable(tmp_path: Path) -> None:
     assert result.success is True
     assert is_task_skipped(state.account_id) is True, "应写入停用标记"
     assert context.next_overrides[-1][1] == ["BF_Skipped"], "应跳到跳过收尾"
+
+
+def test_timeout_action_ignores_scan_when_far_left_not_reached(tmp_path: Path) -> None:
+    """没滑到本章第一关就中止 → **不记录**关卡不可用，按扫描异常失败。
+
+    回归防护（APPLe-DF 评审）：两个扫描尾节点是 Swipe 动作节点，而 MaaFW 的
+    `on_error` 同时覆盖「next 超时」和「动作失败」—— Swipe 或截图偶发失败也会走进
+    `StageLookupTimeout`。若仅凭「滑动过」就记成关卡不可用，会把明明能打的关卡
+    **永久**记错。只有滑到过 01（本章第一关）才说明整章确实扫完。
+    """
+    state = _planner_with([_material("110103", 1, ["7-26", "6-6"])])
+    # 只滑动过、没到第一关
+    state.begin_stage_lookup("7-26")
+    for _ in range(5):
+        state.note_swipe()
+    context = _FakeContext()
+
+    result = balanced_fallback.StageLookupTimeout().run(context, _FAKE_ARGV)
+
+    assert result.success is False, "扫描异常应按原版语义失败，不是静默顺延"
+    assert "7-26" not in unavailable_stages(state.account_id), "不能记录关卡不可用"
+    assert not context.pipeline_overrides, "不应覆写选关节点"
+
+
+def test_timeout_action_records_in_memory_when_persist_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """落盘失败时仍要记进本次运行内存，避免反复重试同一关卡。
+
+    回归防护（APPLe-DF 评审）：`record_unavailable` 在归属保护下返回 False，
+    但 `DepotMaintainPlan` 每轮会重置 `candidate_index`，同一关卡会被重新选中、
+    反复白等最长两分钟超时。
+    """
+    state = _planner_with([_material("110103", 1, ["7-26", "6-6"])])
+    _scanned(state, "7-26")
+    # 模拟落盘失败（归属保护 / 文件不可写）
+    monkeypatch.setattr(balanced_fallback, "record_unavailable", lambda *a, **k: False)
+    context = _FakeContext()
+
+    balanced_fallback.StageLookupTimeout().run(context, _FAKE_ARGV)
+
+    assert "7-26" in state.failed_stages, "落盘失败也必须记进本次运行内存"
+    assert "7-26" not in unavailable_stages(state.account_id), "确实没落盘"
+
+
+def test_persist_skip_flag_reports_memory_only_in_ephemeral(tmp_path: Path) -> None:
+    """「不落盘」模式下停用标记返回 memory_only，日志不能说「下次直接跳过」。
+
+    回归防护（APPLe-DF 评审）：早前返回 `True`，日志打「已标记，下次运行直接跳过」，
+    实际什么都没写 —— 用户下次运行又白跑一轮。
+    """
+    state = _planner_with([_material("110103", 1, ["7-26"])])
+    balanced_state.begin_ephemeral_run()
+    try:
+        outcome = state.persist_skip_flag()
+    finally:
+        balanced_state.end_ephemeral_run()
+
+    assert outcome == "memory_only", "不落盘模式必须如实报告没写盘"
+    assert is_task_skipped(state.account_id) is False, "确实没有落盘"
+
+
+def test_entry_checks_skip_flag_before_navigating(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """已停用时**不做任何导航**直接跳过。
+
+    回归防护（APPLe-DF 评审）：早前先 `_ensure_uid()`（回主页 + RecordId）再查停用标记，
+    UID 缓存为空时会先导航一次，「重启后继续跳过」变成了「先跑一趟主页再跳过」。
+    """
+    account = current_account()
+    set_task_skipped(account, True)
+
+    monkeypatch.setattr(balanced_entry, "current_account", lambda *a, **k: account)
+    # 一旦发生导航就让它暴露出来
+    monkeypatch.setattr(
+        balanced_entry,
+        "_ensure_uid",
+        lambda ctx: pytest.fail("已停用时不该导航去读 UID"),
+    )
+
+    context = _FakeContext()
+    result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
+
+    assert result.success is True
+    assert context.next_overrides[-1][1] == ["BF_Skipped"]
+    assert not context.run_tasks, "已停用时不该跑任何子任务（导航）"
 
 
 def test_reset_uses_atomic_write_and_keeps_account(tmp_path: Path) -> None:

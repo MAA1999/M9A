@@ -1,6 +1,7 @@
 {
     "StageLookupBudget": {
-        "desc": "均衡刷材料：寻找单个目标关卡的总预算检查（两分钟）。未超预算不匹配，流程照常滑动；超了则匹配并走到 StageLookupTimeout 顺延。非均衡刷材料的流程里永远不匹配，原版行为不变。",
+        "desc": "均衡刷材料：寻找单个目标关卡的总预算检查（两分钟）。未超预算不匹配，流程照常滑动；超了则匹配并走到 StageLookupTimeout 顺延。**默认禁用**：它是 Custom 识别，MaaFW 为了跑它会强制截图并回调 agent，而它被插在两个扫描尾节点的 next 首位，启用后所有作战任务每轮都要多付这份开销。只有均衡刷材料任务在自己的入口把它 override 成 enabled:true。",
+        "enabled": false,
         "recognition": {
             "type": "Custom",
             "param": {
@@ -9,6 +10,19 @@
         },
         "next": [
             "StageLookupTimeout"
+        ]
+    },
+    "StageLookupFarLeft": {
+        "desc": "均衡刷材料：确认扫描已经滑到本章第一关（原版 TheFarLeftOfStageList 同一判定）。**默认禁用**，只有均衡刷材料任务启用。它记录一个标记，供 StageLookupTimeout 区分「整章扫完仍没找到」和「Swipe 动作偶发失败」。",
+        "enabled": false,
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "StageLookupFarLeft"
+            }
+        },
+        "next": [
+            "SwipeRightForStageList"
         ]
     },
     "StageLookupTimeout": {

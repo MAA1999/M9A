@@ -668,6 +668,10 @@
         "max_hit": 30,
         "next": [
             "TargetStageName",
+            // 均衡刷材料：确认「已滑到本章第一关」并记下标记（默认 disabled，只有均衡任务启用）。
+            // 排在 TheFarLeftOfStageList 之前 —— 命中后同样回 SwipeRightForStageList，
+            // 行为与原版一致，只是多记一个标记供 StageLookupTimeout 判断「确实扫完了整章」。
+            "StageLookupFarLeft",
             "TheFarLeftOfStageList",
             "SwipeLeftForStageList"
         ]

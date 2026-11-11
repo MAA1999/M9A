@@ -9,6 +9,7 @@
                 "ColorOCRWithFallback",
                 "CheckStopping",
                 "StageLookupBudget",
+                "StageLookupFarLeft",
                 "CandyPageRecord",
                 "BankShop",
                 "ActivityRe_releaseChapter",
@@ -49,6 +50,9 @@
         },
         {
             "$ref": "#/$defs/StageLookupBudget"
+        },
+        {
+            "$ref": "#/$defs/StageLookupFarLeft"
         },
         {
             "$ref": "#/$defs/CandyPageRecord"
@@ -312,6 +316,14 @@
                 "custom_recognition": {
                     "const": "StageLookupBudget",
                     "description": "均衡刷材料：寻找单个目标关卡的总预算检查（两分钟）。未超预算不匹配，流程照常；超了则走 StageLookupTimeout 顺延"
+                }
+            }
+        },
+        "StageLookupFarLeft": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "StageLookupFarLeft",
+                    "description": "均衡刷材料：确认扫描已滑到本章第一关（与原版 TheFarLeftOfStageList 同一判定），用于区分「整章扫完仍没找到」和「Swipe 动作偶发失败」。默认 disabled，仅均衡任务启用"
                 }
             }
         },

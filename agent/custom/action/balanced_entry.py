@@ -109,6 +109,39 @@ class BalancedTaskEntry(CustomAction):
 
         parse_params(argv.custom_action_param)
 
+        # 启用本任务需要的两个自定义节点。
+        #
+        # 它们在 `balanced_fallback.json` 里默认 `enabled: false` —— 都是 Custom
+        # 识别，MaaFW 为了跑它们会强制截图并回调 agent。而 `StageLookupBudget` 被
+        # 插在两个扫描尾节点的 `next` 首位、`StageLookupFarLeft` 插在左向扫描头里，
+        # 默认启用会让**所有作战任务**每轮都多付这份开销。所以只在这里打开。
+        context.override_pipeline(
+            {
+                "StageLookupBudget": {"enabled": True},
+                "StageLookupFarLeft": {"enabled": True},
+            }
+        )
+
+        # ⚠️ 先查「停用标记」，再考虑要不要为了读 UID 去导航。
+        #
+        # 停用标记是持久化的，代表「此前所有参与材料的候选关卡都不可用」。
+        # 如果先 `_ensure_uid()`（回主页 + RecordId 一整套导航）再查，
+        # 「重启后继续跳过」就变成了「重启后先跑一趟主页、然后再跳过」——
+        # 白导航一次，与这个标记的意义矛盾。
+        #
+        # 这里用 `current_account()` 而不是 `current_uid()`：它允许回落到文件里
+        # 记的账号，因此**不需要先做 OCR** 就能读到标记。读标记是纯读操作，
+        # 即使回落到的账号不准确，最坏也只是多跳过一次（用户可重置），
+        # 不会写错任何人的记录。
+        known_account = current_account()
+        if is_task_skipped(known_account):
+            logger.info(
+                f"逻辑账号 {known_account} 已被标记「跳过均衡刷材料任务」"
+                f"（此前所有参与材料的候选关卡都不可用），本次直接跳过（不做任何导航）"
+            )
+            context.override_next(ENTRY_NODE, [SKIPPED_NODE])
+            return CustomAction.RunResult(success=True)
+
         # 归属必须是游戏内的真实 UID，否则「按账号分桶」就是按一段 GUI 里手填的
         # 掩码文本分桶 —— 手工换号后仍会沿用旧账号的记录。
         #
@@ -156,15 +189,8 @@ class BalancedTaskEntry(CustomAction):
             else:
                 logger.warning("已确认 UID 但归属仍无法保存，本次继续不写入关卡记录")
 
-        if not is_task_skipped(account_id):
-            context.override_next(ENTRY_NODE, [PLAN_NODE])
-            return CustomAction.RunResult(success=True)
-
-        logger.info(
-            f"逻辑账号 {account_id} 已被标记「跳过均衡刷材料任务」（此前所有参与材料的候选关卡都不可用），"
-            f"本次直接跳过"
-        )
-        context.override_next(ENTRY_NODE, [SKIPPED_NODE])
+        # 停用标记已经在上方（导航之前）查过了；这里直接放行到规划节点。
+        context.override_next(ENTRY_NODE, [PLAN_NODE])
         return CustomAction.RunResult(success=True)
 
 

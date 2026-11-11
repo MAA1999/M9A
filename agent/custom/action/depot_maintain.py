@@ -163,6 +163,11 @@ class _PlanState:
     # 规划节点解析一次后存这里：跨材料顺延时 `retarget_material` 拿不到 GUI 参数，
     # 必须靠它给新材料重算吃糖覆盖，否则会沿用旧材料的设置。
     candy_caps: dict[str, int] = {}
+    # 本轮**解析好的**目标库存（材料 id → 目标数量）。
+    # 规划节点的 targets 同时合并了 `custom_action_param` 与 `BF_Plan.attach` 两条通道；
+    # 跨材料顺延时 `retarget_material` 只有 attach 这一条，必须复用这份，
+    # 否则走 custom_action_param 的旧配置会解析出 target=0、第一局就判「已补齐」。
+    targets: dict[str, int] = {}
     # 本轮因候选关卡全部不可用而被跳过的材料（收尾时汇总到日志）
     skipped_materials: list[str] = []
     # 本次任务是否已尝试记录该账号的关卡进度（首次运行时记录一次）
@@ -491,7 +496,15 @@ def pick_target(
 
     if not deficits:
         return None
-    item_id = max(deficits, key=lambda key: deficits[key])
+    # 并列时按 item_id 字典序取首项。
+    #
+    # ⚠️ 必须与 `balanced_fallback.build_depot_material_candidates` 的取法**完全一致**：
+    # 那边是 `max(sorted(deficits), key=...)`（字典序），这里若用
+    # `max(deficits, key=...)`（依赖 catalog 的 dict 插入顺序），并列时两边会挑中
+    # 不同材料 —— 规划节点认为「先刷 A」，顺延状态机的 materials[0] 却是 B，
+    # `current_index` 就停在 >0 的位置，把 B 之前仍可刷的材料整个跳过，
+    # 并可能误报「所有材料都不可用」。
+    item_id = max(sorted(deficits), key=lambda key: deficits[key])
     return catalog[item_id], deficits[item_id]
 
 
@@ -573,7 +586,17 @@ def retarget_material(context: Context, item_id: str, stage: str, level: str) ->
         logger.error(f"切换目标材料失败：材料目录里没有 {item_id}")
         return False
 
-    target = parse_gui_targets(gui_material_params(context, {}), catalog).get(item_id, 0)
+    # 目标库存优先用**规划阶段解析好的**那份。
+    #
+    # `DepotMaintainPlan` 的 targets 来自
+    # `parse_gui_targets(params)` + `gui_material_params(...)` 两条通道合并后的结果
+    # （`params` 就是 `custom_action_param`）。这里如果只读 `gui_material_params`，
+    # 走 `custom_action_param` 的旧配置就会解析出 target=0 → deficit=0 →
+    # `runs_for(max(1, 0))` = 1，第一局就被判「已补齐」，等于白换一次材料。
+    target = _state.targets.get(item_id, 0)
+    if target <= 0:
+        # 兜底：规划还没跑过（理论上不该发生）时退回 GUI 参数
+        target = parse_gui_targets(gui_material_params(context, {}), catalog).get(item_id, 0)
     inventory = snapshot_counts(read_snapshot())
     current = inventory.get(item_id, 0)
     deficit = max(0, target - current) if target > 0 else 0
@@ -911,6 +934,7 @@ class DepotMaintainInit(CustomAction):
         _state.report_base_enabled = True
         _state.required_currency = []
         _state.candy_caps = {}
+        _state.targets = {}
         _state.skipped_materials = []
         # 关卡进度只在本次任务里记录一次
         _state.progress_recorded = False
@@ -965,6 +989,9 @@ class DepotMaintainPlan(CustomAction):
             targets = {item_id: (value if item_id in chosen else 0) for item_id, value in targets.items()}
             names = "、".join(material_label(item_id, catalog) for item_id in sort_items_by_rarity(chosen))
             logger.info(f"只刷勾选的 {len(chosen)} 种材料: {names}")
+        # 存下**最终生效**的目标（已合并 custom_action_param 与 attach，并已按勾选过滤），
+        # 供跨材料顺延时 `retarget_material` 复用。
+        _state.targets = dict(targets)
         if not any(value > 0 for value in targets.values()):
             logger.info("未设置任何目标库存，按原有均衡逻辑刷取")
             logger.debug("逐材料目标均为空或 0")

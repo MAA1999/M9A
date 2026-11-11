@@ -91,6 +91,7 @@ from utils.balanced_state import (
     candidates_for_material,
     current_account,
     end_ephemeral_run,
+    is_ephemeral_run,
     is_stage_unavailable,
     record_unavailable,
     set_task_skipped,
@@ -223,6 +224,16 @@ class BalancedFallback:
         self.failed_materials: set[str] = set()
         """本轮已确认「全部候选不可用」的材料，不重复尝试。"""
 
+        self.failed_stages: set[str] = set()
+        """**本次运行内**已确认找不到的关卡（不落盘）。
+
+        为什么除了持久记录还要这一份：`record_unavailable` 在两种情况下写不进文件 ——
+        「不落盘」模式（读不到 UID）和「归属未落盘」保护。但无论写不写得进去，
+        本次运行都**不该再试同一个关卡**：`DepotMaintainPlan` 每轮会把
+        `candidate_index` 重置，只靠它的话同一关卡会被反复选中、每轮白等最长
+        两分钟超时。所以顺延过滤时把这份内存集合和持久记录合并。
+        """
+
         self.current_stage: str = ""
         """当前正在寻找的关卡（超时时记录它）。"""
 
@@ -242,6 +253,20 @@ class BalancedFallback:
         一遍」只能靠自己数滑动次数。
         """
 
+        self.reached_far_left: bool = False
+        """本次寻找是否已经滑到**本章第一关**（`StageLookupFarLeft` 命中时置位）。
+
+        这是判定「关卡确实没解锁」的**唯一可靠依据**：
+
+        - MaaFW 的 `on_error` 同时覆盖「`next` 超时」和「动作失败」，Swipe 或截图
+          偶发失败也会走进 `StageLookupTimeout`；
+        - 只有「滑到过 01（本章第一关）之后仍然没找到」才说明整章确实扫完、目标
+          关卡真的不存在。
+
+        所以 `StageLookupTimeout` 要求本标记为真才记录不可用 —— 仅凭
+        `swipe_count > 0` 会把明明能打的关卡误记成永久不可用。
+        """
+
     # ---------------------------------------------------------------- 生命周期
     def reset(self) -> None:
         """任务入口重置（每个任务各自一份）。"""
@@ -251,9 +276,11 @@ class BalancedFallback:
         self.current_index = 0
         self.candidate_index = 0
         self.failed_materials = set()
+        self.failed_stages = set()
         self.current_stage = ""
         self.lookup_started_at = 0.0
         self.swipe_count = 0
+        self.reached_far_left = False
 
     def begin(
         self,
@@ -272,20 +299,29 @@ class BalancedFallback:
         self.current_index = 0
         self.candidate_index = 0
         self.failed_materials = set()
+        self.failed_stages = set()
         self.active = True
         self.current_stage = ""
         self.lookup_started_at = 0.0
         self.swipe_count = 0
+        self.reached_far_left = False
 
     def begin_stage_lookup(self, stage: str) -> None:
         """开始寻找某个关卡（记下起点与滑动计数，用于总预算与「是否真的扫过」判定）。"""
         self.current_stage = stage
         self.lookup_started_at = time.monotonic()
         self.swipe_count = 0
+        # 换关卡重新扫 → 「到过第一关」的标记必须重置，否则上一次扫描的结果会
+        # 被误用到这个关卡上（把没扫完当成扫完了）。
+        self.reached_far_left = False
 
     def note_swipe(self) -> None:
         """记录又滑动了一次（由 `StageLookupBudget` 每次被询问时调用）。"""
         self.swipe_count += 1
+
+    def note_reached_far_left(self) -> None:
+        """记录「本次寻找已经滑到本章第一关」（由 `StageLookupFarLeft` 命中时调用）。"""
+        self.reached_far_left = True
 
     def budget_exceeded(self) -> bool:
         """寻找单个目标关卡是否超过总预算。"""
@@ -312,12 +348,16 @@ class BalancedFallback:
         - 已被记录为不可用的（连同编号更大的主线关卡）；
         - 本轮已经试过并失败的（同一候选不重复试）。
 
+        过滤集合 = 持久记录 ∪ **本次运行内存记录**。后者不可省：`record_unavailable`
+        在「不落盘」模式或归属保护下写不进文件，但本次运行照样不该重试同一关卡
+        （`DepotMaintainPlan` 每轮重置 `candidate_index`，否则会反复白等两分钟超时）。
+
         返回 None 表示当前材料的候选已经用尽。
         """
         material = self.current_material()
         if material is None:
             return None
-        known = unavailable_stages(self.account_id)
+        known = unavailable_stages(self.account_id) | self.failed_stages
         while self.candidate_index < len(material.candidates):
             candidate = material.candidates[self.candidate_index]
             self.candidate_index += 1
@@ -354,8 +394,14 @@ class BalancedFallback:
     def mark_unavailable(self, stage: str) -> bool:
         """记录「这个关卡找不到（寻找超时）」，连带更大的主线关卡视为不可用。
 
-        返回是否真的落盘成功。**保存失败时调用方必须如实提示，不得宣称已持久化。**
+        返回是否真的**落盘**成功。**保存失败时调用方必须如实提示，不得宣称已持久化。**
+
+        ⚠️ 无论落盘成功与否，都会记进 `failed_stages`（本次运行内存）——
+        `record_unavailable` 在「不落盘」模式或归属保护下写不进文件，但本次运行
+        照样不该再试这个关卡。只靠 `candidate_index` 不够：库存保持每轮规划都会
+        重置它，同一关卡会被重新选中、反复白等最长两分钟超时。
         """
+        self.failed_stages.add(str(stage))
         saved = record_unavailable(self.account_id, stage)
         if not saved:
             logger.error(f"关卡不可用记录保存失败：{stage}（本次运行内仍然生效，但下次运行不会记得）")
@@ -387,12 +433,29 @@ class BalancedFallback:
         ]
         return "、".join(names)
 
-    def persist_skip_flag(self) -> bool:
-        """持久标记「跳过均衡刷材料任务」。返回是否真的落盘成功。"""
-        saved = set_task_skipped(self.account_id, True)
-        if not saved:
-            logger.error("「跳过均衡刷材料任务」标记保存失败，下次运行不会自动跳过")
-        return saved
+    def persist_skip_flag(self) -> str:
+        """标记「跳过均衡刷材料任务」。
+
+        Returns:
+            - `"saved"`       —— 已落盘，下次运行会直接跳过；
+            - `"memory_only"` —— 处于「不落盘」模式（读不到 UID），**本次没有写盘**，
+                                 下次运行会重新尝试。调用方不得宣称「下次直接跳过」；
+            - `"failed"`      —— 落盘失败（文件不可写 / 归属保护）。
+
+        为什么要区分：早前这里返回 `bool`，而「不落盘」模式为了让流程继续也返回
+        `True`，于是日志打「已标记，下次运行直接跳过」—— 实际什么都没写，
+        用户下次运行又白跑一轮，日志在撒谎。
+        """
+        if is_ephemeral_run():
+            logger.warning(
+                "所有参与材料的候选关卡都不可用，但本次处于「不落盘」模式（读不到游戏内 UID），"
+                "停用标记不会保存 —— 下次运行会重新尝试"
+            )
+            return "memory_only"
+        if set_task_skipped(self.account_id, True):
+            return "saved"
+        logger.error("「跳过均衡刷材料任务」标记保存失败，下次运行不会自动跳过")
+        return "failed"
 
 
 # 模块级单例：一个任务一份，跨 pipeline 节点共享
@@ -430,16 +493,22 @@ class StageLookupTimeout(CustomAction):
     ## 两条触发路径
 
     1. **扫描尾节点的 `on_error`** —— 原版判定的「未在关卡列表中找到目标关卡」。
-       原版就是靠这个出口报错的（尾节点 2 秒没匹配到后继 → 报错收场），
-       所以这条路径**本身就是「确实找不到」的精确信号**，直接顺延。
     2. **`StageLookupBudget` 命中**（`next` 指向本节点）—— 两分钟总预算到。
-       这条是本改造新加的出口，需要额外确认扫描确实在进行中。
 
-    ## 为什么第 2 条要额外确认
+    ## ⚠️ 不能只看「超时」就记关卡不可用
 
-    预算到期只说明「花了两分钟」，不说明「扫过整章都没找到」——
-    也可能是滑动动作本身失败、页面卡住等别的原因。
-    所以要求**至少滑动过一次**（`swipe_count > 0`），否则不记录关卡不可用。
+    MaaFW 的 `on_error` **同时覆盖**「`next` 超时」和「动作失败」—— 两个扫描尾节点
+    都是 Swipe 动作节点，所以 Swipe 或截图偶发失败也会走进来。若仅凭「滑动过
+    （`swipe_count > 0`）」就记成关卡不可用，会把明明能打的关卡**永久**记错。
+
+    ## 判定依据：是否真的滑到了本章第一关
+
+    游戏里点开一个大章后，列表从**已解锁的最后一关**开始，M9A 的滑动一直往第一关走。
+    原版 `TheFarLeftOfStageList` 就是这件事的判定（OCR 关卡编号行 `^01`）；
+    我们的 `StageLookupFarLeft` 做同一判定并置位 `reached_far_left`。
+
+    所以规则是：**只有滑到过 01 之后仍然没找到，才确认目标关卡真的没解锁**。
+    没滑到第一关就超时 → 视为扫描异常（Swipe 失败 / 页面卡住），不记录也不顺延。
 
     ## 其它
 
@@ -464,14 +533,22 @@ class StageLookupTimeout(CustomAction):
             logger.warning("任务正在停止，不记录关卡不可用")
             return CustomAction.RunResult(success=False)
 
-        if state.swipe_count <= 0:
-            # 一次都没滑动过 → 不是「扫过整章都没找到」，不能当成关卡未解锁
-            logger.warning("关卡列表扫描未开始（不是「找不到目标关卡」），不记录关卡不可用")
+        if not state.reached_far_left:
+            # 没滑到本章第一关 → 整章没扫完，很可能只是 Swipe/截图偶发失败。
+            # 据此记录会把明明能打的关卡永久记成不可用，所以一律不记、不顺延。
+            logger.warning(
+                f"寻找关卡 {state.current_stage} 中止，但未滑到本章第一关"
+                f"（已滑动 {state.swipe_count} 次）—— 可能是滑动或截图偶发失败，"
+                f"不记录关卡不可用，本次按扫描异常处理"
+            )
             return CustomAction.RunResult(success=False)
 
         stage = state.current_stage
         if stage:
-            logger.warning(f"关卡 {stage} 找不到（已滑动 {state.swipe_count} 次），标记为不可用并顺延")
+            logger.warning(
+                f"关卡 {stage} 找不到（已滑到本章第一关，共滑动 {state.swipe_count} 次），"
+                f"标记为不可用并顺延"
+            )
             state.mark_unavailable(stage)
 
         # 取下一个可用候选，**自动跨材料连续顺延**：当前材料用尽就换下一种，
@@ -482,12 +559,20 @@ class StageLookupTimeout(CustomAction):
         candidate = state.next_available_candidate()
 
         if candidate is None:
-            # 所有有效参与材料的候选都确认不可用 → 停用本任务
+            # 所有有效参与材料的候选都确认不可用 → 停用本任务。
+            # `persist_skip_flag()` 返回三态，日志必须与实际结果一致 ——
+            # 「不落盘」模式下没写盘，不能说「下次运行直接跳过」。
             names = state.failed_names()
-            if state.persist_skip_flag():
+            outcome = state.persist_skip_flag()
+            if outcome == "saved":
                 logger.warning(
                     f"所有参与材料的候选关卡都不可用（{names}），"
                     f"已标记「跳过均衡刷材料任务」，下次运行直接跳过"
+                )
+            elif outcome == "memory_only":
+                logger.warning(
+                    f"所有参与材料的候选关卡都不可用（{names}）。"
+                    f"本次未保存停用标记（读不到游戏内 UID），下次运行会重新尝试"
                 )
             else:
                 logger.error(

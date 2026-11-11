@@ -160,10 +160,15 @@ class BalancedFarmingAnalyze(CustomAction):
                 logger.info(f"{pick}: {target.name}({counts[target_id]})，目标关卡: {actual}")
 
         if target_candidate is None:
-            # 所有候选都被记录为不可用 —— 属于「所有参与材料都不可用」，停用本任务
+            # 所有候选都被记录为不可用 —— 属于「所有参与材料都不可用」，停用本任务。
+            # `persist_skip_flag()` 是三态：memory_only 表示「不落盘」模式下没写盘，
+            # 此时不能说「下次运行直接跳过」。
             logger.warning("所有参与材料的候选关卡此前都被记录为不可用，结束本任务")
-            if planner().persist_skip_flag():
+            outcome = planner().persist_skip_flag()
+            if outcome == "saved":
                 logger.warning("已标记「跳过均衡刷材料任务」，下次运行直接跳过")
+            elif outcome == "memory_only":
+                logger.warning("本次未保存停用标记（读不到游戏内 UID），下次运行会重新尝试")
             else:
                 logger.error("停用标记保存失败，下次运行不会自动跳过")
             # ⚠️ 此刻游戏停在**仓库页**（BF_Analyze 排在 BF_EnterWarehouse → BF_WarehouseFlag
