@@ -33,7 +33,6 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from utils.balanced_state import (
     candidates_for_material,
-    current_account,
     format_unavailable_summary,
     is_stage_unavailable,
     unavailable_stages,
@@ -644,10 +643,7 @@ def retarget_material(context: Context, item_id: str, stage: str, level: str) ->
         f"candy={candy_note(item_id, candy_caps)}, drop_report={reportable}"
     )
 
-    logger.info(
-        f"库存保持目标已切换到 {label}（当前 {current} / 目标 {target}，缺口 {deficit}），"
-        f"关卡 {stage} {level}"
-    )
+    logger.info(f"库存保持目标已切换到 {label}（当前 {current} / 目标 {target}，缺口 {deficit}），关卡 {stage} {level}")
     return True
 
 
@@ -1002,7 +998,7 @@ class DepotMaintainPlan(CustomAction):
         # 记录按逻辑账号分桶（每个账号一份），玩家手动通关主线后可在 GUI 里「重置记录」。
         if not _state.progress_recorded:
             _state.progress_recorded = True
-            known = unavailable_stages(current_account())
+            known = unavailable_stages(current_account_id())
             summary = format_unavailable_summary(known)
             if summary == "（尚无记录）":
                 logger.info("尚无过不去的关卡记录，关卡可用性将按需逐个尝试")

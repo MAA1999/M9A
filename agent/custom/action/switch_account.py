@@ -8,7 +8,6 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from maa.define import OCRResult, RecognitionDetail
 from maa.pipeline import JOCR, JRecognitionType
-from utils.balanced_state import remember_switch_target
 from utils.logger import logger
 from utils.maa_types import is_hit, results_as
 from utils.params import parse_params
@@ -133,13 +132,12 @@ class SwitchAccountSelect(CustomAction):
         return context.tasker.controller.post_screencap().wait().get()
 
     def _remember_target(self, configured_target: str, selected_text: str) -> None:
-        """记下这次切换的目标标识（供任务成功后写「当前逻辑账号」用）。
+        """记下这次切换的目标标识（**仅用于日志**）。
 
-        优先用 GUI 里配的目标账号（那是**配置标识**）；没配就用固定默认标识
-        （表示「账号列表里选中的那个」）。**不识别真实 UID**。
+        账号归属现在只认游戏内真实 UID，不再需要把这个标识写进状态文件，
+        所以这里只打一条 debug 日志，方便排查「切到了哪个账号」。
         """
-        target = remember_switch_target(configured_target)
-        logger.debug(f"切换目标标识: {target}（列表中选中的行: {selected_text}）")
+        logger.debug(f"切换目标标识: {configured_target or '未配置'}（列表中选中的行: {selected_text}）")
 
     def _read_rows(self, context: Context, img: Any) -> list[_AccountRow]:
         """读取账号行：一次 OCR 直接得到行文本与行位置，不再依赖 × 图标模板。"""

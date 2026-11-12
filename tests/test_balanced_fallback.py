@@ -48,15 +48,16 @@ from agent.utils import balanced_state
 from agent.utils.balanced_state import (
     StageCandidate,
     candidates_for_material,
-    current_account,
     is_stage_unavailable,
     is_task_skipped,
     record_unavailable,
-    set_current_account,
     set_task_skipped,
     unavailable_stages,
 )
 from agent.utils.material_catalog import MaterialEntry, parse_stage_code
+
+TEST_UID = "100000001"
+"""测试用的固定 UID（新实现里账号归属只认 UID）。"""
 
 _FAKE_ARGV = CustomAction.RunArg(None, "", "", "", None, None)  # pyright: ignore[reportArgumentType]
 
@@ -151,11 +152,7 @@ def _isolated_state(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPa
     for module in (balanced_state, _plain_balanced_state):
         monkeypatch.setattr(module, "BALANCED_STATE_PATH", path)
     reset_planner()
-    # 「不落盘」模式挂在**进程级**容器上（两张模块图共享同一份），用例之间必须
-    # 显式复位 —— 否则某个用例进入 ephemeral 后，后面的用例会全部读到空记录。
-    balanced_state.end_ephemeral_run()
     yield
-    balanced_state.end_ephemeral_run()
 
 
 # ------------------------------------------------------------- 候选关卡顺序
@@ -183,18 +180,14 @@ def test_candidates_put_registered_stage_first(tmp_path: Path) -> None:
 def test_candidates_numeric_order_not_string_order(tmp_path: Path) -> None:
     """数字比较，不是字符串比较（`13-4 > 12-10`，字符串比较会得出相反结果）。"""
     drop_index = {"13-4E": [110103], "12-10E": [110103], "9-8E": [110103]}
-    candidates = candidates_for_material(
-        "110103", level="Hard", registered_stage="13-4", drop_index=drop_index
-    )
+    candidates = candidates_for_material("110103", level="Hard", registered_stage="13-4", drop_index=drop_index)
     assert [c.stage for c in candidates] == ["13-4", "12-10", "9-8"]
 
 
 def test_candidates_sixth_is_reachable(tmp_path: Path) -> None:
     """第六个候选也在候选序列里（不能「只试五个就算全部失败」）。"""
     drop_index = {f"{c}-1E": [110103] for c in ("1", "2", "3", "4", "5", "6", "7")}
-    candidates = candidates_for_material(
-        "110103", level="Hard", registered_stage="7-1", drop_index=drop_index
-    )
+    candidates = candidates_for_material("110103", level="Hard", registered_stage="7-1", drop_index=drop_index)
     assert len(candidates) == 7
     assert candidates[5].stage == "2-1", "第六个候选必须可达"
 
@@ -207,9 +200,7 @@ def test_candidates_always_include_registered_stage(tmp_path: Path) -> None:
     """
     # 索引里有 13-4 / 12-10，但**没有**登记关卡 7-26
     drop_index = {"13-4E": [110103], "12-10E": [110103]}
-    candidates = candidates_for_material(
-        "110103", level="Hard", registered_stage="7-26", drop_index=drop_index
-    )
+    candidates = candidates_for_material("110103", level="Hard", registered_stage="7-26", drop_index=drop_index)
     stages = [c.stage for c in candidates]
     assert stages[0] == "7-26", "登记关卡必须仍在首位（索引缺项时补回来）"
     assert stages[1:] == ["13-4", "12-10"]
@@ -237,10 +228,7 @@ def _material(item_id: str, count: int, stages: list[str]) -> MaterialCandidate:
     entry = _entry(item_id, f"材料{item_id}", stages[0])
     from agent.utils.balanced_state import StageCandidate, parse_stage_order
 
-    candidates = [
-        StageCandidate(stage=stage, level="Hard", order=parse_stage_order(stage))
-        for stage in stages
-    ]
+    candidates = [StageCandidate(stage=stage, level="Hard", order=parse_stage_order(stage)) for stage in stages]
     return MaterialCandidate(entry=entry, count=count, candidates=candidates)
 
 
@@ -253,6 +241,7 @@ def test_fallback_moves_to_next_candidate_of_same_material(tmp_path: Path) -> No
     """
     state = BalancedFallback()
     state.begin([_material("110103", 1, ["7-26", "6-6", "5-19"])])
+    state.account_id = TEST_UID
     first = state.next_candidate()
     assert first is not None and first.stage == "7-26"
     state.mark_unavailable("7-26")
@@ -262,9 +251,10 @@ def test_fallback_moves_to_next_candidate_of_same_material(tmp_path: Path) -> No
 
 def test_fallback_skips_already_recorded_candidates(tmp_path: Path) -> None:
     """已在不可用清单里的候选直接跳过。"""
-    record_unavailable(current_account(), "7-26")
+    record_unavailable(TEST_UID, "7-26")
     state = BalancedFallback()
     state.begin([_material("110103", 1, ["7-26", "6-6"])])
+    state.account_id = TEST_UID
     candidate = state.next_candidate()
     assert candidate is not None and candidate.stage == "6-6"
 
@@ -283,6 +273,7 @@ def test_fallback_moves_to_second_and_third_least_material(tmp_path: Path) -> No
     ]
     state = BalancedFallback()
     state.begin(materials)
+    state.account_id = TEST_UID
 
     candidate = state.next_candidate()
     assert candidate is not None and candidate.stage == "7-26"
@@ -307,6 +298,7 @@ def test_fallback_does_not_retry_failed_material_in_same_round(tmp_path: Path) -
     ]
     state = BalancedFallback()
     state.begin(materials)
+    state.account_id = TEST_UID
     state.next_candidate()
     state.mark_unavailable("7-26")
     assert state.next_candidate() is None
@@ -319,6 +311,7 @@ def test_all_materials_unavailable_only_after_every_candidate(tmp_path: Path) ->
     """所有有效参与材料的候选都不可用，才算全部不可用。"""
     state = BalancedFallback()
     state.begin([_material("110103", 1, ["7-26"]), _material("110203", 2, ["3-13"])])
+    state.account_id = TEST_UID
     state.next_candidate()
     state.mark_unavailable("7-26")
     assert state.next_candidate() is None
@@ -339,7 +332,7 @@ def test_next_available_candidate_skips_exhausted_first_material(tmp_path: Path)
     会被误判成「所有参与材料都不可用」而永久停用任务。
     """
     # 第一种材料的唯一候选事先就被记录为不可用
-    record_unavailable(current_account(), "7-26")
+    record_unavailable(TEST_UID, "7-26")
 
     state = BalancedFallback()
     state.begin(
@@ -349,6 +342,7 @@ def test_next_available_candidate_skips_exhausted_first_material(tmp_path: Path)
             _material("110303", 3, ["2-8"]),
         ]
     )
+    state.account_id = TEST_UID
 
     candidate = state.next_available_candidate()
 
@@ -360,7 +354,7 @@ def test_next_available_candidate_skips_exhausted_first_material(tmp_path: Path)
 
 def test_next_available_candidate_returns_none_only_when_all_exhausted(tmp_path: Path) -> None:
     """只有**所有**参与材料的候选都不可用时才返回 None（兜底停用依据）。"""
-    account = current_account()
+    account = TEST_UID
     record_unavailable(account, "7-26")
     record_unavailable(account, "3-13")
 
@@ -371,6 +365,7 @@ def test_next_available_candidate_returns_none_only_when_all_exhausted(tmp_path:
             _material("110203", 2, ["3-13"]),
         ]
     )
+    state.account_id = TEST_UID
 
     assert state.next_available_candidate() is None
     assert state.all_materials_unavailable() is True
@@ -385,6 +380,7 @@ def test_next_available_candidate_does_not_retry_failed_material(tmp_path: Path)
             _material("110203", 2, ["3-13"]),
         ]
     )
+    state.account_id = TEST_UID
 
     first = state.next_available_candidate()
     assert first is not None and first.stage == "7-26"
@@ -399,6 +395,10 @@ def test_next_available_candidate_does_not_retry_failed_material(tmp_path: Path)
 def _planner_with(materials: list[MaterialCandidate]) -> BalancedFallback:
     state = planner()
     state.begin(materials)
+    state.account_id = TEST_UID
+    # 新实现里账号只认 UID，由入口赋值；测试里直接给一个固定 UID，
+    # 否则 account_id 为空会走「不读不写」分支（那是「读不到 UID」的路径）。
+    state.account_id = TEST_UID
     return state
 
 
@@ -474,9 +474,7 @@ def test_timeout_action_ignores_scan_when_far_left_not_reached(tmp_path: Path) -
     assert not context.pipeline_overrides, "不应覆写选关节点"
 
 
-def test_timeout_action_records_in_memory_when_persist_fails(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_timeout_action_records_in_memory_when_persist_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """落盘失败时仍要记进本次运行内存，避免反复重试同一关卡。
 
     回归防护（APPLe-DF 评审）：`record_unavailable` 在归属保护下返回 False，
@@ -495,26 +493,7 @@ def test_timeout_action_records_in_memory_when_persist_fails(
     assert "7-26" not in unavailable_stages(state.account_id), "确实没落盘"
 
 
-def test_persist_skip_flag_reports_memory_only_in_ephemeral(tmp_path: Path) -> None:
-    """「不落盘」模式下停用标记返回 memory_only，日志不能说「下次直接跳过」。
-
-    回归防护（APPLe-DF 评审）：早前返回 `True`，日志打「已标记，下次运行直接跳过」，
-    实际什么都没写 —— 用户下次运行又白跑一轮。
-    """
-    state = _planner_with([_material("110103", 1, ["7-26"])])
-    balanced_state.begin_ephemeral_run()
-    try:
-        outcome = state.persist_skip_flag()
-    finally:
-        balanced_state.end_ephemeral_run()
-
-    assert outcome == "memory_only", "不落盘模式必须如实报告没写盘"
-    assert is_task_skipped(state.account_id) is False, "确实没有落盘"
-
-
-def test_begin_keeps_failed_stages_across_planning_rounds(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_begin_keeps_failed_stages_across_planning_rounds(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """库存保持每轮规划调 `begin()` 时，**不能**清掉未落盘的失败关卡。
 
     回归防护（CodeRabbit 第 7 轮）：库存保持补完一种材料会
@@ -530,6 +509,7 @@ def test_begin_keeps_failed_stages_across_planning_rounds(
 
     # 模拟库存保持的下一轮规划
     state.begin([_material("110103", 1, ["7-26", "6-6"])])
+    state.account_id = TEST_UID
 
     assert "7-26" in state.failed_stages, "begin() 不能清空本轮未落盘的失败关卡"
     # 而且下一轮选关必须能过滤掉它
@@ -541,73 +521,14 @@ def test_begin_keeps_failed_stages_across_planning_rounds(
     assert state.failed_stages == set(), "reset()（任务入口）应清空"
 
 
-def test_entry_skips_without_navigating_when_uid_already_known(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """UID 已确认且该账号被停用 → 不导航直接跳过。
-
-    这条保住「重启后继续跳过」的初衷：UID 缓存有值时不需要再跑一趟主页。
-    """
-    account = current_account()
-    set_task_skipped(account, True)
-
-    monkeypatch.setattr(balanced_entry, "current_uid", lambda: account)
-    monkeypatch.setattr(balanced_entry, "current_account", lambda *a, **k: account)
-    monkeypatch.setattr(
-        balanced_entry,
-        "_ensure_uid",
-        lambda ctx: pytest.fail("UID 已知时不该导航"),
-    )
-
-    context = _FakeContext()
-    result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
-
-    assert result.success is True
-    assert context.next_overrides[-1][1] == ["BF_Skipped"]
-    assert not context.run_tasks, "UID 已知时不该跑任何子任务（导航）"
-
-
-def test_entry_does_not_skip_on_unconfirmed_account(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """归属未确认时**不能**拿文件里的旧账号去做「跳过」决定。
-
-    回归防护（CodeRabbit 第 7 轮）：游戏里当前是账号 B（玩家手工换过号）、
-    UID 缓存为空、文件里记的是已停用的账号 A —— 若先用 `current_account()`
-    （回落到 A）查停用标记，会直接跳过，B 有可用关卡也刷不了。
-    正确顺序是：先确认 UID，再用确认后的账号判断。
-    """
-    stale = "STALE-ACCOUNT-A"
-    set_current_account(stale)
-    set_task_skipped(stale, True)
-
-    # UID 缓存为空 → 需要读；读出来的是账号 B（未被停用）
-    monkeypatch.setattr(balanced_entry, "current_uid", lambda: "")
-    monkeypatch.setattr(balanced_entry, "current_account", lambda *a, **k: "REAL-UID-B")
-    reads: list[str] = []
-
-    def _fake_ensure_uid(ctx: object) -> None:
-        reads.append("navigated")
-
-    monkeypatch.setattr(balanced_entry, "_ensure_uid", _fake_ensure_uid)
-
-    context = _FakeContext()
-    result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
-
-    assert reads == ["navigated"], "归属未确认时必须先读 UID"
-    assert result.success is True
-    assert context.next_overrides[-1][1] == ["BF_Plan"], "账号 B 没被停用，应照常刷取"
-
-
-def test_reset_uses_atomic_write_and_keeps_account(tmp_path: Path) -> None:
+def test_reset_uses_atomic_write(tmp_path: Path) -> None:
     """重置走原子写入，且在清空记录后保留当前逻辑账号标识。
 
     回归防护：早前 `clear_all` 用 `write_text` 直接覆盖，中途出错会留下半截文件，
     下次读到损坏内容会连 `current_account` 一起丢。
     """
-    from agent.utils.balanced_state import clear_all, load_state, set_current_account
+    from agent.utils.balanced_state import clear_all, load_state
 
-    set_current_account("A", balanced_state.BALANCED_STATE_PATH)
     record_unavailable("A", "7-26")
     set_task_skipped("A", True)
 
@@ -615,7 +536,6 @@ def test_reset_uses_atomic_write_and_keeps_account(tmp_path: Path) -> None:
 
     data = load_state(balanced_state.BALANCED_STATE_PATH)
     assert data.get("accounts") == {}, "记录与停用标记应被清空"
-    assert data.get("current_account") == "A", "当前逻辑账号标识必须保留"
 
 
 def test_timeout_action_continues_past_second_material(tmp_path: Path) -> None:
@@ -625,7 +545,7 @@ def test_timeout_action_continues_past_second_material(tmp_path: Path) -> None:
     第二种材料的候选若也被记录过就直接走停用分支 —— 违背「继续顺延第二少、
     第三少……」的要求。
     """
-    account = current_account()
+    account = TEST_UID
     # 第一、第二种材料的候选事先都被记录为不可用
     record_unavailable(account, "7-26")
     record_unavailable(account, "3-13")
@@ -804,36 +724,6 @@ def test_swipe_count_resets_per_lookup(tmp_path: Path) -> None:
 
 
 # ------------------------------------------------------------- 入口与停用
-def test_unsaved_account_blocks_record_writes(tmp_path: Path) -> None:
-    """归属「已切换但未落盘」时拒绝写关卡记录与停用标记。
-
-    回归防护：切换成功但 `set_current_account` 保存失败时，文件里还是旧账号。
-    若继续写入，新账号的失败关卡/停用标记会落到旧账号头上，让旧账号下次
-    莫名其妙跳过任务。
-    """
-    from agent.utils.balanced_state import (
-        account_is_unsaved,
-        clear_account_unsaved,
-        mark_account_unsaved,
-    )
-
-    account = current_account()
-    mark_account_unsaved("B")
-    try:
-        assert account_is_unsaved() is True
-        assert record_unavailable(account, "7-26") is False, "不一致状态下必须拒绝写关卡记录"
-        assert set_task_skipped(account, True) is False, "不一致状态下必须拒绝写停用标记"
-        # 文件里什么都没写进去
-        assert unavailable_stages(account) == set()
-        assert is_task_skipped(account) is False
-    finally:
-        clear_account_unsaved()
-
-    # 清除标记后恢复可写
-    assert record_unavailable(account, "7-26") is True
-    assert "7-26" in unavailable_stages(account)
-
-
 def test_retarget_material_returns_tristate(tmp_path: Path) -> None:
     """`retarget_material` 必须能区分「不需要同步」与「同步失败」。
 
@@ -886,10 +776,9 @@ def test_retarget_material_syncs_battle_params(tmp_path: Path) -> None:
             elif node == depot_maintain.DROP_REPORT_NODE:
                 drop_override = val
     assert allin_override is not None, "必须同步 AllIn"
-    assert (
-        allin_override["action"]["param"]["custom_action_param"]["target_count"]
-        == depot_maintain._state.runs
-    ), "AllIn 的 target_count 必须等于重算后的 _state.runs"
+    assert allin_override["action"]["param"]["custom_action_param"]["target_count"] == depot_maintain._state.runs, (
+        "AllIn 的 target_count 必须等于重算后的 _state.runs"
+    )
     assert drop_override is not None, "必须同步掉落上报开关"
     # 恢复，避免影响其它用例
     depot_maintain._state.item_id = None
@@ -901,10 +790,9 @@ def test_entry_skips_task_when_marked(tmp_path: Path, monkeypatch: pytest.Monkey
     入口会先确认归属（读游戏内 UID）。这里 mock 掉 `current_uid` 让它看起来
     已缓存，从而覆盖「UID 已缓存 → 不额外导航」这条快路径。
     """
-    account = current_account()
+    account = TEST_UID
     set_task_skipped(account, True)
     monkeypatch.setattr(balanced_entry, "current_uid", lambda: account)
-    monkeypatch.setattr(balanced_entry, "current_account", lambda *a, **k: account)
 
     context = _FakeContext()
     result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
@@ -920,21 +808,21 @@ def test_entry_navigates_once_to_read_uid(tmp_path: Path, monkeypatch: pytest.Mo
     回归防护：早前归属直接用 GUI 里手填的掩码文本，手工换号后仍沿用旧账号记录。
     """
     calls: list[str] = []
-
-    def fake_current_account(*args: object, **kwargs: object) -> str:
-        return "100000001" if calls else balanced_state.DEFAULT_ACCOUNT_KEY
+    cache: list[str] = [""]  # 模拟 RecordID 缓存：一开始为空
 
     context = _FakeContext()
-    monkeypatch.setattr(balanced_entry, "current_account", fake_current_account)
-    monkeypatch.setattr(
-        "agent.custom.action.depot_maintain._ensure_account_id",
-        lambda ctx: (calls.append("nav"), ctx.run_tasks.append("ResetReturnMain"), True)[-1],
-    )
+
+    def fake_ensure_uid(ctx: object) -> None:
+        calls.append("nav")
+        cache[0] = TEST_UID  # 回家 + RecordId 之后缓存有值了
+
+    monkeypatch.setattr(balanced_entry, "current_uid", lambda: cache[0])
+    monkeypatch.setattr(balanced_entry, "_ensure_uid", fake_ensure_uid)
 
     result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
 
     assert result.success is True
-    assert calls, "UID 未知时必须触发一次读取"
+    assert calls == ["nav"], "UID 未知时必须触发一次读取"
 
 
 def test_entry_proceeds_when_not_marked(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -946,113 +834,14 @@ def test_entry_proceeds_when_not_marked(tmp_path: Path, monkeypatch: pytest.Monk
     assert context.next_overrides[-1][1] == ["BF_Plan"]
 
 
-def test_entry_runs_ephemeral_when_uid_unavailable(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """读不到 UID 时**照常放行到规划**，但进入「不落盘」模式。
-
-    设计取舍：跳过任务会让 OCR 偶尔失败时完全刷不了材料，体验太差；而落到
-    `__default__` 桶又可能读写到别的账号的记录（`current_account()` 会回落成
-    文件里的旧账号）。折中是「当作没有现存记录照常刷、但本次不落盘」——
-    顺延靠内存推进，本来就不依赖文件。
-
-    回归防护：若把 ephemeral 去掉直接放行，下面的写入断言会失败（记录会被写进
-    某个账号的桶）。
-    """
-    monkeypatch.setattr(balanced_entry, "current_uid", lambda: "")
-    monkeypatch.setattr(balanced_entry, "_ensure_uid", lambda ctx: None)
-
-    context = _FakeContext()
-    result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
-
-    assert result.success is True
-    assert context.next_overrides[-1][1] == ["BF_Plan"], "UID 未知应照常刷取，不是跳过"
-    assert balanced_state.is_ephemeral_run() is True, "必须进入「不落盘」模式"
-
-    # 不落盘模式下：读不到**旧**记录，但本轮新记的失败关卡必须能读到
-    assert unavailable_stages("any") == set(), "旧记录不该被读到"
-    assert record_unavailable("any", "7-26") is True, "不落盘模式按成功返回，调用方继续顺延"
-    assert "7-26" in unavailable_stages("any"), "本轮刚确认的失败关卡必须留在内存里"
-
-    balanced_state.end_ephemeral_run()
-    assert balanced_state.is_ephemeral_run() is False
-    assert unavailable_stages("any") == set(), "退出后内存记录也要清掉"
-
-
-def test_ephemeral_run_writes_nothing_but_still_falls_back(tmp_path: Path) -> None:
-    """「不落盘」模式：不读旧记录、不写文件，但本轮失败关卡要留在内存里。
-
-    这条路径对应「读不到游戏内 UID」时的行为：照常刷材料并自动顺延，
-    代价只是下次运行不记得这次试过哪些关卡。
-
-    ⚠️ 关键：本轮刚确认的失败关卡**必须**仍能被 `unavailable_stages()` 读到。
-    `candidate_index` 只能防住同一材料内重复取候选，跨材料时如果候选里还有
-    同一个（或更靠后的）主线关卡，必须靠这份内存记录过滤掉，否则会白等
-    一轮两分钟超时。
-    """
-    account = current_account()
-    # 先存一条真实记录，确认 ephemeral 模式下**读不到**它
-    record_unavailable(account, "7-26")
-    assert "7-26" in unavailable_stages(account)
-
-    balanced_state.begin_ephemeral_run()
-
-    # 读：旧记录当作没有
-    assert unavailable_stages(account) == set(), "不落盘模式必须当作没有**历史**记录"
-    assert is_task_skipped(account) is False, "不落盘模式不能被停用标记拦住"
-
-    # 写：返回成功（调用方继续顺延），但文件里没有新增
-    assert record_unavailable(account, "11-5") is True
-    assert set_task_skipped(account, True) is True
-
-    # 本轮刚记的必须能读到 —— 这是跨材料共享失败边界的前提
-    assert "11-5" in unavailable_stages(account), "本轮确认的失败关卡必须留在内存里"
-    # 而且套用「编号更大也算不可用」的规则
-    assert is_stage_unavailable(unavailable_stages(account), "12-1"), "更靠后的主线关卡也该被过滤"
-
-    balanced_state.end_ephemeral_run()
-
-    # 退出后：原记录还在，且**没有**写入 ephemeral 期间的两条
-    assert "7-26" in unavailable_stages(account), "原有记录不该被改动"
-    assert "11-5" not in unavailable_stages(account), "不落盘模式的记录不该落盘"
-    assert is_task_skipped(account) is False, "不落盘模式不该写停用标记"
-
-
-def test_entry_recovers_unsaved_guard_when_uid_confirmed(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """UID 确认后必须能解除「归属不可信」保护 —— 这是它的**退出路径**。
-
-    回归防护：之前只有 `SwitchAccountAttribution` 里 `set_current_account()` 成功
-    才会清保护。于是「切换时 OCR 失败 → 之后某次运行 UID 读到了」会被永久卡住：
-    任务能跑，但 record_unavailable / set_task_skipped 一直拒写，关卡记录永远存不下。
-    """
-    monkeypatch.setattr(balanced_entry, "current_uid", lambda: "100000009")
-    monkeypatch.setattr(balanced_entry, "current_account", lambda *a, **k: "100000009")
-    monkeypatch.setattr(balanced_entry, "_ensure_uid", lambda ctx: None)
-
-    balanced_state.mark_account_unsaved("<unknown>", balanced_state.REASON_UNKNOWN_UID)
-    assert balanced_state.account_is_unsaved() is True
-    assert record_unavailable("100000009", "7-26") is False, "保护生效时写入应被拒绝"
-
-    context = _FakeContext()
-    balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
-
-    assert balanced_state.account_is_unsaved() is False, "确认 UID 后保护必须解除"
-    assert record_unavailable("100000009", "7-26") is True, "解除后应能正常写入"
-    balanced_state.clear_account_unsaved()
-
-
 def test_reset_clears_records_and_skip_flag(tmp_path: Path) -> None:
     """显式重置：同时清关卡不可用记录与均衡停用标记。"""
-    account = current_account()
+    account = TEST_UID
     record_unavailable(account, "7-26")
     set_task_skipped(account, True)
 
     context = _FakeContext()
-    result = balanced_entry.BalancedResetRecords().run(
-        context, _argv(json.dumps({"reset_stage_records": True}))
-    )
+    result = balanced_entry.BalancedResetRecords().run(context, _argv(json.dumps({"reset_stage_records": True})))
     assert result.success is True
     assert unavailable_stages(account) == set(), "关卡不可用记录应被清空"
     assert is_task_skipped(account) is False, "停用标记应被清空"
@@ -1062,7 +851,7 @@ def test_reset_clears_records_and_skip_flag(tmp_path: Path) -> None:
 
 def test_reset_without_option_keeps_records(tmp_path: Path) -> None:
     """没勾选重置 → 记录与停用标记都保留。"""
-    account = current_account()
+    account = TEST_UID
     record_unavailable(account, "7-26")
     set_task_skipped(account, True)
 
@@ -1072,23 +861,18 @@ def test_reset_without_option_keeps_records(tmp_path: Path) -> None:
     assert is_task_skipped(account) is True
 
 
-def test_reset_then_entry_order_allows_reset_while_skipped(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_reset_then_entry_order_allows_reset_while_skipped(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """已停用时仍能执行重置：重置在停用检查之前。"""
-    account = current_account()
+    account = TEST_UID
     set_task_skipped(account, True)
 
     # 入口顺序：先重置 → 再检查停用
     reset_ctx = _FakeContext()
-    balanced_entry.BalancedResetRecords().run(
-        reset_ctx, _argv(json.dumps({"reset_stage_records": True}))
-    )
+    balanced_entry.BalancedResetRecords().run(reset_ctx, _argv(json.dumps({"reset_stage_records": True})))
     assert reset_ctx.next_overrides[-1][1] == ["BF_Entry"]
 
     # 重置后停用标记已清 → 入口放行（UID 已知，跳过 OCR 导航）
     monkeypatch.setattr(balanced_entry, "current_uid", lambda: account)
-    monkeypatch.setattr(balanced_entry, "current_account", lambda *a, **k: account)
     entry_ctx = _FakeContext()
     balanced_entry.BalancedTaskEntry().run(entry_ctx, _FAKE_ARGV)
     assert entry_ctx.next_overrides[-1][1] == ["BF_Plan"], "重置后应恢复执行"
@@ -1096,187 +880,20 @@ def test_reset_then_entry_order_allows_reset_while_skipped(
 
 def test_skip_flag_persists_across_restart(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """停用标记跨「重启」生效：重新读文件仍然认得。"""
-    account = current_account()
+    account = TEST_UID
     set_task_skipped(account, True)
 
     # 模拟重启：新建状态机实例（内存清空），从文件重新读
     fresh = BalancedFallback()
-    assert fresh.account_id == account
+    fresh.account_id = TEST_UID
+    assert fresh.account_id == TEST_UID
     monkeypatch.setattr(balanced_entry, "current_uid", lambda: account)
-    monkeypatch.setattr(balanced_entry, "current_account", lambda *a, **k: account)
     context = _FakeContext()
     balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
     assert context.next_overrides[-1][1] == ["BF_Skipped"]
 
 
 # ------------------------------------------------------------- 逻辑账号归属
-def test_default_account_when_never_switched(tmp_path: Path) -> None:
-    """没有切换任务 → 默认始终同一账号（固定默认标识）。"""
-    assert current_account() == balanced_state.DEFAULT_ACCOUNT_KEY
-
-
-def test_switch_account_updates_ownership(tmp_path: Path) -> None:
-    """切换成功后归属改变。"""
-    set_current_account("189****6002")
-    assert current_account() == "189****6002"
-
-
-def test_accounts_are_isolated(tmp_path: Path) -> None:
-    """A / B 各自保留不可用记录与停用状态。"""
-    set_current_account("A")
-    record_unavailable("A", "7-26")
-    set_task_skipped("A", True)
-
-    set_current_account("B")
-    assert unavailable_stages("B") == set(), "B 不该看到 A 的记录"
-    assert is_task_skipped("B") is False, "B 不该继承 A 的停用标记"
-
-    # 切回 A → 继续用 A 那份
-    set_current_account("A")
-    assert "7-26" in unavailable_stages("A")
-    assert is_task_skipped("A") is True
-
-
-def test_failed_switch_does_not_change_ownership(tmp_path: Path) -> None:
-    """切换失败 / 未执行 → 归属不变。"""
-    set_current_account("A")
-    # 失败路径不调用 set_current_account
-    assert current_account() == "A"
-
-
-def test_switch_sink_never_saves_stale_uid(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """切换成功但读不到新 UID 时，**不能**把旧账号当新归属写回去。
-
-    回归防护：早前 sink 用 `current_account()`，它在 UID 为空时回落成文件里的
-    旧账号（= 切换前的账号）。把它写回去会同时造成两件事：
-      1. 归属仍指向旧账号；
-      2. `clear_account_unsaved()` 解除写入保护，后续任务开始污染旧账号桶。
-    现在只认 `current_uid()`；读不到就退回配置标识，两者都没有则保持保护状态。
-    """
-    from maa.event_sink import NotificationType
-
-    from agent.custom.sink.switch_account_attribution import SwitchAccountAttribution
-
-    set_current_account("OLD-ACCOUNT")
-    balanced_state.remember_switch_target("")  # 没有配置标识
-
-    monkeypatch.setattr(
-        "agent.custom.sink.switch_account_attribution.current_uid",
-        lambda: "",  # 新账号的 UID 还没 OCR 出来
-    )
-    monkeypatch.setattr(
-        "agent.custom.sink.switch_account_attribution.pending_switch_target",
-        lambda: "",
-    )
-    balanced_state.clear_account_unsaved()
-
-    sink = SwitchAccountAttribution()
-    sink.on_tasker_task(
-        types.SimpleNamespace(),  # pyright: ignore[reportArgumentType]
-        NotificationType.Succeeded,
-        types.SimpleNamespace(entry="SwitchAccount"),  # pyright: ignore[reportArgumentType]
-    )
-
-    assert current_account() == "OLD-ACCOUNT", "归属不该被改写（旧值本来就是它）"
-    assert balanced_state.account_is_unsaved() is True, "读不到 UID 时必须保持写入保护，不能解除"
-    balanced_state.clear_account_unsaved()
-
-
-def test_switch_sink_empty_config_stays_unknown(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """空配置 + UID 失败 → 走「未知归属」分支，而不是把空串当有效目标。
-
-    回归防护：`remember_switch_target("")` 曾把空串替换成 `"default"`，sink 拿到
-    `"default"` 会当作「有有效配置目标」而写入归属、解除保护。现在保留空串。
-    """
-    from maa.event_sink import NotificationType
-
-    from agent.custom.sink.switch_account_attribution import SwitchAccountAttribution
-
-    set_current_account("OLD-ACCOUNT")
-    # 真实调用 remember_switch_target("") —— 应保留空串
-    balanced_state.remember_switch_target("")
-    assert balanced_state.pending_switch_target() == "", "空配置必须保留为空串"
-
-    balanced_state.remember_switch_target("")  # 重新暂存，供 sink 取
-    monkeypatch.setattr(
-        "agent.custom.sink.switch_account_attribution.current_uid",
-        lambda: "",  # UID 也没读到
-    )
-    balanced_state.clear_account_unsaved()
-
-    sink = SwitchAccountAttribution()
-    sink.on_tasker_task(
-        types.SimpleNamespace(),  # pyright: ignore[reportArgumentType]
-        NotificationType.Succeeded,
-        types.SimpleNamespace(entry="SwitchAccount"),  # pyright: ignore[reportArgumentType]
-    )
-
-    assert current_account() == "OLD-ACCOUNT", "空配置不应改写归属"
-    assert balanced_state.account_is_unsaved() is True, "空配置必须走未知归属分支，保持保护"
-    balanced_state.clear_account_unsaved()
-
-
-def test_switch_sink_prefers_real_uid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """切换成功且读到新 UID → 用 UID 作为归属。"""
-    from maa.event_sink import NotificationType
-
-    from agent.custom.sink.switch_account_attribution import SwitchAccountAttribution
-
-    set_current_account("OLD-ACCOUNT")
-    monkeypatch.setattr(
-        "agent.custom.sink.switch_account_attribution.current_uid",
-        lambda: "100000002",
-    )
-
-    sink = SwitchAccountAttribution()
-    sink.on_tasker_task(
-        types.SimpleNamespace(),  # pyright: ignore[reportArgumentType]
-        NotificationType.Succeeded,
-        types.SimpleNamespace(entry="SwitchAccount"),  # pyright: ignore[reportArgumentType]
-    )
-
-    assert current_account() == "100000002", "有真实 UID 时用它，不用旧账号"
-    assert balanced_state.account_is_unsaved() is False
-
-
-def test_switch_target_uses_config_identifier(tmp_path: Path) -> None:
-    """切换目标的**配置标识**仍被记下来（UID 读不到时的兜底）。
-
-    注意：归属本身已优先用真实 UID（见 `test_current_account_prefers_game_uid`），
-    这个配置标识只在读不到 UID 时兜底。
-    """
-    assert balanced_state.remember_switch_target("189****6002") == "189****6002"
-    assert balanced_state.pending_switch_target() == "189****6002"
-    # 空配置必须保留为空串（不能转成 "default"），否则 sink 会误判成「有有效目标」
-    assert balanced_state.remember_switch_target("") == ""
-    assert balanced_state.pending_switch_target() == ""
-
-
-def test_current_account_prefers_game_uid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """`current_account()` 优先返回游戏内真实 UID，其次才是文件里的旧标识。
-
-    这是「账号归属加 OCR」改造的核心：掩码文本只有前 3 位 + 后 4 位、游戏从不校验，
-    手工换号后会串号；真实 UID 由主页 `RecordId` 节点 OCR 得到。
-    """
-    import types
-
-    set_current_account("189****6002")
-    assert current_account() == "189****6002", "没有 UID 时用文件里的标识"
-
-    fake_record_id = types.SimpleNamespace(current_account_id=lambda: "100000001")
-    fake_module = types.SimpleNamespace(RecordID=fake_record_id)
-    monkeypatch.setitem(sys.modules, "agent.custom.action.record_id", fake_module)
-    try:
-        assert current_account() == "100000001", "有 UID 时必须优先用 UID"
-        assert balanced_state.current_uid() == "100000001"
-    finally:
-        pass
-
-
 def test_current_uid_empty_when_record_unloaded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """`RecordID` 未加载时 `current_uid()` 返回空串，而不是抛异常。"""
     monkeypatch.delitem(sys.modules, "agent.custom.action.record_id", raising=False)
@@ -1335,9 +952,10 @@ def test_resolve_available_stage_skips_recorded(tmp_path: Path) -> None:
     """
     from agent.custom.action.depot_maintain import _resolve_available_stage
 
-    record_unavailable(current_account(), "7-26")
+    record_unavailable(TEST_UID, "7-26")
     state = planner()
     state.begin([_material("110103", 1, ["7-26", "6-6"])])
+    state.account_id = TEST_UID
 
     stage, level = _resolve_available_stage(_FakeContext(), state.current_material().entry, {})
     assert stage == "6-6", "应跳过已记录的不可用关卡"
@@ -1355,9 +973,10 @@ def test_resolve_available_stage_returns_none_when_all_unavailable(
     from agent.custom.action import depot_maintain
     from agent.custom.action.depot_maintain import _resolve_available_stage
 
-    record_unavailable(current_account(), "7-26")
+    record_unavailable(TEST_UID, "7-26")
     state = planner()
     state.begin([_material("110103", 1, ["7-26"])])
+    state.account_id = TEST_UID
 
     # 候选只剩登记关卡一个，且它已被记录为不可用
     monkeypatch.setattr(

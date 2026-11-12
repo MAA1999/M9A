@@ -89,9 +89,6 @@ from utils import logger
 from utils.balanced_state import (
     StageCandidate,
     candidates_for_material,
-    current_account,
-    end_ephemeral_run,
-    is_ephemeral_run,
     is_stage_unavailable,
     record_unavailable,
     set_task_skipped,
@@ -206,8 +203,13 @@ class BalancedFallback:
     """
 
     def __init__(self) -> None:
-        self.account_id: str = current_account()
-        """当前逻辑账号（按任务执行上下文确定，不做真实账号识别）。"""
+        self.account_id: str = ""
+        """当前游戏内 UID。
+
+        由 `BalancedTaskEntry` 在任务入口赋值：读到 UID 就写进来；读不到就留空串，
+        此时 `unavailable_stages("")` / `record_unavailable("", ...)` 一律按
+        「没有记录、不落盘」处理，顺延只靠本对象的 `failed_stages` 推进。
+        """
 
         self.active: bool = False
         """本轮是否处于「均衡顺延」状态。非均衡刷材料的流程不受影响。"""
@@ -270,7 +272,7 @@ class BalancedFallback:
     # ---------------------------------------------------------------- 生命周期
     def reset(self) -> None:
         """任务入口重置（每个任务各自一份）。"""
-        self.account_id = current_account()
+        self.account_id = ""
         self.active = False
         self.materials = []
         self.current_index = 0
@@ -431,11 +433,7 @@ class BalancedFallback:
 
     def failed_names(self) -> str:
         """收尾时用的失败材料摘要。"""
-        names = [
-            material.entry.name
-            for material in self.materials
-            if material.entry.item_id in self.failed_materials
-        ]
+        names = [material.entry.name for material in self.materials if material.entry.item_id in self.failed_materials]
         return "、".join(names)
 
     def persist_skip_flag(self) -> str:
@@ -443,19 +441,16 @@ class BalancedFallback:
 
         Returns:
             - `"saved"`       —— 已落盘，下次运行会直接跳过；
-            - `"memory_only"` —— 处于「不落盘」模式（读不到 UID），**本次没有写盘**，
+            - `"memory_only"` —— 账号未知（读不到 UID），**本次没有写盘**，
                                  下次运行会重新尝试。调用方不得宣称「下次直接跳过」；
-            - `"failed"`      —— 落盘失败（文件不可写 / 归属保护）。
+            - `"failed"`      —— 落盘失败（文件不可写）。
 
-        为什么要区分：早前这里返回 `bool`，而「不落盘」模式为了让流程继续也返回
+        为什么要区分三态：早前这里返回 `bool`，而「账号未知」为了让流程继续也返回
         `True`，于是日志打「已标记，下次运行直接跳过」—— 实际什么都没写，
-        用户下次运行又白跑一轮，日志在撒谎。
+        用户下次运行又白跑一轮。
         """
-        if is_ephemeral_run():
-            logger.warning(
-                "所有参与材料的候选关卡都不可用，但本次处于「不落盘」模式（读不到游戏内 UID），"
-                "停用标记不会保存 —— 下次运行会重新尝试"
-            )
+        if not self.account_id:
+            logger.warning("账号未知，停用标记不会保存 —— 下次运行会重新尝试")
             return "memory_only"
         if set_task_skipped(self.account_id, True):
             return "saved"
@@ -520,6 +515,7 @@ class StageLookupTimeout(CustomAction):
     - 没有均衡顺延在进行（其它任务）：按原版语义让任务失败，提示文案与原版一致；
     - 候选取尽（所有参与材料都不可用）：持久标记「跳过均衡刷材料任务」并结束本任务。
     """
+
     def run(
         self,
         context: Context,
@@ -551,8 +547,7 @@ class StageLookupTimeout(CustomAction):
         stage = state.current_stage
         if stage:
             logger.warning(
-                f"关卡 {stage} 找不到（已滑到本章第一关，共滑动 {state.swipe_count} 次），"
-                f"标记为不可用并顺延"
+                f"关卡 {stage} 找不到（已滑到本章第一关，共滑动 {state.swipe_count} 次），标记为不可用并顺延"
             )
             state.mark_unavailable(stage)
 
@@ -571,8 +566,7 @@ class StageLookupTimeout(CustomAction):
             outcome = state.persist_skip_flag()
             if outcome == "saved":
                 logger.warning(
-                    f"所有参与材料的候选关卡都不可用（{names}），"
-                    f"已标记「跳过均衡刷材料任务」，下次运行直接跳过"
+                    f"所有参与材料的候选关卡都不可用（{names}），已标记「跳过均衡刷材料任务」，下次运行直接跳过"
                 )
             elif outcome == "memory_only":
                 logger.warning(
@@ -580,10 +574,7 @@ class StageLookupTimeout(CustomAction):
                     f"本次未保存停用标记（读不到游戏内 UID），下次运行会重新尝试"
                 )
             else:
-                logger.error(
-                    f"所有参与材料的候选关卡都不可用（{names}），"
-                    f"但停用标记保存失败，下次运行不会自动跳过"
-                )
+                logger.error(f"所有参与材料的候选关卡都不可用（{names}），但停用标记保存失败，下次运行不会自动跳过")
             # 回主界面：此刻游戏停在**关卡列表页**（本动作正是从扫描链的失败出口进来的），
             # 而 BF_Skipped 按约定不导航。不先回家的话任务结束时游戏留在关卡页，
             # 后续任务会从错误界面开始。与下方顺延分支、balanced_farming.py 的
@@ -609,10 +600,7 @@ class StageLookupTimeout(CustomAction):
             if synced is False:
                 # 库存保持模式下同步失败：`_state` 仍是旧材料，继续刷会把掉落记到
                 # 旧材料头上。宁可结束本任务也不要刷错。
-                logger.error(
-                    "库存保持目标切换失败，无法把掉落记到材料 "
-                    f"{material.entry.name}，结束本次均衡刷材料"
-                )
+                logger.error(f"库存保持目标切换失败，无法把掉落记到材料 {material.entry.name}，结束本次均衡刷材料")
                 detail = context.run_task(HOME_ENTRY)
                 if detail is None or detail.status.failed:
                     logger.warning("结束前未能回到主界面，请检查游戏当前界面")
@@ -650,6 +638,7 @@ class BalancedTaskSkip(CustomAction):
     任务在入口就被判定为「已停用」时走这里 —— 此时游戏还没被导航过，
     **不导航、不点选关卡**，直接结束本任务让后续任务继续。
     """
+
     def run(
         self,
         context: Context,
@@ -659,6 +648,5 @@ class BalancedTaskSkip(CustomAction):
         parse_params(argv.custom_action_param)
         # 收尾清理：本任务结束时关掉顺延状态，避免影响同一 agent 进程里的后续任务
         finish_planner()
-        end_ephemeral_run()
         logger.info("均衡刷材料任务已按标记跳过（所有参与材料的候选关卡此前都不可用）")
         return CustomAction.RunResult(success=True)

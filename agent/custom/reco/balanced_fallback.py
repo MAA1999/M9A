@@ -170,4 +170,3 @@ class StageLookupFarLeft(CustomRecognition):
         if not box:
             return None
         return (int(box[0]), int(box[1]), int(box[2]), int(box[3]))
-

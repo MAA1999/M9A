@@ -57,22 +57,6 @@ def _planner() -> Any:
     return _p()
 
 
-def _end_ephemeral() -> None:
-    """关掉「本轮不落盘」模式。
-
-    同样要避开两张模块图：状态存在 `builtins` 上的进程级容器里，两边共享同一份，
-    所以这里直接调任一侧已加载的模块即可。
-    """
-    for name in ("custom.utils.balanced_state", "agent.utils.balanced_state", "utils.balanced_state"):
-        module = sys.modules.get(name)
-        if module is None:
-            continue
-        end = getattr(module, "end_ephemeral_run", None)
-        if callable(end):
-            end()
-            return
-
-
 @AgentServer.tasker_sink()
 class BalancedStateCleanup(TaskerEventSink):
     """均衡刷材料任务结束（成功或失败）时，清掉模块级顺延状态。"""
@@ -87,10 +71,6 @@ class BalancedStateCleanup(TaskerEventSink):
             return
         if noti_type not in (NotificationType.Succeeded, NotificationType.Failed):
             return
-
-        # 无论本轮是否进入过顺延，都要关掉「不落盘」模式 ——
-        # 否则同进程里后续的均衡任务会一直被当成 ephemeral，记录永远存不下来。
-        _end_ephemeral()
 
         state = _planner()
         if not state.active:

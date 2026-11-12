@@ -153,8 +153,7 @@ class BalancedFarmingAnalyze(CustomAction):
             pick = "数量最少的材料" if target_id == min(sorted(counts), key=lambda k: counts[k]) else "顺延到的材料"
             if actual != registered:
                 logger.info(
-                    f"{pick}: {target.name}({counts[target_id]})，"
-                    f"登记关卡 {registered} 不可用，顺延到 {actual}"
+                    f"{pick}: {target.name}({counts[target_id]})，登记关卡 {registered} 不可用，顺延到 {actual}"
                 )
             else:
                 logger.info(f"{pick}: {target.name}({counts[target_id]})，目标关卡: {actual}")

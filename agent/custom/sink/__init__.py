@@ -1,6 +1,6 @@
 from importlib import import_module
 
-SINK_MODULES = ("aspect_ratio", "balanced_cleanup", "switch_account_attribution")
+SINK_MODULES = ("aspect_ratio", "balanced_cleanup")
 
 
 def register_all() -> None:

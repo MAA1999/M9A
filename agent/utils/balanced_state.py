@@ -80,13 +80,6 @@ TS_FORMAT = "%Y-%m-%d %H:%M:%S"
 # 掉落索引（关卡→材料），反查「材料→关卡」用
 DROP_INDEX_PATH = Path("data/combat/drop_index.json")
 
-# 切换账号任务没配目标账号时使用的固定标识（表示「账号列表里选中的那个」）
-DEFAULT_SWITCH_TARGET = "default"
-
-# `mark_account_unsaved()` 的两种来源 —— 文案必须区分，否则会误导用户去查磁盘
-REASON_SAVE_FAILED = "save_failed"
-REASON_UNKNOWN_UID = "unknown_uid"
-
 # 难度后缀：E=厄险（对应材料的 level=Hard），G=故事（对应 level=Story）
 LEVEL_SUFFIX = {"Hard": "E", "Story": "G", "None": ""}
 
@@ -298,42 +291,15 @@ def account_bucket(data: dict[str, Any], account_id: str | None = None) -> dict[
     return get_account_bucket(data, STATE_KEY, key)
 
 
-def current_account(path: Path | None = None) -> str:
-    """当前逻辑账号标识。
-
-    优先级：
-    1. **游戏内真实 UID**（`RecordID` 的 OCR 结果，进程内缓存）—— 最可靠，
-       换号后读到的值会跟着变，不需要用户在 GUI 里维护任何东西；
-    2. 状态文件里记的 `current_account`（切换账号任务成功后写入的标识）；
-    3. 固定默认桶 `__default__`。
-
-    为什么把 UID 放第一位：早期版本用「GUI 配置的掩码账号文本」当标识，
-    但那个文本只有前 3 位 + 后 4 位，且从不由游戏校验 —— 手工在游戏里换号后
-    仍会沿用旧账号的记录。真实 UID 由 `RecordId` 节点在主页 OCR 得到，
-    是游戏自己显示的值。
-
-    注意：`agent.utils.balanced_state` 与 `utils.balanced_state` 是两张模块图，
-    所以 `RecordID` 的取用要容忍任一侧未加载。
-    """
-    uid = current_uid()
-    if uid:
-        return uid
-
-    data = load_state(_path(path))
-    value = data.get("current_account")
-    if isinstance(value, str) and value.strip():
-        return value.strip()
-    return DEFAULT_ACCOUNT_KEY
-
-
 def current_uid() -> str:
     """取 `RecordID` 缓存里的真实 UID；读不到返回空串。
 
     用 `sys.modules` 查已加载的那份模块，避免 `import agent.custom...` 触发
     第二次模块加载（会重复注册自定义动作并抛 `Custom name is already registered`）。
 
-    与 `current_account()` 的区别：本函数**只**返回真实 UID，不回落任何默认值 ——
-    调用方据此判断「要不要先回主页做一次 OCR」。
+    本函数**只**返回真实 UID，不回落任何默认值 —— 调用方据此判断
+    「要不要先回主页做一次 OCR」。没有回落到文件里旧账号的分支：
+    那个回落正是「用上一个账号读写记录」这类问题的来源。
     """
     for name in (
         "agent.custom.action.record_id",
@@ -351,180 +317,15 @@ def current_uid() -> str:
     return ""
 
 
-def set_current_account(account_id: str, path: Path | None = None) -> bool:
-    """记录当前逻辑账号（只在切换账号任务**成功**后调用）。
-
-    切换失败或尚未执行不调用本函数，归属就不会提前改变。
-    """
-    key = normalize_account_id(account_id)
-    if not key:
-        return False
-    data = load_state(_path(path))
-    data["current_account"] = key
-    return save_state(data, _path(path))
-
-
-# ---------------------------------------------------------------------------
-# 进程内共享状态
-#
-# ⚠️ `agent.utils.balanced_state` 与 `utils.balanced_state` 是**两张模块图**
-# （同一份源码被两条 import 路径加载成两个模块对象），模块级变量各有一份。
-# `mark_account_unsaved()` 由 sink 调用（走 `utils.*`），而
-# `account_is_unsaved()` 由 `record_unavailable` 读（可能走 `agent.utils.*`）——
-# 用普通模块级变量会出现「一边置位、另一边读不到」。
-#
-# 所以把这些**跨模块图共享**的运行期状态挂到一个进程级容器上，两边拿到的
-# 是同一个 dict。
-# ---------------------------------------------------------------------------
-
-_SHARED_KEY = "__m9a_balanced_state_shared__"
-
-
-def _shared() -> dict[str, Any]:
-    """取进程级共享状态容器（首次访问时创建）。"""
-    import builtins
-
-    container = getattr(builtins, _SHARED_KEY, None)
-    if container is None:
-        container = {
-            "pending_switch_target": "",
-            "account_unsaved": False,
-            "ephemeral": False,
-            # 「不落盘」模式下本轮产生的不可用关卡（只在内存里，跨材料共享失败边界）
-            "ephemeral_unavailable": set(),
-        }
-        setattr(builtins, _SHARED_KEY, container)
-    return container
-
-
-# ---------------------------------------------------------------------------
-# 「本轮不落盘」模式
-#
-# 读不到游戏内 UID 时（agent 刚启动、主页认不出账号信息等），既不能猜一个账号去
-# 读写记录（会污染别的账号的桶），也不该因此让玩家完全刷不了材料。
-#
-# 折中：**当作没有任何现存记录照常开刷，本次运行产生的记录一律不落盘**。
-# 顺延仍然完整工作 —— 它靠内存里的 `failed_materials` / `candidate_index` 推进，
-# 本来就不依赖文件。代价只是下次运行不记得这次试过哪些关卡。
-# ---------------------------------------------------------------------------
-
-
-def begin_ephemeral_run() -> None:
-    """进入「本轮不落盘」模式：不读旧记录、不写新记录。"""
-    shared = _shared()
-    shared["ephemeral"] = True
-    # 清空上一轮遗留的会话内记录（同一进程可能连续跑多个任务）
-    shared["ephemeral_unavailable"] = set()
-    logger.warning(
-        "未能确定账号归属，本次按「没有任何历史记录」处理："
-        "照常刷取并自动顺延，但本次产生的关卡记录与停用标记都不会保存"
-    )
-
-
-def end_ephemeral_run() -> None:
-    """退出「本轮不落盘」模式（任务结束时调用，避免影响同进程里的后续任务）。"""
-    shared = _shared()
-    shared["ephemeral"] = False
-    shared["ephemeral_unavailable"] = set()
-
-
-def is_ephemeral_run() -> bool:
-    """本轮是否处于「不落盘」模式。"""
-    return bool(_shared()["ephemeral"])
-
-
-def _ephemeral_unavailable() -> set[str]:
-    """「不落盘」模式下**仅在本次运行内**有效的不可用关卡集合。
-
-    为什么需要它：`candidate_index` 只能防止**当前材料**内重复取同一个候选，
-    无法代替跨材料共享的失败边界。例如 7-26 已确认过不去，换到别的材料时如果
-    候选里还有 7-26 或更靠后的主线关卡，就会被再试一次 —— 白白多等一轮超时
-    （每轮最长两分钟）。所以这次运行内产生的失败关卡必须留在内存里，
-    `unavailable_stages()` 仍然要能读到它们，只是不落盘。
-    """
-    shared = _shared()
-    items = shared.get("ephemeral_unavailable")
-    if not isinstance(items, set):
-        items = set()
-        shared["ephemeral_unavailable"] = items
-    return items
-
-
-def mark_account_unsaved(target: str, reason: str = REASON_SAVE_FAILED) -> None:
-    """记录「切换成功但归属未落盘」这一不一致状态。
-
-    两种来源的文案必须区分（否则会误导用户去查磁盘）：
-
-    - `REASON_SAVE_FAILED`：`set_current_account()` 写盘失败 —— 文件可能不可写，
-      重跑一次即可恢复。
-    - `REASON_UNKNOWN_UID`：切换成功但 UID 与 GUI 配置标识都拿不到 —— **没有任何
-      保存动作失败**，文件不一定不可写。这种情况本就不该写归属（写了就是猜），
-      用户无需检查磁盘。
-    """
-    _shared()["account_unsaved"] = True
-    if reason == REASON_UNKNOWN_UID:
-        logger.error(
-            f"游戏已切到 {target}，但读不到 UID 也没有配置标识 —— 无法确定该用哪个账号的记录。"
-            f"本次运行内不再写入关卡记录与停用标记，避免污染其他账号。"
-            f"这不是文件写入问题，无需检查磁盘；下次能读到 UID 时会自动恢复"
-        )
-        return
-    logger.error(
-        f"逻辑账号归属保存失败：游戏已切到 {target}，但记录仍指向旧账号。"
-        f"本次运行内不再写入关卡记录，避免污染旧账号（文件可写后重跑一次即可恢复）"
-    )
-
-
-def account_is_unsaved() -> bool:
-    """归属是否处于「已切换但未落盘」的不一致状态。"""
-    return bool(_shared()["account_unsaved"])
-
-
-def clear_account_unsaved() -> None:
-    """归属重新落盘成功后清除标记。"""
-    _shared()["account_unsaved"] = False
-
-
-def remember_switch_target(account: str) -> str:
-    """记下这次切换的目标账号标识（**原样保存，不做空值替换**）。
-
-    由「切换账号」动作在选中账号时调用；**不代表切换已经成功** ——
-    归属要等任务真的成功后才写（见 `set_current_account`）。
-
-    ⚠️ 空字符串 = 「GUI 没配置目标」，与「配置了 `default`」是两回事。
-    这里必须保留空串，否则 `pending_switch_target()` 取回 `"default"` 会让
-    sink 误判成「有有效配置目标」而写入归属、解除保护。
-    """
-    target = (account or "").strip()
-    _shared()["pending_switch_target"] = target
-    return target
-
-
-def pending_switch_target() -> str:
-    """取出（并清空）暂存的切换目标。
-
-    返回空串表示「这次切换没有配置目标标识」—— 调用方应据此走「未知归属」
-    分支，而不是把空串当有效目标。
-    """
-    shared = _shared()
-    target = str(shared["pending_switch_target"])
-    shared["pending_switch_target"] = ""
-    return target
-
-
 def unavailable_stages(account_id: str | None = None, path: Path | None = None) -> set[str]:
     """当前逻辑账号已记录为不可用的主线关卡。
 
-    「不落盘」模式下返回**空集** —— 当作没有任何历史记录，从第一个候选关卡开始试。
-    这样既不会读到别的账号桶里的记录，也不会因为读不到而卡住任务。
+    账号未知（读不到 UID）时返回**空集** —— 当作没有任何历史记录。
+    不再回落到 `__default__` 桶：那是早期版本的遗留，一个不存在的账号
+    不应该共享别的账号的记录。
     """
-    if is_ephemeral_run():
-        # ⚠️ 返回**本轮刚确认的失败关卡**（内存里的），不是空集。
-        #
-        # 早前这里直接返回空集，等于把「本次运行内已经试出来的失败边界」也丢掉：
-        # `candidate_index` 只能防住同一材料内重复取候选，跨材料时若候选里还有
-        # 同一个（或更靠后的）主线关卡，会被再试一次 —— 白等一轮两分钟超时。
-        return set(_ephemeral_unavailable())
+    if not normalize_account_id(account_id):
+        return set()
     bucket = account_bucket(load_state(_path(path)), account_id)
     raw = bucket.get("unavailable")
     if not isinstance(raw, dict):
@@ -543,20 +344,12 @@ def record_unavailable(
 
     返回是否真的落盘成功。**保存失败时调用方不得宣称已持久化。**
 
-    三种「不写」的情形：
-
-    1. 「不落盘」模式（读不到 UID）—— 返回 `True`，**不写文件但记进内存**。
-       调用方按「已记录」继续顺延；本次运行内 `unavailable_stages()` 会返回这条，
-       所以跨材料时不会再试同一个（或更靠后的）主线关卡。
-    2. 归属处于「已切换但未落盘」状态 —— 返回 `False`，因为 `account_id` 指向的桶
-       是旧账号的，写进去会污染另一个账号的记录。
+    账号未知（读不到 UID）时**不写**并返回 `False`：不知道属于哪个账号，
+    写进任何一个桶都可能污染别人的记录。调用方应把这条只记在
+    本次运行的内存里（`BalancedFallback.failed_stages`），顺延照常工作。
     """
-    if is_ephemeral_run():
-        _ephemeral_unavailable().add(str(stage))
-        logger.debug(f"「不落盘」模式：关卡 {stage} 记入本次运行（不写文件）")
-        return True
-    if account_is_unsaved():
-        logger.warning(f"逻辑账号归属未落盘，跳过写入关卡记录 {stage}（避免污染旧账号）")
+    if not normalize_account_id(account_id):
+        logger.debug(f"账号未知，不写入关卡记录 {stage}（只记在本次运行内存）")
         return False
     target = _path(path)
 
@@ -575,9 +368,9 @@ def record_unavailable(
 def is_task_skipped(account_id: str | None = None, path: Path | None = None) -> bool:
     """当前逻辑账号是否已被标记「跳过均衡刷材料任务」。
 
-    「不落盘」模式下返回 `False` —— 当作从未被停用，照常刷取。
+    账号未知时返回 `False`（当作从未停用）。
     """
-    if is_ephemeral_run():
+    if not normalize_account_id(account_id):
         return False
     bucket = account_bucket(load_state(_path(path)), account_id)
     return bool(bucket.get("skip_balanced"))
@@ -594,18 +387,10 @@ def set_task_skipped(
 
     返回是否真的落盘成功。**保存失败时调用方不得宣称已持久化。**
 
-    两种「不写」的情形（同 `record_unavailable`）：
-
-    1. 「不落盘」模式 —— 返回 `True` 但不写。**这是有意的**：在没有确定账号归属时
-       永久停用整个任务太危险，下次运行应该重新尝试，而不是永远跳过。
-    2. 归属处于「已切换但未落盘」状态 —— 返回 `False`，否则会把停用标记写到旧账号
-       头上，让旧账号下次莫名其妙跳过任务。
+    账号未知时**不写**并返回 `False`（同 `record_unavailable`）。
     """
-    if is_ephemeral_run():
-        logger.info("「不落盘」模式：不保存停用标记，下次运行会重新尝试")
-        return True
-    if account_is_unsaved():
-        logger.warning("逻辑账号归属未落盘，跳过写入停用标记（避免污染旧账号）")
+    if not normalize_account_id(account_id):
+        logger.debug("账号未知，不写入停用标记")
         return False
     target = _path(path)
 

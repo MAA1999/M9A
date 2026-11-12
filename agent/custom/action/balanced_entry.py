@@ -28,17 +28,14 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from utils import logger
 from utils.balanced_state import (
-    account_is_unsaved,
-    begin_ephemeral_run,
-    clear_account_unsaved,
     clear_all,
-    current_account,
     current_uid,
     is_task_skipped,
-    set_current_account,
     set_task_skipped,
 )
+from utils.debug_screenshot import save_debug_screenshot
 from utils.params import parse_params
+from utils.uid_sampler import sample_uid
 
 # pipeline 节点名
 ENTRY_NODE = "BF_Entry"
@@ -122,78 +119,86 @@ class BalancedTaskEntry(CustomAction):
             }
         )
 
-        # ⚠️ 跳过决策必须在**确认账号归属之后**做。
+        # ── 第一步：拿到游戏内真实 UID ────────────────────────────────────
         #
-        # 早前为了兑现「重启后继续跳过」，这里先用 `current_account()` 查标记 ——
-        # 它会回落到状态文件里记的账号。那带来一个真实故障：
-        #
-        #   游戏里当前是账号 B（玩家手工换过号）、UID 缓存为空、
-        #   文件里记的是已停用的账号 A  →  current_account() 返回 A
-        #   →  读到「A 已停用」→ 直接跳过  →  B 有可用关卡也刷不了。
-        #
-        # 所以顺序改成：先确认 UID（缓存里有值就**不导航**，仍然满足「重启后继续
-        # 跳过」的初衷），拿到真实账号后再判断停用标记。读不到 UID 时走下面的
-        # 「不落盘」分支照常刷取 —— 不能拿一个未确认的账号去做「永久跳过」这种决定。
-        #
-        # 归属必须是游戏内的真实 UID，否则「按账号分桶」就是按一段 GUI 里手填的
-        # 掩码文本分桶 —— 手工换号后仍会沿用旧账号的记录。
+        # 账号归属**只认游戏内 UID**（`RecordID` 在主界面 OCR 的结果）。
+        # 早期版本还有一条「回落到状态文件里记的旧账号」的分支，那会带来
+        # 「用上一个账号读写记录」这类问题，已经删掉。
         #
         # `RecordID` 的缓存默认是空的（agent 刚启动时没有任何 OCR 结果），
-        # 所以这里补一次「回主页 → 跑 RecordId」。**只在 UID 为空时才导航**，
-        # 已经读到过就不再往返一次。
+        # 此时先回主页跑一次 `RecordId`；缓存已有值就不再导航。
+        #
+        # 然后连续采样 6 次（每轮 3 次、间隔 1 秒）：第一轮全一致直接采信，
+        # 否则读满 6 次并要求全部一致 —— 单次 OCR 认错一个数字就会多出一个
+        # 永远用不到的账号桶，而且用户很难察觉。
         if not current_uid():
             _ensure_uid(context)
 
-        # 读不到 UID：**当作没有任何历史记录照常刷取，但本次产生的记录不落盘**。
-        #
-        # 为什么不跳过：跳过会让玩家在 OCR 偶尔失败时完全刷不了材料（体验太差），
-        # 而且失败原因往往是暂时的（主页没显示账号信息、动画没结束）。
-        #
-        # 为什么不落到 `__default__` 桶：`current_account()` 在 UID 为空时会回落成
-        # 文件里的旧账号 —— 那是**上一个**账号，读写它的记录会污染别人的数据。
-        # 所以走「不落盘」模式：不读旧记录（当作空）、不写新记录，顺延靠内存推进。
-        if not current_uid():
-            begin_ephemeral_run()
-            context.override_next(ENTRY_NODE, [PLAN_NODE])
-            return CustomAction.RunResult(success=True)
+        uid = current_uid()
+        if not uid:
+            uid = sample_uid(context)
+            if uid:
+                _remember_uid(uid)
 
-        account_id = current_account()
-        # 启动时 UID 缓存为空、刚才 OCR 成功 —— planner 可能是重置时绑定的旧账号
-        # （默认桶或上一次的 UID）。在进入规划前把它同步成刚确认的账号，
-        # 否则读取关卡记录、写入失败/停用标记都会落到错误的桶。
         from .balanced_fallback import planner
 
         state = planner()
-        if state.account_id != account_id:
-            logger.debug(f"入口确认账号 {account_id}，同步顺延状态机（原 {state.account_id}）")
-            state.account_id = account_id
 
-        # 「归属不可信」保护的**退出路径**。
+        # ── 情况 3：读不到 UID ──────────────────────────────────────────
         #
-        # 之前只有 `SwitchAccountAttribution` 里 `set_current_account()` 成功才会清它，
-        # 于是「切换时 OCR 失败 → 之后某次 UID 读到了」这种情况会被永久卡住：
-        # 任务能跑，但 record_unavailable / set_task_skipped 一直拒写，关卡记录永远存不下。
+        # 当作**没有任何历史记录**照常刷取（顺延靠内存里的失败集合推进），
+        # 但本次产生的关卡记录与停用标记都**不落盘** —— 不知道属于哪个账号时，
+        # 写进任何一个桶都可能污染别人的记录。
         #
-        # 现在 UID 已经确认，把归属补写一次；成功即解除保护（失败则维持保护，宁可少写）。
-        if account_is_unsaved():
-            if set_current_account(account_id):
-                clear_account_unsaved()
-                logger.info(f"已确认游戏内 UID {account_id}，恢复账号归属并解除写入保护")
-            else:
-                logger.warning("已确认 UID 但归属仍无法保存，本次继续不写入关卡记录")
-
-        # 停用标记：现在账号归属已经**确认**（account_id 就是游戏内真实 UID），
-        # 可以放心用它做「永久跳过」这种决定。
-        if is_task_skipped(account_id):
-            logger.info(
-                f"逻辑账号 {account_id} 已被标记「跳过均衡刷材料任务」"
-                f"（此前所有参与材料的候选关卡都不可用），本次直接跳过"
+        # 同时存一张现场截图并打印路径，便于排查为什么没读到 UID
+        # （主页动画未结束、停在别的界面等）。
+        if not uid:
+            logger.warning(
+                "未能读取游戏内 UID，本次按「没有任何历史记录」处理：照常刷取并自动顺延，但本次产生的记录不会保存"
             )
+            save_debug_screenshot(context, "no_uid")
+            state.account_id = ""
+            context.override_next(ENTRY_NODE, [PLAN_NODE])
+            return CustomAction.RunResult(success=True)
+
+        # ── 情况 1 / 2：有 UID ──────────────────────────────────────────
+        state.account_id = uid
+
+        # (b) 该 UID 此前所有候选关卡都不可用 → 跳过整个任务
+        if is_task_skipped(uid):
+            logger.info(
+                f"账号 {uid} 已被标记「跳过均衡刷材料任务」（此前所有参与材料的候选关卡都不可用），本次直接跳过"
+            )
+            save_debug_screenshot(context, "skipped")
             context.override_next(ENTRY_NODE, [SKIPPED_NODE])
             return CustomAction.RunResult(success=True)
 
+        # (a) 有记录就按记录选关，没记录就用全部候选
         context.override_next(ENTRY_NODE, [PLAN_NODE])
         return CustomAction.RunResult(success=True)
+
+        context.override_next(ENTRY_NODE, [PLAN_NODE])
+        return CustomAction.RunResult(success=True)
+
+
+def _remember_uid(uid: str) -> None:
+    """把采样得到的 UID 写进 `RecordID` 的缓存，供本任务后续读取。
+
+    `RecordID` 在两张模块图里各有一份；按 `sys.modules` 找到已加载的那份再写，
+    避免重复 import 触发「Custom name is already registered」。
+    """
+    import sys
+
+    for name in ("agent.custom.action.record_id", "custom.action.record_id"):
+        module = sys.modules.get(name)
+        if module is None:
+            continue
+        record_id = getattr(module, "RecordID", None)
+        if record_id is None:
+            continue
+        record_id.global_id = uid
+        logger.debug(f"采样得到的 UID 已写入 RecordID 缓存: {uid}")
+        return
 
 
 def _ensure_uid(context: Context) -> None:
@@ -237,7 +242,11 @@ class BalancedTaskUnskip(CustomAction):
     ) -> CustomAction.RunResult:
 
         parse_params(argv.custom_action_param)
-        account_id = current_account()
+        # 账号归属只认游戏内 UID（与其它入口一致）。
+        account_id = current_uid()
+        if not account_id:
+            logger.error("未读到游戏内 UID，无法确定要清除哪个账号的停用标记")
+            return CustomAction.RunResult(success=False)
         if set_task_skipped(account_id, False):
             logger.info(f"已清除逻辑账号 {account_id} 的「跳过均衡刷材料任务」标记")
         else:
