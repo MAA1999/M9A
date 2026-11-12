@@ -122,26 +122,19 @@ class BalancedTaskEntry(CustomAction):
             }
         )
 
-        # ⚠️ 先查「停用标记」，再考虑要不要为了读 UID 去导航。
+        # ⚠️ 跳过决策必须在**确认账号归属之后**做。
         #
-        # 停用标记是持久化的，代表「此前所有参与材料的候选关卡都不可用」。
-        # 如果先 `_ensure_uid()`（回主页 + RecordId 一整套导航）再查，
-        # 「重启后继续跳过」就变成了「重启后先跑一趟主页、然后再跳过」——
-        # 白导航一次，与这个标记的意义矛盾。
+        # 早前为了兑现「重启后继续跳过」，这里先用 `current_account()` 查标记 ——
+        # 它会回落到状态文件里记的账号。那带来一个真实故障：
         #
-        # 这里用 `current_account()` 而不是 `current_uid()`：它允许回落到文件里
-        # 记的账号，因此**不需要先做 OCR** 就能读到标记。读标记是纯读操作，
-        # 即使回落到的账号不准确，最坏也只是多跳过一次（用户可重置），
-        # 不会写错任何人的记录。
-        known_account = current_account()
-        if is_task_skipped(known_account):
-            logger.info(
-                f"逻辑账号 {known_account} 已被标记「跳过均衡刷材料任务」"
-                f"（此前所有参与材料的候选关卡都不可用），本次直接跳过（不做任何导航）"
-            )
-            context.override_next(ENTRY_NODE, [SKIPPED_NODE])
-            return CustomAction.RunResult(success=True)
-
+        #   游戏里当前是账号 B（玩家手工换过号）、UID 缓存为空、
+        #   文件里记的是已停用的账号 A  →  current_account() 返回 A
+        #   →  读到「A 已停用」→ 直接跳过  →  B 有可用关卡也刷不了。
+        #
+        # 所以顺序改成：先确认 UID（缓存里有值就**不导航**，仍然满足「重启后继续
+        # 跳过」的初衷），拿到真实账号后再判断停用标记。读不到 UID 时走下面的
+        # 「不落盘」分支照常刷取 —— 不能拿一个未确认的账号去做「永久跳过」这种决定。
+        #
         # 归属必须是游戏内的真实 UID，否则「按账号分桶」就是按一段 GUI 里手填的
         # 掩码文本分桶 —— 手工换号后仍会沿用旧账号的记录。
         #
@@ -189,7 +182,16 @@ class BalancedTaskEntry(CustomAction):
             else:
                 logger.warning("已确认 UID 但归属仍无法保存，本次继续不写入关卡记录")
 
-        # 停用标记已经在上方（导航之前）查过了；这里直接放行到规划节点。
+        # 停用标记：现在账号归属已经**确认**（account_id 就是游戏内真实 UID），
+        # 可以放心用它做「永久跳过」这种决定。
+        if is_task_skipped(account_id):
+            logger.info(
+                f"逻辑账号 {account_id} 已被标记「跳过均衡刷材料任务」"
+                f"（此前所有参与材料的候选关卡都不可用），本次直接跳过"
+            )
+            context.override_next(ENTRY_NODE, [SKIPPED_NODE])
+            return CustomAction.RunResult(success=True)
+
         context.override_next(ENTRY_NODE, [PLAN_NODE])
         return CustomAction.RunResult(success=True)
 

@@ -512,23 +512,51 @@ def test_persist_skip_flag_reports_memory_only_in_ephemeral(tmp_path: Path) -> N
     assert is_task_skipped(state.account_id) is False, "确实没有落盘"
 
 
-def test_entry_checks_skip_flag_before_navigating(
+def test_begin_keeps_failed_stages_across_planning_rounds(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """已停用时**不做任何导航**直接跳过。
+    """库存保持每轮规划调 `begin()` 时，**不能**清掉未落盘的失败关卡。
 
-    回归防护（APPLe-DF 评审）：早前先 `_ensure_uid()`（回主页 + RecordId）再查停用标记，
-    UID 缓存为空时会先导航一次，「重启后继续跳过」变成了「先跑一趟主页再跳过」。
+    回归防护（CodeRabbit 第 7 轮）：库存保持补完一种材料会
+    `TargetCountFinish → BF_Plan → DepotMaintainPlan`，那里再调一次 `begin()`。
+    若 `begin()` 清空 `failed_stages`，本轮没落盘（归属保护 / 文件不可写）的
+    失败关卡就被忘掉，下一轮重新选中同一关卡、再白等两分钟超时。
+    """
+    state = _planner_with([_material("110103", 1, ["7-26", "6-6"])])
+    _scanned(state, "7-26")
+    monkeypatch.setattr(balanced_fallback, "record_unavailable", lambda *a, **k: False)
+    balanced_fallback.StageLookupTimeout().run(_FakeContext(), _FAKE_ARGV)
+    assert "7-26" in state.failed_stages
+
+    # 模拟库存保持的下一轮规划
+    state.begin([_material("110103", 1, ["7-26", "6-6"])])
+
+    assert "7-26" in state.failed_stages, "begin() 不能清空本轮未落盘的失败关卡"
+    # 而且下一轮选关必须能过滤掉它
+    picked = state.next_candidate()
+    assert picked is not None and picked.stage != "7-26", "已失败的关卡不该被重新选中"
+
+    # 任务入口 reset() 才清
+    state.reset()
+    assert state.failed_stages == set(), "reset()（任务入口）应清空"
+
+
+def test_entry_skips_without_navigating_when_uid_already_known(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """UID 已确认且该账号被停用 → 不导航直接跳过。
+
+    这条保住「重启后继续跳过」的初衷：UID 缓存有值时不需要再跑一趟主页。
     """
     account = current_account()
     set_task_skipped(account, True)
 
+    monkeypatch.setattr(balanced_entry, "current_uid", lambda: account)
     monkeypatch.setattr(balanced_entry, "current_account", lambda *a, **k: account)
-    # 一旦发生导航就让它暴露出来
     monkeypatch.setattr(
         balanced_entry,
         "_ensure_uid",
-        lambda ctx: pytest.fail("已停用时不该导航去读 UID"),
+        lambda ctx: pytest.fail("UID 已知时不该导航"),
     )
 
     context = _FakeContext()
@@ -536,7 +564,39 @@ def test_entry_checks_skip_flag_before_navigating(
 
     assert result.success is True
     assert context.next_overrides[-1][1] == ["BF_Skipped"]
-    assert not context.run_tasks, "已停用时不该跑任何子任务（导航）"
+    assert not context.run_tasks, "UID 已知时不该跑任何子任务（导航）"
+
+
+def test_entry_does_not_skip_on_unconfirmed_account(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """归属未确认时**不能**拿文件里的旧账号去做「跳过」决定。
+
+    回归防护（CodeRabbit 第 7 轮）：游戏里当前是账号 B（玩家手工换过号）、
+    UID 缓存为空、文件里记的是已停用的账号 A —— 若先用 `current_account()`
+    （回落到 A）查停用标记，会直接跳过，B 有可用关卡也刷不了。
+    正确顺序是：先确认 UID，再用确认后的账号判断。
+    """
+    stale = "STALE-ACCOUNT-A"
+    set_current_account(stale)
+    set_task_skipped(stale, True)
+
+    # UID 缓存为空 → 需要读；读出来的是账号 B（未被停用）
+    monkeypatch.setattr(balanced_entry, "current_uid", lambda: "")
+    monkeypatch.setattr(balanced_entry, "current_account", lambda *a, **k: "REAL-UID-B")
+    reads: list[str] = []
+
+    def _fake_ensure_uid(ctx: object) -> None:
+        reads.append("navigated")
+
+    monkeypatch.setattr(balanced_entry, "_ensure_uid", _fake_ensure_uid)
+
+    context = _FakeContext()
+    result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
+
+    assert reads == ["navigated"], "归属未确认时必须先读 UID"
+    assert result.success is True
+    assert context.next_overrides[-1][1] == ["BF_Plan"], "账号 B 没被停用，应照常刷取"
 
 
 def test_reset_uses_atomic_write_and_keeps_account(tmp_path: Path) -> None:

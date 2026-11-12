@@ -292,6 +292,12 @@ class BalancedFallback:
 
         `materials[0]` 是本次先刷的材料（默认均衡 = 库存最少；库存保持 = 缺口最大），
         其余按库存数量从少到多排列，作为跨材料顺延顺序。
+
+        ⚠️ **不清 `failed_stages`**：库存保持每补完一种材料就会
+        `TargetCountFinish → BF_Plan → DepotMaintainPlan`，那里会再调一次本方法。
+        如果在这里清空，本轮**没落盘**的失败关卡（归属保护 / 文件不可写）就会被忘掉，
+        下一轮重新选关时又选中同一关卡，再白等最长两分钟超时 ——
+        这正是 `failed_stages` 要解决的问题。它只在 `reset()`（任务入口）清。
         """
         if account_id is not None:
             self.account_id = account_id
@@ -299,7 +305,6 @@ class BalancedFallback:
         self.current_index = 0
         self.candidate_index = 0
         self.failed_materials = set()
-        self.failed_stages = set()
         self.active = True
         self.current_stage = ""
         self.lookup_started_at = 0.0
