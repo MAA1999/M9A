@@ -3,6 +3,8 @@ from importlib import import_module
 ACTION_MODULES = (
     "general",
     "activity",
+    "balanced_entry",
+    "balanced_fallback",
     "balanced_farming",
     "bank",
     "char_upgrade",

@@ -31,6 +31,12 @@ from typing import Any
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
+from utils.balanced_state import (
+    candidates_for_material,
+    format_unavailable_summary,
+    is_stage_unavailable,
+    unavailable_stages,
+)
 from utils.logger import logger
 from utils.maa_types import is_hit, ocr_text
 from utils.material_catalog import (
@@ -53,6 +59,7 @@ from utils.warehouse_snapshot import (
 )
 
 # 相对导入：agent.custom.* 与 custom.* 是两张模块图，跨图导入会重复注册自定义动作
+from .balanced_fallback import build_depot_material_candidates, finish_planner, planner, reset_planner
 from .combat import battles_done, request_combat_stop
 from .record_id import RecordID
 
@@ -151,6 +158,19 @@ class _PlanState:
     report_base_enabled = True
     # 本轮参与库存保持、需要角色页读数的货币（决定读数齐全与否，见 write_snapshot_counts）
     required_currency: list[str] = []
+    # 本轮 GUI 配置的**逐材料吃糖上限**（材料 id → 上限）。
+    # 规划节点解析一次后存这里：跨材料顺延时 `retarget_material` 拿不到 GUI 参数，
+    # 必须靠它给新材料重算吃糖覆盖，否则会沿用旧材料的设置。
+    candy_caps: dict[str, int] = {}
+    # 本轮**解析好的**目标库存（材料 id → 目标数量）。
+    # 规划节点的 targets 同时合并了 `custom_action_param` 与 `BF_Plan.attach` 两条通道；
+    # 跨材料顺延时 `retarget_material` 只有 attach 这一条，必须复用这份，
+    # 否则走 custom_action_param 的旧配置会解析出 target=0、第一局就判「已补齐」。
+    targets: dict[str, int] = {}
+    # 本轮因候选关卡全部不可用而被跳过的材料（收尾时汇总到日志）
+    skipped_materials: list[str] = []
+    # 本次任务是否已尝试记录该账号的关卡进度（首次运行时记录一次）
+    progress_recorded = False
 
 
 _state = _PlanState()
@@ -250,6 +270,15 @@ def _ensure_account_id(context: Context) -> bool:
         return False
     logger.debug(f"已读到账号信息: {current_account_id()}")
     return True
+
+
+def ensure_account_id(context: Context) -> bool:
+    """`_ensure_account_id` 的公开入口。
+
+    均衡刷材料的入口（`balanced_entry`）和货币刷取任务都要在碰状态文件前
+    确认账号，跨模块调私有名不合适，这里开一个稳定入口；行为完全一致。
+    """
+    return _ensure_account_id(context)
 
 
 # 快照落盘位置：相对项目根的默认路径，读经 snapshot_read_path（数据目录存在即赢）、
@@ -466,8 +495,52 @@ def pick_target(
 
     if not deficits:
         return None
-    item_id = max(deficits, key=lambda key: deficits[key])
+    # 并列时按 item_id 字典序取首项。
+    #
+    # ⚠️ 必须与 `balanced_fallback.build_depot_material_candidates` 的取法**完全一致**：
+    # 那边是 `max(sorted(deficits), key=...)`（字典序），这里若用
+    # `max(deficits, key=...)`（依赖 catalog 的 dict 插入顺序），并列时两边会挑中
+    # 不同材料 —— 规划节点认为「先刷 A」，顺延状态机的 materials[0] 却是 B，
+    # `current_index` 就停在 >0 的位置，把 B 之前仍可刷的材料整个跳过，
+    # 并可能误报「所有材料都不可用」。
+    item_id = max(sorted(deficits), key=lambda key: deficits[key])
     return catalog[item_id], deficits[item_id]
+
+
+def _resolve_available_stage(
+    context: Context,
+    entry: MaterialEntry,
+    catalog: Mapping[str, MaterialEntry],
+) -> tuple[str | None, str]:
+    """确定本轮要刷的关卡：登记关卡此前被记为不可用时，顺延到下一个候选关卡。
+
+    Returns:
+        (关卡代码, 难度)；返回 `(None, level)` 表示该材料的候选关卡全部不可用。
+
+    判定依据见 `utils/balanced_state.py`：
+    - 「不可用」只来自**寻找该关卡超时**（原版「未在关卡列表中找到目标关卡」的失败出口），
+      不来自战斗失败、体力不足、补体失败或普通导航异常；
+    - 候选顺序：原登记关卡优先，其余按数字 `(章节, 关卡)` 降序；
+    - 找关卡超时的顺延由 `custom/action/balanced_fallback.py` 的 `StageLookupTimeout` 接管
+      （它会记录不可用并换候选），这里只负责**进入战斗前**跳过已知不可用的候选。
+    """
+    state = planner()
+    if not state.active:
+        # 顺延状态机没激活（例如库存保持直接选材的路径）：只用登记关卡
+        return entry.stage.code, entry.level
+
+    known = unavailable_stages(state.account_id)
+    for candidate in candidates_for_material(
+        entry.item_id,
+        level=entry.level,
+        registered_stage=entry.stage.code,
+    ):
+        if is_stage_unavailable(known, candidate.stage):
+            continue
+        if candidate.stage != entry.stage.code:
+            logger.info(f"{entry.name} 顺延到关卡 {candidate.stage} {candidate.level}")
+        return candidate.stage, candidate.level
+    return None, entry.level
 
 
 def runs_for(deficit: int, entry: MaterialEntry) -> int:
@@ -477,6 +550,101 @@ def runs_for(deficit: int, entry: MaterialEntry) -> int:
         logger.debug(f"{entry.name}({entry.item_id}) 未登记 per_run，按每局 1 个保守估算")
         per_run = 1
     return max(1, math.ceil(deficit / per_run))
+
+
+def retarget_material(context: Context, item_id: str, stage: str, level: str) -> bool | None:
+    """把库存保持的「本轮目标材料」切到另一个材料，供跨材料顺延使用。
+
+    `StageLookupTimeout` 在库存保持模式下把目标换到别的材料时调用 —— 否则
+    `_state.item_id` 还留着旧材料，`DepotMaintainAccumulate` 会按旧 id 找掉落，
+    新关卡打完的掉落统计不到、快照也不更新，白刷。
+
+    Returns:
+        - `True`  — 切换成功
+        - `None`  — **当前不是库存保持模式**（默认均衡分支），没有 depot 状态需要同步，
+                    调用方可以继续顺延
+        - `False` — 是库存保持模式但**切换失败**（材料目录读不出 / 目标材料不在目录里）。
+                    此时 `_state` 仍是旧材料，继续刷新关卡会让掉落记到旧材料头上，
+                    调用方**必须停止顺延**而不能当没事发生。
+
+    三态是必要的：只返回 `bool` 的话，调用方无法区分「不需要同步」和「同步失败」，
+    会把失败当正常继续跑。
+    """
+    if _state.item_id is None:
+        # 非库存保持模式：没有 depot 状态需要同步
+        return None
+
+    try:
+        catalog = load_catalog()
+    except CatalogError as exc:
+        logger.error(f"切换目标材料时读取材料目录失败，无法同步库存目标: {exc}")
+        return False
+
+    entry = catalog.get(item_id)
+    if entry is None:
+        logger.error(f"切换目标材料失败：材料目录里没有 {item_id}")
+        return False
+
+    # 目标库存优先用**规划阶段解析好的**那份。
+    #
+    # `DepotMaintainPlan` 的 targets 来自
+    # `parse_gui_targets(params)` + `gui_material_params(...)` 两条通道合并后的结果
+    # （`params` 就是 `custom_action_param`）。这里如果只读 `gui_material_params`，
+    # 走 `custom_action_param` 的旧配置就会解析出 target=0 → deficit=0 →
+    # `runs_for(max(1, 0))` = 1，第一局就被判「已补齐」，等于白换一次材料。
+    target = _state.targets.get(item_id, 0)
+    if target <= 0:
+        # 兜底：规划还没跑过（理论上不该发生）时退回 GUI 参数
+        target = parse_gui_targets(gui_material_params(context, {}), catalog).get(item_id, 0)
+    inventory = snapshot_counts(read_snapshot())
+    current = inventory.get(item_id, 0)
+    deficit = max(0, target - current) if target > 0 else 0
+
+    label = material_label(item_id, catalog)
+    _state.item_id = item_id
+    _state.item_name = label
+    _state.stage = stage
+    _state.level = level
+    _state.deficit = deficit
+    _state.runs = runs_for(max(1, deficit), entry)
+    _state.observed = 0
+    _state.persisted = 0
+    _state.estimate_committed_battles = 0
+    _state.estimate_batch_battles = 0
+    _state.stopped = False
+    _state.per_run = entry.per_run
+    # 读数模式依赖关卡是否参与掉落上报，换关卡后要重算
+    reportable = report_enabled(context, stage, level)
+    _state.read_mode = _pick_read_mode(item_id, label, reportable=reportable)
+
+    # ⚠️ 只更新 `_state` 不够。正常规划路径（`DepotMaintainPlan`）在写 `_state` 之外
+    # 还会 override 这几项，它们是**按旧材料算好后写进 pipeline 的**，跨材料顺延后
+    # 如果不一起改，就会出现「材料已换成 B、但复现次数/吃糖仍按 A」：
+    #
+    #   - `AllIn.target_count` = A 的 runs  → B 会被按 A 的目标局数刷
+    #   - `material_candy_override(A, …)`   → B 会套用 A 的逐材料吃糖上限
+    #   - `DropRecognition.enabled`         → 上报开关是按 A 的关卡算的
+    #
+    # 这里把它们与新材料的 `_state` 一起重算并写回，保证「换材料」是一次原子切换。
+    # 吃糖上限用规划节点存下的 `_state.candy_caps`（本函数拿不到 GUI 参数，不能现算）。
+    candy_caps = dict(_state.candy_caps)
+
+    context.override_pipeline(
+        {
+            "AllIn": {
+                "action": {"param": {"custom_action_param": {"target_count": _state.runs}}},
+            },
+            **material_candy_override(context, item_id, candy_caps),
+            DROP_REPORT_NODE: {"enabled": reportable},
+        }
+    )
+    logger.debug(
+        f"跨材料顺延已同步作战参数: runs={_state.runs}, "
+        f"candy={candy_note(item_id, candy_caps)}, drop_report={reportable}"
+    )
+
+    logger.info(f"库存保持目标已切换到 {label}（当前 {current} / 目标 {target}，缺口 {deficit}），关卡 {stage} {level}")
+    return True
 
 
 def _capture_baselines(context: Context) -> None:
@@ -761,6 +929,13 @@ class DepotMaintainInit(CustomAction):
         _state.candy_base_max_hit = UNLIMITED_CANDY
         _state.report_base_enabled = True
         _state.required_currency = []
+        _state.candy_caps = {}
+        _state.targets = {}
+        _state.skipped_materials = []
+        # 关卡进度只在本次任务里记录一次
+        _state.progress_recorded = False
+        # 重置顺延状态机（每个任务各自一份）
+        reset_planner()
         # 抬 ReturnMain 的命中上限（见 RETURN_MAIN_MAX_HIT）。必须在**任务入口**就抬好：
         # 读账号、仓库扫描收尾、角色页读数收尾都要回主界面，而它们全排在规划节点之前，
         # 等规划「选好材料」才抬的话前面几次回家已经撞上 base 的 2 次配额。
@@ -803,16 +978,32 @@ class DepotMaintainPlan(CustomAction):
 
         targets = resolve_targets(catalog, parse_gui_targets(params, catalog))
         candy_caps = parse_gui_candy(params, catalog)
+        # 存下来供跨材料顺延时复用（`retarget_material` 拿不到 GUI 参数）
+        _state.candy_caps = candy_caps
         chosen = selected_items(context, catalog)
         if chosen is not None:
             targets = {item_id: (value if item_id in chosen else 0) for item_id, value in targets.items()}
             names = "、".join(material_label(item_id, catalog) for item_id in sort_items_by_rarity(chosen))
             logger.info(f"只刷勾选的 {len(chosen)} 种材料: {names}")
+        # 存下**最终生效**的目标（已合并 custom_action_param 与 attach，并已按勾选过滤），
+        # 供跨材料顺延时 `retarget_material` 复用。
+        _state.targets = dict(targets)
         if not any(value > 0 for value in targets.values()):
             logger.info("未设置任何目标库存，按原有均衡逻辑刷取")
             logger.debug("逐材料目标均为空或 0")
             context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE, "[JumpBack]ReturnMain"])
             return CustomAction.RunResult(success=True)
+
+        # 关卡记录：记下「过不去的关卡」，下次直接跳过它以及序号更大的关卡。
+        # 记录按逻辑账号分桶（每个账号一份），玩家手动通关主线后可在 GUI 里「重置记录」。
+        if not _state.progress_recorded:
+            _state.progress_recorded = True
+            known = unavailable_stages(current_account_id())
+            summary = format_unavailable_summary(known)
+            if summary == "（尚无记录）":
+                logger.info("尚无过不去的关卡记录，关卡可用性将按需逐个尝试")
+            else:
+                logger.info(f"已知过不去的关卡: {summary}")
 
         if _state.rounds > 0:
             _commit_estimate_progress()
@@ -881,8 +1072,53 @@ class DepotMaintainPlan(CustomAction):
         entry, deficit = decision
         runs = runs_for(deficit, entry)
         label = material_label(entry.item_id, catalog)
+
+        # 顺延状态机：库存保持的参与材料（只含**有正缺口**的，已达标的不硬刷）。
+        # 本轮先刷「缺口最大」的材料，其余按**库存数量从少到多**排好，
+        # 供「寻找目标关卡超时」时跨材料顺延用（第二少、第三少……）。
+        candidates = build_depot_material_candidates(catalog, inventory, targets)
+        state = planner()
+        if candidates:
+            state.begin(candidates)
+            # 本轮要刷的材料放在顺延顺序的第一位（缺口最大）
+            for index, candidate in enumerate(candidates):
+                if candidate.entry.item_id == entry.item_id:
+                    state.current_index = index
+                    break
+        else:
+            # 没有可参与的材料（不该发生：上面 pick_target 已经判定过）→ 关掉顺延
+            state.reset()
+
+        # 关卡可用性判定：登记关卡此前被记为不可用时，顺延到该材料的下一个候选关卡。
+        # ⚠️ 材料层面的顺延走统一的 `next_available_candidate()` —— 它会连续跨材料
+        # （第一、第二、第三……直到找到可用的或全部耗尽），并维护 `current_index`。
+        # 不能写成「换一次第二少材料、它也不行就结束」：那样只在第二种材料上就停住，
+        # 与 `balanced_farming.py` 的连续顺延不一致，也违背「继续顺延第二少、第三少……」。
+        stage_code, stage_level = _resolve_available_stage(context, entry, catalog)
+        if stage_code is None:
+            logger.warning(f"{label} 的候选关卡均不可用，继续顺延到下一个参与材料")
+            _state.skipped_materials.append(label)
+            # 当前材料的候选已用尽，交给状态机换下一种（会推进 current_index）
+            state.finish_material()
+            next_candidate = state.next_available_candidate()
+            if next_candidate is None:
+                logger.error("所有参与材料的候选关卡均不可用，库存保持结束")
+                context.override_next(PLAN_NODE, [DONE_NODE])
+                return CustomAction.RunResult(success=True)
+            material = state.current_material()
+            if material is None:
+                logger.error("顺延状态机给出的候选没有对应的材料，库存保持结束")
+                context.override_next(PLAN_NODE, [DONE_NODE])
+                return CustomAction.RunResult(success=True)
+            entry = material.entry
+            deficit = max(1, targets.get(entry.item_id, 0) - inventory.get(entry.item_id, 0))
+            runs = runs_for(deficit, entry)
+            label = material_label(entry.item_id, catalog)
+            stage_code, stage_level = next_candidate.stage, next_candidate.level
+            logger.info(f"已顺延到材料 {label}，关卡 {stage_code} {stage_level}")
+
         # 本轮的上报开关先算出来：读数模式依赖它，而节点数据里还是上一轮的残留值
-        reportable = report_enabled(context, entry.stage.code, entry.level)
+        reportable = report_enabled(context, stage_code, stage_level)
         _state.read_mode = _pick_read_mode(entry.item_id, label, reportable=reportable)
         # 未登记 per_run 的材料掉落量不确定，不向用户报「每局约 N 个」这种估算出来的确定数
         if entry.per_run:
@@ -892,7 +1128,7 @@ class DepotMaintainPlan(CustomAction):
         logger.info(
             f"库存保持目标: {label} 当前 {inventory[entry.item_id]} / "
             f"目标 {targets.get(entry.item_id, 0)}，缺口 {deficit}，"
-            f"{pace}{candy_note(entry.item_id, candy_caps)}，关卡 {entry.stage.code} {entry.level}"
+            f"{pace}{candy_note(entry.item_id, candy_caps)}，关卡 {stage_code} {stage_level}"
         )
 
         # 同一关卡续刷且上一批就地在关卡页结束（复现按钮可见）→ 直接重选复现次数，
@@ -902,8 +1138,8 @@ class DepotMaintainPlan(CustomAction):
         _state.rounds += 1
         _state.item_id = entry.item_id
         _state.item_name = label
-        _state.stage = entry.stage.code
-        _state.level = entry.level
+        _state.stage = stage_code
+        _state.level = stage_level
         _state.deficit = deficit
         _state.runs = runs
         _state.observed = 0
@@ -916,8 +1152,8 @@ class DepotMaintainPlan(CustomAction):
         context.override_pipeline(
             {
                 "SelectCombatStage": {
-                    "action": {"param": {"custom_action_param": {"stage": entry.stage.code}}},
-                    "attach": {"level": entry.level, "depot_accumulate": 1},
+                    "action": {"param": {"custom_action_param": {"stage": stage_code}}},
+                    "attach": {"level": stage_level, "depot_accumulate": 1},
                 },
                 "AllIn": {
                     "action": {"param": {"custom_action_param": {"target_count": runs}}},
@@ -928,18 +1164,20 @@ class DepotMaintainPlan(CustomAction):
                 DROP_REPORT_NODE: {"enabled": reportable},
             }
         )
+        # 记下本次选关寻找的开始时刻：寻找目标关卡的总预算（两分钟）从此刻算起
+        planner().begin_stage_lookup(stage_code)
         # 上一批就地结束时游戏停在关卡页（「复现」按钮可见）：同关卡就原地重选次数续刷；
         # 换关卡必须先回主界面 —— `Combat` 靠主界面的「进入」按钮（`EnterTheShow`）导航，
         # 停在关卡页时它那四个候选（EnterTheShowFlag / EnterTheShow / ShowClickStory / ReturnMain）
         # 一个都认不出，会一直空转到父节点超时。
         on_stage_page = _replay_ui_visible(context)
-        same_stage = previous_stage == entry.stage.code and previous_level == entry.level
+        same_stage = previous_stage == stage_code and previous_level == stage_level
         if same_stage and on_stage_page:
             logger.debug("上一批就地在关卡页结束，直接重选复现次数续刷")
             context.override_next(PLAN_NODE, ["AllIn"])
         else:
             if on_stage_page:
-                logger.info(f"目标换到 {entry.stage.code}，先回主界面再重新导航")
+                logger.info(f"目标换到 {stage_code}，先回主界面再重新导航")
                 detail = context.run_task(HOME_ENTRY)
                 if detail is None or detail.status.failed:
                     logger.warning("换关卡前未能回到主界面")
@@ -1062,6 +1300,16 @@ class DepotMaintainDone(CustomAction):
             logger.info(f"库存保持结束: {_state.item_name} 未达标（缺口 {_state.deficit}）")
         else:
             logger.info("库存保持结束：本次无需刷取")
+
+        # 候选关卡全部不可用导致的失败材料要记到日志里（用户需求：记录失败的材料）
+        if _state.skipped_materials:
+            unique_skipped = list(dict.fromkeys(_state.skipped_materials))
+            logger.warning(f"以下材料因候选关卡均不可用而未能刷取: {'、'.join(unique_skipped)}")
+
+        # 收尾清理：关掉顺延状态。`_planner` 是模块级单例，跨任务存活；
+        # 不清理的话本任务结束后，同一 agent 进程里其它任务的 `StageLookupBudget`
+        # 识别仍会介入（`active` 还是 True）。
+        finish_planner()
 
         # 续刷批次就地在关卡页结束时不会经过 TargetCountFinish，收尾在此补掉落总结与回主界面；
         # 复用共享的 ReturnMain（startup.json）——关卡页等界面需要多级返回，单击 HomeButton 可能落空；

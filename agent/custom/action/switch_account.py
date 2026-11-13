@@ -86,6 +86,7 @@ class SwitchAccountSelect(CustomAction):
                 return CustomAction.RunResult(success=False)
             self._click_row(context, rows[0])
             logger.info(f"账号列表只有一个账号，直接选择: {rows[0].text}")
+            self._remember_target(target_account, rows[0].text)
             return CustomAction.RunResult(success=True)
 
         seen_signatures: set[tuple[str, ...]] = set()
@@ -98,6 +99,7 @@ class SwitchAccountSelect(CustomAction):
                     if self._match_target(normalized_target, row.normalized_text):
                         self._click_row(context, row)
                         logger.info(f"匹配到目标账号: {target_account}")
+                        self._remember_target(target_account, row.text)
                         return CustomAction.RunResult(success=True)
 
             page_signature = self._page_signature(rows)
@@ -107,6 +109,7 @@ class SwitchAccountSelect(CustomAction):
                     return CustomAction.RunResult(success=False)
                 self._click_row(context, rows[-1])
                 logger.info("选择列表底部最后一个账号")
+                self._remember_target(target_account, rows[-1].text)
                 return CustomAction.RunResult(success=True)
 
             if page_signature:
@@ -127,6 +130,14 @@ class SwitchAccountSelect(CustomAction):
 
     def _screencap(self, context: Context) -> Any:
         return context.tasker.controller.post_screencap().wait().get()
+
+    def _remember_target(self, configured_target: str, selected_text: str) -> None:
+        """记下这次切换的目标标识（**仅用于日志**）。
+
+        账号归属现在只认游戏内真实 UID，不再需要把这个标识写进状态文件，
+        所以这里只打一条 debug 日志，方便排查「切到了哪个账号」。
+        """
+        logger.debug(f"切换目标标识: {configured_target or '未配置'}（列表中选中的行: {selected_text}）")
 
     def _read_rows(self, context: Context, img: Any) -> list[_AccountRow]:
         """读取账号行：一次 OCR 直接得到行文本与行位置，不再依赖 × 图标模板。"""

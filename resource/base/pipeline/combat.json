@@ -668,6 +668,10 @@
         "max_hit": 30,
         "next": [
             "TargetStageName",
+            // 均衡刷材料：确认「已滑到本章第一关」并记下标记（默认 disabled，只有均衡任务启用）。
+            // 排在 TheFarLeftOfStageList 之前 —— 命中后同样回 SwipeRightForStageList，
+            // 行为与原版一致，只是多记一个标记供 StageLookupTimeout 判断「确实扫完了整章」。
+            "StageLookupFarLeft",
             "TheFarLeftOfStageList",
             "SwipeLeftForStageList"
         ]
@@ -775,8 +779,15 @@
         // 即判定“关卡列表里没有目标关卡”，任务以失败收场（issue #990）。
         // 不给 on_error 兜底：静默回主界面会被当成正常结束。
         "timeout": 2000,
+        // 均衡刷材料：StageLookupBudget 是**自定义识别**，只在「寻找这个关卡」超过两分钟
+        // 总预算时才匹配（否则不匹配，流程照常滑动，原版行为不变）。
+        // on_error 把「找关卡超时」这条失败出口导向顺延逻辑（StageLookupTimeout）。
         "next": [
+            "StageLookupBudget",
             "SwipeLeftAndFindStage"
+        ],
+        "on_error": [
+            "StageLookupTimeout"
         ],
         "focus": {
             "Node.PipelineNode.Failed": "<span style=\"color:crimson;\">未在关卡列表中找到目标关卡，请检查关卡配置</span>"
@@ -819,8 +830,13 @@
         "post_wait_freezes": 100,
         // 见 SwipeLeftForStageList：右向扫完后 2s 无命中即失败并报错，不静默回主界面。
         "timeout": 2000,
+        // 均衡刷材料：同 SwipeLeftForStageList —— 总预算检查（自定义识别）+ 超时顺延。
         "next": [
+            "StageLookupBudget",
             "SwipeRightAndFindStage"
+        ],
+        "on_error": [
+            "StageLookupTimeout"
         ],
         "focus": {
             "Node.PipelineNode.Failed": "<span style=\"color:crimson;\">未在关卡列表中找到目标关卡，请检查关卡配置</span>"
