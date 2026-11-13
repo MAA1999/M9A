@@ -13,6 +13,7 @@ RECO_MODULES = (
     "sos_node_template",
     "critter_crash",
     "huawei_close_ad",
+    "zhapian",
 )
 
 

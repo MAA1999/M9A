@@ -78,7 +78,7 @@
                 "CUB_StartAllIn",
                 "WarehouseInventoryScan",
                 "ArtOfIlluminationScratch",
-                "ZhapianAutoPlay"
+                "ZhapianAct"
             ]
         }
     },
@@ -309,7 +309,7 @@
             "$ref": "#/$defs/ArtOfIlluminationScratch"
         },
         {
-            "$ref": "#/$defs/ZhapianAutoPlay"
+            "$ref": "#/$defs/ZhapianAct"
         }
     ],
     "$defs": {
@@ -1441,10 +1441,10 @@
                 }
             }
         },
-        "ZhapianAutoPlay": {
+        "ZhapianAct": {
             "properties": {
                 "custom_action": {
-                    "const": "ZhapianAutoPlay",
+                    "const": "ZhapianAct",
                     "description": "魔精诈唬牌：读牌、出牌决策、判定信任/质疑、自动开下一局"
                 }
             }

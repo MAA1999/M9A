@@ -29,7 +29,8 @@
                 "APCardFinder",
                 "CompareNumbers",
                 "HuaweiCloseAd",
-                "CCStickerBoxRec"
+                "CCStickerBoxRec",
+                "ZhapianState"
             ]
         }
     },
@@ -78,6 +79,9 @@
         },
         {
             "$ref": "#/$defs/CCStickerBoxRec"
+        },
+        {
+            "$ref": "#/$defs/ZhapianState"
         },
         {
             "$ref": "#/$defs/APPhaseGate"
@@ -1211,6 +1215,14 @@
                         }
                     },
                     "additionalProperties": false
+                }
+            }
+        },
+        "ZhapianState": {
+            "properties": {
+                "custom_recognition": {
+                    "const": "ZhapianState",
+                    "description": "魔精诈唬牌：对局状态识别（claim/adjudicate/gameover/start/reveal）"
                 }
             }
         },

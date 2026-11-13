@@ -1,18 +1,161 @@
 {
+    // 魔精诈唬牌（共读之忆小游戏）
+    // 状态机：每个对局状态一个识别节点（ZhapianState），命中后由 ZhapianAct 只做
+    // 「读手牌→决策→点击」，循环通过 next 回到 zhapianEntry 表达。框架因此能看到
+    // 当前状态、能在节点之间停止任务。
+    //
+    // 状态识别是像素判据（色相分牌 + 金色按钮 + 全局暗度），阈值出处见 docs/zhapian/README.md。
+    // 识别不到任何已知状态时（未知画面 / 转场），zhapianEntry 的 Or 不命中，任务结束，不做盲目点击。
     "zhapianEntry": {
-        "desc": "魔精诈唬牌：进入后由自定义动作自行循环（识别→决策→点击→自动开下一局）",
+        "desc": "入口：当前处于哪个对局状态",
+        "recognition": {
+            "type": "Or",
+            "param": {
+                "any_of": [
+                    "zhapianStart",
+                    "zhapianClaim",
+                    "zhapianAdjudicate",
+                    "zhapianGameover",
+                    "zhapianReveal"
+                ]
+            }
+        },
+        "next": [
+            "zhapianReveal",
+            "zhapianStart",
+            "zhapianGameover",
+            "zhapianClaim",
+            "zhapianAdjudicate"
+        ]
+    },
+    "zhapianStart": {
+        "desc": "活动页「开始游戏」：复位局数计数并进入牌局",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "ZhapianState",
+                "custom_recognition_param": {
+                    "state": "start"
+                }
+            }
+        },
         "action": {
             "type": "Custom",
             "param": {
-                "custom_action": "ZhapianAutoPlay",
+                "custom_action": "ZhapianAct",
                 "custom_action_param": {
+                    "mode": "start"
+                }
+            }
+        },
+        "next": [
+            "zhapianEntry"
+        ]
+    },
+    "zhapianClaim": {
+        "desc": "出牌：读手牌 + 选牌 + 确认出牌",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "ZhapianState",
+                "custom_recognition_param": {
+                    "state": "claim"
+                }
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "ZhapianAct",
+                "custom_action_param": {
+                    "mode": "claim",
+                    "target": null,
+                    "remaining": [
+                        5,
+                        5,
+                        5,
+                        3
+                    ],
+                    "dry_run": false
+                }
+            }
+        },
+        "next": [
+            "zhapianEntry"
+        ]
+    },
+    "zhapianAdjudicate": {
+        "desc": "判定：信任或质疑",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "ZhapianState",
+                "custom_recognition_param": {
+                    "state": "adjudicate"
+                }
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "ZhapianAct",
+                "custom_action_param": {
+                    "mode": "judge",
+                    "target": null,
+                    "remaining": [
+                        5,
+                        5,
+                        5,
+                        3
+                    ],
+                    "dry_run": false
+                }
+            }
+        },
+        "next": [
+            "zhapianEntry"
+        ]
+    },
+    "zhapianGameover": {
+        "desc": "结算：打到设定局数就退出，否则再次挑战",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "ZhapianState",
+                "custom_recognition_param": {
+                    "state": "gameover"
+                }
+            }
+        },
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "ZhapianAct",
+                "custom_action_param": {
+                    "mode": "gameover",
                     "max_games": 5,
-                    "max_rounds": 60,
                     "after": "restart",
                     "dry_run": false
                 }
             }
         },
-        "next": []
+        "next": [
+            "zhapianEntry"
+        ]
+    },
+    "zhapianReveal": {
+        "desc": "诈唬结果横幅：等待过场",
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "ZhapianState",
+                "custom_recognition_param": {
+                    "state": "reveal"
+                }
+            }
+        },
+        "next": [
+            "zhapianEntry"
+        ]
     }
 }
