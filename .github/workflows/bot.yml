@@ -280,8 +280,8 @@ jobs:
       # 定位修复 commit、进而得出「升级到 >= x」，都依赖那个区间。实测：14 s / 188 MB，对比 3.5 s / 26 MB。
       #
       # 工作树**刻意留在默认分支**，不切成 PR head。这份工作树里有三样东西是被执行的：`setup.json` 决定
-      # npm 装什么（postinstall 就是任意代码）、`dsh-patch.yml` 决定 provider 指向哪（能带走
-      # COMMAND_CODE_API_KEY）、`prompt.md` 直接就是 agent 的指令。而 `@M9ABot` 召唤那条路没有身份门槛，
+      # npm 装什么（postinstall 就是任意代码）、`render-dsh-patch.mjs` 决定 provider 指向哪（能带走
+      # BOT_LLM_API_KEY）、`prompt.md` 直接就是 agent 的指令。而 `@M9ABot` 召唤那条路没有身份门槛，
       # 谁都能在自己的 fork PR 里改掉这三个文件再召唤 —— 切成 head 等于把执行路径交给对方。PR 的内容
       # 只以 ref 的形式取进来，见下面那步。`pull_request_target` 那条路更吃这条纪律：那个触发器自带
       # secret，一旦允许切到 PR head，等于把 secret 直接交给 fork。
@@ -498,11 +498,22 @@ jobs:
           fi
           echo "our open threads: $(jq 'length' "$ANALYSIS_DIR/open-threads.json" 2>/dev/null || echo '?')"
 
+      # provider 与模型整段来自 Settings → Secrets and variables → Actions 的 `BOT_LLM_CONFIG`
+      # （整段 provider 配置 JSON；放 Secret 可多行粘贴、设置页也不明文显示，取不到再回落到 Variable）。
+      # 仓库里不保存任何 provider 配置：裸 IP 中转站只写在设置里。没配时这一步直接报错。
+      # 渲染产物放 `$RUNNER_TEMP`，不落进工作树。
+      - name: Render the provider patch
+        env:
+          BOT_LLM_CONFIG: ${{ secrets.BOT_LLM_CONFIG || vars.BOT_LLM_CONFIG }}
+        run: |
+          set -euo pipefail
+          node tools/bot/render-dsh-patch.mjs "$RUNNER_TEMP/dsh-patch.yml"
+
       - name: Analyze
         env:
-          # 模型由 tools/bot/dsh-patch.yml 选定，那里把 command-code provider 指向这个环境变量名。
-          # 换 key 是改 Settings，不需要提交。
-          COMMAND_CODE_API_KEY: ${{ secrets.COMMAND_CODE_API_KEY }}
+          # provider/模型已由上面渲染进补丁；密钥统一走 `BOT_LLM_API_KEY`（secret 侧优先取同名，
+          # 兼容旧的 `COMMAND_CODE_API_KEY`）。换 key 是改 Settings 的 secret，不需要提交。
+          BOT_LLM_API_KEY: ${{ secrets.BOT_LLM_API_KEY || secrets.COMMAND_CODE_API_KEY }}
         run: |
           set -euo pipefail
           mkdir -p "$ANALYSIS_DIR"
@@ -525,7 +536,7 @@ jobs:
           budget=45m
           set +e
           timeout --signal=TERM --kill-after=30 "$budget" \
-            dsh --profile headless --patch tools/bot/dsh-patch.yml - < tools/bot/prompt.md \
+            dsh --profile headless --patch "$RUNNER_TEMP/dsh-patch.yml" - < tools/bot/prompt.md \
             > "$ANALYSIS_DIR/agent.out" 2> "$ANALYSIS_DIR/agent.stderr"
           status=$?
           set -e
