@@ -109,17 +109,7 @@ Generally, MuMu12 or LDPlayer 9 are recommended.
 
 ## Yellow Warning Messages in Logs
 
-When starting tasks, you may see yellow warning messages similar to the following in the logs:
-
-```plaintext
-Failed to get resource/manifest.json: ("Connection aborted.
-ConnectionResetError(10054, 'The remote host forcibly closed an existing connection.; None,10054,None))
-No available resource manifest was obtained.
-```
-
-This is usually caused by network issues preventing connection to `api.1999.fan`. It only affects hot updates for a small portion of data, so as long as you keep M9A updated to the latest version there will be no impact and this can be ignored.
-
-For other yellow warning logs, they also usually do not affect operation and can be ignored. If they appear frequently and affect functionality, please provide feedback using the methods below.
+When starting tasks, yellow warning messages may appear in the logs. Most are temporary device or network issues and usually do not affect operation; ignore them first and report them below if they keep appearing and affect functionality.
 
 ## Other Issues
 

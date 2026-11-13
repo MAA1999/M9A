@@ -16,7 +16,7 @@ project_root_dir = os.path.dirname(agent_dir)
 # PI_USER_DATA_DIR 被设置时以它为工作目录：macOS .app 里 project_root 在只读包内，
 # 按 cwd 读写的相对路径（libs/drop_core.pyd 的 data/combat/*.json、遗漏的裸
 # open("config/...")）必须落进可写的用户数据目录；agent_runtime 启动时用
-# seed_work_root() 把包内基线播种过去，cwd 与 RuntimePaths.resolve() 指向同一份。
+# link_work_root() 把包内只读条目链接过去，cwd 与 RuntimePaths.data_path() 指向同一份。
 # 环境变量名与 utils.runtime_paths.ENV_USER_DATA_DIR 同步——这里不能 import utils
 # （utils 包初始化会连带 import maa，ensure_maafw_binary_path 之后库目录就定死了）。
 user_data_dir = os.environ.get("PI_USER_DATA_DIR", "").strip()

@@ -53,8 +53,8 @@ def _split_custom_codes(codes: Any) -> list[RedeemCodeItem]:
 
 
 def _load_resource_codes(resource: str) -> list[RedeemCodeItem]:
-    # 覆盖层解析：数据目录里热更下发的兑换码优先，包内基线在数据目录尚无文件时兜底
-    path = get_runtime_paths().resolve(f"{DATA_REL_DIR}/{resource}.txt")
+    # 兑换码数据随包发布，从包内只读数据目录读取
+    path = get_runtime_paths().data_path(f"{DATA_REL_DIR}/{resource}.txt")
     if not path.exists():
         logger.debug(f"Redeem code data file not found: {path}")
         return []

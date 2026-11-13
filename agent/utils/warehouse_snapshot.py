@@ -35,13 +35,13 @@ SNAPSHOT_KEY = "snapshots"
 
 
 def snapshot_read_path(path: Path | str | None = None) -> Path:
-    """快照读路径：默认经 ``resolve_user``——数据目录存在即赢、包内基线兜底；
-    显式相对路径同样按覆盖层解析，绝对路径（测试临时目录）原样使用。"""
+    """快照读路径：用户数据固定落数据目录；显式相对路径同样按数据目录解析，
+    绝对路径（测试临时目录）原样使用。"""
     paths = get_runtime_paths()
     if path is None:
-        return paths.resolve_user(SNAPSHOT_REL_PATH)
+        return paths.user_path(SNAPSHOT_REL_PATH)
     candidate = Path(path)
-    return candidate if candidate.is_absolute() else paths.resolve_user(candidate)
+    return candidate if candidate.is_absolute() else paths.user_path(candidate)
 
 
 def snapshot_write_path(path: Path | str | None = None) -> Path:
