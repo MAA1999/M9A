@@ -22,6 +22,7 @@ ACTION_MODULES = (
     "eight_bit",
     "warehouse_inventory",
     "art_of_illumination",
+    "zhapian_auto",
 )
 
 

@@ -217,6 +217,7 @@
         "tasks/MusesBox.json",
         "tasks/CharUpgrade.json",
         "tasks/TrustReward.json",
-        "tasks/WarehouseInventory.json"
+        "tasks/WarehouseInventory.json",
+        "tasks/Zhapian.json"
     ]
 }

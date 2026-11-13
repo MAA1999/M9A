@@ -1,0 +1,13 @@
+{
+    "task": [
+        {
+            "name": "魔精诈唬牌（自动）",
+            "label": "$Task.Zhapian",
+            "entry": "zhapianEntry",
+            "description": "$Task.Zhapian.desc",
+            "group": [
+                "standalone"
+            ]
+        }
+    ]
+}

@@ -375,5 +375,7 @@
     "Welcome.1": "announcement/en_us/1.introduction.md",
     "Welcome.2": "announcement/en_us/2.multiple-emulators.md",
     "Welcome.3": "announcement/en_us/3.reporting-issues.md",
-    "Welcome.4": "announcement/en_us/4.task-overview.md"
+    "Welcome.4": "announcement/en_us/4.task-overview.md",
+    "Task.Zhapian": "Zhapian (Auto)",
+    "Task.Zhapian.desc": "Auto play the Zhapsay minigame: read cards, bluff or trust"
 }
