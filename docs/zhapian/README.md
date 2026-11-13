@@ -3,13 +3,13 @@
 坐标基准：MaaFW **720p（1280×720）**。以下每张截图均先 resize 到 720p 再跑 `detect()`，
 数值为实测（MuMu 模拟器 1920×1080 画面缩放而来）。
 
-| 状态 | 判定依据 | 实测值 | 阈值 | 截图 |
-|---|---|---|---|---|
-| claim（出牌） | 手牌张数 ≥ 5 | hand = 5 | ≥ 5 | `claim.jpg` |
-| adjudicate（判定） | 信任/质疑按钮金色像素计数 | trust = 137，doubt = 113 | > 90 | `adjudicate.jpg` |
-| gameover（结算） | 全局暗度 + 无结果横幅 | dark = 0.776，banner = 0.20 | dark > 0.5 且 banner < 0.25 且 hand ≤ 1 | `gameover.jpg` |
-| start（开始页） | 「开始游戏」按钮宽松金色计数 | start_gold = 2215 | > 1200 | `start.jpg` |
-| reveal（诈唬结果横幅） | 中部红/金横幅占比 | banner = 0.28 | > 0.25 | `reveal.jpg` |
+| 状态                   | 判定依据                     | 实测值                      | 阈值                                    | 截图             |
+| ---------------------- | ---------------------------- | --------------------------- | --------------------------------------- | ---------------- |
+| claim（出牌）          | 手牌张数 ≥ 5                 | hand = 5                    | ≥ 5                                     | `claim.jpg`      |
+| adjudicate（判定）     | 信任/质疑按钮金色像素计数    | trust = 137，doubt = 113    | > 90                                    | `adjudicate.jpg` |
+| gameover（结算）       | 全局暗度 + 无结果横幅        | dark = 0.776，banner = 0.20 | dark > 0.5 且 banner < 0.25 且 hand ≤ 1 | `gameover.jpg`   |
+| start（开始页）        | 「开始游戏」按钮宽松金色计数 | start_gold = 2215           | > 1200                                  | `start.jpg`      |
+| reveal（诈唬结果横幅） | 中部红/金横幅占比            | banner = 0.28               | > 0.25                                  | `reveal.jpg`     |
 
 ## 关键说明
 
