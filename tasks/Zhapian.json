@@ -5,6 +5,9 @@
             "label": "$Task.Zhapian",
             "entry": "zhapianEntry",
             "description": "$Task.Zhapian.desc",
+            "controller": [
+                "ADB"
+            ],
             "group": [
                 "standalone"
             ]
