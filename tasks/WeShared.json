@@ -1,0 +1,82 @@
+{
+    "task": [
+        {
+            "name": "魔精诈唬牌",
+            "label": "$Task.WeShared",
+            "entry": "WeShared",
+            "description": "$Task.WeShared.desc",
+            "group": [
+                "standalone"
+            ],
+            "option": [
+                "刷取模式",
+                "诈唬分上限"
+            ]
+        }
+    ],
+    "option": {
+        "刷取模式": {
+            "type": "select",
+            "label": "$Option.WeShared.FarmMode",
+            "description": "$Option.WeShared.FarmMode.desc",
+            "cases": [
+                {
+                    "name": "跑到满分",
+                    "label": "$Option.WeShared.FarmMode.Full",
+                    "pipeline_override": {
+                        "WeSharedTurnLoop": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "mode": "full",
+                                        "max_games": 50
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "只跑一遍",
+                    "label": "$Option.WeShared.FarmMode.Once",
+                    "pipeline_override": {
+                        "WeSharedTurnLoop": {
+                            "action": {
+                                "param": {
+                                    "custom_action_param": {
+                                        "mode": "once",
+                                        "max_games": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "诈唬分上限": {
+            "type": "input",
+            "label": "$Option.WeShared.ScoreCap",
+            "description": "$Option.WeShared.ScoreCap.desc",
+            "inputs": [
+                {
+                    "name": "分数上限",
+                    "label": "$Option.WeShared.ScoreCap.Value",
+                    "default": "9000",
+                    "pipeline_type": "int"
+                }
+            ],
+            "pipeline_override": {
+                "WeSharedScoreCheck": {
+                    "action": {
+                        "param": {
+                            "custom_action_param": {
+                                "score_cap": "{分数上限}"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

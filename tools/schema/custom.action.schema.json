@@ -77,7 +77,10 @@
                 "EightBitShopBuy",
                 "CUB_StartAllIn",
                 "WarehouseInventoryScan",
-                "ArtOfIlluminationScratch"
+                "ArtOfIlluminationScratch",
+                "WeShared",
+                "WeSharedScoreCheck",
+                "WeSharedTurnLoop"
             ]
         }
     },
@@ -306,6 +309,15 @@
         },
         {
             "$ref": "#/$defs/ArtOfIlluminationScratch"
+        },
+        {
+            "$ref": "#/$defs/WeShared"
+        },
+        {
+            "$ref": "#/$defs/WeSharedScoreCheck"
+        },
+        {
+            "$ref": "#/$defs/WeSharedTurnLoop"
         }
     ],
     "$defs": {
@@ -1442,6 +1454,30 @@
                 "custom_action": {
                     "const": "CCSticker",
                     "description": "翻斗棋：专属贴纸箱（点开箱子并把贴纸拖到空位）"
+                }
+            }
+        },
+        "WeShared": {
+            "properties": {
+                "custom_action": {
+                    "const": "WeShared",
+                    "description": "魔精诈唬牌任务入口：清空本次任务的局数与手牌缓存。无参数。"
+                }
+            }
+        },
+        "WeSharedScoreCheck": {
+            "properties": {
+                "custom_action": {
+                    "const": "WeSharedScoreCheck",
+                    "description": "魔精诈唬牌：停在活动页时的双重门控 —— 诈唬分到 score_cap（默认 9000）或局数到 max_games 任一达标就结束本次任务。局数上限必须在这里判：点第一次「开始游戏」就已进入对局，超限后停在牌桌总览再退出会被算作放弃本局。参数 score_cap。"
+                }
+            }
+        },
+        "WeSharedTurnLoop": {
+            "properties": {
+                "custom_action": {
+                    "const": "WeSharedTurnLoop",
+                    "description": "魔精诈唬牌牌局循环：点牌桌总览上的「开始游戏」，随后轮询判别确认/出牌/结算/结束四种界面并自主决策，直到「游戏结束」。只负责局数记账并把 max_games / mode 发布给 WeSharedScoreCheck 做门控，本身不判上限。参数 max_games（默认 50）、mode（\"once\" 只跑一遍 / \"full\" 跑到满分，默认 full）。"
                 }
             }
         }
