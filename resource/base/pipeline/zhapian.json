@@ -1,18 +1,18 @@
 {
-  "zhapianEntry": {
-    "desc": "魔精诈唬牌：进入后由自定义动作自行循环（识别→决策→点击→自动开下一局）",
-    "action": {
-      "type": "Custom",
-      "param": {
-        "custom_action": "ZhapianAutoPlay",
-        "custom_action_param": {
-          "max_games": 5,
-          "max_rounds": 60,
-          "after": "restart",
-          "dry_run": false
-        }
-      }
-    },
-    "next": []
-  }
+    "zhapianEntry": {
+        "desc": "魔精诈唬牌：进入后由自定义动作自行循环（识别→决策→点击→自动开下一局）",
+        "action": {
+            "type": "Custom",
+            "param": {
+                "custom_action": "ZhapianAutoPlay",
+                "custom_action_param": {
+                    "max_games": 5,
+                    "max_rounds": 60,
+                    "after": "restart",
+                    "dry_run": false
+                }
+            }
+        },
+        "next": []
+    }
 }

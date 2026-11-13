@@ -104,7 +104,7 @@ def find_cards(img: np.ndarray, band: tuple[int, int, int, int], min_width: int 
         cnt = {name: int(((h[:, a:b] >= lo) & (h[:, a:b] <= hi) & (s[:, a:b] > 0.15)).sum())
                for name, (lo, hi) in HUE_RANGES.items()}
         tot = sum(cnt.values()) or 1
-        best = max(cnt, key=cnt.get)
+        best = max(cnt.items(), key=lambda kv: kv[1])[0]
         out.append({"index": idx, "box": (x0 + a, x0 + b, y0, y1),
                     "type": best, "conf": round(cnt[best] / tot, 3)})
     return out
@@ -136,7 +136,7 @@ def detect(img: np.ndarray) -> dict[str, Any]:
     hand = find_cards(img, HAND_BAND)
     claimed = find_cards(img, CLAIM_BAND, 53)
 
-    def gold_in(box):
+    def gold_in(box: tuple[int, int, int, int]) -> int:
         x0, x1, y0, y1 = box
         reg = img[y0:y1, x0:x1]
         return int(((reg[:, :, 0] > 190) & (reg[:, :, 1] > 150) & (reg[:, :, 2] < 150)).sum())

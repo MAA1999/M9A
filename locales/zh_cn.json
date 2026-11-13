@@ -372,10 +372,10 @@
     "Task.WarehouseInventory": "仓库材料识别",
     "Task.WarehouseInventory.desc": "扫描仓库素材页全部已配模板的材料数量并保存到 config/warehouse_inventory.json，供未来功能使用",
     "Task.Wilderness": "收取荒原",
+    "Task.Zhapian": "魔精诈唬牌（自动）",
+    "Task.Zhapian.desc": "自动打魔精诈唬牌：识别手牌与对方声称，小号诈唬 / 信任真话",
     "Welcome.1": "announcement/1.简介.md",
     "Welcome.2": "announcement/2.模拟器多开.md",
     "Welcome.3": "announcement/3.问题上报.md",
-    "Welcome.4": "announcement/4.任务介绍.md",
-    "Task.Zhapian": "魔精诈唬牌（自动）",
-    "Task.Zhapian.desc": "自动打魔精诈唬牌：识别手牌与对方声称，小号诈唬 / 信任真话"
+    "Welcome.4": "announcement/4.任务介绍.md"
 }
