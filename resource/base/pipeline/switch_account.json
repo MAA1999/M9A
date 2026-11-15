@@ -26,15 +26,80 @@
     },
     "SettingEntry": {
         "recognition": {
-            "type": "OCR",
+            "type": "Or",
             "param": {
-                "roi": [
-                    33,
-                    457,
-                    515,
-                    214
-                ],
-                "expected": "[设置]"
+                "any_of": [
+                    {
+                        "sub_name": "SettingText",
+                        "recognition": {
+                            "type": "OCR",
+                            "param": {
+                                "roi": [
+                                    33,
+                                    457,
+                                    515,
+                                    214
+                                ],
+                                "expected": "[设置]"
+                            }
+                        }
+                    },
+                    {
+                        "sub_name": "SettingBetweenNeighbors",
+                        "recognition": {
+                            "type": "And",
+                            "param": {
+                                "all_of": [
+                                    {
+                                        "sub_name": "SignInText",
+                                        "recognition": {
+                                            "type": "OCR",
+                                            "param": {
+                                                "roi": [
+                                                    173,
+                                                    575,
+                                                    91,
+                                                    60
+                                                ],
+                                                "expected": "签到"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "sub_name": "UdimoriumText",
+                                        "recognition": {
+                                            "type": "OCR",
+                                            "param": {
+                                                "roi": [
+                                                    399,
+                                                    575,
+                                                    115,
+                                                    60
+                                                ],
+                                                "expected": "冲印箱"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "sub_name": "SettingSlot",
+                                        "recognition": {
+                                            "type": "DirectHit",
+                                            "param": {
+                                                "roi": [
+                                                    306,
+                                                    588,
+                                                    52,
+                                                    32
+                                                ]
+                                            }
+                                        }
+                                    }
+                                ],
+                                "box_index": 2
+                            }
+                        }
+                    }
+                ]
             }
         },
         "action": {
