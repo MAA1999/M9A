@@ -27,7 +27,7 @@
             "path": "tools/schema/pipeline.schema.json",
             "upstreamPath": "tools/pipeline.schema.json",
             "url": "https://raw.githubusercontent.com/MaaXYZ/MaaFramework/main/tools/pipeline.schema.json",
-            "sha256": "163174b430196667d217d7d65b895fdd120c2859dd6368e0540b5595dd3428ac"
+            "sha256": "231a3e7345a88823c3bd83e637b4fd2e70a9717b508bbb41d6af7b9e92c0edca"
         }
     ]
 }
