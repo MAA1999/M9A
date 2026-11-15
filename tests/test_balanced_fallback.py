@@ -817,7 +817,9 @@ def test_entry_skips_task_when_marked(tmp_path: Path, monkeypatch: pytest.Monkey
 
     assert result.success is True
     assert context.next_overrides[-1][1] == ["BF_Skipped"]
-    assert context.run_tasks == [], "UID 已缓存时不应再导航"
+    # 采样前**无条件**回主页（CodeRabbit：不能假定任务开始时停在主页，
+    # 否则采样可能读到空画面、uid 为空 → 绕过停用判断）。
+    assert "ResetReturnMain" in context.run_tasks, "采样前必须先回主页"
 
 
 def test_entry_skips_only_after_uid_is_confirmed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1058,3 +1060,54 @@ def test_resolve_available_stage_returns_none_when_all_unavailable(
     )
     stage, _level = _resolve_available_stage(_FakeContext(), state.current_material().entry, {})
     assert stage is None, "候选全不可用时应返回 None"
+
+
+def test_entry_disables_depot_maintain_when_uid_unknown(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """采样失败时关掉库存保持，避免下游重读账号。
+
+    回归防护（CodeRabbit, major）：清空 `RecordID` 缓存只保证入口不用未确认账号，
+    但 `DepotMaintainPlan.run` 会调 `_ensure_account_id()`，缓存为空时它**再跑一次**
+    `RecordId`，拿新读到的值当本轮账号，之后快照读写全按那个桶走。
+    采样连读 6 次都不一致说明画面不可靠，这时再让下游单读一次决定快照桶风险更大。
+
+    关掉库存保持后走 `LEGACY_ENTRY_NODE`，**顺延仍然保留**
+    （`StageLookupTimeout` + `next_candidate()` 与库存保持无关）。
+    """
+    context = _FakeContext()
+    monkeypatch.setattr(balanced_entry, "current_uid", lambda: "")
+    monkeypatch.setattr(balanced_entry, "_ensure_uid", lambda ctx: None)
+    monkeypatch.setattr(balanced_entry, "sample_uid", lambda ctx: "")  # 采样失败
+    monkeypatch.setattr(balanced_entry, "save_debug_screenshot", lambda ctx, tag: None)
+
+    result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
+
+    assert result.success is True
+    assert context.next_overrides[-1][1] == ["BF_Plan"], "仍要进规划（顺延照常）"
+
+    # 必须把 depot_disabled 写进 override，让库存保持退回原有流程
+    merged = {}
+    for payload in context.pipeline_overrides:
+        for node, patch in payload.items():
+            merged.setdefault(node, {}).update(patch)
+    plan = merged.get("BF_Plan") or {}
+    params = ((plan.get("action") or {}).get("param") or {}).get("custom_action_param") or {}
+    assert params.get("depot_disabled") is True, "采样失败时必须关掉库存保持"
+
+
+def test_entry_keeps_depot_maintain_when_uid_confirmed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """UID 确认时不碰 `depot_disabled`（用户可能开了库存保持）。"""
+    context = _FakeContext()
+    monkeypatch.setattr(balanced_entry, "current_uid", lambda: TEST_UID)
+    monkeypatch.setattr(balanced_entry, "_ensure_uid", lambda ctx: None)
+    monkeypatch.setattr(balanced_entry, "sample_uid", lambda ctx: TEST_UID)
+
+    result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
+
+    assert result.success is True
+    merged = {}
+    for payload in context.pipeline_overrides:
+        for node, patch in payload.items():
+            merged.setdefault(node, {}).update(patch)
+    plan = merged.get("BF_Plan") or {}
+    params = ((plan.get("action") or {}).get("param") or {}).get("custom_action_param") or {}
+    assert "depot_disabled" not in params, "UID 正常时不该动库存保持开关"

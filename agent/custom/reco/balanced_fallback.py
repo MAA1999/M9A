@@ -187,14 +187,21 @@ class StageLookupFarLeft(CustomRecognition):
 
         **遍历所有识别结果**，不只看 `best_result` —— 下半屏有多个关卡项，
         `best_result` 只取分数最高的那一个（通常是别的关卡号），会漏掉 `01`。
+
+        ⚠️ **必须先按米白色过滤，与 `TargetStageName` 看同一批像素**。
+        否则两边会得出互相矛盾的结论：`TargetStageName` 在过滤图上认不出目标，
+        这里却在原图里读到 `01`（可能来自边框、装饰、别色说明），于是把
+        「目标其实就在屏幕上」误判成「滑到最左、目标确实不存在」。
         """
         from maa.pipeline import JOCR, JRecognitionType
+
+        from .general import filter_by_color
 
         try:
             detail = context.run_recognition_direct(
                 JRecognitionType.OCR,
                 JOCR(roi=self._ROI, only_rec=False),
-                argv.image,
+                filter_by_color(argv.image),
             )
         except Exception as exc:  # noqa: BLE001 - 识别失败只表示「没到最左」，不该中断扫描
             logger.debug(f"StageLookupFarLeft 识别失败: {exc}")

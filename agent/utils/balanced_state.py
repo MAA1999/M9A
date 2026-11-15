@@ -291,18 +291,22 @@ def account_bucket(data: dict[str, Any], account_id: str | None = None) -> dict[
     **复用 `account_store.get_account_bucket`** —— 与仓库快照（`warehouse_snapshot`）
     走同一份分桶实现，好处是两套文件的分桶行为保证一致。
 
-    ⚠️ **旧格式迁移必须先做**，不能只靠 `get_account_bucket` 内部那条分支：
-    它的迁移条件是「`accounts` 里全是标量」，而旧文件**根本没有 `accounts` 键**，
-    于是它只会新建一个空桶，根级的 `skip_balanced` / `unavailable` 被永久忽略。
-    `warehouse_snapshot.snapshot_bucket()` 的写法是对的（键不存在时把根级整体搬进桶），
-    这里与它保持一致。
+    ⚠️ **旧格式的根级记录直接丢弃，不做迁移**。
+
+    早期版本把 `unavailable` / `skip_balanced` 直接放在文件根上，那时**没有账号
+    概念**，没人知道这些记录属于哪个 UID。把它们搬给「第一个调用本函数的账号」
+    是一种推断 —— 而本模块的约定是「记录只按游戏内真实 UID 分桶，不做任何账号推断」
+    （见模块头）。一旦搬错：`skip_balanced: true` 会让某个无辜账号被永久跳过，
+    而它其实还有可用关卡。
+
+    代价是升级后第一次运行会重新试一遍那些旧关卡（各等最多两分钟超时），
+    换来的是不把记录记到错的人头上。记录本身会重新积累。
     """
     key = normalize_account_id(account_id) or DEFAULT_ACCOUNT_KEY
     if STATE_KEY not in data:
-        # 旧格式：字段直接放在根上 → 整体搬进当前账号桶
-        legacy = dict(data)
+        # 旧格式：没有账号概念，无法归属 → 丢弃根级残留，只保留空结构
         data.clear()
-        data[STATE_KEY] = {key: legacy} if legacy else {}
+        data[STATE_KEY] = {}
     return get_account_bucket(data, STATE_KEY, key)
 
 

@@ -170,14 +170,29 @@ class BalancedTaskEntry(CustomAction):
         # 但本次产生的关卡记录与停用标记都**不落盘** —— 不知道属于哪个账号时，
         # 写进任何一个桶都可能污染别人的记录。
         #
+        # ⚠️ **同时关掉库存保持**。理由：清空 `RecordID` 缓存只能保证「入口不用
+        # 未确认账号」，挡不住下游重读 —— `DepotMaintainPlan.run` 会调用
+        # `_ensure_account_id()`，缓存为空时它会**再跑一次 `RecordId`**，把新读到的
+        # 值当成本轮账号，随后快照读写、关卡记录全按那个桶走。采样连读 6 次都不一致
+        # 说明画面本身不可靠，这时再让下游单读一次、拿它决定快照桶，风险更大。
+        #
+        # 关掉后走的是 `LEGACY_ENTRY_NODE`（原有均衡流程）—— **顺延完全保留**
+        # （`StageLookupTimeout` + `next_candidate()` 与库存保持无关），只是不用
+        # 仓库快照那套按账号分桶的东西。这与 `depot_maintain.py` 里
+        # 「读不到账号就退回原有流程」是同一处理。
+        #
         # 同时存一张现场截图并打印路径，便于排查为什么没读到 UID
         # （主页动画未结束、停在别的界面等）。
         if not uid:
             logger.warning(
-                "未能读取游戏内 UID，本次按「没有任何历史记录」处理：照常刷取并自动顺延，但本次产生的记录不会保存"
+                "未能读取游戏内 UID，本次按「没有任何历史记录」处理：照常刷取并自动顺延，"
+                "但本次产生的记录不会保存，且不启用「库存保持」"
             )
             save_debug_screenshot(context, "no_uid")
             state.account_id = ""
+            context.override_pipeline(
+                {"BF_Plan": {"action": {"param": {"custom_action_param": {"depot_disabled": True}}}}}
+            )
             context.override_next(ENTRY_NODE, [PLAN_NODE])
             return CustomAction.RunResult(success=True)
 
@@ -230,21 +245,29 @@ def _remember_uid(uid: str) -> None:
 
 
 def _ensure_uid(context: Context) -> None:
-    """UID 为空时回主页跑一次 `RecordId` 把它读出来。
+    """回主页并跑一次 `RecordId`，把 UID 读进缓存。
 
-    复用 `depot_maintain._ensure_account_id` 的同一套逻辑（它已经在库存保持里
-    验证过：先 `HOME_ENTRY` 回家、再 `RECORD_ID_ENTRY` 触发 OCR，因为
-    `RecordId` 只在主界面命中）。
+    ⚠️ **无条件执行**，不做「缓存已有值就跳过」的提前返回。调用方
+    （`BalancedTaskEntry`）紧接着要调 `sample_uid()`，而采样读的是主页左上角
+    那行 `ID:xxxx`；任务开始时游戏不一定停在主页（入口链路里
+    `DepotMaintainInit` / `BF_ResetRecords` / `BF_Entry` 都没有回家步骤），
+    跳过导航会让采样读到空画面，于是 uid 为空、绕过 `is_task_skipped`
+    —— **已停用的账号会被重新消耗体力**。
+
+    ⚠️ 只调用 `ensure_account_id()` 不够：它内部也有「缓存非空就返回」的判断，
+    同样不导航。所以这里先**显式回一次主页**，再让它去跑 `RecordId`。
 
     **不返回成功与否** —— 读不到 UID 时由调用方决定怎么处理
-    （`BalancedTaskEntry` 会进入「不落盘」模式照常刷取，见上方 `run`）。
+    （`BalancedTaskEntry` 会进入「不落盘 + 关库存保持」模式照常刷取）。
     """
-    if current_uid():
-        return
-
     # 延迟导入：depot_maintain 已经 import 了本模块所在包的自定义动作，
     # 顶层互相 import 会绕成环。
-    from .depot_maintain import ensure_account_id
+    from .depot_maintain import HOME_ENTRY, ensure_account_id
+
+    # 显式回家：`ResetReturnMain` 是原版共享的回家链。
+    detail = context.run_task(HOME_ENTRY)
+    if detail is None or detail.status.failed:
+        logger.warning("采样 UID 前未能回到主界面，采样可能读到空画面")
 
     if ensure_account_id(context) and current_uid():
         logger.info(f"已通过主页 OCR 读到游戏内 UID: {current_uid()}")
