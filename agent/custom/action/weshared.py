@@ -120,7 +120,9 @@ DEFAULT_MODE = MODE_FULL
 POLL_INTERVAL = 0.4
 SETTLE_DELAY = 1.2
 CLICK_INTERVAL = 0.35
-MATCH_TIMEOUT = 600.0
+# 单局耗时实测 46 局：最短 74s、中位 102s、最长 123s —— 取 300s 留 2.4 倍余量；
+# 原来 600s 相当于最长局的 5 倍，真卡住时要白等十分钟。
+MATCH_TIMEOUT = 300.0
 # 确认阶段的读数重试：动画未稳时 OCR/模板会读空，换新帧重试几次比一次判死稳
 READ_ATTEMPTS = 3
 READ_RETRY_DELAY = 0.35
@@ -350,9 +352,15 @@ def claim_plan(hand_suits: Sequence[int | None], counts: Counts, target: int) ->
         probability = claimer_opponent_belief(counts, target, size)
         if probability < CLAIM_THRESHOLD:
             return ClaimPlan("truth", tuple(legal[:size]), probability)
-        if len(illegal) >= MIN_CLAIM:
-            return ClaimPlan("bluff", tuple(illegal[:MIN_CLAIM]), claimer_opponent_belief(counts, target, MIN_CLAIM))
-        # 凑不出诈唬牌，退回真话（下家会信任，但总比空过强）
+        # 下家会信任：手上只要有非合法牌，就拿两张凑假声明。
+        # 只有一张非法牌时用「1 非法 + 1 合法」混着凑 —— 退回真话等于让下家在信任中
+        # 扣我们的血，混着诈唬至少扣的是对方的血。
+        if illegal:
+            mixed = tuple((illegal + legal)[:MIN_CLAIM])
+            mixed_probability = claimer_opponent_belief(counts, target, len(mixed))
+            if mixed_probability >= CLAIM_THRESHOLD:
+                return ClaimPlan("bluff", mixed, mixed_probability)
+        # 手上全是合法牌，凑不出任何假声明
         return ClaimPlan("truth", tuple(legal[:size]), probability)
 
     bluffable = (illegal + legal)[:MIN_CLAIM]
@@ -388,6 +396,15 @@ def slot_index(box_x: int) -> int | None:
     slot_x = box_x + HAND_TEMPLATE_DX
     nearest = min(range(len(HAND_SLOT_CENTERS)), key=lambda i: abs(HAND_SLOT_CENTERS[i] - slot_x))
     return nearest if abs(HAND_SLOT_CENTERS[nearest] - slot_x) <= HAND_SLOT_TOLERANCE else None
+
+
+def stable_score(previous: int | None, current: int | None) -> int | None:
+    """结算数字要连续两帧一致才算稳定。
+
+    数字是渐入的，单帧可能读到「渐入一半」的状态 —— 真机实测出现过 300 读成 1300
+    （多认一位）和 420 读成 42（少认一位），两帧不一致就换帧重来。
+    """
+    return current if current is not None and current == previous else None
 
 
 def digit_roi(frame: np.ndarray, base: tuple[int, int, int, int]) -> tuple[int, int, int, int] | None:
@@ -635,18 +652,24 @@ class WeSharedTurnLoop(CustomAction):
         logger.info(content)
 
     def _read_game_score(self, context: Context, img: np.ndarray) -> int | None:
-        """结算数字是渐入的：先等数字墨迹出现，再按墨迹收紧框去识别。
+        """结算数字是渐入的：墨迹出现后再读，并且要连续两帧一致才算数。
 
-        数字没出来之前这一带是横幅文字，固定框会把它认成一串数字，所以 digit_roi 返回 None
-        就当「还没出来」，交给 _with_retries 换帧重试。
+        只读一帧会读到「渐入一半」的数字 —— 实测出现过 300 读成 1300（多认一位）和
+        420 读成 42（少认一位）。墨迹不存在、或两帧读数不一致，都交给 _with_retries 换帧重试。
         """
+        previous: int | None = None
 
         def read(frame: np.ndarray) -> int | None:
+            nonlocal previous
             roi = digit_roi(frame, GAME_SCORE_ROI)
             if roi is None:
+                previous = None
                 return None
             detail = context.run_recognition(GAME_SCORE_NODE, frame, {GAME_SCORE_NODE: {"roi": list(roi)}})
-            return parse_first_int(ocr_text(detail))
+            value = parse_first_int(ocr_text(detail))
+            stable = stable_score(previous, value)
+            previous = value
+            return stable
 
         return _with_retries(
             context,
@@ -680,7 +703,11 @@ class WeSharedTurnLoop(CustomAction):
             logger.debug("确认阶段画面 3s 内未静止，直接读（后面还有重试兜底）")
 
     def _read_claim_k(self, context: Context, img: np.ndarray) -> int | None:
-        """声称文案里的 k（「这 N 张牌」）；动画期间会读空，靠 _with_retries 重试。"""
+        """声称文案里的 k（「这 N 张牌」）。
+
+        真机实测游戏有两种声明文案：「XX声称这N张牌都是YY」和「XX声称其中都是[花色图标]」。
+        后者**不含张数**，约六成的声明都是这种，所以 k 天然读不到 —— 加宽重试窗口无效。
+        """
         return _with_retries(
             context,
             img,
@@ -692,12 +719,19 @@ class WeSharedTurnLoop(CustomAction):
         """确认阶段：算 P(真)，落在 0.5 附近先用药水翻牌，再决定信任 / 质疑。"""
         self._wait_confirm_stable(context)
         img = _frame(context)
+        # 声称文案里没有「这 x 张牌」= 现在不是我们在确认（下家或上家在确认），不介入。
+        # 真机实测这种「XX声称其中都是[花色图标]」的文案约占六成，它们都不是我们的回合；
+        # 直接返回，下一轮轮询会再看一次，等真轮到我们时文案才会带张数。
+        k = self._read_claim_k(context, img)
+        if k is None:
+            logger.debug("声称文案没有张数 → 当前不是我们的确认回合，跳过")
+            return
+
         counts = self._read_counts(context, img)
         target = self._read_target(context, img)
-        k = self._read_claim_k(context, img)
 
-        missing = [name for name, value in (("剩余", counts), ("目标花色", target), ("k", k)) if value is None]
-        if counts is None or target is None or k is None:
+        missing = [name for name, value in (("剩余", counts), ("目标花色", target)) if value is None]
+        if counts is None or target is None:
             logger.debug(f"确认阶段读数不全，缺：{'、'.join(missing)} → 保守质疑")
             _click_node(context, _frame(context), DOUBT_NODE, POINT_DOUBT)
             time.sleep(SETTLE_DELAY)

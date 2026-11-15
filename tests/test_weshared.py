@@ -6,6 +6,7 @@
 
 import ast
 import json
+import re
 from pathlib import Path
 
 import custom.action.weshared as module
@@ -54,6 +55,7 @@ from custom.action.weshared import (
     reveal_outcomes,
     score_cap_reached,
     slot_index,
+    stable_score,
     truth_probability,
     wants_potion,
 )
@@ -187,6 +189,81 @@ def test_claimer_falls_back_to_truth_when_it_cannot_bluff() -> None:
     plan = claim_plan(hand, all_legal, GREEN)
     assert plan.kind == "truth"
     assert plan.size == MAX_CLAIM
+
+
+def test_claimer_bluffs_with_one_illegal_card_plus_a_legal_one() -> None:
+    """只有一张非法牌时，也要用「1 非法 + 1 合法」混着凑两张诈唬。
+
+    场景：目标绿、剩余 Counts(1,0,5,3)、手牌 5 绿 + 1 棕。P(5)=0.444、P(2)=0.778，
+    都高于阈值，下家两种情况都会信任。而「信任 + 真」是声明者自己扣血、
+    「信任 + 假」是确认者扣血 —— 所以必须出那两张假声明，不能退回真话。
+    """
+    counts = Counts(brown=1, blue=0, green=5, wild=3)
+    hand = [GREEN, GREEN, GREEN, GREEN, GREEN, BROWN]
+    assert claimer_opponent_belief(counts, GREEN, MAX_CLAIM) > CLAIM_THRESHOLD
+    assert claimer_opponent_belief(counts, GREEN, MIN_CLAIM) > claimer_opponent_belief(counts, GREEN, MAX_CLAIM)
+
+    plan = claim_plan(hand, counts, GREEN)
+    assert plan.kind == "bluff"
+    assert plan.size == MIN_CLAIM
+    assert any(hand[i] == BROWN for i in plan.slots), f"诈唬必须用上那张棕牌，实际 {plan.slots}"
+    assert plan.probability == pytest.approx(claimer_opponent_belief(counts, GREEN, MIN_CLAIM))
+
+
+def test_claimer_still_prefers_pure_illegal_bluff_when_it_has_two() -> None:
+    """有两张以上非法牌时，仍优先用纯非法牌诈唬（不掺合法牌）。"""
+    counts = Counts(brown=1, blue=0, green=5, wild=3)
+    hand = [BROWN, BROWN, GREEN, GREEN, GREEN, GREEN]
+    plan = claim_plan(hand, counts, GREEN)
+    assert plan.kind == "bluff"
+    assert plan.slots == (0, 1)
+    assert all(hand[i] == BROWN for i in plan.slots), f"应该只出非法牌，实际 {plan.slots}"
+
+
+def test_declarer_decisions_follow_the_opponent_prediction() -> None:
+    """不变式：声明者不能做出「打自己」的选择。
+
+    · 下家会信任（P >= 阈值）时出真话 → 「信任 + 真」是声明者自己掉血
+    · 下家会质疑（P < 阈值）时诈唬   → 「质疑 + 假」也是声明者自己掉血
+
+    两个方向都按「合法/非法张数」穷举锁死。真机 217 次出牌决策里「恰好 1 张非法牌」的形状
+    一次都没出现（理论频率也只有 3%），靠随机跑测根本发现不了这类低频分支的方向性错误。
+    唯一例外是规则逼出来的：合法牌不足 2 张时凑不出真话，只能撒谎。
+    """
+    slots = len(module.HAND_SLOT_CENTERS)
+    pools = (
+        Counts(brown=5, blue=5, green=5, wild=3),  # 开局
+        Counts(brown=3, blue=4, green=2, wild=1),
+        Counts(brown=1, blue=0, green=5, wild=3),  # 审查举的例子
+        Counts(brown=2, blue=2, green=1, wild=0),
+        Counts(brown=0, blue=0, green=2, wild=0),  # 池子快空
+        Counts(brown=0, blue=0, green=1, wild=0),  # 只剩一张合法牌
+        Counts(brown=4, blue=4, green=0, wild=0),  # 全是非法牌
+    )
+    checked = 0
+    for counts in pools:
+        for n_legal in range(slots + 1):
+            for n_illegal in range(slots + 1 - n_legal):
+                if n_legal + n_illegal == 0:
+                    continue
+                hand = [GREEN] * n_legal + [BROWN] * n_illegal
+                hand += [None] * (slots - n_legal - n_illegal)
+                plan = claim_plan(hand, counts, GREEN)
+                checked += 1
+                tag = f"剩余={counts} 合法={n_legal} 非法={n_illegal}"
+
+                # 诈唬必须真的含至少一张非合法牌
+                if plan.kind == "bluff":
+                    assert any(hand[i] not in (GREEN, WILD) for i in plan.slots), f"诈唬里没有非法牌：{tag}"
+                    # 下家会质疑时不许诈唬（合法牌不足 2 张凑不出真话的除外）
+                    assert plan.probability >= CLAIM_THRESHOLD or n_legal < MIN_CLAIM, (
+                        f"下家会质疑(P={plan.probability:.3f})却诈唬：{tag}"
+                    )
+                # 下家会信任时不许出真话（手上没有非法牌可诈的除外）
+                if plan.kind == "truth" and plan.size > 0:
+                    p = claimer_opponent_belief(counts, GREEN, plan.size)
+                    assert n_illegal == 0 or p < CLAIM_THRESHOLD, f"下家会信任(P={p:.3f})却出真话：{tag}"
+    assert checked > 150, f"穷举覆盖太少：{checked}"
 
 
 def test_claimer_caps_k_at_five() -> None:
@@ -440,6 +517,10 @@ def test_pipeline_recognition_nodes_exist_for_runtime_lookups() -> None:
         "POTION_NODE",
         "SCORE_CHECK_NODE",
         "TURN_LOOP_NODE",
+        "REPORT_SUMMARY_NODE",
+        "GAME_SCORE_NODE",
+        "MY_HP_NODE",
+        "MY_HP_EMPTY_NODE",
     ):
         referenced.append(getattr(module, attribute))
     for name in referenced:
@@ -767,7 +848,8 @@ def test_click_nodes_retry_themselves_when_the_click_does_not_register() -> None
     """点击没被游戏响应时，节点要把自己放到 next 末尾再点一次。
 
     实测过一次「点开始游戏游戏没反应」：没有自循环就会卡在 WeSharedDeckOverview 等 20s 超时，
-    整条任务失败。节点 timeout + rate_limit 负责给重试封顶。
+    整条任务失败。注意 `timeout` **封不住**自循环（它只是「识别不到」的等待上限，候选一直命中
+    时永不超时），真正能封顶的只有 `max_hit`——见下一条用例。
     """
     nodes = _nodes()
     for name in ("WeSharedStartGame", "WeSharedNavHome", "WeSharedNavOverview", "WeSharedExitGame"):
@@ -775,6 +857,59 @@ def test_click_nodes_retry_themselves_when_the_click_does_not_register() -> None
         assert isinstance(next_list, list)
         assert len(next_list) >= 2, f"{name} 的 next 只有 {next_list}，没有重试出口"
         assert next_list[-1] == name, f"{name} 的 next 末尾应是自身，实际 {next_list}"
+
+
+def test_self_loops_are_capped_so_a_dead_click_cannot_spin_forever() -> None:
+    """自循环必须有上限：点击一旦永久失效（遮罩 / 卡死），没有上限就会一直点下去。
+
+    `max_hit` 按整任务累计，所以取值要跟「本节点每任务进几次」对齐：
+    · 导航两节点每任务只进一次 → 3 足够
+    · 开始游戏 / 退出游戏 / 领奖每局进一次，按「上限 9000 ÷ 实测最低单局约 200 分」= 45 局
+    """
+    nodes = _nodes()
+    assert nodes["WeSharedNavHome"]["max_hit"] == 3
+    assert nodes["WeSharedNavOverview"]["max_hit"] == 3
+    for name in ("WeSharedStartGame", "WeSharedExitGame", "WeSharedClaimReward"):
+        assert nodes[name]["max_hit"] == 45, f"{name} 的 max_hit 应为最多局数 45"
+    # 45 的来历：默认上限 9000 分 ÷ 实测最低单局约 200 分
+    assert 9000 // 200 == 45
+
+
+def test_claim_bar_gate_checks_presence_not_the_whole_pattern() -> None:
+    """「张牌」是回合判定，取 K 交给 parse_claim_k。
+
+    节点的 `expected` 若写成完整的 `这\\s*[0-9]\\s*张牌`，OCR 只要把数字认花，节点就整段
+    不命中，把「轮到我们确认」误判成「不是」；只判「张牌」两个字宽容得多。
+    """
+    expected = _nodes()["WeSharedClaimBar"]["recognition"]["param"]["expected"]
+    assert expected == "张牌"
+    for text, want in (
+        ("马库斯声称这2张牌都是毛斗篷", 2),
+        ("这 2 张牌", 2),
+        ("这2 张牌", 2),
+        ("野树莓声称这3张牌都是莴苣叶", 3),
+    ):
+        assert re.search(expected, text), f"{text!r} 里应该有「张牌」"
+        assert parse_claim_k(text) == want, f"{text!r} 应能取出 k={want}"
+
+    # 另一种文案不含「张牌」——判定为不是我们的回合
+    other = "虚构集声称其中都是"
+    assert not re.search(expected, other)
+    assert parse_claim_k(other) is None
+
+
+def test_score_cap_input_validates_digits() -> None:
+    """input 选项要带 verify：`pipeline_type: "int"` 只靠客户端转换，手填非数字会静默回落默认值。"""
+    tasks = json.loads((PROJECT_ROOT / "tasks" / "WeShared.json").read_text(encoding="utf-8"))
+    entry = next(i for i in tasks["option"]["诈唬分上限"]["inputs"] if i["name"] == "分数上限")
+    assert entry["pipeline_type"] == "int"
+    assert re.fullmatch(entry["verify"], "9000")
+    assert not re.fullmatch(entry["verify"], "abc")
+    assert not re.fullmatch(entry["verify"], "")
+    key = entry["pattern_msg"].removeprefix("$")
+    for name in ("zh_cn", "en_us"):
+        data = json.loads((PROJECT_ROOT / "locales" / f"{name}.json").read_text(encoding="utf-8"))
+        assert key in data, f"{name}.json 缺少 {key}"
 
 
 class _CountingController:
@@ -896,6 +1031,20 @@ def test_game_score_read_tightens_the_roi_before_recognising() -> None:
         and len(call.args) >= 3
     ]
     assert overrides, "_read_game_score 必须给 run_recognition 传 roi override"
+
+
+def test_game_score_needs_two_agreeing_frames() -> None:
+    """结算数字是渐入的，单帧可能读到「渐入一半」的值。
+
+    真机实测出现过 300 读成 1300（多认一位）、420 读成 42（少认一位），
+    所以必须连续两帧一致才认。
+    """
+    assert stable_score(None, 420) is None  # 第一帧只记下，不算数
+    assert stable_score(42, 420) is None  # 两帧不一致 → 还没稳定
+    assert stable_score(1300, 300) is None
+    assert stable_score(420, None) is None
+    assert stable_score(420, 420) == 420  # 一致才认
+    assert stable_score(42, 42) == 42
 
 
 def test_game_score_read_goes_through_retries() -> None:

@@ -305,6 +305,7 @@
     "Option.WeShared.ScoreCap": "Bluff Score Cap",
     "Option.WeShared.ScoreCap.Value": "Score Cap",
     "Option.WeShared.ScoreCap.desc": "Bluff score cap; the task stops once the score reaches it (applies to both farm modes).",
+    "Option.WeShared.ScoreCap.msg": "Enter a non-negative integer.",
     "Option.Wilderness.DeliverOrders": "Deliver Orders",
     "Option.Wilderness.DeliverOrders.desc": "Deliver magic essence orders.",
     "Option.Wilderness.GatherEssence": "Gather Magic Essence",

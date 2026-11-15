@@ -305,6 +305,7 @@
     "Option.WeShared.ScoreCap": "诈唬分上限",
     "Option.WeShared.ScoreCap.Value": "分数上限",
     "Option.WeShared.ScoreCap.desc": "诈唬分上限，达到该分数即停止任务（两种刷取模式均生效）",
+    "Option.WeShared.ScoreCap.msg": "请填写非负整数",
     "Option.Wilderness.DeliverOrders": "交付订单",
     "Option.Wilderness.DeliverOrders.desc": "交付魔精订单",
     "Option.Wilderness.GatherEssence": "魔精收菜",

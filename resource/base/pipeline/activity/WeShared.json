@@ -16,7 +16,8 @@
         ]
     },
     "WeSharedNavHome": {
-        "desc": "主界面：点左上角第三个图标（高礼帽 + 摊开的书）直接进「书页与小憩」。图标纵向会随主界面状态漂移约 30px，ROI 留足纵向余量并点识别框中心",
+        "desc": "主界面：点左上角第三个图标（高礼帽 + 摊开的书）直接进「书页与小憩」。图标纵向会随主界面状态漂移约 30px，ROI 留足纵向余量并点识别框中心。max_hit 给自循环封顶：本节点每任务只该进一次，点不动时最多重试到 3 次为止（timeout 封不住自循环，它只限「识别不到」的等待）",
+        "max_hit": 3,
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -54,7 +55,8 @@
         ]
     },
     "WeSharedNavOverview": {
-        "desc": "活动总览页：点「共读之忆」入口进活动页",
+        "desc": "活动总览页：点「共读之忆」入口进活动页。max_hit 给自循环封顶，理由同 WeSharedNavHome",
+        "max_hit": 3,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -108,7 +110,7 @@
     },
     "WeSharedClaimReward": {
         "desc": "里程碑「领取」：点掉可领的奖励，弹出的「获得物品」交给公共 ObtainedAwards",
-        "max_hit": 50,
+        "max_hit": 45,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -161,7 +163,8 @@
         ]
     },
     "WeSharedStartGame": {
-        "desc": "活动页「开始游戏」→ 牌桌总览。点识别框中心（按钮文字在按钮内），不写死坐标",
+        "desc": "活动页「开始游戏」→ 牌桌总览。点识别框中心（按钮文字在按钮内），不写死坐标。max_hit 只是死循环兜底：max_hit 按整任务累计，而本节点每局都要进一次，按「最低单局约 200 分、上限 9000」推算最多 45 局，取 45，正常使用碰不到",
+        "max_hit": 45,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -282,7 +285,8 @@
         "next": []
     },
     "WeSharedExitGame": {
-        "desc": "游戏结束页「退出游戏」：点识别框中心回活动页，不写死坐标",
+        "desc": "游戏结束页「退出游戏」：点识别框中心回活动页，不写死坐标。max_hit 兜底理由同 WeSharedStartGame",
+        "max_hit": 45,
         "recognition": {
             "type": "OCR",
             "param": {
@@ -497,7 +501,7 @@
         }
     },
     "WeSharedClaimBar": {
-        "desc": "识别用：确认阶段的声称文案，从中取 k（这 N 张牌）",
+        "desc": "识别用：确认阶段的声称文案。这里只做**存在性判定**——命中「张牌」才算轮到我们确认，数字由 agent 侧的 parse_claim_k 从文本里取。不要在这里写完整的 `这\\s*[0-9]\\s*张牌`：OCR 只要把数字认花，节点就整段不命中，反而把「是我们的回合」误判成「不是」",
         "recognition": {
             "type": "OCR",
             "param": {
@@ -507,7 +511,7 @@
                     480,
                     56
                 ],
-                "expected": "这[0-9]张牌"
+                "expected": "张牌"
             }
         }
     },

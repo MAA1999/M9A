@@ -63,7 +63,9 @@
                     "name": "分数上限",
                     "label": "$Option.WeShared.ScoreCap.Value",
                     "default": "9000",
-                    "pipeline_type": "int"
+                    "pipeline_type": "int",
+                    "verify": "^\\d+$",
+                    "pattern_msg": "$Option.WeShared.ScoreCap.msg"
                 }
             ],
             "pipeline_override": {
