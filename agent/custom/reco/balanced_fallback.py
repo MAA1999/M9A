@@ -28,6 +28,7 @@ from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_recognition import CustomRecognition
 from maa.define import RectType
+from utils.balanced_state import STAGE_TEXT_ROI
 from utils.logger import logger
 
 
@@ -158,7 +159,12 @@ class StageLookupFarLeft(CustomRecognition):
     # 原因是关卡列表项的**纵向位置随列表长度/滚动位置变化**，固定一行会漏。
     # 用户 2026-11-14 指定：改成整个下半屏 —— 上半屏有别的数字（等级、体力、
     # 各种计数），下半屏只有关卡列表，不会误判。
-    _ROI = (0, 360, 1280, 360)
+    #
+    # ⚠️ **必须与找目标关卡用的 ROI 相同**（`STAGE_TEXT_ROI`，入口会把它同时
+    # 覆盖到 `TargetStageName_OCR` 上）。两个识别看同一批像素，才不会出现
+    # 「找目标看不到、这里却看到 `01`」的矛盾判定 —— 那会把「目标就在屏幕上」
+    # 误判成「已滑到最左、目标确实不存在」并写入永久不可用记录。
+    _ROI = STAGE_TEXT_ROI
 
     def analyze(
         self,

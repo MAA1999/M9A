@@ -200,6 +200,12 @@ def _read_once(context: Context) -> str:
 
     try:
         image = context.tasker.controller.post_screencap().wait().get()
+    except (AttributeError, TypeError) as exc:
+        # 接口签名不对 = 代码或框架版本问题，不是「这一帧没截到」。
+        # 和下面识别块的处理保持一致：这类错误必须抛出去，否则会稳定返回空、
+        # 所有按账号分桶的记录都不再落盘，而用户只看到「未能读取游戏内 UID」。
+        logger.exception(f"UID 采样无法调用截图接口（这是程序错误，不是截图失败）: {exc}")
+        raise
     except Exception as exc:  # noqa: BLE001 - 截图偶发失败，本次算没读到
         logger.warning(f"UID 采样取帧失败（本次跳过）: {exc}")
         return ""

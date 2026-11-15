@@ -157,6 +157,10 @@ def _isolated_state(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPa
     # UID。不清掉的话，后续文件（如 test_warehouse_inventory）会用它当快照桶键，
     # 拿不到 `__default__` 桶 → KeyError。这里必须复位。
     _reset_record_id()
+    # ⚠️ 顺延状态机是**模块级单例**，用例跑完后必须清掉：`BalancedTaskEntry` /
+    # `StageLookupTimeout` 都会把它 `begin()` 成 active，残留的候选顺序会被
+    # 后续文件（如 test_balanced_farming）读到，导致选关结果对不上预期。
+    reset_planner()
 
 
 def _reset_record_id() -> None:
@@ -1111,3 +1115,23 @@ def test_entry_keeps_depot_maintain_when_uid_confirmed(tmp_path: Path, monkeypat
     plan = merged.get("BF_Plan") or {}
     params = ((plan.get("action") or {}).get("param") or {}).get("custom_action_param") or {}
     assert "depot_disabled" not in params, "UID 正常时不该动库存保持开关"
+
+
+def test_timeout_clears_planner_when_home_fails(tmp_path: Path) -> None:
+    """回主页失败按失败结束前，必须清掉模块级 planner 状态。
+
+    回归防护（CodeRabbit）：`_planner` 是跨任务存活的单例，
+    异常退出若不清，残留的 `active=True` 会让之后其它任务（如常规作战）
+    的 `StageLookupBudget` 识别也介入 —— 那些任务完全用不到顺延。
+    """
+    state = _planner_with([_material("110103", 1, ["7-26"])])
+    _scanned(state, "7-26")
+    assert state.active is True
+
+    # home_ok=False → 回家任务返回失败
+    context = _FakeContext(home_ok=False)
+
+    result = balanced_fallback.StageLookupTimeout().run(context, _FAKE_ARGV)
+
+    assert result.success is False, "回不了主页就该按失败结束"
+    assert planner().active is False, "异常退出前必须清掉 planner 状态"

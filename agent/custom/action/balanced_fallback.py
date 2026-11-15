@@ -584,6 +584,9 @@ class StageLookupTimeout(CustomAction):
                 # 回不了主页就不能「假装成功」：BF_Skipped 不导航，跳过去会把游戏
                 # 留在关卡列表页，后续任务从错误界面开始且没有任何错误提示。
                 logger.error("跳过均衡任务前未能回到主界面，本次按失败结束（避免把游戏留在关卡列表页）")
+                # 异常退出前必须清掉模块级单例状态：`_planner` 跨任务存活，
+                # 残留的 `active=True` 会介入之后其它任务（见 `finish_planner` 文档）。
+                finish_planner()
                 return CustomAction.RunResult(success=False)
             context.override_next(TIMEOUT_NODE, [SKIPPED_NODE])
             return CustomAction.RunResult(success=True)
@@ -617,6 +620,8 @@ class StageLookupTimeout(CustomAction):
         if detail is None or detail.status.failed:
             logger.error("顺延到下一候选前未能回到主界面，本次按失败结束（避免从错误界面开始选关）")
             context.override_next(TIMEOUT_NODE, [])
+            # 异常退出前必须清掉模块级单例状态（同上方跳过分支的理由）。
+            finish_planner()
             return CustomAction.RunResult(success=False)
 
         # 只改 stage / level 两个字段。

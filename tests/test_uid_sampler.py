@@ -205,3 +205,77 @@ def test_sample_rejects_malformed_readings() -> None:
     """三帧都带字母 → 采样仍然读不到（不会把错的值确认下来）。"""
     ctx = _Ctx(["ID:1184O4470"] * 6)
     assert uid_sampler.sample_uid(ctx) == ""  # type: ignore[arg-type]
+
+
+class _BrokenController:
+    """模拟接口签名不兼容：`post_screencap` 不接受调用方传的参数。"""
+
+    def post_screencap(self, *args: object, **kwargs: object) -> object:
+        raise TypeError("post_screencap() got an unexpected keyword argument")
+
+
+class _BrokenTasker:
+    controller = _BrokenController()
+
+
+class _BrokenContext:
+    tasker = _BrokenTasker()
+
+
+def test_read_once_reraises_interface_type_error() -> None:
+    """截图接口签名不匹配（`TypeError`）必须抛出，不能降级成「本次没读到」。
+
+    回归防护（CodeRabbit）：`_read_once()` 曾经用一个 `except Exception` 把
+    `AttributeError` / `TypeError` 也吞掉、返回空串。那样 MaaFW 升级改了接口之后，
+    6 次采样会稳定返回空 → 所有按账号分桶的记录都不再落盘，而用户只看到
+    「未能读取游戏内 UID」，日志里只有一堆 warning 级别的「取帧失败」，
+    完全看不出是接口不兼容。
+
+    识别块早就按这个原则分成两类，截图块当时漏了。
+    """
+    import pytest
+
+    with pytest.raises(TypeError):
+        uid_sampler._read_once(_BrokenContext())  # type: ignore[arg-type]
+
+
+class _MissingMethodController:
+    """模拟接口不存在：控制器上根本没有 `post_screencap`。"""
+
+    pass
+
+
+class _MissingMethodTasker:
+    controller = _MissingMethodController()
+
+
+class _MissingMethodContext:
+    tasker = _MissingMethodTasker()
+
+
+def test_read_once_reraises_missing_interface_attribute_error() -> None:
+    """截图接口不存在（`AttributeError`）同样必须抛出。"""
+    import pytest
+
+    with pytest.raises(AttributeError):
+        uid_sampler._read_once(_MissingMethodContext())  # type: ignore[arg-type]
+
+
+class _FlakyController:
+    """模拟截图偶发失败：抛一个普通运行时错误。"""
+
+    def post_screencap(self) -> object:
+        raise RuntimeError("画面还没准备好")
+
+
+class _FlakyTasker:
+    controller = _FlakyController()
+
+
+class _FlakyContext:
+    tasker = _FlakyTasker()
+
+
+def test_read_once_returns_empty_on_transient_capture_failure() -> None:
+    """偶发失败仍然返回空串（让采样继续），不能改成抛异常。"""
+    assert uid_sampler._read_once(_FlakyContext()) == ""  # type: ignore[arg-type]

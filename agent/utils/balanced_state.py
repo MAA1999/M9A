@@ -89,6 +89,14 @@ DROP_INDEX_PATH = Path("data/combat/drop_index.json")
 # 难度后缀：E=厄险（对应材料的 level=Hard），G=故事（对应 level=Story）
 LEVEL_SUFFIX = {"Hard": "E", "Story": "G", "None": ""}
 
+# 关卡列表里「关卡序号」文字的扫描范围（1280x720 基准）。
+#
+# 「找目标关卡」（`TargetStageName_OCR`）与「判断已滑到最左」
+# （`StageLookupFarLeft`）**必须用同一个范围** —— 两者看同一批像素才不会
+# 互相矛盾。关卡项的纵向位置随列表长度/滚动位置变化，所以取整个下半屏；
+# 上半屏有等级、体力、各种计数等别的数字，不能扩过去。
+STAGE_TEXT_ROI: tuple[int, int, int, int] = (0, 360, 1280, 360)
+
 # 资源族关卡没有主线章节号，用一个足够大的章节号排到主线之后
 _RESOURCE_CHAPTER = 9999
 

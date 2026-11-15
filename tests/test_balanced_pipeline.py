@@ -254,3 +254,39 @@ def test_far_left_node_disabled_by_default(fallback: dict[str, Any]) -> None:
     """
     assert fallback["StageLookupBudget"]["enabled"] is False
     assert fallback["StageLookupFarLeft"]["enabled"] is False
+
+
+def test_stage_lookup_far_left_uses_shared_stage_text_roi() -> None:
+    """远左判定与找目标关卡必须扫同一片区域。
+
+    回归防护（CodeRabbit, major）：`StageLookupFarLeft` 扫整个下半屏（关卡项的
+    纵向位置随列表长度/滚动位置变化），而 `TargetStageName_OCR` 原本只扫
+    `y=539..585`。当目标关卡落在 539..585 之外时，找目标看不到它、远左判定却
+    看得到那里的 `01`，于是把「目标就在屏幕上」误判成「已滑到最左、目标确实
+    不存在」，写入**永久**不可用记录。
+
+    所以两者共用 `balanced_state.STAGE_TEXT_ROI`，入口再把它覆盖到
+    `TargetStageName_OCR` 上。
+    """
+    # 直接读源码做 AST 检查，不 import `custom.*`：那些模块在导入时会注册
+    # 自定义动作/识别，跨文件跑测试时会让其它测试的模块图失效。
+    import ast
+    import pathlib
+
+    from utils.balanced_state import STAGE_TEXT_ROI
+
+    source = pathlib.Path("agent/custom/reco/balanced_fallback.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    class_node = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == "StageLookupFarLeft")
+    roi_assign = next(
+        n
+        for n in class_node.body
+        if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "_ROI" for t in n.targets)
+    )
+    assert isinstance(roi_assign.value, ast.Name) and roi_assign.value.id == "STAGE_TEXT_ROI", (
+        "StageLookupFarLeft._ROI 必须引用共享的 STAGE_TEXT_ROI，不能各自写一份"
+    )
+    # 必须覆盖整个下半屏：关卡项的纵向位置不固定
+    _, y, _, h = STAGE_TEXT_ROI
+    assert y <= 360, "扫描范围要从画面中部开始，否则关卡项落在上方时会漏"
+    assert y + h >= 720, "扫描范围要覆盖到画面底部"

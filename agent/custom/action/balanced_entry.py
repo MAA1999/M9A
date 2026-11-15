@@ -28,6 +28,7 @@ from maa.context import Context
 from maa.custom_action import CustomAction
 from utils import logger
 from utils.balanced_state import (
+    STAGE_TEXT_ROI,
     clear_all,
     current_uid,
     is_task_skipped,
@@ -112,10 +113,21 @@ class BalancedTaskEntry(CustomAction):
         # 识别，MaaFW 为了跑它们会强制截图并回调 agent。而 `StageLookupBudget` 被
         # 插在两个扫描尾节点的 `next` 首位、`StageLookupFarLeft` 插在左向扫描头里，
         # 默认启用会让**所有作战任务**每轮都多付这份开销。所以只在这里打开。
+        #
+        # 同时把找目标关卡的 ROI 扩到与 `StageLookupFarLeft` 相同的范围。
+        #
+        # ⚠️ **两个 ROI 必须一致**：`StageLookupFarLeft` 扫整个下半屏
+        # （`y=360..720`，因为关卡项的纵向位置随列表长度/滚动位置变化），
+        # 而 `TargetStageName_OCR` 原本只扫 `y=539..585`。当目标关卡落在
+        # 539..585 之外时，找目标看不到它、`StageLookupFarLeft` 却看得到那里的
+        # `01`（或别的章节的第一关），于是把「目标就在屏幕上」误判成
+        # 「已滑到最左、目标确实不存在」，并写入**永久**不可用记录。
+        # 只在本任务里覆盖，其它作战任务的原版行为不受影响。
         context.override_pipeline(
             {
                 "StageLookupBudget": {"enabled": True},
                 "StageLookupFarLeft": {"enabled": True},
+                "TargetStageName_OCR": {"recognition": {"param": {"roi": list(STAGE_TEXT_ROI)}}},
             }
         )
 
