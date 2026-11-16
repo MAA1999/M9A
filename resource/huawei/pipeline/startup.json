@@ -29,7 +29,15 @@
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                "target_offset": [
+                    7,
+                    7,
+                    -14,
+                    -14
+                ]
+            }
         },
         "post_wait_freezes": {
             "time": 300,
