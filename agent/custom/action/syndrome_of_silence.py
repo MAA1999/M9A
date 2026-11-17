@@ -18,7 +18,7 @@ from utils.runtime_paths import get_runtime_paths
 
 def _sos_data_path(name: str) -> Path:
     """data/sos 数据文件从包内只读 data/ 读取。"""
-    return get_runtime_paths().data_path(f"data/sos/{name}")
+    return get_runtime_paths().resolve(f"data/sos/{name}")
 
 
 __all__ = [

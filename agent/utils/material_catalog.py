@@ -32,7 +32,7 @@ ITEMS_REL_PATH = "data/combat/items.json"
 
 def _resolve(rel: str) -> Path:
     """数据文件从包内只读 data/ 读取。"""
-    return get_runtime_paths().data_path(rel)
+    return get_runtime_paths().resolve(rel)
 
 
 @dataclass(frozen=True)
