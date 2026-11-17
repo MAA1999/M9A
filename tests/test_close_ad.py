@@ -58,9 +58,10 @@ def _analyze(image: np.ndarray, **param_overrides: object) -> object:
     return CloseAd().analyze(None, argv)  # type: ignore[arg-type]
 
 
-def _pipeline(relative_path: str) -> dict[str, object]:
+def _pipeline(relative_path: str | Path) -> dict[str, object]:
+    """读 pipeline（jsonc）。只支持整行 // 注释——写成行内注释会让这里以 JSON 解析错误的形式红。"""
     text = (ROOT / relative_path).read_text(encoding="utf-8")
-    return json.loads(re.sub(r"^\s*//.*$", "", text, flags=re.MULTILINE))  # pipeline 是 jsonc
+    return json.loads(re.sub(r"^\s*//.*$", "", text, flags=re.MULTILINE))
 
 
 def _assert_located(result: object, shape: str) -> None:
@@ -114,8 +115,11 @@ def test_base_defines_close_ad_disabled_and_wires_it_into_startup() -> None:
         assert "[JumpBack]CloseAd" in base[parent]["next"], f"{parent}.next 未挂 CloseAd"  # type: ignore[index]
 
 
-def test_channel_resources_enable_close_ad() -> None:
-    """有启动广告的渠道各自开启，新增渠道时在这里补一条。"""
-    for channel in ("huawei", "bilibili"):
-        node = _pipeline(f"resource/{channel}/pipeline/startup.json")["CloseAd"]
-        assert node["enabled"] is True, f"{channel} 未开启 CloseAd"  # type: ignore[index]
+def test_only_expected_channels_enable_close_ad() -> None:
+    """有启动广告的渠道各自开启；新增渠道要在这里补一条，避免悄悄扩到其他渠道。"""
+    enabling = set()
+    for startup in sorted((ROOT / "resource").glob("*/pipeline/startup.json")):
+        node = _pipeline(startup.relative_to(ROOT)).get("CloseAd")
+        if isinstance(node, dict) and node.get("enabled") is True:
+            enabling.add(startup.parent.parent.name)
+    assert enabling == {"huawei", "bilibili"}, f"实际开启的渠道：{sorted(enabling)}"
