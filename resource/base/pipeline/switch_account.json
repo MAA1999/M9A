@@ -25,85 +25,19 @@
         ]
     },
     "SettingEntry": {
+        // 认齿轮图标而不是「设置」两个字：背景的时钟数字会挡住文字，但不怎么碰图标线条。
+        // 模板只留线条和贴着线条的一圈像素，其余涂成纯绿，green_mask 让它们不参与比对，背景怎么变都不影响。
         "recognition": {
-            "type": "Or",
+            "type": "TemplateMatch",
             "param": {
-                "any_of": [
-                    {
-                        "sub_name": "SettingText",
-                        "recognition": {
-                            "type": "OCR",
-                            "param": {
-                                "roi": [
-                                    33,
-                                    457,
-                                    515,
-                                    214
-                                ],
-                                "expected": "[设置]"
-                            }
-                        }
-                    },
-                    {
-                        "sub_name": "SettingBetweenNeighbors",
-                        "recognition": {
-                            "type": "And",
-                            "param": {
-                                "all_of": [
-                                    {
-                                        "sub_name": "SignInText",
-                                        "recognition": {
-                                            "type": "OCR",
-                                            "param": {
-                                                "roi": [
-                                                    173,
-                                                    575,
-                                                    91,
-                                                    60
-                                                ],
-                                                "expected": "签到"
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "sub_name": "UdimoriumText",
-                                        "recognition": {
-                                            "type": "OCR",
-                                            "param": {
-                                                "roi": [
-                                                    399,
-                                                    575,
-                                                    115,
-                                                    60
-                                                ],
-                                                "expected": "冲印箱"
-                                            }
-                                        }
-                                    },
-                                    {
-                                        // 「设置」所在的格子，也是兜底命中时的点击范围（DirectHit 的框就是 roi）。
-                                        // 坐标取自同一页的 OCR 实测（720p）：公告 [79,588,52,32]、签到 [193,590,51,30]、
-                                        // 冲印箱 [419,590,75,28]，上一排同列是好友 [307,502,50,31]，所以「设置」是第二排第 3 格。
-                                        // 菜单排版变了要和上面 SignInText、UdimoriumText 的 roi 一起改。
-                                        "sub_name": "SettingSlot",
-                                        "recognition": {
-                                            "type": "DirectHit",
-                                            "param": {
-                                                "roi": [
-                                                    306,
-                                                    588,
-                                                    52,
-                                                    32
-                                                ]
-                                            }
-                                        }
-                                    }
-                                ],
-                                "box_index": 2
-                            }
-                        }
-                    }
-                ]
+                "roi": [
+                    33,
+                    457,
+                    515,
+                    214
+                ],
+                "template": "SwitchAccount/SettingGear.png",
+                "green_mask": true
             }
         },
         "action": {
