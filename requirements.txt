@@ -5,7 +5,7 @@ certifi==2026.10.23
 charset-normalizer==3.5.2
 colorama==0.4.6 ; sys_platform == 'win32'
 idna==3.20
-loguru>=0.8.0
+loguru==0.8.0
 maaagentbinary==1.0.1
 maafw==5.16.1
 numpy==2.5.3
