@@ -153,7 +153,11 @@ def test_link_work_root_noop_when_roots_identical(tmp_path: Path) -> None:
 
 
 def test_link_work_root_skips_a_project_local_work_root(tmp_path: Path) -> None:
-    """work_root 位于 project_root 内时，数据目录自身已存在，天然被"存在即跳过"挡住。"""
+    """work_root 位于 project_root 内时，数据目录自身由 link_work_root 的自引用 guard 跳过。
+
+    断言的 work_root/userdata 在跳过前并不存在，"已存在即跳过"分支够不到它——
+    真正挡住自指链接的是 guard，这个用例就是守它的。
+    """
     project_root = tmp_path / "project"
     project_root.mkdir()
     _touch(project_root / "data/a.json", 1000)
