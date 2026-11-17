@@ -1192,7 +1192,7 @@
                             },
                             "minItems": 1,
                             "uniqueItems": true,
-                            "description": "要匹配的关闭按钮形态，默认两种都试：circle_x=「圆圈+X」，x=纯「X」（无外圈）；命中分最高的形态胜出"
+                            "description": "要匹配的关闭按钮形态，默认两种都试：circle_x=「圆圈+X」，x=纯「X」（无外圈）。列表顺序即优先级：前者达标就取前者，故圆圈+X 命中时框更贴合按钮"
                         },
                         "threshold": {
                             "type": "number",
@@ -1204,7 +1204,7 @@
                             "type": "number",
                             "minimum": 0,
                             "maximum": 1,
-                            "description": "纯「X」形态的 F1 命中阈值，默认 0.7（实测真按钮 0.73~0.99，纯色底/纯噪点 ≤0.41）"
+                            "description": "纯「X」形态的 F1 命中阈值，默认 0.7（实测真按钮 0.75~0.98，噪点/图标网格等非目标画面 ≤0.67）"
                         },
                         "min_scale": {
                             "type": "number",

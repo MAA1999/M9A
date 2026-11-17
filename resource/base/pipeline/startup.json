@@ -505,7 +505,7 @@
             "param": {
                 "custom_recognition": "CloseAd",
                 "custom_recognition_param": {
-                    // 两种形态都试：「圆圈 + X」与纯「X」（无外圈）
+                    // 两种形态都试：「圆圈 + X」与纯「X」（无外圈）；列表顺序即优先级
                     "shapes": [
                         "circle_x",
                         "x"

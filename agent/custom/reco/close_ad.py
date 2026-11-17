@@ -36,6 +36,12 @@ TEMPLATE_BASE_SIZE = 64  # 模板基准直径，实际匹配时按 scale 缩放
 STROKE_RATIO = 1.0 / 18.0
 MIN_HIT_RATIO = 0.3  # 命中至少要覆盖这么多模板笔画，避免极小模板匹配到零星噪点
 MIN_HIT_PIXELS = 6
+# 笔画半宽下限（px）。真实按钮的笔画不跟着按钮等比变细：样片里 X 的笔画约占边长的
+# 1/10，而模板比例是 1/18，小尺寸下按比例缩放会把笔画压成亚像素，F1 被窗口里的多余
+# 笔画拖低而漏检。两种形态分开设——把「圆圈 + X」也加粗，它在噪点画面上的误配分会从
+# 0.49 涨到 0.73；只有纯 X 加下限时同一张噪点画面仍只有 0.55，与真按钮 0.75~0.98 分得开
+CIRCLE_X_STROKE_HALF = 0.5
+X_STROKE_HALF = 0.75
 
 # 两种广告关闭按钮形态：「圆圈 + X」（华为服实测）与纯「X」（无外圈的那种）
 SHAPE_CIRCLE_X = "circle_x"
@@ -68,7 +74,7 @@ def _build_close_icon_mask(size: int = TEMPLATE_BASE_SIZE) -> np.ndarray:
     yy, xx = np.mgrid[0:size, 0:size].astype(np.float64)
     center = (size - 1) / 2.0
     radius = size / 2.0 - 1.0
-    half_stroke = max(0.5, size * STROKE_RATIO / 2.0)
+    half_stroke = max(CIRCLE_X_STROKE_HALF, size * STROKE_RATIO / 2.0)
 
     ring = np.abs(np.sqrt((xx - center) ** 2 + (yy - center) ** 2) - radius) <= half_stroke
     # 内部 X：两条对角线
@@ -85,7 +91,7 @@ def _build_cross_mask(size: int = TEMPLATE_BASE_SIZE) -> np.ndarray:
         raise ValueError(f"模板尺寸过小: {size}")
 
     yy, xx = np.mgrid[0:size, 0:size].astype(np.float64)
-    half_stroke = max(0.5, size * STROKE_RATIO / 2.0)
+    half_stroke = max(X_STROKE_HALF, size * STROKE_RATIO / 2.0)
     low, high = half_stroke, size - 1 - half_stroke
     return _capsule(xx, yy, (low, low), (high, high), half_stroke) | _capsule(
         xx, yy, (high, low), (low, high), half_stroke
@@ -95,15 +101,6 @@ def _build_cross_mask(size: int = TEMPLATE_BASE_SIZE) -> np.ndarray:
 def _build_mask(shape: str, size: int = TEMPLATE_BASE_SIZE) -> np.ndarray:
     """按形态取模板掩码；未知形态按「圆圈 + X」处理。"""
     return _build_cross_mask(size) if shape == SHAPE_X else _build_close_icon_mask(size)
-
-
-def _resize_mask(mask: np.ndarray, size: int) -> np.ndarray:
-    """把 bool 掩码最近邻缩放到 ``size × size``。"""
-    if size < 4:
-        return np.zeros((0, 0), dtype=bool)
-    src = mask.shape[0]
-    idx = np.clip((np.arange(size) * src) // size, 0, src - 1)
-    return mask[idx][:, idx]
 
 
 def _next_fast_len(size: int) -> int:
@@ -289,7 +286,6 @@ class CloseAd(CustomRecognition):
         best_by_shape: dict[str, tuple[float, tuple[int, int, int, int], dict[str, Any]]] = {}
 
         for shape in shapes:
-            template = _build_mask(shape)
             scale = min_scale
             while scale <= max_scale + 1e-9:
                 side = int(round(TEMPLATE_BASE_SIZE * scale))
@@ -297,7 +293,8 @@ class CloseAd(CustomRecognition):
                     scale += scale_step
                     continue
 
-                scaled = _resize_mask(template, side)
+                # 按目标尺寸直接生成（而不是缩放 64px 模板）：小尺寸下笔画要保住绝对宽度
+                scaled = _build_mask(shape, side)
                 template_count = int(scaled.sum())
                 if template_count < MIN_HIT_PIXELS:
                     scale += scale_step
@@ -332,19 +329,17 @@ class CloseAd(CustomRecognition):
                     )
                 scale += scale_step
 
-        accepted = [
-            (score, box, detail)
-            for shape, (score, box, detail) in best_by_shape.items()
-            if score >= shape_thresholds[shape]
-        ]
-        if not accepted:
-            missed = {shape: detail for shape, (_, _, detail) in best_by_shape.items()}
-            logger.debug(f"[CloseAd] 未命中 | {missed} | node={argv.node_name}")
-            return CustomRecognition.AnalyzeResult(box=None, detail={"reason": "未达到阈值", "missed": missed})
+        # 按 shapes 顺序取第一个达标的形态：圆圈+X 多一圈笔画佐证，命中更可信、
+        # 框也更贴合按钮（纯 X 常只框住内圈那个 X，点击点一样但框更小）
+        for shape in shapes:
+            score, box, detail = best_by_shape.get(shape, (0.0, (0, 0, 0, 0), {}))
+            if score >= shape_thresholds[shape]:
+                logger.debug(f"[CloseAd] 命中 | box={box} {detail} | node={argv.node_name}")
+                return CustomRecognition.AnalyzeResult(box=box, detail=detail)
 
-        _, best_box, best_detail = max(accepted, key=lambda item: item[0])
-        logger.debug(f"[CloseAd] 命中 | box={best_box} {best_detail} | node={argv.node_name}")
-        return CustomRecognition.AnalyzeResult(box=best_box, detail=best_detail)
+        missed = {shape: detail for shape, (_, _, detail) in best_by_shape.items()}
+        logger.debug(f"[CloseAd] 未命中 | {missed} | node={argv.node_name}")
+        return CustomRecognition.AnalyzeResult(box=None, detail={"reason": "未达到阈值", "missed": missed})
 
     @staticmethod
     def _to_gray(image: np.ndarray) -> np.ndarray | None:

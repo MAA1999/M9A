@@ -41,13 +41,13 @@ def _circle_x_screen(radius: int = 13) -> np.ndarray:
     return _to_bgr(image)
 
 
-def _bare_x_screen(radius: int = 13) -> np.ndarray:
+def _bare_x_screen(radius: int = 13, width: int = 2) -> np.ndarray:
     """纯「X」：没有外圈的那种关闭按钮。"""
     cx, cy = ICON_CENTER
     image = _blank()
     draw = ImageDraw.Draw(image)
-    draw.line([cx - radius, cy - radius, cx + radius, cy + radius], fill=(255, 255, 255), width=2)
-    draw.line([cx + radius, cy - radius, cx - radius, cy + radius], fill=(255, 255, 255), width=2)
+    draw.line([cx - radius, cy - radius, cx + radius, cy + radius], fill=(255, 255, 255), width=width)
+    draw.line([cx + radius, cy - radius, cx - radius, cy + radius], fill=(255, 255, 255), width=width)
     return _to_bgr(image)
 
 
@@ -85,6 +85,11 @@ def test_bare_x_is_located() -> None:
 def test_bare_x_is_located_at_small_size() -> None:
     """小一号的纯 X（20px）也要命中，否则小按钮会漏。"""
     _assert_located(_analyze(_bare_x_screen(radius=10)), "x")
+
+
+def test_bare_x_with_thick_stroke_is_located() -> None:
+    """真实按钮的笔画比模板比例更粗（样片实测约占边长 1/10），加粗后仍要命中。"""
+    _assert_located(_analyze(_bare_x_screen(radius=13, width=3)), "x")
 
 
 def test_shapes_can_be_restricted_to_circle_only() -> None:
