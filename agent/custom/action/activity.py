@@ -23,7 +23,7 @@ def _load_activity_data(resource: str) -> dict[str, Any]:
 
     数据文件随包发布，从包内只读 data/ 读取。
     """
-    path = get_runtime_paths().data_path(f"data/activity/{resource}.json")
+    path = get_runtime_paths().resolve(f"data/activity/{resource}.json")
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
     if not isinstance(data, dict):

@@ -39,9 +39,9 @@ def snapshot_read_path(path: Path | str | None = None) -> Path:
     绝对路径（测试临时目录）原样使用。"""
     paths = get_runtime_paths()
     if path is None:
-        return paths.user_path(SNAPSHOT_REL_PATH)
+        return paths.work_root / SNAPSHOT_REL_PATH
     candidate = Path(path)
-    return candidate if candidate.is_absolute() else paths.user_path(candidate)
+    return candidate if candidate.is_absolute() else paths.work_root / candidate
 
 
 def snapshot_write_path(path: Path | str | None = None) -> Path:

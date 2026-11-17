@@ -68,18 +68,13 @@ def run_agent(project_root_dir: str) -> int:
     # main.py 已把 cwd 指到数据目录；把包内只读条目链接过去（data/、resource/、agent/、
     # interface.json 等），让按 cwd 读相对路径的组件（libs/drop_core.pyd 读
     # data/combat/*.json 与 ./interface.json、仓库/SOS/掉落模板读 resource/base/image/...）
-    # 拿到与 data_path() 同一份文件；config/、debug/ 保持真实目录。
+    # 拿到与 resolve() 同一份文件；config/、debug/ 保持真实目录。
     try:
-        linked, failed = link_work_root(get_runtime_paths())
-        if failed:
-            logger.warning(
-                f"{failed} 个包内条目未能链接进数据目录（符号链接不可用或权限不足），"
-                "按 cwd 读取 data/resource 的组件可能读不到数据"
-            )
+        linked = link_work_root(get_runtime_paths())
         if linked:
-            logger.debug(f"已更新 {linked} 个数据目录链接（含旧版 data/interface.json 迁移）")
+            logger.debug(f"已向数据目录链接 {linked} 个包内条目")
     except OSError as error:
-        logger.warning(f"读取项目目录失败（{error}），二进制插件可能读不到包内数据")
+        logger.warning(f"数据目录链接失败（{error}），按 cwd 读取的相对路径可能找不到包内资源")
 
     # debug:纯诊断信息，不进 GUI 日志打扰用户；agent 文件 sink 固定 DEBUG 级，排查时 debug/custom/*.log 里仍有
     logger.debug("MaaFW 二进制目录: {}", os.environ.get(ENV_NAME) or "wheel 自带 (site-packages/maa/bin)")
