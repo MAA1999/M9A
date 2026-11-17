@@ -538,6 +538,10 @@
         "post_wait_freezes": {
             "time": 300,
             "target": true
+        },
+        // 广告弹窗是否弹出不确定，真机难以复现；命中时在任务日志留一行，便于用户反馈是否生效
+        "focus": {
+            "Node.Recognition.Succeeded": "关闭启动广告"
         }
     },
     "HomeFlag": {
