@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import importlib.metadata
-import json
 import os
 import sys
-from typing import Any
 
 from maafw_paths import ENV_NAME
 from utils.logger import logger
@@ -12,7 +10,7 @@ from utils.runtime_paths import (
     configure_runtime_paths,
     default_work_root,
     get_runtime_paths,
-    seed_work_root,
+    link_work_root,
 )
 
 PI_ENV_KEYS = (
@@ -26,115 +24,6 @@ PI_ENV_KEYS = (
     "PI_CONTROLLER",
     "PI_RESOURCE",
 )
-
-
-# -------------
-# region 启动时的版本检查与资源热更新
-# -------------
-def _read_hot_update_config() -> dict[str, Any]:
-    """读取热更新配置"""
-    paths = get_runtime_paths()
-    config_path = paths.config_dir / "hot_update.json"
-    if not config_path.exists():
-        return {"enable_hot_update": True}
-    try:
-        with open(config_path, encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        logger.exception("读取 hot_update.json 失败，使用默认配置")
-        return {"enable_hot_update": True}
-
-
-# manifest → 用户可理解的功能，用于热更新失败时说明影响范围
-_MANIFEST_FEATURE_HINTS = {
-    "data/activity/manifest.json": "活动代币刷取 / 复刻活动",
-    "data/combat/manifest.json": "常规作战",
-    "data/redeem_code/manifest.json": "使用兑换码",
-    "data/sos/manifest.json": "局外演绎：无声综合征",
-}
-
-
-def _describe_hot_update_failure(update_result: dict[str, Any]) -> str:
-    """把热更新失败整理成用户能看懂的一段话（含影响范围与重试方式）。"""
-    failed_files = list(update_result.get("failed_files") or [])
-    failed_manifests = list(update_result.get("failed_manifests") or [])
-    updated_files = list(update_result.get("updated_files") or [])
-
-    lines = ["资源热更新未完成，以下功能可能仍在使用旧数据："]
-    if failed_manifests:
-        hints = [f"{m}（{_MANIFEST_FEATURE_HINTS.get(m, '未知功能')}）" for m in failed_manifests]
-        lines.append(f"- 未更新：{'; '.join(hints)}")
-    if failed_files:
-        lines.append(f"- 校验失败的文件：{', '.join(failed_files)}")
-    lines.append(f"- 本次已更新 {len(updated_files)} 个文件；失败的文件保持旧版本")
-    lines.append("- 下次启动会自动重试；若反复失败，请携带 debug/custom 日志反馈")
-    if update_result.get("error"):
-        lines.append(f"- 失败原因：{update_result['error']}")
-    return "\n".join(lines)
-
-
-def _check_resource_version() -> None:
-    """版本检查"""
-    from utils.version_checker import check_resource_version
-
-    version_info = check_resource_version()
-    if not version_info["is_latest"]:
-        logger.warning("检测到资源有新版本!")
-        logger.warning(f"当前资源版本: {version_info['current_version']}")
-        logger.warning(f"最新资源版本: {version_info['latest_version']}")
-    elif version_info["error"]:
-        logger.debug(f"资源版本检查遇到问题: {version_info['error']}")
-
-
-def _hot_update() -> None:
-    """热更新：基于 manifest 时间戳优化"""
-    hot_update_conf = _read_hot_update_config()
-    if not hot_update_conf.get("enable_hot_update", True):
-        logger.info("已配置为跳过部分资源热更")
-        return
-
-    from utils.manifest_checker import (
-        check_manifest_updates,
-        save_manifest_cache_from_result,
-    )
-
-    manifest_result = check_manifest_updates()
-    should_save_manifest_cache = manifest_result["success"] and not manifest_result["has_any_update"]
-
-    if manifest_result["success"] and not manifest_result["has_any_update"]:
-        logger.debug("资源无更新，跳过热更新")
-    else:
-        updated_manifests = manifest_result.get("updated_manifests", [])
-
-        if updated_manifests or not manifest_result["success"]:
-            from utils.resource_updater import check_and_update_resources
-
-            manifests = updated_manifests if manifest_result["success"] else None
-            if manifests:
-                logger.debug(f"开始更新 {len(manifests)} 个资源清单...")
-            else:
-                logger.debug("开始检查所有资源...")
-
-            update_result = check_and_update_resources(resource_manifests=manifests)
-            if update_result and update_result.get("success"):
-                should_save_manifest_cache = manifest_result["success"]
-            elif update_result:
-                # 失败要留下用户能看懂的结论：哪些功能没更新、怎么重试
-                logger.warning(_describe_hot_update_failure(update_result))
-            else:
-                logger.warning("资源热更新未成功（未返回结果），下次启动会自动重试")
-        else:
-            logger.debug("所有 manifest 无更新，跳过热更新")
-
-    if should_save_manifest_cache:
-        save_manifest_cache_from_result(manifest_result)
-    else:
-        logger.debug("热更新未完整成功，保留原 manifest 缓存")
-
-
-# -------------
-# endregion
-# -------------
 
 
 # -------------
@@ -176,17 +65,21 @@ def run_agent(project_root_dir: str) -> int:
     # to, so the working directory is only a fallback for clients that do not set the variable.
     configure_runtime_paths(project_root=project_root_dir, work_root=default_work_root())
 
-    # main.py 已把 cwd 指到数据目录；把包内基线接过去（data/、config/、interface.json
-    # 复制；resource/、agent/ 等只读资产符号链接），让按 cwd 读相对路径的组件
-    # （libs/drop_core.pyd 读 data/combat/*.json 与 ./interface.json、仓库/SOS/掉落
-    # 模板读 resource/base/image/...）拿到与 resolve() 同一份文件。
+    # main.py 已把 cwd 指到数据目录；把包内只读条目链接过去（data/、resource/、agent/、
+    # interface.json 等），让按 cwd 读相对路径的组件（libs/drop_core.pyd 读
+    # data/combat/*.json 与 ./interface.json、仓库/SOS/掉落模板读 resource/base/image/...）
+    # 拿到与 data_path() 同一份文件；config/、debug/ 保持真实目录。
     try:
-        seeded = seed_work_root(get_runtime_paths())
-        if seeded:
-            logger.debug(f"已向数据目录播种 {seeded} 个基线文件")
+        linked, failed = link_work_root(get_runtime_paths())
+        if failed:
+            logger.warning(
+                f"{failed} 个包内条目未能链接进数据目录（符号链接不可用或权限不足），"
+                "按 cwd 读取 data/resource 的组件可能读不到数据"
+            )
+        if linked:
+            logger.debug(f"已更新 {linked} 个数据目录链接（含旧版 data/interface.json 迁移）")
     except OSError as error:
-        # 播种失败不致命：resolve() 仍会回落到包内基线，仅按 cwd 读的组件拿到旧数据
-        logger.warning(f"数据目录基线播种失败（{error}），二进制插件可能读到包内旧数据")
+        logger.warning(f"读取项目目录失败（{error}），二进制插件可能读不到包内数据")
 
     # debug:纯诊断信息，不进 GUI 日志打扰用户；agent 文件 sink 固定 DEBUG 级，排查时 debug/custom/*.log 里仍有
     logger.debug("MaaFW 二进制目录: {}", os.environ.get(ENV_NAME) or "wheel 自带 (site-packages/maa/bin)")
@@ -205,12 +98,6 @@ def run_agent(project_root_dir: str) -> int:
 
     # 必须在导入 maa.agent 之后调用，原因见 _log_maafw_version
     _log_maafw_version()
-
-    # 版本检查
-    _check_resource_version()
-
-    # 热更新
-    _hot_update()
 
     import custom
 

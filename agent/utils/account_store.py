@@ -12,7 +12,7 @@ DEFAULT_ACCOUNT_KEY = "__default__"
 
 def config_read_path(rel: str | Path) -> Path:
     """用户配置读路径：数据目录存在即赢（旧的用户配置也优先），包内基线兜底。"""
-    return get_runtime_paths().resolve_user(rel)
+    return get_runtime_paths().user_path(rel)
 
 
 def config_write_path(rel: str | Path) -> Path:

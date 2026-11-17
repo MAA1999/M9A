@@ -25,8 +25,8 @@ STRATEGY_REL_PATH = "data/critter_crash/strategy-4.0.json"
 
 
 def _default_strategy_path() -> Path:
-    """默认策略表按覆盖层解析：数据目录里的热更文件优先，包内基线兜底。"""
-    return get_runtime_paths().resolve(STRATEGY_REL_PATH)
+    """默认策略表从包内只读 data/ 读取。"""
+    return get_runtime_paths().data_path(STRATEGY_REL_PATH)
 
 
 class StrategyError(ValueError):
@@ -1684,8 +1684,8 @@ class CCResetData(CustomAction):
         except ValueError as e:
             logger.warning(f"CCResetData 参数非法（{e}），使用默认策略表")
 
-        # strategy_file 是 pipeline 参数给的相对路径，同样走覆盖层解析
-        path = get_runtime_paths().resolve(strategy_file if strategy_file else STRATEGY_REL_PATH)
+        # strategy_file 是 pipeline 参数给的相对路径，从包内只读数据目录读取
+        path = get_runtime_paths().data_path(strategy_file if strategy_file else STRATEGY_REL_PATH)
         try:
             CCChessboard.reload_strategy(path)
         except (OSError, ValueError) as e:

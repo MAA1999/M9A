@@ -678,27 +678,3 @@ For Mac users using PlayCover, select PlayCover in the **Controller Type** secti
 > [!IMPORTANT]
 >
 > Most tasks need to be configured correctly before use, and some tasks also need to be executed in specific scenarios according to task descriptions. Before enabling tasks, please ensure you have read and understood the **Task Description** for that task, and configure **Task Settings** according to actual situations. For more information about tasks, please refer to [Feature Introduction](./introduction.md).
-
----
-
-#### Settings
-
-##### Resource Hot Update Configuration
-
-M9A supports configuring hot update settings for certain resources (such as activity opening times) via the `config/hot_update.json` file.
-
-  <details>
-    <summary>config/hot_update.json Example</summary>
-    <p></p>
-    <blockquote>
-
-```jsonc
-{
-    "enable_hot_update": true, // Whether to enable hot update for certain resources, default is true
-}
-```
-
-  </blockquote>
-  </details>
-
----

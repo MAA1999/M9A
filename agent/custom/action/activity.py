@@ -12,7 +12,7 @@ from utils.maa_types import ocr_text
 from utils.params import parse_params
 from utils.runtime_paths import get_runtime_paths
 
-# 活动数据由热更新下发，可能比代码更旧或缺少字段，因此下面所有字段访问都容错：
+# 活动数据随包发布，字段仍可能因版本差异缺失，因此下面所有字段访问都容错：
 # 缺字段应表现为"该活动不可用"，而不是抛异常带崩整条流程。
 # 复刻流程曾在数据缺少 name 字段时抛 KeyError，而 MaaFW 的 ctypes 回调不会把
 # Python 异常当作失败（节点仍记为成功），复刻识别因此拿到空别名、误点了当期活动的卡片。
@@ -21,10 +21,9 @@ from utils.runtime_paths import get_runtime_paths
 def _load_activity_data(resource: str) -> dict[str, Any]:
     """读取活动数据文件，只保证顶层是对象。
 
-    经 ``RuntimePaths.resolve`` 走覆盖层：热更下载到数据目录的同名文件优先，
-    包内基线在数据目录还没有文件时兜底。
+    数据文件随包发布，从包内只读 data/ 读取。
     """
-    path = get_runtime_paths().resolve(f"data/activity/{resource}.json")
+    path = get_runtime_paths().data_path(f"data/activity/{resource}.json")
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
     if not isinstance(data, dict):
