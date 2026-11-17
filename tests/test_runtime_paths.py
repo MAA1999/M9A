@@ -30,6 +30,15 @@ def test_default_work_root_ignores_blank_user_data_dir(monkeypatch) -> None:
     assert runtime_paths.default_work_root() == Path.cwd()
 
 
+def test_default_work_root_resolves_a_relative_user_data_dir(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("PI_USER_DATA_DIR", "userdata")
+
+    # main.py 在 chdir 前会把值写回成绝对路径；这里单独验证回退分支也不会返回相对路径，
+    # 否则 chdir 之后 build_runtime_paths 会按新 cwd 再解析一次，数据目录多嵌一层。
+    assert runtime_paths.default_work_root() == tmp_path / "userdata"
+
+
 def test_build_runtime_paths_keeps_package_reads_on_the_bundle_root(tmp_path: Path) -> None:
     project_root = tmp_path / "M9A.app/Contents/Resources/MXU-portable"
     work_root = tmp_path / "user-data"
