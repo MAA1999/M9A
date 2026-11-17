@@ -53,14 +53,19 @@ def link_work_root(paths: RuntimePaths) -> int:
     等建成指向包内实际路径的符号链接；指错（.app 被移动）会重链，用户自建的同名真实
     文件不碰。``config/``、``debug/`` 不链。
 
-    ``work_root == project_root``（便携客户端）时无事可做。
+    ``work_root == project_root``（便携客户端）时无事可做；``work_root`` 位于项目内时
+    跳过数据目录自身及包含它的祖先，否则会给 ``work_root`` 建出指回自身的链接。
     """
     if paths.work_root == paths.project_root:
         return 0
     linked = 0
     for entry in paths.project_root.iterdir():
-        if entry.name not in _WORK_ROOT_OWNED_ENTRIES:
-            linked += _ensure_link(paths.work_root / entry.name, entry)
+        if entry.name in _WORK_ROOT_OWNED_ENTRIES:
+            continue
+        real_entry = entry.resolve()
+        if paths.work_root == real_entry or paths.work_root.is_relative_to(real_entry):
+            continue
+        linked += _ensure_link(paths.work_root / entry.name, entry)
     return linked
 
 

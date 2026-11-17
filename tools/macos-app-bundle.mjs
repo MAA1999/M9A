@@ -187,7 +187,9 @@ function moveEntry(source, target) {
         renameSync(source, target);
     } catch (error) {
         if (error.code !== "EXDEV") throw error;
-        cpSync(source, target, {recursive: true});
+        // Default cpSync rewrites nested links (python3 → python3.13) as absolute paths;
+        // deleting the source then leaves a dangling interpreter.
+        cpSync(source, target, {recursive: true, verbatimSymlinks: true});
         rmSync(source, {recursive: true, force: true});
     }
 }

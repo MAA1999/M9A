@@ -128,3 +128,39 @@ def test_fallback_stacklevel_points_at_caller(caplog) -> None:
     assert record.funcName == "test_fallback_stacklevel_points_at_caller"
     assert record.filename == Path(__file__).name
     assert record.lineno == caller_lineno
+
+
+class _ListHandler(logging.Handler):
+    def __init__(self) -> None:
+        super().__init__()
+        self.records: list[logging.LogRecord] = []
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self.records.append(record)
+
+
+def _brace_logger() -> tuple[logging.Logger, _ListHandler]:
+    from agent.utils.logger import _BraceFormatLogger
+
+    handler = _ListHandler()
+    wrapped = logging.getLogger("m9a-brace-format-test")
+    wrapped.handlers.clear()
+    wrapped.propagate = False
+    wrapped.setLevel(logging.DEBUG)
+    wrapped.addHandler(handler)
+    return _BraceFormatLogger(wrapped), handler  # type: ignore[return-value]
+
+
+def test_brace_logger_leaves_percent_placeholders_to_stdlib() -> None:
+    """%s 消息不能走 str.format：format 会忽略多余参数，%s 会原样打进日志。"""
+    logger, handler = _brace_logger()
+    logger.error("DisableNode: %s", "missing")
+
+    assert handler.records[0].getMessage() == "DisableNode: missing"
+
+
+def test_brace_logger_expands_brace_placeholders() -> None:
+    logger, handler = _brace_logger()
+    logger.debug("{}={}", "key", "value")
+
+    assert handler.records[0].getMessage() == "key=value"
