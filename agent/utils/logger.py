@@ -141,6 +141,16 @@ def _enrich_console_message(record: Any) -> bool:
     return True
 
 
+def _enrich_file_template(record: Any) -> bool:
+    """把 loguru 0.8 的 record["template"]（原始未 format 消息模板）塞回 record.extra。
+
+    无占位符时 template 与 message 相同，按模板聚合等价于按 message，此时清空省一格。
+    """
+    template = record["template"]
+    record["extra"]["template"] = f" | tpl={template}" if template != str(record["message"]) else ""
+    return True
+
+
 _FILE_FORMAT = logging.Formatter("%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)d | %(message)s")
 _std_logger = logging.getLogger("m9a")
 
@@ -230,7 +240,8 @@ def _setup_loguru_logger(log_dir: str = "debug/custom", console_level: str = "IN
         retention="2 weeks",
         compression="zip",
         level="DEBUG",
-        format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} | {message}",
+        filter=_enrich_file_template,
+        format="{time:YYYY-MM-DD HH:mm:ss.SSSZ} | {level: <8} | {name}:{function}:{line} | {message}{extra[template]}",
         encoding="utf-8",
         enqueue=True,
         backtrace=True,

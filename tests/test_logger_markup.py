@@ -10,6 +10,7 @@ from agent.utils.logger import (
     _CONSOLE_FORMAT,
     _ConsoleFormatter,
     _enrich_console_message,
+    _enrich_file_template,
     _format_mfaa_message,
     _format_mxu_html_message,
 )
@@ -164,3 +165,52 @@ def test_brace_logger_expands_brace_placeholders() -> None:
     logger.debug("{}={}", "key", "value")
 
     assert handler.records[0].getMessage() == "key=value"
+
+
+def _file_log_record(message: str, *args: object) -> logging.LogRecord:
+    """走 loguru 0.8 真实路径取 record，再喂给文件 sink 的 template filter 与 format。"""
+    records = []
+
+    def sink(msg) -> None:
+        records.append(msg.record)
+
+    sink_id = loguru_logger.add(sink, format="{message}")
+    try:
+        loguru_logger.debug(message, *args)
+    finally:
+        loguru_logger.remove(sink_id)
+    return records[0]
+
+
+def test_file_sink_template_field_tracks_brace_call_sites() -> None:
+    """有占位符时文件日志应附 template（同一调用点不同参数聚成一条的关键）。"""
+    record = _file_log_record("{}={}", "key", "value")
+    _enrich_file_template(record)
+    assert record["extra"]["template"] == " | tpl={}={}"
+
+
+def test_file_sink_template_field_blank_when_no_placeholders() -> None:
+    """无占位符时 message 即 template，按 message 聚合等价，附字段留空省一格。"""
+    record = _file_log_record("plain literal")
+    _enrich_file_template(record)
+    assert record["extra"]["template"] == ""
+
+
+def test_file_sink_format_appends_timezone_and_template() -> None:
+    """文件 sink 的 format 必须带时区偏移（跨时区排查不用猜）+ template 字段。"""
+    buf = io.StringIO()
+    sink_id = loguru_logger.add(
+        buf,
+        format="{time:YYYY-MM-DD HH:mm:ss.SSSZ} | {level: <8} | {name}:{function}:{line} | {message}{extra[template]}",
+        filter=_enrich_file_template,
+    )
+    try:
+        loguru_logger.debug("{}={}", "key", "value")
+    finally:
+        loguru_logger.remove(sink_id)
+    line = buf.getvalue().rstrip("\n")
+    # 末尾的时区偏移如 +08:00 / -05:00 / Z
+    import re
+
+    assert re.search(r"\d{2}:\d{2}:\d{2}\.\d{3}(?:Z|[+-]\d{2}:\d{2}) \| DEBUG", line)
+    assert line.endswith("key=value | tpl={}={}")
