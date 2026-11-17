@@ -3,6 +3,7 @@
         "post_wait_freezes": 300,
         "timeout": 60000,
         "next": [
+            "[JumpBack]CloseAd",
             "[JumpBack]Confirm",
             "HomeFlagFirst",
             "StartGame",
@@ -148,6 +149,7 @@
             }
         },
         "next": [
+            "[JumpBack]CloseAd",
             "[JumpBack]Confirm",
             "HomeFlagFirst",
             "StartGame",
@@ -488,6 +490,48 @@
             "time": 300,
             "target": "HomeLoading_wait",
             "timeout": 5000
+        }
+    },
+    "CloseAd": {
+        // 渠道服启动广告右上角的「圆圈 + X」关闭按钮；目前华为服、B 服需要它，
+        // 故默认关闭，由需要它的渠道在自身资源包覆盖 enabled 开启（见 resource/huawei、resource/bilibili）
+        "enabled": false,
+        // max_hit 计的是「识别成功」次数（识别到即计数，[JumpBack] 不重置）；耗尽后本节点
+        // 在所有 next 里被静默跳过、且会空转到父节点 60s 超时，故留足余量而非卡紧广告数
+        "max_hit": 6,
+        // 位图模板跨尺寸/渲染不稳，故改用自定义识别（见 agent/custom/reco/close_ad.py）
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CloseAd",
+                "custom_recognition_param": {
+                    // 参数为华为服实测值；其他渠道若按钮尺寸/位置不同，在自身资源包覆盖本节点
+                    "roi": [
+                        800,
+                        0,
+                        480,
+                        400
+                    ],
+                    "threshold": 0.65,
+                    "max_scale": 1.0
+                }
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                // 27px 的识别框是圆形按钮的外接矩形；四边各内缩 7px 后，13×13 的点击范围落在圆内。
+                "target_offset": [
+                    7,
+                    7,
+                    -14,
+                    -14
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": true
         }
     },
     "HomeFlag": {

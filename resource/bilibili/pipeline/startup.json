@@ -6,5 +6,10 @@
                 "package": "com.shenlan.m.reverse1999.bilibili/com.ssgame.mobile.gamesdk.frame.AppStartUpActivity"
             }
         }
+    },
+    // B 服有启动广告：开启 base 里默认关闭的 CloseAd。
+    // 识别参数沿用 base 的华为服实测值；若 B 服按钮尺寸/位置不同，在此覆盖 custom_recognition_param
+    "CloseAd": {
+        "enabled": true
     }
 }

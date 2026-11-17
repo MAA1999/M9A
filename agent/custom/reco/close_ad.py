@@ -1,7 +1,10 @@
-"""华为服启动广告关闭按钮识别：多尺度笔画掩码匹配。
+"""渠道服启动广告关闭按钮识别：多尺度笔画掩码匹配。
 
 程序化生成「圆圈 + X」笔画掩码，与二值化后的屏幕笔画做多尺度 F1 匹配，
-不依赖位图素材，对按钮尺寸（实测 27~51px）与渲染差异都不敏感。
+不依赖位图素材，对按钮尺寸（华为服实测 27~51px）与渲染差异都不敏感。
+
+节点默认关闭，由有启动广告的渠道在自身资源包覆盖 enabled 开启（见 resource/base
+的 CloseAd 节点）。
 
 参数（roi / threshold / min_scale / max_scale / scale_step / min_brightness）全部可选，
 含义与默认值见 tools/schema/custom.recognition.schema.json。
@@ -138,12 +141,12 @@ def _window_sums(integral: np.ndarray, height: int, width: int) -> np.ndarray:
 def _coerce_roi(value: Any, fallback: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
     """把 JSON 里的 roi 转成 4 元组，非法值回落默认。"""
     if not isinstance(value, (list, tuple)) or len(value) != 4:
-        logger.warning(f"[HuaweiCloseAd] roi 非法（{value!r}），回落默认 {fallback}")
+        logger.warning(f"[CloseAd] roi 非法（{value!r}），回落默认 {fallback}")
         return fallback
     try:
         return (int(value[0]), int(value[1]), int(value[2]), int(value[3]))
     except (TypeError, ValueError):
-        logger.warning(f"[HuaweiCloseAd] roi 元素无法转为整数（{value!r}），回落默认 {fallback}")
+        logger.warning(f"[CloseAd] roi 元素无法转为整数（{value!r}），回落默认 {fallback}")
         return fallback
 
 
@@ -151,14 +154,14 @@ def _coerce_float(value: Any, fallback: float, key: str) -> float:
     """把 JSON 里的数值参数转成 float，非法值回落默认。"""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         if value is not None:
-            logger.warning(f"[HuaweiCloseAd] {key} 非法（{value!r}），回落默认 {fallback}")
+            logger.warning(f"[CloseAd] {key} 非法（{value!r}），回落默认 {fallback}")
         return fallback
     return float(value)
 
 
-@AgentServer.custom_recognition("HuaweiCloseAd")
-class HuaweiCloseAd(CustomRecognition):
-    """识别华为服启动广告弹窗的关闭按钮，未命中返回 ``box=None``。"""
+@AgentServer.custom_recognition("CloseAd")
+class CloseAd(CustomRecognition):
+    """识别渠道服启动广告弹窗的关闭按钮，未命中返回 ``box=None``。"""
 
     def analyze(
         self,
@@ -176,14 +179,14 @@ class HuaweiCloseAd(CustomRecognition):
 
         # scale_step 非正会让尺度循环走不完，必须挡住
         if scale_step <= 0:
-            logger.warning(f"[HuaweiCloseAd] scale_step 必须为正（{scale_step}），改用 {DEFAULT_SCALE_STEP}")
+            logger.warning(f"[CloseAd] scale_step 必须为正（{scale_step}），改用 {DEFAULT_SCALE_STEP}")
             scale_step = DEFAULT_SCALE_STEP
         if min_scale > max_scale:
             min_scale, max_scale = max_scale, min_scale
 
         image = argv.image
         if image.size == 0:
-            logger.error(f"[HuaweiCloseAd] 图像为空 | node={argv.node_name}")
+            logger.error(f"[CloseAd] 图像为空 | node={argv.node_name}")
             return CustomRecognition.AnalyzeResult(box=None, detail={"reason": "图像为空"})
 
         gray = self._to_gray(image)
@@ -198,7 +201,7 @@ class HuaweiCloseAd(CustomRecognition):
         x1 = max(x0, min(roi_x + roi_w, img_w))
         y1 = max(y0, min(roi_y + roi_h, img_h))
         if x1 - x0 < 8 or y1 - y0 < 8:
-            logger.error(f"[HuaweiCloseAd] roi 有效区域过小 | roi={roi} image={gray.shape[:2]}")
+            logger.error(f"[CloseAd] roi 有效区域过小 | roi={roi} image={gray.shape[:2]}")
             return CustomRecognition.AnalyzeResult(box=None, detail={"reason": "roi 有效区域过小"})
 
         region = gray[y0:y1, x0:x1]
@@ -274,15 +277,13 @@ class HuaweiCloseAd(CustomRecognition):
             scale += scale_step
 
         if best_box is None or best_score < threshold:
-            logger.debug(
-                f"[HuaweiCloseAd] 未命中 | best={best_score:.4f} threshold={threshold} | node={argv.node_name}"
-            )
+            logger.debug(f"[CloseAd] 未命中 | best={best_score:.4f} threshold={threshold} | node={argv.node_name}")
             return CustomRecognition.AnalyzeResult(
                 box=None,
                 detail={"reason": "未达到阈值", "best_score": round(best_score, 4), **best_detail},
             )
 
-        logger.debug(f"[HuaweiCloseAd] 命中 | box={best_box} {best_detail} | node={argv.node_name}")
+        logger.debug(f"[CloseAd] 命中 | box={best_box} {best_detail} | node={argv.node_name}")
         return CustomRecognition.AnalyzeResult(box=best_box, detail=best_detail)
 
     @staticmethod
@@ -291,7 +292,7 @@ class HuaweiCloseAd(CustomRecognition):
         if image.ndim == 2:
             return image.astype(np.float32, copy=False)
         if image.ndim != 3 or image.shape[2] < 3:
-            logger.error(f"[HuaweiCloseAd] 不支持的图像形状: {image.shape}")
+            logger.error(f"[CloseAd] 不支持的图像形状: {image.shape}")
             return None
         bgr = image[:, :, :3].astype(np.float32, copy=False)
         # BT.601 亮度权重（BGR 顺序）
