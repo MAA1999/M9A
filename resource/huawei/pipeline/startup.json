@@ -29,7 +29,16 @@
             }
         },
         "action": {
-            "type": "Click"
+            "type": "Click",
+            "param": {
+                // 27px 的识别框是圆形按钮的外接矩形；四边各内缩 7px 后，13×13 的点击范围落在圆内。
+                "target_offset": [
+                    7,
+                    7,
+                    -14,
+                    -14
+                ]
+            }
         },
         "post_wait_freezes": {
             "time": 300,
