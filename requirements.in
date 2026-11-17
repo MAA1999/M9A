@@ -1,6 +1,6 @@
 # Generated from [project].dependencies in pyproject.toml.
 maafw
-loguru
+loguru>=0.8.0
 pillow>=10.0
 pytz
 requests
