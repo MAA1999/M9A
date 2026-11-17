@@ -31,7 +31,7 @@ DEFAULT_MAX_SCALE = 1.0
 DEFAULT_SCALE_STEP = 0.015
 DEFAULT_MIN_BRIGHTNESS = 100
 
-TEMPLATE_BASE_SIZE = 64  # 模板基准直径，实际匹配时按 scale 缩放
+TEMPLATE_BASE_SIZE = 64  # 尺度基准：某尺度的实际边长 = 64 × scale
 # 笔画宽度/直径。实测按钮笔画密度约 24%，该比例下模板与真实笔画最接近
 STROKE_RATIO = 1.0 / 18.0
 MIN_HIT_RATIO = 0.3  # 命中至少要覆盖这么多模板笔画，避免极小模板匹配到零星噪点
@@ -47,8 +47,8 @@ X_STROKE_HALF = 0.75
 SHAPE_CIRCLE_X = "circle_x"
 SHAPE_X = "x"
 DEFAULT_SHAPES: tuple[str, ...] = (SHAPE_CIRCLE_X, SHAPE_X)
-# 纯 X 少了一圈笔画做佐证、误配空间更大，故用更高阈值。实测：真按钮 0.73~0.99
-# （含 20px 小按钮与 3px 粗笔画），纯色底/纯噪点最高 0.41
+# 纯 X 少了一圈笔画做佐证、误配空间更大，故用更高阈值。实测：真按钮 0.75~0.98
+# （含 20px 小按钮与 3px 粗笔画），噪点/图标网格等非目标画面最高 0.67
 DEFAULT_X_THRESHOLD = 0.7
 
 
@@ -294,14 +294,14 @@ class CloseAd(CustomRecognition):
                     continue
 
                 # 按目标尺寸直接生成（而不是缩放 64px 模板）：小尺寸下笔画要保住绝对宽度
-                scaled = _build_mask(shape, side)
-                template_count = int(scaled.sum())
+                template = _build_mask(shape, side)
+                template_count = int(template.sum())
                 if template_count < MIN_HIT_PIXELS:
                     scale += scale_step
                     continue
 
                 out_h, out_w = region_h - side + 1, region_w - side + 1
-                hits = _correlate2d_with_spectrum(screen_spectrum, scaled, (fft_h, fft_w), (out_h, out_w))
+                hits = _correlate2d_with_spectrum(screen_spectrum, template, (fft_h, fft_w), (out_h, out_w))
                 window = _window_sums(integral, side, side)
                 # F1 = 2·命中 / (模板笔画数 + 窗口内笔画数)
                 denom = template_count + window
