@@ -29,6 +29,9 @@ DEFAULT_MIN_SCALE = 0.25
 # 更高的上限（1.6 时约 102px）只增加扫描尺度数、拖慢未命中的帧，无实测收益。
 DEFAULT_MAX_SCALE = 1.0
 DEFAULT_SCALE_STEP = 0.015
+# 步长下限。再小既没有精度收益，还可能因浮点精度让 scale + step == scale（0.25 + 1e-20 就是 0.25），
+# 尺度循环永远推进不了——识别回调里没有超时能打断它，只能在这里兜住
+MIN_SCALE_STEP = 0.005
 DEFAULT_MIN_BRIGHTNESS = 100
 
 TEMPLATE_BASE_SIZE = 64  # 尺度基准：某尺度的实际边长 = 64 × scale
@@ -227,10 +230,13 @@ class CloseAd(CustomRecognition):
         scale_step = _coerce_float(params.get("scale_step"), DEFAULT_SCALE_STEP, "scale_step")
         min_brightness = _coerce_float(params.get("min_brightness"), DEFAULT_MIN_BRIGHTNESS, "min_brightness")
 
-        # scale_step 非正会让尺度循环走不完，必须挡住
+        # scale_step 非正会让尺度循环走不完，过小则可能加不动（浮点精度），都必须挡住
         if scale_step <= 0:
             logger.warning(f"[CloseAd] scale_step 必须为正（{scale_step}），改用 {DEFAULT_SCALE_STEP}")
             scale_step = DEFAULT_SCALE_STEP
+        elif scale_step < MIN_SCALE_STEP:
+            logger.warning(f"[CloseAd] scale_step 过小（{scale_step}），改用下限 {MIN_SCALE_STEP}")
+            scale_step = MIN_SCALE_STEP
         if min_scale > max_scale:
             min_scale, max_scale = max_scale, min_scale
 
@@ -332,7 +338,12 @@ class CloseAd(CustomRecognition):
         # 按 shapes 顺序取第一个达标的形态：圆圈+X 多一圈笔画佐证，命中更可信、
         # 框也更贴合按钮（纯 X 常只框住内圈那个 X，点击点一样但框更小）
         for shape in shapes:
-            score, box, detail = best_by_shape.get(shape, (0.0, (0, 0, 0, 0), {}))
+            entry = best_by_shape.get(shape)
+            # 该形态一个候选都没评出来（ROI 太小 / 笔画不足 MIN_HIT_PIXELS）时不能拿默认分去比阈值：
+            # 阈值配成 0 会把它当成命中，返回一个 (0, 0, 0, 0) 的假 box
+            if entry is None:
+                continue
+            score, box, detail = entry
             if score >= shape_thresholds[shape]:
                 logger.debug(f"[CloseAd] 命中 | box={box} {detail} | node={argv.node_name}")
                 return CustomRecognition.AnalyzeResult(box=box, detail=detail)

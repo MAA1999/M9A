@@ -1219,7 +1219,7 @@
                         "scale_step": {
                             "type": "number",
                             "exclusiveMinimum": 0,
-                            "description": "缩放步长，默认 0.015（步长过粗会导致尺寸量化跳变）"
+                            "description": "缩放步长，默认 0.015（步长过粗会导致尺寸量化跳变；低于 0.005 会被抬到 0.005，避免尺度循环因浮点精度加不动）"
                         },
                         "min_brightness": {
                             "type": "number",

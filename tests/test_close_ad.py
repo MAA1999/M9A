@@ -99,8 +99,15 @@ def test_shapes_can_be_restricted_to_circle_only() -> None:
 
 
 def test_blank_screen_does_not_hit() -> None:
-    """无广告的画面不得命中，否则会在启动流程里乱点。"""
+    """暗到没有笔画像素的画面在 screen_mask.any() 处就早退了，这里只锁早退路径。"""
     assert _analyze(_to_bgr(_blank())).box is None  # type: ignore[attr-defined]
+
+
+def test_bright_clutter_does_not_hit() -> None:
+    """亮色散点要走完整的 F1 评分与阈值判断后仍不命中——这才是纯 X 的误配边界。"""
+    rng = np.random.default_rng(0)
+    noise = rng.integers(60, 240, (720, 1280, 3), dtype=np.uint8)  # BGR，大量亮像素
+    assert _analyze(noise).box is None  # type: ignore[attr-defined]
 
 
 def test_base_defines_close_ad_disabled_and_wires_it_into_startup() -> None:
