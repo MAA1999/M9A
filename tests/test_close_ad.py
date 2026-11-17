@@ -1,8 +1,8 @@
-"""CloseAd 哨兵测试：掩码识别的命中/未命中契约，与渠道服的启用开关。
+"""CloseAd 哨兵测试：两种按钮形态的命中/未命中契约，与渠道服的启用开关。
 
 算法细节（多尺度 F1 匹配、尺度扫描）不在此测——它由华为服实跑验证过；
-这里防的是：识别名与 pipeline 节点漂移、渠道服漏开或官服误开，
-以及「圆圈+X」图标的定位能力回退。
+这里防的是：识别名与 pipeline 节点漂移、渠道服漏开或官服误开、
+纯「X」形态失效，以及阈值对非按钮画面的误配。
 """
 
 import json
@@ -18,24 +18,43 @@ from agent.custom.reco.close_ad import CloseAd
 
 ROOT = Path(__file__).resolve().parents[1]
 ROI = [800, 0, 480, 400]
+ICON_CENTER = (1013, 113)
 
 
-def _screen(icon: tuple[int, int, int] | None) -> np.ndarray:
-    """造一张 1280x720 的 BGR 画面；给定 (cx, cy, r) 时画上「圆圈+X」。"""
-    image = Image.new("RGB", (1280, 720), (40, 40, 44))
-    if icon is not None:
-        cx, cy, r = icon
-        draw = ImageDraw.Draw(image)
-        draw.ellipse([cx - r, cy - r, cx + r, cy + r], outline=(255, 255, 255), width=2)
-        offset = r / math.sqrt(2.0)
-        draw.line([cx - offset, cy - offset, cx + offset, cy + offset], fill=(255, 255, 255), width=2)
-        draw.line([cx + offset, cy - offset, cx - offset, cy + offset], fill=(255, 255, 255), width=2)
+def _blank() -> Image.Image:
+    return Image.new("RGB", (1280, 720), (40, 40, 44))
+
+
+def _to_bgr(image: Image.Image) -> np.ndarray:
     return np.array(image)[:, :, ::-1].copy()  # RGB -> BGR
 
 
-def _analyze(image: np.ndarray) -> object:
-    param = json.dumps({"roi": ROI, "threshold": 0.65, "max_scale": 1.0})
-    argv = SimpleNamespace(image=image, custom_recognition_param=param, node_name="CloseAd")
+def _circle_x_screen(radius: int = 13) -> np.ndarray:
+    """「圆圈 + X」：华为服实测的广告关闭按钮形态。"""
+    cx, cy = ICON_CENTER
+    image = _blank()
+    draw = ImageDraw.Draw(image)
+    draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], outline=(255, 255, 255), width=2)
+    offset = radius / math.sqrt(2.0)
+    draw.line([cx - offset, cy - offset, cx + offset, cy + offset], fill=(255, 255, 255), width=2)
+    draw.line([cx + offset, cy - offset, cx - offset, cy + offset], fill=(255, 255, 255), width=2)
+    return _to_bgr(image)
+
+
+def _bare_x_screen(radius: int = 13) -> np.ndarray:
+    """纯「X」：没有外圈的那种关闭按钮。"""
+    cx, cy = ICON_CENTER
+    image = _blank()
+    draw = ImageDraw.Draw(image)
+    draw.line([cx - radius, cy - radius, cx + radius, cy + radius], fill=(255, 255, 255), width=2)
+    draw.line([cx + radius, cy - radius, cx - radius, cy + radius], fill=(255, 255, 255), width=2)
+    return _to_bgr(image)
+
+
+def _analyze(image: np.ndarray, **param_overrides: object) -> object:
+    params: dict[str, object] = {"roi": ROI, "threshold": 0.65, "x_threshold": 0.7, "max_scale": 1.0}
+    params.update(param_overrides)
+    argv = SimpleNamespace(image=image, custom_recognition_param=json.dumps(params), node_name="CloseAd")
     return CloseAd().analyze(None, argv)  # type: ignore[arg-type]
 
 
@@ -44,27 +63,48 @@ def _pipeline(relative_path: str) -> dict[str, object]:
     return json.loads(re.sub(r"^\s*//.*$", "", text, flags=re.MULTILINE))  # pipeline 是 jsonc
 
 
-def test_close_icon_is_located() -> None:
-    """画的按钮必须被定位到原位置附近，否则点击会落到弹窗外。"""
-    result = _analyze(_screen((1013, 113, 13)))
+def _assert_located(result: object, shape: str) -> None:
     assert result.box is not None  # type: ignore[attr-defined]
     x, y, w, h = result.box  # type: ignore[attr-defined]
-    assert abs(x + w / 2 - 1013) <= 3
-    assert abs(y + h / 2 - 113) <= 3
-    assert result.detail["score"] >= 0.65  # type: ignore[attr-defined]
+    cx, cy = ICON_CENTER
+    assert abs(x + w / 2 - cx) <= 3, f"横向偏移过大: {result.box}"  # type: ignore[attr-defined]
+    assert abs(y + h / 2 - cy) <= 3, f"纵向偏移过大: {result.box}"  # type: ignore[attr-defined]
+    assert result.detail["shape"] == shape  # type: ignore[attr-defined]
+
+
+def test_circle_icon_is_located() -> None:
+    """「圆圈 + X」必须被定位到原位置附近，否则点击会落到弹窗外。"""
+    _assert_located(_analyze(_circle_x_screen()), "circle_x")
+
+
+def test_bare_x_is_located() -> None:
+    """纯「X」没有外圈佐证，靠独立模板命中，形态要能区分出来。"""
+    _assert_located(_analyze(_bare_x_screen()), "x")
+
+
+def test_bare_x_is_located_at_small_size() -> None:
+    """小一号的纯 X（20px）也要命中，否则小按钮会漏。"""
+    _assert_located(_analyze(_bare_x_screen(radius=10)), "x")
+
+
+def test_shapes_can_be_restricted_to_circle_only() -> None:
+    """shapes 收窄到 circle_x 时，纯 X 不再命中——渠道要压误配时用这个开关。"""
+    assert _analyze(_bare_x_screen(), shapes=["circle_x"]).box is None  # type: ignore[attr-defined]
 
 
 def test_blank_screen_does_not_hit() -> None:
     """无广告的画面不得命中，否则会在启动流程里乱点。"""
-    assert _analyze(_screen(None)).box is None  # type: ignore[attr-defined]
+    assert _analyze(_to_bgr(_blank())).box is None  # type: ignore[attr-defined]
 
 
 def test_base_defines_close_ad_disabled_and_wires_it_into_startup() -> None:
     """节点定义与 next 挂在 base，官服等无广告渠道靠 enabled:false 不参与轮询。"""
     base = _pipeline("resource/base/pipeline/startup.json")
     node = base["CloseAd"]
+    param = node["recognition"]["param"]  # type: ignore[index]
     assert node["enabled"] is False  # type: ignore[index]
-    assert node["recognition"]["param"]["custom_recognition"] == "CloseAd"  # type: ignore[index]
+    assert param["custom_recognition"] == "CloseAd"
+    assert set(param["custom_recognition_param"]["shapes"]) == {"circle_x", "x"}
     for parent in ("StartUp", "StartGame"):
         assert "[JumpBack]CloseAd" in base[parent]["next"], f"{parent}.next 未挂 CloseAd"  # type: ignore[index]
 

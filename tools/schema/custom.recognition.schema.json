@@ -1168,7 +1168,7 @@
             "properties": {
                 "custom_recognition": {
                     "const": "CloseAd",
-                    "description": "渠道服启动广告关闭按钮：多尺度笔画掩码匹配「圆圈+X」图标"
+                    "description": "渠道服启动广告关闭按钮：多尺度笔画掩码匹配「圆圈+X」或纯「X」图标"
                 },
                 "custom_recognition_param": {
                     "type": "object",
@@ -1182,11 +1182,29 @@
                             "maxItems": 4,
                             "description": "搜索区域 [x, y, w, h]，默认 [800, 0, 480, 400]（实测各广告的按钮都在 x 893~1111、y 14~236）"
                         },
+                        "shapes": {
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "circle_x",
+                                    "x"
+                                ]
+                            },
+                            "minItems": 1,
+                            "uniqueItems": true,
+                            "description": "要匹配的关闭按钮形态，默认两种都试：circle_x=「圆圈+X」，x=纯「X」（无外圈）；命中分最高的形态胜出"
+                        },
                         "threshold": {
                             "type": "number",
                             "minimum": 0,
                             "maximum": 1,
-                            "description": "F1 命中阈值，默认 0.65（真实广告实测 0.76~0.85，非图标画面 ≤0.58）"
+                            "description": "「圆圈 + X」形态的 F1 命中阈值，默认 0.65（真实广告实测 0.76~0.85，非图标画面 ≤0.58）"
+                        },
+                        "x_threshold": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "description": "纯「X」形态的 F1 命中阈值，默认 0.7（实测真按钮 0.73~0.99，纯色底/纯噪点 ≤0.41）"
                         },
                         "min_scale": {
                             "type": "number",
