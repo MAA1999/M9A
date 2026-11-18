@@ -37,6 +37,27 @@ function is_local_evidence(dest,   t) {
     return t ~ /(^|\/)evidence\//
 }
 
+# 位置 i 的字符有没有被奇数个反斜杠转义。
+function unescaped_at(s, i,   n) {
+    n = 0
+    i--
+    while (i >= 1 && substr(s, i, 1) == "\\") {
+        n++
+        i--
+    }
+    return n % 2 == 0
+}
+
+# 这个 `](` 是不是真链接的结束：`]` 本身没转义，前面还有未转义的 `[`。
+# `\](` 或孤立的 `](` 后面被当成 title 的文本里可以再有一张真链接，不能整段跳过。
+function is_link_close(s, i,   j) {
+    if (!unescaped_at(s, i)) return 0
+    for (j = i - 1; j >= 1; j--) {
+        if (substr(s, j, 1) == "[" && unescaped_at(s, j)) return 1
+    }
+    return 0
+}
+
 # 行里还有没有指向本地 evidence 的链接目标（含非图片链接）。降级完仍命中的行由调用方丢掉。
 # close_paren 解析失败时不能当「没有」：括号 title 一旦漏认，就会把本地路径原样发出去。
 function has_local_evidence(line,   i, rest, k, t, evparts) {
@@ -53,9 +74,12 @@ function has_local_evidence(line,   i, rest, k, t, evparts) {
             continue
         }
         if (is_local_evidence(clean_dest(substr(rest, 1, k - 1)))) return 1
-        # rest 从 `](` 之后起算，k 是配对 `)` 在 rest 里的下标；整段链接之后才是 i+k+2。
-        # 只往前挪 1 格会把 title 里的 `](evidence/…)` 示例当成下一张图。
-        line = substr(line, i + k + 2)
+        # 真链接才跳过整段（含 title）。否则 title 里的 `](evidence/…)` 会被当成下一张图；
+        # 但 `\](` 不是链接，里面那张真图还得继续扫到。
+        if (is_link_close(line, i))
+            line = substr(line, i + k + 2)
+        else
+            line = substr(line, i + 1)
     }
     return 0
 }

@@ -186,6 +186,15 @@ def test_urls_ignores_evidence_in_inline_title() -> None:
     )
 
 
+def test_escaped_bracket_does_not_hide_inner_evidence_link() -> None:
+    # 第一个 `]` 被转义，GFM 不当链接结束；真链接是里面的 `[图](evidence/b.png)`。
+    source = '说明 \\](https://example.com "见 [图](evidence/b.png)")\n'
+    urls = run_awk("urls", source, prefix=PREFIX)
+    assert urls.returncode == 4, urls.stdout
+    plain = run_awk("plain", source)
+    assert plain.returncode == 4, plain.stdout
+
+
 def test_parenthetical_title_is_collected_and_rewritten() -> None:
     source = "![x](evidence/a.png (图 1))\n"
     refs = run_awk("refs", source)
