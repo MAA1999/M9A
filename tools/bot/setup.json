@@ -25,6 +25,13 @@
             "skillCheck": "skill --check .agents/skills"
         }
     ],
+    "plugins": [
+        {
+            "key": "exa",
+            "name": "dsh-exa-web-search",
+            "spec": "latest"
+        }
+    ],
     "skills": {
         "sources": {
             "repo": {

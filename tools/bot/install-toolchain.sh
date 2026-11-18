@@ -27,5 +27,20 @@ while read -r key name binary; do
     fi
 done < <(jq -r '.packages[] | "\(.key) \(.name) \(.binary)"' "$cfg")
 
+# `dsh plugin add` 转发给 pnpm。装进同一个 prefix，命中工具链缓存时它已经在 PATH 上。
+# 版本跟仓库 `packageManager` 对齐，避免浮动 major。
+PNPM_VERSION="$(node -p 'require("./package.json").packageManager.match(/^pnpm@(.+)$/)?.[1] ?? ""')"
+if [ -z "$PNPM_VERSION" ]; then
+    echo "::error::package.json.packageManager 不是 pnpm@x.y.z"
+    exit 1
+fi
+got_pnpm="$(pnpm --version 2>/dev/null || true)"
+if [ "$got_pnpm" = "$PNPM_VERSION" ]; then
+    echo "pnpm $PNPM_VERSION already present"
+else
+    npm install --global "pnpm@$PNPM_VERSION"
+fi
+
 while read -r binary; do echo "$binary $("$binary" --version)"; done \
     < <(jq -r '.packages[].binary' "$cfg")
+echo "pnpm $(pnpm --version)"

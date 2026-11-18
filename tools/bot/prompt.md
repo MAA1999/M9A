@@ -39,6 +39,10 @@
 
     GH_TOKEN="$(cat .gh-token)" gh issue view "$TARGET" --json body
 
+## 联网搜索
+
+`web_search` 可用，走 Exa。用来找当前公开资料（上游文档、issue 讨论、changelog）。查询词里不要带玩家 ID、昵称等个人标识。仓库里的事实仍以源码、`data/`、`gh` 和 skill 为准；MaaFW 字段语义走 `maallmwiki`，不要用搜索代替。知道出处的 URL 用 `web_fetch` 取正文。
+
 ## 取不到的证据别追
 
 网盘（百度、夸克、微云……）和要登录的分享页取不到就是取不到，别去逆向它的下载接口。试一两次就停手，把「缺这份日志」写进 `answer.md`，并请在 issue 里直接拖附件上传。别为了同一份证据反复换路子 —— 换个代理、改个下载参数、翻源码找接口，都是同一条死路。
