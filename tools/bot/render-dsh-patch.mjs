@@ -10,12 +10,15 @@
 //   provider         string  必填，选中 `providers` 里的哪个键
 //   model            string  必填，默认模型 id，必须出现在选中 provider 的 models[].id 里
 //   reasoningEffort  string  可选，透传给 agent-default-model
-//   providers        object  必填，形如 { "<名字>": { api?, baseURL, defaultContextWindow?,
+//   providers        object  必填，形如 { "<名字>": { api?, baseURL?, defaultContextWindow?,
 //                                                         defaultMaxTokens?, models[] } }
 //
-// `api` 是协议，只有三种：`openai-completions`（默认，绝大多数中转站）、`openai-responses`、
-// `anthropic-messages`。不写就按 openai-completions —— 这不是自动探测，协议不对会连不上，
-// 按中转站文档填；写错值这里直接报错。
+// `baseURL` 省略，表示这条路由就用 dsh 内置目录里同名的 provider：端点、协议实现、以及它在请求上
+// 补的 header 都由目录负责，配置只需要列出要用的模型条目。这时**不要写 `api`** —— 写了就等于
+// 按该协议把这条路由手写重建，目录 provider 替我们做的那部分不会跟过来（包括它自己的 stream
+// 实现和请求头）。有 `baseURL` 时 `api` 是协议，只有三种：`openai-completions`（默认，绝大多数
+// 中转站）、`openai-responses`、`anthropic-messages`。不写就按 openai-completions —— 这不是
+// 自动探测，协议不对会连不上，按中转站文档填；写错值这里直接报错。
 //
 // 密钥不在这份配置里：渲染时把每个 provider 的 `apiKeyEnv` 强制改成 `BOT_LLM_API_KEY`，工作流
 // 再用 secret 填这个环境变量。换中转站只改地址/模型，不动密钥，也让“用哪个 env 名”这件事只有一处。
@@ -64,25 +67,11 @@ if (typeof model !== "string" || model.length === 0) {
 if (typeof providers !== "object" || providers === null || Array.isArray(providers)) {
     fail("BOT_LLM_CONFIG.providers 必须是对象");
 }
-for (const name of Object.keys(providers)) {
-    const entry = providers[name];
-    if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
-        fail(`BOT_LLM_CONFIG.providers["${name}"] 必须是对象`);
-    }
-}
-const selected = providers[provider];
-if (!selected) {
-    fail(`providers 里没有名为 "${provider}" 的条目`);
-}
-if (typeof selected.baseURL !== "string" || !/^https?:\/\//i.test(selected.baseURL)) {
-    fail(`providers["${provider}"].baseURL 必须是 http(s) 地址`);
-}
-if (!Array.isArray(selected.models) || !selected.models.some((m) => m && m.id === model)) {
-    fail(`providers["${provider}"].models 里缺少 id 为 "${model}" 的条目`);
-}
 
 // 密钥统一走同一个 env 名：配置只决定“连哪、用哪个模型”，不决定“密钥放在哪个变量”。
-// `api` 缺省按 OpenAI 兼容补上，常见的裸 IP 中转站都是这个协议，配置里可以省掉它。
+// 手写中转站（有 `baseURL`）的 `api` 缺省按 OpenAI 兼容补上，裸 IP 中转站都是这个协议，配置里可以
+// 省掉它；内置目录 provider（无 `baseURL`）则必须留空，让目录自己的协议实现与请求头生效。
+// 整表都要过：未选中的条目同样注入 llm-pi-ai，漏查就会带着误写的 api 把目录路由重建掉。
 const ALLOWED_APIS = [
     "openai-completions",
     "openai-responses",
@@ -90,11 +79,31 @@ const ALLOWED_APIS = [
 ];
 for (const name of Object.keys(providers)) {
     const entry = providers[name];
+    if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
+        fail(`BOT_LLM_CONFIG.providers["${name}"] 必须是对象`);
+    }
+    if (entry.baseURL !== undefined && (typeof entry.baseURL !== "string" || !/^https?:\/\//i.test(entry.baseURL))) {
+        fail(`providers["${name}"].baseURL 必须是 http(s) 地址；用内置目录 provider 时干脆别写`);
+    }
+    if (entry.baseURL === undefined && entry.api !== undefined) {
+        fail(
+            `providers["${name}"] 没有 baseURL，却写了 api —— 内置目录 provider 的协议与请求头由目录提供，删掉 api 这一项`,
+        );
+    }
     if (entry.api !== undefined && !ALLOWED_APIS.includes(entry.api)) {
         fail(`providers["${name}"].api 只能是 ${ALLOWED_APIS.join(" / ")}`);
     }
     entry.apiKeyEnv = API_KEY_ENV;
-    entry.api ??= "openai-completions";
+    if (entry.baseURL !== undefined) {
+        entry.api ??= "openai-completions";
+    }
+}
+const selected = providers[provider];
+if (!selected) {
+    fail(`providers 里没有名为 "${provider}" 的条目`);
+}
+if (!Array.isArray(selected.models) || !selected.models.some((m) => m && m.id === model)) {
+    fail(`providers["${provider}"].models 里缺少 id 为 "${model}" 的条目`);
 }
 
 // 顺序有意义：agent-default-model 先定默认模型，llm-pi-ai 再注入 provider 表，tool-web 最后关搜索。
@@ -110,4 +119,4 @@ const patch = [
 ];
 
 writeFileSync(out, `${JSON.stringify(patch, null, 2)}\n`, "utf8");
-console.error(`llm provider="${provider}" api="${selected.api}" model="${model}"`);
+console.error(`llm provider="${provider}" api="${selected.api ?? "catalog"}" model="${model}"`);
