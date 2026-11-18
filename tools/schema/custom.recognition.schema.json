@@ -1173,15 +1173,6 @@
                 "custom_recognition_param": {
                     "type": "object",
                     "properties": {
-                        "roi": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            },
-                            "minItems": 4,
-                            "maxItems": 4,
-                            "description": "搜索区域 [x, y, w, h]，默认 [800, 0, 480, 400]（实测各广告的按钮都在 x 893~1111、y 14~236）"
-                        },
                         "shapes": {
                             "type": "array",
                             "items": {
@@ -1194,17 +1185,24 @@
                             "uniqueItems": true,
                             "description": "要匹配的关闭按钮形态，默认两种都试：circle_x=「圆圈+X」，x=纯「X」（无外圈）。列表顺序即优先级：前者达标就取前者，故圆圈+X 命中时框更贴合按钮"
                         },
-                        "threshold": {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1,
-                            "description": "「圆圈 + X」形态的 F1 命中阈值，默认 0.65（真实广告实测 0.76~0.85，非图标画面 ≤0.58）"
-                        },
-                        "x_threshold": {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1,
-                            "description": "纯「X」形态的 F1 命中阈值，默认 0.7（实测真按钮 0.75~0.98，噪点/图标网格等非目标画面 ≤0.67）"
+                        "thresholds": {
+                            "type": "object",
+                            "properties": {
+                                "circle_x": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1,
+                                    "description": "「圆圈 + X」形态的 F1 命中阈值，默认 0.65（真实广告实测 0.76~0.85，非图标画面 ≤0.58）"
+                                },
+                                "x": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1,
+                                    "description": "纯「X」形态的 F1 命中阈值，默认 0.7（实测真按钮 0.75~0.98，噪点/图标网格等非目标画面 ≤0.67）"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "description": "按形态给阈值，缺省项用各形态默认值；只写要改的那个即可"
                         },
                         "min_side": {
                             "type": "integer",

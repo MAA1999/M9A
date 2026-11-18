@@ -4,15 +4,18 @@
 不依赖位图素材，对按钮尺寸（华为服实测 27~51px）与渲染差异都不敏感。
 
 节点默认关闭，由有启动广告的渠道在自身资源包覆盖 enabled 开启（见 resource/base
-的 CloseAd 节点）。
+的 CloseAd 节点）。识别区域走 pipeline 的 recognition.param.roi（框架的调试图会画它），
+不放在本模块的参数里——否则渠道要改 ROI 得整份替换 custom_recognition_param。
 
-参数（shapes / roi / threshold / x_threshold / min_side / max_side / min_brightness）
-全部可选，含义与默认值见 tools/schema/custom.recognition.schema.json。
+参数（shapes / thresholds / min_side / max_side / min_brightness）全部可选，
+含义与默认值见 tools/schema/custom.recognition.schema.json。
 """
 
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
+from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any
 
@@ -20,35 +23,24 @@ import numpy as np
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_recognition import CustomRecognition
+from maa.define import Rect
 from utils.logger import logger
 from utils.params import parse_params
 
-DEFAULT_ROI: tuple[int, int, int, int] = (800, 0, 480, 400)
-DEFAULT_THRESHOLD = 0.65
 # 搜索的模板边长范围（px，720p 基准）。实测广告按钮 16~51px，上限留到 64 有余量；
 # 再大的上限只增加尺寸数、拖慢未命中的帧，无实测收益
 DEFAULT_MIN_SIDE = 16
 DEFAULT_MAX_SIDE = 64
 MIN_TEMPLATE_SIDE = 8
 DEFAULT_MIN_BRIGHTNESS = 100
+
 # 笔画宽度/直径。实测按钮笔画密度约 24%，该比例下模板与真实笔画最接近
 STROKE_RATIO = 1.0 / 18.0
 MIN_HIT_RATIO = 0.3  # 命中至少要覆盖这么多模板笔画，避免极小模板匹配到零星噪点
 MIN_HIT_PIXELS = 6
-# 笔画半宽下限（px）。真实按钮的笔画不跟着按钮等比变细：样片里 X 的笔画约占边长的
-# 1/10，而模板比例是 1/18，小尺寸下按比例缩放会把笔画压成亚像素，F1 被窗口里的多余
-# 笔画拖低而漏检。两种形态分开设——把「圆圈 + X」也加粗，它在噪点画面上的误配分会从
-# 0.49 涨到 0.73；只有纯 X 加下限时同一张噪点画面仍只有 0.55，与真按钮 0.75~0.98 分得开
-CIRCLE_X_STROKE_HALF = 0.5
-X_STROKE_HALF = 0.75
 
-# 两种广告关闭按钮形态：「圆圈 + X」（华为服实测）与纯「X」（无外圈的那种）
 SHAPE_CIRCLE_X = "circle_x"
 SHAPE_X = "x"
-DEFAULT_SHAPES: tuple[str, ...] = (SHAPE_CIRCLE_X, SHAPE_X)
-# 纯 X 少了一圈笔画做佐证、误配空间更大，故用更高阈值。实测：真按钮 0.75~0.98
-# （含 20px 小按钮与 3px 粗笔画），噪点/图标网格等非目标画面最高 0.67
-DEFAULT_X_THRESHOLD = 0.7
 
 
 def _capsule(
@@ -65,15 +57,12 @@ def _capsule(
     return np.sqrt((xx - (x1 + t * vx)) ** 2 + (yy - (y1 + t * vy)) ** 2) <= half
 
 
-def _build_close_icon_mask(size: int) -> np.ndarray:
+def _build_close_icon_mask(size: int, stroke_half: float) -> np.ndarray:
     """生成「圆圈 + X」笔画掩码，X 的四个端点落在圆环的 45° 方向上。"""
-    if size < 8:
-        raise ValueError(f"模板尺寸过小: {size}")
-
     yy, xx = np.mgrid[0:size, 0:size].astype(np.float64)
     center = (size - 1) / 2.0
     radius = size / 2.0 - 1.0
-    half_stroke = max(CIRCLE_X_STROKE_HALF, size * STROKE_RATIO / 2.0)
+    half_stroke = max(stroke_half, size * STROKE_RATIO / 2.0)
 
     ring = np.abs(np.sqrt((xx - center) ** 2 + (yy - center) ** 2) - radius) <= half_stroke
     # 内部 X：两条对角线
@@ -84,54 +73,61 @@ def _build_close_icon_mask(size: int) -> np.ndarray:
     return ring | cross
 
 
-def _build_cross_mask(size: int) -> np.ndarray:
+def _build_cross_mask(size: int, stroke_half: float) -> np.ndarray:
     """生成纯「X」笔画掩码：两条对角线端点内缩半个笔画，外接框正好铺满模板。"""
-    if size < 8:
-        raise ValueError(f"模板尺寸过小: {size}")
-
     yy, xx = np.mgrid[0:size, 0:size].astype(np.float64)
-    half_stroke = max(X_STROKE_HALF, size * STROKE_RATIO / 2.0)
+    half_stroke = max(stroke_half, size * STROKE_RATIO / 2.0)
     low, high = half_stroke, size - 1 - half_stroke
     return _capsule(xx, yy, (low, low), (high, high), half_stroke) | _capsule(
         xx, yy, (high, low), (low, high), half_stroke
     )
 
 
+@dataclass(frozen=True)
+class ShapeSpec:
+    """一种关闭按钮形态：掩码生成、笔画半宽下限、默认阈值。
+
+    笔画下限按形态分开设——真实按钮的笔画不跟着按钮等比变细：样片里 X 的笔画约占边长
+    的 1/10，而模板比例是 1/18，小尺寸下按比例缩放会把笔画压成亚像素、F1 被窗口里的
+    多余笔画拖低。但把「圆圈 + X」也加粗，它在噪点画面上的误配分会从 0.49 涨到 0.73，
+    所以只有纯 X 加下限。
+    """
+
+    build: Callable[[int, float], np.ndarray]
+    stroke_half: float
+    threshold: float
+
+
+SHAPES: dict[str, ShapeSpec] = {
+    SHAPE_CIRCLE_X: ShapeSpec(_build_close_icon_mask, 0.5, 0.65),
+    SHAPE_X: ShapeSpec(_build_cross_mask, 0.75, 0.7),
+}
+DEFAULT_SHAPES: tuple[str, ...] = (SHAPE_CIRCLE_X, SHAPE_X)
+
+
 @lru_cache(maxsize=256)
 def _template(shape: str, side: int) -> np.ndarray:
     """按 (形态, 边长) 缓存模板掩码——边长是有限集合，命中帧与未命中帧都会反复用同一批。"""
-    return _build_cross_mask(side) if shape == SHAPE_X else _build_close_icon_mask(side)
+    spec = SHAPES[shape]
+    return spec.build(side, spec.stroke_half)
 
 
 def _next_fast_len(size: int) -> int:
-    """返回不小于 ``size`` 的「快速 FFT 长度」（只含 2/3/5 因子）。
-
-    直接补到 2 的幂会带来数倍无谓开销。
-    """
+    """返回不小于 size 的最小 2/3/5 光滑数（FFT 只在只含这三种因子的长度上最快）。"""
     if size <= 16:
         return 16
-    best = 1 << (size - 1).bit_length()
-    value = 1
-    while value < size:
-        value *= 2
-    best = min(best, value)
-    value = 1
-    while value < size:
-        value *= 3
-    best = min(best, value)
-    value = 1
-    while value < size:
-        value *= 5
-    best = min(best, value)
-    for twos in (1, 2, 4, 8, 16, 32, 64):
-        value = twos
-        while value < size:
-            value *= 3
-        best = min(best, value)
-        value = twos
-        while value < size:
-            value *= 5
-        best = min(best, value)
+    best = 1 << (size - 1).bit_length()  # 先用 2 的幂做上界
+    p5 = 1
+    while p5 < best:
+        p35 = p5
+        while p35 < best:
+            value = p35
+            while value < size:
+                value *= 2
+            if value < best:
+                best = value
+            p35 *= 3
+        p5 *= 5
     return best
 
 
@@ -141,7 +137,7 @@ def _correlate2d_with_spectrum(
     fft_shape: tuple[int, int],
     out_shape: tuple[int, int],
 ) -> np.ndarray:
-    """用预先算好的图像频谱做 valid 模式相关（图像频谱对所有尺度相同，只需算一次）。"""
+    """用预先算好的图像频谱做 valid 模式相关（图像频谱对所有尺寸相同，只需算一次）。"""
     ker_h, ker_w = kernel.shape
     spectrum_ker = np.fft.rfft2(kernel[::-1, ::-1].astype(np.float32), fft_shape)
     full = np.fft.irfft2(spectrum_image * spectrum_ker, fft_shape)
@@ -163,18 +159,6 @@ def _window_sums(integral: np.ndarray, height: int, width: int) -> np.ndarray:
     )
 
 
-def _coerce_roi(value: Any, fallback: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
-    """把 JSON 里的 roi 转成 4 元组，非法值回落默认。"""
-    if not isinstance(value, (list, tuple)) or len(value) != 4:
-        logger.warning(f"[CloseAd] roi 非法（{value!r}），回落默认 {fallback}")
-        return fallback
-    try:
-        return (int(value[0]), int(value[1]), int(value[2]), int(value[3]))
-    except (TypeError, ValueError):
-        logger.warning(f"[CloseAd] roi 元素无法转为整数（{value!r}），回落默认 {fallback}")
-        return fallback
-
-
 def _coerce_shapes(value: Any, fallback: tuple[str, ...]) -> tuple[str, ...]:
     """把 JSON 里的 shapes 转成合法形态元组（去重保序），非法项剔除后回落默认。"""
     if not isinstance(value, (list, tuple)):
@@ -184,8 +168,8 @@ def _coerce_shapes(value: Any, fallback: tuple[str, ...]) -> tuple[str, ...]:
 
     shapes: list[str] = []
     for item in value:
-        if item not in DEFAULT_SHAPES:
-            logger.warning(f"[CloseAd] shapes 含未知形态（{item!r}），已忽略；可选 {DEFAULT_SHAPES}")
+        if item not in SHAPES:
+            logger.warning(f"[CloseAd] shapes 含未知形态（{item!r}），已忽略；可选 {tuple(SHAPES)}")
             continue
         if item not in shapes:
             shapes.append(item)
@@ -195,14 +179,33 @@ def _coerce_shapes(value: Any, fallback: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(shapes)
 
 
-def _task_stopping(context: Context) -> bool:
-    """任务是否已被请求停止。测试里会传 None，缺 context 时视作未停止。"""
-    tasker = getattr(context, "tasker", None)
-    return bool(getattr(tasker, "stopping", False))
+def _coerce_thresholds(value: Any) -> dict[str, float]:
+    """把 JSON 里的 thresholds 按形态名收成 dict，缺省/非法项用各形态的默认阈值。"""
+    merged = {name: spec.threshold for name, spec in SHAPES.items()}
+    if value is None:
+        return merged
+    if not isinstance(value, dict):
+        logger.warning(f"[CloseAd] thresholds 非法（{value!r}），全部用默认值")
+        return merged
+    for key, raw in value.items():
+        if key not in SHAPES:
+            logger.warning(f"[CloseAd] thresholds 含未知形态（{key!r}），已忽略")
+            continue
+        merged[str(key)] = _coerce_float(raw, merged[str(key)], f"thresholds.{key}")
+    return merged
+
+
+def _coerce_float(value: Any, fallback: float, key: str) -> float:
+    """把 JSON 里的数值参数转成 float，非法值回落默认。"""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        if value is not None:
+            logger.warning(f"[CloseAd] {key} 非法（{value!r}），回落默认 {fallback}")
+        return fallback
+    return float(value)
 
 
 def _int_or_none(value: Any, key: str) -> int | None:
-    """JSON 数字转 int；没配置、非数字、inf/nan 一律返回 None（按未配置处理，不是按默认值）。
+    """JSON 数字转 int；没配置、非数字、inf/nan 一律返回 None（按未配置处理）。
 
     区分「没配」和「配了但无效」很重要：只有两个**有效**的显式边长才该判区间倒置。
     """
@@ -218,13 +221,19 @@ def _int_or_none(value: Any, key: str) -> int | None:
         return None
 
 
-def _coerce_float(value: Any, fallback: float, key: str) -> float:
-    """把 JSON 里的数值参数转成 float，非法值回落默认。"""
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        if value is not None:
-            logger.warning(f"[CloseAd] {key} 非法（{value!r}），回落默认 {fallback}")
-        return fallback
-    return float(value)
+def _task_stopping(context: Context) -> bool:
+    """任务是否已被请求停止。测试里会传 None，缺 context 时视作未停止。"""
+    tasker = getattr(context, "tasker", None)
+    return bool(getattr(tasker, "stopping", False))
+
+
+def _resolve_roi(roi: Rect, image_h: int, image_w: int) -> tuple[int, int, int, int]:
+    """取框架传下来的识别区域；[0,0,0,0] 表示节点没写 roi，按全图处理并告警。"""
+    x, y, w, h = int(roi.x), int(roi.y), int(roi.w), int(roi.h)
+    if w <= 0 or h <= 0:
+        logger.warning("[CloseAd] 节点未设置 roi，将按全屏扫描（很慢）；请在 pipeline 节点上写 roi")
+        return (0, 0, image_w, image_h)
+    return (x, y, w, h)
 
 
 @AgentServer.custom_recognition("CloseAd")
@@ -243,13 +252,8 @@ class CloseAd(CustomRecognition):
             logger.error(f"[CloseAd] 参数解析失败（{e}），按未命中处理 | node={argv.node_name}")
             return CustomRecognition.AnalyzeResult(box=None, detail={"reason": "参数解析失败"})
 
-        roi = _coerce_roi(params.get("roi"), DEFAULT_ROI)
         shapes = _coerce_shapes(params.get("shapes"), DEFAULT_SHAPES)
-        # 每个形态各自的命中阈值：纯 X 少一圈笔画做佐证，需要更高分
-        shape_thresholds = {
-            SHAPE_CIRCLE_X: _coerce_float(params.get("threshold"), DEFAULT_THRESHOLD, "threshold"),
-            SHAPE_X: _coerce_float(params.get("x_threshold"), DEFAULT_X_THRESHOLD, "x_threshold"),
-        }
+        thresholds = _coerce_thresholds(params.get("thresholds"))
         explicit_min = _int_or_none(params.get("min_side"), "min_side")
         explicit_max = _int_or_none(params.get("max_side"), "max_side")
         # 只有两个显式且**有效**的边长倒置（如 40/20）才算配置写反，按未命中处理；
@@ -273,23 +277,22 @@ class CloseAd(CustomRecognition):
             logger.error(f"[CloseAd] 图像为空 | node={argv.node_name}")
             return CustomRecognition.AnalyzeResult(box=None, detail={"reason": "图像为空"})
 
-        gray = self._to_gray(image)
-        if gray is None:
-            return CustomRecognition.AnalyzeResult(box=None, detail={"reason": "图像通道异常"})
-
-        # roi 可能越界，先裁剪
-        roi_x, roi_y, roi_w, roi_h = roi
-        img_h, img_w = gray.shape[:2]
+        img_h, img_w = image.shape[:2]
+        roi_x, roi_y, roi_w, roi_h = _resolve_roi(argv.roi, img_h, img_w)
         x0 = max(0, min(roi_x, img_w))
         y0 = max(0, min(roi_y, img_h))
         x1 = max(x0, min(roi_x + roi_w, img_w))
         y1 = max(y0, min(roi_y + roi_h, img_h))
         if x1 - x0 < 8 or y1 - y0 < 8:
-            logger.error(f"[CloseAd] roi 有效区域过小 | roi={roi} image={gray.shape[:2]}")
+            logger.error(f"[CloseAd] roi 有效区域过小 | roi={(roi_x, roi_y, roi_w, roi_h)} image={(img_h, img_w)}")
             return CustomRecognition.AnalyzeResult(box=None, detail={"reason": "roi 有效区域过小"})
 
-        region = gray[y0:y1, x0:x1]
-        screen_mask = region > min_brightness
+        # 先裁再转灰度：只对需要的区域做 BGR -> gray，省掉整图转换
+        gray = self._to_gray(image[y0:y1, x0:x1])
+        if gray is None:
+            return CustomRecognition.AnalyzeResult(box=None, detail={"reason": "图像通道异常"})
+
+        screen_mask = gray > min_brightness
         if not screen_mask.any():
             return CustomRecognition.AnalyzeResult(
                 box=None,
@@ -336,10 +339,8 @@ class CloseAd(CustomRecognition):
                     continue
 
                 hits = _correlate2d_with_spectrum(screen_spectrum, template, (fft_h, fft_w), (out_h, out_w))
-                # F1 = 2·命中 / (模板笔画数 + 窗口内笔画数)
-                denom = template_count + window
-                with np.errstate(divide="ignore", invalid="ignore"):
-                    f1 = np.where(denom > 0, 2.0 * hits / np.maximum(denom, 1), 0.0)
+                # F1 = 2·命中 / (模板笔画数 + 窗口内笔画数)；template_count ≥ MIN_HIT_PIXELS，分母必为正
+                f1 = 2.0 * hits / (template_count + window)
                 f1 = np.where(hits >= max(MIN_HIT_PIXELS, template_count * MIN_HIT_RATIO), f1, 0.0)
                 f1 = np.where(gate, f1, 0.0)
 
@@ -368,7 +369,7 @@ class CloseAd(CustomRecognition):
             if entry is None:
                 continue
             score, box, detail = entry
-            if score >= shape_thresholds[shape]:
+            if score >= thresholds[shape]:
                 logger.debug(f"[CloseAd] 命中 | box={box} {detail} | node={argv.node_name}")
                 return CustomRecognition.AnalyzeResult(box=box, detail=detail)
 
