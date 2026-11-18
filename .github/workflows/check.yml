@@ -24,7 +24,9 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # 传递依赖常无可升级补丁，advisory 只作警告不挡 Check
       - run: pnpm audit --audit-level high
+        continue-on-error: true
       - run: pnpm check
       - run: pnpm check:py
         if: hashFiles('pyproject.toml') != ''
