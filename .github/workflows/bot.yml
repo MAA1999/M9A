@@ -338,10 +338,12 @@ jobs:
       #
       # 版本解析和缓存键都交给 `tools/bot/resolve-packages.sh`：`.github/workflows/bot-cache.yml` 必须
       # 算出逐字节相同的键，各写一遍就等于把「一处格式不一致」变成常态，而那种失败是静默的。
+      # `RESOLVE_PLUGINS=1` 只给 Analyze：warm 不装插件，也不该让插件的 `npm view` 拖垮 cache_key。
       - name: Resolve packages
         id: pkgs
         env:
           SETUP_HASH: ${{ hashFiles('tools/bot/setup.json') }}
+          RESOLVE_PLUGINS: "1"
         run: bash tools/bot/resolve-packages.sh
 
       # 有两样东西会让缓存树失效，原因各不相同。配置哈希：改名或删包会在 bin 里留下残留，下一次安装会

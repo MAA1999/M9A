@@ -41,7 +41,7 @@
 
 ## 联网搜索
 
-`web_search` 可用，走 Exa。用来找当前公开资料（上游文档、issue 讨论、changelog）。仓库里的事实仍以源码、`data/`、`gh` 和 skill 为准；MaaFW 字段语义走 `maallmwiki`，不要用搜索代替。知道出处的 URL 用 `web_fetch` 取正文。
+`web_search` 可用，走 Exa。用来找当前公开资料（上游文档、issue 讨论、changelog）。查询词里不要带玩家 ID、昵称等个人标识。仓库里的事实仍以源码、`data/`、`gh` 和 skill 为准；MaaFW 字段语义走 `maallmwiki`，不要用搜索代替。知道出处的 URL 用 `web_fetch` 取正文。
 
 ## 取不到的证据别追
 
