@@ -322,9 +322,8 @@ jobs:
           # 凭证真的落进了 `~/.config/gh` —— 而 agent 靠的正是后者。摘掉之后它才是在验证这件事。
           env -u GH_TOKEN gh auth status
 
-      # npm 是这个 job 唯一需要的包管理器。全新的 headless profile 只有 76 KB，自身不声明任何 bundle
-      # 依赖；dsh 只在确实有东西要装时才去调包管理器 —— 实测首次启动，PATH 里有 pnpm 时 13.6 s，
-      # 没有时 3.3 s。
+      # 工具链本身用 npm 全局安装。headless profile 上的 bundle（Exa 搜索）要靠 `dsh plugin add`，
+      # 那一步会转发给 pnpm —— 所以 `install-toolchain.sh` 把 pnpm 也放进同一个 prefix。
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -360,8 +359,9 @@ jobs:
       # zstd 压缩后的归档，不等于这棵树在磁盘上的大小，别拿 `du` 去对。命中缓存时 `Install toolchain`
       # 只剩版本检查（0.1 s）—— 那 0.1 s 成为常态的前提，正是有人先把 `~/.npm-global` 填进缓存。
       #
-      # 不缓存 `$DSH_HOME/profiles/headless`：76 KB、首启动 3.3 s 就能重建，而 warm 那个 job 里没有模型
-      # 凭证，不该为了这点体积让它把 dsh 整个跑一遍。
+      # 不缓存 `$DSH_HOME/profiles/headless`：profile 在工作树里，每次 checkout 都是空的；
+      # Exa 插件只是一个小包，每次 `dsh plugin add` 比重开一条 cache 划算。warm 那个 job 里也没有
+      # 模型凭证，不该为了这点体积让它把 dsh 整个跑一遍。
       - uses: actions/cache/restore@v6
         with:
           path: ~/.npm-global
@@ -369,6 +369,12 @@ jobs:
 
       - name: Install toolchain
         run: bash tools/bot/install-toolchain.sh
+
+      # 声明在 tools/bot/setup.json 的 `plugins`。必须在 Analyze 之前装进 headless profile，
+      # 否则 `web_search` 仍走 base 默认的 DeepSeek Search API —— 这个 job 没有 DEEPSEEK_API_KEY，
+      # 搜会直接不可用。版本来自上面 resolve 写下的 versions.txt，不按 `latest` 再解析一次。
+      - name: Install profile plugins
+        run: bash tools/bot/install-plugins.sh
 
       # agent 能拿到哪些 skill 由 tools/bot/setup.json 决定，每个来源都要声明它的 skill 怎么落地：
       # `committed` 已经在本仓库里，`package` 随某个 npm 包发布、由该包自己的 CLI 安装，`skills-cli`
@@ -514,6 +520,10 @@ jobs:
           # provider/模型已由上面渲染进补丁；密钥统一走 `BOT_LLM_API_KEY`（secret 侧优先取同名，
           # 兼容旧的 `COMMAND_CODE_API_KEY`）。换 key 是改 Settings 的 secret，不需要提交。
           BOT_LLM_API_KEY: ${{ secrets.BOT_LLM_API_KEY || secrets.COMMAND_CODE_API_KEY }}
+          # Exa 官方 API 的 key。没配就走插件的免 key 公共通道（`mode: auto`）；配了更稳，不怕限流。
+          # 插件从进程环境读这个名字（默认 `apiKeyEnv`），不经过 agent 的 shell —— dsh-shell-env
+          # 不会把它漏进 bash。
+          EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
         run: |
           set -euo pipefail
           mkdir -p "$ANALYSIS_DIR"

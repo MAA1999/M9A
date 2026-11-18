@@ -106,16 +106,17 @@ if (!Array.isArray(selected.models) || !selected.models.some((m) => m && m.id ==
     fail(`providers["${provider}"].models 里缺少 id 为 "${model}" 的条目`);
 }
 
-// 顺序有意义：agent-default-model 先定默认模型，llm-pi-ai 再注入 provider 表，tool-web 最后关搜索。
-// 搜索关掉是结构性的：证据是日志与源码，MaaFW 事实走 MaaLLMWiki、游戏事实在 data/，不需要发现机制；
-// `fetch` 留着，知道出处的 URL 照样能取。
+// 顺序有意义：agent-default-model 先定默认模型，llm-pi-ai 再注入 provider 表。
+// 联网搜索由 headless profile 上的 `dsh-exa-web-search` bundle 接管（它自己的补丁把
+// `searchProvider` 钉成 `exa`，卸载即还原）。本补丁不再改 `tool-web`：那一行的 `config`
+// 是整段替换，随手写 `{search: false}` 会连 base 层的 `searchTimeoutMs: 60000` 一起盖掉，
+// 而且关掉 search 会让 Exa bundle 装了也没用。`fetch` 保持 base 默认（开），知道出处的 URL 仍能取。
 const patch = [
     {
         id: "agent-default-model",
         config: {provider, model, ...(reasoningEffort ? {reasoningEffort} : {})},
     },
     {id: "llm-pi-ai", config: {providers}},
-    {id: "tool-web", config: {search: false, fetch: true}},
 ];
 
 writeFileSync(out, `${JSON.stringify(patch, null, 2)}\n`, "utf8");

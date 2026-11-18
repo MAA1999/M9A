@@ -20,7 +20,8 @@ tag=""
 # 一条普通的命令替换里跑一次：它坏就当场退出，不必等那个静默的空循环。
 want_rows="$(jq -r '.packages | length' "$cfg")"
 got_rows=0
-# `install-toolchain.sh` 靠它把「想要哪个版本」和「装完之后核对什么」对上，两个脚本必须读同一份。
+# `install-toolchain.sh` / `install-plugins.sh` 靠它把「想要哪个版本」和「装完之后核对什么」对上，
+# 读同一份文件的脚本必须跟这里的写入格式一致。
 : > "$RUNNER_TEMP/versions.txt"
 
 while read -r key name spec inKey; do
@@ -36,6 +37,23 @@ done < <(jq -r '.packages[] | "\(.key) \(.name) \(.spec) \(.cacheKey // false)"'
 # 行数对不上就一个字符都不写：key 缺少 `cacheKey` 段不会让任何一步失败，只会让缓存悄悄不再随版本失效。
 if [ "$got_rows" != "$want_rows" ]; then
     echo "::error::setup.json 里有 $want_rows 个包，只解析出 $got_rows 个"
+    exit 1
+fi
+
+# 插件版本进同一份 versions.txt，但不进工具链 cache_key：它们装在 `$DSH_HOME` 的 profile 里，
+# 每次 checkout 都是空的，跟 ~/.npm-global 那棵 146 MB 的树无关。浮动标签（`latest`）在
+# resolve 和 install 之间移动的问题，靠 install-plugins.sh 按这里写下的精确版本去 add 来避免。
+want_plugins="$(jq -r '(.plugins // []) | length' "$cfg")"
+got_plugins=0
+while read -r key name spec; do
+    version="$(npm view "$name@$spec" version)"
+    echo "$key $version" >> "$RUNNER_TEMP/versions.txt"
+    echo "  $name@$spec -> $version"
+    got_plugins=$((got_plugins + 1))
+done < <(jq -r '(.plugins // [])[] | "\(.key) \(.name) \(.spec)"' "$cfg")
+
+if [ "$got_plugins" != "$want_plugins" ]; then
+    echo "::error::setup.json 里有 $want_plugins 个插件，只解析出 $got_plugins 个"
     exit 1
 fi
 
