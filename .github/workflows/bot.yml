@@ -652,6 +652,11 @@ jobs:
       # 只挡住 checkout 不构成屏障；而 `issue_comment` 与 `pull_request_target` 下 checkout 本来就是默认
       # 分支，改动在那里是 no-op。有害的部分是它连新的 `tools/bot/*` 都拿不到 —— 文件还没合并进默认分支。
       - uses: actions/checkout@v7
+        with:
+          # 默认会把 GITHUB_TOKEN 写进 git 配置（这份 job token 只有 contents: read）。
+          # 证据图由 publish-evidence.sh 用 App installation token 推隐藏 ref，不要让那份只读
+          # header 掺进 git push。
+          persist-credentials: false
 
       # installation token 一小时后过期，而分析允许跑得比这更久。只在负责发帖的 job 里现签，token 的
       # 寿命就与 agent 跑了多久无关。
@@ -664,10 +669,11 @@ jobs:
           permission-pull-requests: write
           # `resolveReviewThread` 对 App installation token 要求 `contents: write`：只给
           # `pull-requests: write` 会拿到 `Resource not accessible by integration`（实测同一个 thread
-          # 用维护者 token 能收、用 App token 不能）。
+          # 用维护者 token 能收、用 App token 不能）。证据截图也用它：installation token 打不了
+          # user-attachments 上传端点（cli/cli#14309），只能把图推到 `refs/bot-evidence/<sha>`。
           #
           # 这个权限同时覆盖 commits / branches / releases / merges —— 也就是 bot 能发版。维护者知情
-          # 并选择接受：自动收起已修意见要它，而 App 这条路没有更窄的替代（细粒度 PAT 可以只给
+          # 并选择接受：自动收起已修意见和发图都要它，而 App 这条路没有更窄的替代（细粒度 PAT 可以只给
           # pull requests，代价是另一个会过期的 secret）。
           #
           # 所以防线在别处，而且已经不是「`gate` 只放行本仓库自己的 PR」了 —— `pull_request_target` 之后
@@ -763,10 +769,9 @@ jobs:
           fi
 
           # 正文里的证据图片交给 tools/bot/answer-evidence.awk 解析：inline 图片与 reference-style
-          # 定义都认（`gh --attach` 两种都会改写，前者改目的地、后者改定义行），围栏代码块跳过，
-          # 按出现顺序去重 —— `refs` 是给 `--attach` 用的清单，`plain` 是降级副本。
+          # 定义都认，围栏代码块跳过，按出现顺序去重 —— `refs` 是待推送的清单，`plain` 是降级副本。
           #
-          # 任何发不出附件的路径都改发 `plain`：公开评论或 review 里不会留 `./evidence/...` 这种断图。
+          # 任何发不出图的路径都改发 `plain`：公开评论或 review 里不会留 `./evidence/...` 这种断图。
           plain="$RUNNER_TEMP/answer-plain.md"
           refs="$RUNNER_TEMP/evidence-refs.txt"
           plain_rc=0
@@ -776,82 +781,95 @@ jobs:
           refs_err="$(LC_ALL=C awk -v mode=refs -f tools/bot/answer-evidence.awk "$answer" 2>&1 > "$refs")" \
             || refs_rc=$?
           if [ -n "$refs_err" ]; then echo "$refs_err"; fi
-          # `plain` 退出 4 = 降级完仍剩下认不出的证据引用（那些残行已经被它丢掉）。这一轮同样不发图：
-          # 附图路径发的是原始 `$answer`，那里还留着同一条引用，公开发出去就是断图。
+          # `plain` 退出 4 = 降级完仍剩下认不出的证据引用（那些残行已经被它丢掉）。这一轮同样不发图。
           if [ "$plain_rc" -ne 0 ]; then
             echo "::warning::answer.md still points at evidence/ outside inline images; those lines were dropped"
           fi
 
-          # 附图只开在 issue 这条路上：PR 的摘要和行内意见走 reviews API，那条接口没有附件。
+          # GitHub App installation token 打 user-attachments 上传端点是 404（cli/cli#14309），
+          # `gh --attach` 走不通。改把图做成孤立 commit 推到 `refs/bot-evidence/<sha>`（不在
+          # refs/heads 下：普通 clone 不会带上，也不会触发 push workflow），再把正文里的相对路径
+          # 改写成 `https://github.com/<repo>/raw/<sha>/…` —— GitHub 会当图片渲染。
           #
           # 校验按「全有或全无」：只要有一张对不上（路径逃逸、后缀不是图、文件不在、超过 2 MiB），
-          # 或者超过 prompt 允许的 3 张，这一轮就一张都不发、整篇走 `plain`。`gh` 只改写实际上传的那
-          # 几个引用，剩下几张会以本地路径留在正文里 —— 那正是这条路径要避免的断图。
-          #
-          # `--attach` 打的是 GitHub 的上传端点：gh 2.103.2 起才接受 GitHub App installation token，
-          # 而端点本身还只收一部分 App。这两条都是运行环境的事，所以一律降级并留 warning —— 附图是
-          # 结论的补充，不值得让一条分析因为传图失败而发不出去。
-          if [ "$KIND" != "pr" ]; then
-            attach=()
-            skipped=""
-            if [ "$refs_rc" -ne 0 ]; then
-              skipped="could not parse the image references out of answer.md (awk exit $refs_rc)"
-            elif [ "$plain_rc" -ne 0 ]; then
-              skipped="answer.md still points at evidence/ outside inline images"
-            fi
-            while IFS= read -r ref && [ -z "$skipped" ]; do
-              case "$ref" in
-                "") continue ;;
-                *..*)
-                  skipped="$ref escapes the analysis directory"
-                  continue
-                  ;;
-              esac
-              case "${ref##*.}" in
-                png | jpg | jpeg | webp | gif) ;;
-                *)
-                  skipped="$ref is not a png/jpg/webp/gif"
-                  continue
-                  ;;
-              esac
-              path="$ANALYSIS_DIR/$ref"
-              if [ ! -f "$path" ]; then
-                skipped="$ref is referenced by answer.md but not in the analysis directory"
+          # 或者超过 prompt 允许的 3 张，这一轮就一张都不发、整篇走 `plain`。推送失败同样降级 ——
+          # 附图是结论的补充，不值得让一条分析因为传图失败而发不出去。
+          body="$plain"
+          files=()
+          skipped=""
+          if [ "$refs_rc" -ne 0 ]; then
+            skipped="could not parse the image references out of answer.md (awk exit $refs_rc)"
+          elif [ "$plain_rc" -ne 0 ]; then
+            skipped="answer.md still points at evidence/ outside inline images"
+          fi
+          while IFS= read -r ref && [ -z "$skipped" ]; do
+            case "$ref" in
+              "") continue ;;
+              *..*)
+                skipped="$ref escapes the analysis directory"
                 continue
-              fi
-              if [ "$(wc -c < "$path")" -gt 2097152 ]; then
-                skipped="$ref is larger than 2 MiB"
+                ;;
+            esac
+            case "${ref##*.}" in
+              png | jpg | jpeg | webp | gif) ;;
+              *)
+                skipped="$ref is not a png/jpg/webp/gif"
                 continue
-              fi
-              attach+=(--attach "$path")
-            done < "$refs"
-
-            images=$((${#attach[@]} / 2))
-            if [ -n "$skipped" ]; then
-              echo "::warning::posting without evidence images: $skipped"
-              attach=()
-              images=0
-            elif [ "$images" -gt 3 ]; then
-              echo "::warning::answer.md references $images evidence images, more than the 3 the prompt allows; posting without them"
-              attach=()
-              images=0
+                ;;
+            esac
+            path="$ANALYSIS_DIR/$ref"
+            if [ ! -f "$path" ]; then
+              skipped="$ref is referenced by answer.md but not in the analysis directory"
+              continue
             fi
+            if [ "$(wc -c < "$path")" -gt 2097152 ]; then
+              skipped="$ref is larger than 2 MiB"
+              continue
+            fi
+            files+=("$ref")
+          done < "$refs"
 
-            if [ "$images" -gt 0 ]; then
-              # 不用 `gh ... --help | grep -q`：`-q` 命中即退出会让 gh 吃 SIGPIPE，`pipefail` 下整条
-              # 管道判失败，于是把「这个 gh 支持 --attach」误判成不支持。
-              help="$(gh issue comment --help 2>/dev/null || true)"
-              if [ "${help#*--attach}" = "$help" ]; then
-                echo "::warning::this gh has no --attach; posting the answer without the evidence images"
-              elif gh issue comment "$TARGET" --body-file "$answer" "${attach[@]}"; then
-                echo "posted with $images evidence image(s)"
-                exit 0
+          images=${#files[@]}
+          if [ -n "$skipped" ]; then
+            echo "::warning::posting without evidence images: $skipped"
+            images=0
+          elif [ "$images" -gt 3 ]; then
+            echo "::warning::answer.md references $images evidence images, more than the 3 the prompt allows; posting without them"
+            images=0
+          elif [ "$images" -gt 0 ]; then
+            if sha="$(bash tools/bot/publish-evidence.sh "$ANALYSIS_DIR" "${files[@]}")" &&
+               [[ "$sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
+              prefix="https://github.com/${GITHUB_REPOSITORY}/raw/${sha}"
+              reachable=0
+              # 隐藏 ref 上的 commit 偶尔要一两秒才被 raw 端点看见；打不开就降级，避免评论里一排裂图。
+              for _try in 1 2 3; do
+                if curl -fsI -L --max-time 15 -o /dev/null "$prefix/${files[0]}"; then
+                  reachable=1
+                  break
+                fi
+                sleep 2
+              done
+              urls_rc=1
+              if [ "$reachable" -eq 1 ]; then
+                LC_ALL=C awk -v mode=urls -v prefix="$prefix" \
+                  -f tools/bot/answer-evidence.awk "$answer" \
+                  > "$RUNNER_TEMP/answer-urls.md" || urls_rc=$?
               else
-                echo "::warning::the evidence images could not be uploaded; posting the answer without them"
+                echo "::warning::$prefix/${files[0]} is not reachable; posting without evidence images"
               fi
+              if [ "$urls_rc" -eq 0 ]; then
+                body="$RUNNER_TEMP/answer-urls.md"
+                echo "published $images evidence image(s) at $sha"
+              elif [ "$reachable" -eq 1 ]; then
+                echo "::warning::could not rewrite evidence image URLs; posting without them"
+              fi
+            else
+              echo "::warning::could not publish evidence images; posting without them"
             fi
+          fi
 
-            gh issue comment "$TARGET" --body-file "$plain"
+          if [ "$KIND" != "pr" ]; then
+            gh issue comment "$TARGET" --body-file "$body"
             exit 0
           fi
 
@@ -880,12 +898,12 @@ jobs:
             echo "::warning::every proposed inline comment was outside the diff"
           fi
 
-          jq -n --rawfile body "$plain" --slurpfile c "$RUNNER_TEMP/comments.json" \
+          jq -n --rawfile body "$body" --slurpfile c "$RUNNER_TEMP/comments.json" \
             '{event: "COMMENT", body: $body, comments: $c[0].comments}' > "$RUNNER_TEMP/review.json"
 
           if ! gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" --input "$RUNNER_TEMP/review.json"; then
             echo "::warning::review rejected with inline comments, retrying as a summary-only review"
-            jq -n --rawfile body "$plain" '{event: "COMMENT", body: $body, comments: []}' \
+            jq -n --rawfile body "$body" '{event: "COMMENT", body: $body, comments: []}' \
               > "$RUNNER_TEMP/review.json"
             gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" --input "$RUNNER_TEMP/review.json"
           fi
