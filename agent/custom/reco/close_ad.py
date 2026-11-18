@@ -201,21 +201,21 @@ def _task_stopping(context: Context) -> bool:
     return bool(getattr(tasker, "stopping", False))
 
 
-def _coerce_int(value: Any, fallback: int, key: str) -> int:
-    """把 JSON 里的整数参数转成 int，非法值回落默认。
+def _int_or_none(value: Any, key: str) -> int | None:
+    """JSON 数字转 int；没配置、非数字、inf/nan 一律返回 None（按未配置处理，不是按默认值）。
 
-    JSON 里的 1e309 会被解析成 inf，int(inf) 抛 OverflowError；畸形 param 不能把 analyze 打挂，
-    所以这里连转换一起兜住。
+    区分「没配」和「配了但无效」很重要：只有两个**有效**的显式边长才该判区间倒置。
     """
+    if value is None:
+        return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
-        if value is not None:
-            logger.warning(f"[CloseAd] {key} 非法（{value!r}），回落默认 {fallback}")
-        return fallback
+        logger.warning(f"[CloseAd] {key} 非法（{value!r}），按未配置处理")
+        return None
     try:
         return int(value)
     except (OverflowError, ValueError):
-        logger.warning(f"[CloseAd] {key} 无法转为整数（{value!r}），回落默认 {fallback}")
-        return fallback
+        logger.warning(f"[CloseAd] {key} 无法转为整数（{value!r}），按未配置处理")
+        return None
 
 
 def _coerce_float(value: Any, fallback: float, key: str) -> float:
@@ -250,17 +250,20 @@ class CloseAd(CustomRecognition):
             SHAPE_CIRCLE_X: _coerce_float(params.get("threshold"), DEFAULT_THRESHOLD, "threshold"),
             SHAPE_X: _coerce_float(params.get("x_threshold"), DEFAULT_X_THRESHOLD, "x_threshold"),
         }
-        raw_min_side = params.get("min_side")
-        raw_max_side = params.get("max_side")
-        min_side = _coerce_int(raw_min_side, DEFAULT_MIN_SIDE, "min_side")
-        max_side = _coerce_int(raw_max_side, DEFAULT_MAX_SIDE, "max_side")
-        # 显式下限高于显式上限 = 配置写反了，按未命中处理（不能把上限抬上去凑合，那会搜到配置外）
-        if raw_min_side is not None and raw_max_side is not None and min_side > max_side:
-            logger.error(f"[CloseAd] min_side({min_side}) 大于 max_side({max_side})，按未命中处理")
+        explicit_min = _int_or_none(params.get("min_side"), "min_side")
+        explicit_max = _int_or_none(params.get("max_side"), "max_side")
+        # 只有两个显式且**有效**的边长倒置（如 40/20）才算配置写反，按未命中处理；
+        # 转换失败的按未配置处理，不能让它把另一侧的有效配置顶掉
+        if explicit_min is not None and explicit_max is not None and explicit_min > explicit_max:
+            logger.error(f"[CloseAd] min_side({explicit_min}) 大于 max_side({explicit_max})，按未命中处理")
             return CustomRecognition.AnalyzeResult(box=None, detail={"reason": "边长区间非法"})
-        # 只配了上限时，下界跟着上限走；上限本身保持不动
-        if raw_min_side is None and raw_max_side is not None:
-            min_side = min(DEFAULT_MIN_SIDE, max_side)
+        if explicit_min is not None:
+            min_side = explicit_min
+        elif explicit_max is not None:
+            min_side = min(DEFAULT_MIN_SIDE, explicit_max)  # 只配上限时下界跟着上限走
+        else:
+            min_side = DEFAULT_MIN_SIDE
+        max_side = explicit_max if explicit_max is not None else DEFAULT_MAX_SIDE
         min_side = max(MIN_TEMPLATE_SIDE, min_side)
         max_side = max(min_side, max_side)
         min_brightness = _coerce_float(params.get("min_brightness"), DEFAULT_MIN_BRIGHTNESS, "min_brightness")

@@ -93,9 +93,11 @@ def test_bare_x_with_thick_stroke_is_located() -> None:
     _assert_located(_analyze(_bare_x_screen(radius=13, width=3)), "x")
 
 
-def test_invalid_side_param_falls_back_without_raising() -> None:
-    """畸形 param（1e309 解析成 inf）不能让 analyze 抛异常，回落默认值后正常未命中。"""
+def test_invalid_side_param_is_treated_as_unset() -> None:
+    """畸形 param（1e309 解析成 inf）不能让 analyze 抛异常，也不能顶掉另一侧的有效配置。"""
     assert _analyze(_to_bgr(_blank()), min_side=float("inf")).box is None  # type: ignore[attr-defined]
+    # 无效下限 + 有效上限 12：应按「只配了上限」搜索 12px，而不是报区间倒置
+    assert _analyze(_circle_x_screen(), min_side=float("inf"), max_side=12).box is not None  # type: ignore[attr-defined]
 
 
 def test_explicit_reversed_side_range_is_miss() -> None:
