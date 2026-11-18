@@ -93,6 +93,18 @@ def test_bare_x_with_thick_stroke_is_located() -> None:
     _assert_located(_analyze(_bare_x_screen(radius=13, width=3)), "x")
 
 
+def test_invalid_side_param_falls_back_without_raising() -> None:
+    """畸形 param（1e309 解析成 inf）不能让 analyze 抛异常，回落默认值后正常未命中。"""
+    assert _analyze(_to_bgr(_blank()), min_side=float("inf")).box is None  # type: ignore[attr-defined]
+
+
+def test_explicit_reversed_side_range_is_miss() -> None:
+    """min_side 显式大于 max_side 属于配置写反，按未命中处理，而不是把上限抬上去。"""
+    result = _analyze(_circle_x_screen(), min_side=40, max_side=20)
+    assert result.box is None  # type: ignore[attr-defined]
+    assert result.detail["reason"] == "边长区间非法"  # type: ignore[attr-defined]
+
+
 def test_shapes_can_be_restricted_to_circle_only() -> None:
     """shapes 收窄到 circle_x 时，纯 X 不再命中——渠道要压误配时用这个开关。"""
     assert _analyze(_bare_x_screen(), shapes=["circle_x"]).box is None  # type: ignore[attr-defined]

@@ -202,12 +202,20 @@ def _task_stopping(context: Context) -> bool:
 
 
 def _coerce_int(value: Any, fallback: int, key: str) -> int:
-    """把 JSON 里的整数参数转成 int，非法值回落默认。"""
+    """把 JSON 里的整数参数转成 int，非法值回落默认。
+
+    JSON 里的 1e309 会被解析成 inf，int(inf) 抛 OverflowError；畸形 param 不能把 analyze 打挂，
+    所以这里连转换一起兜住。
+    """
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         if value is not None:
             logger.warning(f"[CloseAd] {key} 非法（{value!r}），回落默认 {fallback}")
         return fallback
-    return int(value)
+    try:
+        return int(value)
+    except (OverflowError, ValueError):
+        logger.warning(f"[CloseAd] {key} 无法转为整数（{value!r}），回落默认 {fallback}")
+        return fallback
 
 
 def _coerce_float(value: Any, fallback: float, key: str) -> float:
@@ -242,8 +250,19 @@ class CloseAd(CustomRecognition):
             SHAPE_CIRCLE_X: _coerce_float(params.get("threshold"), DEFAULT_THRESHOLD, "threshold"),
             SHAPE_X: _coerce_float(params.get("x_threshold"), DEFAULT_X_THRESHOLD, "x_threshold"),
         }
-        min_side = max(MIN_TEMPLATE_SIDE, _coerce_int(params.get("min_side"), DEFAULT_MIN_SIDE, "min_side"))
-        max_side = max(min_side, _coerce_int(params.get("max_side"), DEFAULT_MAX_SIDE, "max_side"))
+        raw_min_side = params.get("min_side")
+        raw_max_side = params.get("max_side")
+        min_side = _coerce_int(raw_min_side, DEFAULT_MIN_SIDE, "min_side")
+        max_side = _coerce_int(raw_max_side, DEFAULT_MAX_SIDE, "max_side")
+        # 显式下限高于显式上限 = 配置写反了，按未命中处理（不能把上限抬上去凑合，那会搜到配置外）
+        if raw_min_side is not None and raw_max_side is not None and min_side > max_side:
+            logger.error(f"[CloseAd] min_side({min_side}) 大于 max_side({max_side})，按未命中处理")
+            return CustomRecognition.AnalyzeResult(box=None, detail={"reason": "边长区间非法"})
+        # 只配了上限时，下界跟着上限走；上限本身保持不动
+        if raw_min_side is None and raw_max_side is not None:
+            min_side = min(DEFAULT_MIN_SIDE, max_side)
+        min_side = max(MIN_TEMPLATE_SIDE, min_side)
+        max_side = max(min_side, max_side)
         min_brightness = _coerce_float(params.get("min_brightness"), DEFAULT_MIN_BRIGHTNESS, "min_brightness")
 
         image = argv.image
