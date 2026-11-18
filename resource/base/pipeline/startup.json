@@ -3,7 +3,6 @@
         "post_wait_freezes": 300,
         "timeout": 60000,
         "next": [
-            "[JumpBack]CloseAd",
             "[JumpBack]Confirm",
             "HomeFlagFirst",
             "StartGame",
@@ -20,6 +19,9 @@
             "[JumpBack]Reward",
             "[JumpBack]SignInReward",
             "[JumpBack]ClosePageFirst",
+            // 广告关闭放在领取节点之后：ClosePageFirst 会先用签到/奖励页的关闭按钮模板接手，
+            // 保证 SignInReward / ObtainedAwards 先领奖再关页（905bc118），CloseAd 只兜底
+            "[JumpBack]CloseAd",
             "[JumpBack]VictoryReturn",
             "[JumpBack]Downloading",
             "[JumpBack]CandyCancel",
@@ -149,7 +151,6 @@
             }
         },
         "next": [
-            "[JumpBack]CloseAd",
             "[JumpBack]Confirm",
             "HomeFlagFirst",
             "StartGame",
@@ -161,6 +162,8 @@
             "[JumpBack]SignInReward",
             "[JumpBack]ClickTarot",
             "[JumpBack]ClosePageFirst",
+            // 同上：先让签到/奖励页的领取节点拿到机会，CloseAd 只兜底
+            "[JumpBack]CloseAd",
             "[JumpBack]CandyCancel",
             "[JumpBack]BackButton",
             "[JumpBack]HomeButton",

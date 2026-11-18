@@ -166,6 +166,32 @@ def test_base_defines_close_ad_disabled_and_wires_it_into_startup() -> None:
         assert "[JumpBack]CloseAd" in base[parent]["next"], f"{parent}.next 未挂 CloseAd"  # type: ignore[index]
 
 
+def test_close_ad_runs_after_reward_claim_nodes() -> None:
+    """CloseAd 必须排在签到/奖励领取节点之后，否则先点掉 X 会导致奖励没领（905bc118）。"""
+    base = _pipeline("resource/base/pipeline/startup.json")
+    for parent in ("StartUp", "StartGame"):
+        order = base[parent]["next"]  # type: ignore[index]
+        for claim in ("[JumpBack]SignInReward", "[JumpBack]ClosePageFirst"):
+            assert order.index("[JumpBack]CloseAd") > order.index(claim), f"{parent}.next: CloseAd 抢在 {claim} 前面"
+
+
+def test_reward_page_close_button_is_a_known_false_positive() -> None:
+    """签到/奖励页的关闭按钮会被纯 X 模板命中——这就是 CloseAd 必须排在后面的原因。
+
+    模板取自仓库的 CloseRewardPage_2.2（green mask 还原成深色页面背景），实测 x 得分 0.939；
+    它和广告的 X 同形，调阈值分不开，只能靠 next 顺序保证先领奖再关页。
+    """
+    template = Image.open(ROOT / "resource/base/image/StartUp/CloseButton/CloseRewardPage_2.2.png").convert("RGB")
+    rgb = np.array(template).astype(int)
+    green = rgb[:, :, 1] - np.maximum(rgb[:, :, 0], rgb[:, :, 2]) > 40
+    rgb[green] = (23, 23, 25)  # green mask -> 深色页面背景
+    canvas = Image.new("RGB", (1280, 720), (23, 23, 25))
+    canvas.paste(Image.fromarray(rgb.astype(np.uint8)), (1000, 100))
+    result = _analyze(_to_bgr(canvas))
+    assert result.box is not None
+    assert result.detail["shape"] == "x"
+
+
 def test_only_expected_channels_enable_close_ad() -> None:
     """有启动广告的渠道各自开启；新增渠道要在这里补一条，避免悄悄扩到其他渠道。"""
     enabling = set()
