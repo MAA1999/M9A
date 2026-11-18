@@ -52,7 +52,7 @@ def _bare_x_screen(radius: int = 13, width: int = 2) -> np.ndarray:
 
 
 def _analyze(image: np.ndarray, **param_overrides: object) -> object:
-    params: dict[str, object] = {"roi": ROI, "threshold": 0.65, "x_threshold": 0.7, "max_scale": 1.0}
+    params: dict[str, object] = {"roi": ROI, "threshold": 0.65, "x_threshold": 0.7}
     params.update(param_overrides)
     argv = SimpleNamespace(image=image, custom_recognition_param=json.dumps(params), node_name="CloseAd")
     return CloseAd().analyze(None, argv)  # type: ignore[arg-type]

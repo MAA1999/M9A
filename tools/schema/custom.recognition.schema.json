@@ -1206,20 +1206,15 @@
                             "maximum": 1,
                             "description": "纯「X」形态的 F1 命中阈值，默认 0.7（实测真按钮 0.75~0.98，噪点/图标网格等非目标画面 ≤0.67）"
                         },
-                        "min_scale": {
-                            "type": "number",
-                            "exclusiveMinimum": 0,
-                            "description": "最小缩放（相对 64px 基准直径），默认 0.25（约 16px）。建议 ≥0.2：更小的模板在亮噪声区容易误命中"
+                        "min_side": {
+                            "type": "integer",
+                            "minimum": 8,
+                            "description": "搜索的最小模板边长（px，720p 基准），默认 16。小于 8 会被抬到 8"
                         },
-                        "max_scale": {
-                            "type": "number",
-                            "exclusiveMinimum": 0,
-                            "description": "最大缩放，默认 1.0（约 64px 模板；实测广告按钮最大 51px，更小的上限更省未命中耗时的扫描尺度）"
-                        },
-                        "scale_step": {
-                            "type": "number",
-                            "exclusiveMinimum": 0,
-                            "description": "缩放步长，默认 0.015（步长过粗会导致尺寸量化跳变；低于 0.005 会被抬到 0.005，避免尺度循环因浮点精度加不动）"
+                        "max_side": {
+                            "type": "integer",
+                            "minimum": 8,
+                            "description": "搜索的最大模板边长（px，720p 基准），默认 64（实测广告按钮最大 51px；更小的上限更省未命中耗时）"
                         },
                         "min_brightness": {
                             "type": "number",

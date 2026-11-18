@@ -6,13 +6,14 @@
 节点默认关闭，由有启动广告的渠道在自身资源包覆盖 enabled 开启（见 resource/base
 的 CloseAd 节点）。
 
-参数（shapes / roi / threshold / x_threshold / min_scale / max_scale / scale_step /
-min_brightness）全部可选，含义与默认值见 tools/schema/custom.recognition.schema.json。
+参数（shapes / roi / threshold / x_threshold / min_side / max_side / min_brightness）
+全部可选，含义与默认值见 tools/schema/custom.recognition.schema.json。
 """
 
 from __future__ import annotations
 
 import math
+from functools import lru_cache
 from typing import Any
 
 import numpy as np
@@ -24,17 +25,12 @@ from utils.params import parse_params
 
 DEFAULT_ROI: tuple[int, int, int, int] = (800, 0, 480, 400)
 DEFAULT_THRESHOLD = 0.65
-DEFAULT_MIN_SCALE = 0.25
-# 上限 1.0 ⇒ 模板最大 64px。实测广告按钮最大 51px，仍有尺寸余量；
-# 更高的上限（1.6 时约 102px）只增加扫描尺度数、拖慢未命中的帧，无实测收益。
-DEFAULT_MAX_SCALE = 1.0
-DEFAULT_SCALE_STEP = 0.015
-# 步长下限。再小既没有精度收益，还可能因浮点精度让 scale + step == scale（0.25 + 1e-20 就是 0.25），
-# 尺度循环永远推进不了——识别回调里没有超时能打断它，只能在这里兜住
-MIN_SCALE_STEP = 0.005
+# 搜索的模板边长范围（px，720p 基准）。实测广告按钮 16~51px，上限留到 64 有余量；
+# 再大的上限只增加尺寸数、拖慢未命中的帧，无实测收益
+DEFAULT_MIN_SIDE = 16
+DEFAULT_MAX_SIDE = 64
+MIN_TEMPLATE_SIDE = 8
 DEFAULT_MIN_BRIGHTNESS = 100
-
-TEMPLATE_BASE_SIZE = 64  # 尺度基准：某尺度的实际边长 = 64 × scale
 # 笔画宽度/直径。实测按钮笔画密度约 24%，该比例下模板与真实笔画最接近
 STROKE_RATIO = 1.0 / 18.0
 MIN_HIT_RATIO = 0.3  # 命中至少要覆盖这么多模板笔画，避免极小模板匹配到零星噪点
@@ -69,7 +65,7 @@ def _capsule(
     return np.sqrt((xx - (x1 + t * vx)) ** 2 + (yy - (y1 + t * vy)) ** 2) <= half
 
 
-def _build_close_icon_mask(size: int = TEMPLATE_BASE_SIZE) -> np.ndarray:
+def _build_close_icon_mask(size: int) -> np.ndarray:
     """生成「圆圈 + X」笔画掩码，X 的四个端点落在圆环的 45° 方向上。"""
     if size < 8:
         raise ValueError(f"模板尺寸过小: {size}")
@@ -88,7 +84,7 @@ def _build_close_icon_mask(size: int = TEMPLATE_BASE_SIZE) -> np.ndarray:
     return ring | cross
 
 
-def _build_cross_mask(size: int = TEMPLATE_BASE_SIZE) -> np.ndarray:
+def _build_cross_mask(size: int) -> np.ndarray:
     """生成纯「X」笔画掩码：两条对角线端点内缩半个笔画，外接框正好铺满模板。"""
     if size < 8:
         raise ValueError(f"模板尺寸过小: {size}")
@@ -101,9 +97,10 @@ def _build_cross_mask(size: int = TEMPLATE_BASE_SIZE) -> np.ndarray:
     )
 
 
-def _build_mask(shape: str, size: int = TEMPLATE_BASE_SIZE) -> np.ndarray:
-    """按形态取模板掩码；未知形态按「圆圈 + X」处理。"""
-    return _build_cross_mask(size) if shape == SHAPE_X else _build_close_icon_mask(size)
+@lru_cache(maxsize=256)
+def _template(shape: str, side: int) -> np.ndarray:
+    """按 (形态, 边长) 缓存模板掩码——边长是有限集合，命中帧与未命中帧都会反复用同一批。"""
+    return _build_cross_mask(side) if shape == SHAPE_X else _build_close_icon_mask(side)
 
 
 def _next_fast_len(size: int) -> int:
@@ -198,6 +195,21 @@ def _coerce_shapes(value: Any, fallback: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(shapes)
 
 
+def _task_stopping(context: Context) -> bool:
+    """任务是否已被请求停止。测试里会传 None，缺 context 时视作未停止。"""
+    tasker = getattr(context, "tasker", None)
+    return bool(getattr(tasker, "stopping", False))
+
+
+def _coerce_int(value: Any, fallback: int, key: str) -> int:
+    """把 JSON 里的整数参数转成 int，非法值回落默认。"""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        if value is not None:
+            logger.warning(f"[CloseAd] {key} 非法（{value!r}），回落默认 {fallback}")
+        return fallback
+    return int(value)
+
+
 def _coerce_float(value: Any, fallback: float, key: str) -> float:
     """把 JSON 里的数值参数转成 float，非法值回落默认。"""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
@@ -216,7 +228,12 @@ class CloseAd(CustomRecognition):
         context: Context,
         argv: CustomRecognition.AnalyzeArg,
     ) -> CustomRecognition.AnalyzeResult:
-        params = parse_params(argv.custom_recognition_param)
+        try:
+            params = parse_params(argv.custom_recognition_param)
+        except ValueError as e:
+            # 参数坏了就按未命中处理：宁可这轮不关广告，也不拿半套参数去点画面
+            logger.error(f"[CloseAd] 参数解析失败（{e}），按未命中处理 | node={argv.node_name}")
+            return CustomRecognition.AnalyzeResult(box=None, detail={"reason": "参数解析失败"})
 
         roi = _coerce_roi(params.get("roi"), DEFAULT_ROI)
         shapes = _coerce_shapes(params.get("shapes"), DEFAULT_SHAPES)
@@ -225,20 +242,9 @@ class CloseAd(CustomRecognition):
             SHAPE_CIRCLE_X: _coerce_float(params.get("threshold"), DEFAULT_THRESHOLD, "threshold"),
             SHAPE_X: _coerce_float(params.get("x_threshold"), DEFAULT_X_THRESHOLD, "x_threshold"),
         }
-        min_scale = _coerce_float(params.get("min_scale"), DEFAULT_MIN_SCALE, "min_scale")
-        max_scale = _coerce_float(params.get("max_scale"), DEFAULT_MAX_SCALE, "max_scale")
-        scale_step = _coerce_float(params.get("scale_step"), DEFAULT_SCALE_STEP, "scale_step")
+        min_side = max(MIN_TEMPLATE_SIDE, _coerce_int(params.get("min_side"), DEFAULT_MIN_SIDE, "min_side"))
+        max_side = max(min_side, _coerce_int(params.get("max_side"), DEFAULT_MAX_SIDE, "max_side"))
         min_brightness = _coerce_float(params.get("min_brightness"), DEFAULT_MIN_BRIGHTNESS, "min_brightness")
-
-        # scale_step 非正会让尺度循环走不完，过小则可能加不动（浮点精度），都必须挡住
-        if scale_step <= 0:
-            logger.warning(f"[CloseAd] scale_step 必须为正（{scale_step}），改用 {DEFAULT_SCALE_STEP}")
-            scale_step = DEFAULT_SCALE_STEP
-        elif scale_step < MIN_SCALE_STEP:
-            logger.warning(f"[CloseAd] scale_step 过小（{scale_step}），改用下限 {MIN_SCALE_STEP}")
-            scale_step = MIN_SCALE_STEP
-        if min_scale > max_scale:
-            min_scale, max_scale = max_scale, min_scale
 
         image = argv.image
         if image.size == 0:
@@ -269,21 +275,19 @@ class CloseAd(CustomRecognition):
             )
 
         integral = _integral(screen_mask)
-        # 两种形态的笔画都在框中心交叉，故中心近旁必有笔画像素。小尺度下大圆弧的局部
-        # 也能蹭到高分，靠这条淘汰。3x3 邻域与尺度无关，整幅算一次即可。
+        # 两种形态的笔画都在框中心交叉，故中心近旁必有笔画像素。小边长下大圆弧的局部
+        # 也能蹭到高分，靠这条淘汰。3x3 邻域与边长无关，整幅算一次即可。
         stroke_near_center = _window_sums(integral, 3, 3)
 
         region_h, region_w = screen_mask.shape
-        max_side = int(round(TEMPLATE_BASE_SIZE * max_scale))
+        # 上限还要受 ROI 能容纳的尺寸约束
         max_side = min(max_side, region_h, region_w)
-        if max_side < 8:
+        if min_side > max_side:
             return CustomRecognition.AnalyzeResult(
                 box=None,
-                detail={"reason": "缩放上限下模板尺寸过小"},
+                detail={"reason": "ROI 放不下最小模板", "min_side": min_side, "roi": [x1 - x0, y1 - y0]},
             )
-        # 收敛到区域能容纳的尺度，避免无效尺度空转
-        max_scale = min(max_scale, max_side / TEMPLATE_BASE_SIZE)
-        # 屏幕掩码的频谱只算一次，供所有尺度复用
+        # 屏幕掩码的频谱只算一次，供所有边长复用
         fft_h = _next_fast_len(region_h + max_side - 1)
         fft_w = _next_fast_len(region_w + max_side - 1)
         screen_spectrum = np.fft.rfft2(screen_mask.astype(np.float32), (fft_h, fft_w))
@@ -291,31 +295,31 @@ class CloseAd(CustomRecognition):
         # 形态 → (最高分, box, detail)
         best_by_shape: dict[str, tuple[float, tuple[int, int, int, int], dict[str, Any]]] = {}
 
-        for shape in shapes:
-            scale = min_scale
-            while scale <= max_scale + 1e-9:
-                side = int(round(TEMPLATE_BASE_SIZE * scale))
-                if side < 8:
-                    scale += scale_step
-                    continue
+        # 边长在外、形态在内：窗口和中心门控只跟边长有关，按边长算一次给所有形态共用
+        for side in range(min_side, max_side + 1):
+            # Custom 回调内部框架不会打断（节点 timeout 也不管用），长扫描自己看停止信号
+            if (side - min_side) % 8 == 0 and _task_stopping(context):
+                logger.info(f"[CloseAd] 任务已请求停止，本轮按未命中返回 | node={argv.node_name}")
+                return CustomRecognition.AnalyzeResult(box=None, detail={"reason": "任务停止"})
 
-                # 按目标尺寸直接生成（而不是缩放 64px 模板）：小尺寸下笔画要保住绝对宽度
-                template = _build_mask(shape, side)
+            out_h, out_w = region_h - side + 1, region_w - side + 1
+            window = _window_sums(integral, side, side)
+            corner = side // 2 - 1
+            gate = stroke_near_center[corner : corner + out_h, corner : corner + out_w] > 0
+
+            for shape in shapes:
+                template = _template(shape, side)
                 template_count = int(template.sum())
                 if template_count < MIN_HIT_PIXELS:
-                    scale += scale_step
                     continue
 
-                out_h, out_w = region_h - side + 1, region_w - side + 1
                 hits = _correlate2d_with_spectrum(screen_spectrum, template, (fft_h, fft_w), (out_h, out_w))
-                window = _window_sums(integral, side, side)
                 # F1 = 2·命中 / (模板笔画数 + 窗口内笔画数)
                 denom = template_count + window
                 with np.errstate(divide="ignore", invalid="ignore"):
                     f1 = np.where(denom > 0, 2.0 * hits / np.maximum(denom, 1), 0.0)
                 f1 = np.where(hits >= max(MIN_HIT_PIXELS, template_count * MIN_HIT_RATIO), f1, 0.0)
-                corner = side // 2 - 1
-                f1 = np.where(stroke_near_center[corner : corner + out_h, corner : corner + out_w] > 0, f1, 0.0)
+                f1 = np.where(gate, f1, 0.0)
 
                 flat_index = int(np.argmax(f1))
                 score = float(f1.flat[flat_index])
@@ -327,13 +331,11 @@ class CloseAd(CustomRecognition):
                         {
                             "score": round(score, 4),
                             "shape": shape,
-                            "scale": round(scale, 3),
                             "side": side,
-                            "hit": int(hits.flat[flat_index]),
+                            "hit": round(float(hits.flat[flat_index]), 1),
                             "template_pixels": template_count,
                         },
                     )
-                scale += scale_step
 
         # 按 shapes 顺序取第一个达标的形态：圆圈+X 多一圈笔画佐证，命中更可信、
         # 框也更贴合按钮（纯 X 常只框住内圈那个 X，点击点一样但框更小）

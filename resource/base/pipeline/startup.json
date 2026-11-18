@@ -493,7 +493,7 @@
         }
     },
     "CloseAd": {
-        // 渠道服启动广告右上角的「圆圈 + X」关闭按钮；目前华为服、B 服需要它，
+        // 渠道服启动广告右上角的关闭按钮（「圆圈 + X」或纯「X」）；目前华为服、B 服需要它，
         // 故默认关闭，由需要它的渠道在自身资源包覆盖 enabled 开启（见 resource/huawei、resource/bilibili）
         "enabled": false,
         // max_hit 计的是「识别成功」次数（识别到即计数，[JumpBack] 不重置）；耗尽后本节点
@@ -519,8 +519,7 @@
                         400
                     ],
                     "threshold": 0.65,
-                    "x_threshold": 0.7,
-                    "max_scale": 1.0
+                    "x_threshold": 0.7
                 }
             }
         },
@@ -538,7 +537,9 @@
         },
         "post_wait_freezes": {
             "time": 300,
-            "target": true
+            "target": true,
+            // 等的是 16~27px 的小框，点掉广告后容易变平色；默认 20s 会白等，收窄到 3s
+            "timeout": 3000
         },
         // 广告弹窗是否弹出不确定，真机难以复现；命中时在任务日志留一行，便于用户反馈是否生效
         "focus": {
