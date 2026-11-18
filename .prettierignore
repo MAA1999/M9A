@@ -35,6 +35,7 @@ tools/schema/pipeline.schema.json
 tools/bot/review-lines.awk
 tools/bot/answer-evidence.awk
 tools/bot/publish-evidence.sh
+tools/bot/rewrite-evidence-body.sh
 
 # AGENTS.md：表格手工紧凑排版，避免 prettier 对齐把长单元格撑宽全表（每请求都进上下文）
 AGENTS.md

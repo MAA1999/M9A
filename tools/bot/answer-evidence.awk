@@ -13,6 +13,8 @@
 # 空白的行才结束它。代码块里的图片语法是示例，既不算引用，也不该被改写。
 
 BEGIN {
+    HEX = "0123456789ABCDEF"
+    for (i = 0; i < 256; i++) ORD[sprintf("%c", i)] = i
     if (mode == "urls") {
         if (prefix == "") {
             print "mode=urls requires -v prefix=..." > "/dev/stderr"
@@ -50,17 +52,40 @@ function has_local_evidence(line,   i, rest, k, target) {
 
 # 取出 markdown 目标里的路径：角括号写法 `(<evidence/x.png>)` 去掉括号，`(path "title")` 只取第一段。
 
-# 目标在 `(` 之后到哪里结束。角括号写法里可以有 `)`（`(<evidence/a(1).png>)`），
-# 所以先看 `>` 再看右括号 —— 否则文件名里的括号会把目标截断。
-function close_paren(tail,   e, k) {
+# 目标在 `(` 之后到哪里结束。要认 quoted title：`![x](p.png "旧图 (A)")` 的第一个 `)`
+# 在标题里，不能当链接结束。角括号写法里文件名也可以有 `)`。
+function close_paren(tail,   i, n, c, q) {
+    n = length(tail)
+    if (n == 0) return 0
     if (substr(tail, 1, 1) == "<") {
-        e = index(tail, ">")
-        if (e == 0) return 0
-        k = index(substr(tail, e), ")")
-        if (k == 0) return 0
-        return e + k - 1
+        i = index(tail, ">")
+        if (i == 0) return 0
+        i++
+    } else {
+        i = 1
+        while (i <= n) {
+            c = substr(tail, i, 1)
+            if (c == ")") return i
+            if (c == " " || c == "\t") break
+            i++
+        }
     }
-    return index(tail, ")")
+    while (i <= n && (substr(tail, i, 1) == " " || substr(tail, i, 1) == "\t")) i++
+    if (i > n) return 0
+    c = substr(tail, i, 1)
+    if (c == "\"" || c == "'") {
+        q = c
+        i++
+        while (i <= n) {
+            c = substr(tail, i, 1)
+            if (c == "\\") { i += 2; continue }
+            if (c == q) { i++; break }
+            i++
+        }
+        while (i <= n && (substr(tail, i, 1) == " " || substr(tail, i, 1) == "\t")) i++
+    }
+    if (substr(tail, i, 1) == ")") return i
+    return 0
 }
 function clean_dest(raw,   t, k) {
     t = raw
@@ -77,6 +102,31 @@ function emit(target) {
         seen[target] = 1
         print target
     }
+}
+
+# 路径段百分号编码，保留 `/`。git 里仍用未编码的文件名；拼进 raw URL / 探活才编码，
+# 不然 `shot#2.png` 的 `#2.png` 会变成 fragment。
+function urlenc_seg(s,   i, c, o, n) {
+    o = ""
+    for (i = 1; i <= length(s); i++) {
+        c = substr(s, i, 1)
+        if (c ~ /[A-Za-z0-9._~-]/) o = o c
+        else {
+            n = ORD[c]
+            if (n == "") o = o c
+            else o = o "%" substr(HEX, int(n / 16) + 1, 1) substr(HEX, (n % 16) + 1, 1)
+        }
+    }
+    return o
+}
+function urlenc_path(p,   n, i, a, o) {
+    n = split(p, a, "/")
+    o = urlenc_seg(a[1])
+    for (i = 2; i <= n; i++) o = o "/" urlenc_seg(a[i])
+    return o
+}
+function abs_url(dest) {
+    return prefix "/" urlenc_path(norm(dest))
 }
 
 # 行首围栏？返回它的字符重复数，0 表示不是。
@@ -145,14 +195,37 @@ function rewrite_def_line(line,   i, rest, ds, k, pre, dest, post) {
         dest = substr(rest, 2, k - 2)
         post = substr(rest, k + 1)
         if (!is_local_evidence(dest)) return line
-        return pre "<" prefix "/" norm(dest) ">" post
+        return pre "<" abs_url(dest) ">" post
     }
     k = 1
     while (k <= length(rest) && substr(rest, k, 1) !~ /[ \t]/) k++
     dest = substr(rest, 1, k - 1)
     post = substr(rest, k)
     if (!is_local_evidence(dest)) return line
-    return pre prefix "/" norm(dest) post
+    return pre abs_url(dest) post
+}
+
+# inline `](` 里的目标：只换路径，quoted title 原样留下。
+function rewrite_link_inner(inner,   ds, rest, pre, k, dest, post) {
+    ds = 1
+    while (ds <= length(inner) && (substr(inner, ds, 1) == " " || substr(inner, ds, 1) == "\t")) ds++
+    pre = substr(inner, 1, ds - 1)
+    rest = substr(inner, ds)
+    if (rest == "") return inner
+    if (substr(rest, 1, 1) == "<") {
+        k = index(rest, ">")
+        if (k == 0) return inner
+        dest = substr(rest, 2, k - 2)
+        post = substr(rest, k + 1)
+        if (!is_local_evidence(dest)) return inner
+        return pre "<" abs_url(dest) ">" post
+    }
+    k = 1
+    while (k <= length(rest) && substr(rest, k, 1) !~ /[ \t]/) k++
+    dest = substr(rest, 1, k - 1)
+    post = substr(rest, k)
+    if (!is_local_evidence(dest)) return inner
+    return pre abs_url(dest) post
 }
 
 # 处理一行里的图片：inline 的收集/降级/改写，reference-style 的降级。mode=refs 时只收集。
@@ -176,7 +249,7 @@ function rewrite(line,   out, i, rest, jp, jb, j, alt, tail, k, label, target, p
                 if (mode == "refs") {
                     emit(path)
                 } else if (mode == "urls") {
-                    out = out "![" alt "](" prefix "/" path ")"
+                    out = out "![" alt "](" rewrite_link_inner(substr(tail, 1, k - 1)) ")"
                 } else {
                     out = out alt
                 }
@@ -265,9 +338,11 @@ END {
                     residual = 1
                     continue
                 }
-            } else {
-                result = rewrite(line)
+                # 定义行的 title 可以合法地提到 `evidence/`（举例），不能当残留本地链接。
+                print result
+                continue
             }
+            result = rewrite(line)
             if (has_local_evidence(result)) {
                 residual = 1
                 continue

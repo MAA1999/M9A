@@ -28,6 +28,9 @@ export GIT_AUTHOR_NAME="m9abot[bot]"
 export GIT_AUTHOR_EMAIL="m9abot[bot]@users.noreply.github.com"
 export GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
 export GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
+# 远端 HTTPS 挂起时让 git 自己放弃，好让上层降级发纯文本，而不是吃掉整个 post job。
+export GIT_HTTP_LOW_SPEED_LIMIT=1000
+export GIT_HTTP_LOW_SPEED_TIME=30
 
 root="${1:-}"
 shift || true
@@ -52,6 +55,30 @@ GIT_TEMPLATE_DIR= git init --quiet "$work"
 git -C "$work" config core.autocrlf false
 git -C "$work" config commit.gpgsign false
 
+# 解析后的路径必须落在分析目录里。`-f` 会跟随符号链接，相对路径没有 `..` 也可以
+# 指到目录外；只 `cd dirname && pwd -P` 也跟不过文件本身的软链。
+# 不用 python：Windows 上 PATH 里的 python 经常是商店安装桩，一调就失败。
+canon() {
+    local p
+    # 优先 readlink -f：Git Bash / GNU 都给正斜杠。Windows 上 PATH 里的 realpath.exe
+    # 会吐反斜杠，后面的前缀匹配就对不上。
+    if p=$(readlink -f -- "$1" 2>/dev/null) && [ -n "$p" ]; then
+        printf '%s\n' "${p//\\//}"
+        return 0
+    fi
+    p=$(realpath -- "$1") || return 1
+    printf '%s\n' "${p//\\//}"
+}
+resolve_inside() {
+    local root_real src_real
+    root_real=$(canon "$1") || return 1
+    src_real=$(canon "$2") || return 1
+    case "$src_real" in
+        "$root_real"/*) printf '%s\n' "$src_real" ;;
+        *) return 1 ;;
+    esac
+}
+
 for rel in "$@"; do
     case "$rel" in
         "" | *..* | /* | [A-Za-z]:*)
@@ -60,13 +87,21 @@ for rel in "$@"; do
             ;;
     esac
     src="$root/$rel"
-    if [ ! -f "$src" ]; then
+    if [ ! -e "$src" ]; then
+        echo "publish-evidence.sh: missing $rel" >&2
+        exit 1
+    fi
+    src_real=$(resolve_inside "$root" "$src") || {
+        echo "publish-evidence.sh: refused path $rel" >&2
+        exit 1
+    }
+    if [ ! -f "$src_real" ]; then
         echo "publish-evidence.sh: missing $rel" >&2
         exit 1
     fi
     dest="$work/$rel"
     mkdir -p "$(dirname "$dest")"
-    cp -- "$src" "$dest"
+    cp -- "$src_real" "$dest"
     git -C "$work" add -- "$rel"
 done
 

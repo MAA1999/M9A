@@ -610,6 +610,20 @@ jobs:
       #
       # 会话日志一并带走：它是唯一记录 agent 每一步做了什么的地方（工具调用、结果、用量），
       # 而 `agent.stderr` 只有推理文本。
+      #
+      # upload-artifact 默认跟随符号链接，会把链接目标的字节写进归档。agent 能写
+      # `$ANALYSIS_DIR`，可以链到仓库外的文件；post 下载到的是普通文件，后缀/大小检查
+      # 看不出原位置，随后会把通过检查的图推到公开仓库。这里只删链接本身，不动目标。
+      - name: Drop symbolic links from the bot output
+        if: always()
+        run: |
+          set -euo pipefail
+          for dir in "$ANALYSIS_DIR" "$DSH_HOME/sessions"; do
+            if [ -d "$dir" ]; then
+              find "$dir" -type l -delete
+            fi
+          done
+
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -818,6 +832,10 @@ jobs:
                 ;;
             esac
             path="$ANALYSIS_DIR/$ref"
+            if [ -L "$path" ]; then
+              skipped="$ref is a symbolic link"
+              continue
+            fi
             if [ ! -f "$path" ]; then
               skipped="$ref is referenced by answer.md but not in the analysis directory"
               continue
@@ -837,35 +855,11 @@ jobs:
             echo "::warning::answer.md references $images evidence images, more than the 3 the prompt allows; posting without them"
             images=0
           elif [ "$images" -gt 0 ]; then
-            if sha="$(bash tools/bot/publish-evidence.sh "$ANALYSIS_DIR" "${files[@]}")" &&
-               [[ "$sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
-              prefix="https://github.com/${GITHUB_REPOSITORY}/raw/${sha}"
-              reachable=0
-              # 隐藏 ref 上的 commit 偶尔要一两秒才被 raw 端点看见；打不开就降级，避免评论里一排裂图。
-              for _try in 1 2 3; do
-                if curl -fsI -L --max-time 15 -o /dev/null "$prefix/${files[0]}"; then
-                  reachable=1
-                  break
-                fi
-                sleep 2
-              done
-              urls_rc=1
-              if [ "$reachable" -eq 1 ]; then
-                LC_ALL=C awk -v mode=urls -v prefix="$prefix" \
-                  -f tools/bot/answer-evidence.awk "$answer" \
-                  > "$RUNNER_TEMP/answer-urls.md" || urls_rc=$?
-              else
-                echo "::warning::$prefix/${files[0]} is not reachable; posting without evidence images"
-              fi
-              if [ "$urls_rc" -eq 0 ]; then
-                body="$RUNNER_TEMP/answer-urls.md"
-                echo "published $images evidence image(s) at $sha"
-              elif [ "$reachable" -eq 1 ]; then
-                echo "::warning::could not rewrite evidence image URLs; posting without them"
-              fi
-            else
-              echo "::warning::could not publish evidence images; posting without them"
-            fi
+            # 推送 / 探活 / 改写在 rewrite-evidence-body.sh 里：成功才换 urls 正文，
+            # 任何一步失败都仍用 plain。那段判定有测试，不再写进这份 job 脚本。
+            body="$(bash tools/bot/rewrite-evidence-body.sh \
+              "$ANALYSIS_DIR" "$answer" "$plain" "$RUNNER_TEMP/answer-urls.md" \
+              "${files[@]}")"
           fi
 
           if [ "$KIND" != "pr" ]; then

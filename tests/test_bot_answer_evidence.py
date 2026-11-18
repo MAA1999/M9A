@@ -1,5 +1,6 @@
 import os
 import shutil
+import stat
 import subprocess
 from pathlib import Path
 
@@ -8,6 +9,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 AWK = PROJECT_ROOT / "tools" / "bot" / "answer-evidence.awk"
 PUBLISH = PROJECT_ROOT / "tools" / "bot" / "publish-evidence.sh"
+REWRITE = PROJECT_ROOT / "tools" / "bot" / "rewrite-evidence-body.sh"
 PREFIX = "https://github.com/MAA1999/M9A/raw/abc123"
 
 # 1x1 transparent PNG
@@ -35,9 +37,54 @@ def run_awk(mode: str, source: str, prefix: str | None = None) -> subprocess.Com
         input=source,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
         env={**os.environ, "LC_ALL": "C"},
     )
+
+
+def _git_posix() -> str:
+    return Path(_require("git")).resolve().as_posix()
+
+
+def _run_publish(
+    analysis: Path,
+    files: list[str],
+    remote: Path | None,
+    env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    bash = _require("bash")
+    _require("git")
+    merged = {
+        **os.environ,
+        "GITHUB_REPOSITORY": "MAA1999/M9A",
+        "GIT_TERMINAL_PROMPT": "0",
+        "GH_TOKEN": "unused",
+    }
+    if remote is not None:
+        merged["BOT_EVIDENCE_REMOTE"] = str(remote.as_posix())
+    if env:
+        merged.update(env)
+    return subprocess.run(
+        [bash, str(PUBLISH), str(analysis.as_posix()), *files],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+        env=merged,
+    )
+
+
+def _init_remote(tmp_path: Path) -> Path:
+    remote = tmp_path / "remote.git"
+    subprocess.run(
+        ["git", "init", "--bare", str(remote)],
+        check=True,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    return remote
 
 
 def test_refs_collects_inline_and_reference_style() -> None:
@@ -119,34 +166,40 @@ def test_urls_exits_if_non_image_evidence_link_remains() -> None:
     assert result.returncode == 4
 
 
+def test_urls_keeps_quoted_title_with_parens() -> None:
+    source = '![x](evidence/x.png "旧图 (A)") 还有正文\n'
+    result = run_awk("urls", source, prefix=PREFIX)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == ('![x](https://github.com/MAA1999/M9A/raw/abc123/evidence/x.png "旧图 (A)") 还有正文\n')
+
+
+def test_urls_encodes_hash_in_path() -> None:
+    source = "![x](evidence/shot#2.png)\n"
+    result = run_awk("urls", source, prefix=PREFIX)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == "![x](https://github.com/MAA1999/M9A/raw/abc123/evidence/shot%232.png)\n"
+
+
+def test_urls_ignores_evidence_in_definition_title() -> None:
+    source = '[id]: evidence/x.png "示例 ](evidence/example.png)"\n\n![x][id]\n'
+    result = run_awk("urls", source, prefix=PREFIX)
+    assert result.returncode == 0, result.stderr
+    assert "https://github.com/MAA1999/M9A/raw/abc123/evidence/x.png" in result.stdout
+    assert '"示例 ](evidence/example.png)"' in result.stdout
+
+
 def test_publish_evidence_pushes_hidden_ref(tmp_path: Path) -> None:
-    bash = _require("bash")
-    _require("git")
     analysis = tmp_path / "analysis"
     (analysis / "evidence").mkdir(parents=True)
-    image = analysis / "evidence" / "home.png"
-    image.write_bytes(PNG)
-    remote = tmp_path / "remote.git"
-    subprocess.run(["git", "init", "--bare", str(remote)], check=True, capture_output=True, text=True)
+    (analysis / "evidence" / "home.png").write_bytes(PNG)
+    remote = _init_remote(tmp_path)
 
-    result = subprocess.run(
-        [
-            bash,
-            str(PUBLISH),
-            str(analysis.as_posix()),
-            "evidence/home.png",
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
+    result = _run_publish(
+        analysis,
+        ["evidence/home.png"],
+        remote,
         env={
-            **os.environ,
-            "GITHUB_REPOSITORY": "MAA1999/M9A",
             "TARGET": "1029",
-            "BOT_EVIDENCE_REMOTE": str(remote.as_posix()),
-            "GH_TOKEN": "unused",
-            "GIT_TERMINAL_PROMPT": "0",
-            # 模拟 actions/checkout 注入的全局 extraheader，发布脚本必须剥掉。
             "GIT_CONFIG_COUNT": "1",
             "GIT_CONFIG_KEY_0": "http.https://github.com/.extraheader",
             "GIT_CONFIG_VALUE_0": "AUTHORIZATION: basic leftover",
@@ -161,6 +214,7 @@ def test_publish_evidence_pushes_hidden_ref(tmp_path: Path) -> None:
         ["git", "--git-dir", str(remote), "show-ref"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=True,
     )
     assert f"refs/bot-evidence/{sha}" in listed.stdout
@@ -172,51 +226,184 @@ def test_publish_evidence_pushes_hidden_ref(tmp_path: Path) -> None:
     assert blob.stdout == PNG
 
 
-def test_publish_evidence_pushes_multiple_files(tmp_path: Path) -> None:
+def test_publish_evidence_unsets_checkout_git_config(tmp_path: Path) -> None:
     bash = _require("bash")
-    _require("git")
+    git = _git_posix()
+    analysis = tmp_path / "analysis"
+    (analysis / "evidence").mkdir(parents=True)
+    (analysis / "evidence" / "home.png").write_bytes(PNG)
+    remote = _init_remote(tmp_path)
+    wrapper_dir = tmp_path / "bin"
+    wrapper_dir.mkdir()
+    wrapper = wrapper_dir / "git"
+    wrapper.write_text(
+        "#!/usr/bin/env bash\n"
+        'if [ -n "${GIT_CONFIG_COUNT:-}" ]; then\n'
+        '  echo "GIT_CONFIG_COUNT leaked" >&2\n'
+        "  exit 99\n"
+        "fi\n"
+        f'exec "{git}" "$@"\n',
+        encoding="utf-8",
+        newline="\n",
+    )
+    wrapper.chmod(wrapper.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+    result = subprocess.run(
+        [bash, str(PUBLISH), str(analysis.as_posix()), "evidence/home.png"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+        env={
+            **os.environ,
+            "PATH": str(wrapper_dir) + os.pathsep + os.environ["PATH"],
+            "GITHUB_REPOSITORY": "MAA1999/M9A",
+            "BOT_EVIDENCE_REMOTE": str(remote.as_posix()),
+            "GIT_TERMINAL_PROMPT": "0",
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "http.https://github.com/.extraheader",
+            "GIT_CONFIG_VALUE_0": "AUTHORIZATION: basic leftover",
+        },
+    )
+    assert result.returncode == 0, result.stderr
+    assert "GIT_CONFIG_COUNT leaked" not in result.stderr
+
+
+def test_publish_evidence_pushes_multiple_files(tmp_path: Path) -> None:
     analysis = tmp_path / "analysis"
     (analysis / "evidence").mkdir(parents=True)
     (analysis / "evidence" / "home.png").write_bytes(PNG)
     (analysis / "evidence" / "other.webp").write_bytes(PNG)
-    remote = tmp_path / "remote.git"
-    subprocess.run(["git", "init", "--bare", str(remote)], check=True, capture_output=True, text=True)
+    remote = _init_remote(tmp_path)
 
-    result = subprocess.run(
-        [bash, str(PUBLISH), str(analysis.as_posix()), "evidence/home.png", "evidence/other.webp"],
-        capture_output=True,
-        text=True,
-        check=False,
-        env={
-            **os.environ,
-            "GITHUB_REPOSITORY": "MAA1999/M9A",
-            "BOT_EVIDENCE_REMOTE": str(remote.as_posix()),
-            "GIT_TERMINAL_PROMPT": "0",
-        },
-    )
+    result = _run_publish(analysis, ["evidence/home.png", "evidence/other.webp"], remote)
     assert result.returncode == 0, result.stderr
     sha = result.stdout.strip()
     listed = subprocess.run(
         ["git", "--git-dir", str(remote), "ls-tree", "-r", "--name-only", sha],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=True,
     )
     assert listed.stdout.splitlines() == ["evidence/home.png", "evidence/other.webp"]
 
 
 def test_publish_evidence_refuses_parent_escape(tmp_path: Path) -> None:
-    bash = _require("bash")
-    result = subprocess.run(
-        [bash, str(PUBLISH), str(tmp_path.as_posix()), "evidence/../secret.png"],
-        capture_output=True,
-        text=True,
-        check=False,
-        env={
-            **os.environ,
-            "GITHUB_REPOSITORY": "MAA1999/M9A",
-            "BOT_EVIDENCE_REMOTE": str((tmp_path / "remote.git").as_posix()),
-        },
-    )
+    _require("git")
+    result = _run_publish(tmp_path, ["evidence/../secret.png"], tmp_path / "remote.git")
     assert result.returncode == 1
     assert "refused path" in result.stderr
+
+
+def test_publish_evidence_refuses_symlink_outside(tmp_path: Path) -> None:
+    analysis = tmp_path / "analysis"
+    (analysis / "evidence").mkdir(parents=True)
+    outside = tmp_path / "secret.png"
+    outside.write_bytes(PNG)
+    link = analysis / "evidence" / "home.png"
+    try:
+        link.symlink_to(outside)
+    except OSError:
+        pytest.skip("symlinks not permitted")
+    remote = _init_remote(tmp_path)
+    result = _run_publish(analysis, ["evidence/home.png"], remote)
+    assert result.returncode == 1
+    assert "refused path" in result.stderr
+
+
+def _run_rewrite(
+    analysis: Path,
+    answer: Path,
+    plain: Path,
+    urls: Path,
+    files: list[str],
+    remote: Path,
+    extra_env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    bash = _require("bash")
+    _require("git")
+    env = {
+        **os.environ,
+        "GITHUB_REPOSITORY": "MAA1999/M9A",
+        "BOT_EVIDENCE_REMOTE": str(remote.as_posix()),
+        "BOT_EVIDENCE_SKIP_PROBE": "1",
+        "GIT_TERMINAL_PROMPT": "0",
+        "GH_TOKEN": "unused",
+    }
+    if extra_env:
+        env.update(extra_env)
+    return subprocess.run(
+        [
+            bash,
+            str(REWRITE),
+            str(analysis.as_posix()),
+            str(answer.as_posix()),
+            str(plain.as_posix()),
+            str(urls.as_posix()),
+            *files,
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+        env=env,
+    )
+
+
+def test_rewrite_evidence_body_success_uses_urls(tmp_path: Path) -> None:
+    analysis = tmp_path / "analysis"
+    (analysis / "evidence").mkdir(parents=True)
+    (analysis / "evidence" / "home.png").write_bytes(PNG)
+    answer = analysis / "answer.md"
+    answer.write_text("![HomeFlag](./evidence/home.png)\n", encoding="utf-8")
+    plain = tmp_path / "plain.md"
+    plain.write_text("HomeFlag\n", encoding="utf-8")
+    urls = tmp_path / "urls.md"
+    remote = _init_remote(tmp_path)
+
+    result = _run_rewrite(analysis, answer, plain, urls, ["evidence/home.png"], remote)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == str(urls.as_posix())
+    body = urls.read_text(encoding="utf-8")
+    assert "https://github.com/MAA1999/M9A/raw/" in body
+    assert "evidence/home.png" in body
+    assert "HomeFlag" in body
+    assert "published 1 evidence image(s)" in result.stderr
+
+
+def test_rewrite_evidence_body_publish_failure_keeps_plain(tmp_path: Path) -> None:
+    analysis = tmp_path / "analysis"
+    analysis.mkdir()
+    answer = analysis / "answer.md"
+    answer.write_text("![x](./evidence/home.png)\n", encoding="utf-8")
+    plain = tmp_path / "plain.md"
+    plain.write_text("x\n", encoding="utf-8")
+    urls = tmp_path / "urls.md"
+    remote = _init_remote(tmp_path)
+
+    result = _run_rewrite(analysis, answer, plain, urls, ["evidence/missing.png"], remote)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == str(plain.as_posix())
+    assert "could not publish" in result.stderr
+    assert not urls.exists() or urls.read_text(encoding="utf-8") == ""
+
+
+def test_rewrite_evidence_body_residual_link_keeps_plain(tmp_path: Path) -> None:
+    analysis = tmp_path / "analysis"
+    (analysis / "evidence").mkdir(parents=True)
+    (analysis / "evidence" / "home.png").write_bytes(PNG)
+    answer = analysis / "answer.md"
+    answer.write_text(
+        "![x](./evidence/home.png)\n\n见 [原图](./evidence/home.png)\n",
+        encoding="utf-8",
+    )
+    plain = tmp_path / "plain.md"
+    plain.write_text("x\n见 原图\n", encoding="utf-8")
+    urls = tmp_path / "urls.md"
+    remote = _init_remote(tmp_path)
+
+    result = _run_rewrite(analysis, answer, plain, urls, ["evidence/home.png"], remote)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == str(plain.as_posix())
+    assert "could not rewrite" in result.stderr
