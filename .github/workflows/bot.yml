@@ -615,6 +615,7 @@ jobs:
       # `$ANALYSIS_DIR`，可以链到仓库外的文件；post 下载到的是普通文件，后缀/大小检查
       # 看不出原位置，随后会把通过检查的图推到公开仓库。这里只删链接本身，不动目标。
       - name: Drop symbolic links from the bot output
+        id: drop-symlinks
         if: always()
         run: |
           set -euo pipefail
@@ -625,7 +626,8 @@ jobs:
           done
 
       - uses: actions/upload-artifact@v7
-        if: always()
+        # 清理失败就不要把还在的符号链接跟进归档。分析本身失败、清理成功时仍上传诊断日志。
+        if: always() && steps.drop-symlinks.outcome == 'success'
         with:
           name: bot-output
           path: |

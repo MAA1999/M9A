@@ -65,14 +65,17 @@ urlenc_path() {
 }
 
 reachable=0
+failed_url=""
 if [ "${BOT_EVIDENCE_SKIP_PROBE:-}" = "1" ]; then
     reachable=1
 else
     for _try in 1 2 3; do
         reachable=1
+        failed_url=""
         for rel in "$@"; do
             enc=$(urlenc_path "$rel") || enc="$rel"
             if ! curl -fsI -L --max-time 15 -o /dev/null "$prefix/$enc"; then
+                failed_url="$prefix/$enc"
                 reachable=0
                 break
             fi
@@ -85,8 +88,7 @@ else
 fi
 
 if [ "$reachable" -ne 1 ]; then
-    enc=$(urlenc_path "$1") || enc="$1"
-    echo "::warning::$prefix/$enc is not reachable; posting without evidence images" >&2
+    echo "::warning::${failed_url:-$prefix} is not reachable; posting without evidence images" >&2
     fallback
 fi
 

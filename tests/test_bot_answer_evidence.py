@@ -76,9 +76,10 @@ def _run_publish(
 
 
 def _init_remote(tmp_path: Path) -> Path:
+    git = _require("git")
     remote = tmp_path / "remote.git"
     subprocess.run(
-        ["git", "init", "--bare", str(remote)],
+        [git, "init", "--bare", str(remote)],
         check=True,
         capture_output=True,
         text=True,
@@ -171,6 +172,42 @@ def test_urls_keeps_quoted_title_with_parens() -> None:
     result = run_awk("urls", source, prefix=PREFIX)
     assert result.returncode == 0, result.stderr
     assert result.stdout == ('![x](https://github.com/MAA1999/M9A/raw/abc123/evidence/x.png "旧图 (A)") 还有正文\n')
+
+
+def test_parenthetical_title_is_collected_and_rewritten() -> None:
+    source = "![x](evidence/a.png (图 1))\n"
+    refs = run_awk("refs", source)
+    assert refs.returncode == 0, refs.stderr
+    assert refs.stdout.splitlines() == ["evidence/a.png"]
+    plain = run_awk("plain", source)
+    assert plain.returncode == 0, plain.stderr
+    assert plain.stdout == "x\n"
+    urls = run_awk("urls", source, prefix=PREFIX)
+    assert urls.returncode == 0, urls.stderr
+    assert urls.stdout == ("![x](https://github.com/MAA1999/M9A/raw/abc123/evidence/a.png (图 1))\n")
+
+
+def test_leading_space_in_destination() -> None:
+    source = "![x]( ./evidence/home.png)\n"
+    refs = run_awk("refs", source)
+    assert refs.returncode == 0, refs.stderr
+    assert refs.stdout.splitlines() == ["evidence/home.png"]
+    plain = run_awk("plain", source)
+    assert plain.returncode == 0, plain.stderr
+    assert plain.stdout == "x\n"
+    urls = run_awk("urls", source, prefix=PREFIX)
+    assert urls.returncode == 0, urls.stderr
+    assert urls.stdout == ("![x]( https://github.com/MAA1999/M9A/raw/abc123/evidence/home.png)\n")
+
+
+def test_rewrite_continues_after_invalid_image() -> None:
+    source = "![示例](bad url) ![b](evidence/b.png)\n"
+    refs = run_awk("refs", source)
+    assert refs.returncode == 0, refs.stderr
+    assert refs.stdout.splitlines() == ["evidence/b.png"]
+    urls = run_awk("urls", source, prefix=PREFIX)
+    assert urls.returncode == 0, urls.stderr
+    assert urls.stdout == ("![示例](bad url) ![b](https://github.com/MAA1999/M9A/raw/abc123/evidence/b.png)\n")
 
 
 def test_urls_encodes_hash_in_path() -> None:
@@ -320,9 +357,13 @@ def _run_rewrite(
     files: list[str],
     remote: Path,
     extra_env: dict[str, str] | None = None,
+    *,
+    need_awk: bool = True,
 ) -> subprocess.CompletedProcess[str]:
     bash = _require("bash")
     _require("git")
+    if need_awk:
+        _require("awk")
     env = {
         **os.environ,
         "GITHUB_REPOSITORY": "MAA1999/M9A",
@@ -382,7 +423,7 @@ def test_rewrite_evidence_body_publish_failure_keeps_plain(tmp_path: Path) -> No
     urls = tmp_path / "urls.md"
     remote = _init_remote(tmp_path)
 
-    result = _run_rewrite(analysis, answer, plain, urls, ["evidence/missing.png"], remote)
+    result = _run_rewrite(analysis, answer, plain, urls, ["evidence/missing.png"], remote, need_awk=False)
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == str(plain.as_posix())
     assert "could not publish" in result.stderr

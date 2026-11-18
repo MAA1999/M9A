@@ -38,11 +38,20 @@ function is_local_evidence(dest,   t) {
 }
 
 # 行里还有没有指向本地 evidence 的链接目标（含非图片链接）。降级完仍命中的行由调用方丢掉。
-function has_local_evidence(line,   i, rest, k, target) {
+# close_paren 解析失败时不能当「没有」：括号 title 一旦漏认，就会把本地路径原样发出去。
+function has_local_evidence(line,   i, rest, k, t, evparts) {
     while ((i = index(line, "](")) > 0) {
         rest = substr(line, i + 2)
         k = close_paren(rest)
-        if (k == 0) return 0
+        if (k == 0) {
+            t = rest
+            sub(/^[ \t]+/, "", t)
+            sub(/^</, "", t)
+            split(t, evparts, /[ \t)]/)
+            if (is_local_evidence(evparts[1])) return 1
+            line = substr(line, i + 1)
+            continue
+        }
         if (is_local_evidence(clean_dest(substr(rest, 1, k - 1)))) return 1
         line = substr(line, i + 1)
     }
@@ -52,25 +61,42 @@ function has_local_evidence(line,   i, rest, k, target) {
 
 # 取出 markdown 目标里的路径：角括号写法 `(<evidence/x.png>)` 去掉括号，`(path "title")` 只取第一段。
 
-# 目标在 `(` 之后到哪里结束。要认 quoted title：`![x](p.png "旧图 (A)")` 的第一个 `)`
-# 在标题里，不能当链接结束。角括号写法里文件名也可以有 `)`。
-function close_paren(tail,   i, n, c, q) {
+function skip_ws(s, i,   n, c) {
+    n = length(s)
+    while (i <= n) {
+        c = substr(s, i, 1)
+        if (c != " " && c != "\t") return i
+        i++
+    }
+    return i
+}
+
+# 目标在 `(` 之后到哪里结束。GFM title 可以是 `"..."` / `'...'` / `(...)`，
+# 标题里的 `)` 不能当链接结束。角括号写法里文件名也可以有 `)`。
+# 目标前允许空白：`![x]( ./evidence/x.png)`。
+function close_paren(tail,   i, n, c, q, depth, gt) {
     n = length(tail)
     if (n == 0) return 0
-    if (substr(tail, 1, 1) == "<") {
-        i = index(tail, ">")
-        if (i == 0) return 0
-        i++
+    i = skip_ws(tail, 1)
+    if (i > n) return 0
+    if (substr(tail, i, 1) == "<") {
+        gt = index(substr(tail, i), ">")
+        if (gt == 0) return 0
+        i = i + gt
     } else {
-        i = 1
+        depth = 0
         while (i <= n) {
             c = substr(tail, i, 1)
-            if (c == ")") return i
-            if (c == " " || c == "\t") break
+            if (c == "\\") { i += 2; continue }
+            if (c == "(") depth++
+            else if (c == ")") {
+                if (depth == 0) return i
+                depth--
+            } else if ((c == " " || c == "\t") && depth == 0) break
             i++
         }
     }
-    while (i <= n && (substr(tail, i, 1) == " " || substr(tail, i, 1) == "\t")) i++
+    i = skip_ws(tail, i)
     if (i > n) return 0
     c = substr(tail, i, 1)
     if (c == "\"" || c == "'") {
@@ -82,7 +108,19 @@ function close_paren(tail,   i, n, c, q) {
             if (c == q) { i++; break }
             i++
         }
-        while (i <= n && (substr(tail, i, 1) == " " || substr(tail, i, 1) == "\t")) i++
+        i = skip_ws(tail, i)
+    } else if (c == "(") {
+        depth = 1
+        i++
+        while (i <= n && depth > 0) {
+            c = substr(tail, i, 1)
+            if (c == "\\") { i += 2; continue }
+            if (c == "(") depth++
+            else if (c == ")") depth--
+            i++
+        }
+        if (depth != 0) return 0
+        i = skip_ws(tail, i)
     }
     if (substr(tail, i, 1) == ")") return i
     return 0
@@ -241,7 +279,12 @@ function rewrite(line,   out, i, rest, jp, jb, j, alt, tail, k, label, target, p
         if (jp > 0 && (jb == 0 || jp < jb)) {
             tail = substr(rest, jp + 2)
             k = close_paren(tail)
-            if (k == 0) return out substr(line, i)
+            if (k == 0) {
+                # 这张图语法认不出来，原样留下 `![`，继续扫同一行后面的图。
+                out = out "!["
+                line = rest
+                continue
+            }
             alt = substr(rest, 1, jp - 1)
             path = norm(clean_dest(substr(tail, 1, k - 1)))
             end = i + jp + k + 2

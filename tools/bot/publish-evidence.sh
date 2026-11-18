@@ -60,14 +60,17 @@ git -C "$work" config commit.gpgsign false
 # 不用 python：Windows 上 PATH 里的 python 经常是商店安装桩，一调就失败。
 canon() {
     local p
-    # 优先 readlink -f：Git Bash / GNU 都给正斜杠。Windows 上 PATH 里的 realpath.exe
-    # 会吐反斜杠，后面的前缀匹配就对不上。
+    # 优先 readlink -f：Git Bash / GNU 都给正斜杠。不要把 POSIX 路径里文件名的 `\` 换成 `/`。
     if p=$(readlink -f -- "$1" 2>/dev/null) && [ -n "$p" ]; then
-        printf '%s\n' "${p//\\//}"
+        printf '%s\n' "$p"
         return 0
     fi
     p=$(realpath -- "$1") || return 1
-    printf '%s\n' "${p//\\//}"
+    # Windows realpath.exe 才吐 `C:\...`；只在这种盘符路径上把分隔符换成正斜杠。
+    case "$p" in
+        [A-Za-z]:[\\/]*) printf '%s\n' "${p//\\//}" ;;
+        *) printf '%s\n' "$p" ;;
+    esac
 }
 resolve_inside() {
     local root_real src_real
