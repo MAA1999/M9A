@@ -9,6 +9,8 @@
 #                  把本地 evidence 目标改写成 `prefix/相对路径`（inline 改目的地，reference-style
 #                  改定义行）。发布步骤把图推到隐藏 ref 之后用这一份发评论。prefix 不要尾斜杠。
 #
+# 只认 prompt 那种写法：`![说明](./evidence/foo.png)`，以及 `[id]: ./evidence/foo.png`。
+# GFM 的 quoted / 括号 title、转义 `\](`、目标前空白不单独处理；改写后还留着本地路径就降级。
 # 围栏代码块按 CommonMark 规则跳过：开围栏记字符和长度，只有同字符、长度不短于开围栏、其后只剩
 # 空白的行才结束它。代码块里的图片语法是示例，既不算引用，也不该被改写。
 
@@ -37,119 +39,29 @@ function is_local_evidence(dest,   t) {
     return t ~ /(^|\/)evidence\//
 }
 
-# 位置 i 的字符有没有被奇数个反斜杠转义。
-function unescaped_at(s, i,   n) {
-    n = 0
-    i--
-    while (i >= 1 && substr(s, i, 1) == "\\") {
-        n++
-        i--
-    }
-    return n % 2 == 0
-}
-
-# 这个 `](` 是不是真链接的结束：`]` 本身没转义，前面还有未转义的 `[`。
-# `\](` 或孤立的 `](` 后面被当成 title 的文本里可以再有一张真链接，不能整段跳过。
-function is_link_close(s, i,   j) {
-    if (!unescaped_at(s, i)) return 0
-    for (j = i - 1; j >= 1; j--) {
-        if (substr(s, j, 1) == "[" && unescaped_at(s, j)) return 1
-    }
-    return 0
-}
-
 # 行里还有没有指向本地 evidence 的链接目标（含非图片链接）。降级完仍命中的行由调用方丢掉。
-# close_paren 解析失败时不能当「没有」：括号 title 一旦漏认，就会把本地路径原样发出去。
-function has_local_evidence(line,   i, rest, k, t, evparts) {
+function has_local_evidence(line,   i, rest, k) {
     while ((i = index(line, "](")) > 0) {
         rest = substr(line, i + 2)
         k = close_paren(rest)
-        if (k == 0) {
-            t = rest
-            sub(/^[ \t]+/, "", t)
-            sub(/^</, "", t)
-            split(t, evparts, /[ \t)]/)
-            if (is_local_evidence(evparts[1])) return 1
-            line = substr(line, i + 1)
-            continue
-        }
+        if (k == 0) return 0
         if (is_local_evidence(clean_dest(substr(rest, 1, k - 1)))) return 1
-        # 真链接才跳过整段（含 title）。否则 title 里的 `](evidence/…)` 会被当成下一张图；
-        # 但 `\](` 不是链接，里面那张真图还得继续扫到。
-        if (is_link_close(line, i))
-            line = substr(line, i + k + 2)
-        else
-            line = substr(line, i + 1)
+        line = substr(line, i + 1)
     }
     return 0
 }
-
 
 # 取出 markdown 目标里的路径：角括号写法 `(<evidence/x.png>)` 去掉括号，`(path "title")` 只取第一段。
-
-function skip_ws(s, i,   n, c) {
-    n = length(s)
-    while (i <= n) {
-        c = substr(s, i, 1)
-        if (c != " " && c != "\t") return i
-        i++
+# 目标在 `(` 之后到第一个 `)`。角括号写法里可以有 `)`，所以先看 `>` 再看右括号。
+function close_paren(tail,   e, k) {
+    if (substr(tail, 1, 1) == "<") {
+        e = index(tail, ">")
+        if (e == 0) return 0
+        k = index(substr(tail, e), ")")
+        if (k == 0) return 0
+        return e + k - 1
     }
-    return i
-}
-
-# 目标在 `(` 之后到哪里结束。GFM title 可以是 `"..."` / `'...'` / `(...)`，
-# 标题里的 `)` 不能当链接结束。角括号写法里文件名也可以有 `)`。
-# 目标前允许空白：`![x]( ./evidence/x.png)`。
-function close_paren(tail,   i, n, c, q, depth, gt) {
-    n = length(tail)
-    if (n == 0) return 0
-    i = skip_ws(tail, 1)
-    if (i > n) return 0
-    if (substr(tail, i, 1) == "<") {
-        gt = index(substr(tail, i), ">")
-        if (gt == 0) return 0
-        i = i + gt
-    } else {
-        depth = 0
-        while (i <= n) {
-            c = substr(tail, i, 1)
-            if (c == "\\") { i += 2; continue }
-            if (c == "(") depth++
-            else if (c == ")") {
-                if (depth == 0) return i
-                depth--
-            } else if ((c == " " || c == "\t") && depth == 0) break
-            i++
-        }
-    }
-    i = skip_ws(tail, i)
-    if (i > n) return 0
-    c = substr(tail, i, 1)
-    if (c == "\"" || c == "'") {
-        q = c
-        i++
-        while (i <= n) {
-            c = substr(tail, i, 1)
-            if (c == "\\") { i += 2; continue }
-            if (c == q) { i++; break }
-            i++
-        }
-        i = skip_ws(tail, i)
-    } else if (c == "(") {
-        depth = 1
-        i++
-        while (i <= n && depth > 0) {
-            c = substr(tail, i, 1)
-            if (c == "\\") { i += 2; continue }
-            if (c == "(") depth++
-            else if (c == ")") depth--
-            i++
-        }
-        if (depth != 0) return 0
-        i = skip_ws(tail, i)
-    }
-    if (substr(tail, i, 1) == ")") return i
-    return 0
+    return index(tail, ")")
 }
 function clean_dest(raw,   t, k) {
     t = raw
@@ -168,7 +80,7 @@ function emit(target) {
     }
 }
 
-# 路径段百分号编码，保留 `/`。git 里仍用未编码的文件名；拼进 raw URL / 探活才编码，
+# 路径段百分号编码，保留 `/`。git 里仍用未编码的文件名；拼进 raw URL 才编码，
 # 不然 `shot#2.png` 的 `#2.png` 会变成 fragment。
 function urlenc_seg(s,   i, c, o, n) {
     o = ""
@@ -269,33 +181,10 @@ function rewrite_def_line(line,   i, rest, ds, k, pre, dest, post) {
     return pre abs_url(dest) post
 }
 
-# inline `](` 里的目标：只换路径，quoted title 原样留下。
-function rewrite_link_inner(inner,   ds, rest, pre, k, dest, post) {
-    ds = 1
-    while (ds <= length(inner) && (substr(inner, ds, 1) == " " || substr(inner, ds, 1) == "\t")) ds++
-    pre = substr(inner, 1, ds - 1)
-    rest = substr(inner, ds)
-    if (rest == "") return inner
-    if (substr(rest, 1, 1) == "<") {
-        k = index(rest, ">")
-        if (k == 0) return inner
-        dest = substr(rest, 2, k - 2)
-        post = substr(rest, k + 1)
-        if (!is_local_evidence(dest)) return inner
-        return pre "<" abs_url(dest) ">" post
-    }
-    k = 1
-    while (k <= length(rest) && substr(rest, k, 1) !~ /[ \t]/) k++
-    dest = substr(rest, 1, k - 1)
-    post = substr(rest, k)
-    if (!is_local_evidence(dest)) return inner
-    return pre abs_url(dest) post
-}
-
 # 处理一行里的图片：inline 的收集/降级/改写，reference-style 的降级。mode=refs 时只收集。
 # alt 里可能有成对的方括号（`![候选区域[1]](…)`），所以不能用第一个 `]` 当结尾 ——
 # 用 `](` / `][` 这一对分隔符找图片的结束位置。
-function rewrite(line,   out, i, rest, jp, jb, j, alt, tail, k, label, target, path, end) {
+function rewrite(line,   out, i, rest, jp, jb, j, alt, tail, k, label, path, end) {
     out = ""
     while ((i = index(line, "![")) > 0) {
         out = out substr(line, 1, i - 1)
@@ -305,12 +194,7 @@ function rewrite(line,   out, i, rest, jp, jb, j, alt, tail, k, label, target, p
         if (jp > 0 && (jb == 0 || jp < jb)) {
             tail = substr(rest, jp + 2)
             k = close_paren(tail)
-            if (k == 0) {
-                # 这张图语法认不出来，原样留下 `![`，继续扫同一行后面的图。
-                out = out "!["
-                line = rest
-                continue
-            }
+            if (k == 0) return out substr(line, i)
             alt = substr(rest, 1, jp - 1)
             path = norm(clean_dest(substr(tail, 1, k - 1)))
             end = i + jp + k + 2
@@ -318,7 +202,7 @@ function rewrite(line,   out, i, rest, jp, jb, j, alt, tail, k, label, target, p
                 if (mode == "refs") {
                     emit(path)
                 } else if (mode == "urls") {
-                    out = out "![" alt "](" rewrite_link_inner(substr(tail, 1, k - 1)) ")"
+                    out = out "![" alt "](" abs_url(path) ")"
                 } else {
                     out = out alt
                 }
@@ -407,11 +291,9 @@ END {
                     residual = 1
                     continue
                 }
-                # 定义行的 title 可以合法地提到 `evidence/`（举例），不能当残留本地链接。
-                print result
-                continue
+            } else {
+                result = rewrite(line)
             }
-            result = rewrite(line)
             if (has_local_evidence(result)) {
                 residual = 1
                 continue
