@@ -174,6 +174,18 @@ def test_urls_keeps_quoted_title_with_parens() -> None:
     assert result.stdout == ('![x](https://github.com/MAA1999/M9A/raw/abc123/evidence/x.png "旧图 (A)") 还有正文\n')
 
 
+def test_urls_ignores_evidence_in_inline_title() -> None:
+    source = '![x](evidence/a.png "示例 ](evidence/example.png)")\n'
+    refs = run_awk("refs", source)
+    assert refs.returncode == 0, refs.stderr
+    assert refs.stdout.splitlines() == ["evidence/a.png"]
+    urls = run_awk("urls", source, prefix=PREFIX)
+    assert urls.returncode == 0, urls.stderr
+    assert urls.stdout == (
+        '![x](https://github.com/MAA1999/M9A/raw/abc123/evidence/a.png "示例 ](evidence/example.png)")\n'
+    )
+
+
 def test_parenthetical_title_is_collected_and_rewritten() -> None:
     source = "![x](evidence/a.png (图 1))\n"
     refs = run_awk("refs", source)

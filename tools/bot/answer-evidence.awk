@@ -53,7 +53,9 @@ function has_local_evidence(line,   i, rest, k, t, evparts) {
             continue
         }
         if (is_local_evidence(clean_dest(substr(rest, 1, k - 1)))) return 1
-        line = substr(line, i + 1)
+        # rest 从 `](` 之后起算，k 是配对 `)` 在 rest 里的下标；整段链接之后才是 i+k+2。
+        # 只往前挪 1 格会把 title 里的 `](evidence/…)` 示例当成下一张图。
+        line = substr(line, i + k + 2)
     }
     return 0
 }
