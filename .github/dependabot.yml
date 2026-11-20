@@ -11,3 +11,7 @@ updates:
     schedule:
       interval: daily
     versioning-strategy: lockfile-only
+    cooldown:
+      default-days: 3
+      exclude:
+        - maafw
