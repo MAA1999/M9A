@@ -1,0 +1,361 @@
+{
+    "CritterBluff": {
+        "desc": "书页与小憩「共读之忆 · 魔精诈唬牌」任务入口：只接受活动页与主界面起步；其它界面先由 [JumpBack]ReturnMain 回主界面再接导航",
+        "next": [
+            "CritterBluffHub",
+            "[JumpBack]CritterBluffHubEntry",
+            "[JumpBack]CritterBluffMainEntry",
+            "[JumpBack]HomeLoading",
+            "[JumpBack]ReturnMain"
+        ]
+    },
+    "CritterBluffTable": {
+        "desc": "牌桌分发：右上显示「剩余」",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    878,
+                    42,
+                    62,
+                    52
+                ],
+                "expected": [
+                    "剩余"
+                ]
+            }
+        },
+        "timeout": 30000,
+        "next": [
+            "CritterBluffGameOver",
+            "[JumpBack]CritterBluffClaimPhase",
+            "[JumpBack]CritterBluffPickPhase"
+        ]
+    },
+    "CritterBluffGameOver": {
+        "desc": "结算页标题「游戏结束」：本局结束，去点退出",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    500,
+                    85,
+                    300,
+                    90
+                ],
+                "expected": [
+                    "游戏结束"
+                ]
+            }
+        },
+        "next": [
+            "CritterBluffHub",
+            "[JumpBack]CritterBluffExit"
+        ]
+    },
+    "CritterBluffExit": {
+        "desc": "结算页「退出游戏」：点掉回活动页，再由 Hub → 分数门控决定要不要再开一局",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    512,
+                    562,
+                    66,
+                    73
+                ],
+                "template": [
+                    "CritterBluff/ExitButton.png"
+                ],
+                "green_mask": true,
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CritterBluffClaimPhase": {
+        "desc": "对方声明 → 点「信任」",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    316,
+                    486,
+                    293,
+                    69
+                ],
+                "expected": [
+                    "信任"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CritterBluffPickPhase": {
+        "desc": "这条链是确定要经过的阶段：点第 1 张 → 点第 2 张 → 提交 → 出牌内容，走空后 [JumpBack] 回牌桌分发",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    380,
+                    140,
+                    520,
+                    55
+                ],
+                "expected": [
+                    "请选择"
+                ]
+            }
+        },
+        "next": [
+            "CritterBluffSubmitting",
+            "[JumpBack]CritterBluffConfirmPlayCaution",
+            "[JumpBack]CritterBluffConfirmPlay",
+            "[JumpBack]CritterBluffCardFirst"
+        ]
+    },
+    "CritterBluffConfirmPlayCaution": {
+        "desc": "提交手牌警告——只选了一张牌",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    999,
+                    27,
+                    73,
+                    217
+                ],
+                "template": ["CritterBluff/Caution.png"]
+            }
+        },
+        "next": [
+            "CritterBluffCardLast"
+        ]
+    },
+    "CritterBluffConfirmPlay": {
+        "desc": "提交本手牌：点「确认出牌」",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    930,
+                    575,
+                    240,
+                    90
+                ],
+                "expected": [
+                    "确认出牌"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CritterBluffHub": {
+        "desc": "共读之忆活动页（左上标题）分发：有「获得物品」弹窗先关、有「领取」先领，再看分数要不要继续",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    20,
+                    100,
+                    350,
+                    90
+                ],
+                "expected": [
+                    "共读之忆"
+                ]
+            }
+        },
+        "next": [
+            "[JumpBack]ObtainedAwards",
+            "[JumpBack]CritterBluffClaimReward",
+            "CritterBluffScoreReached",
+            "[JumpBack]CritterBluffStartGame",
+            "CritterBluffTable"
+        ]
+    },
+    "CritterBluffClaimReward": {
+        "desc": "里程碑「领取」：点掉最左那个；领完走空，[JumpBack] 回活动页分发继续看下一个",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    108,
+                    540,
+                    592,
+                    60
+                ],
+                "expected": [
+                    "领取"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CritterBluffScoreReached": {
+        "desc": "分数门控：诈唬分已到活动上限 9000（OCR 正则判，不需要数值比较）就收尾停在本页。它排在 Hub 候选的 StartGame 之前——命中即停，未命中才轮到开局",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    15,
+                    620,
+                    130,
+                    42
+                ],
+                "expected": [
+                    "(9[0-9]{3}|[1-9][0-9]{4,})"
+                ],
+                "only_rec": true
+            }
+        },
+        "next": [
+            "CritterBluffDone"
+        ]
+    },
+    "CritterBluffStartGame": {
+        "desc": "「开始游戏」：活动页点一次进牌桌总览，总览页再点一次才进牌局，两步共用同一按钮位置；没进去就再点一次（max_hit 兜底）",
+        "max_hit": 80,
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    930,
+                    540,
+                    300,
+                    130
+                ],
+                "expected": [
+                    "开始游戏"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CritterBluffDone": {
+        "desc": "已达分数上限，停在活动页正常结束",
+        "focus": {
+            "Node.Action.Starting": {
+                "content": "【诈唬牌】已达分数上限，任务完成",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
+        }
+    },
+    "CritterBluffMainEntry": {
+        "desc": "游戏主界面顶部「书页与小憩」活动图标（书本与礼帽）",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    248,
+                    0,
+                    228,
+                    100
+                ],
+                "template": [
+                    "CritterBluff/MainEntry.png"
+                ],
+                "green_mask": true,
+                "threshold": 0.9
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "post_wait_freezes": 300
+    },
+    "CritterBluffHubEntry": {
+        "desc": "书页与小憩页右下「共读之忆」入口",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    935,
+                    430,
+                    260,
+                    100
+                ],
+                "expected": [
+                    "共读之忆"
+                ]
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    },
+    "CritterBluffSubmitting": {
+        "desc": "阶段终点：出现「出牌内容」说明这一手已提交。本节点走空，引擎按 [JumpBack] 回到牌桌分发的候选列表",
+        "recognition": {
+            "type": "OCR",
+            "param": {
+                "roi": [
+                    470,
+                    108,
+                    340,
+                    74
+                ],
+                "expected": [
+                    "出牌内容"
+                ]
+            }
+        }
+    },
+    "CritterBluffCardFirst": {
+        "desc": "手牌模板 index 0",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    280,
+                    396,
+                    700,
+                    112
+                ],
+                "template": [
+                    "CritterBluff/Card/"
+                ],
+                "threshold": 0.6
+            }
+        },
+        "action": {
+            "type": "Click"
+        },
+        "next": ["CritterBluffCardLast"]
+    },
+    "CritterBluffCardLast": {
+        "desc": "手牌模板 index -1",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    280,
+                    396,
+                    700,
+                    112
+                ],
+                "template": [
+                    "CritterBluff/Card/"
+                ],
+                "threshold": 0.6,
+                "index": -1
+            }
+        },
+        "action": {
+            "type": "Click"
+        }
+    }
+}
