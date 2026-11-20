@@ -471,6 +471,7 @@
         "next": [
             "ODR_ItemSelect",
             "[JumpBack]ODR_Move",
+            "ODR_CombatUnsupported",
             "[JumpBack]ODR_SelectCombat_NoNext"
         ]
     },
@@ -501,6 +502,39 @@
                 106,
                 91
             ]
+        }
+    },
+    // 速刷模式（ODR）遇到战斗编队界面 —— by design 不支持战斗：速刷只在「无战斗」的
+    // 路线里可用，一旦弹出「开始行动」编队页，说明该局存在战斗，本模式无法继续。
+    // 用 StopTask 正常结束任务（不走 20s next 超时硬失败），并弹 toast 提示用户改用普通
+    // 「黄昏的音序」任务。判据复用 SOD_CombatStart 模板（日志实测该帧 0.97 命中「开始行动」）。
+    // 只在 ODR_SelectCombat.next 里、[JumpBack]ODR_Move 之后引用：此时移动按钮已不在，
+    // 命中即代表编队页，不会误伤正常路线。
+    "ODR_CombatUnsupported": {
+        "desc": "速刷模式遇到战斗（by design 不支持）—— 提示并正常停止",
+        "recognition": {
+            "type": "TemplateMatch",
+            "param": {
+                "roi": [
+                    987,
+                    604,
+                    170,
+                    60
+                ],
+                "template": "OutsideDeduction/SOD_CombatStart.png"
+            }
+        },
+        "action": {
+            "type": "StopTask"
+        },
+        "focus": {
+            "Node.Recognition.Succeeded": {
+                "content": "速刷模式遇到战斗：本模式不支持战斗，请阅读任务说明并改用普通「黄昏的音序」任务",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
         }
     },
     "ODR_SelectDiscovery": {
@@ -993,6 +1027,7 @@
         "next": [
             "ODR_ItemSelect",
             "[JumpBack]ODR_Move",
+            "ODR_CombatUnsupported",
             "[JumpBack]ODR_SelectImminent_NoNext"
         ]
     },
