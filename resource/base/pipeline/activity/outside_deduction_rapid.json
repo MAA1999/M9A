@@ -1027,6 +1027,7 @@
         "next": [
             "ODR_ItemSelect",
             "[JumpBack]ODR_Move",
+            "ODR_CombatUnsupported",
             "[JumpBack]ODR_SelectImminent_NoNext"
         ]
     },
