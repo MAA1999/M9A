@@ -1,0 +1,13 @@
+{
+    "task": [
+        {
+            "name": "魔精诈唬牌",
+            "label": "$Task.CritterBluff",
+            "entry": "CritterBluff",
+            "description": "$Task.CritterBluff.desc",
+            "group": [
+                "standalone"
+            ]
+        }
+    ]
+}
