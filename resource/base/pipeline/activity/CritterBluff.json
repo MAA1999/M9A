@@ -246,7 +246,7 @@
         "desc": "已达分数上限，停在活动页正常结束",
         "focus": {
             "Node.Action.Starting": {
-                "content": "【诈唬牌】已达分数上限，任务完成",
+                "content": "$Task.CritterBluff.done",
                 "display": [
                     "log",
                     "toast"
