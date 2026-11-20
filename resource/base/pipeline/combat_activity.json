@@ -228,7 +228,8 @@
                         "0",
                         ""
                     ]
-                ]
+                ],
+                "color_filter": "ActivityCombatStageCost_color_filter"
             }
         }
     },
@@ -242,9 +243,9 @@
                     167
                 ],
                 "upper": [
-                    245,
-                    237,
-                    227
+                    255,
+                    255,
+                    255
                 ]
             }
         }
