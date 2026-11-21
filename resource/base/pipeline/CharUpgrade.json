@@ -203,7 +203,7 @@
         },
         "focus": {
             "Node.Recognition.Succeeded": {
-                "content": "洞悉材料不足，请手动刷取",
+                "content": "$Focus.CharUpgrade.LackMaterial",
                 "display": [
                     "log",
                     "toast"
@@ -428,7 +428,7 @@
         },
         "focus": {
             "Node.Recognition.Failed": {
-                "content": "识别失败：当前版本暂不支持刷取非属性突破材料，请手动刷取",
+                "content": "$Focus.CharUpgrade.NonAttribute",
                 "display": [
                     "log",
                     "toast"

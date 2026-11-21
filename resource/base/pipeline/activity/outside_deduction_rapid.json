@@ -29,7 +29,7 @@
             "ResetCountOfODRSkipText"
         ],
         "focus": {
-            "Node.Action.Starting": "开启本轮速刷"
+            "Node.Action.Starting": "$Focus.OutsideDeductionRapid.Start"
         }
     },
     "ResetCountOfODRSkipText": {
@@ -529,7 +529,7 @@
         },
         "focus": {
             "Node.Recognition.Succeeded": {
-                "content": "速刷模式遇到战斗：本模式不支持战斗，请阅读任务说明并改用普通「黄昏的音序」任务",
+                "content": "$Focus.OutsideDeductionRapid.CombatUnsupported",
                 "display": [
                     "log",
                     "toast"

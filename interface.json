@@ -5,7 +5,7 @@
         "en_us": "locales/en_us.json"
     },
     "name": "m9a",
-    "label": "M9A",
+    "label": "$Interface.Label",
     "icon": "logo.ico",
     "mirrorchyan_rid": "M9A",
     "mirrorchyan_multiplatform": true,
@@ -32,7 +32,7 @@
         },
         {
             "name": "PC",
-            "label": "PC",
+            "label": "$Controller.PC",
             "type": "Win32",
             "permission_required": true,
             "win32": {
@@ -45,6 +45,7 @@
         },
         {
             "name": "PlayCover",
+            "label": "$Controller.PlayCover",
             "type": "PlayCover"
         }
     ],

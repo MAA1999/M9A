@@ -52,11 +52,8 @@ const GUI_TYPES = {
                       "mxu.exe",
                   ],
         flatLayout: false,
-        modifyInterface(iface, slug, ver) {
+        modifyInterface(iface) {
             const modified = {...iface};
-            const displayName =
-                typeof modified.label === "string" && modified.label.trim() ? modified.label.trim() : slug;
-            modified.title = `${displayName} ${ver} | MXU`;
             // M9A publishes the MXU build as its own MirrorChyan product; the id is agreed with
             // MirrorChyan rather than derived, so it is stated here.
             modified.mirrorchyan_rid = "M9A-MXU";

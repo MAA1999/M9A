@@ -779,7 +779,7 @@
             "SwipeLeftAndFindStage"
         ],
         "focus": {
-            "Node.PipelineNode.Failed": "<span style=\"color:crimson;\">未在关卡列表中找到目标关卡，请检查关卡配置</span>"
+            "Node.PipelineNode.Failed": "$Focus.Combat.StageNotFound"
         }
     },
     "SwipeRightAndFindStage": {
@@ -823,7 +823,7 @@
             "SwipeRightAndFindStage"
         ],
         "focus": {
-            "Node.PipelineNode.Failed": "<span style=\"color:crimson;\">未在关卡列表中找到目标关卡，请检查关卡配置</span>"
+            "Node.PipelineNode.Failed": "$Focus.Combat.StageNotFound"
         }
     },
     "StageDifficulty": {

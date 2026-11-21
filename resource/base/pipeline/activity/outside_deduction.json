@@ -284,7 +284,7 @@
             "SODStop"
         ],
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:deepskyblue;\">本轮肉鸽结束</span>"
+            "Node.Action.Starting": "$Focus.OutsideDeduction.RoundEnd"
         }
     },
     "SODStop_Confirm": {
@@ -558,7 +558,7 @@
             "SODStart"
         ],
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson;\">开启本轮肉鸽</span>"
+            "Node.Action.Starting": "$Focus.OutsideDeduction.RoundStart"
         }
     },
     "SODStart_Confirm": {
