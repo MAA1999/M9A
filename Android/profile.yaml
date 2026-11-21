@@ -16,6 +16,12 @@ include:
   - CONTACT
   - LICENSE
 
+# drop_core 装不进 PI：PI 解在外部私有目录（noexec），模块的 .so 拿不到 PROT_EXEC，
+# import 必然失败。要恢复得装进 agent 运行时的 site-packages（/data/local/tmp 那棵
+# 可执行树），别放回 PI
+exclude:
+  - agent/libs/**
+
 # 出运行时（在 Android/MaaFwApp 下执行）：
 #   python scripts/build_agent_bundle.py --out ../agent-dist \
 #     --abi arm64-v8a --abi x86_64 \
