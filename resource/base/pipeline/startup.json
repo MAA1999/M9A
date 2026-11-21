@@ -54,7 +54,25 @@
             "[JumpBack]CandyCancel",
             "[JumpBack]ClickBlank",
             "[JumpBack]SkipButton"
+        ],
+        "on_error": [
+            "ReturnMainAbort"
         ]
+    },
+    "ReturnMainAbort": {
+        "desc": "回主界面失败后的收尾：停止当前任务",
+        "action": {
+            "type": "StopTask"
+        },
+        "focus": {
+            "Node.Action.Starting": {
+                "content": "$Focus.StartUp.ReturnMainAbort",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
+        }
     },
     "EquipmentOverflowDissociate": {
         "desc": "心相仓库已满时直接前往解离",
