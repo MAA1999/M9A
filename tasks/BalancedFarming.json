@@ -10,7 +10,8 @@
                 "库存保持",
                 "吃糖",
                 "自定义作战次数",
-                "掉落统计上报"
+                "掉落统计上报",
+                "重置全部记录"
             ]
         }
     ],
@@ -1016,6 +1017,29 @@
             "pipeline_override": {
                 "BF_Plan": {"attach": {"target_115043": "{target_115043}", "candy_115043": "{candy_115043}"}}
             }
+        },
+        "重置全部记录": {
+            "type": "switch",
+            "label": "$Option.BalancedFarming.ResetStageRecords",
+            "description": "$Option.BalancedFarming.ResetStageRecords.desc",
+            "cases": [
+                {
+                    "name": "No",
+                    "pipeline_override": {
+                        "BF_ResetRecords": {
+                            "action": {"param": {"custom_action_param": {"reset_stage_records": false}}}
+                        }
+                    }
+                },
+                {
+                    "name": "Yes",
+                    "pipeline_override": {
+                        "BF_ResetRecords": {
+                            "action": {"param": {"custom_action_param": {"reset_stage_records": true}}}
+                        }
+                    }
+                }
+            ]
         }
     }
 }
