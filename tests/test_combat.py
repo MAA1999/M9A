@@ -477,11 +477,12 @@ def test_select_combat_stage_resets_free_used(monkeypatch: pytest.MonkeyPatch) -
 
 
 def test_select_combat_stage_clears_scan_hit_counts() -> None:
-    """每次选关都要清零左右扫描头的 max_hit 计数。
+    """每次选关都要清零扫描头的 max_hit 计数。
 
     库存保持一个任务会连续选多次关（TargetCountFinish → BF_Plan → 再 override 回 Combat），
     而 max_hit 是任务运行内累计：不清零的话几轮换材料就把右向扫描的预算用光，
-    之后明明存在的关卡会被判成「未找到」。
+    之后明明存在的关卡会被判成「未找到」。资源章节轮播的翻页头 SwipeRightForChapter
+    同理——它的上限是「单次选关」用的，不跟着清就会在多轮选关里耗光。
     """
     cleared: list[str] = []
     context = SimpleNamespace(
@@ -494,7 +495,11 @@ def test_select_combat_stage_clears_scan_hit_counts() -> None:
     result = SelectCombatStage().run(context, argv)  # type: ignore[arg-type]
 
     assert result.success
-    assert cleared == ["SwipeLeftAndFindStage", "SwipeRightAndFindStage"]
+    assert cleared == [
+        "SwipeLeftAndFindStage",
+        "SwipeRightAndFindStage",
+        "SwipeRightForChapter",
+    ]
 
 
 def test_select_combat_stage_wires_accumulate_for_resource_stage() -> None:

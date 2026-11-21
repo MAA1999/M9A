@@ -25,6 +25,7 @@
     "Focus.AutoTrail.UnknownScreen": "Trail task hit a screen that can't be automated; error screenshot in debug/on_error. Finish it manually, return to the event map page, then run this task again.",
     "Focus.CharUpgrade.LackMaterial": "Not enough insight materials; please farm them manually.",
     "Focus.CharUpgrade.NonAttribute": "Recognition failed: this version can't farm non-attribute breakthrough materials; please farm manually.",
+    "Focus.Combat.PsychubeCardNotFound": "<span style=\"color:crimson;\">Psychube chapter card not found; check the stage config.</span>",
     "Focus.Combat.StageNotFound": "<span style=\"color:crimson;\">Target stage not found in the stage list; check the stage config.</span>",
     "Focus.CombatActivity.NoChapter": "<span style=\"color:crimson;\">Event chapter entry not recognized; check whether the resource type is correct.</span>",
     "Focus.CombatActivity.NoReRelease": "No rerun event open right now; skipped event-currency farming.",

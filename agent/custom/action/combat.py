@@ -642,7 +642,8 @@ class SelectCombatStage(CustomAction):
         # （depot_maintain.py 的 MAX_ROUNDS_PER_TASK = 50）。不清零的话，「先刷 7-7、再刷 7-26」这类
         # 换材料重选关会共用同一份 30 次预算，几轮就把右向扫描用光，之后明明存在的关卡被判「未找到」。
         # 每次选关开始时把两个扫描头的计数清零，让 max_hit 的语义回到「单次选关的上限」。
-        for scan_node in ("SwipeLeftAndFindStage", "SwipeRightAndFindStage"):
+        # SwipeRightForChapter 同理（资源章节轮播翻页头）。
+        for scan_node in ("SwipeLeftAndFindStage", "SwipeRightAndFindStage", "SwipeRightForChapter"):
             context.clear_hit_count(scan_node)
 
         SelectCombatStage.stage = stage

@@ -25,6 +25,7 @@
     "Focus.AutoTrail.UnknownScreen": "小径任务遇到无法自动处理的界面，出错截图见 debug/on_error。请手动处理后回到活动地图页，重新运行本任务继续",
     "Focus.CharUpgrade.LackMaterial": "洞悉材料不足，请手动刷取",
     "Focus.CharUpgrade.NonAttribute": "识别失败：当前版本暂不支持刷取非属性突破材料，请手动刷取",
+    "Focus.Combat.PsychubeCardNotFound": "<span style=\"color:crimson;\">未找到意志解析章节卡片，请检查关卡配置</span>",
     "Focus.Combat.StageNotFound": "<span style=\"color:crimson;\">未在关卡列表中找到目标关卡，请检查关卡配置</span>",
     "Focus.CombatActivity.NoChapter": "<span style=\"color:crimson;\">未识别到活动章节入口，请检查资源类型是否正确</span>",
     "Focus.CombatActivity.NoReRelease": "当前未开放复刻活动，已跳过活动代币刷取",
