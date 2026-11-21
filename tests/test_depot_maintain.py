@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import sys
 import tempfile
 import types
 from datetime import datetime, timedelta
@@ -359,6 +360,38 @@ def test_write_snapshot_counts_keeps_other_accounts(tmp_path: Path) -> None:
     raw = json.loads(path.read_text(encoding="utf-8"))
     assert raw[SNAPSHOT_KEY]["other-account"] == {"updated_at": "x", "counts": {"110103": 5}}
     assert raw[SNAPSHOT_KEY][DEFAULT_ACCOUNT_KEY]["counts"] == {"205": 100}
+
+
+def test_currency_merge_uses_confirmed_bucket_before_first_combat(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "warehouse_inventory.json"
+    buckets = {"A": {"counts": {"material": 3}}, "B": {"counts": {"material": 9}}}
+    path.write_text(json.dumps({SNAPSHOT_KEY: buckets}), encoding="utf-8")
+    monkeypatch.setattr(depot_maintain.planner(), "account_id", "A")
+    monkeypatch.setattr(depot_maintain, "current_account_id", lambda: "B")
+    assert write_snapshot_counts({"205": 100}, path)
+    saved = json.loads(path.read_text(encoding="utf-8"))[SNAPSHOT_KEY]
+    assert saved["A"]["counts"] == {"material": 3, "205": 100}
+    assert saved["B"] == buckets["B"]
+
+
+@pytest.mark.parametrize("cached", ["B", ""])
+def test_empty_resample_rejects_single_frame_uid(cached: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    from utils import uid_sampler
+
+    class Context(_FakeContext):
+        def run_task(self, entry: str, *args: Any, **kwargs: Any) -> Any:
+            depot_maintain.RecordID.global_id = "A"
+            return super().run_task(entry)
+
+    monkeypatch.setattr(depot_maintain.RecordID, "global_id", cached)
+    monkeypatch.setattr(depot_maintain.planner(), "account_id", "A")
+    monkeypatch.setattr(uid_sampler, "sample_uid", lambda context: "")
+    context = Context()
+    assert not depot_maintain.ensure_account_id(context)  # pyright: ignore[reportArgumentType]
+    assert context.run_tasks == [depot_maintain.HOME_ENTRY]
+    assert not depot_maintain.current_account_id()
 
 
 def test_write_snapshot_counts_keeps_timestamp_when_incomplete(tmp_path: Path) -> None:
@@ -1257,6 +1290,66 @@ def test_estimate_commit_is_incremental_across_batches(monkeypatch: pytest.Monke
     assert harness.plan(targets).success
     assert snapshot["counts"]["110203"] == 8
 
+    harness.set_battles(0)
+    assert harness.accumulate().success
+    assert snapshot["counts"]["110203"] == 10
+
+
+def test_estimate_retries_after_account_guard(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    snapshot = _snapshot({"110103": 10, "110203": 0})
+    harness = _PlanHarness(monkeypatch, snapshot=snapshot)
+    monkeypatch.setattr(depot_maintain, "DROP_TEMPLATE_DIR", tmp_path)
+    harness.set_battles(0)
+    assert harness.plan().success
+    monkeypatch.setattr(depot_maintain.planner(), "account_id", "A")
+    monkeypatch.setattr(depot_maintain, "current_account_id", lambda: "B")
+    assert harness.accumulate().success
+    assert depot_maintain._state.estimate_committed_battles == 0
+    monkeypatch.setattr(depot_maintain, "current_account_id", lambda: "A")
+    assert harness.accumulate().success
+    assert snapshot["counts"]["110203"] == 4
+    assert depot_maintain._state.estimate_committed_battles == 2
+
+
+@pytest.mark.parametrize("retarget", [False, True])
+def test_flush_last_observed_drop_before_switch(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, retarget: bool
+) -> None:
+    read_snapshot = depot_maintain.read_snapshot
+    ensure_uid = depot_maintain._ensure_account_id
+    harness = _PlanHarness(monkeypatch, snapshot=None)
+    monkeypatch.setattr(depot_maintain, "SNAPSHOT_PATH", tmp_path / "inventory.json")
+    monkeypatch.setattr(depot_maintain, "read_snapshot", read_snapshot)
+    monkeypatch.setattr(depot_maintain, "_ensure_account_id", ensure_uid)
+    monkeypatch.setattr(depot_maintain.RecordID, "global_id", "B")
+    assert depot_maintain.save_snapshot(_snapshot({"110103": 8, "110203": 8}))
+    depot_maintain.RecordID.global_id = "A"
+    monkeypatch.setattr(depot_maintain.planner(), "account_id", "A")
+    assert depot_maintain.save_snapshot(_snapshot({"110103": 10, "110203": 0}))
+    fake = harness.install_drop_core(monkeypatch)
+    assert harness.plan().success
+    fake.total_drops = {110203: 2}
+    assert harness.accumulate().success
+    depot_maintain.RecordID.global_id = "B"
+    fake.total_drops = {110203: 12}
+    assert harness.accumulate().success
+    assert depot_maintain._state.persisted == 2
+
+    def confirm(_context: object) -> str:
+        depot_maintain.RecordID.global_id = "A"
+        return "A"
+
+    monkeypatch.setattr(depot_maintain, "_resample_account_id", confirm)
+    if retarget:
+        assert depot_maintain.retarget_material(harness.context, "110103", "7-26", "Hard")  # pyright: ignore[reportArgumentType]
+    else:
+        assert harness.plan().success
+    assert depot_maintain._state.item_id == "110103"
+    assert depot_maintain.snapshot_counts(read_snapshot()) == {"110103": 10, "110203": 12}
+    monkeypatch.setattr(depot_maintain.planner(), "account_id", "")
+    depot_maintain.RecordID.global_id = "B"
+    assert depot_maintain.snapshot_counts(read_snapshot()) == {"110103": 8, "110203": 8}
+
 
 def test_estimate_commit_does_not_double_count(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """收尾节点不会把已经回写过的进度再写一遍。"""
@@ -1316,3 +1409,140 @@ def test_round_loop_stops_when_all_satisfied(monkeypatch: pytest.MonkeyPatch) ->
     ]
     result = DepotMaintainDone().run(harness.context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
     assert result.success
+
+
+# ---------------------------------------- 跨材料顺延 / 全不可用（真跑判定）
+def _all_candidates(*item_ids: str) -> dict[str, str]:
+    """这些材料在掉落索引里的**所有**候选关卡，全部标成不可用。
+
+    ⚠️ 用 `sys.modules` 取已加载的 `utils.balanced_state`，**不能**再
+    `from utils.balanced_state import ...` —— 那会触发第二张模块图，
+    进而重复注册自定义动作（`Custom name is already registered`）。
+    """
+    state_mod = sys.modules.get("agent.utils.balanced_state") or sys.modules.get("utils.balanced_state")
+    assert state_mod is not None, "balanced_state 应已被 depot_maintain 导入"
+
+    catalog = build_catalog(_SAMPLE_RAW, source="unit-test")
+    index = state_mod.load_drop_index()
+    out: dict[str, str] = {}
+    for item_id in item_ids:
+        entry = catalog[item_id]
+        got = state_mod.candidates_for_material(
+            item_id,
+            level=entry.level,
+            registered_stage=entry.stage.code,
+            drop_index=index,
+        )
+        out.update({c.stage: "2026-01-01 00:00:00" for c in got})
+    return out
+
+
+def _plan_with_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    snapshot: dict[str, Any],
+    unavailable: dict[str, str],
+    targets: dict[str, int],
+) -> tuple[depot_maintain.DepotMaintainPlan, _FakeContext]:
+    """构造一个「真跑 `_resolve_available_stage`」的规划环境。
+
+    与 `_PlanHarness` 的区别：**不 mock** `_resolve_available_stage`，
+    让「关卡是否可用」真按状态文件判定，从而真正走到跨材料顺延与
+    「全不可用 → BF_Done」这两条分支。
+    """
+    context = _FakeContext()
+    monkeypatch.setattr(depot_maintain, "read_snapshot", lambda path=None: snapshot)
+    monkeypatch.setattr(depot_maintain, "_ensure_account_id", lambda _c: True)
+
+    # ⚠️ `depot_maintain._state` 是模块级单例，只有 `DepotMaintainInit` 会重置
+    # （`rounds` / `item_id` / 估算计数等）。不重置的话，前一条用例把 `rounds`
+    # 留在 `MAX_ROUNDS_PER_TASK` 时，规划会在选关**之前**就转 `DONE_NODE` ——
+    # 于是 `test_plan_routes_to_done_when_every_material_exhausted` 会假通过，
+    # 而另外两条用例反而失败（CodeRabbit 指出）。这里与 `_PlanHarness` 保持一致。
+    DepotMaintainInit().run(context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
+    monkeypatch.setattr(depot_maintain, "request_combat_stop", lambda *a, **k: None)
+    monkeypatch.setattr(depot_maintain, "battles_done", lambda: 4)
+
+    # 让「已记录不可用」的那批关卡生效。
+    # 注意：`depot_maintain` 和 `balanced_fallback` 各自持有一份
+    # `unavailable_stages` 的值绑定（两边都是 `from ... import`）。
+    # 只改前者的话，`next_candidate()`（在后者里）仍会读真实状态文件，
+    # 于是「全部候选不可用」永远走不到。
+    blocked = set(unavailable)
+    fallback_mod = sys.modules.get("agent.custom.action.balanced_fallback") or sys.modules.get(
+        "custom.action.balanced_fallback"
+    )
+    patched_modules = [depot_maintain]
+    if fallback_mod is not None:
+        patched_modules.append(fallback_mod)
+    for module in patched_modules:
+        monkeypatch.setattr(module, "unavailable_stages", lambda account_id=None: set(blocked))
+
+    attach = {f"target_{item_id}": str(value) for item_id, value in targets.items()}
+    context.attach = attach  # type: ignore[attr-defined]
+    planner_action = depot_maintain.DepotMaintainPlan()
+    return planner_action, context
+
+
+def test_plan_skips_unavailable_stage_and_advances_within_material(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """登记关卡不可用 → 顺延到同一材料的下一候选（不跨材料）。"""
+    # 110103（啮咬盒）登记 7-26 Hard，掉落索引里还有 6-6 / 5-19
+    snapshot = _snapshot({"110103": 0})
+    plan, context = _plan_with_unavailable(
+        monkeypatch,
+        snapshot=snapshot,
+        unavailable={"7-26": "2026-01-01 00:00:00"},
+        targets={"110103": 100},
+    )
+
+    result = plan.run(context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
+
+    assert result.success is True
+    override = context.pipeline_overrides[-1].get("SelectCombatStage") or {}
+    stage = ((override.get("action") or {}).get("param") or {}).get("custom_action_param", {}).get("stage")
+    assert stage and stage != "7-26", "登记关卡已记录不可用，必须顺延到别的候选"
+
+
+def test_plan_advances_to_next_material_when_all_candidates_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """某材料所有候选都不可用 → 顺延到下一个参与材料，而不是直接结束。"""
+    snapshot = _snapshot({"110103": 0, "110203": 0})
+    plan, context = _plan_with_unavailable(
+        monkeypatch,
+        snapshot=snapshot,
+        # 把 110103 的**所有**候选都标记不可用（候选从掉落索引反查，不手写）
+        unavailable={stage: "2026-01-01 00:00:00" for stage in _all_candidates("110103")},
+        targets={"110103": 100, "110203": 100},
+    )
+
+    result = plan.run(context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
+
+    assert result.success is True
+    # 应该换到 110203，而不是停在 110103
+    material = depot_maintain._state.item_id
+    assert material == "110203", f"应顺延到第二个材料，实际 {material}"
+
+
+def test_plan_routes_to_done_when_every_material_exhausted(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """所有参与材料的候选全不可用 → 走 BF_Done（不刷、不失败）。"""
+    targets = {"110103": 100, "110203": 100}
+    snapshot = _snapshot({item_id: 0 for item_id in targets})
+    blocked = _all_candidates(*targets.keys())
+    plan, context = _plan_with_unavailable(
+        monkeypatch,
+        snapshot=snapshot,
+        # 全不可用：把**每一个**设了目标的材料的全部候选都标记掉
+        unavailable=blocked,
+        targets=targets,
+    )
+
+    result = plan.run(context, _FAKE_ARGV)  # pyright: ignore[reportArgumentType]
+
+    assert result.success is True
+    last_next = context.next_overrides[-1] if context.next_overrides else []
+    assert "BF_Done" in last_next, f"全部候选不可用应转 BF_Done，实际 {last_next}"

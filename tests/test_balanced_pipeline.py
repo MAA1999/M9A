@@ -155,11 +155,65 @@ def test_freeze_wait_unchanged(combat: dict[str, Any]) -> None:
 
 
 # --------------------------------------------------------------- 超时分支接入
-def test_scan_list_has_timeout_on_error(combat: dict[str, Any]) -> None:
-    """两个扫描尾节点都挂了超时分支（on_error → StageLookupTimeout）。"""
+def test_scan_list_has_no_global_on_error(combat: dict[str, Any]) -> None:
+    """两个扫描尾节点**不能**在 `combat.json` 里写死 `on_error`。
+
+    它们是原版共享节点，非均衡任务也用。写死 `on_error: [StageLookupTimeout]`
+    会让那些任务找关卡失败时跳过本节点的 `focus` 文案、改在
+    `StageLookupTimeout` 上失败 —— 用户看到的原因就变了。
+
+    真实挂载在 `BalancedTaskEntry` 的入口 override 里（见
+    `test_entry_overrides_scan_tail_on_error`）。
+    """
     for name in ("SwipeLeftForStageList", "SwipeRightForStageList"):
-        on_error = combat[name].get("on_error")
-        assert on_error == ["StageLookupTimeout"], f"{name} 应在失败时导向 StageLookupTimeout"
+        assert "on_error" not in combat[name], f"{name} 是原版共享节点，on_error 只能在均衡任务里 override"
+        # 原版的 focus 文案必须还在（失败原因照常显示）
+        assert "Node.PipelineNode.Failed" in (combat[name].get("focus") or {})
+
+
+def test_stage_lookup_timeout_keeps_failure_focus(fallback: dict[str, Any]) -> None:
+    """`StageLookupTimeout` 补了与扫描尾节点一致的失败文案。
+
+    均衡任务把扫描尾的失败出口改成指向它；没有 `focus` 的话，用户在 GUI 里
+    看不到「未找到目标关卡」这个原因。
+    """
+    focus = fallback["StageLookupTimeout"].get("focus") or {}
+    assert "Node.PipelineNode.Failed" in focus
+    assert "未在关卡列表中找到目标关卡" in focus["Node.PipelineNode.Failed"]
+
+
+def test_entry_overrides_scan_tail_on_error() -> None:
+    """入口 override 把两个扫描尾节点的 `on_error` 指向 `StageLookupTimeout`。
+
+    读源码做 AST 检查，不 import `custom.*`（会注册自定义动作、污染其它测试）。
+    """
+    import ast
+    import pathlib
+
+    source = pathlib.Path("agent/custom/action/balanced_entry.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+
+    # 常量必须是那两个节点名
+    consts: dict[str, str] = {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and isinstance(node.value, ast.Constant):
+            for tgt in node.targets:
+                if isinstance(tgt, ast.Name) and tgt.id.startswith("SCAN_TAIL_"):
+                    consts[tgt.id] = str(node.value.value)
+    assert consts.get("SCAN_TAIL_LEFT_NODE") == "SwipeLeftForStageList"
+    assert consts.get("SCAN_TAIL_RIGHT_NODE") == "SwipeRightForStageList"
+
+    # override_pipeline 的字典里必须出现这两个常量（作为 key）
+    used = {
+        key.id
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Dict)
+        for key in node.keys
+        if isinstance(key, ast.Name)
+    }
+    assert "SCAN_TAIL_LEFT_NODE" in used, "入口必须挂左向扫描尾节点的 on_error"
+    assert "SCAN_TAIL_RIGHT_NODE" in used, "入口必须挂右向扫描尾节点的 on_error"
+    assert "StageLookupTimeout" in source, "on_error 目标必须是 StageLookupTimeout"
 
 
 def test_scan_list_next_keeps_original_order(combat: dict[str, Any]) -> None:

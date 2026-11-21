@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 import types
 from pathlib import Path
@@ -44,6 +45,11 @@ from agent.custom.action.balanced_fallback import (
     planner,
     reset_planner,
 )
+
+# 只在这里导入一次：每个测试里再 `from custom.reco import ...` 会触发第二张模块图，
+# 导致 `Custom name is already registered`（跨文件跑 pytest 时尤其明显）。
+from agent.custom.reco import balanced_fallback as reco_balanced_fallback
+from agent.custom.reco import general as reco_general
 from agent.utils import balanced_state
 from agent.utils.balanced_state import (
     StageCandidate,
@@ -68,6 +74,8 @@ def _argv(param: str) -> CustomAction.RunArg:
 
 # --------------------------------------------------------------------- 桩
 class _FakeController:
+    cached_image = "IMG"
+
     def post_screencap(self) -> Any:
         return types.SimpleNamespace(wait=lambda: types.SimpleNamespace(get=lambda: "IMG"))
 
@@ -98,6 +106,9 @@ class _FakeContext:
 
     def override_pipeline(self, pipeline: dict[str, Any]) -> None:
         self.pipeline_overrides.append(pipeline)
+
+    def run_recognition_direct(self, *args: Any, **kwargs: Any) -> Any:
+        return types.SimpleNamespace(hit=False, all_results=[], best_result=None)
 
     def run_task(self, entry: str, *args: Any, **kwargs: Any) -> Any:
         self.run_tasks.append(entry)
@@ -143,8 +154,10 @@ def _isolated_state(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPa
     `agent.utils.*` 与 `utils.*` 是**两张模块图**（同一份源码、两个模块对象），
     所以两个都要打补丁 —— 只改一个的话，另一张图里的函数仍会写回默认路径。
     """
+    # 文件名带上进程号：并行跑多份 pytest 时，同一条用例的两次执行不能共用一个
+    # 状态文件（否则一边 unlink、另一边刚写完，断言会读到缺失或别人的记录）。
     safe = request.node.name.replace("/", "_").replace("\\", "_")
-    path = _state_path(Path("."), f"state_{safe}.json")
+    path = _state_path(Path("."), f"state_{safe}_{os.getpid()}.json")
     # 上一次运行留下的同名文件会让用例互相干扰（状态是持久资源）→ 先清掉
     path.unlink(missing_ok=True)
     # `agent.utils.*` 与 `utils.*` 是两张模块图（同一份源码、两个模块对象），
@@ -203,6 +216,12 @@ def test_candidates_numeric_order_not_string_order(tmp_path: Path) -> None:
     drop_index = {"13-4E": [110103], "12-10E": [110103], "9-8E": [110103]}
     candidates = candidates_for_material("110103", level="Hard", registered_stage="13-4", drop_index=drop_index)
     assert [c.stage for c in candidates] == ["13-4", "12-10", "9-8"]
+
+
+def test_no_difficulty_excludes_story_and_hard() -> None:
+    index = {"7-26E": [110103], "7-26G": [110103], "7-12": [110103]}
+    candidates = candidates_for_material("110103", level="None", registered_stage="ME-02", drop_index=index)
+    assert [c.stage for c in candidates] == ["ME-02", "7-12"]
 
 
 def test_candidates_sixth_is_reachable(tmp_path: Path) -> None:
@@ -768,41 +787,65 @@ def test_retarget_material_returns_tristate(tmp_path: Path) -> None:
         depot_maintain._state.item_id = None
 
 
-def test_retarget_material_syncs_battle_params(tmp_path: Path) -> None:
+def test_retarget_material_syncs_battle_params(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """跨材料顺延时，除 `_state` 外还必须同步 AllIn / 吃糖 / 掉落上报。
 
     回归防护（GPT 评审指出）：规划路径会把 `AllIn.target_count`、逐材料吃糖上限、
     `DropRecognition.enabled` 按**旧材料**写进 pipeline；若 `retarget_material` 只更新
     `_state`，会出现「材料已换成 B，但复现次数/吃糖仍按 A」。
+
+    ⚠️ 这里刻意用**两种不同材料**（旧 A=110103、新 B=110203），并给它们不同的
+    缺口与吃糖上限：如果哪一项没被刷新，断言就会读到 A 的旧值而失败。
     """
+    from utils.balanced_state import candidates_for_material
+
     from agent.custom.action import depot_maintain
 
-    # 模拟库存保持模式：item_id 已设置、candy_caps 已有规划时存下的值
-    depot_maintain._state.item_id = "110103"
-    depot_maintain._state.candy_caps = {"110103": 3}
+    old_id, new_id = "110103", "110203"
+
+    # 模拟库存保持模式：旧的 A 在位，且 A 的吃糖上限是 3
+    depot_maintain._state.item_id = old_id
+    depot_maintain._state.candy_caps = {old_id: 3, new_id: 7}
     depot_maintain._state.runs = 5
+    # 目标：A 缺 90、B 缺 20 —— 换过去后 runs 必须按 B 的缺口重算
+    depot_maintain._state.targets = {old_id: 100, new_id: 20}
+    monkeypatch.setattr(
+        depot_maintain,
+        "read_snapshot",
+        lambda path=None: {"counts": {old_id: 10, new_id: 0}},
+    )
+    # 换材料要能反查候选（用真实掉落索引）
+    assert candidates_for_material(old_id, level="Hard", registered_stage="7-26")
+    monkeypatch.setattr(depot_maintain, "_confirmed_account_id", lambda: "")
 
     ctx = _FakeContext()
-    result = depot_maintain.retarget_material(ctx, "110103", "7-26", "Hard")
+    result = depot_maintain.retarget_material(ctx, new_id, "3-13", "Hard")
 
     assert result is True
-    # 必须把 AllIn 的 target_count 一并写回（retarget 内部会按新材料重算 runs，
-    # 这里不预先假设具体值，只验证「写回了 AllIn」且值等于 _state.runs）
-    allin_override = None
-    drop_override = None
+    assert depot_maintain._state.item_id == new_id, "目标材料必须真的换成新材料"
+
+    merged: dict[str, Any] = {}
     for pipeline in ctx.pipeline_overrides:
         for node, val in pipeline.items():
-            if node == "AllIn":
-                allin_override = val
-            elif node == depot_maintain.DROP_REPORT_NODE:
-                drop_override = val
-    assert allin_override is not None, "必须同步 AllIn"
-    assert allin_override["action"]["param"]["custom_action_param"]["target_count"] == depot_maintain._state.runs, (
-        "AllIn 的 target_count 必须等于重算后的 _state.runs"
-    )
-    assert drop_override is not None, "必须同步掉落上报开关"
+            merged[node] = val
+
+    # 1. AllIn 的复现次数按**新材料 B** 的缺口算，而不是旧材料 A 的 5
+    allin = merged.get("AllIn") or {}
+    target_count = allin["action"]["param"]["custom_action_param"]["target_count"]
+    assert target_count == depot_maintain._state.runs
+    assert target_count != 5, "不能沿用旧材料 A 的 runs"
+
+    # 2. 吃糖上限换成 B 的 7（A 是 3）
+    candy_start = merged.get("EatCandyStart") or {}
+    assert candy_start.get("max_hit") == 7, f"吃糖上限应换成新材料 B 的 7，实际 {candy_start}"
+
+    # 3. 掉落上报开关有明确值（不是「只存在」）
+    drop = merged.get(depot_maintain.DROP_REPORT_NODE) or {}
+    assert "enabled" in drop, "必须写入掉落上报开关的具体值"
+
     # 恢复，避免影响其它用例
     depot_maintain._state.item_id = None
+    depot_maintain._state.targets = {}
 
 
 def test_entry_skips_task_when_marked(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1000,11 +1043,11 @@ def test_depot_candidates_ordered_by_inventory_after_first(tmp_path: Path) -> No
         "110303": _entry("110303", "丙", "7-7"),
     }
     inventory = {"110103": 1, "110203": 2, "110303": 3}
-    targets = {"110103": 100, "110203": 100, "110303": 100}
+    targets = {"110103": 5, "110203": 100, "110303": 200}
     candidates = build_depot_material_candidates(catalog, inventory, targets)
     ids = [c.entry.item_id for c in candidates]
-    # 缺口相同 → 按库存数量从少到多
-    assert ids == ["110103", "110203", "110303"]
+    # 丙的缺口最大（197），先选丙；剩余两种按库存排序，甲（1）先于乙（2）。
+    assert ids == ["110303", "110103", "110203"]
 
 
 # ---------------------------------------------------------- 均衡取最少入口
@@ -1135,3 +1178,311 @@ def test_timeout_clears_planner_when_home_fails(tmp_path: Path) -> None:
 
     assert result.success is False, "回不了主页就该按失败结束"
     assert planner().active is False, "异常退出前必须清掉 planner 状态"
+
+
+# ------------------------------------------------- StageLookupBudget 真实实例
+class _BudgetArg:
+    """`CustomRecognition.AnalyzeArg` 的最小桩（预算检查只用 image）。"""
+
+    def __init__(self, image: Any = None) -> None:
+        self.image = image
+        self.custom_recognition_param = None
+
+
+class _BudgetReco:
+    """记录 `run_recognition_direct` 调用的最小 context。"""
+
+    def __init__(self, results: list[str]) -> None:
+        self.results = results
+        self.calls: list[Any] = []
+
+    def run_recognition_direct(self, reco_type: Any, param: Any, image: Any = None) -> Any:
+        self.calls.append((reco_type, param, image))
+
+        class _Detail:
+            pass
+
+        detail = _Detail()
+        detail.all_results = [_TextResult(t) for t in self.results]
+        return detail
+
+
+class _TextResult:
+    def __init__(self, text: str) -> None:
+        self.text = text
+        self.box = [10, 300, 40, 20]
+
+
+def test_budget_returns_none_when_planner_inactive() -> None:
+    """非均衡任务：预算检查必须无条件不匹配（原版行为不受影响）。"""
+    mod = reco_balanced_fallback
+
+    reset_planner()  # 定义在 action.balanced_fallback，模块级单例是同一个
+    assert mod.StageLookupBudget().analyze(_FakeContext(), _BudgetArg()) is None
+
+
+def test_budget_returns_none_before_deadline() -> None:
+    """预算未到：返回 None，流程继续滑动。"""
+    mod = reco_balanced_fallback
+
+    state = planner()
+    state.begin([_material("110103", 1, ["7-26"])])
+    state.begin_stage_lookup("7-26")
+
+    result = mod.StageLookupBudget().analyze(_FakeContext(), _BudgetArg())
+
+    assert result is None
+    assert state.swipe_count == 1, "每次被问都要记一次滑动"
+
+
+def test_budget_hits_after_deadline(monkeypatch: pytest.MonkeyPatch) -> None:
+    """预算到点：返回匹配结果，并带上当前关卡与滑动次数。"""
+    mod = reco_balanced_fallback
+
+    state = planner()
+    state.begin([_material("110103", 1, ["7-26"])])
+    state.begin_stage_lookup("7-26")
+    # 用假时钟推进到超过预算（不依赖机器 uptime）
+    _force_budget(state, monkeypatch)
+
+    result = mod.StageLookupBudget().analyze(_FakeContext(), _BudgetArg())
+
+    assert result is not None, "预算超了必须命中，否则永远不会顺延"
+    assert result.detail["node"] == "StageLookupBudget"
+    assert result.detail["stage"] == "7-26"
+
+
+class _FakeClock:
+    """可控时钟：把 `monotonic()` 换成一个我们能随意推进的数。
+
+    `time.monotonic()` 的**原点是任意的**（Linux 上是开机时长），任何
+    「减一个大常数」的写法在 uptime 不足那个数时都会得到负数，而
+    `budget_exceeded()` 把非正起点当成「还没开始」→ 测试在刚启动的机器上假失败。
+    这里改成显式控制：起点一律是正数，需要超时时再推进。
+    """
+
+    def __init__(self, start: float = 1000.0) -> None:
+        self.now = start
+
+    def monotonic(self) -> float:
+        return self.now
+
+    def advance(self, seconds: float) -> None:
+        self.now += seconds
+
+
+def _force_budget(state: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    """把预算起点设成 1000，并推进到超过预算之后。
+
+    同时 patch `balanced_fallback.time.monotonic`，让 `begin_stage_lookup()`
+    记下的起点与 `budget_exceeded()` 读到的「现在」都来自同一个假时钟。
+    """
+    # 用文件顶部已导入的 alanced_fallback，不再局部 import（会触发第二张模块图）
+    clock = _FakeClock()
+    monkeypatch.setattr(balanced_fallback.time, "monotonic", clock.monotonic)
+    state.begin_stage_lookup(state.current_stage or "7-26")
+    budget_s = getattr(state, "lookup_budget_ms", 120_000) / 1000.0
+    clock.advance(budget_s + 1.0)
+
+
+# ----------------------------------------- StageLookupFarLeft 真实实例
+def _patch_far_left_context(monkeypatch: pytest.MonkeyPatch, texts: list[str]) -> _BudgetReco:
+    """让 `filter_by_color` 恒等返回，并注入识别结果。"""
+    general = reco_general
+
+    monkeypatch.setattr(general, "filter_by_color", lambda img, *a, **k: img)
+    return _BudgetReco(texts)
+
+
+def test_far_left_sets_flag_and_returns_box(monkeypatch: pytest.MonkeyPatch) -> None:
+    """看到 `01` → 必须调用 `note_reached_far_left()` 并返回识别框。
+
+    维护者指出：现有测试直接调 `state.note_reached_far_left()`，所以就算把
+    `analyze()` 里那行删掉也不会失败。这里走真实路径。
+    """
+    mod = reco_balanced_fallback
+
+    state = planner()
+    state.begin([_material("110103", 1, ["7-26"])])
+    state.begin_stage_lookup("7-26")
+    assert state.reached_far_left is False
+
+    context = _patch_far_left_context(monkeypatch, ["010203"])
+    result = mod.StageLookupFarLeft().analyze(context, _BudgetArg(image="img"))
+
+    assert result is not None, "看到 01 必须命中"
+    assert state.reached_far_left is True, "analyze() 必须自己置位，不能靠测试代劳"
+    assert result.detail["node"] == "StageLookupFarLeft"
+
+
+def test_far_left_ignores_non_01_rows(monkeypatch: pytest.MonkeyPatch) -> None:
+    """没有 `01` → 不命中、也不置位。"""
+    mod = reco_balanced_fallback
+
+    state = planner()
+    state.begin([_material("110103", 1, ["7-26"])])
+    state.begin_stage_lookup("7-26")
+
+    context = _patch_far_left_context(monkeypatch, ["201", "13-10"])
+    result = mod.StageLookupFarLeft().analyze(context, _BudgetArg(image="img"))
+
+    assert result is None
+    assert state.reached_far_left is False
+
+
+def test_far_left_returns_none_when_planner_inactive(monkeypatch: pytest.MonkeyPatch) -> None:
+    """非均衡任务：不匹配，原版 TheFarLeftOfStageList 照常接管。"""
+    mod = reco_balanced_fallback
+
+    reset_planner()  # 定义在 action.balanced_fallback，模块级单例是同一个
+    context = _patch_far_left_context(monkeypatch, ["01"])
+    result = mod.StageLookupFarLeft().analyze(context, _BudgetArg(image="img"))
+
+    assert result is None
+    assert context.calls == [], "未激活时不该跑识别"
+
+
+def test_far_left_reraises_interface_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    """接口类错误必须抛出，不能静默变成「永远没到第一关」。"""
+    mod = reco_balanced_fallback
+
+    state = planner()
+    state.begin([_material("110103", 1, ["7-26"])])
+    state.begin_stage_lookup("7-26")
+
+    class _BrokenContext:
+        def run_recognition_direct(self, *a: Any, **k: Any) -> Any:
+            raise TypeError("signature mismatch")
+
+    general = reco_general
+
+    monkeypatch.setattr(general, "filter_by_color", lambda img, *a, **k: img)
+
+    with pytest.raises(TypeError):
+        mod.StageLookupFarLeft().analyze(_BrokenContext(), _BudgetArg(image="img"))
+
+
+# ------------------------------------ 记录不可用前复核目标（CodeRabbit major）
+class _RecheckContext(_FakeContext):
+    """可注入「目标是否在屏幕上」的上下文桩。
+
+    `StageLookupTimeout` 在 `mark_unavailable()` 之前会跑一次独立复核，
+    这里用假的 `cached_image` + `run_recognition_direct` 控制复核结论。
+    """
+
+    def __init__(self, *, target_visible: bool, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.target_visible = target_visible
+        self.recheck_calls = 0
+        self.tasker = types.SimpleNamespace(
+            stopping=False,
+            controller=types.SimpleNamespace(cached_image=object()),
+        )
+
+    def run_recognition_direct(self, reco_type: Any, param: Any, image: Any = None) -> Any:
+        self.recheck_calls += 1
+
+        class _Detail:
+            pass
+
+        detail = _Detail()
+        if self.target_visible:
+            box = [10, 400, 60, 20]
+            detail.all_results = [
+                types.SimpleNamespace(text=f"{self.recheck_stage} Hard", box=box),
+            ]
+            detail.best_result = types.SimpleNamespace(text=f"{self.recheck_stage} Hard", box=box, score=0.9)
+        else:
+            detail.all_results = []
+            detail.best_result = None
+        return detail
+
+
+def _scanned_and_at_far_left(state: Any, stage: str = "13-10") -> None:
+    """把状态机布置成「滑到过第一关、目标没找到、最多还试一次」。"""
+    state.begin([_material("110103", 1, [stage])])
+    state.begin_stage_lookup(stage)
+    state.note_swipe()
+    state.note_reached_far_left()
+
+
+def test_timeout_does_not_record_when_target_still_visible(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """目标就在屏幕上时**不能**记成不可用。
+
+    回归防护（CodeRabbit major）：`StageLookupFarLeft` 命中只说明这一帧有 01；
+    `TargetStageName` 那一帧如果颜色识别没成，一个明明存在的目标会被当成
+    「已滑到最左、目标确实不存在」，永久记进不可用清单。
+    """
+    state = _planner_with([_material("110103", 1, ["13-10"])])
+    _scanned_and_at_far_left(state)
+
+    context = _RecheckContext(target_visible=True)
+    context.recheck_stage = "13-10"  # type: ignore[attr-defined]
+    monkeypatch.setattr(balanced_fallback, "_target_visible_on_screen", lambda c, s: True)
+
+    result = balanced_fallback.StageLookupTimeout().run(context, _FAKE_ARGV)
+
+    assert result.success is False, "复核发现目标就在屏幕上 → 本次不记录、按失败结束"
+    assert "13-10" not in state.failed_stages, "不能把这个关卡记成不可用"
+    assert not state.failed_stages
+
+
+def test_timeout_records_when_target_really_absent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """复核也确认看不见时才记不可用并顺延（原有行为不变）。"""
+    state = _planner_with([_material("110103", 1, ["13-10"])])
+    _scanned_and_at_far_left(state)
+
+    context = _RecheckContext(target_visible=False)
+    monkeypatch.setattr(balanced_fallback, "_target_visible_on_screen", lambda c, s: False)
+
+    result = balanced_fallback.StageLookupTimeout().run(context, _FAKE_ARGV)
+
+    assert "13-10" in state.failed_stages, "确认看不见才记录不可用"
+    # 只有一个候选且回家成功 → 记录后应当收尾（转 BF_Skipped），而不是报失败
+    assert result.success is True, "记录并顺延成功后应返回成功"
+    # _FakeContext.override_next 记的是 (节点名, next列表) 元组
+    last = context.next_overrides[-1] if context.next_overrides else (None, [])
+    assert "BF_Skipped" in last[1], f"候选耗尽应转 BF_Skipped，实际 {last}"
+
+
+def test_target_recheck_error_does_not_blacklist_stage() -> None:
+
+    class _BrokenContext(_FakeContext):
+        def run_recognition_direct(self, *a: Any, **k: Any) -> Any:
+            raise TypeError("signature mismatch")
+
+    state = _planner_with([_material("110103", 1, ["13-10"])])
+    _scanned_and_at_far_left(state)
+    assert not balanced_fallback.StageLookupTimeout().run(_BrokenContext(), _FAKE_ARGV).success
+    assert not state.failed_stages
+    assert not unavailable_stages(TEST_UID)
+
+
+@pytest.mark.parametrize(
+    ("texts", "stage", "expected"),
+    [
+        (["13-10 Hard"], "13-10", True),
+        (["13-10 Hard"], "13-13", False),
+        (["010203"], "13-02", True),
+        (["010203"], "13-20", False),
+        (["192021"], "13-20", True),
+        (["201"], "13-20", None),
+        (["190221"], "13-02", None),
+        (["201", "20"], "13-20", True),
+    ],
+)
+def test_target_recheck_matches_stage_in_ocr_text(texts: list[str], stage: str, expected: bool | None) -> None:
+
+    class _Ctx:
+        tasker = types.SimpleNamespace(controller=types.SimpleNamespace(cached_image=object()))
+
+        def run_recognition_direct(self, *a: Any, **k: Any) -> Any:
+            box = [1, 2, 3, 4]
+            return types.SimpleNamespace(
+                hit=True,
+                box=box,
+                all_results=[types.SimpleNamespace(text=text, box=box) for text in texts],
+                best_result=types.SimpleNamespace(text=texts[0], box=box, score=0.9),
+            )
+
+    assert balanced_fallback._target_visible_on_screen(_Ctx(), stage) is expected

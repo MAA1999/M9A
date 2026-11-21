@@ -175,6 +175,8 @@ def candidate_stages_for_item(
             continue
         if suffix and not key.endswith(suffix):
             continue
+        if level == "None" and key.endswith(("E", "G")):
+            continue
         stage = key[: -len(suffix)] if suffix else key
         if "-" not in stage:
             continue

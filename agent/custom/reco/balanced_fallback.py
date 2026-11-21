@@ -203,14 +203,23 @@ class StageLookupFarLeft(CustomRecognition):
 
         from .general import filter_by_color
 
+        processed = filter_by_color(argv.image)
+
         try:
             detail = context.run_recognition_direct(
                 JRecognitionType.OCR,
                 JOCR(roi=self._ROI, only_rec=False),
-                filter_by_color(argv.image),
+                processed,
             )
-        except Exception as exc:  # noqa: BLE001 - 识别失败只表示「没到最左」，不该中断扫描
-            logger.debug(f"StageLookupFarLeft 识别失败: {exc}")
+        except (AttributeError, TypeError) as exc:
+            # 接口签名不对 = 代码或框架版本问题。吞掉它会让核心顺延静默变成
+            # 「永远没到第一关」，任务直接失败且日志只有 debug 级别 —— 排查无线索。
+            logger.exception(f"StageLookupFarLeft 无法调用识别接口（这是程序错误，不是识别失败）: {exc}")
+            raise
+        except Exception as exc:  # noqa: BLE001 - 单帧识别失败只表示「没到最左」
+            # 不用 debug：如果是持续失败，「永远没到第一关」会表现为任务直接失败，
+            # warning 才留得下排查线索。
+            logger.warning(f"StageLookupFarLeft 识别失败（本次跳过）: {exc}")
             return None
 
         for result in getattr(detail, "all_results", None) or []:

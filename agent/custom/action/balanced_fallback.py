@@ -78,15 +78,18 @@ SwipeLeftAndFindStage（扫描头, max_hit=30）
 
 from __future__ import annotations
 
+import re
 import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
+from itertools import pairwise
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
 from utils import logger
 from utils.balanced_state import (
+    STAGE_TEXT_ROI,
     StageCandidate,
     candidates_for_material,
     is_stage_unavailable,
@@ -236,6 +239,15 @@ class BalancedFallback:
         两分钟超时。所以顺延过滤时把这份内存集合和持久记录合并。
         """
 
+        self.depot_mode: bool = False
+        """本轮是否由「库存保持」驱动。
+
+        库存保持只把**有正缺口**的材料放进本轮候选；其它的只是因为已达标才没参与，
+        不代表它们刷不了。所以库存保持耗尽候选时**不能**写账号级的
+        `skip_balanced` —— 那会让那些材料下次也永久跳过，违背
+        「单个材料失败不得停用整个均衡任务」的需求。
+        """
+
         self.current_stage: str = ""
         """当前正在寻找的关卡（超时时记录它）。"""
 
@@ -274,6 +286,7 @@ class BalancedFallback:
         """任务入口重置（每个任务各自一份）。"""
         self.account_id = ""
         self.active = False
+        self.depot_mode = False
         self.materials = []
         self.current_index = 0
         self.candidate_index = 0
@@ -436,6 +449,15 @@ class BalancedFallback:
         names = [material.entry.name for material in self.materials if material.entry.item_id in self.failed_materials]
         return "、".join(names)
 
+    def exhausted_names(self) -> list[str]:
+        """本轮已被判定「候选关卡全部不可用」的材料名（按材料顺序）。
+
+        与 `failed_names()` 同源（都读 `failed_materials`），区别只是返回列表，
+        供调用方**增量**收集：`next_available_candidate()` 一次遍历可能连续
+        跳过好几种材料，调用方需要知道「这次又耗尽了哪几种」才能把收尾总结写全。
+        """
+        return [material.entry.name for material in self.materials if material.entry.item_id in self.failed_materials]
+
     def persist_skip_flag(self) -> str:
         """标记「跳过均衡刷材料任务」。
 
@@ -449,6 +471,13 @@ class BalancedFallback:
         `True`，于是日志打「已标记，下次运行直接跳过」—— 实际什么都没写，
         用户下次运行又白跑一轮。
         """
+        if self.depot_mode:
+            # 库存保持的候选只是「有正缺口」的那一部分材料。把它们耗尽当成
+            # 「所有材料都刷不了」会误伤达标后没参与的材料 —— 那些材料下次运行
+            # 本该正常规划。这里只保留内存标记，不动账号级持久标志。
+            logger.info("库存保持的参与材料候选已用尽，本次结束；不写「跳过均衡刷材料任务」标记（其它材料可能仍可刷）")
+            return "memory_only"
+
         if not self.account_id:
             logger.warning("账号未知，停用标记不会保存 —— 下次运行会重新尝试")
             return "memory_only"
@@ -484,6 +513,65 @@ def finish_planner() -> None:
     _planner.current_stage = ""
     _planner.lookup_started_at = 0.0
     _planner.swipe_count = 0
+
+
+def _target_visible_on_screen(context: Context, stage: str) -> bool | None:
+    """当前画面上能否识别到**目标关卡**（用于记录不可用前的最后复核）。
+
+    `TargetStageName` 是 `ColorOCR` + 运行时注入的 `expected=<关卡名>`，正常扫描
+    会先命中它、点击并进入战斗。走到 `StageLookupTimeout` 说明那一帧没命中过，
+    但**没命中**不总等于**不在屏幕上**：颜色过滤偶发不稳时，一个明明存在的
+    目标会被漏掉。而一旦记进不可用清单就是持久的，所以这里补一次独立复核。
+
+    复核用的是**原始图**（不经颜色过滤）：宽松一点没关系 —— 这个函数的结论
+    只用来「否决记录」，误判成「在屏幕上」最坏是本次不记录、下次再试一遍。
+
+    Returns:
+        True  = 目标就在当前画面上（**不要**记不可用）；
+        False = 没看到（保持原有行为，记不可用并顺延）。
+        None = 取帧或识别失败，或数字无法可靠拆分。
+    """
+    from maa.pipeline import JOCR, JRecognitionType
+    from utils.maa_types import ocr_text
+
+    try:
+        image = context.tasker.controller.cached_image
+        detail = context.run_recognition_direct(
+            JRecognitionType.OCR,
+            JOCR(roi=STAGE_TEXT_ROI, only_rec=False),
+            image,
+        )
+    except (AttributeError, TypeError) as exc:
+        logger.exception(f"目标复核无法调用识别接口（程序错误）: {exc}")
+        return None
+    except Exception as exc:
+        logger.warning(f"目标复核识别失败，跳过复核: {exc}")
+        return None
+
+    if detail is None:
+        return None
+    # 主线列表只显示卷内序号，沿用 SelectCombatStage 的两位数格式。
+    number = stage.rsplit("-", 1)[-1]
+    texts = [getattr(result, "text", "") or "" for result in getattr(detail, "all_results", None) or []]
+    texts.append(ocr_text(detail))
+    if not number.isdigit():
+        return any(stage in text for text in texts)
+
+    expected = number.zfill(2)
+    ambiguous = False
+    for text in texts:
+        # 完整关卡名只取连字符右侧的序号，避免章节号被当成目标。
+        for digits in re.findall(r"(?:[0-9]+-)?([0-9]+)", text):
+            if len(digits) % 2:
+                ambiguous = True
+                continue
+            pairs = [digits[i : i + 2] for i in range(0, len(digits), 2)]
+            if any(int(right) != int(left) + 1 for left, right in pairwise(pairs)):
+                ambiguous = True
+                continue
+            if expected in pairs:
+                return True
+    return None if ambiguous else False
 
 
 @AgentServer.custom_action("StageLookupTimeout")
@@ -546,6 +634,21 @@ class StageLookupTimeout(CustomAction):
 
         stage = state.current_stage
         if stage:
+            # ⚠️ 记录前**再确认一次目标真的不在屏幕上**。
+            #
+            # `StageLookupFarLeft` 命中只说明「这一帧里有 01」。`TargetStageName`
+            # 排在它前面，正常会先命中并点击目标 —— 但如果那一帧颜色识别没成，
+            # 一个**就在屏幕上**的目标会被当成「已滑到最左、目标确实不存在」，
+            # 被永久记进不可用清单。代价太大，值得多跑一次识别。
+            visible = _target_visible_on_screen(context, stage)
+            if visible is None:
+                logger.warning(f"关卡 {stage} 的可见性复核未完成，本次不记录不可用")
+                finish_planner()
+                return CustomAction.RunResult(success=False)
+            if visible:
+                logger.warning(f"关卡 {stage} 仍未找到，但它此刻就在屏幕上（识别到目标），本次不记录不可用")
+                return CustomAction.RunResult(success=False)
+
             logger.warning(
                 f"关卡 {stage} 找不到（已滑到本章第一关，共滑动 {state.swipe_count} 次），标记为不可用并顺延"
             )
@@ -560,6 +663,25 @@ class StageLookupTimeout(CustomAction):
 
         if candidate is None:
             # 所有有效参与材料的候选都确认不可用 → 停用本任务。
+            #
+            # ⚠️ **先回家，成功后才写停用标记**。顺序反过来的话：回家失败 →
+            # 任务按失败结束，但标记已经落盘，用户既没看到成功、又失去了重试
+            # 机会（下次运行直接跳过）。先回家、成功了再落盘，失败就什么都不写。
+            #
+            # 回家的另一个理由：此刻游戏停在**关卡列表页**（本动作正是从扫描链的
+            # 失败出口进来的），而 BF_Skipped 按约定不导航。不先回家的话任务结束时
+            # 游戏留在关卡页，后续任务会从错误界面开始。
+            detail = context.run_task(HOME_ENTRY)
+            if detail is None or detail.status.failed:
+                # 回不了主页就不能「假装成功」：BF_Skipped 不导航，跳过去会把游戏
+                # 留在关卡列表页，后续任务从错误界面开始且没有任何错误提示。
+                logger.error("跳过均衡任务前未能回到主界面，本次按失败结束（避免把游戏留在关卡列表页）")
+                # 异常退出前必须清掉模块级单例状态：`_planner` 跨任务存活，
+                # 残留的 `active=True` 会介入之后其它任务（见 `finish_planner` 文档）。
+                finish_planner()
+                return CustomAction.RunResult(success=False)
+
+            # 回家成功 → 现在才持久化停用标记。
             # `persist_skip_flag()` 返回三态，日志必须与实际结果一致 ——
             # 「不落盘」模式下没写盘，不能说「下次运行直接跳过」。
             names = state.failed_names()
@@ -575,19 +697,6 @@ class StageLookupTimeout(CustomAction):
                 )
             else:
                 logger.error(f"所有参与材料的候选关卡都不可用（{names}），但停用标记保存失败，下次运行不会自动跳过")
-            # 回主界面：此刻游戏停在**关卡列表页**（本动作正是从扫描链的失败出口进来的），
-            # 而 BF_Skipped 按约定不导航。不先回家的话任务结束时游戏留在关卡页，
-            # 后续任务会从错误界面开始。与下方顺延分支、balanced_farming.py 的
-            # 跳过分支保持同一做法。
-            detail = context.run_task(HOME_ENTRY)
-            if detail is None or detail.status.failed:
-                # 回不了主页就不能「假装成功」：BF_Skipped 不导航，跳过去会把游戏
-                # 留在关卡列表页，后续任务从错误界面开始且没有任何错误提示。
-                logger.error("跳过均衡任务前未能回到主界面，本次按失败结束（避免把游戏留在关卡列表页）")
-                # 异常退出前必须清掉模块级单例状态：`_planner` 跨任务存活，
-                # 残留的 `active=True` 会介入之后其它任务（见 `finish_planner` 文档）。
-                finish_planner()
-                return CustomAction.RunResult(success=False)
             context.override_next(TIMEOUT_NODE, [SKIPPED_NODE])
             return CustomAction.RunResult(success=True)
 
@@ -611,6 +720,8 @@ class StageLookupTimeout(CustomAction):
                 if detail is None or detail.status.failed:
                     logger.warning("结束前未能回到主界面，请检查游戏当前界面")
                 context.override_next(TIMEOUT_NODE, [])
+                # 异常退出前必须清掉模块级单例状态（同其它异常分支）。
+                finish_planner()
                 return CustomAction.RunResult(success=False)
 
         # 回主界面：原导航依赖主界面的「进入」按钮，停在关卡页时它认不出来。

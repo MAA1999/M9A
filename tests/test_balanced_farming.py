@@ -1,8 +1,10 @@
 from types import SimpleNamespace
 
 import numpy as np
+import pytest
 from maa.define import BoxAndScoreResult, OCRResult, RecognitionDetail, Rect
 
+from agent.custom.action import balanced_fallback
 from agent.custom.action.balanced_farming import BalancedFarmingAnalyze, balanced_candidates
 from agent.utils.material_catalog import FamilySpec, build_catalog, load_catalog, parse_stage_code
 
@@ -233,3 +235,31 @@ def test_analyze_reads_shipped_catalog_without_name_field() -> None:
     # 洞悉本读数更小（1），一旦被错误纳入候选就会顶掉它 —— 这正是本用例要拦的回归。
     assert override["action"]["param"]["custom_action_param"]["stage"] == "7-26"
     assert override["attach"]["level"] == "Hard"
+
+
+@pytest.mark.parametrize("home_ok", [False, True])
+def test_analyze_exhausted_waits_for_home_before_persist(monkeypatch: pytest.MonkeyPatch, home_ok: bool) -> None:
+    state = balanced_fallback.BalancedFallback()
+    monkeypatch.setattr(balanced_fallback, "_planner", state)
+    monkeypatch.setattr(state, "next_available_candidate", lambda: None)
+    calls: list[str] = []
+
+    def persist() -> str:
+        calls.append("persist")
+        return "saved"
+
+    class Context(_AnalyzeContext):
+        def run_task(self, entry: str) -> SimpleNamespace:
+            calls.append(entry)
+            return SimpleNamespace(status=SimpleNamespace(failed=not home_ok))
+
+        def override_next(self, node: str, nodes: list[str]) -> None:
+            assert node == "BF_Analyze"
+            calls.extend(nodes)
+
+    monkeypatch.setattr(state, "persist_skip_flag", persist)
+    result = _analyze().run(Context(), None)  # pyright: ignore[reportArgumentType]
+    assert result.success == home_ok
+    assert calls == (["ResetReturnMain", "persist", "BF_Skipped"] if home_ok else ["ResetReturnMain"])
+    if not home_ok:
+        assert not state.active

@@ -766,6 +766,11 @@ def battles_done() -> int:
     return _TargetCountState.already_count
 
 
+def reset_battles_done() -> None:
+    """开始新一轮作战；选关阶段也不能看到上一轮已结算的局数。"""
+    _TargetCountState.already_count = 0
+
+
 # 库存保持的规划节点（定义在 balanced_farming.json）
 DEPOT_PLAN_NODE = "BF_Plan"
 
@@ -811,7 +816,7 @@ class TargetCountInit(CustomAction):
         target_count = int(param.get("target_count", 114514))
 
         _TargetCountState.target_count = target_count
-        _TargetCountState.already_count = 0
+        reset_battles_done()
         _TargetCountState.current_times = 0
         _TargetCountState.candy_attempts = 0
 

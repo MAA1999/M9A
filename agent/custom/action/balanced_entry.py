@@ -44,6 +44,11 @@ RESET_NODE = "BF_ResetRecords"
 SKIPPED_NODE = "BF_Skipped"
 PLAN_NODE = "BF_Plan"
 
+# 原版共享的两个扫描尾节点（`combat.json`）：它们的 `on_error` 只在均衡任务里
+# 指向 `StageLookupTimeout`，其它作战任务保持原版行为。
+SCAN_TAIL_LEFT_NODE = "SwipeLeftForStageList"
+SCAN_TAIL_RIGHT_NODE = "SwipeRightForStageList"
+
 
 def _bool_param(value: object, default: bool = False) -> bool:
     """把 GUI 传下来的开关值解析成布尔（true/false/"true"/"1" 都认）。"""
@@ -81,7 +86,10 @@ class BalancedResetRecords(CustomAction):
         if clear_all():
             logger.info("已清空所有逻辑账号的关卡不可用记录与均衡停用标记")
         else:
+            # ⚠️ 不能「报成功但没清」：文件不可写时记录与停用标记仍在，用户会以为
+            # 重置生效了，下次运行却照旧跳过。这里如实返回失败。
             logger.error("清空关卡记录失败（文件不可写），记录与停用标记保持原样")
+            return CustomAction.RunResult(success=False)
         context.override_next(RESET_NODE, [ENTRY_NODE])
         return CustomAction.RunResult(success=True)
 
@@ -128,6 +136,15 @@ class BalancedTaskEntry(CustomAction):
                 "StageLookupBudget": {"enabled": True},
                 "StageLookupFarLeft": {"enabled": True},
                 "TargetStageName_OCR": {"recognition": {"param": {"roi": list(STAGE_TEXT_ROI)}}},
+                # 把两个原版共享扫描尾节点的失败出口导向顺延逻辑。
+                #
+                # ⚠️ 这一条**必须在本任务里挂**，不能写死在 `combat.json`：那两个
+                # 节点是原版共享的，非均衡任务也用。写死的话，那些任务找关卡失败时
+                # 会跳过被覆盖节点的 `focus` 文案、改在 `StageLookupTimeout` 上失败，
+                # 用户看到的原因就变了（且 `StageLookupTimeout` 在没有 planner 状态
+                # 时只会返回失败）。
+                SCAN_TAIL_LEFT_NODE: {"on_error": ["StageLookupTimeout"]},
+                SCAN_TAIL_RIGHT_NODE: {"on_error": ["StageLookupTimeout"]},
             }
         )
 
@@ -313,6 +330,9 @@ class BalancedTaskUnskip(CustomAction):
         if set_task_skipped(account_id, False):
             logger.info(f"已清除逻辑账号 {account_id} 的「跳过均衡刷材料任务」标记")
         else:
-            logger.error("清除停用标记失败（文件不可写）")
+            # ⚠️ 不能「报成功但没清」：文件不可写时标记仍在，下次运行照旧跳过。
+            # 与 `BalancedResetRecords` 的失败处理保持一致。
+            logger.error("清除停用标记失败（文件不可写），标记保持原样")
+            return CustomAction.RunResult(success=False)
         context.override_next(ENTRY_NODE, [PLAN_NODE])
         return CustomAction.RunResult(success=True)

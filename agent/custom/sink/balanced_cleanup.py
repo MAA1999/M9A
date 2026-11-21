@@ -73,6 +73,7 @@ class BalancedStateCleanup(TaskerEventSink):
             return
 
         state = _planner()
+        state.account_id = ""
         if not state.active:
             return
 

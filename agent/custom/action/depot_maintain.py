@@ -60,7 +60,7 @@ from utils.warehouse_snapshot import (
 
 # 相对导入：agent.custom.* 与 custom.* 是两张模块图，跨图导入会重复注册自定义动作
 from .balanced_fallback import build_depot_material_candidates, finish_planner, planner, reset_planner
-from .combat import battles_done, request_combat_stop
+from .combat import battles_done, request_combat_stop, reset_battles_done
 from .record_id import RecordID
 
 # 掉落累计读取方式：drop_core 累计 / 结算页自读 / 固定掉落只按估算
@@ -153,6 +153,7 @@ class _PlanState:
     # 上次观测到的 `battles_done()`：跳变即「本批局数已并入」，逐局计数随之作废
     estimate_folded_battles = 0
     baseline_captured = False
+    base_target_count = 114514
     candy_base_enabled = True
     candy_base_max_hit = UNLIMITED_CANDY
     report_base_enabled = True
@@ -174,6 +175,76 @@ class _PlanState:
 
 
 _state = _PlanState()
+
+
+def reset_depot_state(context: Context | None = None) -> None:
+    """把库存保持的「本轮目标」清干净，退回原有均衡流程前必须调用。
+
+    ⚠️ 只 `override_next(LEGACY_ENTRY_NODE)` 是不够的，有两层残留：
+
+    **1. Python 状态**：`_state.item_id` 还留着上一次库存保持的材料 id，后续普通
+    均衡流程里一旦触发 `StageLookupTimeout`，`retarget_material()` 会看到
+    `item_id is not None` 就**误判成库存保持模式**，去覆盖 `AllIn.target_count`、
+    逐材料吃糖上限、掉落上报开关 —— 那些都是按已经作废的旧材料算的。
+
+    **2. pipeline 覆盖**：库存保持这几轮往 pipeline 上写过
+    `AllIn.target_count` / `EatCandy.enabled` / `EatCandyStart.max_hit` /
+    `DropRecognition.enabled` / `TargetCountFinish.next = ["BF_Plan"]`。
+    这些覆盖**不会自己消失**：退回原有流程后那一局会按旧数值开打，打完还会被
+    `TargetCountFinish` 送回 `BF_Plan`，再次进入同一个退回分支。
+
+    传了 `context` 时会把上述覆盖还原成 GUI 基线（`_capture_baselines` 记录的
+    任务开始时值），并把 `TargetCountFinish` 的 `next` 交还给原版默认。
+    """
+    finish_planner()
+    planner().depot_mode = False
+    _state.refreshed = False
+    _state.refresh_warehouse = False
+    _state.refresh_currency = False
+    _state.item_id = None
+    _state.item_name = ""
+    _state.stage = ""
+    _state.level = ""
+    _state.deficit = 0
+    _state.runs = 0
+    _state.read_mode = READ_SETTLEMENT
+    _state.observed = 0
+    _state.persisted = 0
+    _state.stopped = False
+    _state.per_run = None
+    _state.targets = {}
+    _state.skipped_materials = []
+    # 估算模式的三个计数器一起清：留着会让下一轮把旧局数再记一遍
+    _state.estimate_committed_battles = 0
+    _state.estimate_batch_battles = 0
+    _state.estimate_folded_battles = 0
+
+    if context is not None:
+        _restore_depot_overrides(context)
+
+
+def _restore_depot_overrides(context: Context) -> None:
+    """把库存保持留在 pipeline 上的覆盖还原成基线。
+
+    基线来自 `_capture_baselines()`（任务开始时、GUI 选项已生效的节点数据）。
+    没抓过基线时不还原 —— 那说明本轮库存保持还没改过任何东西。
+    """
+    if not _state.baseline_captured:
+        return
+
+    context.override_pipeline(
+        {
+            "AllIn": {"action": {"param": {"custom_action_param": {"target_count": _state.base_target_count}}}},
+            "SelectCombatStage": {"attach": {"depot_accumulate": 0}},
+            "EatCandy": {"enabled": _state.candy_base_enabled},
+            "EatCandyStart": {"max_hit": _state.candy_base_max_hit},
+            DROP_REPORT_NODE: {"enabled": _state.report_base_enabled},
+            # 一轮打完不再回到规划节点（那是库存保持的续补链路）
+            "TargetCountFinish": {"next": []},
+        }
+    )
+    logger.debug("已还原库存保持留下的 pipeline 覆盖，退回原有均衡流程")
+
 
 _item_labels: dict[str, tuple[str, str]] | None = None
 
@@ -248,17 +319,30 @@ def current_account_id() -> str:
 
 
 def _ensure_account_id(context: Context) -> bool:
-    """确保拿得到账号 id —— 快照按账号分桶，读不到就无法保证同一轮里读写落在同一个桶。
+    """确保拿得到账号 id，且它与本任务已确认的账号一致。
 
     账号 id 是 `RecordID` 的**进程内缓存**：agent 重启后为空，要等 `RecordId` 节点在主界面跑过才有值。
     为空时快照落 `__default__` 桶，等 `RecordId` 跑出账号后又切到真实账号桶 —— 同一轮里就会读写错位
     （实测：角色页读数写进 `__default__`，规划读真实账号桶拿到旧值，把缺口算成 160 万、白刷一整轮）。
 
-    所以碰快照之前先回主界面把账号读出来。`ReturnMain` 本就是「任务开始前使用」的回家链，
-    到家后 `HomeFlagCloseReturnMain → RecordId` 会顺带跑一次。
+    ⚠️ **「缓存非空」不等于「缓存可信」**。`ReturnMain` 到家后会跑
+    `HomeFlagCloseReturnMain → RecordId`，而 `RecordId` 用 `cached_image` 做**一次** OCR
+    就写 `RecordID.global_id`（见 `agent/custom/action/record_id.py`）。本任务的
+    `StageLookupTimeout` / `DepotCurrencyRead` 里都有 `run_task(HOME_ENTRY)`，
+    所以缓存随时可能被那一帧的错误读数覆盖。
+
+    因此一旦本任务用 `sample_uid()` 连续采样确认过账号（`planner().account_id`），
+    这里就要求缓存与它一致；不一致时**重新采样**，绝不静默接受回家链的单次读数。
     """
-    if current_account_id():
+    confirmed = _confirmed_account_id()
+    cached = current_account_id()
+
+    if cached and (not confirmed or cached == confirmed):
         return True
+
+    if confirmed:
+        logger.warning(f"账号缓存与本任务已确认的 {confirmed} 不一致，重新采样确认")
+        return _resample_account_id(context) == confirmed
 
     detail = context.run_task(HOME_ENTRY)
     if detail is None or detail.status.failed:
@@ -270,6 +354,48 @@ def _ensure_account_id(context: Context) -> bool:
         return False
     logger.debug(f"已读到账号信息: {current_account_id()}")
     return True
+
+
+def _confirmed_account_id() -> str:
+    """本任务已通过连续采样确认的账号 id；没有则空串。
+
+    只有均衡刷材料入口会设置它（`planner().account_id`）。库存保持以外的调用方
+    永远拿到空串，行为与旧版完全一致。
+    """
+    return planner().account_id.strip()
+
+
+def _resample_account_id(context: Context) -> str:
+    """清掉不可信缓存，回主页后用连续采样重新确认账号。
+
+    ⚠️ **只做「导航 + 采样」，不调用任何校验函数**。
+
+    曾经这里复用 `balanced_entry._ensure_uid()`，而它会再调 `ensure_account_id()`
+    —— 于是「缓存与已确认账号不一致」的分支又进来一次，递归回主页、`sample_uid()`
+    永远轮不到，最后以 `RecursionError` 收场（CodeRabbit 指出）。
+
+    现在拆成两步：
+    1. 回家（复用原版共享的回家链 `HOME_ENTRY`）；
+    2. `sample_uid()` 连续采样，信的是采样结果，不是回家链里 `RecordId` 的
+       单次 OCR 读数。
+    """
+    from utils.uid_sampler import sample_uid
+
+    RecordID.global_id = ""
+
+    detail = context.run_task(HOME_ENTRY)
+    if detail is None or detail.status.failed:
+        logger.warning("重新采样账号前未能回到主界面")
+        RecordID.global_id = ""
+        return ""
+
+    uid = sample_uid(context)
+    RecordID.global_id = uid
+    if uid:
+        logger.info(f"重新采样确认账号: {uid}")
+    else:
+        logger.warning("重新采样未能确认账号")
+    return uid
 
 
 def ensure_account_id(context: Context) -> bool:
@@ -292,16 +418,22 @@ def read_snapshot(path: Path | str | None = None) -> dict[str, Any] | None:
     if not target.exists():
         logger.debug(f"尚未生成库存数据（{target}），本次将先刷新")
         return None
-    return snapshot_bucket(load_snapshot_file(target), current_account_id()) or None
+    return snapshot_bucket(load_snapshot_file(target), _confirmed_account_id() or current_account_id()) or None
 
 
 def save_snapshot(snapshot: Mapping[str, Any], path: Path | str | None = None) -> bool:
-    """把整份快照写进当前账号的桶；其他账号的读数原样保留。"""
+    """把整份快照写进当前账号的桶；其他账号的读数原样保留。
+
+    ⚠️ 有已确认账号时**按它写**，不按 `current_account_id()`：后者可能已被
+    普通回家链里的 `RecordId` 单次 OCR 覆盖，那样会把本任务的读数写进别人的桶。
+    没有确认账号时退回原行为，其它任务不受影响。
+    """
     target = snapshot_write_path(path or SNAPSHOT_PATH)
     # 写前先把数据目录与包内基线合并成完整文件：数据目录没有时 read 回落包内，
     # 直接写会丢掉基线里的内容
     data = load_snapshot_file(path or SNAPSHOT_PATH)
-    bucket = snapshot_bucket(data, current_account_id())
+    bucket_key = _confirmed_account_id() or current_account_id()
+    bucket = snapshot_bucket(data, bucket_key)
     bucket.clear()
     bucket.update(snapshot)
     try:
@@ -602,11 +734,25 @@ def retarget_material(context: Context, item_id: str, stage: str, level: str) ->
     if target <= 0:
         # 兜底：规划还没跑过（理论上不该发生）时退回 GUI 参数
         target = parse_gui_targets(gui_material_params(context, {}), catalog).get(item_id, 0)
+    if not _commit_round_progress(context):
+        return False
     inventory = snapshot_counts(read_snapshot())
     current = inventory.get(item_id, 0)
     deficit = max(0, target - current) if target > 0 else 0
 
     label = material_label(item_id, catalog)
+
+    # ⚠️ **先用旧材料结算估算进度，再切换 `_state`**。
+    #
+    # `_commit_estimate_progress()` 读的是 `_state.item_id` / `per_run` /
+    # `read_mode` —— 如果在赋值之后才调用，它会把**旧材料已经打的那几局**
+    # 按**新材料**的掉落率记进**新材料的桶**：旧材料一点没记上，新材料凭空多出一截，
+    # 提前判定达标（CodeRabbit 指出）。
+    #
+    # 结算完再把基准推到「已经结算到的位置」：只清本批计数，不清基准 ——
+    # 否则下一次规划会认为整轮所有战斗都没记账，把新材料的库存再虚增一遍。
+    settled_battles = battles_done() + _state.estimate_batch_battles
+
     _state.item_id = item_id
     _state.item_name = label
     _state.stage = stage
@@ -615,8 +761,9 @@ def retarget_material(context: Context, item_id: str, stage: str, level: str) ->
     _state.runs = runs_for(max(1, deficit), entry)
     _state.observed = 0
     _state.persisted = 0
-    _state.estimate_committed_battles = 0
+    _state.estimate_committed_battles = settled_battles
     _state.estimate_batch_battles = 0
+    _state.estimate_folded_battles = battles_done()
     _state.stopped = False
     _state.per_run = entry.per_run
     # 读数模式依赖关卡是否参与掉落上报，换关卡后要重算
@@ -660,6 +807,10 @@ def _capture_baselines(context: Context) -> None:
     eat = context.get_node_data(EAT_CANDY_NODE) or {}
     start = context.get_node_data(EAT_CANDY_START_NODE) or {}
     report = context.get_node_data(DROP_REPORT_NODE) or {}
+    all_in = context.get_node_data("AllIn") or {}
+    _state.base_target_count = (
+        all_in.get("action", {}).get("param", {}).get("custom_action_param", {}).get("target_count", 114514)
+    )
     _state.candy_base_enabled = bool(eat.get("enabled", True))
     try:
         _state.candy_base_max_hit = int(start.get("max_hit", UNLIMITED_CANDY))
@@ -780,28 +931,44 @@ def _observed_drops(context: Context) -> int:
     return _state.observed
 
 
-def _persist_snapshot(drops: int) -> None:
-    """把已确认的掉落增量写回仓库快照，避免任务中断后重复刷取。"""
+def _persist_snapshot(drops: int) -> bool:
+    """把已确认的掉落增量写回仓库快照，避免任务中断后重复刷取。
+
+    ⚠️ **写之前必须确认当前账号仍是本任务验证过的那个**。
+    `read_snapshot` / `save_snapshot` 都按 `current_account_id()` 分桶，而这个缓存
+    会被普通回家链里的 `RecordId` 用单次 OCR 覆盖（见 `_ensure_account_id` 文档）。
+    规划入口校验过一次不代表每局都安全 —— 每局结算都可能先走一次回家链。
+    账号对不上时**放弃这次写回**：宁可少记一局，也不要把掉落记进别人的桶。
+    """
     item_id = _state.item_id
     increment = drops - _state.persisted
     if item_id is None or increment <= 0:
-        return
+        return False
+
+    confirmed = _confirmed_account_id()
+    live = current_account_id()
+    if confirmed and live != confirmed:
+        logger.warning(
+            f"当前账号 {live or '(空)'} 与本任务已确认的 {confirmed} 不一致，本次掉落不写回快照（避免记进别的账号）"
+        )
+        return False
 
     snapshot = read_snapshot()
     if snapshot is None:
-        return
+        return False
     raw_counts = snapshot.get("counts")
     if not isinstance(raw_counts, dict) or item_id not in raw_counts:
-        return
+        return False
     try:
         current = int(raw_counts[item_id])
     except (TypeError, ValueError):
-        return
+        return False
     raw_counts[item_id] = current + increment
     if not save_snapshot(snapshot):
-        return
+        return False
     _state.persisted = drops
     logger.debug(f"仓库快照已更新: {_state.item_name}({item_id}) +{increment} -> {raw_counts[item_id]}")
+    return True
 
 
 def _sync_estimate_folded() -> None:
@@ -816,6 +983,15 @@ def _sync_estimate_folded() -> None:
         _state.estimate_batch_battles = 0
 
 
+def _commit_round_progress(context: Context) -> bool:
+    """在使用快照重新规划或切换材料前，结清旧材料的掉落。"""
+    if _state.read_mode == READ_ESTIMATE:
+        return _commit_estimate_progress()
+    if _state.observed <= _state.persisted:
+        return True
+    return _ensure_account_id(context) and _persist_snapshot(_state.observed)
+
+
 def _note_estimate_battle() -> None:
     """估算模式每局结算页到达时调用：本局计入「本批逐局数」，随后立刻回写。
 
@@ -826,7 +1002,7 @@ def _note_estimate_battle() -> None:
     _commit_estimate_progress()
 
 
-def _commit_estimate_progress() -> None:
+def _commit_estimate_progress() -> bool:
     """估算模式（无掉落模板）下按已打局数把进度写回快照。
 
     固定掉落的关卡每局必掉 per_run 个，局数就是真实产出，早停也不会多算；
@@ -837,21 +1013,23 @@ def _commit_estimate_progress() -> None:
     （批次收尾没走到结算页时补写）。`estimate_committed_battles` 本轮累计，重复调用不会重复计数。
     """
     if _state.item_id is None or _state.read_mode != READ_ESTIMATE:
-        return
+        return True
 
     _sync_estimate_folded()
     battles = battles_done() + _state.estimate_batch_battles
     new_battles = battles - _state.estimate_committed_battles
     if new_battles <= 0:
-        return
-    _state.estimate_committed_battles = battles
+        return True
 
     gained = new_battles * max(_state.per_run or 1, 1)
-    _persist_snapshot(_state.persisted + gained)
+    if not _persist_snapshot(_state.persisted + gained):
+        return False
+    _state.estimate_committed_battles = battles
     if _state.per_run:
         logger.info(f"按实际局数回写库存: {_state.item_name} +{gained}（{new_battles} 局 × 每局 {_state.per_run} 个）")
     else:
         logger.info(f"按实际局数回写库存: {_state.item_name} +{gained}（{new_battles} 局，按每局至少 1 个估算）")
+    return True
 
 
 @AgentServer.custom_action("DepotMaintainAccumulate")
@@ -967,12 +1145,15 @@ class DepotMaintainPlan(CustomAction):
 
         if params.get("depot_disabled"):
             logger.info("未开启「库存保持」，按原有均衡逻辑刷取")
+            reset_depot_state(context)
             context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE, "[JumpBack]ReturnMain"])
             return CustomAction.RunResult(success=True)
 
         # 读不到账号就退回原有流程：否则快照会落默认桶，与后续按账号桶的读写错位
         if not _ensure_account_id(context):
             logger.error("未能读取账号信息，库存快照无法与账号对应，本轮按原有均衡逻辑刷取")
+            planner().account_id = ""
+            reset_depot_state(context)
             context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE, "[JumpBack]ReturnMain"])
             return CustomAction.RunResult(success=True)
 
@@ -997,6 +1178,7 @@ class DepotMaintainPlan(CustomAction):
         if not any(value > 0 for value in targets.values()):
             logger.info("未设置任何目标库存，按原有均衡逻辑刷取")
             logger.debug("逐材料目标均为空或 0")
+            reset_depot_state(context)
             context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE, "[JumpBack]ReturnMain"])
             return CustomAction.RunResult(success=True)
 
@@ -1012,7 +1194,10 @@ class DepotMaintainPlan(CustomAction):
                 logger.info(f"已知过不去的关卡: {summary}")
 
         if _state.rounds > 0:
-            _commit_estimate_progress()
+            if not _commit_round_progress(context):
+                logger.error("上一轮的掉落未能写回库存，停止规划")
+                finish_planner()
+                return CustomAction.RunResult(success=False)
             # 上一轮是空转（体力不足 / 无法复现）就打不动了，直接收尾
             if battles_done() == 0:
                 logger.info("上一轮没有实际战斗（体力不足或无法复现），库存保持结束")
@@ -1063,6 +1248,7 @@ class DepotMaintainPlan(CustomAction):
                 context.override_next(PLAN_NODE, [REFRESH_NODE])
                 return CustomAction.RunResult(success=True)
             logger.warning("未能获取最新的库存数据，本次改用原有的均衡刷取流程")
+            reset_depot_state(context)
             context.override_next(PLAN_NODE, [LEGACY_ENTRY_NODE, "[JumpBack]ReturnMain"])
             return CustomAction.RunResult(success=True)
 
@@ -1086,6 +1272,9 @@ class DepotMaintainPlan(CustomAction):
         state = planner()
         if candidates:
             state.begin(candidates)
+            # 标记「本轮由库存保持驱动」：候选只含**有正缺口**的材料，耗尽它不等于
+            # 「所有均衡材料都刷不了」，所以这里不允许写账号级的停用标记。
+            state.depot_mode = True
             # 本轮要刷的材料放在顺延顺序的第一位（缺口最大）
             for index, candidate in enumerate(candidates):
                 if candidate.entry.item_id == entry.item_id:
@@ -1106,7 +1295,15 @@ class DepotMaintainPlan(CustomAction):
             _state.skipped_materials.append(label)
             # 当前材料的候选已用尽，交给状态机换下一种（会推进 current_index）
             state.finish_material()
+            # ⚠️ `next_available_candidate()` 内部会继续 `finish_material()` 跳过
+            # 其它同样耗尽的材料 —— 那些材料名也要进收尾总结，否则用户只看到
+            # 第一种，后面的白刷了却不知道。所以先记下遍历起点，事后补全。
+            consumed_before = set(state.exhausted_names())
             next_candidate = state.next_available_candidate()
+            for name in state.exhausted_names():
+                if name in consumed_before or name == label:
+                    continue
+                _state.skipped_materials.append(name)
             if next_candidate is None:
                 logger.error("所有参与材料的候选关卡均不可用，库存保持结束")
                 context.override_next(PLAN_NODE, [DONE_NODE])
@@ -1142,6 +1339,8 @@ class DepotMaintainPlan(CustomAction):
         previous_stage, previous_level = _state.stage, _state.level
 
         _state.rounds += 1
+        # 选关超时可以早于 AllIn；此时顺延也只能使用新一轮的计数。
+        reset_battles_done()
         _state.item_id = entry.item_id
         _state.item_name = label
         _state.stage = stage_code
@@ -1150,8 +1349,10 @@ class DepotMaintainPlan(CustomAction):
         _state.runs = runs
         _state.observed = 0
         _state.persisted = 0
+        # TargetCountInit 将为新一轮重新计数；上一轮在读快照前已经结算。
         _state.estimate_committed_battles = 0
         _state.estimate_batch_battles = 0
+        _state.estimate_folded_battles = 0
         _state.stopped = False
         _state.per_run = entry.per_run
 
@@ -1187,6 +1388,7 @@ class DepotMaintainPlan(CustomAction):
                 detail = context.run_task(HOME_ENTRY)
                 if detail is None or detail.status.failed:
                     logger.warning("换关卡前未能回到主界面")
+                    finish_planner()
                     return CustomAction.RunResult(success=False)
             context.override_next(PLAN_NODE, ["Combat"])
         return CustomAction.RunResult(success=True)
@@ -1304,6 +1506,8 @@ class DepotMaintainDone(CustomAction):
             logger.info(f"库存保持结束: 本次补齐 {'、'.join(_state.completed)}，共 {_state.rounds} 轮作战")
         elif _state.item_id:
             logger.info(f"库存保持结束: {_state.item_name} 未达标（缺口 {_state.deficit}）")
+        elif _state.skipped_materials:
+            logger.warning("库存保持结束：有库存缺口，但没有可刷取的候选关卡")
         else:
             logger.info("库存保持结束：本次无需刷取")
 

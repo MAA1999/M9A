@@ -11,7 +11,7 @@ from utils.maa_types import best_box, ocr_text
 from utils.material_catalog import SOURCE_WAREHOUSE, CatalogError, MaterialEntry, load_catalog
 from utils.runtime_paths import get_runtime_paths
 
-from .balanced_fallback import build_material_candidates, planner
+from .balanced_fallback import build_material_candidates, finish_planner, planner
 
 # 本模块要跳转的 pipeline 节点（名字与 resource/base/pipeline/balanced_farming.json 一致）
 ANALYZE_NODE = "BF_Analyze"
@@ -160,6 +160,26 @@ class BalancedFarmingAnalyze(CustomAction):
 
         if target_candidate is None:
             # 所有候选都被记录为不可用 —— 属于「所有参与材料都不可用」，停用本任务。
+            #
+            # ⚠️ **先回家，成功后才写停用标记**。顺序反过来的话：回家失败 →
+            # 任务按失败结束，但标记已经落盘，用户既没看到成功、又失去了重试
+            # 机会（下次运行直接跳过）。先回家、成功了再落盘，失败就什么都不写。
+            #
+            # 回家的理由：此刻游戏停在**仓库页**（BF_Analyze 排在
+            # BF_EnterWarehouse → BF_WarehouseFlag 之后），而 BF_Skipped 按约定不导航。
+            # 不先回主界面的话，任务结束时游戏会留在仓库里，后续任务从错误界面开始。
+            # 这里复用原版共享的回家链（与 StageLookupTimeout 换候选前的做法一致）。
+            detail = context.run_task(HOME_ENTRY)
+            if detail is None or detail.status.failed:
+                # 回不了主页就不能「假装成功」：BF_Skipped 不导航，直接跳过去会让游戏
+                # 留在仓库页，后续任务从错误界面开始且没有任何错误提示。
+                # 这里如实返回失败，与 `DepotMaintainDone` 回主页失败时的处理一致。
+                logger.error("跳过均衡任务前未能回到主界面，本次按失败结束（避免把游戏留在仓库页）")
+                # 异常退出前必须清掉模块级单例状态（同其它异常分支）。
+                finish_planner()
+                return CustomAction.RunResult(success=False)
+
+            # 回家成功 → 现在才持久化停用标记。
             # `persist_skip_flag()` 是三态：memory_only 表示「不落盘」模式下没写盘，
             # 此时不能说「下次运行直接跳过」。
             logger.warning("所有参与材料的候选关卡此前都被记录为不可用，结束本任务")
@@ -170,17 +190,6 @@ class BalancedFarmingAnalyze(CustomAction):
                 logger.warning("本次未保存停用标记（读不到游戏内 UID），下次运行会重新尝试")
             else:
                 logger.error("停用标记保存失败，下次运行不会自动跳过")
-            # ⚠️ 此刻游戏停在**仓库页**（BF_Analyze 排在 BF_EnterWarehouse → BF_WarehouseFlag
-            # 之后），而 BF_Skipped 按约定不导航。不先回主界面的话，任务结束时游戏会留在
-            # 仓库里，后续任务从错误界面开始。
-            # 这里复用原版共享的回家链（与 StageLookupTimeout 换候选前的做法一致）。
-            detail = context.run_task(HOME_ENTRY)
-            if detail is None or detail.status.failed:
-                # 回不了主页就不能「假装成功」：BF_Skipped 不导航，直接跳过去会让游戏
-                # 留在仓库页，后续任务从错误界面开始且没有任何错误提示。
-                # 这里如实返回失败，与 `DepotMaintainDone` 回主页失败时的处理一致。
-                logger.error("跳过均衡任务前未能回到主界面，本次按失败结束（避免把游戏留在仓库页）")
-                return CustomAction.RunResult(success=False)
             context.override_next(ANALYZE_NODE, [SKIPPED_NODE])
             return CustomAction.RunResult(success=True)
 
