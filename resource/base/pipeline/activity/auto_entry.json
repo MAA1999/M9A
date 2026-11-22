@@ -227,7 +227,6 @@
                 }
             }
         },
-        "pre_wait_freezes": 500,
         "action": {
             "type": "Click"
         },

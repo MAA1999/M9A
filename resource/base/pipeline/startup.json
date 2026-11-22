@@ -1,6 +1,5 @@
 {
     "StartUp": {
-        "post_wait_freezes": 300,
         "timeout": 60000,
         "next": [
             "[JumpBack]Confirm",
