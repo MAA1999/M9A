@@ -9,8 +9,8 @@
 
 判据就是「`ReturnMain` 现在能不能动」，与任务间隔、会话时长、宿主是否复用 Agent 进程都无关。
 
-生命周期任务（`GUARD_EXEMPT_ENTRIES`）不参与拦截：它们正是用来「从任意状态把游戏拉起来」的，
-拦掉会让用户在游戏已关闭时无法自救。
+生命周期任务（`GUARD_EXEMPT_ENTRIES`：启动 / 关闭游戏）不参与拦截：它们不依赖当前画面可识别，
+拦掉会让「游戏已关闭后想启动」或「采完数据想关游戏省电」都做不成。
 """
 
 from typing import Any
@@ -27,9 +27,10 @@ RETURN_MAIN_NODE = "ReturnMain"
 # 探测用的临时识别节点，只存在于 run_recognition 的 override 里，不进 resource
 PROBE_NODE = "ReturnMainGuardProbe"
 
-# 不参与拦截的任务入口：StartUp 的职责就是从桌面/未启动状态把游戏拉起来，不依赖当前画面
-# 可识别——若在游戏已关闭时把它拦掉，用户就没法通过「启动游戏」自救了。
-GUARD_EXEMPT_ENTRIES = frozenset({"StartUp"})
+# 不参与拦截的「生命周期」任务入口：它们的动作不依赖当前画面可识别——
+# - StartUp：从桌面/未启动状态用 Start1999(StartApp) 把游戏拉起来，游戏已关闭时是唯一自救路径；
+# - Close1999：单纯 StopApp 关闭游戏，纯收尾，没理由被守卫拦（数据采完还开着游戏纯浪费电）。
+GUARD_EXEMPT_ENTRIES = frozenset({"StartUp", "Close1999"})
 
 
 def _always_hits(context: Context, reco: Any, seen: set[str]) -> bool:

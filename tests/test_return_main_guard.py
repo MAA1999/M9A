@@ -90,14 +90,17 @@ def test_recovered_lets_task_run_and_disarms(monkeypatch: pytest.MonkeyPatch, gu
     assert guard.failed_task_id is None
 
 
-def test_exempt_lifecycle_task_runs_and_stays_armed(monkeypatch: pytest.MonkeyPatch, guard_context: Context) -> None:
+@pytest.mark.parametrize("entry", ["StartUp", "Close1999"])
+def test_exempt_lifecycle_task_runs_and_stays_armed(
+    monkeypatch: pytest.MonkeyPatch, guard_context: Context, entry: str
+) -> None:
     monkeypatch.setattr(return_main_guard, "_screen_recovered", lambda ctx: False)
     guard = ReturnMainGuard()
     _arm(guard, guard_context)
 
-    # StartUp 整条放行（含后续节点），且保护仍在
-    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("StartUp", 11))
-    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("Start1999", 11))
+    # 生命周期任务整条放行（含后续节点），且保护仍在
+    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node(entry, 11))
+    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("SomeLaterNode", 11))
     guard_context.run_action_direct.assert_not_called()
     assert guard.failed_task_id == 10
 
