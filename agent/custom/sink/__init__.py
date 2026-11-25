@@ -1,6 +1,6 @@
 from importlib import import_module
 
-SINK_MODULES = ("aspect_ratio",)
+SINK_MODULES = ("aspect_ratio", "return_main_guard")
 
 
 def register_all() -> None:
