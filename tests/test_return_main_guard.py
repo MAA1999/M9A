@@ -60,53 +60,41 @@ def _arm(guard: ReturnMainGuard, context: Context) -> None:
     guard.on_node_pipeline_node(context, NotificationType.Failed, _node("ReturnMain", 10))
 
 
-def test_still_broken_skips_each_later_root_until_disarmed(
+def test_only_later_tasks_reaching_return_main_are_stopped(
     monkeypatch: pytest.MonkeyPatch, guard_context: Context
 ) -> None:
-    monkeypatch.setattr(return_main_guard, "_screen_recovered", lambda ctx: False)
+    probe = Mock(return_value=False)
+    monkeypatch.setattr(return_main_guard, "_screen_recovered", probe)
     guard = ReturnMainGuard()
-    _arm(guard, guard_context)
+    guard.on_node_pipeline_node(guard_context, NotificationType.Failed, _node("ReturnMain", 30, 10))
+    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("ReturnMain", 31, 10))
 
-    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("BF_Plan", 10))
-    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("ResetReturnMain", 32, 10))
+    guard_context.get_task_job.return_value.job_id = 11
+    for name in ["ManualPageTask", "ReadPage", "Done"]:
+        guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node(name, 11))
+    probe.assert_not_called()
     guard_context.run_action_direct.assert_not_called()
 
-    for task_id in [11, 12]:
-        guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("Awards", task_id))
+    for root_id, node in [(12, _node("ReturnMain", 12)), (13, _node("ReturnMain", 32, 13))]:
+        guard_context.get_task_job.return_value.job_id = root_id
+        guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("Awards", root_id))
+        guard.on_node_pipeline_node(guard_context, NotificationType.Starting, node)
+    assert probe.call_count == 2
     assert guard_context.run_action_direct.call_count == 2
     guard_context.run_action_direct.assert_called_with(JActionType.StopTask, JStopTask())
 
 
 def test_recovered_lets_task_run_and_disarms(monkeypatch: pytest.MonkeyPatch, guard_context: Context) -> None:
-    monkeypatch.setattr(return_main_guard, "_screen_recovered", lambda ctx: True)
+    probe = Mock(return_value=True)
+    monkeypatch.setattr(return_main_guard, "_screen_recovered", probe)
     guard = ReturnMainGuard()
     _arm(guard, guard_context)
 
-    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("Awards", 11))
+    for task_id in [11, 12]:
+        guard_context.get_task_job.return_value.job_id = task_id
+        guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("ReturnMain", task_id))
+    probe.assert_called_once_with(guard_context)
     guard_context.run_action_direct.assert_not_called()
-
-    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("Awards", 12))
-    guard_context.run_action_direct.assert_not_called()
-    assert guard.failed_task_id is None
-
-
-@pytest.mark.parametrize("entry", ["StartUp", "Close1999"])
-def test_exempt_lifecycle_task_runs_and_stays_armed(
-    monkeypatch: pytest.MonkeyPatch, guard_context: Context, entry: str
-) -> None:
-    monkeypatch.setattr(return_main_guard, "_screen_recovered", lambda ctx: False)
-    guard = ReturnMainGuard()
-    _arm(guard, guard_context)
-
-    # 生命周期任务整条放行（含后续节点），且保护仍在
-    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node(entry, 11))
-    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("SomeLaterNode", 11))
-    guard_context.run_action_direct.assert_not_called()
-    assert guard.failed_task_id == 10
-
-    # 非豁免任务仍按未恢复跳过
-    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("Awards", 12))
-    assert guard_context.run_action_direct.call_count == 1
 
 
 def test_probe_post_exception_is_conservative() -> None:
@@ -209,5 +197,6 @@ def test_ordinary_failure_and_cancelled_return_main_do_not_block_tasks() -> None
     context = Mock(spec=Context)
     guard.on_node_pipeline_node(context, NotificationType.Failed, _node("Awards", 1))
     guard.on_node_pipeline_node(context, NotificationType.Cancelled, _node("ReturnMain", 1))
-    guard.on_node_pipeline_node(context, NotificationType.Starting, _node("Awards", 2))
+    guard.on_node_pipeline_node(context, NotificationType.Starting, _node("ReturnMain", 2))
+    context.get_node_data.assert_not_called()
     context.run_action_direct.assert_not_called()

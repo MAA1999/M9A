@@ -1,17 +1,4 @@
-"""回主界面失败后，用画面探测决定后续任务是否在入口结束。
-
-`ReturnMain` 的 next 是一张「认得出来的逃生口」清单；它在 20s 内一个都命中不了，说明当前
-画面不在任何已知状态，后续任务的入口前提同样不成立。但「画面是否已经恢复」不能靠时间或
-会话推断——本 sink 在被拦任务的入口截一张图，用 `ReturnMain` 自己的 next 候选探一次：
-
-- 命中：画面至少能继续按 `ReturnMain` 的逃生口往下走，解除保护，让任务正常跑；
-- 未命中：画面仍然认不出来，照旧在入口把任务停掉。
-
-判据就是「`ReturnMain` 现在能不能动」，与任务间隔、会话时长、宿主是否复用 Agent 进程都无关。
-
-生命周期任务（`GUARD_EXEMPT_ENTRIES`：启动 / 关闭游戏）不参与拦截：它们不依赖当前画面可识别，
-拦掉会让「游戏已关闭后想启动」或「采完数据想关游戏省电」都做不成。
-"""
+"""回主界面失败后，后续任务走到 ReturnMain 时才探测画面，决定继续还是结束当前任务。"""
 
 from typing import Any
 
@@ -26,11 +13,6 @@ RETURN_MAIN_NODE = "ReturnMain"
 
 # 探测用的临时识别节点，只存在于 run_recognition 的 override 里，不进 resource
 PROBE_NODE = "ReturnMainGuardProbe"
-
-# 不参与拦截的「生命周期」任务入口：它们的动作不依赖当前画面可识别——
-# - StartUp：从桌面/未启动状态用 Start1999(StartApp) 把游戏拉起来，游戏已关闭时是唯一自救路径；
-# - Close1999：单纯 StopApp 关闭游戏，纯收尾，没理由被守卫拦（数据采完还开着游戏纯浪费电）。
-GUARD_EXEMPT_ENTRIES = frozenset({"StartUp", "Close1999"})
 
 
 def _always_hits(context: Context, reco: Any, seen: set[str]) -> bool:
@@ -148,11 +130,6 @@ def _screen_recovered(context: Context) -> bool:
 class ReturnMainGuard(ContextEventSink):
     def __init__(self) -> None:
         self.failed_task_id: int | None = None
-        self.exempt_task_ids: set[int] = set()
-
-    def _disarm(self) -> None:
-        self.failed_task_id = None
-        self.exempt_task_ids.clear()
 
     def on_node_pipeline_node(
         self,
@@ -160,35 +137,27 @@ class ReturnMainGuard(ContextEventSink):
         noti_type: NotificationType,
         detail: ContextEventSink.NodePipelineNodeDetail,
     ) -> None:
+        if detail.name != RETURN_MAIN_NODE:
+            return
         if self.failed_task_id is None:
-            if noti_type == NotificationType.Failed and detail.name == RETURN_MAIN_NODE:
+            if noti_type == NotificationType.Failed:
                 # run_task 的子流程有独立的事件 ID，Context 保留最外层任务号。
                 self.failed_task_id = context.get_task_job().job_id
-                logger.warning("回主界面失败，后续任务将在入口探测画面是否恢复")
+                logger.warning("回主界面失败，后续任务执行到 ReturnMain 时将检查画面")
             return
 
-        # 只处理后续顶层任务的入口；武装任务自身（failed_task_id）与子流程跳过
-        if (
-            noti_type != NotificationType.Starting
-            or detail.parent_task_id
-            or detail.task_id == self.failed_task_id
-        ):
+        if noti_type != NotificationType.Starting:
             return
-
-        # 已判定豁免的任务（如 StartUp）整条放行，不再逐节点拦截
-        if detail.task_id in self.exempt_task_ids:
-            return
-        if detail.name in GUARD_EXEMPT_ENTRIES:
-            self.exempt_task_ids.add(detail.task_id)
-            logger.warning(f"豁免任务 {detail.name}（生命周期任务，不依赖当前画面）task_id={detail.task_id}")
+        task_id = context.get_task_job().job_id
+        if task_id == self.failed_task_id:
             return
 
         if _screen_recovered(context):
-            self._disarm()
-            logger.warning(f"画面已恢复，解除回主界面失败保护 (task_id={detail.task_id})")
+            self.failed_task_id = None
+            logger.warning(f"画面已恢复，解除回主界面失败保护 (task_id={task_id})")
             return
 
-        logger.warning(f"跳过任务 {detail.name} (task_id={detail.task_id})")
+        logger.warning(f"回主界面画面仍未恢复，结束当前任务 (task_id={task_id})")
         result = context.run_action_direct(JActionType.StopTask, JStopTask())
         if result is None or not result.success:
-            logger.error(f"任务入口停止失败 (task_id={detail.task_id})")
+            logger.error(f"停止任务失败 (task_id={task_id})")
