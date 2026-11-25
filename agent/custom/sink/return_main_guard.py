@@ -10,6 +10,8 @@
 判据就是「`ReturnMain` 现在能不能动」，与任务间隔、会话时长、宿主是否复用 Agent 进程都无关。
 """
 
+from typing import Any
+
 from maa.agent.agent_server import AgentServer
 from maa.context import Context, ContextEventSink
 from maa.event_sink import NotificationType
@@ -23,16 +25,64 @@ RETURN_MAIN_NODE = "ReturnMain"
 PROBE_NODE = "ReturnMainGuardProbe"
 
 
+def _always_hits(context: Context, reco: Any, seen: set[str]) -> bool:
+    """判断一个识别是否「恒命中」——恒命中放进 Or 会让探针永远判已恢复，必须剔除。
+
+    目前只认 DirectHit：它在任意画面上都命中（实测 box 为整屏）。Or 子树里含 DirectHit 同样
+    恒真；And 不会因为某个子项是 DirectHit 而恒真（仍需其它子项），故不递归进 And。
+    """
+    if reco is None:
+        # 缺省识别即 DirectHit（任意画面全屏命中），恒真
+        return True
+    if isinstance(reco, str):
+        return reco == "DirectHit"
+    if not isinstance(reco, dict):
+        return False
+    if reco.get("type") == "DirectHit":
+        return True
+    if reco.get("type") == "Or":
+        param = reco.get("param") or {}
+        for sub in param.get("any_of") or []:
+            if isinstance(sub, str):
+                if _node_always_hits(context, sub, seen):
+                    return True
+            elif isinstance(sub, dict) and _always_hits(context, sub.get("recognition"), seen):
+                return True
+    return False
+
+
+def _node_always_hits(context: Context, name: str, seen: set[str]) -> bool:
+    if name in seen:
+        return False
+    seen.add(name)
+    data = context.get_node_data(name)
+    if data is None:
+        return False
+    reco = data.get("recognition")
+    if reco is None:
+        # 节点没写识别即默认 DirectHit，同样恒命中
+        return True
+    return _always_hits(context, reco, seen)
+
+
 def _probe_candidates(context: Context) -> list[str]:
-    """取 ReturnMain 当前 next 的节点名（自动跟随 override 与资源更新，不硬编码清单）。"""
+    """取 ReturnMain 当前 next 里可用来判断「画面是否恢复」的候选。
+
+    跟随 override / 资源更新自动取清单，不硬编码；并剔除恒命中（DirectHit 及其 Or 子树）的
+    候选，避免未来有人往 ReturnMain.next 加 DirectHit 时保护被静默架空。
+    """
     data = context.get_node_data(RETURN_MAIN_NODE)
     if not data:
         return []
     names: list[str] = []
     for item in data.get("next") or []:
         name = item.get("name") if isinstance(item, dict) else None
-        if isinstance(name, str) and name:
-            names.append(name)
+        if not isinstance(name, str) or not name:
+            continue
+        if _node_always_hits(context, name, set()):
+            logger.warning(f"探针跳过恒命中候选 {name}（DirectHit 会让探测失去意义）")
+            continue
+        names.append(name)
     return names
 
 

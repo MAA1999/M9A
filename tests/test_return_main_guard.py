@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from typing import Any
 from unittest.mock import Mock
 
 import numpy
@@ -15,11 +16,21 @@ def _node(name: str, task_id: int, parent: int | None = None) -> ContextEventSin
     return ContextEventSink.NodePipelineNodeDetail(task_id, 1, name, None, parent_task_id=parent)
 
 
+def _context(node_map: dict[str, Any], failed_job_id: int = 10) -> Context:
+    """按节点名返回 node_data 的假 Context；未登记的节点返回 None。"""
+    context = Mock(spec=Context)
+    context.get_task_job.return_value.job_id = failed_job_id
+    context.get_node_data.side_effect = lambda name: node_map.get(name)
+    return context
+
+
+def _tm() -> dict[str, Any]:
+    return {"recognition": {"type": "TemplateMatch"}}
+
+
 @pytest.fixture
 def guard_context() -> Context:
-    context = Mock(spec=Context)
-    context.get_task_job.return_value.job_id = 10
-    return context
+    return _context({"ReturnMain": {"next": [{"name": "HomeFlagCloseReturnMain"}]}, "HomeFlagCloseReturnMain": _tm()})
 
 
 def _arm(guard: ReturnMainGuard, context: Context) -> None:
@@ -33,7 +44,6 @@ def test_still_broken_skips_each_later_root_until_disarmed(
     guard = ReturnMainGuard()
     _arm(guard, guard_context)
 
-    # 武装任务自身与子流程不受影响，也不会触发探测
     guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("BF_Plan", 10))
     guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("ResetReturnMain", 32, 10))
     guard_context.run_action_direct.assert_not_called()
@@ -52,16 +62,13 @@ def test_recovered_lets_task_run_and_disarms(monkeypatch: pytest.MonkeyPatch, gu
     guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("Awards", 11))
     guard_context.run_action_direct.assert_not_called()
 
-    # 解除后后续任务不再探测、也不跳过
     guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("Awards", 12))
     guard_context.run_action_direct.assert_not_called()
     assert guard.failed_task_id is None
 
 
-def test_probe_failure_is_conservative(monkeypatch: pytest.MonkeyPatch, guard_context: Context) -> None:
-    # _screen_recovered 内部已把任何异常收敛成 False，这里直接验证它就返回 False
-    context = Mock()
-    context.get_node_data.return_value = {"next": [{"name": "HomeFlagCloseReturnMain"}]}
+def test_probe_failure_is_conservative() -> None:
+    context = _context({"ReturnMain": {"next": [{"name": "Confirm"}]}, "Confirm": _tm()})
     context.tasker.controller.post_screencap.return_value.wait.return_value.get.side_effect = RuntimeError("boom")
 
     assert return_main_guard._screen_recovered(context) is False
@@ -69,17 +76,18 @@ def test_probe_failure_is_conservative(monkeypatch: pytest.MonkeyPatch, guard_co
 
 
 def test_probe_without_candidates_is_not_recovered() -> None:
-    context = Mock()
-    context.get_node_data.return_value = {"next": []}
-
+    context = _context({"ReturnMain": {"next": []}})
     assert return_main_guard._screen_recovered(context) is False
 
 
 def test_probe_hit_resolves_named_candidates() -> None:
-    context = Mock()
-    context.get_node_data.return_value = {
-        "next": [{"name": "Confirm", "jump_back": True}, {"name": "HomeFlagCloseReturnMain"}]
-    }
+    context = _context(
+        {
+            "ReturnMain": {"next": [{"name": "Confirm", "jump_back": True}, {"name": "HomeFlagCloseReturnMain"}]},
+            "Confirm": _tm(),
+            "HomeFlagCloseReturnMain": _tm(),
+        }
+    )
     image = numpy.zeros((4, 4, 3), dtype=numpy.uint8)
     context.tasker.controller.post_screencap.return_value.wait.return_value.get.return_value = image
     context.run_recognition.return_value = SimpleNamespace(hit=True)
@@ -96,12 +104,44 @@ def test_probe_hit_resolves_named_candidates() -> None:
 
 
 def test_probe_miss_returns_not_recovered() -> None:
-    context = Mock()
-    context.get_node_data.return_value = {"next": [{"name": "Confirm"}]}
+    context = _context({"ReturnMain": {"next": [{"name": "Confirm"}]}, "Confirm": _tm()})
     image = numpy.zeros((4, 4, 3), dtype=numpy.uint8)
     context.tasker.controller.post_screencap.return_value.wait.return_value.get.return_value = image
     context.run_recognition.return_value = SimpleNamespace(hit=False)
 
+    assert return_main_guard._screen_recovered(context) is False
+
+
+def test_directhit_candidates_are_excluded() -> None:
+    # DirectHit 会让 Or 恒命中；含 DirectHit 的 Or 子树、以及缺省识别（默认 DirectHit）都要剔除
+    context = _context(
+        {
+            "ReturnMain": {
+                "next": [
+                    {"name": "DhNode"},
+                    {"name": "OrWithDh"},
+                    {"name": "DefaultReco"},
+                    {"name": "RealTemplate"},
+                ]
+            },
+            "DhNode": {"recognition": {"type": "DirectHit"}},
+            "OrWithDh": {"recognition": {"type": "Or", "param": {"any_of": ["DhNode"]}}},
+            "DefaultReco": {},  # 无 recognition ⇒ 默认 DirectHit
+            "RealTemplate": _tm(),
+        }
+    )
+
+    assert return_main_guard._probe_candidates(context) == ["RealTemplate"]
+
+
+def test_only_directhit_candidates_leaves_probe_not_recovered() -> None:
+    context = _context(
+        {
+            "ReturnMain": {"next": [{"name": "DhNode"}]},
+            "DhNode": {"recognition": {"type": "DirectHit"}},
+        }
+    )
+    assert return_main_guard._probe_candidates(context) == []
     assert return_main_guard._screen_recovered(context) is False
 
 
