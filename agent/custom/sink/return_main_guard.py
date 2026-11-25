@@ -1,10 +1,68 @@
-"""回主界面失败后，本次 Agent 会话的后续任务在入口结束。"""
+"""回主界面失败后，用画面探测决定后续任务是否在入口结束。
+
+`ReturnMain` 的 next 是一张「认得出来的逃生口」清单；它在 20s 内一个都命中不了，说明当前
+画面不在任何已知状态，后续任务的入口前提同样不成立。但「画面是否已经恢复」不能靠时间或
+会话推断——本 sink 在被拦任务的入口截一张图，用 `ReturnMain` 自己的 next 候选探一次：
+
+- 命中：画面至少能继续按 `ReturnMain` 的逃生口往下走，解除保护，让任务正常跑；
+- 未命中：画面仍然认不出来，照旧在入口把任务停掉。
+
+判据就是「`ReturnMain` 现在能不能动」，与任务间隔、会话时长、宿主是否复用 Agent 进程都无关。
+"""
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context, ContextEventSink
 from maa.event_sink import NotificationType
 from maa.pipeline import JActionType, JStopTask
 from utils.logger import logger
+
+# ReturnMain 节点名：失败时武装，探测时复用它的 next 作为「画面是否已恢复」的判据
+RETURN_MAIN_NODE = "ReturnMain"
+
+# 探测用的临时识别节点，只存在于 run_recognition 的 override 里，不进 resource
+PROBE_NODE = "ReturnMainGuardProbe"
+
+
+def _probe_candidates(context: Context) -> list[str]:
+    """取 ReturnMain 当前 next 的节点名（自动跟随 override 与资源更新，不硬编码清单）。"""
+    data = context.get_node_data(RETURN_MAIN_NODE)
+    if not data:
+        return []
+    names: list[str] = []
+    for item in data.get("next") or []:
+        name = item.get("name") if isinstance(item, dict) else None
+        if isinstance(name, str) and name:
+            names.append(name)
+    return names
+
+
+def _screen_recovered(context: Context) -> bool:
+    """截一张当前画面，用 ReturnMain 的 next 候选探一次；任一命中即认为画面已恢复。
+
+    任何探测环节失败（候选为空、截图异常、识别异常、截图为空）都保守地当作「未恢复」，
+    即继续跳过——宁可多拦一轮，也不能在认不出的画面上放行任务。
+    """
+    names = _probe_candidates(context)
+    if not names:
+        logger.error(f"探测回主界面状态失败：{RETURN_MAIN_NODE} 没有可用的 next 候选")
+        return False
+
+    try:
+        image = context.tasker.controller.post_screencap().wait().get()
+    except Exception as exc:  # noqa: BLE001 - 截图链异常只影响本次判定
+        logger.error(f"探测回主界面状态失败：截图异常: {exc}")
+        return False
+    if image.size == 0:
+        logger.error("探测回主界面状态失败：截图为空")
+        return False
+
+    override = {PROBE_NODE: {"recognition": {"type": "Or", "param": {"any_of": names}}}}
+    try:
+        detail = context.run_recognition(PROBE_NODE, image, override)
+    except Exception as exc:  # noqa: BLE001 - 识别异常只影响本次判定
+        logger.error(f"探测回主界面状态失败：识别异常: {exc}")
+        return False
+    return bool(detail and detail.hit)
 
 
 @AgentServer.context_sink()
@@ -19,18 +77,26 @@ class ReturnMainGuard(ContextEventSink):
         detail: ContextEventSink.NodePipelineNodeDetail,
     ) -> None:
         if self.failed_task_id is None:
-            if noti_type == NotificationType.Failed and detail.name == "ReturnMain":
+            if noti_type == NotificationType.Failed and detail.name == RETURN_MAIN_NODE:
                 # run_task 的子流程有独立的事件 ID，Context 保留最外层任务号。
                 self.failed_task_id = context.get_task_job().job_id
-                logger.warning("回主界面失败，本次连接的后续任务将跳过")
+                logger.warning("回主界面失败，后续任务将在入口探测画面是否恢复")
             return
 
+        # 只处理后续顶层任务的入口；武装任务自身（failed_task_id）与子流程跳过
         if (
-            noti_type == NotificationType.Starting
-            and not detail.parent_task_id
-            and detail.task_id != self.failed_task_id
+            noti_type != NotificationType.Starting
+            or detail.parent_task_id
+            or detail.task_id == self.failed_task_id
         ):
-            logger.info(f"跳过任务 {detail.name} (task_id={detail.task_id})")
-            result = context.run_action_direct(JActionType.StopTask, JStopTask())
-            if result is None or not result.success:
-                logger.error(f"任务入口停止失败 (task_id={detail.task_id})")
+            return
+
+        if _screen_recovered(context):
+            self.failed_task_id = None
+            logger.warning(f"画面已恢复，解除回主界面失败保护 (task_id={detail.task_id})")
+            return
+
+        logger.warning(f"跳过任务 {detail.name} (task_id={detail.task_id})")
+        result = context.run_action_direct(JActionType.StopTask, JStopTask())
+        if result is None or not result.success:
+            logger.error(f"任务入口停止失败 (task_id={detail.task_id})")
