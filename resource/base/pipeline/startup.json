@@ -410,6 +410,9 @@
         "post_delay": 3000
     },
     "GameLoading": {
+        // 默认阈值 0.7 会让启动广告卡片误配（实测 0.7073，另一帧复算 0.7488），广告期间每轮
+        // 命中并 DoNothing，把排在 next 后面的 CloseAd 饿死，导致广告关不掉、无限空转。
+        // 本模板与真加载页同源，分数远高于此，提到 0.8 可判掉广告帧而保留正常等待。
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -419,7 +422,8 @@
                     599,
                     563
                 ],
-                "template": "StartUp/GameLoading.png"
+                "template": "StartUp/GameLoading.png",
+                "threshold": 0.8
             }
         },
         "post_delay": 3000
