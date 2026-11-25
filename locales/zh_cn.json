@@ -42,7 +42,7 @@
     "Focus.SSReopen.StartHere": "请到复刻活动左边标有故事/探索模式的页面开始该任务",
     "Focus.StartUp.CloseAd": "关闭启动广告",
     "Focus.StartUp.GameStartFailed": "<span style=\"color:crimson;\">启动游戏失败，请检查是否正确选择游戏资源</span>",
-    "Focus.StartUp.ReturnMainAbort": "<span style=\"color:crimson;\">回主界面失败：当前画面无法识别，本轮后续任务已停止。请手动回到主界面后重新运行</span>",
+    "Focus.StartUp.ReturnMainAbort": "<span style=\"color:crimson;\">回主界面失败，请重新启动任务。</span>",
     "Focus.UTTU.Lost": "UTTU结束，战斗失败，请调整配队...",
     "Group.Daily": "日常任务",
     "Group.Standalone": "独立任务",

@@ -42,7 +42,7 @@
     "Focus.SSReopen.StartHere": "Start this task from the rerun event page with Story/Explore mode marked on the left.",
     "Focus.StartUp.CloseAd": "Closing launch ad.",
     "Focus.StartUp.GameStartFailed": "<span style=\"color:crimson;\">Failed to launch the game; check whether the correct game resource is selected.</span>",
-    "Focus.StartUp.ReturnMainAbort": "<span style=\"color:crimson;\">Failed to return to the home screen: the current screen is not recognised, so the remaining tasks were stopped. Return to the home screen manually and run again.</span>",
+    "Focus.StartUp.ReturnMainAbort": "<span style=\"color:crimson;\">Failed to return to the home screen. Please restart the task.</span>",
     "Focus.UTTU.Lost": "UTTU ended in defeat; adjust your team...",
     "Group.Daily": "Daily Tasks",
     "Group.Standalone": "Standalone Tasks",
