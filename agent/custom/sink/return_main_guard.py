@@ -8,6 +8,9 @@
 - 未命中：画面仍然认不出来，照旧在入口把任务停掉。
 
 判据就是「`ReturnMain` 现在能不能动」，与任务间隔、会话时长、宿主是否复用 Agent 进程都无关。
+
+生命周期任务（`GUARD_EXEMPT_ENTRIES`）不参与拦截：它们正是用来「从任意状态把游戏拉起来」的，
+拦掉会让用户在游戏已关闭时无法自救。
 """
 
 from typing import Any
@@ -24,12 +27,18 @@ RETURN_MAIN_NODE = "ReturnMain"
 # 探测用的临时识别节点，只存在于 run_recognition 的 override 里，不进 resource
 PROBE_NODE = "ReturnMainGuardProbe"
 
+# 不参与拦截的任务入口：StartUp 的职责就是从桌面/未启动状态把游戏拉起来，不依赖当前画面
+# 可识别——若在游戏已关闭时把它拦掉，用户就没法通过「启动游戏」自救了。
+GUARD_EXEMPT_ENTRIES = frozenset({"StartUp"})
+
 
 def _always_hits(context: Context, reco: Any, seen: set[str]) -> bool:
     """判断一个识别是否「恒命中」——恒命中放进 Or 会让探针永远判已恢复，必须剔除。
 
-    目前只认 DirectHit：它在任意画面上都命中（实测 box 为整屏）。Or 子树里含 DirectHit 同样
-    恒真；And 不会因为某个子项是 DirectHit 而恒真（仍需其它子项），故不递归进 And。
+    只在「缺省识别 / DirectHit」这两种真正不依赖画面的情形返回 True：
+    - Or：任一子项恒命中即恒真；
+    - And：所有子项都恒命中才恒真（只要有一个子项要识图，它就不会恒真，例如 HomeLoading
+      含模板匹配、SignInReward 含模板匹配）。
     """
     if reco is None:
         # 缺省识别即 DirectHit（任意画面全屏命中），恒真
@@ -38,17 +47,29 @@ def _always_hits(context: Context, reco: Any, seen: set[str]) -> bool:
         return reco == "DirectHit"
     if not isinstance(reco, dict):
         return False
-    if reco.get("type") == "DirectHit":
+    rtype = reco.get("type")
+    if rtype == "DirectHit":
         return True
-    if reco.get("type") == "Or":
-        param = reco.get("param") or {}
-        for sub in param.get("any_of") or []:
-            if isinstance(sub, str):
-                if _node_always_hits(context, sub, seen):
-                    return True
-            elif isinstance(sub, dict) and _always_hits(context, sub.get("recognition"), seen):
-                return True
-    return False
+
+    param = reco.get("param") or {}
+    if rtype == "Or":
+        subs = param.get("any_of") or []
+    elif rtype == "And":
+        subs = param.get("all_of") or []
+    else:
+        return False
+    if not subs:
+        return False
+
+    results: list[bool] = []
+    for sub in subs:
+        if isinstance(sub, str):
+            results.append(_node_always_hits(context, sub, set(seen)))
+        elif isinstance(sub, dict):
+            results.append(_always_hits(context, sub.get("recognition"), set(seen)))
+        else:
+            results.append(False)
+    return any(results) if rtype == "Or" else all(results)
 
 
 def _node_always_hits(context: Context, name: str, seen: set[str]) -> bool:
@@ -68,8 +89,8 @@ def _node_always_hits(context: Context, name: str, seen: set[str]) -> bool:
 def _probe_candidates(context: Context) -> list[str]:
     """取 ReturnMain 当前 next 里可用来判断「画面是否恢复」的候选。
 
-    跟随 override / 资源更新自动取清单，不硬编码；并剔除恒命中（DirectHit 及其 Or 子树）的
-    候选，避免未来有人往 ReturnMain.next 加 DirectHit 时保护被静默架空。
+    跟随 override / 资源更新自动取清单，不硬编码；并剔除恒命中（DirectHit、含 DirectHit 的
+    Or、全恒命中的 And、缺省识别）的候选，避免未来改资源时保护被静默架空。
     """
     data = context.get_node_data(RETURN_MAIN_NODE)
     if not data:
@@ -89,8 +110,8 @@ def _probe_candidates(context: Context) -> list[str]:
 def _screen_recovered(context: Context) -> bool:
     """截一张当前画面，用 ReturnMain 的 next 候选探一次；任一命中即认为画面已恢复。
 
-    任何探测环节失败（候选为空、截图异常、识别异常、截图为空）都保守地当作「未恢复」，
-    即继续跳过——宁可多拦一轮，也不能在认不出的画面上放行任务。
+    任何探测环节失败（候选为空、截图作业失败、截图异常、截图为空、识别异常）都保守地当作
+    「未恢复」，即继续跳过——宁可多拦一轮，也不能在认不出的画面上放行任务。
     """
     names = _probe_candidates(context)
     if not names:
@@ -98,7 +119,14 @@ def _screen_recovered(context: Context) -> bool:
         return False
 
     try:
-        image = context.tasker.controller.post_screencap().wait().get()
+        job = context.tasker.controller.post_screencap()
+        job.wait()
+        # 截图作业失败时 get() 仍会返回上一帧（cached_image），必须先判作业状态，否则会拿
+        # 旧画面误判「已恢复」。
+        if not job.status.succeeded:
+            logger.error("探测回主界面状态失败：截图作业失败（可能是旧帧，拒绝据此判定）")
+            return False
+        image = job.get()
     except Exception as exc:  # noqa: BLE001 - 截图链异常只影响本次判定
         logger.error(f"探测回主界面状态失败：截图异常: {exc}")
         return False
@@ -119,6 +147,11 @@ def _screen_recovered(context: Context) -> bool:
 class ReturnMainGuard(ContextEventSink):
     def __init__(self) -> None:
         self.failed_task_id: int | None = None
+        self.exempt_task_ids: set[int] = set()
+
+    def _disarm(self) -> None:
+        self.failed_task_id = None
+        self.exempt_task_ids.clear()
 
     def on_node_pipeline_node(
         self,
@@ -141,8 +174,16 @@ class ReturnMainGuard(ContextEventSink):
         ):
             return
 
+        # 已判定豁免的任务（如 StartUp）整条放行，不再逐节点拦截
+        if detail.task_id in self.exempt_task_ids:
+            return
+        if detail.name in GUARD_EXEMPT_ENTRIES:
+            self.exempt_task_ids.add(detail.task_id)
+            logger.warning(f"豁免任务 {detail.name}（生命周期任务，不依赖当前画面）task_id={detail.task_id}")
+            return
+
         if _screen_recovered(context):
-            self.failed_task_id = None
+            self._disarm()
             logger.warning(f"画面已恢复，解除回主界面失败保护 (task_id={detail.task_id})")
             return
 

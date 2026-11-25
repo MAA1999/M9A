@@ -24,6 +24,29 @@ def _context(node_map: dict[str, Any], failed_job_id: int = 10) -> Context:
     return context
 
 
+def _screencap(
+    context: Context,
+    *,
+    image: Any = None,
+    succeeded: bool = True,
+    get_exc: BaseException | None = None,
+    post_exc: BaseException | None = None,
+) -> None:
+    """配置 context.tasker.controller.post_screencap() 的返回链。"""
+    controller = context.tasker.controller
+    if post_exc is not None:
+        controller.post_screencap.side_effect = post_exc
+        return
+    job = Mock()
+    job.wait.return_value = job
+    job.status.succeeded = succeeded
+    if get_exc is not None:
+        job.get.side_effect = get_exc
+    else:
+        job.get.return_value = image
+    controller.post_screencap.return_value = job
+
+
 def _tm() -> dict[str, Any]:
     return {"recognition": {"type": "TemplateMatch"}}
 
@@ -67,9 +90,35 @@ def test_recovered_lets_task_run_and_disarms(monkeypatch: pytest.MonkeyPatch, gu
     assert guard.failed_task_id is None
 
 
-def test_probe_failure_is_conservative() -> None:
+def test_exempt_lifecycle_task_runs_and_stays_armed(monkeypatch: pytest.MonkeyPatch, guard_context: Context) -> None:
+    monkeypatch.setattr(return_main_guard, "_screen_recovered", lambda ctx: False)
+    guard = ReturnMainGuard()
+    _arm(guard, guard_context)
+
+    # StartUp 整条放行（含后续节点），且保护仍在
+    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("StartUp", 11))
+    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("Start1999", 11))
+    guard_context.run_action_direct.assert_not_called()
+    assert guard.failed_task_id == 10
+
+    # 非豁免任务仍按未恢复跳过
+    guard.on_node_pipeline_node(guard_context, NotificationType.Starting, _node("Awards", 12))
+    assert guard_context.run_action_direct.call_count == 1
+
+
+def test_probe_post_exception_is_conservative() -> None:
     context = _context({"ReturnMain": {"next": [{"name": "Confirm"}]}, "Confirm": _tm()})
-    context.tasker.controller.post_screencap.return_value.wait.return_value.get.side_effect = RuntimeError("boom")
+    _screencap(context, post_exc=RuntimeError("boom"))
+
+    assert return_main_guard._screen_recovered(context) is False
+    context.run_recognition.assert_not_called()
+
+
+def test_probe_rejects_stale_frame_when_screencap_job_failed() -> None:
+    # 作业失败但 get() 仍返回旧帧：若不判作业状态，旧帧命中会误放行
+    context = _context({"ReturnMain": {"next": [{"name": "Confirm"}]}, "Confirm": _tm()})
+    stale = numpy.zeros((4, 4, 3), dtype=numpy.uint8)
+    _screencap(context, image=stale, succeeded=False)
 
     assert return_main_guard._screen_recovered(context) is False
     context.run_recognition.assert_not_called()
@@ -89,7 +138,7 @@ def test_probe_hit_resolves_named_candidates() -> None:
         }
     )
     image = numpy.zeros((4, 4, 3), dtype=numpy.uint8)
-    context.tasker.controller.post_screencap.return_value.wait.return_value.get.return_value = image
+    _screencap(context, image=image, succeeded=True)
     context.run_recognition.return_value = SimpleNamespace(hit=True)
 
     assert return_main_guard._screen_recovered(context) is True
@@ -106,32 +155,39 @@ def test_probe_hit_resolves_named_candidates() -> None:
 def test_probe_miss_returns_not_recovered() -> None:
     context = _context({"ReturnMain": {"next": [{"name": "Confirm"}]}, "Confirm": _tm()})
     image = numpy.zeros((4, 4, 3), dtype=numpy.uint8)
-    context.tasker.controller.post_screencap.return_value.wait.return_value.get.return_value = image
+    _screencap(context, image=image, succeeded=True)
     context.run_recognition.return_value = SimpleNamespace(hit=False)
 
     assert return_main_guard._screen_recovered(context) is False
 
 
 def test_directhit_candidates_are_excluded() -> None:
-    # DirectHit 会让 Or 恒命中；含 DirectHit 的 Or 子树、以及缺省识别（默认 DirectHit）都要剔除
+    # DirectHit / 含 DirectHit 的 Or / 全恒命中的 And / 缺省识别，都要剔除
+    dh_direct = {"recognition": {"type": "DirectHit"}}
+    and_all_dh = {"recognition": {"type": "And", "param": {"all_of": [dh_direct, "DhNode"]}}}
+    and_with_template = {"recognition": {"type": "And", "param": {"all_of": ["DhNode", "RealTemplate"]}}}
     context = _context(
         {
             "ReturnMain": {
                 "next": [
                     {"name": "DhNode"},
                     {"name": "OrWithDh"},
+                    {"name": "AndAllDh"},
                     {"name": "DefaultReco"},
+                    {"name": "AndWithTemplate"},
                     {"name": "RealTemplate"},
                 ]
             },
             "DhNode": {"recognition": {"type": "DirectHit"}},
             "OrWithDh": {"recognition": {"type": "Or", "param": {"any_of": ["DhNode"]}}},
+            "AndAllDh": and_all_dh,
             "DefaultReco": {},  # 无 recognition ⇒ 默认 DirectHit
+            "AndWithTemplate": and_with_template,
             "RealTemplate": _tm(),
         }
     )
 
-    assert return_main_guard._probe_candidates(context) == ["RealTemplate"]
+    assert return_main_guard._probe_candidates(context) == ["AndWithTemplate", "RealTemplate"]
 
 
 def test_only_directhit_candidates_leaves_probe_not_recovered() -> None:
