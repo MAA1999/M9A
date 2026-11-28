@@ -227,7 +227,6 @@
                 }
             }
         },
-        "pre_wait_freezes": 500,
         "action": {
             "type": "Click"
         },
@@ -311,7 +310,7 @@
         },
         "focus": {
             "Node.Action.Starting": {
-                "content": "在映像页卡片列表中未找到所选活动，请确认活动名称或手动进入活动地图页后改用「当前页面」运行",
+                "content": "$Focus.AutoEntry.NavNotFound",
                 "display": [
                     "log",
                     "toast"
@@ -426,7 +425,7 @@
         },
         "focus": {
             "Node.Action.Starting": {
-                "content": "显影罐不足，无法解锁活动，任务结束。请补充显影罐后重试",
+                "content": "$Focus.AutoEntry.InsufficientCanister",
                 "display": [
                     "log",
                     "toast"
@@ -457,7 +456,7 @@
         "desc": "导航超时兜底：报错结束（出错截图由框架 SaveOnError 自动保存到 debug/on_error）",
         "focus": {
             "Node.Action.Starting": {
-                "content": "导航至所选活动失败（出错截图见 debug/on_error）。请手动进入活动关卡地图页后，将活动选项改为「当前页面」重新运行",
+                "content": "$Focus.AutoEntry.NavFailed",
                 "display": [
                     "log",
                     "toast"

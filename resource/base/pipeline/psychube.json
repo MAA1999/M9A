@@ -12,11 +12,13 @@
         "recognition": {
             "type": "TemplateMatch",
             "param": {
+                // 整行卡片区：卡位会变，不按槽位写死。
+                // 与 combat.json 的 ResourceChapter_Psychube07FreeEnter 一致。
                 "roi": [
-                    180,
-                    203,
-                    246,
-                    306
+                    0,
+                    153,
+                    1280,
+                    367
                 ],
                 "template": "Psychube/FreePsychubeStages.png",
                 "threshold": 0.9
@@ -335,13 +337,17 @@
         "recognition": {
             "type": "TemplateMatch",
             "param": {
+                // 同 FreePsychube：整行扫。
                 "roi": [
-                    176,
-                    210,
-                    789,
-                    297
+                    0,
+                    153,
+                    1280,
+                    367
                 ],
-                "template": "Psychube/NoFreePsychubeStagesFlag.png"
+                "template": [
+                    "Psychube/NoFreePsychubeMACard.png",
+                    "Psychube/NoFreePsychubeLPCard.png"
+                ]
             }
         }
     }

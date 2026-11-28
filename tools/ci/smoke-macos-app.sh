@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs the Agent inside a read-only copy of M9A.app, the way it lives under /Applications: the
-# bundle cannot be written to, so config, debug and the manifest cache must land in the directory
-# the client hands over through PI_USER_DATA_DIR. macOS only.
+# bundle cannot be written to, so config and debug must land in the directory the client hands
+# over through PI_USER_DATA_DIR. macOS only.
 #
 # Usage: smoke-macos-app.sh <M9A.app> <scratch-dir>
 set -euo pipefail
@@ -47,7 +47,7 @@ kill "$pid" 2>/dev/null
 set -e
 
 # Whatever the socket handshake does, the run has to reach the point where logs and config are set
-# up — that is the part a read-only bundle used to break. seed_work_root() also has to have linked
+# up — that is the part a read-only bundle used to break. link_work_root() also has to have linked
 # the read-only bundle dirs into the data dir, otherwise cwd-relative resource readers (warehouse /
 # SOS / drop templates) silently find nothing.
 if [ -d "$scratch/user-data/debug/custom" ]; then
@@ -66,11 +66,12 @@ fi
 
 # cwd-relative 的资源读点（warehouse/SOS/掉落模板）靠数据目录里的符号链接读包内资产；
 # 链接不在就等于这些读点全部落空——这正是上一轮 review 抓到的回归。
-for seeded_link in resource agent; do
-    if [ -e "$scratch/user-data/$seeded_link" ] || [ -L "$scratch/user-data/$seeded_link" ]; then
-        echo "[OK] data dir reaches bundle asset: $seeded_link"
+for linked_entry in resource agent; do
+    # -d follows the link and requires a real directory; a dangling symlink must not pass.
+    if [ -d "$scratch/user-data/$linked_entry" ]; then
+        echo "[OK] data dir reaches bundle asset: $linked_entry"
     else
-        fail "seed_work_root did not expose $seeded_link in the data dir"
+        fail "link_work_root did not expose $linked_entry in the data dir"
     fi
 done
 

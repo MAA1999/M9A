@@ -280,8 +280,8 @@ jobs:
       # 定位修复 commit、进而得出「升级到 >= x」，都依赖那个区间。实测：14 s / 188 MB，对比 3.5 s / 26 MB。
       #
       # 工作树**刻意留在默认分支**，不切成 PR head。这份工作树里有三样东西是被执行的：`setup.json` 决定
-      # npm 装什么（postinstall 就是任意代码）、`dsh-patch.yml` 决定 provider 指向哪（能带走
-      # COMMAND_CODE_API_KEY）、`prompt.md` 直接就是 agent 的指令。而 `@M9ABot` 召唤那条路没有身份门槛，
+      # npm 装什么（postinstall 就是任意代码）、`render-dsh-patch.mjs` 决定 provider 指向哪（能带走
+      # BOT_LLM_API_KEY）、`prompt.md` 直接就是 agent 的指令。而 `@M9ABot` 召唤那条路没有身份门槛，
       # 谁都能在自己的 fork PR 里改掉这三个文件再召唤 —— 切成 head 等于把执行路径交给对方。PR 的内容
       # 只以 ref 的形式取进来，见下面那步。`pull_request_target` 那条路更吃这条纪律：那个触发器自带
       # secret，一旦允许切到 PR head，等于把 secret 直接交给 fork。
@@ -322,9 +322,8 @@ jobs:
           # 凭证真的落进了 `~/.config/gh` —— 而 agent 靠的正是后者。摘掉之后它才是在验证这件事。
           env -u GH_TOKEN gh auth status
 
-      # npm 是这个 job 唯一需要的包管理器。全新的 headless profile 只有 76 KB，自身不声明任何 bundle
-      # 依赖；dsh 只在确实有东西要装时才去调包管理器 —— 实测首次启动，PATH 里有 pnpm 时 13.6 s，
-      # 没有时 3.3 s。
+      # 工具链本身用 npm 全局安装。headless profile 上的 bundle（Exa 搜索）要靠 `dsh plugin add`，
+      # 那一步会转发给 pnpm —— 所以 `install-toolchain.sh` 把 pnpm 也放进同一个 prefix。
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -339,10 +338,12 @@ jobs:
       #
       # 版本解析和缓存键都交给 `tools/bot/resolve-packages.sh`：`.github/workflows/bot-cache.yml` 必须
       # 算出逐字节相同的键，各写一遍就等于把「一处格式不一致」变成常态，而那种失败是静默的。
+      # `RESOLVE_PLUGINS=1` 只给 Analyze：warm 不装插件，也不该让插件的 `npm view` 拖垮 cache_key。
       - name: Resolve packages
         id: pkgs
         env:
           SETUP_HASH: ${{ hashFiles('tools/bot/setup.json') }}
+          RESOLVE_PLUGINS: "1"
         run: bash tools/bot/resolve-packages.sh
 
       # 有两样东西会让缓存树失效，原因各不相同。配置哈希：改名或删包会在 bin 里留下残留，下一次安装会
@@ -360,8 +361,9 @@ jobs:
       # zstd 压缩后的归档，不等于这棵树在磁盘上的大小，别拿 `du` 去对。命中缓存时 `Install toolchain`
       # 只剩版本检查（0.1 s）—— 那 0.1 s 成为常态的前提，正是有人先把 `~/.npm-global` 填进缓存。
       #
-      # 不缓存 `$DSH_HOME/profiles/headless`：76 KB、首启动 3.3 s 就能重建，而 warm 那个 job 里没有模型
-      # 凭证，不该为了这点体积让它把 dsh 整个跑一遍。
+      # 不缓存 `$DSH_HOME/profiles/headless`：profile 在工作树里，每次 checkout 都是空的；
+      # Exa 插件只是一个小包，每次 `dsh plugin add` 比重开一条 cache 划算。warm 那个 job 里也没有
+      # 模型凭证，不该为了这点体积让它把 dsh 整个跑一遍。
       - uses: actions/cache/restore@v6
         with:
           path: ~/.npm-global
@@ -369,6 +371,12 @@ jobs:
 
       - name: Install toolchain
         run: bash tools/bot/install-toolchain.sh
+
+      # 声明在 tools/bot/setup.json 的 `plugins`。必须在 Analyze 之前装进 headless profile，
+      # 否则 `web_search` 仍走 base 默认的 DeepSeek Search API —— 这个 job 没有 DEEPSEEK_API_KEY，
+      # 搜会直接不可用。版本来自上面 resolve 写下的 versions.txt，不按 `latest` 再解析一次。
+      - name: Install profile plugins
+        run: bash tools/bot/install-plugins.sh
 
       # agent 能拿到哪些 skill 由 tools/bot/setup.json 决定，每个来源都要声明它的 skill 怎么落地：
       # `committed` 已经在本仓库里，`package` 随某个 npm 包发布、由该包自己的 CLI 安装，`skills-cli`
@@ -498,11 +506,26 @@ jobs:
           fi
           echo "our open threads: $(jq 'length' "$ANALYSIS_DIR/open-threads.json" 2>/dev/null || echo '?')"
 
+      # provider 与模型整段来自 Settings → Secrets and variables → Actions 的 `BOT_LLM_CONFIG`
+      # （整段 provider 配置 JSON；放 Secret 可多行粘贴、设置页也不明文显示，取不到再回落到 Variable）。
+      # 仓库里不保存任何 provider 配置：裸 IP 中转站只写在设置里。没配时这一步直接报错。
+      # 渲染产物放 `$RUNNER_TEMP`，不落进工作树。
+      - name: Render the provider patch
+        env:
+          BOT_LLM_CONFIG: ${{ secrets.BOT_LLM_CONFIG || vars.BOT_LLM_CONFIG }}
+        run: |
+          set -euo pipefail
+          node tools/bot/render-dsh-patch.mjs "$RUNNER_TEMP/dsh-patch.yml"
+
       - name: Analyze
         env:
-          # 模型由 tools/bot/dsh-patch.yml 选定，那里把 command-code provider 指向这个环境变量名。
-          # 换 key 是改 Settings，不需要提交。
-          COMMAND_CODE_API_KEY: ${{ secrets.COMMAND_CODE_API_KEY }}
+          # provider/模型已由上面渲染进补丁；密钥统一走 `BOT_LLM_API_KEY`（secret 侧优先取同名，
+          # 兼容旧的 `COMMAND_CODE_API_KEY`）。换 key 是改 Settings 的 secret，不需要提交。
+          BOT_LLM_API_KEY: ${{ secrets.BOT_LLM_API_KEY || secrets.COMMAND_CODE_API_KEY }}
+          # Exa 官方 API 的 key。没配就走插件的免 key 公共通道（`mode: auto`）；配了更稳，不怕限流。
+          # 插件从进程环境读这个名字（默认 `apiKeyEnv`），不经过 agent 的 shell —— dsh-shell-env
+          # 不会把它漏进 bash。
+          EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
         run: |
           set -euo pipefail
           mkdir -p "$ANALYSIS_DIR"
@@ -525,7 +548,7 @@ jobs:
           budget=45m
           set +e
           timeout --signal=TERM --kill-after=30 "$budget" \
-            dsh --profile headless --patch tools/bot/dsh-patch.yml - < tools/bot/prompt.md \
+            dsh --profile headless --patch "$RUNNER_TEMP/dsh-patch.yml" - < tools/bot/prompt.md \
             > "$ANALYSIS_DIR/agent.out" 2> "$ANALYSIS_DIR/agent.stderr"
           status=$?
           set -e
@@ -587,8 +610,24 @@ jobs:
       #
       # 会话日志一并带走：它是唯一记录 agent 每一步做了什么的地方（工具调用、结果、用量），
       # 而 `agent.stderr` 只有推理文本。
-      - uses: actions/upload-artifact@v7
+      #
+      # upload-artifact 默认跟随符号链接，会把链接目标的字节写进归档。agent 能写
+      # `$ANALYSIS_DIR`，可以链到仓库外的文件；post 下载到的是普通文件，后缀/大小检查
+      # 看不出原位置，随后会把通过检查的图推到公开仓库。这里只删链接本身，不动目标。
+      - name: Drop symbolic links from the bot output
+        id: drop-symlinks
         if: always()
+        run: |
+          set -euo pipefail
+          for dir in "$ANALYSIS_DIR" "$DSH_HOME/sessions"; do
+            if [ -d "$dir" ]; then
+              find "$dir" -type l -delete
+            fi
+          done
+
+      - uses: actions/upload-artifact@v7
+        # 清理失败就不要把还在的符号链接跟进归档。分析本身失败、清理成功时仍上传诊断日志。
+        if: always() && steps.drop-symlinks.outcome == 'success'
         with:
           name: bot-output
           path: |
@@ -629,6 +668,11 @@ jobs:
       # 只挡住 checkout 不构成屏障；而 `issue_comment` 与 `pull_request_target` 下 checkout 本来就是默认
       # 分支，改动在那里是 no-op。有害的部分是它连新的 `tools/bot/*` 都拿不到 —— 文件还没合并进默认分支。
       - uses: actions/checkout@v7
+        with:
+          # 默认会把 GITHUB_TOKEN 写进 git 配置（这份 job token 只有 contents: read）。
+          # 证据图由 publish-evidence.sh 用 App installation token 推隐藏 ref，不要让那份只读
+          # header 掺进 git push。
+          persist-credentials: false
 
       # installation token 一小时后过期，而分析允许跑得比这更久。只在负责发帖的 job 里现签，token 的
       # 寿命就与 agent 跑了多久无关。
@@ -641,10 +685,11 @@ jobs:
           permission-pull-requests: write
           # `resolveReviewThread` 对 App installation token 要求 `contents: write`：只给
           # `pull-requests: write` 会拿到 `Resource not accessible by integration`（实测同一个 thread
-          # 用维护者 token 能收、用 App token 不能）。
+          # 用维护者 token 能收、用 App token 不能）。证据截图也用它：installation token 打不了
+          # user-attachments 上传端点（cli/cli#14309），只能把图推到 `refs/bot-evidence/<sha>`。
           #
           # 这个权限同时覆盖 commits / branches / releases / merges —— 也就是 bot 能发版。维护者知情
-          # 并选择接受：自动收起已修意见要它，而 App 这条路没有更窄的替代（细粒度 PAT 可以只给
+          # 并选择接受：自动收起已修意见和发图都要它，而 App 这条路没有更窄的替代（细粒度 PAT 可以只给
           # pull requests，代价是另一个会过期的 secret）。
           #
           # 所以防线在别处，而且已经不是「`gate` 只放行本仓库自己的 PR」了 —— `pull_request_target` 之后
@@ -740,10 +785,9 @@ jobs:
           fi
 
           # 正文里的证据图片交给 tools/bot/answer-evidence.awk 解析：inline 图片与 reference-style
-          # 定义都认（`gh --attach` 两种都会改写，前者改目的地、后者改定义行），围栏代码块跳过，
-          # 按出现顺序去重 —— `refs` 是给 `--attach` 用的清单，`plain` 是降级副本。
+          # 定义都认，围栏代码块跳过，按出现顺序去重 —— `refs` 是待推送的清单，`plain` 是降级副本。
           #
-          # 任何发不出附件的路径都改发 `plain`：公开评论或 review 里不会留 `./evidence/...` 这种断图。
+          # 任何发不出图的路径都改发 `plain`：公开评论或 review 里不会留 `./evidence/...` 这种断图。
           plain="$RUNNER_TEMP/answer-plain.md"
           refs="$RUNNER_TEMP/evidence-refs.txt"
           plain_rc=0
@@ -753,82 +797,75 @@ jobs:
           refs_err="$(LC_ALL=C awk -v mode=refs -f tools/bot/answer-evidence.awk "$answer" 2>&1 > "$refs")" \
             || refs_rc=$?
           if [ -n "$refs_err" ]; then echo "$refs_err"; fi
-          # `plain` 退出 4 = 降级完仍剩下认不出的证据引用（那些残行已经被它丢掉）。这一轮同样不发图：
-          # 附图路径发的是原始 `$answer`，那里还留着同一条引用，公开发出去就是断图。
+          # `plain` 退出 4 = 降级完仍剩下认不出的证据引用（那些残行已经被它丢掉）。这一轮同样不发图。
           if [ "$plain_rc" -ne 0 ]; then
             echo "::warning::answer.md still points at evidence/ outside inline images; those lines were dropped"
           fi
 
-          # 附图只开在 issue 这条路上：PR 的摘要和行内意见走 reviews API，那条接口没有附件。
+          # GitHub App installation token 打 user-attachments 上传端点是 404（cli/cli#14309），
+          # `gh --attach` 走不通。改把图做成孤立 commit 推到 `refs/bot-evidence/<sha>`（不在
+          # refs/heads 下：普通 clone 不会带上，也不会触发 push workflow），再把正文里的相对路径
+          # 改写成 `https://github.com/<repo>/raw/<sha>/…` —— GitHub 会当图片渲染。
           #
           # 校验按「全有或全无」：只要有一张对不上（路径逃逸、后缀不是图、文件不在、超过 2 MiB），
-          # 或者超过 prompt 允许的 3 张，这一轮就一张都不发、整篇走 `plain`。`gh` 只改写实际上传的那
-          # 几个引用，剩下几张会以本地路径留在正文里 —— 那正是这条路径要避免的断图。
-          #
-          # `--attach` 打的是 GitHub 的上传端点：gh 2.103.2 起才接受 GitHub App installation token，
-          # 而端点本身还只收一部分 App。这两条都是运行环境的事，所以一律降级并留 warning —— 附图是
-          # 结论的补充，不值得让一条分析因为传图失败而发不出去。
+          # 或者超过 prompt 允许的 3 张，这一轮就一张都不发、整篇走 `plain`。推送失败同样降级 ——
+          # 附图是结论的补充，不值得让一条分析因为传图失败而发不出去。
+          body="$plain"
+          files=()
+          skipped=""
+          if [ "$refs_rc" -ne 0 ]; then
+            skipped="could not parse the image references out of answer.md (awk exit $refs_rc)"
+          elif [ "$plain_rc" -ne 0 ]; then
+            skipped="answer.md still points at evidence/ outside inline images"
+          fi
+          while IFS= read -r ref && [ -z "$skipped" ]; do
+            case "$ref" in
+              "") continue ;;
+              *..*)
+                skipped="$ref escapes the analysis directory"
+                continue
+                ;;
+            esac
+            case "${ref##*.}" in
+              png | jpg | jpeg | webp | gif) ;;
+              *)
+                skipped="$ref is not a png/jpg/webp/gif"
+                continue
+                ;;
+            esac
+            path="$ANALYSIS_DIR/$ref"
+            if [ -L "$path" ]; then
+              skipped="$ref is a symbolic link"
+              continue
+            fi
+            if [ ! -f "$path" ]; then
+              skipped="$ref is referenced by answer.md but not in the analysis directory"
+              continue
+            fi
+            if [ "$(wc -c < "$path")" -gt 2097152 ]; then
+              skipped="$ref is larger than 2 MiB"
+              continue
+            fi
+            files+=("$ref")
+          done < "$refs"
+
+          images=${#files[@]}
+          if [ -n "$skipped" ]; then
+            echo "::warning::posting without evidence images: $skipped"
+            images=0
+          elif [ "$images" -gt 3 ]; then
+            echo "::warning::answer.md references $images evidence images, more than the 3 the prompt allows; posting without them"
+            images=0
+          elif [ "$images" -gt 0 ]; then
+            # 推送 / 探活 / 改写在 rewrite-evidence-body.sh 里：成功才换 urls 正文，
+            # 任何一步失败都仍用 plain。那段判定有测试，不再写进这份 job 脚本。
+            body="$(bash tools/bot/rewrite-evidence-body.sh \
+              "$ANALYSIS_DIR" "$answer" "$plain" "$RUNNER_TEMP/answer-urls.md" \
+              "${files[@]}")"
+          fi
+
           if [ "$KIND" != "pr" ]; then
-            attach=()
-            skipped=""
-            if [ "$refs_rc" -ne 0 ]; then
-              skipped="could not parse the image references out of answer.md (awk exit $refs_rc)"
-            elif [ "$plain_rc" -ne 0 ]; then
-              skipped="answer.md still points at evidence/ outside inline images"
-            fi
-            while IFS= read -r ref && [ -z "$skipped" ]; do
-              case "$ref" in
-                "") continue ;;
-                *..*)
-                  skipped="$ref escapes the analysis directory"
-                  continue
-                  ;;
-              esac
-              case "${ref##*.}" in
-                png | jpg | jpeg | webp | gif) ;;
-                *)
-                  skipped="$ref is not a png/jpg/webp/gif"
-                  continue
-                  ;;
-              esac
-              path="$ANALYSIS_DIR/$ref"
-              if [ ! -f "$path" ]; then
-                skipped="$ref is referenced by answer.md but not in the analysis directory"
-                continue
-              fi
-              if [ "$(wc -c < "$path")" -gt 2097152 ]; then
-                skipped="$ref is larger than 2 MiB"
-                continue
-              fi
-              attach+=(--attach "$path")
-            done < "$refs"
-
-            images=$((${#attach[@]} / 2))
-            if [ -n "$skipped" ]; then
-              echo "::warning::posting without evidence images: $skipped"
-              attach=()
-              images=0
-            elif [ "$images" -gt 3 ]; then
-              echo "::warning::answer.md references $images evidence images, more than the 3 the prompt allows; posting without them"
-              attach=()
-              images=0
-            fi
-
-            if [ "$images" -gt 0 ]; then
-              # 不用 `gh ... --help | grep -q`：`-q` 命中即退出会让 gh 吃 SIGPIPE，`pipefail` 下整条
-              # 管道判失败，于是把「这个 gh 支持 --attach」误判成不支持。
-              help="$(gh issue comment --help 2>/dev/null || true)"
-              if [ "${help#*--attach}" = "$help" ]; then
-                echo "::warning::this gh has no --attach; posting the answer without the evidence images"
-              elif gh issue comment "$TARGET" --body-file "$answer" "${attach[@]}"; then
-                echo "posted with $images evidence image(s)"
-                exit 0
-              else
-                echo "::warning::the evidence images could not be uploaded; posting the answer without them"
-              fi
-            fi
-
-            gh issue comment "$TARGET" --body-file "$plain"
+            gh issue comment "$TARGET" --body-file "$body"
             exit 0
           fi
 
@@ -857,12 +894,12 @@ jobs:
             echo "::warning::every proposed inline comment was outside the diff"
           fi
 
-          jq -n --rawfile body "$plain" --slurpfile c "$RUNNER_TEMP/comments.json" \
+          jq -n --rawfile body "$body" --slurpfile c "$RUNNER_TEMP/comments.json" \
             '{event: "COMMENT", body: $body, comments: $c[0].comments}' > "$RUNNER_TEMP/review.json"
 
           if ! gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" --input "$RUNNER_TEMP/review.json"; then
             echo "::warning::review rejected with inline comments, retrying as a summary-only review"
-            jq -n --rawfile body "$plain" '{event: "COMMENT", body: $body, comments: []}' \
+            jq -n --rawfile body "$body" '{event: "COMMENT", body: $body, comments: []}' \
               > "$RUNNER_TEMP/review.json"
             gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$TARGET/reviews" --input "$RUNNER_TEMP/review.json"
           fi

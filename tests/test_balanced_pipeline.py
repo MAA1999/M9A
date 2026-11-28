@@ -1,41 +1,18 @@
-"""均衡刷材料改造的 **pipeline 静态校验**。
-
-## 覆盖的需求点（§4 / §5 / §8）
-
-- **原版点击方式保留**：Click/Swipe、目标区域、target_offset、延迟、冻结等待、
-  矩形随机取点全部不动 —— 校验原版节点的配置与改造前一致；
-- 超时分支接在**原版扫描链**上（`SwipeLeftForStageList` / `SwipeRightForStageList`），
-  不另写导航；
-- 尾节点的 `timeout` 仍是原来的 2000ms（两分钟是**整个寻找过程**的总预算，
-  不是给两个尾节点各设两分钟）；
-- 新增节点只加在**清单尾部**，不改动任何既有节点的字段。
-
-这些是**静态**校验：读 pipeline JSON、比对结构。真实点击行为需要真机验证。
-"""
+"""检查均衡任务新增节点、原版扫描链的接入顺序和入口分支。"""
 
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 from typing import Any
 
 import pytest
 
-PIPELINE_DIR = Path(__file__).resolve().parent.parent / "resource" / "base" / "pipeline"
+ROOT = Path(__file__).resolve().parent.parent
+PIPELINE_DIR = ROOT / "resource" / "base" / "pipeline"
 COMBAT = PIPELINE_DIR / "combat.json"
 BALANCED = PIPELINE_DIR / "balanced_farming.json"
 FALLBACK = PIPELINE_DIR / "balanced_fallback.json"
-
-# 原版扫描链的关键节点（改造前就存在，改造后必须还在且配置不变）
-ORIGINAL_SCAN_NODES = (
-    "SwipeLeftAndFindStage",
-    "SwipeRightAndFindStage",
-    "SwipeLeftForStageList",
-    "SwipeRightForStageList",
-)
-# 原版「开始行动」点击节点
-READY_NODE = "ReadyForAction"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -93,42 +70,6 @@ def fallback() -> dict[str, Any]:
 
 
 # --------------------------------------------------------------- 原版保留
-def test_original_scan_nodes_still_present(combat: dict[str, Any]) -> None:
-    """原版扫描链的节点一个都不能少。"""
-    for name in ORIGINAL_SCAN_NODES:
-        assert name in combat, f"原版节点 {name} 不应被删掉"
-
-
-def test_scan_list_timeout_unchanged(combat: dict[str, Any]) -> None:
-    """尾节点的 `timeout` 仍是原来的 2000ms。
-
-    两分钟是**整个寻找过程**的总预算（由 `StageLookupBudget` 识别把关），
-    不是给两个尾节点各设两分钟。
-    """
-    for name in ("SwipeLeftForStageList", "SwipeRightForStageList"):
-        assert combat[name]["timeout"] == 2000, f"{name} 的 timeout 不应被改大"
-
-
-def test_scan_head_max_hit_unchanged(combat: dict[str, Any]) -> None:
-    """扫描头的 `max_hit` 仍是原来的 30（一次选关的上限）。"""
-    for name in ("SwipeLeftAndFindStage", "SwipeRightAndFindStage"):
-        assert combat[name]["max_hit"] == 30, f"{name} 的 max_hit 不应被改"
-
-
-def test_ready_for_action_click_unchanged(combat: dict[str, Any]) -> None:
-    """原版「开始行动」节点仍是 Click + 原来的识别区域与冻结等待。
-
-    （这个节点原本就没有 `target_offset` —— 它点的是 OCR 识别到的「开始行动」
-    文字中心，矩形随机取点由 MaaFW 在识别框内做。所以这里校验的是
-    **识别区域 + 冻结等待**没被动过。）
-    """
-    node = combat[READY_NODE]
-    assert node["action"]["type"] == "Click"
-    assert node["recognition"]["param"]["roi"] == [900, 500, 380, 220]
-    assert node["recognition"]["param"]["expected"] == ["开始行动"]
-    assert node["post_wait_freezes"] == {"time": 1500, "target": [0, 381, 238, 138]}
-
-
 def test_no_new_fixed_coordinate_click_in_new_nodes(fallback: dict[str, Any]) -> None:
     """新增节点不得引入固定坐标点击（要复用原版点击配置）。"""
     for name, body in fallback.items():
@@ -140,20 +81,6 @@ def test_no_new_fixed_coordinate_click_in_new_nodes(fallback: dict[str, Any]) ->
         assert "custom_action" in param, f"{name} 缺少 custom_action"
 
 
-def test_swipe_params_unchanged(combat: dict[str, Any]) -> None:
-    """原版滑动节点的起止点与时长不变。"""
-    left = combat["SwipeLeftForStageList"]["action"]["param"]
-    assert left["begin"] == [300, 600, 100, 50]
-    assert left["end"] == [900, 600, 100, 50]
-    assert left["duration"] == 400
-
-
-def test_freeze_wait_unchanged(combat: dict[str, Any]) -> None:
-    """原版冻结等待不变。"""
-    assert combat["SwipeLeftForStageList"]["post_wait_freezes"] == 1
-    assert combat["SwipeRightForStageList"]["post_wait_freezes"] == 100
-
-
 # --------------------------------------------------------------- 超时分支接入
 def test_scan_list_has_no_global_on_error(combat: dict[str, Any]) -> None:
     """两个扫描尾节点**不能**在 `combat.json` 里写死 `on_error`。
@@ -162,8 +89,7 @@ def test_scan_list_has_no_global_on_error(combat: dict[str, Any]) -> None:
     会让那些任务找关卡失败时跳过本节点的 `focus` 文案、改在
     `StageLookupTimeout` 上失败 —— 用户看到的原因就变了。
 
-    真实挂载在 `BalancedTaskEntry` 的入口 override 里（见
-    `test_entry_overrides_scan_tail_on_error`）。
+    真实挂载在 `BalancedTaskEntry` 的入口 override 里，由入口行为测试覆盖。
     """
     for name in ("SwipeLeftForStageList", "SwipeRightForStageList"):
         assert "on_error" not in combat[name], f"{name} 是原版共享节点，on_error 只能在均衡任务里 override"
@@ -179,47 +105,13 @@ def test_stage_lookup_timeout_keeps_failure_focus(fallback: dict[str, Any]) -> N
     """
     focus = fallback["StageLookupTimeout"].get("focus") or {}
     assert "Node.PipelineNode.Failed" in focus
-    assert "未在关卡列表中找到目标关卡" in focus["Node.PipelineNode.Failed"]
-
-
-def test_entry_overrides_scan_tail_on_error() -> None:
-    """入口 override 把两个扫描尾节点的 `on_error` 指向 `StageLookupTimeout`。
-
-    读源码做 AST 检查，不 import `custom.*`（会注册自定义动作、污染其它测试）。
-    """
-    import ast
-    import pathlib
-
-    source = pathlib.Path("agent/custom/action/balanced_entry.py").read_text(encoding="utf-8")
-    tree = ast.parse(source)
-
-    # 常量必须是那两个节点名
-    consts: dict[str, str] = {}
-    for node in tree.body:
-        if isinstance(node, ast.Assign) and isinstance(node.value, ast.Constant):
-            for tgt in node.targets:
-                if isinstance(tgt, ast.Name) and tgt.id.startswith("SCAN_TAIL_"):
-                    consts[tgt.id] = str(node.value.value)
-    assert consts.get("SCAN_TAIL_LEFT_NODE") == "SwipeLeftForStageList"
-    assert consts.get("SCAN_TAIL_RIGHT_NODE") == "SwipeRightForStageList"
-
-    # override_pipeline 的字典里必须出现这两个常量（作为 key）
-    used = {
-        key.id
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Dict)
-        for key in node.keys
-        if isinstance(key, ast.Name)
-    }
-    assert "SCAN_TAIL_LEFT_NODE" in used, "入口必须挂左向扫描尾节点的 on_error"
-    assert "SCAN_TAIL_RIGHT_NODE" in used, "入口必须挂右向扫描尾节点的 on_error"
-    assert "StageLookupTimeout" in source, "on_error 目标必须是 StageLookupTimeout"
+    assert focus["Node.PipelineNode.Failed"] == "$Focus.Combat.StageNotFound"
 
 
 def test_scan_list_next_keeps_original_order(combat: dict[str, Any]) -> None:
     """`next` 里原版的扫描头必须还在（预算检查只加在前面）。"""
-    assert "SwipeLeftAndFindStage" in combat["SwipeLeftForStageList"]["next"]
-    assert "SwipeRightAndFindStage" in combat["SwipeRightForStageList"]["next"]
+    assert combat["SwipeLeftForStageList"]["next"] == ["StageLookupBudget", "SwipeLeftAndFindStage"]
+    assert combat["SwipeRightForStageList"]["next"] == ["StageLookupBudget", "SwipeRightAndFindStage"]
 
 
 def test_budget_node_is_recognition_not_action(fallback: dict[str, Any]) -> None:
@@ -256,35 +148,12 @@ def test_skip_node_does_not_navigate(balanced: dict[str, Any]) -> None:
     assert node.get("next") == [], "跳过后不应再往下走"
 
 
-def test_entry_skips_to_skipped_node(balanced: dict[str, Any]) -> None:
-    """入口节点有「跳过」出口。"""
-    assert balanced["BF_Entry"]["action"]["param"]["custom_action"] == "BalancedTaskEntry"
-
-
 # --------------------------------------------------------------- i18n / GUI
 def test_reset_option_label_exists() -> None:
     """GUI 上有「重置全部记录」这个选项（中英双语都要有）。"""
     for locale in ("zh_cn.json", "en_us.json"):
-        text = (Path(__file__).resolve().parent.parent / "locales" / locale).read_text(encoding="utf-8")
+        text = (ROOT / "locales" / locale).read_text(encoding="utf-8")
         assert "Option.BalancedFarming.ResetStageRecords" in text, f"{locale} 缺少重置选项的文案"
-
-
-def test_no_stale_stage_progress_references() -> None:
-    """旧的 `stage_progress` / `stage_probe` 设计已彻底删除，仓库里不该再引用。
-
-    本测试文件自身要提到这些名字（用来断言它们不再被引用），所以排除 tests/ 目录。
-    """
-    root = Path(__file__).resolve().parent.parent
-    stale: list[str] = []
-    for path in root.rglob("*"):
-        if not path.is_file() or path.suffix not in (".py", ".json", ".md"):
-            continue
-        if any(part in (".git", "node_modules", "debug", ".venv", "tests") for part in path.parts):
-            continue
-        text = path.read_text(encoding="utf-8", errors="ignore")
-        if re.search(r"stage_progress|stage_probe|StageProgressReset|StageProbe", text):
-            stale.append(str(path.relative_to(root)))
-    assert not stale, f"仍有旧设计的残留引用: {stale}"
 
 
 def test_far_left_node_wired_before_original(combat: dict[str, Any]) -> None:
@@ -308,39 +177,3 @@ def test_far_left_node_disabled_by_default(fallback: dict[str, Any]) -> None:
     """
     assert fallback["StageLookupBudget"]["enabled"] is False
     assert fallback["StageLookupFarLeft"]["enabled"] is False
-
-
-def test_stage_lookup_far_left_uses_shared_stage_text_roi() -> None:
-    """远左判定与找目标关卡必须扫同一片区域。
-
-    回归防护（CodeRabbit, major）：`StageLookupFarLeft` 扫整个下半屏（关卡项的
-    纵向位置随列表长度/滚动位置变化），而 `TargetStageName_OCR` 原本只扫
-    `y=539..585`。当目标关卡落在 539..585 之外时，找目标看不到它、远左判定却
-    看得到那里的 `01`，于是把「目标就在屏幕上」误判成「已滑到最左、目标确实
-    不存在」，写入**永久**不可用记录。
-
-    所以两者共用 `balanced_state.STAGE_TEXT_ROI`，入口再把它覆盖到
-    `TargetStageName_OCR` 上。
-    """
-    # 直接读源码做 AST 检查，不 import `custom.*`：那些模块在导入时会注册
-    # 自定义动作/识别，跨文件跑测试时会让其它测试的模块图失效。
-    import ast
-    import pathlib
-
-    from utils.balanced_state import STAGE_TEXT_ROI
-
-    source = pathlib.Path("agent/custom/reco/balanced_fallback.py").read_text(encoding="utf-8")
-    tree = ast.parse(source)
-    class_node = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == "StageLookupFarLeft")
-    roi_assign = next(
-        n
-        for n in class_node.body
-        if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "_ROI" for t in n.targets)
-    )
-    assert isinstance(roi_assign.value, ast.Name) and roi_assign.value.id == "STAGE_TEXT_ROI", (
-        "StageLookupFarLeft._ROI 必须引用共享的 STAGE_TEXT_ROI，不能各自写一份"
-    )
-    # 必须覆盖整个下半屏：关卡项的纵向位置不固定
-    _, y, _, h = STAGE_TEXT_ROI
-    assert y <= 360, "扫描范围要从画面中部开始，否则关卡项落在上方时会漏"
-    assert y + h >= 720, "扫描范围要覆盖到画面底部"

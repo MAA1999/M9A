@@ -306,22 +306,27 @@
     },
     "ResourceChapter_Psychube": {
         "desc": "意志解析",
+        "timeout": 3000,
         "next": [
             "ResourceChapter_Psychube07FreeEnter",
             "ResourceChapter_NoFreePsychube07",
             "[JumpBack]ResourceChapterLabel",
             "[JumpBack]SwipeRightForChapter"
-        ]
+        ],
+        "focus": {
+            "Node.PipelineNode.Failed": "$Focus.Combat.PsychubeCardNotFound"
+        }
     },
     "ResourceChapter_Psychube07FreeEnter": {
         "recognition": {
             "type": "TemplateMatch",
             "param": {
+                // 整行卡片区：卡片在第几张都能命中，点击落在识别 box 上。
                 "roi": [
-                    180,
-                    203,
-                    246,
-                    306
+                    0,
+                    153,
+                    1280,
+                    367
                 ],
                 "template": "Psychube/FreePsychubeStages.png",
                 "threshold": 0.9
@@ -339,10 +344,10 @@
             "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    841,
-                    230,
-                    265,
-                    290
+                    0,
+                    153,
+                    1280,
+                    367
                 ],
                 "template": "Psychube/FreePsychubeStages.png",
                 "threshold": 0.9
@@ -359,13 +364,17 @@
         "recognition": {
             "type": "TemplateMatch",
             "param": {
+                // 同 FreeEnter：整行扫。
                 "roi": [
-                    732,
-                    210,
-                    233,
-                    297
+                    0,
+                    153,
+                    1280,
+                    367
                 ],
-                "template": "Psychube/NoFreePsychubeStagesFlag.png"
+                "template": [
+                    "Psychube/NoFreePsychubeMACard.png",
+                    "Psychube/NoFreePsychubeLPCard.png"
+                ]
             }
         },
         "action": {
@@ -379,6 +388,7 @@
         ]
     },
     "SwipeRightForPsychube": {
+        "max_hit": 12,
         "next": [
             "ResourceChapter_Psychube07Enter",
             "SwipeRightForPsychube07"
@@ -402,10 +412,12 @@
                 ]
             }
         },
-        "post_wait_freezes": 1,
         "next": [
             "SwipeRightForPsychube"
-        ]
+        ],
+        "focus": {
+            "Node.PipelineNode.Failed": "$Focus.Combat.PsychubeCardNotFound"
+        }
     },
     "ResourceChapter_ME": {
         "desc": "群山之声",
@@ -595,6 +607,8 @@
         }
     },
     "SwipeRightForChapter": {
+        // max_hit 是任务运行内累计，SelectCombatStage 每次选关前会 clear_hit_count。
+        "max_hit": 12,
         "action": {
             "type": "Swipe",
             "param": {
@@ -773,7 +787,6 @@
                 "duration": 400
             }
         },
-        "post_wait_freezes": 1,
         "post_delay": 0,
         // SwipeLeftAndFindStage 的 max_hit 用尽后，本节点的 next 不再命中：2s 内没有命中
         // 即判定“关卡列表里没有目标关卡”，任务以失败收场（issue #990）。
@@ -790,7 +803,7 @@
             "SwipeLeftAndFindStage"
         ],
         "focus": {
-            "Node.PipelineNode.Failed": "<span style=\"color:crimson;\">未在关卡列表中找到目标关卡，请检查关卡配置</span>"
+            "Node.PipelineNode.Failed": "$Focus.Combat.StageNotFound"
         }
     },
     "SwipeRightAndFindStage": {
@@ -827,7 +840,6 @@
                 ]
             }
         },
-        "post_wait_freezes": 100,
         // 见 SwipeLeftForStageList：右向扫完后 2s 无命中即失败并报错，不静默回主界面。
         "timeout": 2000,
         // 均衡刷材料：同 SwipeLeftForStageList —— 总预算检查（自定义识别）。
@@ -837,7 +849,7 @@
             "SwipeRightAndFindStage"
         ],
         "focus": {
-            "Node.PipelineNode.Failed": "<span style=\"color:crimson;\">未在关卡列表中找到目标关卡，请检查关卡配置</span>"
+            "Node.PipelineNode.Failed": "$Focus.Combat.StageNotFound"
         }
     },
     "StageDifficulty": {

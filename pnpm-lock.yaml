@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@nekosu/maa-tools':
-        specifier: 1.3.0
-        version: 1.3.0
+        specifier: 1.4.0
+        version: 1.4.0
       '@nekosu/prettier-plugin-maafw-sort':
         specifier: 1.1.0
         version: 1.1.0
@@ -24,11 +24,11 @@ importers:
         specifier: 3.3.1
         version: 3.3.1
       prettier:
-        specifier: 3.9.10
-        version: 3.9.10
+        specifier: 3.10.1
+        version: 3.10.1
       prettier-plugin-multiline-arrays:
         specifier: 4.1.11
-        version: 4.1.11(prettier@3.9.10)
+        version: 4.1.11(prettier@3.10.1)
 
 packages:
 
@@ -80,17 +80,17 @@ packages:
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
 
-  '@nekosu/maa-locale@1.2.0':
-    resolution: {integrity: sha512-fzuC4yeOhQAMJVMEC0SN6SePDvmtiKrsNIUubHrYfVJc9FHi/VooQy7Mx3y14+T7fX3thIo7cF3O1/2oV/yzKQ==}
+  '@nekosu/maa-locale@1.3.0':
+    resolution: {integrity: sha512-Y9KvXdPi9JyTlafg751++SftPyN0eYcsqg8E1OWmHLUE9HK3lX6UdDidO+Hu4idiCVK2BjYRsXHTfHbZ/qZgIg==}
 
-  '@nekosu/maa-pipeline-manager@1.1.0':
-    resolution: {integrity: sha512-JCB7gaHBnl2Iet5F9hb/ATiAukkyPIfSzlNmvc5O5j55qBZAxH6lqyK3rU0Etg/XMQVtCVnhGMFhPPxqrYAYXQ==}
+  '@nekosu/maa-pipeline-manager@1.2.0':
+    resolution: {integrity: sha512-kmzDA7tOh+Z9QDQ6CumSzMhkuMoGLtlV7yWf4QmI0jbkywEjfugcP+o4fyeubaZmeYDGfhu/ttRHBIrIKAcGdg==}
 
   '@nekosu/maa-tasker@1.0.0':
     resolution: {integrity: sha512-p5SaBJGvAMr5J2uk6imoiK7eIF7yA67HndWyfxddAHHdoyliai2dkHqBhTmDDuRmmAJ/ly4INg5Hnx8CI7Po3A==}
 
-  '@nekosu/maa-tools@1.3.0':
-    resolution: {integrity: sha512-EapP65M2jFh7i2LoJfuF0Pgm+vNTSl+C6RwlSseKsgVqA4Fc3vVoqcMSO8o2MfC8lNokTQ05wo5L0gZZoUESNA==}
+  '@nekosu/maa-tools@1.4.0':
+    resolution: {integrity: sha512-8dLBJ147vong0xeL6RwGSg/HbQUXzSY/iKZ33wtYyqkYI5RN1PHQJk0EYkqhYaSSk8034DnQF50b8DitJOllFA==}
     hasBin: true
 
   '@nekosu/maa-version-manager@1.1.0':
@@ -212,8 +212,8 @@ packages:
   bignumber.js@9.3.1:
     resolution: {integrity: sha512-Ko0uX15oIUS7wJ3Rb30Fs6SkVbLmPBAKdlm7q9+ak9bbIeFf0MwuBsQV6z7+X768/cHsfg+WlysDWJcmthjsjQ==}
 
-  brace-expansion@5.0.12:
-    resolution: {integrity: sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==}
+  brace-expansion@5.0.13:
+    resolution: {integrity: sha512-Vh3dmFbc4wZeox7M9I/0L9GfFd83Su4+yCck/OF9Gi/P/dAHn0RT7X4K9R7gMNMhDck3DvhR6QXsnQdjjgwNvQ==}
     engines: {node: 20 || >=22}
 
   browser-or-node@3.0.0:
@@ -293,12 +293,12 @@ packages:
     resolution: {integrity: sha512-XUBA9XClHbnJWSfBzjkm6RvPsyg3sryZt06BEQoXcF7EK/xpGaQYJgQKDJSUH5SGZ76Y7pFx1QBnXz09rU5Fbw==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
-  glob@13.0.6:
-    resolution: {integrity: sha512-Wjlyrolmm8uDpm/ogGyXZXb1Z+Ca2B8NbJwqBVg0axK9GbBeoS7yGV6vjXnYdGm6X53iehEuxxbyiKp8QmN4Vw==}
+  glob@13.0.7:
+    resolution: {integrity: sha512-wfsFgXQ8A3SEI9XGf7Nl3Y9l7ffSrGh7SUCT7vU/2CzYPep9kjxAn1S40F9OPKxAMGCVl7HtNlJhrCJUeUq83g==}
     engines: {node: 18 || 20 || >=22}
 
-  graceful-fs@4.2.11:
-    resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+  graceful-fs@4.2.12:
+    resolution: {integrity: sha512-iuyGF2E4oafQfPsRrG2wtY2ILupMhvtdrhzrxB+0VcjsPpSPttpfYdjnGFGsTi5MaJFjI1jOKHPQ6UTbTj9TAw==}
 
   hosted-git-info@9.0.3:
     resolution: {integrity: sha512-Hc+ghLoSt6QaYZUv0WBiIvmMDZuZZ7oaDvdH8MbfOO4lOsxdXLEvuC6ePoGs9H1X9oCLyq6+NVN0MKqD+ydxyg==}
@@ -455,8 +455,8 @@ packages:
     resolution: {integrity: sha512-6Lh3jQPLthYujSrlw6ccWXBGZTkoTCz27Hd92g79LH/kjAbgoEu0t442cCCNbegPSJsA0lwDX8z0bcKtkpA32g==}
     engines: {node: '>=18'}
 
-  pacote@21.5.2:
-    resolution: {integrity: sha512-rifBXawDMv3nLvABWr1kTpSk0UjeglTT4Vt9t8nU9xSnfdZcCTy+FOjO6TgXWAS77lIfbZlRkl2eKQcdY0++jA==}
+  pacote@21.5.3:
+    resolution: {integrity: sha512-XAHnxRzERPW/Y3sLaCgfUVdfP5Di1K0wiUWsDaK4reodu20Kl0pVZcw8Mdd2LaLsUpot6YLVOEgmIqMEL9Tjog==}
     engines: {node: ^20.17.0 || >=22.9.0}
     hasBin: true
 
@@ -474,8 +474,8 @@ packages:
     peerDependencies:
       prettier: '>=3.0.0 <4.0.0'
 
-  prettier@3.9.10:
-    resolution: {integrity: sha512-skGHTH1Yb9QvaTC4hWnRTzEYtCpApF0UMBPz+t/0ZPzP8ihefo/btKd+QA7pUE0fEwA1SbS/NmhyEcstdXOIdA==}
+  prettier@3.10.1:
+    resolution: {integrity: sha512-70vp3ZUYoPlFbF9uiTdXHUUCGEIp7d4+6p+8DYbkm2jP7x/3i/paXVF6dopSI3zd/CEitrZN1rc4i85xWmmXlg==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -525,8 +525,8 @@ packages:
     resolution: {integrity: sha512-HehCEsotFqbPW9sJ8WVYB6UbmIMv7kUUORIF2Nncq4VQvBfNBLibW9YZR5dlYCSUhwcD628pRllm7n+E+YTzJw==}
     engines: {node: '>= 14'}
 
-  socks@2.8.10:
-    resolution: {integrity: sha512-e0VyvkVTwVYViNovRkZ9aodhxVlyoMn7eJhVUPxZ+eK9P/7CBkxvvsBOHqFPEH416726W8tLXXXjKwqgTErrCQ==}
+  socks@2.8.11:
+    resolution: {integrity: sha512-2H/uQ7+SNP0hK16RorTak0mWrFoqo4AnAVGSUl2dT07obgWdWt9grml+VDl1LklgUOPWM4Abo0u86Cvp8vFjYw==}
     engines: {node: '>= 10.0.0', npm: '>= 3.0.0'}
 
   spdx-exceptions@2.5.0:
@@ -546,8 +546,8 @@ packages:
     resolution: {integrity: sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng==}
     engines: {node: '>=20'}
 
-  tar@7.5.22:
-    resolution: {integrity: sha512-MFO/QzvtAOmJbkhOaCTvbGcFN9L9b+JunIsDwaKljSOdcLMea3NJ1k9Usz/rjdfSXTq4dfzfeS7W4p4YOAAHeA==}
+  tar@7.5.23:
+    resolution: {integrity: sha512-lkukzdoGngZHJZXxW4S/E4Fp9ghTDlyZXrQGRNoJ/LXvDKcXUTq2sg5yQe74po7Voea6n/IN09+wE/QvJMiifA==}
     engines: {node: '>=18'}
 
   tinyglobby@0.2.17:
@@ -658,11 +658,11 @@ snapshots:
     dependencies:
       minipass: 7.1.3
 
-  '@nekosu/maa-locale@1.2.0': {}
+  '@nekosu/maa-locale@1.3.0': {}
 
-  '@nekosu/maa-pipeline-manager@1.1.0':
+  '@nekosu/maa-pipeline-manager@1.2.0':
     dependencies:
-      '@nekosu/maa-locale': 1.2.0
+      '@nekosu/maa-locale': 1.3.0
       '@nekosu/maa-tasker': 1.0.0
       chokidar: 5.0.0
       jsonc-parser: 3.3.1
@@ -671,11 +671,11 @@ snapshots:
     dependencies:
       '@nekosu/simple-parser': 1.0.0
 
-  '@nekosu/maa-tools@1.3.0':
+  '@nekosu/maa-tools@1.4.0':
     dependencies:
       '@actions/core': 3.0.1
-      '@nekosu/maa-locale': 1.2.0
-      '@nekosu/maa-pipeline-manager': 1.1.0
+      '@nekosu/maa-locale': 1.3.0
+      '@nekosu/maa-pipeline-manager': 1.2.0
       '@nekosu/maa-version-manager': 1.1.0
       chalk: 5.6.2
       jiti: 2.7.0
@@ -686,7 +686,7 @@ snapshots:
 
   '@nekosu/maa-version-manager@1.1.0':
     dependencies:
-      pacote: 21.5.2
+      pacote: 21.5.3
       proper-lockfile: 4.1.2
       semver: 7.8.6
     transitivePeerDependencies:
@@ -735,7 +735,7 @@ snapshots:
   '@npmcli/package-json@7.0.5':
     dependencies:
       '@npmcli/git': 7.0.2
-      glob: 13.0.6
+      glob: 13.0.7
       hosted-git-info: 9.0.3
       json-parse-even-better-errors: 5.0.0
       proc-log: 6.1.0
@@ -824,7 +824,7 @@ snapshots:
 
   bignumber.js@9.3.1: {}
 
-  brace-expansion@5.0.12:
+  brace-expansion@5.0.13:
     dependencies:
       balanced-match: 4.0.4
 
@@ -834,7 +834,7 @@ snapshots:
     dependencies:
       '@npmcli/fs': 5.0.0
       fs-minipass: 3.0.3
-      glob: 13.0.6
+      glob: 13.0.7
       lru-cache: 11.5.3
       minipass: 7.1.3
       minipass-collect: 2.0.1
@@ -883,13 +883,13 @@ snapshots:
     dependencies:
       minipass: 7.1.3
 
-  glob@13.0.6:
+  glob@13.0.7:
     dependencies:
       minimatch: 10.2.6
       minipass: 7.1.3
       path-scurry: 2.0.2
 
-  graceful-fs@4.2.11: {}
+  graceful-fs@4.2.12: {}
 
   hosted-git-info@9.0.3:
     dependencies:
@@ -961,7 +961,7 @@ snapshots:
 
   minimatch@10.2.6:
     dependencies:
-      brace-expansion: 5.0.12
+      brace-expansion: 5.0.13
 
   minipass-collect@2.0.1:
     dependencies:
@@ -1007,11 +1007,11 @@ snapshots:
     dependencies:
       env-paths: 2.2.1
       exponential-backoff: 3.1.3
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.12
       nopt: 9.0.0
       proc-log: 6.1.0
       semver: 7.8.6
-      tar: 7.5.22
+      tar: 7.5.23
       tinyglobby: 0.2.17
       undici: 6.29.1
       which: 6.0.1
@@ -1064,7 +1064,7 @@ snapshots:
 
   p-map@7.1.1: {}
 
-  pacote@21.5.2:
+  pacote@21.5.3:
     dependencies:
       '@gar/promise-retry': 1.0.3
       '@npmcli/git': 7.0.2
@@ -1082,7 +1082,7 @@ snapshots:
       proc-log: 6.1.0
       sigstore: 4.1.1
       ssri: 13.0.1
-      tar: 7.5.22
+      tar: 7.5.23
     transitivePeerDependencies:
       - supports-color
 
@@ -1093,20 +1093,20 @@ snapshots:
 
   picomatch@4.0.7: {}
 
-  prettier-plugin-multiline-arrays@4.1.11(prettier@3.9.10):
+  prettier-plugin-multiline-arrays@4.1.11(prettier@3.10.1):
     dependencies:
       '@augment-vir/assert': 32.2.1
       '@augment-vir/common': 32.2.1
-      prettier: 3.9.10
+      prettier: 3.10.1
       proxy-vir: 2.0.4
 
-  prettier@3.9.10: {}
+  prettier@3.10.1: {}
 
   proc-log@6.1.0: {}
 
   proper-lockfile@4.1.2:
     dependencies:
-      graceful-fs: 4.2.11
+      graceful-fs: 4.2.12
       retry: 0.12.0
       signal-exit: 3.0.7
 
@@ -1145,11 +1145,11 @@ snapshots:
     dependencies:
       agent-base: 7.1.4
       debug: 4.4.3
-      socks: 2.8.10
+      socks: 2.8.11
     transitivePeerDependencies:
       - supports-color
 
-  socks@2.8.10:
+  socks@2.8.11:
     dependencies:
       ip-address: 10.7.6
       smart-buffer: 4.2.0
@@ -1169,7 +1169,7 @@ snapshots:
 
   tagged-tag@1.0.0: {}
 
-  tar@7.5.22:
+  tar@7.5.23:
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0

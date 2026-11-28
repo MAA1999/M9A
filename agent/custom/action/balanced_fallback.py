@@ -83,6 +83,7 @@ import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from itertools import pairwise
+from typing import Literal
 
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
@@ -250,6 +251,7 @@ class BalancedFallback:
 
         self.current_stage: str = ""
         """当前正在寻找的关卡（超时时记录它）。"""
+        self.retried_blank_lookup = False
 
         self.lookup_started_at: float = 0.0
         """本次选关寻找的开始时刻（用于总预算）。"""
@@ -326,9 +328,10 @@ class BalancedFallback:
         self.swipe_count = 0
         self.reached_far_left = False
 
-    def begin_stage_lookup(self, stage: str) -> None:
+    def begin_stage_lookup(self, stage: str, *, retry_after_blank: bool = False) -> None:
         """开始寻找某个关卡（记下起点与滑动计数，用于总预算与「是否真的扫过」判定）。"""
         self.current_stage = stage
+        self.retried_blank_lookup = retry_after_blank
         self.lookup_started_at = time.monotonic()
         self.swipe_count = 0
         # 换关卡重新扫 → 「到过第一关」的标记必须重置，否则上一次扫描的结果会
@@ -463,7 +466,7 @@ class BalancedFallback:
 
         Returns:
             - `"saved"`       —— 已落盘，下次运行会直接跳过；
-            - `"memory_only"` —— 账号未知（读不到 UID），**本次没有写盘**，
+            - `"memory_only"` —— 库存保持模式或账号未知，**本次没有写盘**，
                                  下次运行会重新尝试。调用方不得宣称「下次直接跳过」；
             - `"failed"`      —— 落盘失败（文件不可写）。
 
@@ -515,7 +518,7 @@ def finish_planner() -> None:
     _planner.swipe_count = 0
 
 
-def _target_visible_on_screen(context: Context, stage: str) -> bool | None:
+def _target_visible_on_screen(context: Context, stage: str) -> bool | None | Literal["blank"]:
     """当前画面上能否识别到**目标关卡**（用于记录不可用前的最后复核）。
 
     `TargetStageName` 是 `ColorOCR` + 运行时注入的 `expected=<关卡名>`，正常扫描
@@ -529,31 +532,31 @@ def _target_visible_on_screen(context: Context, stage: str) -> bool | None:
     Returns:
         True  = 目标就在当前画面上（**不要**记不可用）；
         False = 没看到（保持原有行为，记不可用并顺延）。
-        None = 取帧或识别失败，或数字无法可靠拆分。
+        "blank" = 连续三张截图没有数字；None = 中止、取帧失败或读数有歧义。
     """
     from maa.pipeline import JOCR, JRecognitionType
     from utils.maa_types import ocr_text
 
-    try:
-        image = context.tasker.controller.cached_image
+    for _ in range(3):
+        if context.tasker.stopping:
+            return None
+        capture = context.tasker.controller.post_screencap().wait()
+        if not capture.succeeded:
+            return None
         detail = context.run_recognition_direct(
-            JRecognitionType.OCR,
-            JOCR(roi=STAGE_TEXT_ROI, only_rec=False),
-            image,
+            JRecognitionType.OCR, JOCR(roi=STAGE_TEXT_ROI, only_rec=False), capture.get()
         )
-    except (AttributeError, TypeError) as exc:
-        logger.exception(f"目标复核无法调用识别接口（程序错误）: {exc}")
-        return None
-    except Exception as exc:
-        logger.warning(f"目标复核识别失败，跳过复核: {exc}")
-        return None
+        if detail is None:
+            return None
+        texts = [getattr(result, "text", "") or "" for result in detail.all_results]
+        texts.append(ocr_text(detail))
+        if any(re.search(r"[0-9]", text) for text in texts):
+            return _match_stage_number(texts, stage)
+    return "blank"
 
-    if detail is None:
-        return None
-    # 主线列表只显示卷内序号，沿用 SelectCombatStage 的两位数格式。
+
+def _match_stage_number(texts: list[str], stage: str) -> bool | None:
     number = stage.rsplit("-", 1)[-1]
-    texts = [getattr(result, "text", "") or "" for result in getattr(detail, "all_results", None) or []]
-    texts.append(ocr_text(detail))
     if not number.isdigit():
         return any(stage in text for text in texts)
 
@@ -640,11 +643,30 @@ class StageLookupTimeout(CustomAction):
             # 排在它前面，正常会先命中并点击目标 —— 但如果那一帧颜色识别没成，
             # 一个**就在屏幕上**的目标会被当成「已滑到最左、目标确实不存在」，
             # 被永久记进不可用清单。代价太大，值得多跑一次识别。
-            visible = _target_visible_on_screen(context, stage)
-            if visible is None:
-                logger.warning(f"关卡 {stage} 的可见性复核未完成，本次不记录不可用")
+            try:
+                visible = _target_visible_on_screen(context, stage)
+            except Exception as exc:
+                logger.warning(f"关卡 {stage} 的可见性复核未完成：{exc}，不记录不可用")
                 finish_planner()
                 return CustomAction.RunResult(success=False)
+            if visible is None or context.tasker.stopping:
+                logger.warning(f"关卡 {stage} 的可见性无法确认，不记录不可用")
+                finish_planner()
+                return CustomAction.RunResult(success=False)
+            if visible == "blank":
+                home = context.run_task(HOME_ENTRY)
+                if home is None or not home.status.succeeded or context.tasker.stopping:
+                    finish_planner()
+                    return CustomAction.RunResult(success=False)
+                if state.retried_blank_lookup:
+                    logger.warning(f"关卡 {stage} 两轮导航均连续三帧无数字，只跳过本次均衡任务")
+                    finish_planner()
+                    context.override_next(TIMEOUT_NODE, [])
+                else:
+                    logger.warning(f"关卡 {stage} 连续三帧无数字，从主页重新寻找同一关卡")
+                    state.begin_stage_lookup(stage, retry_after_blank=True)
+                    context.override_next(TIMEOUT_NODE, [COMBAT_ENTRY_NODE])
+                return CustomAction.RunResult(success=True)
             if visible:
                 logger.warning(f"关卡 {stage} 仍未找到，但它此刻就在屏幕上（识别到目标），本次不记录不可用")
                 return CustomAction.RunResult(success=False)
@@ -691,10 +713,7 @@ class StageLookupTimeout(CustomAction):
                     f"所有参与材料的候选关卡都不可用（{names}），已标记「跳过均衡刷材料任务」，下次运行直接跳过"
                 )
             elif outcome == "memory_only":
-                logger.warning(
-                    f"所有参与材料的候选关卡都不可用（{names}）。"
-                    f"本次未保存停用标记（读不到游戏内 UID），下次运行会重新尝试"
-                )
+                logger.warning(f"所有参与材料的候选关卡都不可用（{names}）。本次未保存停用标记，下次运行会重新尝试")
             else:
                 logger.error(f"所有参与材料的候选关卡都不可用（{names}），但停用标记保存失败，下次运行不会自动跳过")
             context.override_next(TIMEOUT_NODE, [SKIPPED_NODE])

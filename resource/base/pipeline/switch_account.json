@@ -25,8 +25,10 @@
         ]
     },
     "SettingEntry": {
+        // 认齿轮图标而不是「设置」两个字：背景的时钟数字会挡住文字，但不怎么碰图标线条。
+        // 模板只留线条和贴着线条的一圈像素，其余涂成纯绿，green_mask 让它们不参与比对，背景怎么变都不影响。
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
                     33,
@@ -34,7 +36,8 @@
                     515,
                     214
                 ],
-                "expected": "[设置]"
+                "template": "SwitchAccount/SettingGear.png",
+                "green_mask": true
             }
         },
         "action": {

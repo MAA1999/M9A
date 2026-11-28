@@ -591,8 +591,9 @@
                     383,
                     75
                 ],
-                "template": "Awards/JukeboxBadges/",
-                "threshold": 0.85
+                "template": "Awards/JukeboxBadgeTop.png",
+                "green_mask": true,
+                "threshold": 0.65
             }
         },
         "action": {

@@ -24,7 +24,6 @@ on:
       - "CONTACT"
       - "LICENSE"
       - "tools/android-packaging.mjs"
-      - "tools/ci/download_drop_core.py"
       - ".github/workflows/android.yml"
       - ".github/workflows/android-build.yml"
   pull_request:
@@ -44,7 +43,6 @@ on:
       - "CONTACT"
       - "LICENSE"
       - "tools/android-packaging.mjs"
-      - "tools/ci/download_drop_core.py"
       - ".github/workflows/android.yml"
       - ".github/workflows/android-build.yml"
   workflow_dispatch:

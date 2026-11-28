@@ -73,23 +73,15 @@ def test_first_round_all_equal_returns_early() -> None:
     assert ctx.calls == 3, "第一轮就一致，不该读第二轮"
 
 
-def test_six_all_equal_returns_value() -> None:
-    """第一轮不一致、6 次全一致 → 采信。"""
-    ctx = _Ctx(["ID:A", "ID:A", "ID:B", "ID:C", "ID:C", "ID:C"])
-    # 第一轮 A A B 不一致；第二轮 C C C —— 六次不全一致 → 读不到
+@pytest.mark.parametrize(
+    "second_round",
+    [(3, 3, 3), (1, 1, 2), (1, 1, 1)],
+    ids=["second-round-agrees", "four-to-two", "five-to-one"],
+)
+def test_conflicting_valid_uids_are_rejected(second_round: tuple[int, int, int]) -> None:
+    ctx = _Ctx([f"ID:12345678{digit}" for digit in (1, 1, 2, *second_round)])
     assert uid_sampler.sample_uid(ctx) == ""  # type: ignore[arg-type]
-
-
-def test_two_mismatches_is_rejected() -> None:
-    """4:2 也算读不到（用户明确要求：任何不一致都判读不到）。"""
-    ctx = _Ctx(["ID:A", "ID:A", "ID:B", "ID:A", "ID:A", "ID:B"])
-    assert uid_sampler.sample_uid(ctx) == ""  # type: ignore[arg-type]
-
-
-def test_one_mismatch_is_rejected() -> None:
-    """5:1 也算读不到 —— 比「多数表决」严格，宁可这轮不记录。"""
-    ctx = _Ctx(["ID:A", "ID:A", "ID:B", "ID:A", "ID:A", "ID:A"])
-    assert uid_sampler.sample_uid(ctx) == ""  # type: ignore[arg-type]
+    assert ctx.calls == 6
 
 
 def test_all_empty_is_rejected() -> None:
@@ -156,7 +148,7 @@ def test_extract_digits_requires_id_label() -> None:
 
 def test_extract_digits_ignores_fullwidth() -> None:
     """全角数字不是游戏 UID 会出现的字符，不能当数字收下。"""
-    assert uid_sampler.extract_digits("１１８４０４４７０") == ""
+    assert uid_sampler.extract_digits("ID:１１８４０４４７０") == ""
 
 
 def test_extract_digits_empty() -> None:

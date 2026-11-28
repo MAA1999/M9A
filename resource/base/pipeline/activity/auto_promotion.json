@@ -103,7 +103,7 @@
             "AP_AllPhasesDone"
         ],
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:orange\">当前地图无探索模式，跳过探索推图</span>"
+            "Node.Action.Starting": "$Focus.AutoPromotion.NoExploreMode"
         }
     },
     "AP_StoryGate": {
@@ -156,7 +156,7 @@
             "AP_AllPhasesDone"
         ],
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:orange\">探索模式尚未开放，跳过该阶段</span>"
+            "Node.Action.Starting": "$Focus.AutoPromotion.ExploreLocked"
         }
     },
     "AP_SwitchToStoryFromExplore": {
@@ -259,14 +259,14 @@
     "AP_AllPhasesDone": {
         "desc": "所有已启用的阶段执行完毕，任务正常结束",
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:green\">活动推图任务完成（已启用的阶段均已执行）</span>"
+            "Node.Action.Starting": "$Focus.AutoPromotion.AllPhasesDone"
         }
     },
     "AP_StoryModeUnavailable": {
         "desc": "故事/主线模式入口兜底：不在主线地图，也找不到「故事」模式按钮时正常结束并提示",
         "focus": {
             "Node.Action.Starting": {
-                "content": "未找到故事/主线地图或故事模式入口。请切到活动故事/主线地图后重新运行。",
+                "content": "$Focus.AutoPromotion.StoryUnavailable",
                 "display": [
                     "log",
                     "toast"
@@ -278,7 +278,7 @@
         "desc": "探索模式入口兜底：不在探索地图，也找不到「探索」模式按钮时正常结束并提示",
         "focus": {
             "Node.Action.Starting": {
-                "content": "未找到探索模式入口。若探索尚未开放，请等待开放后再运行探索模式。",
+                "content": "$Focus.AutoPromotion.ExploreUnavailable",
                 "display": [
                     "log",
                     "toast"
@@ -423,7 +423,7 @@
             "AP_AllPhasesDone"
         ],
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:green\">当前地图推图完成，继续后续阶段</span>"
+            "Node.Action.Starting": "$Focus.AutoPromotion.MapDone"
         }
     },
     "AP_InCombatRT": {
@@ -635,7 +635,7 @@
         },
         "focus": {
             "Node.Recognition.Succeeded": {
-                "content": "关卡解锁失败：显影罐不足。请补足显影罐后重新运行活动推图。",
+                "content": "$Focus.AutoPromotion.InsufficientCanister",
                 "display": [
                     "log",
                     "toast"
@@ -729,7 +729,7 @@
             "type": "Click"
         },
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson\">战斗失败，推图任务已停止。请调整队伍后重新运行本任务继续</span>"
+            "Node.Action.Starting": "$Focus.AutoPromotion.CombatDefeat"
         }
     },
     "AP_MiniGame": {
@@ -748,7 +748,7 @@
         },
         "focus": {
             "Node.Action.Starting": {
-                "content": "检测到活动小游戏，无法自动完成。请手动完成小游戏后回到关卡地图页，重新运行本任务继续",
+                "content": "$Focus.AutoPromotion.MiniGame",
                 "display": [
                     "log",
                     "toast"
@@ -772,7 +772,7 @@
         },
         "focus": {
             "Node.Action.Starting": {
-                "content": "检测到 BOSS 挑战页，推图任务到此结束，请手动完成 BOSS 挑战后重新运行本任务继续",
+                "content": "$Focus.AutoPromotion.BossPage",
                 "display": [
                     "log",
                     "toast"
@@ -828,7 +828,7 @@
         },
         "focus": {
             "Node.Action.Starting": {
-                "content": "检测到 BOSS 制衡模式，推图任务到此结束，请手动完成 BOSS 挑战",
+                "content": "$Focus.AutoPromotion.BossBalance",
                 "display": [
                     "log",
                     "toast"
@@ -840,7 +840,7 @@
         "desc": "调度超时兜底：报错结束（出错截图由框架 SaveOnError 自动保存到 debug/on_error）",
         "focus": {
             "Node.Action.Starting": {
-                "content": "推图遇到无法自动处理的界面（如小游戏、特殊教程等），出错截图见 debug/on_error。请手动完成当前内容并回到活动关卡地图页，然后重新运行本任务继续推图",
+                "content": "$Focus.AutoPromotion.UnknownScreen",
                 "display": [
                     "log",
                     "toast"

@@ -56,18 +56,15 @@
     "8bitFlagInMain": {
         "desc": "缪斯街机厅（大厅）",
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    635,
-                    169,
-                    92,
-                    26
+                    278,
+                    3,
+                    564,
+                    219
                 ],
-                "expected": [
-                    "单向投币"
-                ],
-                "only_rec": true
+                "template": ["8-bit/Level1Entry.png"]
             }
         },
         "next": [
@@ -78,18 +75,15 @@
     "8bitLevelSelect": {
         "desc": "大厅点击难度机台（单向投币Ⅰ）",
         "recognition": {
-            "type": "OCR",
+            "type": "TemplateMatch",
             "param": {
                 "roi": [
-                    635,
-                    169,
-                    92,
-                    26
+                    278,
+                    3,
+                    564,
+                    219
                 ],
-                "expected": [
-                    "单向投币"
-                ],
-                "only_rec": true
+                "template": ["8-bit/Level1Entry.png"]
             }
         },
         "action": {

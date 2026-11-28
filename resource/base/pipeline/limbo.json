@@ -957,8 +957,7 @@
                     50
                 ]
             }
-        },
-        "post_wait_freezes": 100
+        }
     },
     "LimboAwards1~4": {
         "desc": "深眠片段·Ⅰ~Ⅳ领取奖励",

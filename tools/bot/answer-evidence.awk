@@ -1,14 +1,30 @@
-# 从 answer.md 里挑出「证据图片」引用。两个模式：
+# 从 answer.md 里挑出「证据图片」引用。三个模式：
 #
 #   -v mode=refs   逐个打印被引用的 evidence 目标（去掉开头的 `./`，按出现顺序去重），交给发布
-#                  步骤校验后缀、体积与路径，再拼成 `--attach`。inline 图片和 reference-style
-#                  定义都算：`gh --attach` 两种都会改写（前者改目的地，后者改定义行）。
+#                  步骤校验后缀、体积与路径。inline 图片和 reference-style 定义都算。
 #   -v mode=plain  把证据图片降级成 alt 文本 —— inline 图片换成 alt，reference-style 删掉定义行并
-#                  把用到它的 `![alt][id]` 一并换成 alt。附件发不出去时发这一份，正文里不会留
+#                  把用到它的 `![alt][id]` 一并换成 alt。图发不出去时发这一份，正文里不会留
 #                  指向本地路径的引用。降级完仍残留 `…](…evidence/…)` 的行直接丢掉并退出 4。
+#   -v mode=urls -v prefix=https://github.com/<repo>/raw/<sha>
+#                  把本地 evidence 目标改写成 `prefix/相对路径`（inline 改目的地，reference-style
+#                  改定义行）。发布步骤把图推到隐藏 ref 之后用这一份发评论。prefix 不要尾斜杠。
 #
+# 只认 prompt 那种写法：`![说明](./evidence/foo.png)`，以及 `[id]: ./evidence/foo.png`。
+# GFM 的 quoted / 括号 title、转义 `\](`、目标前空白不单独处理；改写后还留着本地路径就降级。
 # 围栏代码块按 CommonMark 规则跳过：开围栏记字符和长度，只有同字符、长度不短于开围栏、其后只剩
 # 空白的行才结束它。代码块里的图片语法是示例，既不算引用，也不该被改写。
+
+BEGIN {
+    HEX = "0123456789ABCDEF"
+    for (i = 0; i < 256; i++) ORD[sprintf("%c", i)] = i
+    if (mode == "urls") {
+        if (prefix == "") {
+            print "mode=urls requires -v prefix=..." > "/dev/stderr"
+            exit 2
+        }
+        sub(/\/+$/, "", prefix)
+    }
+}
 
 function norm(dest) {
     sub(/^\.\//, "", dest)
@@ -24,7 +40,7 @@ function is_local_evidence(dest,   t) {
 }
 
 # 行里还有没有指向本地 evidence 的链接目标（含非图片链接）。降级完仍命中的行由调用方丢掉。
-function has_local_evidence(line,   i, rest, k, target) {
+function has_local_evidence(line,   i, rest, k) {
     while ((i = index(line, "](")) > 0) {
         rest = substr(line, i + 2)
         k = close_paren(rest)
@@ -35,11 +51,8 @@ function has_local_evidence(line,   i, rest, k, target) {
     return 0
 }
 
-
 # 取出 markdown 目标里的路径：角括号写法 `(<evidence/x.png>)` 去掉括号，`(path "title")` 只取第一段。
-
-# 目标在 `(` 之后到哪里结束。角括号写法里可以有 `)`（`(<evidence/a(1).png>)`），
-# 所以先看 `>` 再看右括号 —— 否则文件名里的括号会把目标截断。
+# 目标在 `(` 之后到第一个 `)`。角括号写法里可以有 `)`，所以先看 `>` 再看右括号。
 function close_paren(tail,   e, k) {
     if (substr(tail, 1, 1) == "<") {
         e = index(tail, ">")
@@ -65,6 +78,31 @@ function emit(target) {
         seen[target] = 1
         print target
     }
+}
+
+# 路径段百分号编码，保留 `/`。git 里仍用未编码的文件名；拼进 raw URL 才编码，
+# 不然 `shot#2.png` 的 `#2.png` 会变成 fragment。
+function urlenc_seg(s,   i, c, o, n) {
+    o = ""
+    for (i = 1; i <= length(s); i++) {
+        c = substr(s, i, 1)
+        if (c ~ /[A-Za-z0-9._~-]/) o = o c
+        else {
+            n = ORD[c]
+            if (n == "") o = o c
+            else o = o "%" substr(HEX, int(n / 16) + 1, 1) substr(HEX, (n % 16) + 1, 1)
+        }
+    }
+    return o
+}
+function urlenc_path(p,   n, i, a, o) {
+    n = split(p, a, "/")
+    o = urlenc_seg(a[1])
+    for (i = 2; i <= n; i++) o = o "/" urlenc_seg(a[i])
+    return o
+}
+function abs_url(dest) {
+    return prefix "/" urlenc_path(norm(dest))
 }
 
 # 行首围栏？返回它的字符重复数，0 表示不是。
@@ -117,10 +155,36 @@ function parse_def(line,   i, j, rest, dest, k) {
     return 1
 }
 
-# 处理一行里的图片：inline 的收集/降级，reference-style 的降级。mode=refs 时只收集。
+# 把 reference-style 定义行里的本地 evidence 目标换成 prefix/相对路径，title 原样留下。
+function rewrite_def_line(line,   i, rest, ds, k, pre, dest, post) {
+    i = index(line, "]:")
+    if (i == 0) return line
+    rest = substr(line, i + 2)
+    ds = 1
+    while (ds <= length(rest) && (substr(rest, ds, 1) == " " || substr(rest, ds, 1) == "\t")) ds++
+    pre = substr(line, 1, i + 1) substr(rest, 1, ds - 1)
+    rest = substr(rest, ds)
+    if (rest == "") return line
+    if (substr(rest, 1, 1) == "<") {
+        k = index(rest, ">")
+        if (k == 0) return line
+        dest = substr(rest, 2, k - 2)
+        post = substr(rest, k + 1)
+        if (!is_local_evidence(dest)) return line
+        return pre "<" abs_url(dest) ">" post
+    }
+    k = 1
+    while (k <= length(rest) && substr(rest, k, 1) !~ /[ \t]/) k++
+    dest = substr(rest, 1, k - 1)
+    post = substr(rest, k)
+    if (!is_local_evidence(dest)) return line
+    return pre abs_url(dest) post
+}
+
+# 处理一行里的图片：inline 的收集/降级/改写，reference-style 的降级。mode=refs 时只收集。
 # alt 里可能有成对的方括号（`![候选区域[1]](…)`），所以不能用第一个 `]` 当结尾 ——
 # 用 `](` / `][` 这一对分隔符找图片的结束位置。
-function rewrite(line,   out, i, rest, jp, jb, j, alt, tail, k, label, target, path, end) {
+function rewrite(line,   out, i, rest, jp, jb, j, alt, tail, k, label, path, end) {
     out = ""
     while ((i = index(line, "![")) > 0) {
         out = out substr(line, 1, i - 1)
@@ -137,6 +201,8 @@ function rewrite(line,   out, i, rest, jp, jb, j, alt, tail, k, label, target, p
             if (is_local_evidence(path)) {
                 if (mode == "refs") {
                     emit(path)
+                } else if (mode == "urls") {
+                    out = out "![" alt "](" abs_url(path) ")"
                 } else {
                     out = out alt
                 }
@@ -199,23 +265,40 @@ END {
         if (mode == "refs") emit(norm(dd))
     }
 
-    # 第二遍：refs 只收集 inline 引用；plain 输出降级后的正文。
+    # 第二遍：refs 只收集 inline 引用；plain 输出降级后的正文；urls 改写本地路径。
     fence = 0
     for (i = 1; i <= total; i++) {
         line = pending[i]
         if (fence) {
             if (fence_close(line)) fence = 0
-            if (mode == "plain") print line
+            if (mode != "refs") print line
             continue
         }
         fence_len = fence_open(line)
         if (fence_len > 0) {
             fence = 1
-            if (mode == "plain") print line
+            if (mode != "refs") print line
             continue
         }
         if (mode == "refs") {
             rewrite(line)
+            continue
+        }
+        if (mode == "urls") {
+            if (def_line[i]) {
+                result = rewrite_def_line(line)
+                if (parse_def(result) && is_local_evidence(dd)) {
+                    residual = 1
+                    continue
+                }
+            } else {
+                result = rewrite(line)
+            }
+            if (has_local_evidence(result)) {
+                residual = 1
+                continue
+            }
+            print result
             continue
         }
         if (def_line[i]) continue
@@ -227,5 +310,5 @@ END {
         print result
     }
 
-    if (mode == "plain" && residual) exit 4
+    if ((mode == "plain" || mode == "urls") && residual) exit 4
 }

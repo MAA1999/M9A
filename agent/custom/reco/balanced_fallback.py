@@ -191,25 +191,23 @@ class StageLookupFarLeft(CustomRecognition):
     ) -> RectType | None:
         """在下半屏里找关卡编号 `01`；找不到返回 None。
 
-        **遍历所有识别结果**，不只看 `best_result` —— 下半屏有多个关卡项，
-        `best_result` 只取分数最高的那一个（通常是别的关卡号），会漏掉 `01`。
+        复用原版识别节点，先按阈值和 `^01` 过滤，再取命中框。
 
         ⚠️ **必须先按米白色过滤，与 `TargetStageName` 看同一批像素**。
         否则两边会得出互相矛盾的结论：`TargetStageName` 在过滤图上认不出目标，
         这里却在原图里读到 `01`（可能来自边框、装饰、别色说明），于是把
         「目标其实就在屏幕上」误判成「滑到最左、目标确实不存在」。
         """
-        from maa.pipeline import JOCR, JRecognitionType
-
         from .general import filter_by_color
 
         processed = filter_by_color(argv.image)
 
         try:
-            detail = context.run_recognition_direct(
-                JRecognitionType.OCR,
-                JOCR(roi=self._ROI, only_rec=False),
+            node = "TheFarLeftOfStageList"
+            detail = context.run_recognition(
+                node,
                 processed,
+                {node: {"recognition": {"param": {"roi": self._ROI}}}},
             )
         except (AttributeError, TypeError) as exc:
             # 接口签名不对 = 代码或框架版本问题。吞掉它会让核心顺延静默变成
@@ -222,22 +220,4 @@ class StageLookupFarLeft(CustomRecognition):
             logger.warning(f"StageLookupFarLeft 识别失败（本次跳过）: {exc}")
             return None
 
-        for result in getattr(detail, "all_results", None) or []:
-            text = (getattr(result, "text", "") or "").strip()
-            # 与原版 `TheFarLeftOfStageList` 的 `expected: "^01"` 同一判定：
-            # **以 01 开头**才算到达本章第一关。
-            #
-            # 为什么不是「包含 01」：`combat.json` 的注释里记着 issue #990 的坑 ——
-            # OCR 把关卡 20 的 `0` 与分隔符/名字顶部粘成 `201`，裸的子串匹配会命中，
-            # 方向被误判成「已在最左端」后反向扫描，连续 637 轮空转 21 分钟。
-            #
-            # 为什么 `^01` 在这里够用（不需要放宽到「包含」）：
-            # - 真机实测（2026-11-14）连续三关时 OCR 读作 `010203`，`01` 就在行首；
-            # - 真最左端粘连边框时读作 `01i+`，`01` 仍在行首；
-            # - 关卡号不会超过两位数，不存在 `01X` 这种歧义。
-            if text.startswith("01"):
-                box = getattr(result, "box", None)
-                if not box:
-                    continue
-                return (int(box[0]), int(box[1]), int(box[2]), int(box[3]))
-        return None
+        return detail.box if detail and detail.hit else None

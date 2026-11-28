@@ -36,7 +36,9 @@ build.debugAbi=arm64-v8a
 
 改 `interface.json`、`tasks/`、`agent/` 后重新 `installDebug` 即可，不必再指外部路径。换了 `requirements.txt` 再跑一遍 `build_agent_bundle.py`。本地出 release 包时 `setup_maa_framework.py` 要用 `--abi all`、`build_agent_bundle.py` 要加 `--abi x86_64`，否则 x86_64 上会缺运行时。
 
-掉落识别核心（drop_core）的 Android 模块只在 CI 里从私有 release 下（`PRIVATE_REPO_TOKEN`，见 `.github/workflows/android-build.yml`）。本地出包不带它，agent 会退回结算页自读掉落，功能可用、精度略差。
+掉落识别核心（drop_core）**Android 端不提供**，CI 也不再从私有 release 下它：PI 解包在 `getExternalFilesDir(null)/pi`，那片 FUSE 挂载带 `noexec`（`grep emulated /proc/mounts` 能看到），模块的 `.so` 拿不到 `PROT_EXEC`，`from libs.drop_core import ...` 必然抛 `ImportError`——放进去只会多占 APK 体积，并让日志每次启动都报「掉落识别模块不可用」。配方的 `exclude` 因此把 `agent/libs/**` 挡在 APK 外，agent 一律退回结算页自读掉落（功能可用、精度略差，掉落上报随之禁用）。
+
+要恢复：把模块装进 **agent 运行时的 site-packages**（`Android/agent-dist/<abi>/bundle/site-packages/libs/`，运行期解到 `/data/local/tmp/maafw-agent/<包名>/<abi>`，那棵树可执行），不要放回 PI；同时给 `combat.py` / `depot_maintain.py` 的 `except ImportError` 带上 `exc`，否则线上只能看到「模块不可用」看不到原因。桌面包不受影响，仍按 `download_drop_core.py` 装 `agent/libs/`。
 
 升外壳：
 

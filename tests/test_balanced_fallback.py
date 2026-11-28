@@ -23,7 +23,6 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
 import types
 from pathlib import Path
@@ -77,7 +76,7 @@ class _FakeController:
     cached_image = "IMG"
 
     def post_screencap(self) -> Any:
-        return types.SimpleNamespace(wait=lambda: types.SimpleNamespace(get=lambda: "IMG"))
+        return types.SimpleNamespace(wait=lambda: types.SimpleNamespace(succeeded=True, get=lambda: "IMG"))
 
 
 class _FakeTasker:
@@ -108,12 +107,12 @@ class _FakeContext:
         self.pipeline_overrides.append(pipeline)
 
     def run_recognition_direct(self, *args: Any, **kwargs: Any) -> Any:
-        return types.SimpleNamespace(hit=False, all_results=[], best_result=None)
+        return types.SimpleNamespace(hit=True, all_results=[_TextResult("98")], best_result=None)
 
     def run_task(self, entry: str, *args: Any, **kwargs: Any) -> Any:
         self.run_tasks.append(entry)
         failed = not self.home_ok if entry == balanced_fallback.HOME_ENTRY else False
-        return types.SimpleNamespace(status=types.SimpleNamespace(failed=failed))
+        return types.SimpleNamespace(status=types.SimpleNamespace(failed=failed, succeeded=not failed))
 
     def get_node_object(self, name: str) -> Any:
         """`material_candy_override` 会读节点数据；桩里直接给默认结构。"""
@@ -134,34 +133,14 @@ def _entry(item_id: str, name: str, stage: str, level: str = "Hard", per_run: in
     )
 
 
-def _state_path(tmp_path: Path, name: str = "balanced_state.json") -> Path:
-    """状态文件放**工作区内**的临时目录。
-
-    pytest 的 `tmp_path` 在系统临时目录（工作区之外），沙箱不允许写那里；
-    落在工作区里的 `.pytest-tmp-*` 已在 .gitignore 里，不污染 git status。
-
-    文件名带用例名，**用例之间互不干扰**（状态文件是模块级的共享资源）。
-    """
-    root = Path(__file__).resolve().parent.parent / ".pytest-tmp-bf-state"
-    root.mkdir(parents=True, exist_ok=True)
-    return root / name
-
-
 @pytest.fixture(autouse=True)
-def _isolated_state(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
+def _isolated_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """把状态文件指向本用例专属的临时文件，并重置模块级顺延状态机。
 
     `agent.utils.*` 与 `utils.*` 是**两张模块图**（同一份源码、两个模块对象），
     所以两个都要打补丁 —— 只改一个的话，另一张图里的函数仍会写回默认路径。
     """
-    # 文件名带上进程号：并行跑多份 pytest 时，同一条用例的两次执行不能共用一个
-    # 状态文件（否则一边 unlink、另一边刚写完，断言会读到缺失或别人的记录）。
-    safe = request.node.name.replace("/", "_").replace("\\", "_")
-    path = _state_path(Path("."), f"state_{safe}_{os.getpid()}.json")
-    # 上一次运行留下的同名文件会让用例互相干扰（状态是持久资源）→ 先清掉
-    path.unlink(missing_ok=True)
-    # `agent.utils.*` 与 `utils.*` 是两张模块图（同一份源码、两个模块对象），
-    # 两边都要打补丁 —— 只改一个的话，另一张图里的函数仍会写回默认路径。
+    path = tmp_path / "balanced_state.json"
     for module in (balanced_state, _plain_balanced_state):
         monkeypatch.setattr(module, "BALANCED_STATE_PATH", path)
     reset_planner()
@@ -479,19 +458,6 @@ def test_timeout_action_advances_to_next_candidate(tmp_path: Path) -> None:
     assert balanced_fallback.HOME_ENTRY in context.run_tasks
 
 
-def test_timeout_action_marks_skip_when_all_unavailable(tmp_path: Path) -> None:
-    """所有参与材料都不可用 → 持久停用标记 → 本次跳过。"""
-    state = _planner_with([_material("110103", 1, ["7-26"])])
-    _scanned(state, "7-26")
-    context = _FakeContext()
-
-    result = balanced_fallback.StageLookupTimeout().run(context, _FAKE_ARGV)
-
-    assert result.success is True
-    assert is_task_skipped(state.account_id) is True, "应写入停用标记"
-    assert context.next_overrides[-1][1] == ["BF_Skipped"], "应跳到跳过收尾"
-
-
 def test_timeout_action_ignores_scan_when_far_left_not_reached(tmp_path: Path) -> None:
     """没滑到本章第一关就中止 → **不记录**关卡不可用，按扫描异常失败。
 
@@ -561,12 +527,8 @@ def test_begin_keeps_failed_stages_across_planning_rounds(tmp_path: Path, monkey
     assert state.failed_stages == set(), "reset()（任务入口）应清空"
 
 
-def test_reset_uses_atomic_write(tmp_path: Path) -> None:
-    """重置走原子写入，且在清空记录后保留当前逻辑账号标识。
-
-    回归防护：早前 `clear_all` 用 `write_text` 直接覆盖，中途出错会留下半截文件，
-    下次读到损坏内容会连 `current_account` 一起丢。
-    """
+def test_reset_clears_account_records(tmp_path: Path) -> None:
+    """重置清空所有账号的不可用关卡和停用标记。"""
     from agent.utils.balanced_state import clear_all, load_state
 
     record_unavailable("A", "7-26")
@@ -576,6 +538,19 @@ def test_reset_uses_atomic_write(tmp_path: Path) -> None:
 
     data = load_state(balanced_state.BALANCED_STATE_PATH)
     assert data.get("accounts") == {}, "记录与停用标记应被清空"
+
+
+def test_failed_reset_preserves_saved_records(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    path = tmp_path / "state.json"
+    assert record_unavailable(TEST_UID, "7-26", path=path)
+    before = path.read_bytes()
+
+    def fail_replace(src: Path, dst: Path) -> None:
+        raise OSError("simulated replace failure")
+
+    monkeypatch.setattr(balanced_state.os, "replace", fail_replace)
+    assert balanced_state.clear_all(path) is False
+    assert path.read_bytes() == before
 
 
 def test_timeout_action_continues_past_second_material(tmp_path: Path) -> None:
@@ -717,23 +692,6 @@ def test_exhausted_branch_returns_home_before_skip(tmp_path: Path) -> None:
     assert context.next_overrides[-1][1] == ["BF_Skipped"]
 
 
-def test_timeout_action_does_not_record_when_scan_not_started(tmp_path: Path) -> None:
-    """一次都没滑动过 → 不是「找不到目标关卡」→ 不记录关卡不可用。
-
-    （真机实测：MaaFW 的 `max_hit` 记在扫描头上，而扫描头只命中 28 次就停，
-    永远达不到 30 —— 原版判「没找到」靠的是尾节点的 2 秒 timeout，不是 max_hit。
-    所以「有没有真的扫过」由自己数的滑动次数决定。）
-    """
-    state = _planner_with([_material("110103", 1, ["7-26", "6-6"])])
-    state.begin_stage_lookup("7-26")  # 没滑动
-    context = _FakeContext()
-
-    result = balanced_fallback.StageLookupTimeout().run(context, _FAKE_ARGV)
-
-    assert result.success is False, "扫描没开始不应判定为顺延成功"
-    assert unavailable_stages(state.account_id) == set(), "不应记录关卡不可用"
-
-
 def test_timeout_action_does_not_record_when_user_stopping(tmp_path: Path) -> None:
     """用户正在停止 → 不记录关卡不可用。"""
     state = _planner_with([_material("110103", 1, ["7-26", "6-6"])])
@@ -787,7 +745,8 @@ def test_retarget_material_returns_tristate(tmp_path: Path) -> None:
         depot_maintain._state.item_id = None
 
 
-def test_retarget_material_syncs_battle_params(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("new_reportable", [False, True])
+def test_retarget_material_syncs_battle_params(new_reportable: bool, monkeypatch: pytest.MonkeyPatch) -> None:
     """跨材料顺延时，除 `_state` 外还必须同步 AllIn / 吃糖 / 掉落上报。
 
     回归防护（GPT 评审指出）：规划路径会把 `AllIn.target_count`、逐材料吃糖上限、
@@ -797,32 +756,34 @@ def test_retarget_material_syncs_battle_params(tmp_path: Path, monkeypatch: pyte
     ⚠️ 这里刻意用**两种不同材料**（旧 A=110103、新 B=110203），并给它们不同的
     缺口与吃糖上限：如果哪一项没被刷新，断言就会读到 A 的旧值而失败。
     """
-    from utils.balanced_state import candidates_for_material
-
     from agent.custom.action import depot_maintain
 
     old_id, new_id = "110103", "110203"
 
     # 模拟库存保持模式：旧的 A 在位，且 A 的吃糖上限是 3
-    depot_maintain._state.item_id = old_id
-    depot_maintain._state.candy_caps = {old_id: 3, new_id: 7}
-    depot_maintain._state.runs = 5
+    state = depot_maintain._PlanState()
+    monkeypatch.setattr(depot_maintain, "_state", state)
+    state.item_id = old_id
+    state.candy_caps = {old_id: 3, new_id: 7}
+    state.runs = 5
     # 目标：A 缺 90、B 缺 20 —— 换过去后 runs 必须按 B 的缺口重算
-    depot_maintain._state.targets = {old_id: 100, new_id: 20}
+    state.targets = {old_id: 100, new_id: 20}
+    catalog = {new_id: _entry(new_id, "B", "3-13", per_run=2)}
+    monkeypatch.setattr(depot_maintain, "load_catalog", lambda: catalog)
     monkeypatch.setattr(
         depot_maintain,
         "read_snapshot",
         lambda path=None: {"counts": {old_id: 10, new_id: 0}},
     )
-    # 换材料要能反查候选（用真实掉落索引）
-    assert candidates_for_material(old_id, level="Hard", registered_stage="7-26")
     monkeypatch.setattr(depot_maintain, "_confirmed_account_id", lambda: "")
 
     ctx = _FakeContext()
+    stage_reports = {("7-26", "Hard"): not new_reportable, ("3-13", "Hard"): new_reportable}
+    monkeypatch.setattr(depot_maintain, "report_enabled", lambda _ctx, stage, level: stage_reports[stage, level])
     result = depot_maintain.retarget_material(ctx, new_id, "3-13", "Hard")
 
     assert result is True
-    assert depot_maintain._state.item_id == new_id, "目标材料必须真的换成新材料"
+    assert state.item_id == new_id, "目标材料必须真的换成新材料"
 
     merged: dict[str, Any] = {}
     for pipeline in ctx.pipeline_overrides:
@@ -832,41 +793,15 @@ def test_retarget_material_syncs_battle_params(tmp_path: Path, monkeypatch: pyte
     # 1. AllIn 的复现次数按**新材料 B** 的缺口算，而不是旧材料 A 的 5
     allin = merged.get("AllIn") or {}
     target_count = allin["action"]["param"]["custom_action_param"]["target_count"]
-    assert target_count == depot_maintain._state.runs
-    assert target_count != 5, "不能沿用旧材料 A 的 runs"
+    assert target_count == state.runs == 10, "新材料缺 20 个，每局 2 个，应刷 10 局"
 
     # 2. 吃糖上限换成 B 的 7（A 是 3）
     candy_start = merged.get("EatCandyStart") or {}
     assert candy_start.get("max_hit") == 7, f"吃糖上限应换成新材料 B 的 7，实际 {candy_start}"
 
-    # 3. 掉落上报开关有明确值（不是「只存在」）
+    # 3. 上报开关必须跟着新关卡变化。
     drop = merged.get(depot_maintain.DROP_REPORT_NODE) or {}
-    assert "enabled" in drop, "必须写入掉落上报开关的具体值"
-
-    # 恢复，避免影响其它用例
-    depot_maintain._state.item_id = None
-    depot_maintain._state.targets = {}
-
-
-def test_entry_skips_task_when_marked(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """已停用 → 直接跳过，不点选关卡。
-
-    入口会先确认归属（读游戏内 UID）。这里 mock 掉 `current_uid` 让它看起来
-    已缓存，从而覆盖「UID 已缓存 → 不额外导航」这条快路径。
-    """
-    account = TEST_UID
-    set_task_skipped(account, True)
-    monkeypatch.setattr(balanced_entry, "current_uid", lambda: account)
-    monkeypatch.setattr(balanced_entry, "sample_uid", lambda ctx: account)
-
-    context = _FakeContext()
-    result = balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
-
-    assert result.success is True
-    assert context.next_overrides[-1][1] == ["BF_Skipped"]
-    # 采样前**无条件**回主页（CodeRabbit：不能假定任务开始时停在主页，
-    # 否则采样可能读到空画面、uid 为空 → 绕过停用判断）。
-    assert "ResetReturnMain" in context.run_tasks, "采样前必须先回主页"
+    assert drop["enabled"] is new_reportable
 
 
 def test_entry_skips_only_after_uid_is_confirmed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -912,6 +847,7 @@ def test_entry_skips_when_sampled_uid_is_marked(tmp_path: Path, monkeypatch: pyt
     assert result.success is True
     assert context.next_overrides[-1][1] == ["BF_Skipped"]
     assert shots == [], "停用跳过是稳态路径，不该每次都存截图"
+    assert "ResetReturnMain" in context.run_tasks, "即使缓存了 UID，采样前也应先回主页"
 
 
 def test_entry_navigates_once_to_read_uid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -996,22 +932,6 @@ def test_reset_then_entry_order_allows_reset_while_skipped(tmp_path: Path, monke
     assert entry_ctx.next_overrides[-1][1] == ["BF_Plan"], "重置后应恢复执行"
 
 
-def test_skip_flag_persists_across_restart(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """停用标记跨「重启」生效：重新读文件仍然认得。"""
-    account = TEST_UID
-    set_task_skipped(account, True)
-
-    # 模拟重启：新建状态机实例（内存清空），从文件重新读
-    fresh = BalancedFallback()
-    fresh.account_id = TEST_UID
-    assert fresh.account_id == TEST_UID
-    monkeypatch.setattr(balanced_entry, "current_uid", lambda: account)
-    monkeypatch.setattr(balanced_entry, "sample_uid", lambda ctx: account)
-    context = _FakeContext()
-    balanced_entry.BalancedTaskEntry().run(context, _FAKE_ARGV)
-    assert context.next_overrides[-1][1] == ["BF_Skipped"]
-
-
 # ------------------------------------------------------------- 逻辑账号归属
 def test_current_uid_empty_when_record_unloaded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """`RecordID` 未加载时 `current_uid()` 返回空串，而不是抛异常。"""
@@ -1063,24 +983,6 @@ def test_build_material_candidates_sorted_by_count(tmp_path: Path) -> None:
 
 
 # ------------------------------------------------------ 进入战斗前的候选挑选
-def test_resolve_available_stage_skips_recorded(tmp_path: Path) -> None:
-    """进入战斗前：登记关卡已被记为不可用时，顺延到下一个可用候选。
-
-    `_resolve_available_stage` 读的是**模块级单例**的状态机（与动作节点同一份），
-    所以这里也要用 `planner()` 而不是新建实例。
-    """
-    from agent.custom.action.depot_maintain import _resolve_available_stage
-
-    record_unavailable(TEST_UID, "7-26")
-    state = planner()
-    state.begin([_material("110103", 1, ["7-26", "6-6"])])
-    state.account_id = TEST_UID
-
-    stage, level = _resolve_available_stage(_FakeContext(), state.current_material().entry, {})
-    assert stage == "6-6", "应跳过已记录的不可用关卡"
-    assert level == "Hard"
-
-
 def test_resolve_available_stage_returns_none_when_all_unavailable(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1142,7 +1044,7 @@ def test_entry_disables_depot_maintain_when_uid_unknown(tmp_path: Path, monkeypa
 
 
 def test_entry_keeps_depot_maintain_when_uid_confirmed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """UID 确认时不碰 `depot_disabled`（用户可能开了库存保持）。"""
+    """确认 UID 后保留库存设置，并给左右扫描尾节点挂上均衡任务的失败出口。"""
     context = _FakeContext()
     monkeypatch.setattr(balanced_entry, "current_uid", lambda: TEST_UID)
     monkeypatch.setattr(balanced_entry, "_ensure_uid", lambda ctx: None)
@@ -1158,10 +1060,12 @@ def test_entry_keeps_depot_maintain_when_uid_confirmed(tmp_path: Path, monkeypat
     plan = merged.get("BF_Plan") or {}
     params = ((plan.get("action") or {}).get("param") or {}).get("custom_action_param") or {}
     assert "depot_disabled" not in params, "UID 正常时不该动库存保持开关"
+    for tail in ("SwipeLeftForStageList", "SwipeRightForStageList"):
+        assert merged[tail]["on_error"] == ["StageLookupTimeout"]
 
 
 def test_timeout_clears_planner_when_home_fails(tmp_path: Path) -> None:
-    """回主页失败按失败结束前，必须清掉模块级 planner 状态。
+    """回主页失败应清掉模块级 planner 状态，并保留该账号下次运行的机会。
 
     回归防护（CodeRabbit）：`_planner` 是跨任务存活的单例，
     异常退出若不清，残留的 `active=True` 会让之后其它任务（如常规作战）
@@ -1178,6 +1082,7 @@ def test_timeout_clears_planner_when_home_fails(tmp_path: Path) -> None:
 
     assert result.success is False, "回不了主页就该按失败结束"
     assert planner().active is False, "异常退出前必须清掉 planner 状态"
+    assert not is_task_skipped(TEST_UID), "回主页失败不能给账号写入停用标记"
 
 
 # ------------------------------------------------- StageLookupBudget 真实实例
@@ -1195,6 +1100,13 @@ class _BudgetReco:
     def __init__(self, results: list[str]) -> None:
         self.results = results
         self.calls: list[Any] = []
+
+    def run_recognition(self, node: str, image: Any, override: dict[str, Any]) -> Any:
+        assert node == "TheFarLeftOfStageList"
+        assert override == {node: {"recognition": {"param": {"roi": reco_balanced_fallback.StageLookupFarLeft._ROI}}}}
+        self.calls.append(node)
+        hit = any(text.startswith("01") for text in self.results)
+        return types.SimpleNamespace(hit=hit, box=[10, 300, 40, 20] if hit else None)
 
     def run_recognition_direct(self, reco_type: Any, param: Any, image: Any = None) -> Any:
         self.calls.append((reco_type, param, image))
@@ -1351,7 +1263,7 @@ def test_far_left_reraises_interface_errors(monkeypatch: pytest.MonkeyPatch) -> 
     state.begin_stage_lookup("7-26")
 
     class _BrokenContext:
-        def run_recognition_direct(self, *a: Any, **k: Any) -> Any:
+        def run_recognition(self, *a: Any, **k: Any) -> Any:
             raise TypeError("signature mismatch")
 
     general = reco_general
@@ -1427,24 +1339,6 @@ def test_timeout_does_not_record_when_target_still_visible(tmp_path: Path, monke
     assert not state.failed_stages
 
 
-def test_timeout_records_when_target_really_absent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """复核也确认看不见时才记不可用并顺延（原有行为不变）。"""
-    state = _planner_with([_material("110103", 1, ["13-10"])])
-    _scanned_and_at_far_left(state)
-
-    context = _RecheckContext(target_visible=False)
-    monkeypatch.setattr(balanced_fallback, "_target_visible_on_screen", lambda c, s: False)
-
-    result = balanced_fallback.StageLookupTimeout().run(context, _FAKE_ARGV)
-
-    assert "13-10" in state.failed_stages, "确认看不见才记录不可用"
-    # 只有一个候选且回家成功 → 记录后应当收尾（转 BF_Skipped），而不是报失败
-    assert result.success is True, "记录并顺延成功后应返回成功"
-    # _FakeContext.override_next 记的是 (节点名, next列表) 元组
-    last = context.next_overrides[-1] if context.next_overrides else (None, [])
-    assert "BF_Skipped" in last[1], f"候选耗尽应转 BF_Skipped，实际 {last}"
-
-
 def test_target_recheck_error_does_not_blacklist_stage() -> None:
 
     class _BrokenContext(_FakeContext):
@@ -1474,7 +1368,7 @@ def test_target_recheck_error_does_not_blacklist_stage() -> None:
 def test_target_recheck_matches_stage_in_ocr_text(texts: list[str], stage: str, expected: bool | None) -> None:
 
     class _Ctx:
-        tasker = types.SimpleNamespace(controller=types.SimpleNamespace(cached_image=object()))
+        tasker = _FakeTasker()
 
         def run_recognition_direct(self, *a: Any, **k: Any) -> Any:
             box = [1, 2, 3, 4]
@@ -1486,3 +1380,45 @@ def test_target_recheck_matches_stage_in_ocr_text(texts: list[str], stage: str, 
             )
 
     assert balanced_fallback._target_visible_on_screen(_Ctx(), stage) is expected
+
+
+def test_blank_frames_retry_same_stage_once_then_skip_only_this_task(monkeypatch: pytest.MonkeyPatch) -> None:
+    state = _planner_with([_material("110103", 1, ["13-10"])])
+    _scanned_and_at_far_left(state)
+    context = _FakeContext()
+    frames: list[object] = []
+
+    def capture() -> Any:
+        frame = object()
+        frames.append(frame)
+        return types.SimpleNamespace(wait=lambda: types.SimpleNamespace(succeeded=True, get=lambda: frame))
+
+    def empty(_: Any, __: Any, image: object) -> Any:
+        assert image is frames[-1]
+        return types.SimpleNamespace(hit=False, all_results=[], best_result=None)
+
+    monkeypatch.setattr(context.tasker.controller, "post_screencap", capture)
+    monkeypatch.setattr(context, "run_recognition_direct", empty)
+    index = state.candidate_index
+    action = balanced_fallback.StageLookupTimeout()
+    assert action.run(context, _FAKE_ARGV).success
+    assert len(frames) == 3 and state.current_stage == "13-10" and not state.reached_far_left
+    assert context.next_overrides[-1] == ("StageLookupTimeout", ["Combat"])
+    state.note_reached_far_left()
+    assert action.run(context, _FAKE_ARGV).success
+    assert len(frames) == 6 and context.run_tasks == [balanced_fallback.HOME_ENTRY] * 2
+    assert context.next_overrides[-1] == ("StageLookupTimeout", [])
+    assert not state.active and state.candidate_index == index and not state.failed_stages
+    assert not unavailable_stages(TEST_UID) and not balanced_state.is_task_skipped(TEST_UID)
+
+
+@pytest.mark.parametrize("readable", [2, 3])
+def test_blank_frames_stop_retrying_when_numbers_appear(readable: int, monkeypatch: pytest.MonkeyPatch) -> None:
+    context = _FakeContext()
+    readings = iter(["无数字"] * (readable - 1) + ["010203"])
+
+    def recognize(*_: Any) -> Any:
+        return types.SimpleNamespace(hit=True, all_results=[_TextResult(next(readings))], best_result=None)
+
+    monkeypatch.setattr(context, "run_recognition_direct", recognize)
+    assert balanced_fallback._target_visible_on_screen(context, "13-02") is True

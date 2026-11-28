@@ -1,6 +1,5 @@
 {
     "StartUp": {
-        "post_wait_freezes": 300,
         "timeout": 60000,
         "next": [
             "[JumpBack]Confirm",
@@ -19,6 +18,9 @@
             "[JumpBack]Reward",
             "[JumpBack]SignInReward",
             "[JumpBack]ClosePageFirst",
+            // 广告关闭放在领取节点之后：ClosePageFirst 会先用签到/奖励页的关闭按钮模板接手，
+            // 保证 SignInReward / ObtainedAwards 先领奖再关页（905bc118），CloseAd 只兜底
+            "[JumpBack]CloseAd",
             "[JumpBack]VictoryReturn",
             "[JumpBack]Downloading",
             "[JumpBack]CandyCancel",
@@ -51,7 +53,16 @@
             "[JumpBack]CandyCancel",
             "[JumpBack]ClickBlank",
             "[JumpBack]SkipButton"
-        ]
+        ],
+        "focus": {
+            "Node.PipelineNode.Failed": {
+                "content": "$Focus.StartUp.ReturnMainAbort",
+                "display": [
+                    "log",
+                    "toast"
+                ]
+            }
+        }
     },
     "EquipmentOverflowDissociate": {
         "desc": "心相仓库已满时直接前往解离",
@@ -159,6 +170,8 @@
             "[JumpBack]SignInReward",
             "[JumpBack]ClickTarot",
             "[JumpBack]ClosePageFirst",
+            // 同上：先让签到/奖励页的领取节点拿到机会，CloseAd 只兜底
+            "[JumpBack]CloseAd",
             "[JumpBack]CandyCancel",
             "[JumpBack]BackButton",
             "[JumpBack]HomeButton",
@@ -343,7 +356,7 @@
             }
         },
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson;\">启动游戏失败，请检查是否正确选择游戏资源</span>"
+            "Node.Action.Starting": "$Focus.StartUp.GameStartFailed"
         }
     },
     "DisableStart1999": {
@@ -388,6 +401,9 @@
         "post_delay": 3000
     },
     "GameLoading": {
+        // 默认阈值 0.7 会让启动广告卡片误配（实测 0.7073，另一帧复算 0.7488），广告期间每轮
+        // 命中并 DoNothing，把排在 next 后面的 CloseAd 饿死，导致广告关不掉、无限空转。
+        // 本模板与真加载页同源，分数远高于此，提到 0.8 可判掉广告帧而保留正常等待。
         "recognition": {
             "type": "TemplateMatch",
             "param": {
@@ -397,7 +413,8 @@
                     599,
                     563
                 ],
-                "template": "StartUp/GameLoading.png"
+                "template": "StartUp/GameLoading.png",
+                "threshold": 0.8
             }
         },
         "post_delay": 3000
@@ -488,6 +505,62 @@
             "time": 300,
             "target": "HomeLoading_wait",
             "timeout": 5000
+        }
+    },
+    "CloseAd": {
+        // 渠道服启动广告右上角的关闭按钮（「圆圈 + X」或纯「X」）；目前华为服、B 服需要它，
+        // 故默认关闭，由需要它的渠道在自身资源包覆盖 enabled 开启（见 resource/huawei、resource/bilibili）
+        "enabled": false,
+        // max_hit 计的是「识别成功」次数（识别到即计数，[JumpBack] 不重置）；耗尽后本节点
+        // 在所有 next 里被静默跳过、且会空转到父节点 60s 超时，故留足余量而非卡紧广告数
+        "max_hit": 6,
+        // 位图模板跨尺寸/渲染不稳，故改用自定义识别（见 agent/custom/reco/close_ad.py）
+        "recognition": {
+            "type": "Custom",
+            "param": {
+                "custom_recognition": "CloseAd",
+                "custom_recognition_param": {
+                    // 两种形态都试：「圆圈 + X」与纯「X」（无外圈）；列表顺序即优先级
+                    "shapes": [
+                        "circle_x",
+                        "x"
+                    ],
+                    // 阈值按形态给，只写要改的那个；整对象替换（没写的键回落代码默认）
+                    "thresholds": {
+                        "circle_x": 0.65,
+                        "x": 0.7
+                    }
+                },
+                // ROI 走框架字段（调试图会画这块，渠道也能单独覆盖它而不动 param）
+                "roi": [
+                    800,
+                    0,
+                    480,
+                    400
+                ]
+            }
+        },
+        "action": {
+            "type": "Click",
+            "param": {
+                // 27px 的识别框是圆形按钮的外接矩形；四边各内缩 7px 后，13×13 的点击范围落在圆内。
+                "target_offset": [
+                    7,
+                    7,
+                    -14,
+                    -14
+                ]
+            }
+        },
+        "post_wait_freezes": {
+            "time": 300,
+            "target": true,
+            // 等的是 16~27px 的小框，点掉广告后容易变平色；默认 20s 会白等，收窄到 3s
+            "timeout": 3000
+        },
+        // 广告弹窗是否弹出不确定，真机难以复现；命中时在任务日志留一行，便于用户反馈是否生效
+        "focus": {
+            "Node.Recognition.Succeeded": "$Focus.StartUp.CloseAd"
         }
     },
     "HomeFlag": {

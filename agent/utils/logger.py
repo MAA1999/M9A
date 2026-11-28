@@ -141,15 +141,26 @@ def _enrich_console_message(record: Any) -> bool:
     return True
 
 
+def _enrich_file_template(record: Any) -> bool:
+    """把 loguru 0.8 的 record["template"]（原始未 format 消息模板）塞回 record.extra。
+
+    无占位符时 template 与 message 相同，按模板聚合等价于按 message，此时清空省一格。
+    """
+    template = record["template"]
+    record["extra"]["template"] = f" | tpl={template}" if template != str(record["message"]) else ""
+    return True
+
+
 _FILE_FORMAT = logging.Formatter("%(asctime)s | %(levelname)-8s | %(name)s:%(funcName)s:%(lineno)d | %(message)s")
 _std_logger = logging.getLogger("m9a")
 
 
 class _BraceFormatLogger:
-    """Delegate wrapper that pre-renders loguru-style {} placeholders for stdlib logging.
+    """Pre-render loguru-style {} placeholders; leave %s/%d to stdlib logging.
 
-    项目里的调用点大量写成 logger.debug("{}={}", key, value)。回退到标准 logging 时这些
-    参数会被当 % 占位处理而抛 TypeError（Logging error）；这里在记录前先把 msg.format(*args) 展开。
+    调用点既有 logger.debug("{}={}", key, value)，也有 logger.error("DisableNode: %s", error)。
+    只对含 {} 的消息做 str.format；其余带着参数交给 logging.getMessage()。str.format 会忽略
+    多余位置参数，所以 "%s".format(err) 既不抛也不填，必须把这类消息从 format 路径拿开。
     """
 
     def __init__(self, wrapped: logging.Logger) -> None:
@@ -162,21 +173,26 @@ class _BraceFormatLogger:
     # findCaller 的默认 stacklevel=1 会停在 _log 里这一行，%(funcName)s:%(lineno)d 全部指错；
     # 在调用方给的 stacklevel 之上再补这两层包装帧。
     _WRAPPER_FRAMES = 2
+    _LOGGING_KW = ("exc_info", "stack_info", "stacklevel", "extra")
 
-    def _render(self, msg: Any, args: tuple[Any, ...], kwargs: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
-        if args and isinstance(msg, str):
+    def _render(
+        self, msg: Any, args: tuple[Any, ...], kwargs: dict[str, Any]
+    ) -> tuple[Any, tuple[Any, ...], dict[str, Any]]:
+        logging_kwargs = {k: v for k, v in kwargs.items() if k in self._LOGGING_KW}
+        if args and isinstance(msg, str) and "{" in msg:
             try:
-                rendered = msg.format(*args, **{k: v for k, v in kwargs.items() if k != "exc_info"})
+                extra = {k: v for k, v in kwargs.items() if k not in self._LOGGING_KW}
+                return msg.format(*args, **extra), (), logging_kwargs
             except Exception:
-                rendered = msg
-            kwargs = {k: v for k, v in kwargs.items() if k in ("exc_info", "stack_info", "stacklevel", "extra")}
-            return rendered, kwargs
-        return msg, kwargs
+                return msg, args, logging_kwargs
+        if args:
+            return msg, args, logging_kwargs
+        return msg, args, kwargs
 
     def _log(self, level: int, msg: Any, args: tuple[Any, ...], kwargs: dict[str, Any]) -> None:
-        msg, kwargs = self._render(msg, args, kwargs)
+        msg, args, kwargs = self._render(msg, args, kwargs)
         kwargs["stacklevel"] = int(kwargs.get("stacklevel") or 1) + self._WRAPPER_FRAMES
-        self._wrapped.log(level, msg, **kwargs)
+        self._wrapped.log(level, msg, *args, **kwargs)
 
     def debug(self, msg: Any, *args: Any, **kwargs: Any) -> None:
         self._log(logging.DEBUG, msg, args, kwargs)
@@ -224,7 +240,8 @@ def _setup_loguru_logger(log_dir: str = "debug/custom", console_level: str = "IN
         retention="2 weeks",
         compression="zip",
         level="DEBUG",
-        format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} | {message}",
+        filter=_enrich_file_template,
+        format="{time:YYYY-MM-DD HH:mm:ss.SSSZ} | {level: <8} | {name}:{function}:{line} | {message}{extra[template]}",
         encoding="utf-8",
         enqueue=True,
         backtrace=True,
@@ -256,8 +273,7 @@ def _setup_std_logger(log_dir: str = "debug/custom", console_level: str = "INFO"
     file_handler.setFormatter(_FILE_FORMAT)
     _std_logger.addHandler(file_handler)
 
-    # 标准 logging 用 % 占位，loguru 用 {}。回退路径上把所有调用方的 {} 占位先渲染成
-    # 最终字符串，否则 record.getMessage() 会在格式化时抛 TypeError（Logging error）。
+    # 标准 logging 用 % 占位，loguru 用 {}。回退路径上把 {} 先展开，%s 留给 logging。
     return _BraceFormatLogger(_std_logger)
 
 

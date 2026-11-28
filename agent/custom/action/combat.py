@@ -7,6 +7,7 @@ from typing import Any
 from maa.agent.agent_server import AgentServer
 from maa.context import Context
 from maa.custom_action import CustomAction
+from maa.define import OCRResult, RecognitionDetail
 from utils.logger import logger
 from utils.maa_types import boxed_results, is_hit, ocr_result, ocr_text
 from utils.params import parse_params
@@ -641,7 +642,8 @@ class SelectCombatStage(CustomAction):
         # （depot_maintain.py 的 MAX_ROUNDS_PER_TASK = 50）。不清零的话，「先刷 7-7、再刷 7-26」这类
         # 换材料重选关会共用同一份 30 次预算，几轮就把右向扫描用光，之后明明存在的关卡被判「未找到」。
         # 每次选关开始时把两个扫描头的计数清零，让 max_hit 的语义回到「单次选关的上限」。
-        for scan_node in ("SwipeLeftAndFindStage", "SwipeRightAndFindStage"):
+        # SwipeRightForChapter 同理（资源章节轮播翻页头）。
+        for scan_node in ("SwipeLeftAndFindStage", "SwipeRightAndFindStage", "SwipeRightForChapter"):
             context.clear_hit_count(scan_node)
 
         SelectCombatStage.stage = stage
@@ -678,16 +680,33 @@ class _TargetCountAvailability:
     available_count: int | None = None
 
 
+# OCR 流水线：trim → replace → expected。filtered / best 是 replace 之后又过了 expected 的结果；
+# 未命中时 filtered 为空，all_results 才留着替换前的原文。全角数字和 @ / 。在这里再归一一次。
+_OCR_DIGIT_TRANS = str.maketrans("０１２３４５６７８９@。", "012345678900")
+
+
+def _tc_ocr_raw_text(detail: RecognitionDetail | None) -> str:
+    text = ocr_text(detail)
+    if text:
+        return text
+    if detail is None:
+        return ""
+    for result in detail.all_results:
+        if isinstance(result, OCRResult) and result.text:
+            return result.text
+    return ""
+
+
 def _tc_parse_int(text: str) -> int | None:
     try:
-        return int(text)
+        return int(text.translate(_OCR_DIGIT_TRANS))
     except ValueError:
         return None
 
 
 def _tc_get_int(context: Context, img: Any, rec_name: str) -> int | None:
     rec = context.run_recognition(rec_name, img)
-    text = ocr_text(rec)
+    text = _tc_ocr_raw_text(rec)
     if not text:
         logger.debug(f"{rec_name} 识别失败")
         return None

@@ -5,6 +5,7 @@ import sys
 import tempfile
 import types
 from datetime import datetime, timedelta
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -1488,7 +1489,12 @@ def test_plan_skips_unavailable_stage_and_advances_within_material(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """登记关卡不可用 → 顺延到同一材料的下一候选（不跨材料）。"""
-    # 110103（啮咬盒）登记 7-26 Hard，掉落索引里还有 6-6 / 5-19
+    # 固定候选以验证顺序和难度，不绑定游戏掉落表的当前版本。
+    monkeypatch.setattr(
+        depot_maintain,
+        "candidates_for_material",
+        partial(depot_maintain.candidates_for_material, drop_index={"5-19E": [110103], "6-6E": [110103]}),
+    )
     snapshot = _snapshot({"110103": 0})
     plan, context = _plan_with_unavailable(
         monkeypatch,
@@ -1501,8 +1507,8 @@ def test_plan_skips_unavailable_stage_and_advances_within_material(
 
     assert result.success is True
     override = context.pipeline_overrides[-1].get("SelectCombatStage") or {}
-    stage = ((override.get("action") or {}).get("param") or {}).get("custom_action_param", {}).get("stage")
-    assert stage and stage != "7-26", "登记关卡已记录不可用，必须顺延到别的候选"
+    assert override["action"]["param"]["custom_action_param"]["stage"] == "6-6"
+    assert override["attach"]["level"] == "Hard"
 
 
 def test_plan_advances_to_next_material_when_all_candidates_unavailable(

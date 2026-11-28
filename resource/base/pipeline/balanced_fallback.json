@@ -39,7 +39,7 @@
         // override）。为了让「找不到关卡」的原因照常显示给用户，这里保留与那两个
         // 节点一致的文案 —— 否则失败会被归到本节点上而没有任何提示。
         "focus": {
-            "Node.PipelineNode.Failed": "<span style=\"color:crimson;\">未在关卡列表中找到目标关卡，请检查关卡配置</span>"
+            "Node.PipelineNode.Failed": "$Focus.Combat.StageNotFound"
         }
     }
 }

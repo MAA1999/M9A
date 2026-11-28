@@ -550,7 +550,6 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 500,
         "next": [
             "PurchaseSmallGlobeMax",
             "PurchaseSmallGlobe"
@@ -717,7 +716,6 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 500,
         "next": [
             "PurchaseTinyGlobeMax",
             "PurchaseTinyGlobe"
@@ -2196,7 +2194,6 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 500,
         "next": [
             "PurchaseGoldenMelonSeedsMax",
             "PurchaseGoldenMelonSeeds"
@@ -2364,7 +2361,6 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 500,
         "next": [
             "PurchaseOriginalChickenMax",
             "PurchaseOriginalChicken"
@@ -2532,7 +2528,6 @@
         "action": {
             "type": "Click"
         },
-        "post_wait_freezes": 500,
         "next": [
             "PurchaseFriesMax",
             "PurchaseFries"

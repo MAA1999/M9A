@@ -20,14 +20,14 @@ on:
     # 这个文件是 key 的唯一输入；其余改动（包括 `bot.yml` 里缓存路径的变化）由下面的 schedule 兜。
     paths:
       - tools/bot/setup.json
-  # `next` / `latest` 会在没有任何 push 的情况下移动，而缓存 7 天没人访问就被清掉。这条每周一次把
+  # `next` / `latest` 会在没有任何 push 的情况下移动，而缓存 7 天没人访问就被清掉。这条每天一次把
   # 两种情况一起覆盖：版本动了就重装重存，没动就只做一次 lookup —— 不下载，也不安装。
   schedule:
-    - cron: "17 3 * * 1"
+    - cron: "17 3 * * *"
   workflow_dispatch:
 
 concurrency:
-  # 周任务正好撞上一次 push 时，两次温存只会白跑一遍安装（npm 下载）和一次缓存上传。
+  # 定时任务正好撞上一次 push 时，两次预热只会白跑一遍安装（npm 下载）和一次缓存上传。
   group: bot-cache
   cancel-in-progress: true
 

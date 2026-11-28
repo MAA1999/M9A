@@ -24,7 +24,7 @@
             }
         },
         "focus": {
-            "Node.Recognition.Succeeded": "研究所评级达到10级，任务完成"
+            "Node.Recognition.Succeeded": "$Focus.CompleteInduction.Done"
         }
     },
     "CompleteInductionStart": {

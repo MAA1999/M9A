@@ -6,5 +6,11 @@
                 "package": "com.shenlan.m.reverse1999.bilibili/com.ssgame.mobile.gamesdk.frame.AppStartUpActivity"
             }
         }
+    },
+    // B 服有启动广告：开启 base 里默认关闭的 CloseAd，识别参数沿用 base 的华为服实测值。
+    // ROI 是框架字段（recognition.param.roi），可单独覆盖；custom_recognition_param 则相反，
+    // 跨资源包是整体替换，要改阈值/形态必须重写整个对象（没写的键会丢）
+    "CloseAd": {
+        "enabled": true
     }
 }

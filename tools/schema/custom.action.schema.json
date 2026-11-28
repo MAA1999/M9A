@@ -18,7 +18,6 @@
                 "LucidscapeStatusDetect",
                 "TeamSelect",
                 "CombatTargetLevel",
-                "SummonlngSwipe",
                 "GoodDreamWellFishing",
                 "SOD_DifficultySelect",
                 "ActivityTargetLevel",
@@ -128,9 +127,6 @@
         },
         {
             "$ref": "#/$defs/CombatTargetLevel"
-        },
-        {
-            "$ref": "#/$defs/SummonlngSwipe"
         },
         {
             "$ref": "#/$defs/GoodDreamWellFishing"
@@ -754,14 +750,6 @@
                         "level"
                     ],
                     "unevaluatedProperties": false
-                }
-            }
-        },
-        "SummonlngSwipe": {
-            "properties": {
-                "custom_action": {
-                    "const": "SummonlngSwipe",
-                    "description": "分派魔精滑动名片。"
                 }
             }
         },

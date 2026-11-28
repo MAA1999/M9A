@@ -7,7 +7,7 @@
         ],
         "on_error": [],
         "focus": {
-            "Node.PipelineNode.Failed": "请到复刻活动左边标有故事/探索模式的页面开始该任务"
+            "Node.PipelineNode.Failed": "$Focus.SSReopen.StartHere"
         }
     },
     "FlagInSS": {

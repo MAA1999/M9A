@@ -37,12 +37,12 @@
     },
     "CombatActivityOverrideError": {
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson;\">未能进入活动界面，请检查资源类型是否正确</span>"
+            "Node.Action.Starting": "$Focus.CombatActivity.OverrideError"
         }
     },
     "CombatActivityNoReRelease": {
         "focus": {
-            "Node.Action.Starting": "当前未开放复刻活动，已跳过活动代币刷取"
+            "Node.Action.Starting": "$Focus.CombatActivity.NoReRelease"
         }
     },
     "FlagInActivityMain": {
@@ -68,7 +68,7 @@
     },
     "FlagInActivityMainError": {
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson;\">未识别到活动界面，请检查资源类型是否正确</span>"
+            "Node.Action.Starting": "$Focus.CombatActivity.NotActivity"
         }
     },
     "EnterTheActivityMain": {
@@ -140,7 +140,7 @@
     },
     "ActivityMainChapterError": {
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson;\">未识别到活动章节入口，请检查资源类型是否正确</span>"
+            "Node.Action.Starting": "$Focus.CombatActivity.NoChapter"
         }
     },
     "FlagInActivityStage": {
@@ -228,7 +228,8 @@
                         "0",
                         ""
                     ]
-                ]
+                ],
+                "color_filter": "ActivityCombatStageCost_color_filter"
             }
         }
     },
@@ -242,9 +243,9 @@
                     167
                 ],
                 "upper": [
-                    245,
-                    237,
-                    227
+                    255,
+                    255,
+                    255
                 ]
             }
         }
@@ -410,7 +411,7 @@
     },
     "ActivityRe_releaseChapterError": {
         "focus": {
-            "Node.Action.Starting": "<span style=\"color:crimson;\">未识别到复刻活动章节：请检查资源类型是否正确，或活动数据是否已更新</span>"
+            "Node.Action.Starting": "$Focus.CombatActivity.NoReReleaseChapter"
         }
     },
     "ActivityLeftList": {

@@ -81,7 +81,7 @@ except ImportError:
 SNAPSHOT_TS_FORMAT = "%Y-%m-%d %H:%M:%S"
 SNAPSHOT_TTL_HOURS = 24
 # 材料名称/品质表（与仓库扫描同源）：日志里显示「名称（品质色）」用。
-# 相对路径在读取时经 RuntimePaths.resolve 走数据目录覆盖层，热更文件优先、包内基线兜底。
+# 相对路径在读取时经 RuntimePaths.resolve 从包内只读数据目录读取。
 ITEMS_REL_PATH = "data/combat/items.json"
 _RARITY_ORDER = ("gold", "yellow", "purple", "blue", "green")
 

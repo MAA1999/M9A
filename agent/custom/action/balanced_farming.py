@@ -187,7 +187,7 @@ class BalancedFarmingAnalyze(CustomAction):
             if outcome == "saved":
                 logger.warning("已标记「跳过均衡刷材料任务」，下次运行直接跳过")
             elif outcome == "memory_only":
-                logger.warning("本次未保存停用标记（读不到游戏内 UID），下次运行会重新尝试")
+                logger.warning("本次未保存停用标记，下次运行会重新尝试")
             else:
                 logger.error("停用标记保存失败，下次运行不会自动跳过")
             context.override_next(ANALYZE_NODE, [SKIPPED_NODE])

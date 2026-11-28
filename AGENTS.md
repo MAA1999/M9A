@@ -49,7 +49,7 @@ docs/           # 开发者文档与用户手册（见下）
 | 命令 | 用途 |
 | --- | --- |
 | `pnpm check` | Prettier 检查 → schema 校验 → i18n 校验 → MaaFW 完整性 |
-| `pnpm check:i18n` | 校验 interface/task 的 i18n key 在每种语言都能解析 |
+| `pnpm check:i18n` | 校验 interface/task/pipeline `focus` 的 i18n key 在每种语言都能解析 |
 | `pnpm check:py` | ruff lint → pyright 类型检查 → pytest |
 | `pnpm format` / `pnpm format:py` | 自动格式化非 Python（Prettier）/ Python（ruff） |
 | `pnpm test:py` | 跑测试（`uv run --frozen pytest`） |
