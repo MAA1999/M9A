@@ -775,11 +775,7 @@ class StageLookupTimeout(CustomAction):
 
 @AgentServer.custom_action("BalancedTaskSkip")
 class BalancedTaskSkip(CustomAction):
-    """均衡刷材料任务被跳过时的收尾：说明原因。
-
-    任务在入口就被判定为「已停用」时走这里 —— 此时游戏还没被导航过，
-    **不导航、不点选关卡**，直接结束本任务让后续任务继续。
-    """
+    """清理顺延状态并结束本次均衡刷材料任务。具体原因由进入收尾的分支记录。"""
 
     def run(
         self,
@@ -790,5 +786,5 @@ class BalancedTaskSkip(CustomAction):
         parse_params(argv.custom_action_param)
         # 收尾清理：本任务结束时关掉顺延状态，避免影响同一 agent 进程里的后续任务
         finish_planner()
-        logger.info("均衡刷材料任务已按标记跳过（所有参与材料的候选关卡此前都不可用）")
+        logger.info("本次任务结束")
         return CustomAction.RunResult(success=True)
