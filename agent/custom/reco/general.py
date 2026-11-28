@@ -10,6 +10,35 @@ from utils.logger import logger
 from utils.maa_types import is_hit, ocr_text
 from utils.params import parse_params
 
+# 关卡序号（含未解锁关卡）的米白色，与 `combat.json` 的
+# `TargetStageName.custom_recognition_param.target_color` 保持一致。
+STAGE_TEXT_COLOR: tuple[int, int, int] = (243, 241, 223)
+STAGE_TEXT_TOLERANCE = 140
+
+
+def filter_by_color(
+    image: Any,
+    target_color: tuple[int, int, int] | list[int] = STAGE_TEXT_COLOR,
+    tolerance: int = STAGE_TEXT_TOLERANCE,
+) -> Any:
+    """按颜色过滤画面，供后续 OCR 使用。
+
+    匹配目标颜色的像素变**黑**，其余变**白**（黑白反转图，OCR 直接能读）。
+    这样 OCR 只会看到该颜色的文字，不会把边框、装饰、别色说明读进来。
+
+    为什么单独抽出来：`ColorOCR`（本模块）与 `StageLookupFarLeft`
+    （`custom/reco/balanced_fallback.py`）需要**看到同一批像素**。
+    两边用不同的处理方式时，会出现「一个读得到、一个读不到」的冲突判定。
+    """
+    array = np.asarray(image)
+    target = np.array(target_color)
+    lower = np.maximum(target - tolerance, 0)
+    upper = np.minimum(target + tolerance, 255)
+    mask = np.all((array >= lower) & (array <= upper), axis=-1)
+    processed = np.full_like(array, 255, dtype=np.uint8)
+    processed[mask] = 0
+    return processed
+
 
 @AgentServer.custom_recognition("MultiRecognition")
 class MultiRecognition(CustomRecognition):
@@ -613,21 +642,8 @@ class ColorOCR(CustomRecognition):
             # 获取图像
             img = argv.image
 
-            # 定义目标颜色和颜色容差
-            target_color_array = np.array(target_color)
-
-            # 创建颜色过滤掩码
-            lower_bound = np.maximum(target_color_array - tolerance, 0)
-            upper_bound = np.minimum(target_color_array + tolerance, 255)
-
-            # 创建掩码：保留在目标颜色范围内的像素
-            color_mask = np.all((img >= lower_bound) & (img <= upper_bound), axis=-1)
-
-            # 处理图像：目标颜色变成黑色，其他颜色变成白色
-            # 创建一个全白图像
-            processed_img = np.full_like(img, 255, dtype=np.uint8)
-            # 将匹配目标颜色的像素设置为黑色
-            processed_img[color_mask] = 0
+            # 按目标颜色过滤（与 `StageLookupFarLeft` 共用同一份实现）
+            processed_img = filter_by_color(img, target_color, tolerance)
 
             # 在处理后的图像上运行OCR识别
             reco_detail = context.run_recognition(recognition_node, processed_img)

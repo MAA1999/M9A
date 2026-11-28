@@ -23,10 +23,19 @@ agent/libs/*.pyd
 # 运行时生成的缓存
 data/manifest_cache.json
 maafw.log
+# 资源热更新写下的版本清单（运行时产物，不进版本库）
+version/
 
 # node 相关
 .pnpm-store/
 .idea/
+
+# 单元测试的一次性临时目录（旧版测试在仓库根目录建目录且不回收）
+m9a-depot-test-*/
+pytest-of-*/
+pytest-cache-files-*/
+.pytest-tmp*/
+
 # Android 客户端：agent 产物在子模块外，必须在这里忽略
 Android/agent-dist/
 *.jks

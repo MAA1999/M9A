@@ -15,6 +15,13 @@ build/
 .pytest_cache/
 .ruff_cache/
 
+# 单元测试的一次性临时目录（旧版测试在仓库根目录建目录且不回收，
+# 它们的 Windows 权限会让扫描工具报 EPERM）
+m9a-depot-test-*/
+pytest-of-*/
+pytest-cache-files-*/
+.pytest-tmp*/
+
 # 运行时调试输出
 debug/
 
